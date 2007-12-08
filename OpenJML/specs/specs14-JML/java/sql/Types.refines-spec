@@ -1,0 +1,58 @@
+// @(#)$Id: Types.refines-spec,v 1.1 2005/11/09 21:11:13 leavens Exp $
+//
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.sql;
+
+/** JML's specification of Types. */
+public class Types extends Object {
+
+    // FIELDS
+    public static final int LONGVARCHAR;
+    public static final int ARRAY;
+    public static final int BINARY;
+    public static final int JAVA_OBJECT;
+    public static final int TIMESTAMP;
+    public static final int BOOLEAN;
+    public static final int FLOAT;
+    public static final int BIGINT;
+    public static final int BIT;
+    public static final int STRUCT;
+    public static final int OTHER;
+    public static final int CHAR;
+    public static final int INTEGER;
+    public static final int DECIMAL;
+    public static final int DISTINCT;
+    public static final int NULL;
+    public static final int REAL;
+    public static final int TINYINT;
+    public static final int DATALINK;
+    public static final int VARBINARY;
+    public static final int VARCHAR;
+    public static final int REF;
+    public static final int LONGVARBINARY;
+    public static final int TIME;
+    public static final int DATE;
+    public static final int DOUBLE;
+    public static final int CLOB;
+    public static final int BLOB;
+    public static final int NUMERIC;
+    public static final int SMALLINT;
+}

@@ -1,0 +1,96 @@
+// @(#)$Id: Date.refines-spec,v 1.5 2006/01/24 17:09:48 leavens Exp $
+//
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.sql;
+
+/** JML specification for Date.
+ *  @author Chenwei Qiu
+ *  @author Gary T. Leavens
+ */
+public class Date extends java.util.Date {
+
+    //@ public static ghost final long millisInDay = 24*60*60*1000;
+
+    /** @deprecated */
+    public Date(int year, int month, int day);
+
+    /*@   requires date >= 0 || date%millisInDay == 0;
+      @   assignable fastTime;
+      @   ensures this.cal == null && this.fastTime == date;
+      @ also
+      @   requires date < 0 && date%millisInDay != 0;
+      @   assignable fastTime;
+      @   ensures this.cal == null
+      @        && this.fastTime
+      @            == ((date/millisInDay) * millisInDay) - millisInDay;
+      @*/
+    public Date(long date);
+
+    /** @deprecated */
+    public int getHours();
+
+    /** @deprecated */
+    public int getMinutes();
+
+    /** @deprecated */
+    public int getSeconds();
+
+    /** @deprecated */
+    public void setHours(int i);
+
+    /** @deprecated */
+    public void setMinutes(int i);
+
+    /** @deprecated */
+    public void setSeconds(int i);
+
+    /*@ also
+      @   requires date >= 0 || date%millisInDay == 0;
+      @   assignable fastTime;
+      @          ensures this.fastTime == date;
+      @ also
+      @   requires date < 0 && date%millisInDay != 0;
+      @   assignable fastTime;
+      @   ensures this.fastTime == ((date/millisInDay) * millisInDay) - millisInDay;
+      @*/
+    public void setTime(long date);
+
+    // specification inherited from java.util.Date
+    /*@ also
+      @   assignable \nothing;
+      @   ensures \result != null && this.equals(valueOf(\result));
+      @*/
+    public /*@ pure @*/ String toString();
+
+    /*@   requires s != null
+      @         && s.matches("[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]");
+      @   assignable \nothing;
+      @   ensures \result != null && \result.toString().equals(s);
+      @*/
+    public /*@ pure @*/ static Date valueOf(String s);
+    
+    /*@ also
+      @   requires o instanceof Date;
+      @   ensures \result ==> (((Date)o).fastTime == this.fastTime);
+      @*/
+    public /*@ pure @*/ boolean equals(/*@ nullable @*/ Object o);
+
+}

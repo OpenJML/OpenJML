@@ -1,0 +1,168 @@
+// @(#)$Id: Hashtable.refines-spec,v 1.14 2006/01/30 22:10:45 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.util;
+
+//@ model import org.jmlspecs.models.*;
+
+/** JML's specification of java.util.Hashtable.
+ * @version $Revision: 1.14 $
+ * @author Katie Becker
+ * @author Gary T. Leavens
+ */
+public class Hashtable extends Dictionary
+    implements Map, Cloneable, java.io.Serializable
+{
+ 
+    //@ public model int initialCapacity;    
+    //@ public model float mLoadFactor;
+	    // Can't use loadFactor because it is a private field identifier
+    
+    //@ public invariant initialCapacity >= 0;  
+    //@ public invariant mLoadFactor > 0;
+      
+    /*@ public normal_behavior
+      @   requires initialCapacity >= 0;
+      @   assignable theMap, this.initialCapacity, this.mLoadFactor;
+      @     ensures theMap != null && theMap.isEmpty();
+      @     ensures this.initialCapacity == initialCapacity
+      @          && this.mLoadFactor == mLoadFactor;
+      @*/           
+    public Hashtable(int initialCapacity, float mLoadFactor); 
+            
+    /*@ public normal_behavior
+      @   assignable theMap, this.initialCapacity, this.mLoadFactor;
+      @     ensures theMap != null && theMap.isEmpty();
+      @     ensures this.initialCapacity == initialCapacity
+      @          && this.mLoadFactor == 0.75;
+      @*/
+    public Hashtable(int initialCapacity); 
+
+    /*@ public normal_behavior
+      @   assignable theMap, initialCapacity, mLoadFactor;
+      @     ensures theMap != null && theMap.isEmpty();
+      @     ensures mLoadFactor == 0.75;
+      @*/
+    public Hashtable(); 
+
+    /*@ public normal_behavior
+      @   requires t != null;
+      @     assignable theMap, initialCapacity, mLoadFactor;
+      @     ensures initialCapacity==2*(t.theMap.int_size());
+      @     ensures mLoadFactor == 0.75 && theMap.equals(t.theMap);
+      @*/     
+    public Hashtable(Map t);
+
+    // specification inherited
+    public synchronized int size();
+
+    // specification inherited
+    public synchronized boolean isEmpty();
+
+    /*@ also
+      @   normal_behavior
+      @     ensures \fresh(\result); 
+      @*/
+    public /*@ pure @*/ synchronized Enumeration keys(); 
+ 
+    /*@ also 
+      @   normal_behavior
+      @     ensures \fresh(\result);  
+      @*/
+    public /*@ pure @*/ synchronized Enumeration elements(); 
+
+    /*@ public normal_behavior
+      @    requires value != null;
+      @    ensures \result <==>
+      @      (\exists Map.Entry e; theMap.has(e) && e != null; 
+      @                            e.abstractValue.equals(value));
+      @    ensures_redundantly \result==containsValue(value);
+      @*/
+    public /*@ pure @*/ synchronized boolean contains(Object value); 
+
+    /*@ also
+      @   public behavior
+      @     ensures value != null;
+      @     signals_only NullPointerException;
+      @     signals (NullPointerException) value == null;
+      @*/
+    public boolean containsValue(/*@ nullable @*/ Object value);
+
+    // specification inherited
+    public synchronized boolean containsKey(/*@ nullable @*/ Object key);
+
+    // specification inherited
+    public synchronized Object get(/*@ nullable @*/ Object key);
+
+    /*@ protected normal_behavior
+      @    assignable theMap; 
+      @    ensures theMap.equals(\old(theMap));
+      @*/
+    protected void rehash();
+
+    // specification inherited
+    public synchronized Object put(/*@ nullable @*/ Object key,
+                                   /*@ nullable @*/ Object value);
+
+    // specification inherited
+    public synchronized Object remove(/*@ nullable @*/ Object key);
+
+    // specification inherited
+    public synchronized void putAll(Map t);
+
+    // specification inherited
+    public synchronized void clear();
+
+    /*@ also
+      @   public normal_behavior
+      @       assignable \nothing;
+      @       ensures \result instanceof Map && \fresh(\result)
+      @          && ((Map)\result).equals(this);
+      @       ensures_redundantly \result != this;
+      @*/
+    public /*@ pure @*/ synchronized Object clone(); 
+
+    // specification inherited
+    public synchronized String toString();
+
+    // specification inherited
+    public Set keySet();
+
+    // specification inherited
+    public Set entrySet();
+
+   // specification inherited
+    public Collection values();
+
+    /*@ also 
+      @  public normal_behavior
+      @    requires o instanceof Hashtable;
+      @    ensures \result <==> theMap.equals(((Hashtable)o).theMap);
+      @ also
+      @  public normal_behavior
+      @    requires !(o instanceof Hashtable);
+      @    ensures \result == false;
+      @*/
+    public synchronized boolean equals(/*@ nullable @*/ Object o);
+
+   // specification inherited
+    public synchronized int hashCode();
+}

@@ -1,0 +1,141 @@
+package org.jmlspecs.openjml;
+
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Options;
+
+/** This is an Enum that contains information about command-line
+ * options for JML and related tools.  To assist with future
+ * extensions, do not use the Enum type directly; rather use the 
+ * OptionInterface interface.
+ * 
+ * @author David Cok
+ *
+ */
+// FIXME - investigate integrating this with Option, OptionName; also change to something other than an enum since it is not extensible
+// FIXME _ best practice would use a resources file for all the help information; javac loads its resources on demand
+public enum JmlOptionName implements OptionInterface {
+
+    SPECS("-specs",true,"Specifies the directory path to search for specification files"),
+    JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output"),
+    USEJAVACOMPILER("-useJavaCompiler",false,"When on, the tool uses only the underlying javac compiler (must be the first option)"),
+    NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored"),
+    NOCHECKSPECSPATH("-noCheckSpecsPath",false,"When on, no warnings for non-existent specification path directories are issued"),
+    SHOW_NOT_IMPLEMENTED("-showNotImplemented",false,"When on, warnings about unimplemented constructs are issued"),
+    JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much"),
+    INTERACTIVE("-i",false,"Must be first, starts interactive mode"),
+    STOPIFERRORS("-stopIfParseErrors",false,"When enabled, stops after parsing if any files have parsing errors"),
+    NOINTERNALSPECS("-noInternalSpecs",false,"Disables automatically appending the internal specs directory to the specification path"),
+    NOINTERNALRUNTIME("-noInternalRuntime",false,"Disables automatically appending the internal JML runtime library to the classpath"),
+    RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks"),
+    NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default"),
+    ESC("-esc",false,"Enables static checking"),
+    ;
+    /** Convenience field for the name of the SPECS option. */
+    public final static String specs = SPECS.optionName();
+    
+    /** Holds the name of the option, as it is used in the command-line,
+     * including the leading '-' character.
+     */
+    final private String name;
+    
+    /** Whether the option takes an argument */
+    final private boolean hasArg;
+    
+    /** The help string for this option */
+    final private String help;
+    
+    /** Private constructor to create Enum instances.
+     * @param s The option name, including any leading - character
+     * @param hasArg Whether the option takes a (required) argument
+     * @param help The associated help string
+     */
+     //@ requires numargs == 0 || numargs == 1;
+    private JmlOptionName(/*@ non_null */ String s, boolean hasArg, /*@ non_null */ String help) {
+        this.name = s;
+        this.hasArg = hasArg;
+        this.help = help;
+    }
+    
+    /** Return whether an option is enabled in the given context
+     * @param context the compilation context
+     * @param option the option name
+     * @return true if the option is enabled, false otherwise
+     */
+    public static boolean isOption(Context context, JmlOptionName option) {
+        return Options.instance(context).get(option.name) != null;
+    }
+    
+    /** Return whether an option is enabled in the given context
+     * @param context the compilation context
+     * @param option the option name by string (including leading -)
+     * @return true if the option is enabled, false otherwise
+     */
+    public static boolean isOption(Context context, String option) {
+        return Options.instance(context).get(option) != null;
+    }
+    
+    /** Return the value of an option with an argument
+     * @param context the compilation unit context
+     * @param option the option name
+     * @return the value of the argument, or null if not specified
+     */
+    //@ nullable
+    public static String value(Context context, JmlOptionName option) {
+        return Options.instance(context).get(option.name);
+    }
+    
+    /** The name of the option, including any leading - sign
+     * @see org.jmlspecs.openjml.OptionInterface#optionName()
+     */
+     //@ non_null
+    @Override
+    public String optionName() { return name; }
+
+    /* Whether the option takes an argument
+     * @see org.jmlspecs.openjml.OptionInterface#hasArg()
+     */
+    @Override
+    public boolean hasArg() { return hasArg; }
+    
+    /**
+     * @return the help string associated with this option
+     */
+    //@ non_null
+    public String help() { return help; }
+    
+    /** Finds the option with the given name, returning it if
+     * found and returning null if not found.
+     * @param s the name of the option to find
+     * @return the option found, or null
+     */
+    //@ ensures \result == null || \result.optionName().equals(s);
+    //@ nullable
+    static JmlOptionName find(/*@ non_null */ String s) {
+        for (JmlOptionName j : values()) 
+            if (j.name.equals(s)) return j;
+        return null;
+    }
+    
+    /** A help value which is the platform-dependent line termination string */
+    //@ non_null
+    final static public String eol = System.getProperty("line.separator");
+    
+    /** Returns the JML command-line argument help information as a String
+     * 
+     * @return the JML part of the command-line help information
+     */
+    //@ non_null
+    public static String helpInfo() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("JML options:").append(eol);
+        for (OptionInterface j : values()) {
+            sb.append("  ").append(j.optionName());
+            for (int i = j.optionName().length(); i<27; i++) {
+                sb.append(" ");
+            }
+            sb.append(j.help()).append(eol);
+        }
+        return sb.toString();
+        
+    }
+}

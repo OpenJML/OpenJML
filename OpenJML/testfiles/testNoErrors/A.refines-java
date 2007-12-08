@@ -1,0 +1,3 @@
+//@ refines "A.java";
+
+public class A {}

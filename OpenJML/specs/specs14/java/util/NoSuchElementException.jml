@@ -1,0 +1,16 @@
+package java.util;
+
+public class NoSuchElementException extends RuntimeException {
+    /*@ public normal_behavior
+      @   ensures standardThrowable(null);
+      @*/
+    //@ pure
+    public NoSuchElementException();
+
+    /*@ public normal_behavior
+      @   ensures standardThrowable(s);
+      @*/
+    //@ pure
+    public NoSuchElementException(String s);
+}
+

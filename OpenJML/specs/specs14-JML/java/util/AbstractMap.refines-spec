@@ -1,0 +1,63 @@
+// @(#)$Id: AbstractMap.refines-spec,v 1.7 2006/01/30 22:10:45 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+// This is a quick spec so that we can test TreeMap
+package java.util;
+
+public abstract class AbstractMap implements Map {
+    protected AbstractMap();
+    public int size();
+    public boolean isEmpty();
+    public boolean containsValue(/*@ nullable @*/ Object value);
+    public boolean containsKey(/*@ nullable @*/ Object key);
+    public Object get(/*@ nullable @*/ Object key);
+    public Object put(/*@ nullable @*/ Object key, /*@ nullable @*/ Object value);
+    public Object remove(/*@ nullable @*/ Object key);
+
+    //@ also requires t != null;
+    public void putAll(Map t);
+    public void clear();
+    public Set keySet();
+    public Collection values();
+    public abstract Set entrySet();
+    public boolean equals(/*@ nullable @*/ Object o);
+    public int hashCode();
+    public String toString();
+    protected Object clone() throws CloneNotSupportedException;
+
+    static class SimpleEntry implements Entry {
+
+        public SimpleEntry(Object key, Object value);
+        public SimpleEntry(Map.Entry e);
+        public Object getKey();
+        public Object getValue();
+        public Object setValue(Object value);
+        public boolean equals(/*@ nullable @*/ Object o);
+        public int hashCode();
+        public String toString();
+
+        Object key;
+        Object value;
+    }
+
+    transient volatile Set keySet;
+    transient volatile Collection values;
+}

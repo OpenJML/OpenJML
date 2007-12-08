@@ -1,0 +1,104 @@
+// @(#)$Id: Locale.jml 2226 2006-12-13 01:57:30Z chalin $
+
+// Copyright (C) 1998, 1999 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+package java.util;
+import java.io.*;
+
+public final class Locale implements Cloneable, Serializable {
+
+    static public final /*@non_null*/ Locale ENGLISH;
+    static public final /*@non_null*/ Locale FRENCH;
+    static public final /*@non_null*/ Locale GERMAN;
+    static public final /*@non_null*/ Locale ITALIAN;
+    static public final /*@non_null*/ Locale JAPANESE;
+    static public final /*@non_null*/ Locale KOREAN;
+    static public final /*@non_null*/ Locale CHINESE;
+    static public final /*@non_null*/ Locale SIMPLIFIED_CHINESE;
+    static public final /*@non_null*/ Locale TRADITIONAL_CHINESE;
+    static public final /*@non_null*/ Locale FRANCE;
+    static public final /*@non_null*/ Locale GERMANY;
+    static public final /*@non_null*/ Locale ITALY;
+    static public final /*@non_null*/ Locale JAPAN;
+    static public final /*@non_null*/ Locale KOREA;
+    static public final /*@non_null*/ Locale CHINA;
+    static public final /*@non_null*/ Locale PRC;
+    static public final /*@non_null*/ Locale TAIWAN;
+    static public final /*@non_null*/ Locale UK;
+    static public final /*@non_null*/ Locale US;
+    static public final /*@non_null*/ Locale CANADA;
+    static public final /*@non_null*/ Locale CANADA_FRENCH;
+    static final long serialVersionUID;
+    public Locale(/*@non_null*/ String language,
+		  /*@non_null*/ String country,
+		  /*@non_null*/ String variant);
+    public Locale(/*@non_null*/ String language, 
+		  /*@non_null*/ String country);
+
+    public Locale(/*@non_null*/ String language);
+
+    public static /*@pure*/ /*@non_null*/ Locale getDefault();
+
+    //@ public normal_behavior
+    //@ modifies \everything;
+    //@ ensures getDefault() == newLocale;
+    public static synchronized void setDefault(/*@non_null*/ Locale newLocale);
+
+    public static /*@pure*/ /*@non_null*/ Locale[] getAvailableLocales();
+
+    public static /*@pure*/ /*@non_null*/ String[] getISOCountries();
+
+    public static /*@pure*/ /*@non_null*/ String[] getISOLanguages();
+
+    public /*@pure*/ /*@non_null*/ String getLanguage();
+
+    public /*@pure*/ /*@non_null*/ String getCountry();
+
+    public /*@pure*/ /*@non_null*/ String getVariant();
+
+    public /*@pure*/ /*@non_null*/ final String toString();
+
+    public /*@pure*/ /*@non_null*/ String getISO3Language()
+        throws MissingResourceException;
+
+    public /*@pure*/ /*@non_null*/ String getISO3Country()
+        throws MissingResourceException;
+
+    public final /*@pure*/ /*@non_null*/ String getDisplayLanguage();
+
+    public /*@pure*/ /*@non_null*/ String getDisplayLanguage(/*@non_null*/ Locale inLocale);
+
+    public final /*@pure*/ /*@non_null*/ String getDisplayCountry();
+
+    public /*@pure*/ /*@non_null*/ String getDisplayCountry(/*@non_null*/ Locale inLocale);
+
+    public final /*@pure*/ /*@non_null*/ String getDisplayVariant();
+
+    public /*@pure*/ /*@non_null*/ String getDisplayVariant(/*@non_null*/ Locale inLocale);
+
+    public final /*@pure*/ /*@non_null*/ String getDisplayName();
+
+    public /*@pure*/ /*@non_null*/ String getDisplayName(/*@non_null*/ Locale inLocale);
+    public /*@non_null*/ Object clone();
+
+    public synchronized int hashCode();
+
+    public /*@ pure @*/ boolean equals(/*@nullable*/Object obj);
+}

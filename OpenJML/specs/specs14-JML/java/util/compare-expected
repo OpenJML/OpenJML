@@ -1,0 +1,33 @@
+Comparing Pattern in Pattern.refines-spec and Pattern.class
+regex\Pattern.refines-spec:30:12: Constructor Pattern() is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:61:17: Class Node extends Object in Pattern.refines-spec, but extends java.util.regex.Pattern$Node in class java.util.regex.Pattern$LastNode.class
+regex\Pattern.refines-spec:66:13: Method dup(boolean not) is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$LastNode.class
+regex\Pattern.refines-spec:70:16: Method study(TreeInfo info) is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$LastNode.class
+regex\Pattern.refines-spec:72:19: Field next is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$LastNode.class
+regex\Pattern.refines-spec:75:17: Type LastNode is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:117:23: Type UnixCaret is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:135:16: Method endMatch(Matcher matcher,int i,CharSequence seq) is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$UnixDollar.class
+regex\Pattern.refines-spec:142:23: Type UnixDollar is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:168:23: Type NotSingle is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:196:23: Type NotSingleA is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:224:23: Type NotSingleU is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:266:23: Type NotCtype is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:337:17: Class Range extends Node in Pattern.refines-spec, but extends java.util.regex.Pattern$NotRange in class java.util.regex.Pattern$CINotRange.class
+regex\Pattern.refines-spec:339:14: Constructor Range() is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$CINotRange.class
+regex\Pattern.refines-spec:347:16: Method study(TreeInfo info) is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$CINotRange.class
+regex\Pattern.refines-spec:379:17: Type CINotRange is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:413:23: Type UnixDot is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:437:14: Constructor Curly(Node node,int cmin,int cmax,int type) is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$GroupCurly.class
+Pattern.refines-spec: Field localIndex is not in Pattern.refines-spec, but is in class java.util.regex.Pattern$GroupCurly.class
+Pattern.refines-spec: Field groupIndex is not in Pattern.refines-spec, but is in class java.util.regex.Pattern$GroupCurly.class
+regex\Pattern.refines-spec:455:23: Type GroupCurly is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:531:17: Class Loop extends Node in Pattern.refines-spec, but extends java.util.regex.Pattern$Loop in class java.util.regex.Pattern$LazyLoop.class
+regex\Pattern.refines-spec:531:17: Modifiers for type Loop are different: static vs. static final 
+regex\Pattern.refines-spec:541:19: Field body is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$LazyLoop.class
+regex\Pattern.refines-spec:542:24: Field countIndex is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$LazyLoop.class
+regex\Pattern.refines-spec:543:24: Field beginIndex is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$LazyLoop.class
+regex\Pattern.refines-spec:544:18: Field cmin is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$LazyLoop.class
+regex\Pattern.refines-spec:545:18: Field cmax is in Pattern.refines-spec, but is not in class java.util.regex.Pattern$LazyLoop.class
+regex\Pattern.refines-spec:548:23: Type LazyLoop is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:571:17: Type CIBackRef is in Pattern.refines-spec, but is not in Pattern.class
+regex\Pattern.refines-spec:635:23: Type NotBehind is in Pattern.refines-spec, but is not in Pattern.class

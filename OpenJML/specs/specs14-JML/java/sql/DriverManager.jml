@@ -1,0 +1,68 @@
+// @(#)$Id: DriverManager.jml,v 1.5 2005/08/16 17:13:14 f_rioux Exp $
+//
+// Copyright (C) 2004 Dependable Software Research Group, Concordia University.
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.sql;
+
+import java.io.PrintWriter;
+import java.util.Enumeration;
+import java.util.Properties;
+import java.io.PrintStream;
+
+public class DriverManager {
+
+	/*
+	 * NOTE: This file has only been partially specified. Feel free to complete.
+	 * (http://java.sun.com/j2se/1.4.2/docs/api/java/sql/DriverManager.html)
+	 */
+
+	public static PrintWriter getLogWriter();
+
+	public static void setLogWriter(PrintWriter out);
+
+	public static Connection getConnection(String url, Properties info) throws SQLException;
+
+	// based on interpretation of Sun documentation.
+	//@ ensures \result != null;
+	public static Connection getConnection(String url, String user, String password) throws SQLException;
+
+	// based on interpretation of Sun documentation.
+	//@ ensures \result != null;
+	public static Connection getConnection(String url) throws SQLException;
+
+	public static Driver getDriver(String url) throws SQLException;
+
+	public static void registerDriver(Driver driver) throws SQLException;
+
+	public static void deregisterDriver(Driver driver) throws SQLException;
+
+	public static Enumeration getDrivers();
+
+	public static void setLoginTimeout(int seconds);
+
+	public static int getLoginTimeout();
+
+	public static void setLogStream(PrintStream out);
+
+	public static PrintStream getLogStream();
+
+	public static void println(String message);
+
+}

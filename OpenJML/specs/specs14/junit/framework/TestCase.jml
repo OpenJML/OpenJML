@@ -1,0 +1,32 @@
+// $Id: TestCase.jml 2223 2006-12-11 19:06:19Z chalin $
+
+package junit.framework;
+
+public abstract class TestCase extends junit.framework.Assert implements junit.framework.Test {
+
+    public TestCase();
+
+    public TestCase(java.lang.String Param0);
+
+    public int countTestCases();
+
+    protected junit.framework.TestResult createResult();
+
+    public junit.framework.TestResult run();
+
+    public void run(junit.framework.TestResult Param0);
+
+    public void runBare() throws java.lang.Throwable;
+
+    protected void runTest() throws java.lang.Throwable;
+
+    protected void setUp() throws java.lang.Exception;
+
+    protected void tearDown() throws java.lang.Exception;
+
+    public /*@non_null*/ java.lang.String toString();
+
+    public java.lang.String getName();
+
+    public void setName(java.lang.String Param0);
+}

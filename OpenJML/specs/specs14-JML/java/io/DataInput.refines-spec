@@ -1,0 +1,147 @@
+// @(#)$Id: DataInput.refines-spec,v 1.2 2006/01/24 17:09:48 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.io;
+
+//@ model import org.jmlspecs.models.*;
+
+/** JML's specification of DataInput.
+ * @author Gary T. Leavens
+ */
+public interface DataInput {
+
+    /*@ public model instance JMLDataGroup input; in objectState;
+      @ public model instance non_null JMLValueSequence bytesRead; in input;
+      @   initially bytesRead.isEmpty();
+      @*/
+
+    // METHODS
+
+    /*@
+      @ 
+      @*/
+    void readFully(byte[] b) throws IOException;
+
+    /*@
+      @ 
+      @*/
+    void readFully(byte[] b, int off, int len) throws IOException;
+
+    /*@
+      @ 
+      @*/
+    int skipBytes(int n) throws IOException;
+
+    /*@ public behavior
+      @   assignable input;
+      @   ensures bytesRead.size() == \old(bytesRead.size() + 1);
+      @   ensures bytesRead.header().equals(\old(bytesRead));
+      @   ensures \result <==> ((JMLByte)bytesRead.last()).theByte != 0;
+      @   ensures_redundantly \result == false
+      @                   <==> ((JMLByte)bytesRead.last()).theByte == 0;
+      @*/
+    boolean readBoolean() throws IOException;
+
+    /*@ public behavior
+      @   assignable input;
+      @   ensures bytesRead.equals(
+      @          \old(bytesRead).insertBack(new JMLByte(\result)));
+      @   ensures_redundantly -128 <= \result && \result < 127;
+      @   ensures_redundantly bytesRead.size() == \old(bytesRead.size() + 1);
+      @   ensures_redundantly bytesRead.header().equals(\old(bytesRead));
+      @*/
+    byte readByte() throws IOException;
+
+    /*@ public behavior
+      @   assignable input;
+      @   ensures bytesRead.size() == \old(bytesRead.size() + 1);
+      @   ensures bytesRead.header().equals(\old(bytesRead));
+      @   ensures ((byte)\result) == ((JMLByte)bytesRead.last()).theByte;
+      @   ensures 0 <= \result && \result <= 255;
+      @*/
+    int readUnsignedByte() throws IOException;
+
+    /*@ public behavior
+      @   assignable input;
+      @   ensures bytesRead.size() == \old(bytesRead.size() + 2);
+      @   ensures bytesRead.subsequence(0, bytesRead.size()-2)
+      @             .equals(\old(bytesRead));
+      @   ensures \result
+      @        == (short)
+      @              ( ((((JMLByte)bytesRead.header().last()).theByte) << 8)
+      @               | (((JMLByte)bytesRead.last()).theByte & 0xff) );
+      @*/
+    short readShort() throws IOException;
+
+    /*@ public behavior
+      @   assignable input;
+      @   ensures bytesRead.size() == \old(bytesRead.size() + 2);
+      @   ensures bytesRead.subsequence(0, bytesRead.size()-2)
+      @             .equals(\old(bytesRead));
+      @   ensures \result
+      @      == ( ((((JMLByte)bytesRead.header().last()).theByte & 0xff) << 8)
+      @          | (((JMLByte)bytesRead.last()).theByte & 0xff) );
+      @*/
+    int readUnsignedShort() throws IOException;
+
+    /*@ public behavior
+      @   assignable input;
+      @   ensures bytesRead.size() == \old(bytesRead.size() + 2);
+      @   ensures bytesRead.subsequence(0, bytesRead.size()-2)
+      @             .equals(\old(bytesRead));
+      @   ensures \result
+      @        == (char)
+      @              ( ((((JMLByte)bytesRead.header().last()).theByte) << 8)
+      @               | (((JMLByte)bytesRead.last()).theByte & 0xff) );
+      @*/
+    char readChar() throws IOException;
+
+    /*@
+      @ 
+      @*/
+    int readInt() throws IOException;
+
+    /*@
+      @ 
+      @*/
+    long readLong() throws IOException;
+
+    /*@
+      @ 
+      @*/
+    float readFloat() throws IOException;
+
+    /*@
+      @ 
+      @*/
+    double readDouble() throws IOException;
+
+    /*@
+      @ 
+      @*/
+    String readLine() throws IOException;
+
+    /*@
+      @ 
+      @*/
+    String readUTF() throws IOException;
+
+}

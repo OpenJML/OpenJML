@@ -1,0 +1,196 @@
+// @(#)$Id: InputStream.refines-java,v 1.8 2005/07/07 21:03:10 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+
+package java.io;
+//@ model import org.jmlspecs.models.JMLValueSequence;
+//@ model import org.jmlspecs.models.JMLByte;
+
+/** JML's specification of InputStream.
+ * @author David Cok
+ *  (following Leaven's spec of OutputStream)
+ */
+public abstract class InputStream {
+    /** The input data group is used to specify things like caching,
+     * and to make sure that methods that might produce some internal
+     * side effects have a side effect on some datagroup. */
+    //@ public model JMLDataGroup input; in objectState;
+
+    // FIXME: availableBytes may change asynchronously, but presumably only increases
+    // FIXME: This spec does not reflect the blocking that can occur (needs when clauses)
+
+    //@ public model non_null JMLValueSequence inputBytes; in input;
+    //@ public constraint inputBytes == \old(inputBytes);
+
+    //@ public model \bigint readPosition; in input;
+    //@    public initially readPosition == 0;
+
+    /*@ public invariant (\forall int i; 0 <= i && i < inputBytes.size();
+      @                              inputBytes.get(i) instanceof JMLByte);
+      @*/
+    //@ public invariant readPosition >= 0 && readPosition <= inputBytes.length();
+
+    //@ public model int availableBytes; in input;
+    //@ public model boolean isOpen; in input;
+    //@ public model boolean wasClosed; in input;
+
+    //@ public invariant availableBytes >= 0;
+    //@ public invariant isOpen ==> !wasClosed;
+    //@ public invariant wasClosed ==> !isOpen;
+
+    /*@ public normal_behavior
+      @   assignable isOpen, wasClosed;
+      @   ensures isOpen && !wasClosed;
+      @*/
+    public InputStream();
+
+    /*@ public behavior
+      @   assignable isOpen, wasClosed;
+      @   ensures !isOpen && wasClosed;
+      @   signals_only IOException;
+      @   signals (IOException) (* an IO error occured *);
+      @*/
+    public void close() throws IOException;
+
+    //@ public normal_behavior
+    //@   requires isOpen && (inputBytes.length() == readPosition);
+    //@   assignable \nothing;
+    //@   ensures \result == -1;
+    //@ also
+    //@   requires isOpen && (inputBytes.length() > readPosition);
+    //@   assignable readPosition, objectState, availableBytes;
+    //@   ensures isOpen;
+    //@   ensures \result == \old(((JMLByte)inputBytes.itemAt(readPosition)).theByte);
+    //@   ensures readPosition == \old(readPosition + 1);
+    //@   ensures 0 <= \result && \result <= 255;
+    //@ also public exceptional_behavior
+    //@   requires !isOpen;
+    //@   assignable \nothing;
+    //@   signals_only IOException;
+    public abstract int read() throws IOException;
+
+    //@ public normal_behavior
+    //@   requires isOpen && (inputBytes.length() == readPosition);
+    //@   assignable \nothing;
+    //@   ensures \result == -1;
+    //@ also public behavior
+    //@   old \bigint arraylen = b.length;
+    //@   old \bigint data = inputBytes.length() - readPosition;
+    //@   requires isOpen && (inputBytes.length() > readPosition);
+    //@   assignable inputBytes, objectState, availableBytes, b[*];
+    //@   ensures isOpen;
+    //@   ensures \result >= 0;
+    //@   ensures \result <= arraylen;
+    //@   ensures \result <= data;
+    //@   ensures arraylen > 0 ==> \result > 0;
+    //@   ensures arraylen >= availableBytes && data >= availableBytes ==> \result >= availableBytes; // FIXME - is this true?
+    //@   ensures readPosition == \old(readPosition) + \result;
+    //@   ensures (\forall int i; 0<=i && i < \result; b[i] == \old(((JMLByte)inputBytes.itemAt(i+readPosition)).theByte));
+    //@   ensures (\forall int i; \result <= i && i < b.length; b[i] == \old(b[i]));
+    //@ also public exceptional_behavior
+    //@   requires !isOpen;
+    //@   assignable \nothing;
+    //@   signals_only IOException;
+    public int read(byte[] b) throws IOException;
+
+    //@ public normal_behavior
+    //@   requires isOpen && (inputBytes.length() == readPosition);
+    //@   assignable \nothing;
+    //@   ensures \result == -1;
+    //@ also
+    //@   old \bigint data = inputBytes.length() - readPosition;
+    //@   requires isOpen && (inputBytes.length() > readPosition);
+    //@   assignable readPosition, objectState, availableBytes, b[off .. off+len-1];
+    //@   ensures isOpen;
+    //@   ensures \result >= 0;
+    //@   ensures \result <= len;
+    //@   ensures \result <= data;
+    //@   ensures len > 0 ==> \result > 0;
+    //@   ensures len >= availableBytes && data >= availableBytes ==> \result >= availableBytes; // FIXME - is this true?
+    //@   ensures readPosition == \old(readPosition) + \result;
+    //@   ensures (\forall int i; 0<=i && i < \result; b[off+i] == \old(((JMLByte)inputBytes.itemAt(i+readPosition)).theByte));
+    //@   ensures (\forall int i; (0<=i && i<off) || (off+\result <=i && i<b.length); b[i] == \old(b[i]));
+    //@ also public exceptional_behavior
+    //@   requires !isOpen;
+    //@   assignable \nothing;
+    //@   signals_only IOException;
+    public int read(byte[] b, int off, int len) throws IOException;
+
+    //@ public normal_behavior
+    //@   requires isOpen && (inputBytes.length() == readPosition);
+    //@   assignable \nothing;
+    //@   ensures \result == 0;
+    //@ also public normal_behavior
+    //@   requires isOpen && n < 0;
+    //@   assignable \nothing;
+    //@   ensures \result == 0;
+    //@ also
+    //@   old \bigint data = inputBytes.length() - readPosition;
+    //@   requires isOpen && (inputBytes.length() > readPosition);
+    //@   assignable readPosition, availableBytes;
+    //@   ensures isOpen;
+    //@   ensures \result >= 0;
+    //@   ensures \result <= n;
+    //@   ensures \result <= data;
+    //@   ensures n >= availableBytes && data >= availableBytes ==> \result >= availableBytes; // FIXME: is this true?
+    //@   ensures readPosition == \old(readPosition) + \result;
+    //@ also public exceptional_behavior
+    //@   requires !isOpen;
+    //@   assignable \nothing;
+    //@   signals_only IOException;
+    public long skip(long n) throws IOException;
+
+    //@ public normal_behavior
+    //@   requires isOpen; 
+    //@   ensures \result == availableBytes;
+    //@ pure
+    public int available() throws IOException;
+
+    //@ public model boolean _markSupported; in objectState;
+    //@ public model \bigint markPosition; in objectState; initially markPosition == -1;
+    //@ public model \bigint markLimit; in objectState;
+
+    //@ public normal_behavior
+    //@   requires _markSupported;
+    //@   assignable markPosition, markLimit, objectState;
+    //@   ensures markPosition == readPosition;
+    //@   ensures markLimit == readPosition + readLimit;
+    public synchronized void mark(int readLimit);
+
+    //@ public normal_behavior
+    //@   ensures \result == _markSupported;
+    //@ pure
+    public boolean markSupported();
+
+    //@ public normal_behavior
+    //@   requires _markSupported && markLimit >= readPosition && markPosition != -1;
+    //@   assignable readPosition;
+    //@   ensures markPosition == readPosition;
+    //@ also public behavior
+    //@   requires _markSupported && markPosition == -1;
+    //@   assignable readPosition;
+    //@   ensures 0 == readPosition;
+    //@ also public exceptional_behavior
+    //@   assignable \nothing;
+    //@   signals_only java.io.IOException;
+    //@   signals (java.io.IOException e) markPosition == -1 || readPosition > markLimit;
+    public synchronized void reset() throws IOException;
+}

@@ -1,0 +1,9 @@
+// $Id: FocusAdapter.jml 2245 2006-12-16 23:13:06Z chalin $
+
+package java.awt.event;
+
+public abstract class FocusAdapter extends Object implements FocusListener {
+    public FocusAdapter();
+    public void focusGained(/*@non_null*/ FocusEvent Param0);
+    public void focusLost(/*@non_null*/ FocusEvent Param0);
+}

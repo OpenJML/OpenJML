@@ -1,0 +1,133 @@
+// $Id: DefaultTreeCellRenderer.jml 2245 2006-12-16 23:13:06Z chalin $
+//
+// Declarations marked /*?non_null*//*?*/ are probably non-null, but I haven't double checked,
+// and hence are leaving them unannotated.
+
+package javax.swing.tree;
+
+public class DefaultTreeCellRenderer extends javax.swing.JLabel implements TreeCellRenderer {
+
+    // protected java.awt.Color backgroundSelectionColor;
+    // protected transient /*@non_null*//*?*/ javax.swing.Icon closedIcon;
+    // protected java.awt.Color textNonSelectionColor;
+    // protected transient /*@non_null*//*?*/ javax.swing.Icon leafIcon;
+    // protected java.awt.Color textSelectionColor;
+    // protected transient /*@non_null*//*?*/ javax.swing.Icon openIcon;
+    // protected java.awt.Color backgroundNonSelectionColor;
+    // private boolean drawsFocusBorderAroundIcon;
+    // protected java.awt.Color borderSelectionColor;
+    // private /*@non_null*//*?*/ javax.swing.JTree tree;
+    // protected boolean hasFocus;
+    // protected boolean selected;
+
+
+    private int getLabelStart();
+
+    public DefaultTreeCellRenderer();
+
+    public void revalidate();
+
+    public void validate();
+
+    public void repaint(long Param0, int Param1, int Param2, int Param3, int Param4);
+
+    public /*?non_null*//*?*/ java.awt.Color getBackgroundNonSelectionColor();
+
+    public /*?non_null*//*?*/ java.awt.Color getBackgroundSelectionColor();
+
+    public /*?non_null*//*?*/ java.awt.Color getBorderSelectionColor();
+
+    public /*?non_null*//*?*/ java.awt.Color getTextNonSelectionColor();
+
+    public /*?non_null*//*?*/ java.awt.Color getTextSelectionColor();
+
+    public void setBackground(/*?non_null*//*?*/ java.awt.Color Param0);
+
+    public void setBackgroundNonSelectionColor(/*?non_null*//*?*/ java.awt.Color Param0);
+
+    public void setBackgroundSelectionColor(/*?non_null*//*?*/ java.awt.Color Param0);
+
+    public void setBorderSelectionColor(/*?non_null*//*?*/ java.awt.Color Param0);
+
+    public void setTextNonSelectionColor(/*?non_null*//*?*/ java.awt.Color Param0);
+
+    public void setTextSelectionColor(/*?non_null*//*?*/ java.awt.Color Param0);
+
+    public /*?non_null*//*?*/ java.awt.Dimension getPreferredSize();
+
+    public /*?non_null*//*?*/ java.awt.Font getFont();
+
+    public void setFont(/*?non_null*//*?*/ java.awt.Font Param0);
+
+    public void paint(/*?non_null*//*?*/ java.awt.Graphics Param0);
+
+    public void repaint(/*?non_null*//*?*/ java.awt.Rectangle Param0);
+
+    public void firePropertyChange(String Param0, byte Param1, byte Param2);
+
+    public void firePropertyChange(String Param0, char Param1, char Param2);
+
+    public void firePropertyChange(String Param0, double Param1, double Param2);
+
+    public void firePropertyChange(String Param0, float Param1, float Param2);
+
+    public void firePropertyChange(String Param0, int Param1, int Param2);
+
+    public void firePropertyChange(String Param0, long Param1, long Param2);
+
+    public void firePropertyChange(String Param0, short Param1, short Param2);
+
+    public void firePropertyChange(String Param0, boolean Param1, boolean Param2);
+
+    public /*?non_null*//*?*/ javax.swing.Icon getClosedIcon();
+
+    public /*?non_null*//*?*/ javax.swing.Icon getDefaultClosedIcon();
+
+    public /*?non_null*//*?*/ javax.swing.Icon getDefaultLeafIcon();
+
+    public /*?non_null*//*?*/ javax.swing.Icon getDefaultOpenIcon();
+
+    public /*?non_null*//*?*/ javax.swing.Icon getLeafIcon();
+
+    public /*?non_null*//*?*/ javax.swing.Icon getOpenIcon();
+
+    public void setClosedIcon(/*?non_null*//*?*/ javax.swing.Icon Param0);
+
+    public void setLeafIcon(/*?non_null*//*?*/ javax.swing.Icon Param0);
+
+    public void setOpenIcon(/*?non_null*//*?*/ javax.swing.Icon Param0);
+
+    public /*@non_null*/ java.awt.Component 
+	getTreeCellRendererComponent(/*@non_null*/ javax.swing.JTree Param0, 
+				     /*@non_null*/ Object Param1, 
+				     boolean Param2, 
+				     boolean Param3, 
+				     boolean Param4, 
+				     int Param5, 
+				     boolean Param6);
+
+    protected void firePropertyChange(/*?non_null*//*?*/ String Param0, 
+				      /*?non_null*//*?*/ Object Param1, 
+				      /*?non_null*//*?*/ Object Param2);
+}
+
+// @(#)$Id: DefaultTreeCellRenderer.jml 2245 2006-12-16 23:13:06Z chalin $
+//
+// Copyright (C) 2006 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with JML; see the file LesserGPL.txt.  If not, write
+// to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+// Boston, MA 02110-1301 USA.

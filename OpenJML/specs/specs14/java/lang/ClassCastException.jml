@@ -1,0 +1,16 @@
+package java.lang;
+
+public class ClassCastException extends RuntimeException {
+    /*@ public normal_behavior
+      @   ensures standardThrowable(null);
+      @*/
+    //@ pure
+    public ClassCastException();
+
+    /*@ public normal_behavior
+      @   ensures standardThrowable(s);
+      @*/
+    //@ pure
+    public ClassCastException(String s);
+}
+

@@ -1,0 +1,160 @@
+// @(#)$Id: Stack.refines-spec,v 1.13 2005/07/07 21:03:29 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.util;
+
+//@ model import org.jmlspecs.models.JMLEqualsSequence;
+
+/**
+ * JML's specification of Stack.
+ * @version $Revision: 1.13 $
+ * @author Kristina Boysen
+ * @author Gary T. Leavens
+ */
+public
+class Stack extends Vector {
+
+    /*@  public normal_behavior
+      @    assignable theCollection, maxCapacity, capIncrement, elementType,
+      @               containsNull;
+      @    ensures theList.isEmpty();
+      @    ensures elementType == \type(Object) && !containsNull;
+      @    ensures maxCapacity > 0 && capIncrement >= 0;
+      @
+      @ implies_that
+      @    ensures elementCount == 0;
+      @    ensures elementType == \type(Object);
+      @*/
+    public Stack();
+
+    /*@   public model_program {
+      @     addElement(item);
+      @   }
+      @ also
+      @  public normal_behavior
+      @    requires \typeof(item) <: elementType;
+      @    requires containsNull || item!=null;
+      @    assignable theCollection;
+      @    ensures theList.equals(\old(theList).insertBack(item));
+      @    ensures theList.int_size() <= maxCapacity;
+      @ also
+      @  public normal_behavior
+      @  requires \typeof(this) == \type(java.util.Vector);
+      @  {|
+      @    requires theList.int_size() < maxCapacity;
+      @    ensures \not_modified(maxCapacity) && \not_modified(capIncrement);
+      @  also
+      @    requires theList.int_size() == maxCapacity;
+      @    {|
+      @      requires 0 < capIncrement 
+      @            && maxCapacity <= Integer.MAX_VALUE - capIncrement;
+      @      assignable maxCapacity, theList;
+      @      ensures maxCapacity == \old(maxCapacity) + capIncrement;
+      @    also
+      @      requires capIncrement == 0 && maxCapacity == 0;
+      @      assignable maxCapacity, theList;
+      @      ensures maxCapacity == 1;
+      @    also
+      @      requires capIncrement == 0
+      @            && maxCapacity > 0
+      @            && maxCapacity < Integer.MAX_VALUE/2;
+      @      assignable maxCapacity, theList;
+      @      ensures maxCapacity == \old(maxCapacity) * 2;
+      @    |}
+      @  |}
+      @
+      @ also
+      @  requires \typeof(item) <: elementType;
+      @  requires containsNull || item!=null;
+      @  assignable elementCount;
+      @  ensures  elementCount == \old(elementCount)+1;
+      @*/
+    public Object push(Object item);
+
+    /*@   public model_program {
+      @     assume !theList.isEmpty();
+      @     return remove((int)(size()-1));
+      @   }
+      @ implies_that
+      @  public normal_behavior
+      @    requires !theList.isEmpty();
+      @    assignable theCollection;
+      @    ensures \result == \old(theList.last())
+      @         && theList.equals(\old(theList).header());
+      @    ensures_redundantly theList.int_size() == \old(theList.int_size()-1);
+      @
+      @ also
+      @  assignable elementCount;
+      @  ensures !containsNull ==> \result != null;
+      @  ensures  elementCount == \old(elementCount)+1;
+      @*/
+    public synchronized Object pop();
+
+    /*@   public model_program {
+      @     assume !theList.isEmpty();
+      @     return get((int)(size()-1));
+      @   }
+      @ implies_that
+      @  public normal_behavior
+      @    requires !theList.isEmpty();
+      @    assignable \nothing;
+      @    ensures \result == \old(theList.last());
+      @
+      @ also
+      @ ensures !containsNull ==> \result != null;
+      @*/
+    public /*@ pure @*/ synchronized Object peek();
+
+    /*@   public model_program {
+      @     return size() == 0;
+      @   }
+      @ implies_that
+      @  public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result == theList.isEmpty();
+      @    ensures_redundantly \result <==> size() == 0;
+      @*/
+    public /*@ pure @*/ boolean empty();
+
+
+    /*@   public model_program {
+      @     int res = lastIndexOf(o);
+      @     return (int)(res >= 0 ? res + 1 : res);
+      @   }
+      @ implies_that
+      @  public normal_behavior
+      @  {|
+      @    requires contains(o);
+      @    assignable \nothing;
+      @    ensures (theList.itemAt(\result) == o
+      @             || theList.itemAt(\result).equals(o))
+      @        && !theList.removePrefix((int)(\result+1)).has(o);
+      @    ensures_redundantly (* \result is the index of the last
+      @                            occurrence of obj in theList *);
+      @  also    
+      @    requires !contains(o);
+      @    assignable \nothing;
+      @    ensures \result == -1;
+      @  |}
+      @*/
+    public /*@ pure @*/ synchronized int search(Object o);
+
+}

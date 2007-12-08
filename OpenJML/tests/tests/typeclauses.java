@@ -1,0 +1,611 @@
+package tests;
+
+public class typeclauses extends TCBase {
+
+    @Override
+    public void setUp() throws Exception {
+//        noCollectDiagnostics = true;
+//        jmldebug = true;
+        super.setUp();
+    }
+
+    /** Tests typechecking an invariant clause - OK*/
+    public void testInvariant() {
+        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ invariant b;\n}");
+    }
+
+    /** Tests typechecking an invariant clause - bad type*/
+    public void testInvariant2() {
+        helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ invariant k;\n}",
+                "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",15);
+    }
+
+    /** Tests typechecking an invariant clause - OK from Boolean*/
+    public void testInvariant3() {
+        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ invariant bb;\n}");
+    }
+
+    /** Tests static lookup for invariant */
+    public void testInvariant4() {
+        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ static invariant bb;\n}"
+                ,"/TEST.java:2: non-static variable bb cannot be referenced from a static context",22
+                );
+    }
+
+    /** Tests static lookup for invariant */
+    public void testInvariant5() {
+        helpTC(" class A { int k; boolean b; static Boolean bb; \n//@ static invariant bb;\n}");
+    }
+
+    /** Tests typechecking an constraint clause - OK*/
+    public void testConstraint() {
+        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ constraint b;\n}");
+    }
+
+    /** Tests typechecking an constraint clause - bad type*/
+    public void testConstraint2() {
+        helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ constraint k;\n}",
+                "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",16);
+    }
+
+    /** Tests typechecking an constraint clause - OK from Boolean*/
+    public void testConstraint3() {
+        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ constraint bb;\n}");
+    }
+
+    /** Tests typechecking an constraint clause - OK from Boolean*/
+    public void testConstraint4() {
+        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ constraint bb for \\everything;\n}");
+    }
+
+    /** Tests typechecking an constraint clause - OK from Boolean*/
+    public void testConstraint5() {
+        helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for A(), m, m(int), m(Object);\n}"
+                ,"/TEST.java:2: Constructors are not allowed as methods in constraint clauses",23
+                ,"/TEST.java:2: m(int) in A cannot be applied to (java.lang.Object)",39
+                );
+    }
+
+    /** Tests static lookup for constraint */
+    public void testConstraint6() {
+        helpTC(" class A { void m(int i) {} Boolean bb; \n//@ static constraint bb ;\n}"
+                ,"/TEST.java:2: non-static variable bb cannot be referenced from a static context",23
+                );
+    }
+
+    /** Tests static lookup for constraint */
+    public void testConstraint7() {
+        helpTC(" class A { void m(int i) {} static Boolean bb; \n//@ static constraint bb ;\n}");
+    }
+
+    // FIXME - the testConstraintM... tests are not implemented
+    public void testConstraintM() {
+        helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for m;\n}");
+    }
+
+    public void testConstraintM1() {
+        helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for mm;\n}");
+    }
+
+    public void testConstraintM2() {
+        helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for this.m;\n}");
+    }
+
+    public void testConstraintM3() {
+        helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for A.m;\n}");
+    }
+
+    public void testConstraintMA() {
+        helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for m(int);\n}");
+    }
+
+    public void testConstraintMA1() {
+        helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for mm(int);\n}"
+                ,"/TEST.java:2: cannot find symbol\nsymbol  : method mm(int)\nlocation: class A",23
+                );
+    }
+
+    public void testConstraintMA2() {
+        helpTC(" class A { void m(int i[],Object o) {} void m(int i) {} Boolean bb; \n//@ constraint bb for this.m(int[],Object);\n}");
+    }
+
+    public void testConstraintMA3() {
+        helpTC(" class A { void m(Integer i) {} A a; Boolean bb; \n//@ constraint bb for a.m(java.lang.Integer);\n}");
+    }
+
+    public void testConstraintMA3s() {
+        helpTC(" class A { static void m(Integer i) {} Boolean bb; \n//@ constraint bb for A.m(java.lang.Integer);\n}");
+    }
+
+    // FIXME - distinguish static from instance
+    public void testConstraintMA3e() {
+        helpTC(" class A { void m(Integer i) {} A a; Boolean bb; \n//@ constraint bb for A.m(java.lang.Integer);\n}");
+    }
+
+    // FIXME - distinguish static from instance
+    public void testConstraintMA3se() {
+        helpTC(" class A { static void m(Integer i) {} A a; Boolean bb; \n//@ constraint bb for a.m(java.lang.Integer);\n}");
+    }
+
+    public void testConstraintMA4() {
+        helpTC(" class A extends B { Boolean bb; \n//@ constraint bb for m(java.lang.Integer);\n} class B { void m(Integer i) {} }"
+                ,"/TEST.java:2: The method must be a direct member of the class containing the constraint clause",23
+                );
+    }
+
+    public void testConstraintMA5() {
+        helpTC(" class A { Boolean bb; \n//@ constraint bb for B.m(java.lang.Integer);\n} class B { void m(Integer i) {} }"
+                ,"/TEST.java:2: The method must be a direct member of the class containing the constraint clause",23
+                );
+    }
+
+    /** Tests typechecking an axiom clause - OK*/
+    public void testAxiom() {
+        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ axiom b;\n}");
+    }
+
+    /** Tests typechecking an axiom clause - bad type*/
+    public void testAxiom2() {
+        helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ axiom k;\n}",
+                "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",11);
+    }
+
+    /** Tests typechecking an axiom clause - OK from Boolean*/
+    public void testAxiom3() {
+        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ axiom bb;\n}");
+    }
+
+    /** Tests typechecking an initially clause - OK*/
+    public void testInitially() {
+        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ initially b;\n}");
+    }
+
+    /** Tests typechecking an initially clause - bad type*/
+    public void testInitially2() {
+        helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ initially k;\n}",
+                "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",15);
+    }
+
+    /** Tests typechecking an initially clause - OK from Boolean*/
+    public void testInitially3() {
+        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ initially bb;\n}");
+    }
+
+    /** Tests typechecking an initially clause - OK from Boolean*/
+    public void testInitially4() {
+        helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ initially x;\n}",
+                "/A.java:2: cannot find symbol\nsymbol  : variable x\nlocation: class A",15);
+    }
+
+    /** Tests initially may not be static */
+    public void testInitially5() {
+        helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ static initially b;\n}"
+                ,"/A.java:2: non-static variable b cannot be referenced from a static context",22
+                ,"/A.java:2: These modifiers are not allowed here: static ",12
+                );
+    }
+
+    public void testRepresents() {
+        helpTCF("A.java","public class A {\n //@ model int i; represents i = true;\n}"
+                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",34
+                );
+    }
+
+    public void testRepresents1() {
+        helpTCF("A.java","public class A {\n //@ model int i; represents i <- true;\n}"
+                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",35
+                );
+    }
+
+    public void testRepresents2() {
+        helpTCF("A.java","public class A {\n //@ model int i; represents i \\such_that 0;\n}"
+                ,"/A.java:2: incompatible types\nfound   : int\nrequired: boolean",43
+                );
+    }
+
+    public void testRepresents3() {
+        helpTCF("A.java","public class A {\n //@ model int i; represents j = 0;\n}"
+                ,"/A.java:2: cannot find symbol\nsymbol  : variable j\nlocation: class A",30
+                );
+    }
+    
+    public void testRepresents4() {
+        helpTCF("A.java","public class A {\n //@ model int i; represents i :0;\n}"
+                ,"/A.java:2: A represents clause must have a =, <- or \\such_that after the identifier",32
+                );
+    }
+    
+    public void testRepresents5() {
+        helpTCF("A.java","public class A {\n //@ model int j; represents j = ;\n}"
+                ,"/A.java:2: illegal start of expression",34
+                );
+    }
+    
+    public void testRepresents6() {
+        helpTCF("A.java","public class A {\n //@ model int i; represents j = 0\n}"
+                ,"/A.java:2: The expression is invalid or not terminated by a semicolon",35
+                );
+    }
+    
+    public void testRepresents7() {
+        helpTCF("A.java","public class A {\n //@ model int i; represents x = 0\n}"
+                ,"/A.java:2: The expression is invalid or not terminated by a semicolon",35
+                );
+    }
+    
+    public void testRepresents8() {
+        helpTCF("A.java","public class A {\n //@ model int i; represents x.* = 0\n}"
+                ,"/A.java:2: Expected an identifier after the dot in this context",32
+                ,"/A.java:2: A represents clause must have a =, <- or \\such_that after the identifier",37
+                );
+    }
+    
+    public void testRepresents9() {  // FIXME - needs better error messages and recovery
+        helpTCF("A.java","public class A {\n //@ model int i; represents x[*] = 0\n}"
+                ,"/A.java:2: illegal start of expression",32
+                ,"/A.java:2: illegal start of expression",33
+                ,"/A.java:2: The expression is invalid or not terminated by a semicolon",38
+                );
+    }
+    
+    public void testRepresents10() {
+        helpTCF("A.java","public class A {\n //@ model int i; represents x[3] = 0;\n}"
+                ,"/A.java:2: cannot find symbol\nsymbol  : variable x\nlocation: class A",30
+                );
+    }
+    
+    public void testRepresents11() {
+        helpTCF("A.java","public class A {\n //@ model int i; static represents i = 0;\n}"
+                ,"/A.java:2: A represents clause and its associated model field must both be static or both not be static",26
+                );
+    }
+    
+    public void testRepresents12() {
+        helpTCF("A.java","public class A {\n //@ model static int i; represents i = 0;\n}"
+                ,"/A.java:2: A represents clause and its associated model field must both be static or both not be static",26
+                );
+    }
+    
+    public void testRepresents13() {
+        helpTCF("A.java","public class A {\n //@ ghost int i; represents i = 0;\n}"
+                ,"/A.java:2: The target of a represents clause must be a model field",19
+                );
+    }
+    
+    public void testRepresents14() {
+        helpTCF("A.java","public class A {\n int i; //@ represents i = 0;\n}"
+                ,"/A.java:2: The target of a represents clause must be a model field",13
+                );
+    }
+    
+    public void testRepresents13a() {
+        addMockFile("$A/A.spec","public class A {\n //@ ghost int i; represents i = 0;\n}");
+        helpTCF("A.java","public class A {\n }"
+                ,"/$A/A.spec:2: The target of a represents clause must be a model field",19
+                );
+    }
+    
+    public void testRepresents14a() {
+        addMockFile("$A/A.spec","public class A {\n //@ represents i = 0;\n}");
+        helpTCF("A.java","public class A {\n int i; \n}"
+                ,"/$A/A.spec:2: The target of a represents clause must be a model field",6
+                );
+    }
+
+    /** Check that the target of a static represents clause is in the same class */
+    public void testRepresents15() {
+        helpTCF("A.java","public class A extends B {\n //@ static represents i = 0;\n} class B { //@ static model int i; \n}"
+                ,"/A.java:2: A static represents clause must be declared in the same class as the model field it represents",13
+                );
+    }
+    
+    /** Check that the rhs of a static represents clause contains only static fields */
+    public void testRepresents16() {
+        helpTCF("A.java","public class A {\n static int k; int j; //@ model static int i; static represents i = k;\n}"
+                );
+    }
+    
+    /** Check that the rhs of a static represents clause contains only static fields */
+    public void testRepresents16a() {
+        helpTCF("A.java","public class A {\n static int k; int j; //@ model static int i; static represents i = j;\n}"
+                ,"/A.java:2: non-static variable j cannot be referenced from a static context",69
+                );
+    }
+    
+
+    public void testMisc() {
+        helpTCF("A.java","public class A {\n //@ ensures ((boolean)\\result);\n int m() { return 0; }}"
+                ,"/A.java:2: inconvertible types\nfound   : int\nrequired: boolean",24
+        );
+    }
+    
+    public void testMisc2() {
+        helpTCF("A.java","public class A {\n //@ ensures ((short)\\result) == 0;\n int m() { return 0; }}"
+        );
+    }
+    
+    public void testMisc3() {
+        helpTCF("A.java","public class A {\n //@ public normal_behavior ensures true; public model boolean m(); \n }"
+        );
+    }
+    
+    public void testForall() {
+        helpTCF("A.java","public class A {\n //@ forall int i,j; old boolean k=true, m = false; requires i == 0; \n public void m() {}}"
+                );
+    }
+    
+    public void testForall2() {
+        helpTCF("A.java","public class A {\n //@ forall int i=0,j; old boolean k, m = false; requires i == 0; \n public void m() {}}"
+                ,"/A.java:2: A forall method clause declaration must not have initializers",19
+                ,"/A.java:2: A old method clause variable must have an initializer",36
+        );
+    }
+    
+    public void testForall3() {
+        helpTCF("A.java","public class A {\n //@ old int i=true; old boolean m=0; requires i == 0; \n public void m() {}}"
+                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",16
+                ,"/A.java:2: incompatible types\nfound   : int\nrequired: boolean",36
+                );
+    }
+    
+    public void testForall4() {
+        helpTCF("A.java","public class A {\n //@ forall int j; old int k=0; requires i+j<k; \n public void m(int i) {}}"
+                );        // OK
+    }
+    
+    public void testForall5() {
+        helpTCF("A.java","public class A {\n //@ forall boolean j; old boolean  k=true; requires i+j<k; \n public void m(boolean i) {}}"
+                ,"/A.java:2: operator + cannot be applied to boolean,boolean",55
+                );        
+    }
+    
+    public void testForall6() {
+        helpTCF("A.java","public class A { int i,j,k; \n //@ forall boolean j; old boolean k=true; requires i+j<k; \n public void m(boolean i) {}}"
+                ,"/A.java:2: operator + cannot be applied to boolean,boolean",54
+                );        
+    }
+    
+    public void testForall7() { // FIXME - this is not the clearest error message - it should refer to the specifications
+        helpTCF("A.java","public class A { \n //@ forall int i; old int k=0   ; requires i<k; \n public void m(int i) {}}"
+                ,"/A.java:2: i is already defined in m(int)",17
+                );        
+    }
+    
+    public void testForall8() { // FIXME - this is not the clearest error message - it should refer to the specifications
+        helpTCF("A.java","public class A { \n //@ forall int k; old int k=0   ; requires i<k; \n public void m(int i) {}}"
+                ,"/A.java:2: k is already defined in m(int)",28
+                );        
+    }
+    
+    public void testForall9() { // FIXME - this is not the clearest error message - it should refer to the specifications
+        helpTCF("A.java","public class A { \n //@ forall int j; old int k=0   ; requires i<k; \n//@{| forall int m; ensures k<m; also ensures k<m; |} \n public void m(int i) {}}"
+                ,"/A.java:3: cannot find symbol\nsymbol  : variable m\nlocation: class A",49
+                );        
+    }
+    
+    public void testForall10() { // FIXME - this is not the clearest error message - it should refer to the specifications
+        helpTCF("A.java","public class A { \n //@ forall int j; old int k=0   ; requires i<k; \n//@{| forall int k; ensures k<m; also ensures i==0; |} \n public void m(int i) {}}"
+                ,"/A.java:3: k is already defined in m(int)",18
+                ,"/A.java:3: cannot find symbol\nsymbol  : variable m\nlocation: class A",31
+                );        
+    }
+
+
+    public void testSignals() { //OK
+        helpTCF("A.java","public class A {\n//@signals(Exception e) true; \n void m(){}}");
+    }
+
+
+    public void testSignals1() {//OK
+        helpTCF("A.java","public class A {\n//@signals(Exception) true; \n void m(){}}");
+    }
+
+
+    public void testSignals2() { //Bad type
+        helpTCF("A.java","public class A {\n//@signals(Object e) true; \n void m(){}}",
+                "/A.java:2: incompatible types\nfound   : java.lang.Object\nrequired: java.lang.Exception",12);
+    }
+
+
+    public void testSignals3() { //Bad syntax
+        helpTCF("A.java","public class A {\n//@signals true; \n void m(){}}",
+                "/A.java:2: Expected a left parenthesis after a signals keyword",12);
+    }
+
+
+    public void testSignals4() { //OK
+        helpTCF("A.java","public class A {\n//@signals(RuntimeException ) ; \n void m(){}}"
+                );
+    }
+
+
+    public void testSignals5() { //Bad type
+        helpTCF("A.java","public class A {\n//@signals(java.io.IOException e) 2; \n void m(){}}",
+                "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",35);
+    }
+
+    public void testSignals6() { //Bad type
+        helpTCF("A.java","public class A {\n//@signals(int e) true; \n void m(){}}",
+                "/A.java:2: incompatible types\nfound   : int\nrequired: java.lang.Exception",12);
+    }
+
+    public void testSignals7() { //OK - scoping
+        helpTCF("A.java","public class A {\n//@signals(java.io.IOException e) e==null; \n void m(){}}");
+    }
+
+    public void testSignalsOnly() { //OK
+        helpTCF("A.java","public class A {\n//@signals_only \\nothing;\nvoid m() {}}");
+    }
+
+    public void testSignalsOnly1() { //OK
+        helpTCF("A.java","public class A {\n//@signals_only RuntimeException;\nvoid m() {}}");
+    }
+
+    public void testSignalsOnly2() { //OK
+        helpTCF("A.java","public class A {\n//@signals_only RuntimeException,Exception;\nvoid m() {}}");
+    }
+
+    public void testSignalsOnly3() {
+        helpTCF("A.java","public class A {\n//@signals_only ;\nvoid m() {}}",
+                "/A.java:2: Use \\nothing to denote an empty list of exceptions in a signals_only clause",17);
+    }
+
+    public void testSignalsOnly4() {
+        helpTCF("A.java","public class A {\n//@signals_only RuntimeException java.lang.Exception;\nvoid m() {}}",
+                "/A.java:2: Missing comma or otherwise ill-formed type name",34);
+    }
+
+    public void testSignalsOnly5() {
+        helpTCF("A.java","public class A {\n//@signals_only RuntimeException,;\nvoid m() {}}",
+                "/A.java:2: illegal start of type",34);
+    }
+
+    public void testSignalsOnly6() {
+        helpTCF("A.java","public class A {\n//@signals_only RuntimeException,,RuntimeException;\nvoid m() {}}",
+                "/A.java:2: illegal start of type",34);
+    }
+
+    public void testSignalsOnly7() {
+        helpTCF("A.java","public class A {\n//@signals_only RuntimeException\nvoid m() {}}",
+                "/A.java:2: Invalid expression or missing semicolon here",33);
+    }
+
+    public void testSignalsOnly8() {
+        helpTCF("A.java","public class A {\n//@signals_only RuntimeException[];\nvoid m() {}}",
+                "/A.java:2: incompatible types\nfound   : java.lang.RuntimeException[]\nrequired: java.lang.Exception",33);
+    }
+
+    public void testSignalsOnly9() {
+        helpTCF("A.java","public class A {\n//@signals_only int;\nvoid m() {}}",
+                "/A.java:2: incompatible types\nfound   : int\nrequired: java.lang.Exception",17);
+    }
+
+    public void testSignalsOnly10() {
+        helpTCF("A.java","public class A {\n//@signals_only Q;\nvoid m() {}}",
+                "/A.java:2: cannot find symbol\nsymbol  : class Q\nlocation: class A",17);
+    }
+    
+    public void testIn() {
+        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n int n; //@ in k; \n}"
+                );
+    }
+    
+    public void testIn2() {
+        helpTCF("A.java","public class A extends B{\n /*@ spec_public */ protected int k; \n int n; //@ in k, this.k, super.kk; \n} class B { //@ model int kk; \n}"
+                ,"/A.java:3: Datagroups in \"in\" and \"maps\" clauses must be model variables",16
+                ,"/A.java:3: Datagroups in \"in\" and \"maps\" clauses must be model variables",19
+                );
+    }
+    
+    public void testIn3() {
+        helpTCF("A.java","public class A {\n /*@ spec_public */ protected int k; \n int n; //@ in m; \n}"
+                ,"/A.java:3: cannot find symbol\nsymbol  : variable m\nlocation: class A",16
+                );
+    }
+    
+    public void testIn4() {
+        helpTCF("A.java","public class A {\n //@ model static int m; \n int n; //@ in m; \n}"
+                ,"/A.java:3: A non-static variable may not be in a static datagroup",16
+                );
+    }
+    
+    public void testMaps() {
+        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n A next; //@ maps next.next \\into k; \n}"
+        );
+    }
+    
+    public void testMaps2() {
+        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n A[] next; //@ maps next[*].next \\into k; \n}"
+        );
+    }
+    
+    public void testMaps2b() {
+        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n A[] next; //@ maps next[*] \\into k; \n}"
+        );
+    }
+    
+    public void testMaps3() {
+        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n A[] next; //@ maps next[2 .. 3].next \\into k,k; \n}"
+        );
+    }
+    
+    public void testMaps4() {
+        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n A[] next; //@ maps next[2].next \\into this.k; \n}"
+        );
+    }
+    
+    // FIXME - should have some tests checking recovery in maps clauses
+    
+    public void testInitializer() {
+        helpTCF("A.java","public class A {\n //@initializer static_initializer \n}"
+        );
+    }
+
+    public void testInitializer1() {
+        helpTCF("A.java","public class A {\n //@initializer static_initializer initializer static_initializer\n}"
+                ,"/A.java:2: Only one initializer specification and one static_initializer specification are allowed",36
+                ,"/A.java:2: Only one initializer specification and one static_initializer specification are allowed",48
+        );
+    }
+
+    /** Tests that specs get associated with the initializer */
+    public void testInitializer2() {
+        helpTCF("A.java","public class A {\n int i; static int j; //@ ensures i==0; initializer ensures j == 0; static_initializer \n}"
+        );
+    }
+
+    /** Tests that variable references in a static initializer must be static */
+    public void testInitializer3() {
+        helpTCF("A.java","public class A {\n int i; static int j; //@ ensures i == 0; static_initializer \n}"
+                ,"/A.java:2: non-static variable i cannot be referenced from a static context",35
+        );
+    }
+
+    public void testInitializer4() {
+        addMockFile("$A/A.spec","public class A {\n int i; static int j; //@ ensures i == 0; static_initializer \n}");
+        helpTCF("A.java","public class A {\n int i; static int j;  \n}"
+                ,"/$A/A.spec:2: non-static variable i cannot be referenced from a static context",35
+        );
+    }
+
+    public void testInitializer5() {
+        addMockFile("$A/A.spec","public class A {\n int i; static int j; static {} \n}");
+        helpTCF("A.java","public class A {\n int i; static int j;  \n}"
+                ,"/$A/A.spec:2: Initializer blocks are not allowed in specifications",30
+        );
+    }
+
+    public void testInitializer6() {
+        helpTCF("A.java","public class A {\n {} static {} \n}"
+        );
+    }
+
+    public void testInitializer7() {
+        helpTCF("A.java","public class A {\n //@ {} static {} {} static {}\n}"
+        );
+    }
+
+    /** Tests that specs are parsed with the Java initializer */
+    public void testInitializer8() {
+        helpTCF("A.java","public class A {\n int i; static int j; //@ ensures i==0; \n {} //@ ensures i==0; \n static {} \n}"
+                ,"/A.java:3: non-static variable i cannot be referenced from a static context",17
+        );
+    }
+
+    public void testInitializer9() {
+        helpTCF("A.java","public class A {int i; static int j; \n \n static { i = 0; } \n}"
+                ,"/A.java:3: non-static variable i cannot be referenced from a static context",11
+        );
+    }
+
+    public void testInitializer10() {  // FIXME - the error messages are duplicated inside the initializer block
+        helpTCF("A.java","public class A {int i; static int j; \n //@ ensures i==0; \n static { i = 0; } \n}"
+                ,"/A.java:3: non-static variable i cannot be referenced from a static context",11
+                ,"/A.java:3: non-static variable i cannot be referenced from a static context",11
+                ,"/A.java:2: non-static variable i cannot be referenced from a static context",14
+        );
+    }
+
+
+}
+

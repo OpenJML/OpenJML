@@ -1,0 +1,253 @@
+// @(#)$Id: InputStream.refines-java 2211 2006-11-28 01:32:13Z chalin $
+
+// Copyright (C) 2004 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+package java.io;
+
+/** JML's specification of InputStream.
+ * @author David Cok
+ *  (following Leaven's spec of OutputStream)
+ */
+public abstract class InputStream {
+    // FIXME: availableBytes may change asynchronously, but presumably only increases
+    // FIXME: This spec does not reflect the blocking that can occur (needs when clauses)
+
+    // FIXME - should modify objectState and then use not_modified on any
+    // vars that are unchanged
+
+    //@ public model JMLDataGroup streamState; in objectState;
+
+    // inputBytes models the bytes that have been or will be
+    // read between the opening and the closing of the InputStream
+    // It is not modified - e.g. it is an oracle of sorts
+    //+@ public model non_null byte[] inputBytes;
+    //-@ public model final non_null byte[] inputBytes;
+    //@ public constraint inputBytes == \old(inputBytes);
+    //@ public invariant inputBytes.owner == this;
+
+    // readPosition is the location within the inputBytes array that
+    // corresponds to what has been read so far
+    //@ public model \bigint readPosition; in streamState;
+    //@    public initially readPosition == 0;
+
+    //@ public invariant readPosition >= 0;
+    //@ public invariant readPosition+availableBytes <= inputBytes.length;
+
+    //@ public model int availableBytes; in streamState;
+    //@ public model boolean isOpen; in streamState;
+    //@ public model boolean wasClosed; in streamState;
+    //@ public represents wasClosed = !isOpen;
+
+    //@ public invariant availableBytes >= 0;
+
+    //@ requires a != null && b != null;
+    //@ requires a.length >= length && b.length >= length;
+    //@ ensures (\forall int i; 0<=i && i < length; a[i] == b[i]);
+    //@ public static model boolean equalBytes(byte[] a, byte[] b, \bigint length);
+
+    /*@ public normal_behavior
+      @   ensures \result <==> (
+      @       isOpen && !wasClosed && availableBytes >= 0 && readPosition == 0 
+      @       && inputBytes != null && inputBytes.owner == this);
+      @ pure public model boolean initialInputStream();
+      @*/
+
+    /*@ public normal_behavior
+      @   ensures initialInputStream();
+      @*/
+    //@ pure
+    public InputStream();
+
+    /*@ public behavior
+      @   assignable streamState;
+      @   ensures !isOpen && wasClosed;
+      @   signals (Exception) !isOpen && wasClosed && (* an IO error occured *);
+      @*/
+    public void close() throws IOException;
+
+    // FIXME - blocks until availableBytes > 0, if not at end of input
+    //@ public normal_behavior
+    //@   requires isOpen && (inputBytes.length == readPosition);
+    //@   modifies \nothing;
+    //@   ensures \result == -1;
+    //@ also
+    //@   requires isOpen && (inputBytes.length > readPosition);
+    //@   modifies streamState;
+    //@   ensures \not_modified(isOpen,wasClosed);
+    //@   ensures isOpen;
+    //@   ensures \result == \old(inputBytes[(int)readPosition]);
+    //   ensures readPosition == \old(readPosition + 1);
+    //@   ensures 0 <= \result && \result <= 255;
+    //@ also public exceptional_behavior
+    //@   requires !isOpen;
+    //@   modifies \nothing;
+    //@   signals_only IOException;
+    public abstract int read() throws IOException;
+
+
+    // FIXME - Ambiguity in the following reads:
+    //  What if b is null, b.length is zero, off and len are invalid?
+
+    // FIXME - blocks until availableBytes > 0, if not at end of input
+    // FIXME - not distinguishing that case from end of file
+    //@ public normal_behavior
+    //@   requires b != null;
+    //@   requires isOpen && availableBytes == 0;
+    //@   modifies \nothing;
+    //@   ensures \result == -1;
+    //@ also public behavior
+    //@   old \bigint arraylen = b.length;
+    //@   old \bigint data = availableBytes;
+    //@   requires (arraylen>0 ==> isOpen) && availableBytes > 0;
+    //@   requires b != null;
+    //@   modifies streamState, b[*];
+    //@   ensures isOpen && \not_modified(wasClosed);
+    //@   ensures readPosition == \old(readPosition) + \result;
+    //@   ensures \result >= 0;
+    //@   ensures \result <= arraylen;
+    //@   ensures \result <= data;
+    //@   ensures arraylen > 0 ==> \result > 0;
+    //@   ensures arraylen >= data ==> \result == data;
+    //@   ensures (\forall int i; 0<=i && i < \result; b[i] == \old(inputBytes[i+ (int) readPosition]));
+    //@   ensures (\forall int i; \result <= i && i < b.length; b[i] == \old(b[i]));
+    //@   signals_only IOException; // Something happened during the read
+    //@ also public exceptional_behavior
+    //@   requires b == null || (b.length>0 && !isOpen);
+    //@   modifies \nothing;
+    //@   signals_only IOException, NullPointerException;
+    //@   signals (IOException) !isOpen;
+    //@   signals (NullPointerException) b == null;
+    public int read(byte[] b) throws IOException;
+
+    /*@ public normal_behavior
+      @   requires isOpen && availableBytes == 0;
+      @   modifies \nothing;
+      @   ensures \result == -1;
+      @ also public behavior
+      @   old \bigint data = availableBytes;
+      @   requires len > 0 ==> isOpen;
+      @   requires availableBytes > 0;
+      @   requires b != null && off >=0 && len >=0 && off+len <= b.length;
+      @   modifies streamState, b[off .. off+len-1];
+      @   ensures isOpen && \not_modified(wasClosed);
+      @   ensures \result >= 0;
+      @   ensures \result <= len;
+      @   ensures \result <= data;
+      @   ensures len > 0 ==> \result > 0;
+      @   ensures len >= data ==> \result == data;
+      @   ensures readPosition == \old(readPosition) + \result;
+      @   ensures (\forall int i; off<=i && i < off+\result; 
+                     b[i] == \old(inputBytes[i-off+(int)readPosition]));
+      @   ensures (\forall int i; 
+                     (0<=i && i<off) || (off+\result <=i && i<b.length); 
+                     b[i] == \old(b[i]));
+          signals_only IOException; // Something happened during the read
+      @ also public exceptional_behavior
+      @   requires (len > 0 && !isOpen) || b == null || off < 0 || 
+                              len < 0 || off+len > b.length;
+      @   modifies \nothing;
+      @   signals_only IOException, NullPointerException, IllegalArgumentException;
+      @   signals (IOException e) len > 0 && !isOpen;
+      @   signals (NullPointerException) b == null;
+      @   signals (IllegalArgumentException) off < 0 || len < 0 || 
+                                     (b != null && off+len > b.length);
+      @*/
+    public int read(byte[] b, int off, int len) throws IOException;
+
+    //@ public normal_behavior
+    //@   requires isOpen && availableBytes == 0;
+    //@   modifies \nothing;
+    //@   ensures \result == 0;
+    //@ also public normal_behavior
+    //@   requires isOpen && n < 0;
+    //@   modifies \nothing;
+    //@   ensures \result == 0;
+    //@ also public behavior
+    //@   old \bigint data = availableBytes;
+    //@   requires isOpen && availableBytes > 0;
+    //@   modifies objectState;
+    //@   ensures \not_modified(theString,theHashCode);
+    //@   ensures \not_modified(_markSupported,markPosition,markLimit);
+    //@   ensures \not_modified(wasClosed);
+    //@   ensures isOpen;
+    //@   ensures \result >= 0;
+    //@   ensures \result <= n;
+    //@   ensures \result <= data;
+    //@   ensures n >= data ==> \result == data;
+    //@   ensures readPosition == \old(readPosition) + \result;
+    //@ also public exceptional_behavior
+    //@   requires !isOpen;
+    //@   modifies \nothing;
+    //@   signals_only IOException;
+    public long skip(long n) throws IOException;
+
+    //@ public behavior
+    //@   requires isOpen; 
+    //@   ensures \result == availableBytes;
+    //@ also public exceptional_behavior
+    //@   requires !isOpen;
+    //@   signals_only IOException;
+    //@ pure
+    public int available() throws IOException;
+
+    //@ public model boolean _markSupported; in objectState;
+    //@ public model \bigint markPosition; in objectState; 
+    //@                      initially markPosition == -1;
+    //@ public model \bigint markLimit; in objectState;
+
+    // NOTE: For simplicity of specs we do not have the following modify
+    // objectState.  If we did, we'd need to make sure that all other fields
+    // are not modified.
+
+    // FIXME - what happens if !markSupported
+
+    //@ public normal_behavior
+    //@   requires _markSupported;
+    //@   modifies markPosition, markLimit;
+    //@   ensures markPosition == readPosition;
+    //@   ensures markLimit >= readPosition + readLimit;
+    public synchronized void mark(int readLimit);
+
+    //@ public normal_behavior
+    //@   ensures \result == _markSupported;
+    //@ pure
+    public boolean markSupported();
+
+    //@ public behavior
+    //@   requires _markSupported;
+    //@   requires markPosition != -1;
+    //@   {|
+    //@     requires markLimit >= readPosition;
+    //@     modifies readPosition;
+    //@     ensures markPosition == readPosition;
+    //@     signals (Exception) false;
+    //@   also
+    //@     modifies readPosition;
+    //@     ensures markPosition == readPosition;
+    //@   |}
+    //@ also public behavior
+    //@   requires _markSupported && markPosition == -1;
+    //@   modifies readPosition;
+    //@   ensures 0 == readPosition;
+    // If !_markSupported then the behavior is subclass dependent
+    // There are no guarantees that an IOException will be thrown,
+    // just that the above behavior holds if it is not
+    public synchronized void reset() throws IOException;
+}

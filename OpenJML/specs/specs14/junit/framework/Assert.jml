@@ -1,0 +1,84 @@
+// $Id: Assert.jml 2022 2006-08-13 02:36:42Z chalin $
+
+package junit.framework;
+
+public class Assert extends Object {
+
+    protected Assert();
+
+    public static void assertTrue(String Param0, boolean Param1);
+
+    public static void assertTrue(boolean Param0);
+
+    public static void assertFalse(String Param0, boolean Param1);
+
+    public static void assertFalse(boolean Param0);
+
+    /*@ public exceptional_behavior
+      @   modifies \not_specified;
+      @   signals (AssertionFailedError e) true;
+      @*/
+    public static void fail(String Param0);
+
+    /*@ public exceptional_behavior
+      @   modifies \not_specified;
+      @   signals (AssertionFailedError e) true;
+      @*/
+    public static void fail();
+
+    public static void assertEquals(String Param0, Object Param1, Object Param2);
+
+    public static void assertEquals(Object Param0, Object Param1);
+
+    public static void assertEquals(String Param0, String Param1, String Param2);
+
+    public static void assertEquals(String Param0, String Param1);
+
+    public static void assertEquals(String Param0, double Param1, double Param2, double Param3);
+
+    public static void assertEquals(double Param0, double Param1, double Param2);
+
+    public static void assertEquals(String Param0, float Param1, float Param2, float Param3);
+
+    public static void assertEquals(float Param0, float Param1, float Param2);
+
+    public static void assertEquals(String Param0, long Param1, long Param2);
+
+    public static void assertEquals(long Param0, long Param1);
+
+    public static void assertEquals(String Param0, boolean Param1, boolean Param2);
+
+    public static void assertEquals(boolean Param0, boolean Param1);
+
+    public static void assertEquals(String Param0, byte Param1, byte Param2);
+
+    public static void assertEquals(byte Param0, byte Param1);
+
+    public static void assertEquals(String Param0, char Param1, char Param2);
+
+    public static void assertEquals(char Param0, char Param1);
+
+    public static void assertEquals(String Param0, short Param1, short Param2);
+
+    public static void assertEquals(short Param0, short Param1);
+
+    public static void assertEquals(String Param0, int Param1, int Param2);
+
+    public static void assertEquals(int Param0, int Param1);
+
+    public static void assertNotNull(Object Param0);
+
+    public static void assertNotNull(String Param0, Object Param1);
+
+    public static void assertNull(Object Param0);
+
+    public static void assertNull(String Param0, Object Param1);
+
+    public static void assertSame(String Param0, Object Param1, Object Param2);
+
+    public static void assertSame(Object Param0, Object Param1);
+
+    public static void assertNotSame(String Param0, Object Param1, Object Param2);
+
+    public static void assertNotSame(Object Param0, Object Param1);
+}

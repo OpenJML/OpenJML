@@ -1,0 +1,472 @@
+// @(#)$Id: URI.refines-spec,v 1.10 2007/02/08 14:05:51 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.net;
+
+import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.CharacterCodingException;
+import java.lang.Character;
+import java.lang.NullPointerException;
+
+//@ model import org.jmlspecs.models.*;
+
+/** JML's specification of java.net.URI.
+ *  [[[This specification is incomplete.]]]
+ * @author Denise Bacher
+ * @author Katie Becker
+ * @author Gary T. Leavens
+ */
+public final class URI implements Comparable, Serializable {
+
+    // CLASS SPECIFICATIONS
+
+    /*@  public model String scheme, ssp, fragment, userInfo, host, path,
+      @                      query_, authority;
+      @  public model int port;  
+      @*/
+      
+    // METHODS AND CONSTRUCTORS
+
+    /*@
+      @ 
+      @*/
+    public URI(String str) throws URISyntaxException;
+
+    /*@  public behavior
+      @    assignable scheme, userInfo, host, port, path, query_, fragment,
+      @               ssp, authority;
+      @    ensures JMLNullSafe.equals(this.scheme, scheme)
+      @         && JMLNullSafe.equals(this.userInfo, userInfo) 
+      @         && JMLNullSafe.equals(this.host, host) && this.port==port
+      @         && JMLNullSafe.equals(this.path, path)
+      @         && JMLNullSafe.equals(this.query_, query_)
+      @         && JMLNullSafe.equals(this.fragment, fragment);
+      @    ensures this.authority==null && this.ssp==null;
+      @    ensures (scheme==null) 
+      @            ==> host != null
+      @                 && ((host.startsWith("/") || host.equals("")));
+      @    signals_only URISyntaxException;
+      @*/
+    public URI(String scheme, String userInfo, String host, int port,
+               String path, String query_, String fragment)
+        throws URISyntaxException;
+
+    /*@  public behavior
+      @    assignable scheme, userInfo, host, port, path, query_, fragment,
+      @               ssp, authority;
+      @    ensures JMLNullSafe.equals(this.scheme, scheme)
+      @         && JMLNullSafe.equals(this.authority, authority) 
+      @         && JMLNullSafe.equals(this.path, path)
+      @         && JMLNullSafe.equals(this.query_, query_)
+      @         && JMLNullSafe.equals(this.fragment, fragment);
+      @    ensures this.userInfo==null && this.host==null && port==-1
+      @         && this.ssp==null;
+      @    ensures (scheme==null) ==>
+      @              path != null 
+      @              && ((path.startsWith("/") || path.equals("")));
+      @    signals_only URISyntaxException;
+      @*/
+    public URI(String scheme, String authority, String path, String query_,
+               String fragment)
+        throws URISyntaxException;
+
+    /*@  public behavior
+      @    assignable scheme, userInfo, host, port, path, query_, fragment,
+      @               ssp, authority;
+      @    ensures JMLNullSafe.equals(this.scheme, scheme)
+      @         && JMLNullSafe.equals(this.host, host) 
+      @         && JMLNullSafe.equals(this.path, path)
+      @         && JMLNullSafe.equals(this.fragment, fragment);
+      @    ensures this.userInfo==null && this.authority==null && port==-1 
+      @         && this.query_==null && this.ssp==null;
+      @    ensures (scheme==null) ==>
+      @              path != null 
+      @              && ((path.startsWith("/") || path.equals("")));
+      @    signals_only URISyntaxException;
+      @*/
+    public URI(String scheme, String host, String path, String fragment)
+        throws URISyntaxException;
+
+    /*@  public behavior
+      @    assignable scheme, userInfo, host, port, path, query_, fragment,
+      @               ssp, authority;
+      @    ensures JMLNullSafe.equals(this.scheme, scheme)
+      @         && JMLNullSafe.equals(this.ssp, ssp) 
+      @         && JMLNullSafe.equals(this.fragment, fragment);
+      @    ensures this.userInfo==null && this.host==null && port==-1 
+      @         && this.authority==null && this.query_==null && this.ssp==null;
+      @    signals_only URISyntaxException;
+      @*/
+    public URI(String scheme, String ssp, String fragment)
+        throws URISyntaxException;
+
+    /*@  public behavior
+      @    requires str != null; 
+      @    signals (IllegalArgumentException) (* the given string violates RFC 2396 *);
+      @    signals_only IllegalArgumentException;
+      @*/
+    public /*@ pure non_null @*/ static URI create(String str);
+
+    /*@  public normal_behavior
+      @    requires authority==null;
+      @    ensures \result.equals(this);
+      @ also public behavior
+      @    requires (authority!=null);
+      @    signals_only URISyntaxException;
+      @*/
+    public /*@ pure @*/ URI parseServerAuthority() throws URISyntaxException;
+
+    /*@    requires this.isOpaque();
+      @    ensures \result == this;
+      @  also
+      @    requires !this.isOpaque();
+      @    ensures \result.path.equals(pathNormalize(this.path));
+      @*/
+    public URI normalize();
+    
+    /*@  public pure model String pathNormalize(String path) {
+      @    String r = path.replaceAll("/\\./", "/");
+      @    String oldR;
+      @    do {
+      @      oldR = r;
+      @      r = r.replaceAll("/([^.].*|\\.[^.].*)/\\.\\./", "/");
+      @    } while (!r.equals(oldR));
+      @    r.replaceFirst("^[^/]*:[^/]*" + "/", "./");
+      @    return r;
+      @  }
+      @*/
+
+    /*@  public normal_behavior
+      @    requires uri.isAbsolute() || this.isOpaque();
+      @    assignable \nothing;
+      @    ensures \result == uri;
+      @ also public normal_behavior
+      @    requires uri.fragment != null && (uri.path != null || uri.path.equals(""))
+      @      && uri.scheme == null && uri.authority == null
+      @      && uri.query_ == null;
+      @    requires_redundantly !uri.isAbsolute();
+      @    ensures \result.fragment.equals(uri.fragment) && \result.ssp.equals(this.ssp)
+      @            && \result.scheme.equals(this.scheme) && \result.userInfo.equals(this.userInfo)
+      @            && \result.host.equals(this.host) && \result.path.equals(this.path)
+      @            && \result.query_.equals(this.query_) && \result.port == this.port
+      @            && \result.authority.equals(this.authority);
+      @ also public normal_behavior
+      @    requires !(uri.isAbsolute() || this.isOpaque())
+      @          && !(uri.fragment != null
+      @               && (uri.path != null || uri.path.equals(""))
+      @               && uri.scheme == null && uri.authority == null
+      @               && uri.query_ == null);
+      @    {|
+      @        requires uri.authority != null;
+      @        ensures \result.scheme.equals(this.scheme) 
+      @             && \result.query_.equals(uri.query_)
+      @             && \result.fragment.equals(uri.fragment)
+      @             && \result.authority.equals(uri.authority)
+      @             && \result.path.equals(uri.path);
+      @      also
+      @        requires uri.authority == null;
+      @        {|
+      @            ensures \result.scheme.equals(this.scheme) 
+      @                 && \result.query_.equals(uri.query_)
+      @                 && \result.fragment.equals(uri.fragment)
+      @                 && \result.authority.equals(this.authority);
+      @          also
+      @            {|
+      @                requires uri.path != null && uri.path.length() > 0 && uri.path.charAt(0) == '/';
+      @                ensures \result.path.equals(uri.path);
+      @            also
+      @                old String thispath = (this.path == null ? "" : this.path);
+      @                requires uri.path == null || uri.path.length() == 0 || uri.path.charAt(0) != '/';
+      @                ensures \result.path.equals(
+      @                      pathNormalize((thispath.indexOf('/') != -1
+      @                                     ? "" : this.path.substring(0, this.path.lastIndexOf("/")))
+      @                                    + uri.path));
+      @            |}
+      @        |}
+      @    |}
+      @ implies_that
+      @    requires this.isAbsolute() || uri.isAbsolute();
+      @    ensures \result.isAbsolute();
+      @  also
+      @    requires !(this.isAbsolute() || uri.isAbsolute());
+      @    ensures !\result.isAbsolute();
+      @*/
+    public /*@ pure non_null @*/ URI resolve(URI uri);
+
+    /*@  public behavior
+      @    ensures \result == this.resolve(URI.create(str));
+      @*/
+    public /*@ pure non_null @*/ URI resolve(String str);
+
+    /*@  public normal_behavior
+      @    requires (this.isOpaque() || uri.isOpaque())
+      @      || (!this.scheme.equals(uri.scheme) && !this.authority.equals(uri.authority))
+      @      || !uri.path.startsWith(this.path);
+      @    ensures \result == uri;
+      @ also public normal_behavior
+      @    requires !(this.isOpaque() && uri.isOpaque())
+      @      && (this.scheme.equals(uri.scheme) || this.authority.equals(uri.authority))
+      @      && uri.path.startsWith(this.path);
+      @    ensures \result.query_.equals(uri.query_) && \result.fragment.equals(this.fragment)
+      @      && \result.path.equals(uri.path.substring(this.path.length()));
+      @*/
+    public /*@ pure @*/ URI relativize(URI uri);
+
+    /*@  public normal_behavior
+      @    requires this.isAbsolute();
+           //ensures \result.isAbsolute();
+      @  also public behavior
+      @    signals_only MalformedURLException;
+      @*/
+    public /*@ pure @*/ URL toURL() throws MalformedURLException;
+
+    /*@   public normal_behavior
+      @     requires scheme == null;
+      @     ensures \result == null;
+      @ also
+      @   public normal_behavior
+      @     requires scheme != null;
+      @     ensures \result != null && \result.equals(scheme);
+      @*/
+    public /*@ pure @*/ String getScheme();
+
+    /*@  public normal_behavior
+      @    ensures \result
+      @      <==> scheme != null;
+      @*/
+    public /*@ pure @*/ boolean isAbsolute();
+
+    /*@  public normal_behavior
+      @    ensures \result
+      @       <==> scheme != null && !ssp.startsWith("/");
+      @*/
+    public /*@ pure @*/ boolean isOpaque();
+    /*@  public invariant isOpaque() 
+      @    ==> userInfo == null && host == null
+      @        && path == null && query_ == null
+      @        && authority == null && port == -1;
+      @*/
+
+    /*@  public normal_behavior
+      @    requires ssp != null;
+      @    ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getRawSchemeSpecificPart();
+
+    /*@  public normal_behavior
+      @     ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getSchemeSpecificPart();
+
+    /*@    public normal_behavior
+      @      requires authority == null;
+      @      ensures \result == null;
+      @  also
+      @    public normal_behavior
+      @      requires authority != null;
+      @      ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getRawAuthority();
+
+    /*@    public normal_behavior
+      @      requires authority == null;
+      @      ensures \result == null;
+      @  also
+      @    public normal_behavior
+      @      requires authority != null;
+      @      ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getAuthority();
+
+    /*@    public normal_behavior
+      @      requires userInfo == null;
+      @      ensures \result == null;
+      @  also
+      @    public normal_behavior
+      @      requires userInfo != null;
+      @      ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getRawUserInfo();
+
+    /*@    public normal_behavior
+      @      requires userInfo == null;
+      @      ensures \result == null;
+      @  also
+      @    public normal_behavior
+      @      requires userInfo != null;
+      @      ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getUserInfo();
+
+    /*@    public normal_behavior
+      @       requires host == null;
+      @       ensures \result == null;
+      @  also
+      @    public normal_behavior
+      @      requires host != null;
+      @      ensures \result != null && \result.equals(host);
+      @*/
+    public /*@ pure @*/ String getHost();
+
+    /*@   public normal_behavior
+      @      ensures \result == port;
+      @*/
+    public /*@ pure @*/ int getPort();
+
+    /*@    public normal_behavior
+      @      requires path == null;
+      @      ensures \result == null;
+      @  also
+      @    public normal_behavior
+      @      requires path != null;
+      @      ensures \result != null && \result.equals(path);
+      @*/
+    public /*@ pure @*/ String getRawPath();
+
+    /*@    public normal_behavior
+      @      requires path == null;
+      @      ensures \result == null;
+      @  also
+      @    public normal_behavior
+      @      requires path != null;
+      @      ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getPath();
+
+    /*@    public normal_behavior
+      @      requires query_ == null;
+      @      ensures \result == null;
+      @  also
+      @    public normal_behavior
+      @      requires query_ != null;
+      @      ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getRawQuery();
+
+    /*@    public normal_behavior
+      @      requires query_ == null;
+      @      ensures \result == null;
+      @  also
+      @    public normal_behavior
+      @      requires query_ != null;
+      @      ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getQuery();
+
+    /*@    public normal_behavior
+      @      requires fragment == null;
+      @      ensures \result == null;
+      @  also
+      @    public normal_behavior
+      @      requires fragment != null;
+      @      ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getRawFragment();
+
+    /*@    public normal_behavior
+      @      requires fragment == null;
+      @      ensures \result == null;
+      @  also
+      @    public normal_behavior
+      @      requires fragment != null;
+      @      ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getFragment();
+
+    /*@  also
+      @    public normal_behavior
+      @      requires !(ob instanceof URI);
+      @      ensures !\result;
+      @  also
+      @    public normal_behavior
+      @      old URI uri = (URI) ob;
+      @      requires ob instanceof URI;
+      @      {| 
+      @         requires this.isOpaque();
+      @         ensures \result 
+      @            <==> uri.isOpaque()
+      @                 && this.getRawSchemeSpecificPart()
+      @                        .equals(uri.getRawSchemeSpecificPart());
+      @      also
+      @       requires !this.isOpaque();
+      @       ensures \result 
+      @            <==> this.getRawPath().equals(uri.getRawPath())
+      @                 && (this.getRawQuery().equals(uri.getRawQuery())
+      @                     || (this.getRawQuery() == null 
+      @                         && uri.getRawQuery() == null));
+             |}
+      @*/
+    public /*@ pure @*/ boolean equals(/*@ nullable @*/ Object ob);
+
+    // Specification inherited
+    public int hashCode();
+
+    // Specification inherited
+    public int compareTo(/*@ non_null @*/ Object ob);
+
+    /*@  public model boolean needsBrackets;
+      @  public represents needsBrackets
+      @      <- ((host.indexOf(':') >= 0) && !host.startsWith("[")
+      @         && !host.endsWith("]")
+      @         && (!isOpaque()) && (host != null));
+      @*/
+      
+    /*@ also
+      @ old String prefix = (scheme != null ? scheme : "");
+      @ old String suffix = (fragment != null ? "#" + fragment : "");
+      @ {|
+      @    requires isOpaque();
+      @    ensures \result.equals(prefix + ssp + suffix);
+      @  also
+      @    old String pq = (path != null ? path : "") + (query_ != null ? "?" + query_ : "");
+      @    requires !isOpaque();
+      @    {|
+      @       requires host != null;
+      @       ensures \result.equals(prefix + "//" + (userInfo != null ? userInfo + "@" : "")
+      @               + (needsBrackets ? "[" : "") + host + (needsBrackets ? "]" : "")
+      @               + (port != -1 ? ":" + port : "") + pq + suffix);
+      @      also
+      @       requires host == null;
+      @       ensures \result.equals(prefix + (authority != null ? "//" + authority : "")
+      @                                     + pq + suffix);
+      @    |}
+      @ |}
+      @*/
+    public /*@ pure non_null @*/ String toString();
+
+    /*@  public behavior
+      @    ensures \result == asASCII(this.toString());
+      @*/
+    public /*@ pure @*/ String toASCIIString();
+
+    //@ public pure model String asASCII(String str);
+    //@ public pure model String fromASCII(String str);
+}

@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- $Id: package.html,v 1.2 2005/08/16 22:28:16 leavens Exp $ -->
+<title>JML Specifications of the JDK Types</title>
+</head>
+<body bgcolor="white">
+
+<p>
+This package "contains" other packages that specify parts of the JDK, and other libraries for JML.
+</p>
+
+<h2>Conventions</h2>
+
+<p>
+We use the following conventions for the specifications.
+</p>
+
+<h3>Copyright</h3>
+
+The copyright for the specifications should be the LGPL, not the usual GPL.  This is so that some clients can use the JML runtime library for commerical code.  See (or copy) the file <kbd>../org/jmlspecs/lgpl-copyright-for-java.txt</kbd> for the text to use.</p>
+
+<h3>No code</h3>
+
+<p>
+Don't copy any method bodies or other executable code (such as initializer blocks) into the specifications.  Code is certainly something that we need to avoid due to copyright issues.
+</p>
+
+<p>For the same reason, don't copy the javadocs into the specifications.</p>
+
+<h3>No incomplete interfaces</h3>
+
+<p>It's important that you don't add a specification for a type that is incomplete.  That is, don't give the interface for just a single method, but include all of the (public and protected) interface of each type you specify.</p>
+
+<p>To deal with differences among JDK versions, you may have to include declarations for additional methods that are not in earlier versions of the JDK in your specification files.</p>
+
+<p>The set of interfaces you specify should be closed in the sense that the tests pass without having to have other information available.  In some cases this will mean you will have to specify extra types to allow the tests to pass.</p>
+
+<h3>Use .spec files for interfaces</h3>
+
+<p>At present the only types that we can compile with jmlc are interfaces.  To do that automatically, use a .spec file for each interface instead of some other suffix.  For other files, any suffix except <kbd>.java</kbd> is fine, but we suggest using <kbd>.refines-spec</kbd> or <kbd>.refines-java</kbd>.
+</p>
+
+<h3>Creation</h3>
+
+<p>Creating initial versions of these specifications can be done with the <kbd>jmlspec</kbd> tool.  Use the <kbd>--protected</kbd> flag so that you get (only) the public and protected members and ignore the private and package visibility members.</p>
+</p>
+
+<h3>Document the Normal Behavior</h3>
+
+<p>We suggest that you only specify normal behavior, at least at first.</p>
+
+<h3>Don't Specify package and private Features</h3>
+
+<p>You should only document public and protected features of these classes, and ignore package and private visibility features.</p>
+
+<h3>Ghost vs. Model</h3>
+
+<p>When in doubt about whether to use a ghost field or a model field, use a model field.</p>
+
+<h3>Imports</h3>
+
+<p>If an import is only used in the bodies of methods and other executable code, but is not needed in the code's interface, then you should remove it from the specification.  In particular, this will allow us to keep references from the <kbd>com.sun</kbd> packages out of the specifications.
+
+<!-- Put @see and @since tags down here. -->
+
+</body>
+</html>

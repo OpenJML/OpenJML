@@ -1,0 +1,141 @@
+// @(#)$Id: Locale.jml,v 1.14 2005/12/23 17:02:03 chalin Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+
+package java.util;
+import java.io.*;
+
+public final class Locale implements Cloneable, Serializable {
+
+    static public final Locale ENGLISH;
+    static public final Locale FRENCH;
+    static public final Locale GERMAN;
+    static public final Locale ITALIAN;
+    static public final Locale JAPANESE;
+    static public final Locale KOREAN;
+    static public final Locale CHINESE;
+    static public final Locale SIMPLIFIED_CHINESE;
+    static public final Locale TRADITIONAL_CHINESE;
+    static public final Locale FRANCE;
+    static public final Locale GERMANY;
+    static public final Locale ITALY;
+    static public final Locale JAPAN;
+    static public final Locale KOREA;
+    static public final Locale CHINA;
+    static public final Locale PRC;
+    static public final Locale TAIWAN;
+    static public final Locale UK;
+    static public final Locale US;
+    static public final Locale CANADA;
+    static public final Locale CANADA_FRENCH;
+    static final long serialVersionUID;
+    public Locale(String language, String country, String variant);
+    public Locale(String language, String country);
+
+    public Locale(String language);
+
+    public static /*@ pure @*/ Locale getDefault();
+
+    //@ public normal_behavior
+    //@ requires newLocale != null;
+    //@ modifies \everything;
+    //@ ensures getDefault() == newLocale;
+    public static synchronized void setDefault(Locale newLocale);
+
+	//@ ensures \result != null;
+    public static /*@ pure @*/ Locale[] getAvailableLocales();
+
+	//@ ensures \result != null;
+    public static /*@ pure @*/ String[] getISOCountries();
+
+	//@ ensures \result != null;
+    public static /*@ pure @*/ String[] getISOLanguages();
+
+	//@ ensures \result != null;
+    public /*@ pure @*/ String getLanguage();
+
+	//@ ensures \result != null;
+    public /*@ pure @*/ String getCountry();
+
+	//@ ensures \result != null;
+    public /*@ pure @*/ String getVariant();
+
+	//@ also
+	//@ ensures \result != null;
+    public /*@ pure @*/ final String toString();
+
+
+	//@ ensures \result != null;
+    public /*@ pure @*/ String getISO3Language()
+        throws MissingResourceException;
+
+
+	//@ ensures \result != null;
+    public /*@ pure @*/ String getISO3Country()
+        throws MissingResourceException;
+
+
+	//@ ensures \result != null;
+    public final /*@ pure @*/ String getDisplayLanguage();
+
+
+	//@ public normal_behavior
+	//@ requires inLocale != null;
+	//@ ensures \result != null;
+    public /*@ pure @*/ String getDisplayLanguage(Locale inLocale);
+
+
+	//@ ensures \result != null;
+    public final /*@ pure @*/ String getDisplayCountry();
+
+
+	//@ public normal_behavior
+	//@ requires inLocale != null;
+	//@ ensures \result != null;
+    public /*@ pure @*/ String getDisplayCountry(Locale inLocale);
+
+
+	//@ ensures \result != null;
+    public final /*@ pure @*/ String getDisplayVariant();
+
+
+	//@ public normal_behavior
+	//@ requires inLocale != null;
+	//@ ensures \result != null;
+    public /*@ pure @*/ String getDisplayVariant(Locale inLocale);
+
+
+	//@ ensures \result != null;
+    public final /*@ pure @*/ String getDisplayName();
+
+	//@ public normal_behavior
+	//@ requires inLocale != null;
+	//@ ensures \result != null;
+    public /*@ pure @*/ String getDisplayName(Locale inLocale);
+
+	//@ also
+	//@ ensures \result != null;
+    public Object clone();
+
+    public synchronized int hashCode();
+
+    public /*@ pure @*/ boolean equals(/*@ nullable @*/ Object obj);
+}

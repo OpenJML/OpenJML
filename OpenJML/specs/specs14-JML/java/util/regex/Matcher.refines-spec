@@ -1,0 +1,65 @@
+// @(#)$Id: Matcher.refines-spec,v 1.6 2005/07/07 21:03:29 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.util.regex;
+
+public final class Matcher {
+
+    Matcher();
+
+    public Pattern pattern();
+
+    public Matcher reset();
+
+    public Matcher reset(CharSequence input);
+
+    public int start();
+
+    public int start(int group);
+
+    public int end();
+
+    public int end(int group);
+
+    public String group();
+
+    public String group(int group);
+
+    public int groupCount();
+
+    public boolean matches();
+
+    public boolean find();
+
+    public boolean find(int start);
+
+    public boolean lookingAt();
+
+    public Matcher appendReplacement(StringBuffer sb, String replacement);
+
+    public StringBuffer appendTail(StringBuffer sb);
+
+    public /*@ pure @*/ String replaceAll(String replacement);
+
+    public /*@ pure @*/ String replaceFirst(String replacement);
+
+}
+

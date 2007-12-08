@@ -1,0 +1,173 @@
+// @(#)$Id: TreeMap.refines-spec,v 1.14 2006/01/30 22:10:45 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.util;
+
+//@ model import org.jmlspecs.models.*;
+
+/** JML's specification of java.util.TreeMap.
+ * @version $Revision: 1.14 $
+ * @author Katie Becker
+ * @author Gary T. Leavens
+ */
+public class TreeMap extends AbstractMap
+    implements SortedMap, Cloneable, java.io.Serializable
+{
+
+    /*+@ private normal_behavior
+      @   assignable theMap;
+      @   ensures theMap != null && theMap.isEmpty();
+      @*/
+    /*-@ private normal_behavior
+      @   ensures isEmpty();
+      @*/
+    //@ pure
+    public TreeMap();
+	
+    /*+@ private normal_behavior
+      @   assignable theMap;
+      @   ensures theMap != null && theMap.isEmpty();
+      @*/	
+    /*-@ private normal_behavior
+      @   ensures isEmpty();
+      @*/
+    //@ pure
+    public TreeMap(Comparator c);
+
+    /*+@ private normal_behavior
+      @   requires m != null;
+      @   assignable theMap;
+      @   ensures theMap != null;
+      @   ensures JMLEqualsSet.convertFrom(m.entrySet()).equals(theMap);
+      @*/
+    /*-@ private normal_behavior
+      @           // FIXME
+      @*/
+    //@ pure
+    public TreeMap(SortedMap m);
+
+    /*+@ private normal_behavior
+      @   requires m != null;
+      @   assignable theMap;
+      @   ensures theMap != null; 
+      @   ensures JMLEqualsSet.convertFrom(m.entrySet()).equals(theMap);
+      @*/
+    /*-@ private normal_behavior
+      @           // FIXME
+      @*/
+    //@ pure
+    public TreeMap(Map m);
+	
+    // specified by Map
+    public int size();    
+
+    // specified by Map
+    public boolean containsKey(/*@ nullable @*/ Object key);
+
+    // specified by Map
+    public boolean containsValue(/*@ nullable @*/ Object value);
+	
+    // specified by Map
+    public Object get(/*@ nullable @*/ Object key);
+	
+    // specified by SortedMap
+    public Comparator comparator();
+
+    // specified by SortedMap
+    public Object firstKey();
+
+    // specified by SortedMap
+    public Object lastKey();    
+
+    // specified by Map
+    public void putAll(Map map);
+
+    // specified by Map
+    public Object put(/*@ nullable @*/ Object key,
+                      /*@ nullable @*/ Object value);
+
+    // specified by Map
+    public Object remove(/*@ nullable @*/ Object key); 
+
+    // specified by Map 
+    public void clear();
+
+    /*@ also
+      @   public normal_behavior
+      @       ensures \result instanceof TreeMap && \fresh(\result)
+      @          && ((TreeMap)\result).equals(this);
+      @       ensures_redundantly \result != this;
+      @*/
+    public /*@ pure @*/ Object clone(); 
+
+    // specified by Map
+    public Set keySet();
+    
+    // specified by Map
+    public Collection values();             
+
+    // specified by Map	
+    public Set entrySet();
+
+    // specified by SortedMap 
+    public SortedMap subMap(Object fromKey, Object toKey);
+
+    // specified by SortedMap
+    public SortedMap headMap(Object toKey);
+
+    // specified by SortedMap
+    public SortedMap tailMap(Object fromKey);
+
+    void readTreeSet(int size, java.io.ObjectInputStream s, Object defaultVal)
+        throws java.io.IOException, ClassNotFoundException;
+
+    void addAllForTreeSet(SortedSet set, Object defaultVal);
+
+    static class Entry implements Map.Entry {
+
+        //@ assignable abstractKey, abstractValue;
+        //@ ensures abstractKey == key && abstractValue == value;
+        Entry(Object key, Object value, Entry parent);
+
+        public Object getKey();
+
+        public Object getValue();
+
+        public Object setValue(Object value);
+
+        public boolean equals(/*@ nullable @*/ Object o);
+
+        public int hashCode();
+
+        public String toString();
+
+        Object key;
+        Object value;
+        //@ represents abstractKey <- key;
+        //@ represents abstractValue <- value;
+
+        Entry left;
+        Entry right;
+        Entry parent;
+        boolean color;
+    }
+
+}

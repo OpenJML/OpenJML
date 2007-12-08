@@ -1,0 +1,174 @@
+// @(#)$Id: HttpServletRequestWrapper.refines-spec,v 1.2 2005/08/16 22:23:04 leavens Exp $
+//
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+/*
+ * NOTE: This file has only been partially specified. Feel free to complete.
+ * (http://jakarta.apache.org/tomcat/tomcat-5.0-doc/servletapi/)
+ */
+
+package javax.servlet.http;
+
+import javax.servlet.ServletRequestWrapper;
+import java.util.Enumeration;
+
+/** JML's specification of HttpServletRequestWrapper. */
+public class HttpServletRequestWrapper extends ServletRequestWrapper implements HttpServletRequest {
+
+    // CLASS SPECIFICATIONS
+
+    /*@
+      @ 
+      @*/
+
+    // METHODS AND CONSTRUCTORS
+
+    /*@
+      @ 
+      @*/
+    public HttpServletRequestWrapper(HttpServletRequest request);
+
+    /*@
+      @ 
+      @*/
+    public String getAuthType();
+
+    /*@
+      @ 
+      @*/
+    public Cookie[] getCookies();
+
+    /*@
+      @ 
+      @*/
+    public long getDateHeader(String name);
+
+    /*@
+      @ 
+      @*/
+    public String getHeader(String name);
+
+    /*@
+      @ 
+      @*/
+    public Enumeration getHeaders(String name);
+
+    /*@
+      @ 
+      @*/
+    public Enumeration getHeaderNames();
+
+    /*@
+      @ 
+      @*/
+    public int getIntHeader(String name);
+
+    /*@
+      @ 
+      @*/
+    public String getMethod();
+
+    /*@
+      @ 
+      @*/
+    public String getPathInfo();
+
+    /*@
+      @ 
+      @*/
+    public String getPathTranslated();
+
+    /*@
+      @ 
+      @*/
+    public String getContextPath();
+
+    /*@
+      @ 
+      @*/
+    public String getQueryString();
+
+    /*@
+      @ 
+      @*/
+    public String getRemoteUser();
+
+    /*@
+      @ 
+      @*/
+    public boolean isUserInRole(String role);
+
+    /*@
+      @ 
+      @*/
+    public java.security.Principal getUserPrincipal();
+
+    /*@
+      @ 
+      @*/
+    public String getRequestedSessionId();
+
+    /*@
+      @ 
+      @*/
+    public String getRequestURI();
+
+    /*@
+      @ 
+      @*/
+    public StringBuffer getRequestURL();
+
+    /*@
+      @ 
+      @*/
+    public String getServletPath();
+
+    /*@
+      @ 
+      @*/
+    public HttpSession getSession(boolean create);
+
+    /*@
+      @ 
+      @*/
+    public HttpSession getSession();
+
+    /*@
+      @ 
+      @*/
+    public boolean isRequestedSessionIdValid();
+
+    /*@
+      @ 
+      @*/
+    public boolean isRequestedSessionIdFromCookie();
+
+    /*@
+      @ 
+      @*/
+    public boolean isRequestedSessionIdFromURL();
+
+    /*@
+      @ 
+      @*/
+    public boolean isRequestedSessionIdFromUrl();
+
+}
+
