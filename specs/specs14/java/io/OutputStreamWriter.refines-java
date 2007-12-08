@@ -1,0 +1,19 @@
+package java.io;
+
+// FIXME
+
+public class OutputStreamWriter extends Writer{
+    public OutputStreamWriter(OutputStream o,java.lang.String s)
+       throws UnsupportedEncodingException;
+    public OutputStreamWriter(OutputStream o);
+    public OutputStreamWriter(OutputStream o,java.nio.charset.Charset c);
+    public OutputStreamWriter(OutputStream o,java.nio.charset.CharsetEncoder c);
+    public java.lang.String getEncoding();
+    void flushBuffer() throws IOException;
+    public void write(int i) throws IOException;
+    public void write(char[] ca,int i,int j) throws IOException;
+    public void write(java.lang.String s,int i,int j) throws IOException;
+    public void flush() throws IOException;
+    public void close() throws IOException;
+}
+

@@ -1,0 +1,140 @@
+// @(#)$Id: OutputStream.refines-java,v 1.5 2005/07/07 21:03:10 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.io;
+
+//@ model import java.math.BigInteger;
+//@ model import org.jmlspecs.models.*;
+
+/** JML's specification of OutputStream.
+ * @author Gary T. Leavens
+ */
+public abstract class OutputStream extends Object {
+
+    // FIELDS
+    /** The output data group is used to specify things like caching,
+     * and to make sure that methods that might produce some output
+     * have a side effect on some datagroup. */
+    //@ public model JMLDataGroup output; in objectState;
+
+    /** The bytes that are to be (or have been) output. */
+    //@ public model non_null JMLValueSequence outputBytes; in output;
+
+    /*@ public invariant (\forall int i; 0 <= i && i < outputBytes.size();
+      @                              outputBytes.get(i) instanceof JMLByte);
+      @*/
+
+    /** Is this file open? */
+    //@ public model boolean isOpen; in objectState;
+    /** Was this file closed? */
+    //@ public model boolean wasClosed; in objectState;
+
+    //@ public invariant isOpen ==> !wasClosed;
+    //@ public invariant wasClosed ==> !isOpen;
+
+    // wasClosed can only change to true, not back to false
+    //@ public constraint \old(wasClosed) ==> wasClosed;
+
+    // METHODS AND CONSTRUCTORS
+
+    /*@ public normal_behavior
+      @   assignable isOpen, outputBytes;
+      @   ensures outputBytes.isEmpty() && !isOpen && !wasClosed;
+      @*/
+    public OutputStream();
+
+    /*@ public behavior
+      @   requires isOpen;
+      @   assignable output, isOpen, wasClosed;
+      @   ensures !isOpen && wasClosed;
+      @   signals_only IOException;
+      @   signals (IOException) (* an IO error occured *);
+      @*/
+    public void close() throws IOException;
+
+    /*@ public behavior
+      @   requires isOpen;
+      @   assignable output;
+      @   ensures (* the output is written to the device *);
+      @   signals_only IOException;
+      @   signals (IOException) (* an IO error occured *);
+      @*/
+    public void flush() throws IOException;
+
+    /*@ public behavior
+      @   requires isOpen;
+      @   assignable outputBytes;
+      @   ensures outputBytes
+      @           .equals(\old(outputBytes.insertBack(new JMLByte((byte)i))));
+      @   signals_only IOException;
+      @   signals (IOException) (* an IO error occured *);
+      @*/
+    public abstract void write(int i) throws IOException;
+
+    /*@ public behavior
+      @   old \bigint siz = outputBytes.size();
+      @   requires isOpen;
+      @   assignable outputBytes;
+      @   ensures outputBytes.size() == siz + b.length
+      @        && (\forall int i; 0 <= i && i < siz;
+      @                  outputBytes.get(i).equals(\old(outputBytes.get(i))))
+      @        && (\forall int k; 0 <= k && k < b.length;
+      @                  outputBytes.get(siz+k)
+      @                  .equals(new JMLByte(b[k])));
+      @   signals_only IOException, NullPointerException;
+      @   signals (IOException) b != null && (* an IO error occured *);
+      @   signals (NullPointerException) b == null;
+      @*/
+    public void write(byte[] b) throws IOException;
+
+    /*@ public behavior
+      @   old \bigint siz = outputBytes.size();
+      @   requires isOpen
+      @         && b != null && off >= 0 && len >= 0 && off + len <= b.length;
+      @   assignable outputBytes;
+      @   ensures outputBytes.size() == siz + len
+      @        && (\forall int i; 0 <= i && i < siz;
+      @                  outputBytes.get(i).equals(\old(outputBytes.get(i))))
+      @        && (\forall int k; off <= k && k < off+len;
+      @                  outputBytes.get(siz+k)
+      @                  .equals(new JMLByte(b[off+k])));
+      @   signals_only IOException;
+      @   signals (IOException) (* an IO error occured *);
+      @ also
+      @ public exceptional_behavior
+      @   requires isOpen
+      @         && (b == null || off < 0 || len < 0 || off + len > b.length);
+      @   assignable \nothing;
+      @   signals_only IOException, IndexOutOfBoundsException,
+      @                NullPointerException;
+      @   signals (IndexOutOfBoundsException) off < 0 || len < 0
+      @                                       || off + len > b.length;
+      @   signals (NullPointerException) b == null;
+      @ also
+      @ public model_program {
+      @    assume isOpen;
+      @    for (int i = off; i < off+len; i++) {
+      @       write(b[i]);
+      @    }
+      @ }
+      @*/
+    public void write(byte[] b, int off, int len) throws IOException;
+}

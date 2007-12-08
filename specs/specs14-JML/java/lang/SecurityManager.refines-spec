@@ -1,0 +1,259 @@
+// @(#)$Id: SecurityManager.refines-spec,v 1.4 2006/01/23 20:26:01 leavens Exp $
+
+// Copyright (C) 2006 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.lang;
+
+import java.security.*;
+import java.lang.reflect.*;
+import java.io.FileDescriptor;
+import java.io.File;
+import java.io.FilePermission;
+import java.awt.AWTPermission;
+import java.util.PropertyPermission;
+import java.lang.RuntimePermission;
+import java.net.SocketPermission;
+import java.net.NetPermission;
+import java.util.Hashtable;
+import java.net.InetAddress;
+import java.lang.reflect.Member;
+import java.net.URL;
+
+/** JML's specification of java.lang.SecurityManager
+ *
+ * @version $Revision: 1.4 $
+ * @author Gary T. Leavens and Tabitha Johnson
+ */
+public class SecurityManager {
+
+    /** @deprecated */
+    public boolean getInCheck();
+
+    /*@ signals_only SecurityException;
+      @*/
+    public SecurityManager();
+
+    /*@
+      @ ensures \nonnullelements(\result);
+      @*/
+    protected Class[] getClassContext();
+
+    /** @deprecated */
+    protected ClassLoader currentClassLoader();
+
+    /** @deprecated */
+    protected Class currentLoadedClass();
+
+    /** @deprecated */
+    protected int classDepth(String name);
+
+    /** @deprecated */
+    protected int classLoaderDepth();
+
+    /** @deprecated */
+   protected boolean inClass(String name);
+
+    /** @deprecated */
+    protected boolean inClassLoader();
+
+    /*@ ensures_redundantly \result != null;
+      @*/
+    public Object getSecurityContext();
+
+    /*@ requires_redundantly perm != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkPermission(Permission perm);
+
+    /*@   requires context instanceof java.security.AccessControlContext;
+      @   requires_redundantly perm != null;
+      @   signals_only AccessControlException;
+      @ also
+      @    requires !(context instanceof java.security.AccessControlContext);
+      @    signals_only SecurityException;
+      @ implies_that
+      @    requires context == null;
+      @    signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkPermission(Permission perm,
+                                             /*@ nullable @*/ Object context);
+
+    /*@ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkCreateClassLoader();
+
+    /*@ requires_redundantly t != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkAccess(Thread t);
+
+    /*@ requires_redundantly g != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkAccess(ThreadGroup g);
+
+    /*@ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkExit(int status);
+
+    /*@ requires_redundantly cmd != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkExec(String cmd);
+
+    /*@ requires_redundantly lib != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkLink(String lib);
+
+    /*@ requires_redundantly fd != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkRead(FileDescriptor fd);
+
+    /*@ requires_redundantly file != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkRead(String file);
+
+    /*@   requires context instanceof java.security.AccessControlContext;
+      @   requires_redundantly file != null;
+      @   signals_only AccessControlException;
+      @ also
+      @    requires !(context instanceof java.security.AccessControlContext);
+      @    signals_only SecurityException;
+      @ implies_that
+      @    requires context == null;
+      @    signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkRead(String file, Object context);
+
+    /*@ requires_redundantly fd != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkWrite(FileDescriptor fd);
+
+    /*@ requires_redundantly file != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkWrite(String file);
+
+    /*@ requires_redundantly file != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkDelete(String file);
+
+    /*@ requires_redundantly host != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkConnect(String host, int port);
+
+    /*@   requires context instanceof java.security.AccessControlContext;
+      @   requires_redundantly host != null;
+      @   signals_only AccessControlException;
+      @ also
+      @    requires !(context instanceof java.security.AccessControlContext);
+      @    signals_only SecurityException;
+      @ implies_that
+      @    requires context == null;
+      @    signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkConnect(String host, int port, Object context);
+
+    /*@ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkListen(int port);
+
+    /*@ requires_redundantly host != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkAccept(String host, int port);
+
+    /*@ requires_redundantly maddr != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkMulticast(InetAddress maddr);
+
+    /** @deprecated */
+    /*@ requires_redundantly maddr != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkMulticast(InetAddress maddr, byte ttl);
+
+    /*@ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkPropertiesAccess();
+
+    /*@ requires_redundantly key != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkPropertyAccess(String key);
+
+    /*@ requires_redundantly window != null;
+      @*/
+    public /*@ pure @*/ boolean checkTopLevelWindow(Object window);
+
+    /*@ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkPrintJobAccess();
+
+    /*@ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkSystemClipboardAccess();
+
+    /*@ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkAwtEventQueueAccess();
+
+    /*@ requires_redundantly pkg != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkPackageAccess(String pkg);
+
+    /*@ requires_redundantly pkg != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkPackageDefinition(String pkg);
+
+    /*@ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkSetFactory();
+
+    /*@ requires_redundantly clazz != null;
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkMemberAccess(Class clazz, int which);
+
+    /*@ requires !target.equals("");
+      @ signals_only SecurityException;
+      @*/
+    public /*@ pure @*/ void checkSecurityAccess(String target);
+
+    /*@
+      @ ensures_redundantly \result != null;
+      @*/
+    public /*@ pure @*/ ThreadGroup getThreadGroup();
+
+    // FIELDS
+
+    /** @deprecated */
+    protected boolean inCheck;
+}
+

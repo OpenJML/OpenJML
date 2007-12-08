@@ -1,0 +1,42 @@
+// $Id: Reader.refines-spec 2224 2006-12-12 00:09:00Z chalin $
+
+package java.io;
+
+public abstract class Reader extends Object {
+
+    //private static final int maxSkipBufferSize;
+    /*@ spec_public */ protected Object lock;
+    //private char[] skipBuffer;
+
+    //@ signals_only ArrayStoreException, IOException;
+    public int read()
+        throws IOException;
+
+    protected Reader();
+
+    public abstract void close()
+        throws IOException;
+
+    public void reset()
+        throws IOException;
+
+    public boolean markSupported();
+
+    public boolean ready()
+        throws IOException;
+
+    public void mark(int Param0)
+        throws IOException;
+
+    public long skip(long Param0)
+        throws IOException;
+
+    public int read(/*@non_null*/ char[] Param0)
+        throws IOException;
+
+    //@ signals_only ArrayStoreException, IOException;
+    public abstract int read(/*@non_null*/ char[] Param0, int Param1, int Param2)
+        throws IOException;
+
+    protected Reader(/*@non_null*/ Object Param0);
+}

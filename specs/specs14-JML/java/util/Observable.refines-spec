@@ -1,0 +1,116 @@
+// @(#)$Id: Observable.refines-spec,v 1.10 2005/07/07 21:03:28 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.util;
+
+//@ model import org.jmlspecs.models.JMLEqualsSet;
+//@ model import org.jmlspecs.models.JMLIterator;
+
+/**
+ * JML's specification of the java.util.Observable.
+ * @author  Gary T. Leavens
+ * @version $Revision: 1.10 $
+ */
+public class Observable {
+
+    //@ public model non_null JMLEqualsSet observers;
+    //@ public model boolean _changed;
+
+    /*@ public invariant (\forall Object o; observers.has(o);
+      @                                     o instanceof Observer);
+      @*/
+
+    /*@ public normal_behavior
+      @   assignable observers, _changed;
+      @   ensures observers.isEmpty() && !_changed;
+      @*/
+    public Observable();
+
+    /*@ public normal_behavior
+      @   requires o != null;
+      @   assignable observers;
+      @   ensures observers.equals(\old(observers.insert(o)));
+      @*/
+    public synchronized void addObserver(Observer o);
+
+    /*@ public normal_behavior
+      @   requires o != null;
+      @   assignable observers;
+      @   ensures observers.equals(\old(observers.remove(o)));
+      @*/
+    public synchronized void deleteObserver(Observer o);
+
+    /*@   public normal_behavior
+      @     requires !_changed;
+      @     assignable \nothing;
+      @ also
+      @   public model_program {
+      @     notifyObservers(null);
+      @   }
+      @*/
+    public void notifyObservers();
+
+    /*@   public normal_behavior
+      @     requires !_changed;
+      @     assignable \nothing;
+      @ also
+      @   public model_program {
+      @     if (_changed) {
+      @       JMLIterator iter = observers.iterator();
+      @       while (iter.hasNext()) {
+      @         ((Observer)iter.next()).update(this, arg);
+      @       }
+      @       clearChanged();
+      @     }
+      @   }
+      @*/
+    public void notifyObservers(Object arg);
+
+    /*@ public normal_behavior
+      @   assignable observers;
+      @   ensures observers.isEmpty();
+      @*/
+    public synchronized void deleteObservers();
+
+    /*@ protected normal_behavior
+      @   assignable _changed;
+      @   ensures _changed;
+      @*/
+    protected synchronized void setChanged();
+
+    /*@ protected normal_behavior
+      @   assignable _changed;
+      @   ensures !_changed;
+      @*/
+    protected synchronized void clearChanged();
+
+    /*@ public normal_behavior
+      @   assignable \nothing;
+      @   ensures \result <==> _changed;
+      @*/
+    public /*@ pure @*/ synchronized boolean hasChanged();
+
+    /*@ public normal_behavior
+      @   assignable \nothing;
+      @   ensures \result == observers.int_size();
+      @*/
+    public /*@ pure @*/ synchronized int countObservers();
+}

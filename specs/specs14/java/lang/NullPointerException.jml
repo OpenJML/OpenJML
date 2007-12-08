@@ -1,0 +1,16 @@
+package java.lang;
+
+public class NullPointerException extends RuntimeException {
+    /*@ public normal_behavior
+      @   ensures standardThrowable(null);
+      @*/
+    //@ pure
+    public NullPointerException();
+
+    /*@ public normal_behavior
+      @   ensures standardThrowable(s);
+      @*/
+    //@ pure
+    public NullPointerException(String s);
+}
+

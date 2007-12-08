@@ -1,0 +1,1172 @@
+// @(#)$Id: String.jml,v 1.42 2007/02/08 14:05:50 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.lang;
+
+import java.io.UnsupportedEncodingException;
+import java.util.Locale;
+import java.util.regex.Pattern;
+import java.util.Comparator;
+
+//+@ model import org.jmlspecs.models.*;
+//@ model import org.jmlspecs.lang.*;
+
+/** JML's specification of java.lang.String.
+ * @version $Revision: 1.42 $
+ * @author Gary T. Leavens
+ */
+//-@ immutable 
+public final class String
+    implements java.io.Serializable, Comparable, CharSequence
+{
+    //+@ public model JMLValueSequence stringSeq;
+
+    //+@ public invariant stringSeq != null;
+    /*+@ public invariant
+      @     (\forall int i; 0 <= i && i < stringSeq.int_length();
+      @                     stringSeq.itemAt(i) instanceof JMLChar);
+      @*/
+
+    public static final Comparator CASE_INSENSITIVE_ORDER;
+
+    //---------------------------------------------------------------------
+    // Constructors (and their helpers)
+    //---------------------------------------------------------------------
+
+    /*+@  public normal_behavior
+      @      assignable stringSeq;
+      @      ensures stringSeq.equals(new JMLValueSequence());
+      @ also
+      @*/
+    /*@  public normal_behavior
+      @      assignable charArray;
+      @      ensures charArray != null;
+      @      ensures charArray.length == 0;
+      @*/
+    public /*@ pure @*/ String();
+
+    /*+@  public normal_behavior
+      @   requires original != null;
+      @   assignable stringSeq;
+      @   ensures stringSeq.equals(original.stringSeq);
+      @ also
+      @*/
+    /*@  public normal_behavior
+      @   requires original != null;
+      @   assignable charArray;
+      @   ensures charArray != null;
+      @   ensures equal(charArray,original.charArray);
+      @*/
+    public /*@ pure @*/ String(String original);
+
+    /*+@  public normal_behavior
+      @   requires value != null;
+      @   assignable stringSeq;
+      @   ensures (\forall int i; 0 <= i && i < value.length;
+      @              ((JMLChar)(stringSeq.itemAt(i))).charValue() == value[i]);
+      @   ensures_redundantly 
+      @       stringSeq.equals(new String(value, 0, value.length).stringSeq);
+      @ also
+      @*/
+    /*@  public normal_behavior
+      @   requires value != null;
+      @   assignable charArray;
+      @   ensures charArray != null;
+      @   ensures equal(charArray,value);
+      @*/
+    public /*@ pure @*/ String(/*@ non_null @*/ char[] value);
+
+    /*+@  public normal_behavior
+      @   requires value != null
+      @             && 0 <= offset 
+      @             && (offset + count) < value.length
+      @             && 0 <= count;
+      @   assignable stringSeq;
+      @   ensures (\forall int i; offset <= i && i < offset + count;
+      @                  ((JMLChar)(stringSeq.itemAt((int)(i - offset)))).charValue()
+      @                    == value[i]);
+      @ also
+      @  public exceptional_behavior
+      @   requires value != null
+      @             && (offset < 0
+      @                 || (offset + count) < value.length
+      @                 || count < 0);
+      @   signals_only StringIndexOutOfBoundsException;
+      @ also
+      @*/
+    /*@  public normal_behavior
+      @   requires value != null
+      @             && 0 <= offset 
+      @             && (offset + count) < value.length
+      @             && 0 <= count;
+      @   assignable charArray;
+      @   ensures charArray != null;
+      @   ensures equal(charArray,0,value,offset,count);
+      @   ensures charArray.length == count;
+      @ also
+      @  public exceptional_behavior
+      @   requires value != null
+      @             && (offset < 0
+      @                 || (offset + count) < value.length
+      @                 || count < 0);
+      @   signals_only StringIndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ String(/*@ non_null @*/ char[] value,
+                                 int offset, int count)
+        throws StringIndexOutOfBoundsException;
+
+    /*@  public normal_behavior
+      @   ensures \result == (char) (((hibyte & 0xff) << 8) | (ascii & 0xff));
+    public pure model char byteToChar(int hibyte, byte ascii); @*/
+
+    /** @deprecated as of 1.1 */
+    /*+@  public normal_behavior
+      @   requires ascii != null
+      @             && 0 <= offset 
+      @             && (offset + count) < ascii.length
+      @             && 0 <= count;
+      @   assignable stringSeq;
+      @   ensures charArray != null;
+      @   ensures (\forall int i; offset <= i && i < offset + count;
+      @               ((JMLChar)(stringSeq.itemAt((int)(i - offset)))).charValue()
+      @               == byteToChar(hibyte, ascii[i]));
+      @ also
+      @  public exceptional_behavior
+      @   requires ascii != null
+      @             && (offset < 0
+      @                 || (offset + count) < ascii.length
+      @                 || count < 0);
+      @   signals_only StringIndexOutOfBoundsException;
+      @ also
+      @*/
+    /*@  public normal_behavior
+      @   requires ascii != null
+      @             && 0 <= offset 
+      @             && (offset + count) < ascii.length
+      @             && 0 <= count;
+      @   ensures charArray != null;
+      @   ensures charArray.length == count;
+      @   ensures (\forall int i; 0 <= i && i < count;
+      @               (charArray[i]
+      @               == byteToChar(hibyte, ascii[i+offset])));
+      @ also
+      @  public exceptional_behavior
+      @   requires ascii != null
+      @             && (offset < 0
+      @                 || (offset + count) < ascii.length
+      @                 || count < 0);
+      @   signals_only StringIndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ String(/*@ non_null @*/ byte[] ascii, int hibyte,
+                  int offset, int count)
+        throws StringIndexOutOfBoundsException;
+  
+    /** @deprecated as of 1.1 */
+    /*+@  public normal_behavior
+      @   requires ascii != null;
+      @   assignable stringSeq;
+      @   ensures charArray != null;
+      @   ensures (\forall int i;  0 <= i && i < ascii.length;
+      @                  ((JMLChar)(stringSeq.itemAt(i))).charValue()
+      @                  == byteToChar(hibyte, ascii[i]));
+      @ also
+      @*/
+    /*@  public normal_behavior
+      @   requires ascii != null;
+      @   ensures charArray != null;
+      @   ensures charArray.length == ascii.length;
+      @   ensures (\forall int i;  0 <= i && i < ascii.length;
+      @             charArray[i] == byteToChar(hibyte, ascii[i]));
+      @*/
+    public /*@ pure @*/ String(/*@ non_null @*/ byte[] ascii, int hibyte);
+
+    /*+@ public behavior
+      @  requires bytes != null && charsetName != null
+      @             && 0 <= offset 
+      @             && (offset + length) < bytes.length
+      @             && 0 <= length;
+      @  {|
+      @     requires (* charsetName is the name of a supporting encoding *);
+      @     assignable stringSeq;
+      @     ensures charArray != null;
+      @     ensures stringSeq.int_length() <= length
+      @           && (\forall int i; 0 <= i && i < stringSeq.int_length();
+      @                  (* stringSeq.itemAt(i).charValue() == 
+      @                     char at position i of the conversion of subarray
+      @                     of bytes using the encoding charsetName *));
+      @     signals (Exception) false;
+      @   also
+      @     requires (* !(charsetName is the name of a supporting encoding) *);
+      @     ensures false;
+      @     signals_only UnsupportedEncodingException;
+      @  |}
+      @ also
+      @*/
+    /*@ ensures charArray.length == length;
+     */
+    public /*@ pure @*/ String(/*@ non_null @*/ byte[] bytes,
+                                 int offset, int length,
+                                 /*@ non_null @*/ String charsetName)
+        throws UnsupportedEncodingException;
+
+    /*+@  public normal_behavior
+      @   requires bytes != null && charsetName != null
+      @            && (* charsetName is the name of a supporting encoding *);
+      @   assignable stringSeq;
+      @   ensures stringSeq.equals(new String(bytes, 0, bytes.length, charsetName));
+      @ also
+      @*/
+    /*@
+      @  public exceptional_behavior
+      @   requires bytes != null && charsetName != null
+      @            && (* !(charsetName is the name of a supporting encoding) *);
+      @   signals_only UnsupportedEncodingException;
+      @ also
+      @*/
+    /*@ public normal_behavior
+      @   requires bytes != null && charsetName != null;
+      @   ensures charArray != null;
+      @   ensures charArray.length == bytes.length;
+      @*/
+    public /*@ pure @*/ String(/*@ non_null @*/ byte[] bytes,
+                                 /*@ non_null @*/ String charsetName)
+        throws UnsupportedEncodingException;
+
+    /*+@  public normal_behavior
+      @   requires bytes != null
+      @             && 0 <= offset 
+      @             && (offset + length) < bytes.length
+      @             && 0 <= length;
+      @   assignable stringSeq;
+      @   ensures stringSeq.equals(
+      @                new String(bytes, offset, length,
+      @                          System.getProperty("file.encoding")));
+      @ also
+      @*/
+    /*@   // FIXME - complete
+      @   ensures charArray != null;
+      @   ensures charArray.length == length;
+      @*/
+    public /*@ pure @*/ String(/*@ non_null @*/ byte[] bytes,
+                                 int offset, int length);
+
+    /*+@  public normal_behavior
+      @   requires bytes != null;
+      @   assignable stringSeq;
+      @   ensures stringSeq.equals(
+      @                new String(bytes, 0, bytes.length,
+      @                           System.getProperty("file.encoding")));
+      @ also
+      @*/
+    /*@ public normal_behavior
+      @   requires bytes != null;
+      @   ensures charArray != null;
+      @   ensures charArray.length == bytes.length;
+      @*/
+    public /*@ pure @*/ String(/*@ non_null @*/ byte[] bytes);
+
+    /*+@  public normal_behavior
+      @  requires buffer != null;
+      @  assignable stringSeq;
+      @  ensures stringSeq != null 
+      @           && stringSeq.equals(buffer.accumulatedString.stringSeq);
+      @ also
+      @*/
+    /*@ public normal_behavior
+      @   requires buffer != null;
+      @   ensures this.equals(buffer.accumulatedString);
+      @*/
+    public /*@ pure @*/ String (/*@ non_null @*/ StringBuffer buffer);
+
+    /*@ normal_behavior
+      @   requires value != null;
+      @   requires 0 <= offset && 0 <= count && offset + count <= value.length;
+      @   ensures charArray != null;
+      @   ensures charArray.length == count;
+      @   ensures CharSequence.equal(charArray,0,value,offset,count);
+      @*/
+    //@ pure
+    String(int offset, int count, char[] value);
+
+    /*+@  protected normal_behavior
+      @   requires seq != null;
+      @   assignable stringSeq;
+      @   ensures stringSeq.equals(seq);
+      pure
+      protected model String(JMLValueSequence seq); @*/
+
+    //---------------------------------------------------------------------
+    // Methods
+    //---------------------------------------------------------------------
+
+    /*+@ also
+      @ public normal_behavior
+      @  ensures \result == stringSeq.int_length();
+      @*/
+    /*@ also
+      @ public normal_behavior
+      @  ensures \result == charArray.length;
+      @*/
+    // inherits specs from CharSequence
+    public /*@ pure @*/ int length();
+
+    /*+@
+      @ also
+      @  public normal_behavior
+      @   requires 0 <= index && index < length();
+      @   ensures \result == ((JMLChar)(stringSeq.itemAt(index))).charValue();
+      @ also
+      @  public exceptional_behavior
+      @   requires index < 0 || index >= length();
+      @   signals_only StringIndexOutOfBoundsException;
+      @*/
+    /*@ also public normal_behavior
+      @   requires 0 <= index && index < charArray.length;
+      @   ensures \result == charArray[index];
+      @ also
+      @  public exceptional_behavior
+      @   requires index < 0 || index >= charArray.length;
+      @   signals_only StringIndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ char charAt(int index)
+        throws StringIndexOutOfBoundsException;
+
+    /*+@  public normal_behavior
+      @   requires srcBegin >= 0
+      @             && srcEnd <= length()
+      @             && srcBegin <= srcEnd
+      @             && dst != null
+      @             && dst.length >= dstBegin + (srcEnd - srcBegin);
+      @   modifies dst[dstBegin .. dstBegin+srcEnd-srcBegin-1];
+      @   ensures (\forall int i; srcBegin <= i && i < srcEnd;
+      @                           dst[(int)(dstBegin + i - srcBegin)]
+      @                           == charAt(i));
+      @ also
+      @  public exceptional_behavior
+      @   requires (srcBegin < 0
+      @              || srcEnd > length()
+      @              || srcBegin > srcEnd)
+      @             && dst != null
+      @             && dst.length >= dstBegin + (srcEnd - srcBegin);
+      @   modifies \nothing;
+      @   signals_only StringIndexOutOfBoundsException;
+      @ also
+      @*/
+    /*@  public normal_behavior
+      @   requires srcBegin >= 0
+      @             && srcEnd <= charArray.length
+      @             && srcBegin <= srcEnd
+      @             && dst != null
+      @             && dst.length >= dstBegin + (srcEnd - srcBegin);
+      @   modifies dst[dstBegin .. dstBegin+srcEnd-srcBegin-1];
+      @   ensures equal(charArray,srcBegin,dst,dstBegin,srcEnd-srcBegin);
+      @ also
+      @  public exceptional_behavior
+      @   requires (srcBegin < 0
+      @              || srcEnd > charArray.length
+      @              || srcBegin > srcEnd)
+      @             && dst != null
+      @             && dst.length >= dstBegin + (srcEnd - srcBegin);
+      @   modifies \nothing;
+      @   signals_only StringIndexOutOfBoundsException;
+      @*/
+           // FIXME - not sure that the precondition is correct
+    public void getChars(int srcBegin, int srcEnd,
+                                        char[] dst, int dstBegin)
+      throws StringIndexOutOfBoundsException;
+
+    /** @deprecated as of 1.1, use getBytes() */
+    /*+@  public normal_behavior
+      @   requires srcBegin >= 0
+      @             && srcEnd <= length()
+      @             && srcBegin <= srcEnd
+      @             && dst != null
+      @             && dst.length >= dstBegin + (srcEnd - srcBegin) + 1;
+      @   modifies dst[dstBegin .. dstBegin+srcEnd-srcBegin-1];
+      @   ensures (\forall int i; srcBegin <= i && i < srcEnd;
+      @                            dst[(int)(dstBegin + i - srcBegin)]
+      @                            == (byte) (charAt(i) & 0xff));
+      @ also
+      @  public exceptional_behavior
+      @   requires (srcBegin <= 0
+      @              || srcEnd > length()
+      @              || srcBegin > srcEnd)
+      @             && dst != null
+      @             && dst.length >= dstBegin + (srcEnd - srcBegin) + 1;
+      @   modifies \nothing;
+      @   signals_only StringIndexOutOfBoundsException;
+      @*/
+    public void getBytes(int srcBegin, int srcEnd,
+                                        byte[] dst, int dstBegin)
+      throws StringIndexOutOfBoundsException;
+
+    /*@  public normal_behavior
+      @   ensures \result == (a.length == b.length)
+      @                       && (\forall int i; 0 <= i && i < a.length;
+                                                 a[i] == b[i]);
+    public pure model boolean byteArraysEqual(byte[] a, byte[] b);   @*/
+
+    /*+@  public normal_behavior
+      @   requires charsetName != null 
+      @             && (* charsetName is the name of a supporting encoding *);
+      @   ensures \result != null 
+      @            && (\forall int i; 0 <= i && i < \result.length;
+      @                    (* \result[i] is the byte at position i of the 
+      @                       conversion of this string's chars using charsetName *));
+      @ also
+      @  public exceptional_behavior
+      @   requires charsetName != null 
+      @             && !(* (charsetName is the name of a supporting encoding) *);
+      @   signals_only UnsupportedEncodingException;
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/ byte[] getBytes(String charsetName)
+      throws UnsupportedEncodingException;
+
+    /*+@  public normal_behavior
+      @  ensures \result != null 
+      @           && byteArraysEqual(\result, 
+      @                       getBytes(System.getProperty("file.encoding")));
+      @ also
+      @*/
+    /*@   public normal_behavior
+      @    ensures \result != null && \result.length == charArray.length;
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/ byte[] getBytes();
+
+    /*+@ also  public normal_behavior
+      @   requires anObject != null && (anObject instanceof String);
+      @   ensures \result == (stringSeq.equals(((String)anObject).stringSeq));
+      @*/
+    /*@ also public normal_behavior
+      @   requires anObject != null && (anObject instanceof String);
+      @   ensures \result == equal(charArray,((String)anObject).charArray);
+      @ also
+      @   requires this == anObject;
+      @   ensures \result;
+      @ also
+      @   requires anObject == null || !(anObject instanceof String);
+      @   ensures !\result;
+      @*/
+    public /*@ pure @*/ boolean equals(/*@ nullable @*/ Object anObject);
+
+    /* FIXME @ public normal_behavior
+      @   requires sb != null;
+      @   ensures \result <==> length() == sb.length()
+      @        && (\forall int i; 0 <= i && i < length();
+      @               charAt(i) == sb.charAt(i));
+      @*/
+    public /*@ pure @*/ boolean contentEquals(StringBuffer sb);
+
+    /*@  public normal_behavior
+      @    ensures \result <==> (c1 == c2)
+      @                        || (Character.toUpperCase(c1) 
+      @                            == Character.toUpperCase(c2))
+      @                        || (Character.toLowerCase(c1) 
+      @                            == Character.toLowerCase(c2));
+      public static pure model
+          boolean charEqualsIgnoreCase(char c1, char c2); @*/
+
+    /*@  public normal_behavior
+      @   requires anotherString != null;
+      @   ensures \result <==> (length() == anotherString.length())
+      @                        && (\forall int i;
+      @                             0 <= i && i < this.length();
+      @                              charEqualsIgnoreCase(
+      @                                   charAt(i),
+      @                                   anotherString.charAt(i)));
+      @ also
+      @   requires anotherString == null;
+      @   ensures !\result;
+      @*/
+    public /*@ pure @*/ boolean equalsIgnoreCase(String anotherString);
+
+    /*+@  public normal_behavior
+      @   requires s1 != null && s2 != null
+      @             && (\forall int i; 0 <= i && i < s1.int_length();
+      @                   (s1.itemAt(i) instanceof JMLChar))
+      @             && (\forall int i; 0 <= i && i < s2.int_length();
+      @                   (s2.itemAt(i) instanceof JMLChar));
+      @   {|
+      @     requires s2.isEmpty() && s1.isEmpty();
+      @     ensures !\result;
+      @   also
+      @     requires s1.isEmpty() && !s2.isEmpty();
+      @     ensures \result;
+      @   also
+      @     requires !s1.isEmpty() && s2.isEmpty();
+      @     ensures !\result;
+      @   also
+      @     requires ((JMLChar)s1.first()).charValue()
+      @                 < ((JMLChar)s2.first()).charValue();
+      @     ensures \result;
+      @   also
+      @     requires ((JMLChar)s1.first()).charValue()
+      @                 > ((JMLChar)s2.first()).charValue();
+      @     ensures !\result;
+      @   also
+      @     requires ((JMLChar)s1.first()).charValue()
+      @                 == ((JMLChar)s2.first()).charValue();
+      @     ensures \result == lessThan(s1.trailer(), s2.trailer());
+      @   |}
+    public static pure model boolean lessThan(JMLValueSequence s1,
+                                              JMLValueSequence s2);  @*/
+
+    /*@  public normal_behavior
+      @   requires s1 != null && s2 != null;
+      @   {|
+      @     requires s2.length == 0 && s1.length == 0;
+      @     ensures !\result;
+      @   also
+      @     requires s1.length == 0 && s2.length != 0;
+      @     ensures \result;
+      @   also
+      @     requires s1.length != 0 && s2.length == 0;
+      @     ensures !\result;
+      @   also
+      @     requires s1.length > 0 && s2.length > 0 && s1[0] != s2[0];
+      @     ensures \result == (s1[0] < s2[0]);
+      @   also
+      @     ensures \result == (
+      @               (\exists int i; 0 <= i && i < s1.length && i < s2.length;
+      @                        s1[i] < s2[i] && equal(s1,0,s2,0,i))
+      @               || 
+      @                 (s1.length < s2.length && equal(s1,0,s2,0,s1.length))
+      @               );
+      @   |}
+    public static pure model boolean lessThan(char[] s1,
+                                              char[] s2);  @*/
+
+    /*@ axiom (\forall char[] s1, s2; s1 != null && s2 != null;
+                   !equal(s1,s2) ==> (lessThan(s1,s2) <=!=> lessThan(s2,s1)));
+     */
+
+    /*+@  public normal_behavior
+      @   requires anotherString != null;
+      @   {|
+      @       requires stringSeq.equals(anotherString.stringSeq);
+      @       ensures \result == 0;
+      @     also
+      @       requires lessThan(stringSeq, anotherString.stringSeq);
+      @       ensures \result < 0;
+      @     also
+      @       requires !lessThan(stringSeq, anotherString.stringSeq)
+      @                 && !stringSeq.equals(anotherString.stringSeq);
+      @       ensures \result > 0;
+      @   |}
+      @ also
+      @*/
+    /*@  public normal_behavior
+      @   requires anotherString != null;
+      @   {|
+      @       requires  equal(charArray,anotherString.charArray);
+      @       ensures \result == 0;
+      @     also
+      @       requires  lessThan(charArray,anotherString.charArray);
+      @       ensures \result < 0;
+      @     also
+      @       requires  !lessThan(charArray,anotherString.charArray);
+      @       requires  !equal(charArray,anotherString.charArray);
+      @       ensures \result > 0;
+      @   |}
+      @*/
+    public /*@ pure @*/ int compareTo(/*@ non_null @*/ String anotherString);
+
+    /*+@ also
+      @   public normal_behavior
+      @     requires o != null && (o instanceof String);
+      @     ensures \result == compareTo((String) o);
+      @ also
+      @   public exceptional_behavior
+      @     requires o == null && !(o instanceof String);
+      @     signals_only ClassCastException;
+      @*/
+    public /*@ pure @*/ int compareTo(/*@ non_null @*/ Object o);
+
+    /*+@ public normal_behavior
+      @   forall JMLValueSequence s1up, s2up, s1down, s2down;
+      @   requires s1 != null && s2 != null;
+      @   requires s1up != null && s2up != null
+      @            && s1down != null && s2down != null
+      @            && s1up.int_length() == s1.int_length()
+      @            && s1down.int_length() == s1.int_length()
+      @            && s2up.int_length() == s2.int_length()
+      @            && s2down.int_length() == s2.int_length();
+      @   requires (\forall int i; 0 <= i && i < s1.int_length();
+      @                   (s1.itemAt(i) instanceof JMLChar)
+      @                && (s1up.itemAt(i) instanceof JMLChar)
+      @                && (s1down.itemAt(i) instanceof JMLChar)
+      @                && Character.toUpperCase(
+      @                       ((JMLChar)(s1.itemAt(i))).charValue())
+      @                   == ((JMLChar)(s1up.itemAt(i))).charValue()
+      @                && Character.toLowerCase(
+      @                       ((JMLChar)(s1.itemAt(i))).charValue())
+      @                   == ((JMLChar)(s1down.itemAt(i))).charValue())
+      @             && (\forall int i; 0 <= i && i < s2.int_length();
+      @                   (s2.itemAt(i) instanceof JMLChar)
+      @                && (s2up.itemAt(i) instanceof JMLChar)
+      @                && (s2down.itemAt(i) instanceof JMLChar)
+      @                && Character.toUpperCase(
+      @                       ((JMLChar)(s2.itemAt(i))).charValue())
+      @                   == ((JMLChar)(s2up.itemAt(i))).charValue()
+      @                && Character.toLowerCase(
+      @                       ((JMLChar)(s2.itemAt(i))).charValue())
+      @                   == ((JMLChar)(s2down.itemAt(i))).charValue());
+      @   ensures \result <==> lessThan(s1, s2) || lessThan(s1up, s2up)
+      @                        || lessThan(s1down, s2down);
+    public static pure model boolean lessThanIgnoreCase(JMLValueSequence s1,
+                                                        JMLValueSequence s2);
+                                                        @*/
+
+    /*+@  public normal_behavior
+      @   requires str != null;
+      @   {|
+      @       requires equalsIgnoreCase(str);
+      @       ensures \result == 0;
+      @     also
+      @       requires lessThanIgnoreCase(stringSeq, str.stringSeq);
+      @       ensures \result < 0;
+      @     also
+      @       requires !lessThanIgnoreCase(stringSeq, str.stringSeq)
+      @                 && !stringSeq.equals(str.stringSeq);
+      @       ensures \result > 0;
+      @   |}
+      @*/
+    public /*@ pure @*/ int compareToIgnoreCase(/*@ nullable @*/ String str);
+
+    /*@  public normal_behavior
+      @   requires other != null;
+      @   ensures \result == regionMatches(false,toffset,other,ooffset,len);
+      @*/
+    public /*@ pure @*/ boolean regionMatches(int toffset, String other, 
+                                 int ooffset, int len);
+
+    /*@ public normal_behavior
+      @  requires other != null;
+      @  {|
+      @   requires (0 <= toffset && (toffset + len) <= length())
+      @             && (0 <= ooffset && (ooffset + len) <= other.length())
+      @             && ignoreCase;
+      @   ensures \result == substring(toffset, (int)(toffset + len)).equalsIgnoreCase(
+      @                        other.substring(ooffset, (int)(ooffset + len)));
+      @  also
+      @   requires (0 <= toffset && (toffset + len) <= length())
+      @             && (0 <= ooffset && (ooffset + len) <= other.length())
+      @             && !ignoreCase;
+      @   ensures \result == substring(toffset, (int)(toffset + len))
+      @                        .equals(other.substring(ooffset, (int)(ooffset + len)));
+      @  also
+      @   requires (toffset < 0 || (toffset + len) > length())
+      @             || (toffset < 0 || (ooffset + len) > other.length());
+      @   ensures !\result;
+      @  |}
+      @*/
+    public /*@ pure @*/ boolean regionMatches(boolean ignoreCase,
+                                                int toffset, String other, 
+                                                int ooffset, int len);
+
+    /*+@  public normal_behavior
+      @   requires prefix != null && toffset < length();
+      @   ensures \result == 
+      @              substring(toffset).stringSeq.isPrefix(prefix.stringSeq);
+      @ also
+      @*/
+    /*@  public normal_behavior
+      @   requires prefix != null && toffset < length();
+      @   ensures \result ==  equal(charArray,toffset,prefix.charArray,0,prefix.charArray.length);
+      @  also
+      @   requires prefix != null && toffset >= length();
+      @   ensures !\result;
+      @*/
+    public /*@ pure @*/ boolean startsWith(String prefix, int toffset);
+
+    /*@  public normal_behavior
+      @   requires prefix != null;
+      @   ensures \result == startsWith(prefix, 0);
+      @*/
+    public /*@ pure @*/ boolean startsWith(String prefix);
+
+    /*@  public normal_behavior
+      @   requires suffix != null && suffix.length() <= length();
+      @   ensures \result == substring((int)(length() - suffix.length()))
+      @                        .equals(suffix);
+      @  also
+      @   requires suffix != null && suffix.length() > length();
+      @   ensures !\result;
+      @*/
+    public /*@ pure @*/ boolean endsWith(String suffix);
+
+    // specification is inherited, this method does have side effects!
+    public int hashCode();
+
+    /*@  public normal_behavior
+      @   ensures \result == indexOf(ch, 0);
+      @*/
+    public /*@ pure @*/ int indexOf(int ch);
+
+    // behavior is not described if fromIndex >= length() but this
+    // specification reflects the implementation
+    /*@  public normal_behavior
+      @   requires fromIndex >= length();
+      @   ensures \result == -1;
+      @  also
+      @   requires fromIndex < 0;
+      @   ensures \result == indexOf(ch, 0);
+      @  also
+      @   requires 0 <= fromIndex && fromIndex < length();
+      @   {|
+      @     requires charAt(fromIndex) == ch;
+      @     ensures \result == fromIndex;
+      @   also
+      @     requires charAt(fromIndex) != ch;
+      @     ensures \result == indexOf(ch, (int)(fromIndex + 1));
+      @   also
+      @     ensures \result == -1 <==> (\forall int i; fromIndex<=i && i < charArray.length; charArray[i] != ch);
+      @     ensures \result != -1 <==> (fromIndex <= \result && \result < charArray.length);
+      @     ensures \result != -1 <==> (
+      @                charArray[\result] == ch &&
+      @                (\forall int i; fromIndex <= i && i < \result;
+      @                     charArray[i] != ch));
+      @   |}
+      @*/
+    public /*@ pure @*/ int indexOf(int ch, int fromIndex);
+
+    /*@  public normal_behavior
+      @   ensures \result == lastIndexOf(ch, (int)(length() - 1));
+      @*/
+    public /*@ pure @*/ int lastIndexOf(int ch);
+
+    // behavior is not described if fromIndex >= length() but this
+    // specification reflects the implementation
+    /*@ public normal_behavior
+      @ {|
+      @   requires fromIndex >= length();
+      @   ensures \result == lastIndexOf(ch, (int)(length() - 1));
+      @ also
+      @   requires fromIndex < 0;
+      @   ensures \result == -1;
+      @ also
+      @   requires 0 <= fromIndex && fromIndex < length();
+      @   {|
+      @     requires charAt(fromIndex) == ch;
+      @     ensures \result == fromIndex;
+      @   also
+      @     requires charAt(fromIndex) != ch;
+      @     ensures \result == lastIndexOf(ch, (int)(fromIndex - 1));
+      @   also
+      @     ensures \result == -1 <==> (\forall int i; 0<=i && i <= fromIndex; charArray[i] != ch);
+      @     ensures \result != -1 <==> (0 <= \result && \result < fromIndex);
+      @     ensures \result != -1 <==> (
+      @                charArray[\result] == ch &&
+      @                (\forall int i; \result < i && i <= fromIndex;
+      @                     charArray[i] != ch));
+      @   |}
+      @ |}
+      @*/
+    public /*@ pure @*/ int lastIndexOf(int ch, int fromIndex);
+
+    /*@ public normal_behavior
+      @  requires str != null;
+      @  ensures \result == indexOf(str, 0);
+      @*/
+    public /*@ pure @*/ int indexOf(String str);
+
+    // behavior is not described if fromIndex >= length() but this
+    // specification reflects the implementation
+    /*@  public normal_behavior
+      @   requires str != null;
+      @   {|
+      @     requires fromIndex >= length();
+      @     ensures \result == -1;
+      @   also
+      @     requires fromIndex < 0;
+      @     ensures \result == indexOf(str, 0);
+      @*/
+    /*+@
+      @   also
+      @     requires 0 <= fromIndex && fromIndex < length();
+      @     {|
+      @       requires stringSeq.removePrefix(fromIndex)
+      @                     .isPrefix(str.stringSeq);
+      @       ensures \result == fromIndex;
+      @     also
+      @       requires !stringSeq.removePrefix(fromIndex)
+      @                     .isPrefix(str.stringSeq);
+      @       ensures \result == indexOf(str, (int)(fromIndex + 1));
+      @     |}
+      @*/
+    /*@
+      @   also
+      @     requires 0 <= fromIndex && fromIndex < length();
+      @     ensures \result == -1 <==>
+      @               (\forall int i; 
+      @                      fromIndex <= i &&  i + str.length() < length();
+      @                      ! equal(charArray,i,str.charArray,0,str.length()));
+      @     ensures \result != -1 <==> 
+      @            (fromIndex <= \result && \result + str.length() <= length());
+      @     ensures \result != -1 <==>
+      @              (equal(charArray,\result,str.charArray,0,str.length()) &&
+      @               (\forall int i; 
+      @                      fromIndex <= i &&  i + str.length() < length();
+      @                      !equal(charArray,i,str.charArray,0,str.length())));
+      @*/
+    /*@
+      @   |}
+      @*/
+    public /*@ pure @*/ int indexOf(String str, int fromIndex);
+
+    static /*@ pure @*/
+        int indexOf(char[] source, int sourceOffset, int sourceCount,
+                    char[] target, int targetOffset, int targetCount,
+                    int fromIndex);
+      
+    /*@  public normal_behavior
+      @   requires str != null;
+      @   ensures \result == lastIndexOf(str, (int)(length() - 1));
+      @*/
+    public /*@ pure @*/ int lastIndexOf(String str);
+
+    // behavior is not described if fromIndex >= length() but this
+    // specification reflects the implementation
+    /*@  public normal_behavior
+      @   requires str != null;
+      @   {|
+      @     requires fromIndex >= length();
+      @     ensures \result == lastIndexOf(str, (int)(length() - 1));
+      @   also
+      @     requires fromIndex < 0;
+      @     ensures \result == -1;
+      @*/
+    /*+@
+      @   also
+      @     requires 0 <= fromIndex && fromIndex < length();
+      @     {|
+      @       requires stringSeq.removePrefix(fromIndex)
+      @                     .isPrefix(str.stringSeq);
+      @       ensures \result == fromIndex;
+      @     also
+      @       requires !stringSeq.removePrefix(fromIndex)
+      @                     .isPrefix(str.stringSeq);
+      @       ensures \result == indexOf(str, (int)(fromIndex - 1));
+      @     |}
+      @*/
+    /*@
+      @   also
+      @     requires 0 <= fromIndex && fromIndex < length();
+      @     ensures \result == -1 <==>
+      @               (\forall int i; 
+      @                      0 <= i &&  i <= fromIndex;
+      @                      ! equal(charArray,i,str.charArray,0,str.length()));
+      @     ensures \result != -1 <==> (0 <= \result && \result <= fromIndex);
+      @     ensures \result != -1 <==>
+      @              (equal(charArray,\result,str.charArray,0,str.length()) &&
+      @               (\forall int i; 
+      @                      0 <= i &&  i <= fromIndex;
+      @                      !equal(charArray,i,str.charArray,0,str.length())));
+      @   |}
+      @*/
+    public /*@ pure @*/ int lastIndexOf(String str, int fromIndex);
+      
+    static /*@ pure @*/
+        int lastIndexOf(char[] source, int sourceOffset, int sourceCount,
+                        char[] target, int targetOffset, int targetCount,
+                        int fromIndex);
+
+    /*@  public normal_behavior
+      @   requires 0 <= beginIndex;
+      @   requires beginIndex <= length();
+      @   ensures \result == substring(beginIndex, length());
+      @ also
+      @  public exceptional_behavior
+      @   requires beginIndex < 0 || beginIndex > length();
+      @   signals_only StringIndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/ String substring(int beginIndex)
+      throws StringIndexOutOfBoundsException;
+
+    /*+@  public normal_behavior
+      @   requires 0 <= beginIndex
+      @             && beginIndex <= endIndex
+      @             && (endIndex <= length());
+      @   ensures \result != null
+      @            && \result.stringSeq.equals(
+      @                    stringSeq.subsequence(beginIndex, endIndex));
+      @ also
+      @*/
+    /*@  public normal_behavior
+      @   requires 0 <= beginIndex
+      @             && beginIndex <= endIndex
+      @             && (endIndex <= length());
+      @   ensures \result != null
+      @            && \fresh(\result)
+      @            && \result.length() == endIndex - beginIndex
+      @            && equal(\result.charArray,0,charArray,beginIndex,endIndex-beginIndex);
+      @ also
+      @  public exceptional_behavior
+      @   requires 0 > beginIndex
+      @             || beginIndex > endIndex
+      @             || (endIndex > length());
+      @   signals_only StringIndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/ String substring(int beginIndex,
+                                                            int endIndex)
+      throws StringIndexOutOfBoundsException;
+
+    /*@ 
+      @   // inherits normal behavior
+      @ also
+      @  public exceptional_behavior
+      @   requires 0 > beginIndex
+      @             || beginIndex > endIndex
+      @             || (endIndex > length());
+      @   signals_only StringIndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ CharSequence subSequence(int beginIndex,
+                                                   int endIndex);
+
+    /*+@  public normal_behavior
+      @   requires str != null;
+      @   ensures \result != null
+      @            && \result.stringSeq.equals(stringSeq.concat(str.stringSeq));
+      @ also
+      @*/
+    /*@  public normal_behavior
+      @   requires str != null;
+      @   ensures \result != null
+      @            && \fresh(\result)
+      @            && \result.length() == length() + str.length()
+      @            && equal(\result.charArray,0,charArray,0,length())
+      @            && equal(\result.charArray,length(),str.charArray,0,str.length());
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/
+        String concat(/*@ non_null @*/ String str);
+
+    /*@  public normal_behavior
+      @   ensures \result != null
+      @            && \result.length() == length()
+      @            && \fresh(\result)
+      @            && (\forall int i; 0 <= i && i < length();
+      @                  \result.charAt(i) 
+      @                     == ((charAt(i) == oldChar) ? newChar : charAt(i)));
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/ String replace(char oldChar,
+                                                          char newChar);
+
+    /*+@ public normal_behavior
+      @     requires regex != null;
+      @     assignable \nothing;
+      @     ensures \result <==> Pattern.matches(regex, this);
+      @*/
+    public /*@ pure @*/ boolean matches(/*@ non_null @*/ String regex);
+
+    /*+@ public normal_behavior
+      @     requires regex != null && replacement != null;
+      @     assignable \nothing;
+      @     ensures \result.equals(
+      @               Pattern.compile(regex).matcher(this)
+      @                      .replaceFirst(replacement));
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/
+        String replaceFirst(/*@ non_null @*/ String regex,
+                            /*@ non_null @*/ String replacement);
+
+    /*+@ public normal_behavior
+      @     requires regex != null && replacement != null;
+      @     assignable \nothing;
+      @     ensures \result.equals(
+      @               Pattern.compile(regex).matcher(this)
+      @                      .replaceAll(replacement));
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/
+        String replaceAll(/*@ non_null @*/ String regex,
+                          /*@ non_null @*/ String replacement);
+
+    /*+@ public normal_behavior
+      @     requires regex != null;
+      @     assignable \nothing;
+      @     ensures \result.equals(Pattern.compile(regex).split(this, limit));
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/
+        String[] split(/*@ non_null @*/ String regex, int limit);
+
+    /*+@ public normal_behavior
+      @     requires regex != null;
+      @     assignable \nothing;
+      @     ensures \result.equals(split(regex,0));
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/
+        String[] split(/*@ non_null @*/ String regex);
+
+    /*@  public normal_behavior
+      @   requires locale != null;
+      @   ensures \fresh(\result) && \result.length() == length();
+      @   ensures (* \result == a lower case conversion of this using the 
+      @                          rules of the given locale *);
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/
+        String toLowerCase(/*@ non_null @*/ Locale locale);
+
+    /*@  public normal_behavior
+      @   ensures \fresh(\result) && \result.length() == length();
+      @   ensures \result != null
+      @            && \result.equals(toLowerCase(Locale.getDefault()));
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/ String toLowerCase();
+
+    /*@  public normal_behavior
+      @   requires locale != null;
+      @   ensures \fresh(\result) && \result.length() == length();
+      @   ensures (* \result == an upper case conversion of this using the 
+      @                          rules of the given locale *);
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/
+        String toUpperCase(/*@ non_null @*/ Locale locale);
+
+    /*@  public normal_behavior
+      @   ensures \fresh(\result) && \result.length() == length();
+      @   ensures \result != null
+      @            && \result.equals(toUpperCase(Locale.getDefault()));
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/ String toUpperCase();
+
+    /*@  public normal_behavior
+      @   ensures \result != null
+      @            && \result.length() <= length()
+      @            && \result.charAt(0) > ' '
+      @            && \result.charAt((int)(\result.length() - 1)) > ' ';
+      @*/
+	// FIXME - be more precise about what is omitted; also avoid recursion
+    public /*@ pure @*/ /*@ non_null @*/ String trim();
+
+    /*@ also
+      @  public normal_behavior
+      @    ensures \result != null && \result == this;
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/ String toString();
+    
+    /*@  public normal_behavior
+      @    ensures \result != null
+      @          && \result.length == length()
+      @          && (\forall int i; 0 <= i && i < length();
+      @                             \result[i] == charAt(i));
+      @    ensures \fresh(\result);
+      @    ensures equal(\result,charArray);
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/ char[] toCharArray();
+
+    /*@  public normal_behavior
+      @  {|
+      @    requires obj == null;
+      @    ensures \result != null && \result.equals("null");
+      @  also
+      @    requires obj != null;
+      @    ensures \result != null;
+      @  also
+      @    requires obj instanceof String;
+      @    ensures \result.equals(obj);   // \result == obj ??? FIXME
+      @  |}
+      @  also
+      @    public model_program {
+      @       assume obj != null;
+      @       return obj.toString();
+      @    }
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String valueOf(Object obj);
+
+    /*@  public normal_behavior
+      @  requires data != null;
+      @   ensures \result != null && \result.equals(new String(data));
+      @*/
+    public static /*@ pure @*/
+        /*@ non_null @*/ String valueOf(/*@ non_null @*/ char[] data);
+
+    /*@  public normal_behavior
+      @  requires data != null && offset >= 0 && count >= 0
+      @       && offset + count < data.length;
+      @   ensures \result != null 
+      @            && \result.equals(new String(data, offset, count));
+      @*/
+    public static /*@ pure @*/
+        /*@ non_null @*/ String valueOf(/*@ non_null @*/ char[] data,
+                                        int offset, int count);
+
+    /*@  public normal_behavior
+      @  requires data != null;
+      @   ensures \result != null 
+      @            && \result.equals(new String(data, offset, count));
+      @*/
+    public static /*@ pure @*/
+        /*@ non_null @*/ String copyValueOf(/*@ non_null @*/ char[] data,
+                                            int offset, int count);
+
+    /*@  public normal_behavior
+      @  requires data != null;
+      @  ensures \result != null && \result.equals(new String(data));
+      @*/
+    public static /*@ pure @*/
+        /*@ non_null @*/ String copyValueOf(/*@ non_null @*/ char[] data);
+        
+    /*@  public normal_behavior
+      @   ensures \result != null
+      @            && (b ==> \result.equals("true")
+      @                || !b ==> \result.equals("false"));
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String valueOf(boolean b);
+
+    /*@  public normal_behavior
+      @   ensures \result != null
+      @            && \result.length() == 1
+      @            && \result.charAt(0) == c;
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String valueOf(char c);
+
+    /*@  public normal_behavior
+      @   ensures \result != null && \result.equals(Integer.toString(i));
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String valueOf(int i);
+    
+    /*@  public normal_behavior
+      @   ensures \result != null && \result.equals(Long.toString(l));
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String valueOf(long l);
+    
+    /*@  public normal_behavior
+      @   ensures \result != null && \result.equals(Float.toString(f));
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String valueOf(float f);
+    
+    /*@  public normal_behavior
+      @   ensures \result != null && \result.equals(Double.toString(d));
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String valueOf(double d);
+    
+    //@ public model boolean isInterned; initially !isInterned;
+
+    /*@  public normal_behavior
+      @   ensures \result.isInterned;
+      @   ensures \result.equals(this);
+      @   ensures this.isInterned ==> (\result == this);
+      @   ensures_redundantly (* \result is a canonical representation 
+      @                           for this *);
+      @*/
+    //@ pure
+    public native /*@ non_null @*/ String intern();
+
+}

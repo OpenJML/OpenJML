@@ -1,0 +1,466 @@
+// @(#)$Id: BitSet.refines-spec,v 1.11 2005/12/23 17:02:03 chalin Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.util;
+
+import java.io.*;
+//@ model import org.jmlspecs.models.*;
+
+/**
+ * JML's specification of the java.util.BitSet.
+ * We imagine a bitset as a set of integers, which are the ones whose
+ * bits are true in the BitSet.
+ *
+ * @author  Gary T. Leavens
+ * @version $Revision: 1.11 $
+ */
+public class BitSet implements Cloneable, java.io.Serializable {
+
+    //@ public model int capacity;
+    //@ public model non_null JMLValueSet trueBits;
+
+    //@ public invariant capacity >= 0;
+    /*@ public invariant
+      @           (\forall Object o; trueBits.has(o);
+      @                              o instanceof JMLInteger
+      @                              && 0 <= ((JMLInteger)o).intValue()
+      @                              && ((JMLInteger)o).intValue() < capacity);
+      @*/
+
+    /*@ public represents trueBits <- abstractValue();
+      @
+      @ public normal_behavior
+      @   assignable \nothing;
+      @   ensures \result != null
+      @           && (\forall int i; \result.has(new JMLInteger(i))
+      @                              <==> this.get(i));
+      @ public pure model JMLValueSet abstractValue() {
+      @    JMLValueSet res = new JMLValueSet();
+      @    for (int i = 0; i < this.length(); i++) {
+      @        if (this.get(i)) {
+      @            res = res.insert(new JMLInteger(i)); 
+      @        }
+      @    }
+      @    return res;
+      @ }
+      @*/
+
+    /*@ public normal_behavior
+      @   assignable trueBits, capacity;
+      @   ensures trueBits.isEmpty();
+      @*/
+    public /*@ pure @*/ BitSet();
+
+    /*@   public normal_behavior
+      @     requires nbits >= 0;
+      @     assignable trueBits, capacity;
+      @     ensures trueBits.isEmpty() && capacity == nbits;
+      @ also
+      @   public exceptional_behavior
+      @     requires nbits < 0;
+      @     assignable \nothing;
+      @     signals_only NegativeArraySizeException;
+      @*/
+    public /*@ pure @*/ BitSet(int nbits);
+
+    /*@   public normal_behavior
+      @     requires bitIndex >= 0;
+      @     {|
+      @        assignable capacity, trueBits;
+      @        ensures capacity >= \old(capacity) && capacity >= bitIndex;
+      @      also
+      @        requires !trueBits.has(new JMLInteger(bitIndex));
+      @        assignable capacity, trueBits;
+      @        ensures trueBits.equals(
+      @                   \old(trueBits.insert(new JMLInteger(bitIndex))));
+      @      also
+      @        requires trueBits.has(new JMLInteger(bitIndex));
+      @        assignable capacity, trueBits;
+      @        ensures trueBits.equals(
+      @                   \old(trueBits.remove(new JMLInteger(bitIndex))));
+      @     |}
+      @ also
+      @   public exceptional_behavior
+      @     requires bitIndex < 0;
+      @     assignable \nothing;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public void flip(int bitIndex);
+
+    /*@   public normal_behavior
+      @     requires 0 <= fromIndex && toIndex <= toIndex;
+      @     assignable capacity, trueBits;
+      @     ensures capacity >= \old(capacity) && capacity >= toIndex;
+      @     ensures trueBits.equals(
+      @                   \old(trueBits
+      @                        .difference(new JMLValueSet { JMLInteger i |
+      @                                      trueBits.has(i)
+      @                                      && fromIndex <= i.intValue()
+      @                                      && i.intValue() < toIndex})
+      @                        .union(new JMLValueSet { JMLInteger i |
+      @                                   JMLModelValueSet.JMLIntegers().has(i)
+      @                                      && !trueBits.has(i)
+      @                                      && fromIndex <= i.intValue()
+      @                                      && i.intValue() < toIndex})
+      @                    ));
+      @ also
+      @   public exceptional_behavior
+      @     requires !(0 <= fromIndex && fromIndex <= toIndex);
+      @     assignable \nothing;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public void flip(int fromIndex, int toIndex);
+
+    /*@   public normal_behavior
+      @     requires bitIndex >= 0;
+      @     assignable capacity, trueBits;
+      @     ensures capacity >= \old(capacity) && capacity >= bitIndex;
+      @     ensures trueBits.equals(
+      @                   \old(trueBits.insert(new JMLInteger(bitIndex))));
+      @ also
+      @   public exceptional_behavior
+      @     requires bitIndex < 0;
+      @     assignable \nothing;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public void set(int bitIndex);
+
+    /*@   public normal_behavior
+      @     requires bitIndex >= 0;
+      @     {|
+      @        assignable capacity, trueBits;
+      @        ensures capacity >= \old(capacity) && capacity >= bitIndex;
+      @      also
+      @        requires value;
+      @        assignable capacity, trueBits;
+      @        ensures trueBits.equals(
+      @                   \old(trueBits.insert(new JMLInteger(bitIndex))));
+      @      also
+      @        requires !value;
+      @        assignable capacity, trueBits;
+      @        ensures trueBits.equals(
+      @                   \old(trueBits.remove(new JMLInteger(bitIndex))));
+      @     |}
+      @ also
+      @   public exceptional_behavior
+      @     requires bitIndex < 0;
+      @     assignable \nothing;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public void set(int bitIndex, boolean value);
+
+    /*@   public normal_behavior
+      @     requires 0 <= fromIndex && toIndex <= toIndex;
+      @     assignable capacity, trueBits;
+      @     ensures capacity >= \old(capacity) && capacity >= toIndex;
+      @     ensures trueBits.equals(
+      @                   \old(trueBits
+      @                        .union(new JMLValueSet { JMLInteger i |
+      @                                   JMLModelValueSet.JMLIntegers().has(i)
+      @                                      && fromIndex <= i.intValue()
+      @                                      && i.intValue() < toIndex})
+      @                    ));
+      @ also
+      @   public exceptional_behavior
+      @     requires !(0 <= fromIndex && toIndex <= toIndex);
+      @     assignable \nothing;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public void set(int fromIndex, int toIndex);
+
+    /*@   public normal_behavior
+      @     requires 0 <= fromIndex && toIndex <= toIndex;
+      @     {|
+      @        assignable capacity, trueBits;
+      @        ensures capacity >= \old(capacity) && capacity >= toIndex;
+      @     also
+      @        requires value;
+      @        assignable capacity, trueBits;
+      @        ensures trueBits.equals(
+      @                     \old(trueBits
+      @                        .union(new JMLValueSet { JMLInteger i |
+      @                                   JMLModelValueSet.JMLIntegers().has(i)
+      @                                      && fromIndex <= i.intValue()
+      @                                      && i.intValue() < toIndex})
+      @                    ));
+      @     also
+      @        requires !value;
+      @        assignable capacity, trueBits;
+      @        ensures trueBits.equals(
+      @                     \old(trueBits
+      @                        .difference(new JMLValueSet { JMLInteger i |
+      @                                   JMLModelValueSet.JMLIntegers().has(i)
+      @                                      && fromIndex <= i.intValue()
+      @                                      && i.intValue() < toIndex})
+      @                    ));
+      @     |}
+      @ also
+      @   public exceptional_behavior
+      @     requires !(0 <= fromIndex && toIndex <= toIndex);
+      @     assignable \nothing;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public void set(int fromIndex, int toIndex, boolean value);
+
+    /*@   public normal_behavior
+      @     requires bitIndex >= 0;
+      @     assignable capacity, trueBits;
+      @     ensures capacity >= \old(capacity) && capacity >= bitIndex;
+      @     ensures trueBits.equals(
+      @                   \old(trueBits.remove(new JMLInteger(bitIndex))));
+      @ also
+      @   public exceptional_behavior
+      @     requires bitIndex < 0;
+      @     assignable \nothing;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public void clear(int bitIndex);
+
+    /*@   public normal_behavior
+      @     requires 0 <= fromIndex && toIndex <= toIndex;
+      @     assignable capacity, trueBits;
+      @     ensures capacity >= \old(capacity) && capacity >= toIndex;
+      @     ensures trueBits.equals(
+      @                   \old(trueBits
+      @                        .difference(new JMLValueSet { JMLInteger i |
+      @                                   JMLModelValueSet.JMLIntegers().has(i)
+      @                                      && fromIndex <= i.intValue()
+      @                                      && i.intValue() < toIndex})
+      @                    ));
+      @ also
+      @   public exceptional_behavior
+      @     requires !(0 <= fromIndex && toIndex <= toIndex);
+      @     assignable \nothing;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public void clear(int fromIndex, int toIndex);
+
+    /*@   public normal_behavior
+      @     assignable capacity, trueBits;
+      @     ensures trueBits.isEmpty();
+      @*/
+    public void clear();
+
+    /*@   public normal_behavior
+      @     requires bitIndex >= 0;
+      @     assignable \nothing;
+      @     ensures \result <==> trueBits.has(new JMLInteger(bitIndex));
+      @ also
+      @   public exceptional_behavior
+      @     requires bitIndex < 0;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ boolean get(int bitIndex);
+
+    /*@   public normal_behavior
+      @     requires 0 <= fromIndex && toIndex <= toIndex;
+      @     assignable \nothing;
+      @     ensures \result != null
+      @          && (\forall int i; \result.trueBits.has(new JMLInteger(i))
+      @                             <==> fromIndex <= i && i < toIndex);
+      @ also
+      @   public exceptional_behavior
+      @     requires !(0 <= fromIndex && toIndex <= toIndex);
+      @     assignable \nothing;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ BitSet get(int fromIndex, int toIndex);
+
+    /*@   public normal_behavior
+      @     requires fromIndex >= 0;
+      @     {|
+      @       requires (\exists int i; fromIndex <= i
+      @                                && trueBits.has(new JMLInteger(i)));
+      @       assignable \nothing;
+      @       ensures \result
+      @            == (\min int i; fromIndex <= i
+      @                            && trueBits.has(new JMLInteger(i));
+      @                            i);
+      @     also
+      @       requires !(\exists int i; fromIndex <= i
+      @                                 && trueBits.has(new JMLInteger(i)));
+      @       assignable \nothing;
+      @       ensures \result == -1;
+      @     |}
+      @ also
+      @   public exceptional_behavior
+      @     requires fromIndex < 0;
+      @     assignable \nothing;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ int nextSetBit(int fromIndex);
+
+    /*@   public normal_behavior
+      @     requires fromIndex >= 0;
+      @     {|
+      @       requires (\exists int i; fromIndex <= i
+      @                                && !trueBits.has(new JMLInteger(i)));
+      @       assignable \nothing;
+      @       ensures \result
+      @            == (\min int i; fromIndex <= i
+      @                            && !trueBits.has(new JMLInteger(i));
+      @                            i);
+      @     also
+      @       requires !(\exists int i; fromIndex <= i
+      @                                 && trueBits.has(new JMLInteger(i)));
+      @       assignable \nothing;
+      @       ensures \result == -1;
+      @     |}
+      @ also
+      @   public exceptional_behavior
+      @     requires fromIndex < 0;
+      @     assignable \nothing;
+      @     signals_only IndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ int nextClearBit(int fromIndex);
+
+    /*@   public normal_behavior
+      @   {|
+      @     requires !trueBits.isEmpty();
+      @     assignable \nothing;
+      @     ensures \result
+      @          == 1 + (\max int i;
+      @                       0 <= i && trueBits.has(new JMLInteger(i));
+      @                       i);
+      @   also
+      @     requires trueBits.isEmpty();
+      @     assignable \nothing;
+      @     ensures \result == 0;
+      @   |}
+      @*/
+    public /*@ pure @*/ int length();
+
+    /*@   public normal_behavior
+      @     assignable \nothing;
+      @     ensures \result <==> trueBits.isEmpty();
+      @*/
+    public /*@ pure @*/ boolean isEmpty();
+
+    /*@   public normal_behavior
+      @     requires set != null;
+      @     assignable \nothing;
+      @     ensures \result
+      @        <==> !trueBits.intersection(set.trueBits).isEmpty();
+      @     ensures_redundantly \result
+      @        <==> (\exists int i; 0 <= i;
+      @                             trueBits.has(new JMLInteger(i))
+      @                             && set.trueBits.has(new JMLInteger(i)));
+      @*/
+    public /*@ pure @*/ boolean intersects(BitSet set);
+
+    /*@   public normal_behavior
+      @     assignable \nothing;
+      @     ensures \result
+      @          == (\num_of int i; 0 <= i; trueBits.has(new JMLInteger(i)));
+      @*/
+    public /*@ pure @*/ int cardinality();
+
+    /*@   public normal_behavior
+      @     requires set != null;
+      @     assignable trueBits, capacity;
+      @     ensures trueBits.equals(\old(trueBits.intersection(set.trueBits)));
+      @     ensures_redundantly
+      @             (\forall int i; 0 <= i && i < length();
+      @                   trueBits.has(new JMLInteger(i))
+      @                    <==> \old(trueBits.has(new JMLInteger(i))
+      @                              && set.trueBits.has(new JMLInteger(i))));
+      @*/
+    public void and(BitSet set);
+
+    /*@   public normal_behavior
+      @     requires set != null;
+      @     assignable trueBits, capacity;
+      @     ensures trueBits.equals(\old(trueBits.union(set.trueBits)));
+      @     ensures_redundantly
+      @             (\forall int i; 0 <= i
+      @                             && i < Math.max(length(), set.length());
+      @                   trueBits.has(new JMLInteger(i))
+      @                    <==> \old(trueBits.has(new JMLInteger(i))
+      @                              || set.trueBits.has(new JMLInteger(i))));
+      @*/
+    public void or(BitSet set);
+
+    /*@   public normal_behavior
+      @     requires set != null;
+      @     assignable trueBits, capacity;
+      @     ensures (\forall int i; 0 <= i
+      @                             && i < Math.max(length(), set.length());
+      @                   trueBits.has(new JMLInteger(i))
+      @                    <==> \old(trueBits.has(new JMLInteger(i))
+      @                              ^ set.trueBits.has(new JMLInteger(i))));
+      @*/
+    public void xor(BitSet set);
+
+    /*@   public normal_behavior
+      @     requires set != null;
+      @     assignable trueBits, capacity;
+      @     ensures (\forall int i; 0 <= i && i < length();
+      @                   trueBits.has(new JMLInteger(i))
+      @                    <==> \old(trueBits.has(new JMLInteger(i))
+      @                              & !set.trueBits.has(new JMLInteger(i))));
+      @*/
+    public void andNot(BitSet set);
+
+    // specification is inherited.
+    public int hashCode();
+
+    /*@   public normal_behavior
+      @     assignable \nothing;
+      @     ensures \result >= length();
+      @     ensures_redundantly \result
+      @            >= 1 + (\max int i;
+      @                         0 <= i && trueBits.has(new JMLInteger(i));
+      @                         i);
+      @*/
+    public /*@ pure @*/ int size();
+
+    /*@ also
+      @   public normal_behavior
+      @     requires obj instanceof BitSet;
+      @     {|
+      @        old BitSet s = (BitSet) obj;
+      @        assignable \nothing;
+      @        ensures \result <==> trueBits.equals(s.trueBits);
+      @        ensures_redundantly \result
+      @               <==> length() == s.length()
+      @                    && (\forall int i; 0 <= i && i < length();
+      @                              trueBits.has(new JMLInteger(i))
+      @                               <==> s.trueBits.has(new JMLInteger(i)));
+      @     |}
+      @ also
+      @   public normal_behavior
+      @     requires !(obj instanceof BitSet);
+      @     assignable \nothing;
+      @     ensures !\result;
+      @*/
+    public /*@ pure @*/ boolean equals(/*@ nullable @*/ Object obj);
+
+    /*@ also
+      @   public normal_behavior
+      @     assignable \nothing;
+      @     ensures \fresh(\result) && this.equals((BitSet)\result)
+      @                             && this.size() == ((BitSet)\result).size();
+      @*/
+    public Object clone();
+
+    // specification is inherited
+    public String toString();
+}

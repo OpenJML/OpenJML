@@ -1,0 +1,728 @@
+// @(#)$Id: Pattern.refines-spec 1287 2005-03-01 02:58:57Z cok $
+
+// Copyright (C) 2003 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.util.regex;
+
+
+public final class Pattern implements java.io.Serializable {
+
+    public static /*@ pure @*/ Pattern compile(String regex);
+
+    public static /*@ pure @*/ Pattern compile(String regex, int flags);
+
+    public /*@ pure @*/ String pattern();
+
+    public /*@ pure @*/ Matcher matcher(CharSequence input);
+
+    public /*@ pure @*/ int flags();
+
+    public static /*@ pure @*/ boolean matches(String regex,
+                                                 CharSequence input);
+
+    public /*@ pure @*/ String[] split(CharSequence input, int limit);
+
+    public /*@ pure @*/ String[] split(CharSequence input);
+
+/*
+    static final class TreeInfo {
+
+        TreeInfo();
+
+        void reset();
+
+        int minLength;
+        int maxLength;
+        boolean maxValid;
+        boolean deterministic;
+    }
+
+    static class Node extends Object {
+
+
+        Node();
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Node next;
+    }
+
+    static class LastNode extends Node {
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+    }
+
+    static class Dummy extends Node {
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+    }
+
+    static final class Start extends Node {
+
+
+        Start(Node node);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int minLength;
+    }
+
+    static final class Begin extends Node {
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+    }
+
+    static final class End extends Node {
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+    }
+
+    static final class Caret extends Node {
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+    }
+
+    static final class UnixCaret extends Node {
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+    }
+
+    static final class LastMatch extends Node {
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+    }
+
+    static final class Dollar extends Node {
+
+        Dollar(boolean mul);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        boolean multiline;
+    }
+
+    static final class UnixDollar extends Node {
+
+
+        UnixDollar(boolean mul);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        boolean multiline;
+    }
+
+    static final class Single extends Node {
+
+
+        Single(int n);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int ch;
+    }
+
+    static final class NotSingle extends Node {
+
+
+        NotSingle(int n);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int ch;
+    }
+
+    static final class SingleA extends Node {
+
+
+        SingleA(int n);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int ch;
+    }
+
+    static final class NotSingleA extends Node {
+
+
+        NotSingleA(int n);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int ch;
+    }
+
+    static final class SingleU extends Node {
+
+
+        SingleU(int c);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int ch;
+    }
+
+    static final class NotSingleU extends Node {
+
+
+        NotSingleU(int c);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int ch;
+    }
+
+    static final class Category extends Node {
+
+
+        Category(int type);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int atype;
+    }
+
+    static final class Ctype extends Node {
+
+
+        Ctype(int type);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int ctype;
+    }
+
+    static final class NotCtype extends Node {
+
+
+        NotCtype(int type);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int ctype;
+    }
+
+    static final class Specials extends Node {
+
+
+        Specials();
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+    }
+
+    static final class Not extends Node {
+
+        Not(Node atom);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Node atom;
+    }
+
+    static final class Slice extends Node {
+
+        Slice(char[] buf);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        char[] buffer;
+    }
+
+    static final class SliceA extends Node {
+
+        SliceA(char[] buf);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        char[] buffer;
+    }
+
+    static final class SliceU extends Node {
+
+        SliceU(char[] buf);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        char[] buffer;
+    }
+
+    static class Range extends Node {
+
+        Range();
+
+        Range(int n);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int lower;
+        int upper;
+    }
+
+    static final class CIRange extends Range {
+
+        CIRange(int n);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+    }
+
+    static class NotRange extends Node {
+
+        NotRange();
+
+        NotRange(int n);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int lower;
+        int upper;
+    }
+
+    static class CINotRange extends NotRange {
+
+        CINotRange(int n);
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        int lower;
+        int upper;
+    }
+
+    static final class All extends Node {
+
+        All();
+
+        Node dup(boolean not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+    }
+
+    static final class Dot extends Node {
+
+        Dot();
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+    }
+
+    static final class UnixDot extends Node {
+
+        UnixDot();
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+    }
+
+    static final class Ques extends Node {
+
+        Ques(Node node, int type);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Node atom;
+        int type;
+    }
+
+    static final class Curly extends Node {
+
+        Curly(Node node, int cmin, int cmax, int type);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean match0(Matcher matcher, int i, int j, CharSequence seq);
+
+        boolean match1(Matcher matcher, int i, int j, CharSequence seq);
+
+        boolean match2(Matcher matcher, int i, int j, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Node atom;
+        int type;
+        int cmin;
+        int cmax;
+    }
+
+    static final class GroupCurly extends Node {
+
+        GroupCurly(Node node, int cmin, int cmax, int type, int local, int group);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean match0(Matcher matcher, int i, int j, CharSequence seq);
+
+        boolean match1(Matcher matcher, int i, int j, CharSequence seq);
+
+        boolean match2(Matcher matcher, int i, int j, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Node atom;
+        int type;
+        int cmin;
+        int cmax;
+        int localIndex;
+        int groupIndex;
+    }
+
+    static final class Branch extends Node {
+
+        Branch(Node lhs, Node rhs);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Node prev;
+    }
+
+    static final class GroupHead extends Node {
+
+        GroupHead(int localCount);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean matchRef(Matcher matcher, int i, CharSequence seq);
+
+        int localIndex;
+    }
+
+    static final class GroupRef extends Node {
+
+        GroupRef(GroupHead head);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        GroupHead head;
+    }
+
+    static final class GroupTail extends Node {
+
+        GroupTail(int localCount, int groupCount);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        int localIndex;
+        int groupIndex;
+    }
+
+    static final class Prolog extends Node {
+
+        Prolog(Loop loop);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Loop loop;
+    }
+
+    static class Loop extends Node {
+
+        Loop(int countIndex, int beginIndex);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean matchInit(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Node body;
+        int countIndex;
+        int beginIndex;
+        int cmin;
+        int cmax;
+    }
+
+    static final class LazyLoop extends Loop {
+
+        LazyLoop(int count, int group);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean matchInit(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+    }
+
+    static class BackRef extends Node {
+
+        BackRef(int groupCount);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int groupIndex;
+    }
+
+    static class CIBackRef extends Node {
+
+        CIBackRef(int groupCount);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        int groupIndex;
+    }
+
+    static final class First extends Node {
+
+        First(Node node);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Node atom;
+    }
+
+    static final class Conditional extends Node {
+
+        Conditional(Node cond, Node yes, Node not);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Node cond;
+        Node yes;
+        Node not;
+    }
+
+    static final class Pos extends Node {
+
+        Pos(Node cond);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        Node cond;
+    }
+
+    static final class Neg extends Node {
+
+        Neg(Node cond);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        Node cond;
+    }
+
+    static final class Behind extends Node {
+
+        Behind(Node cond, int rmax, int rmin);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        Node cond;
+        int rmax;
+        int rmin;
+    }
+
+    static final class NotBehind extends Node {
+
+        NotBehind(Node cond, int rmax, int rmin);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        Node cond;
+        int rmax;
+        int rmin;
+    }
+
+    static class Add extends Node {
+
+        Add(Node lhs, Node rhs);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Node lhs;
+        Node rhs;
+    }
+
+    static class Both extends Node {
+
+        Both(Node lhs, Node rhs);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        Node lhs;
+        Node rhs;
+    }
+
+    static final class Sub extends Add {
+
+        Sub(Node lhs, Node rhs);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+    }
+
+    static final class Bound extends Node {
+
+        Bound(int n);
+
+        int check(Matcher matcher, int i, CharSequence seq);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        static int LEFT;
+        static int RIGHT;
+        static int BOTH;
+        static int NONE;
+        int type;
+    }
+
+    static final class BnM extends Node {
+
+        static Node optimize(Node node);
+
+        BnM(char[] src, int[] lastOcc, int[] optoSft, Node next);
+
+        boolean match(Matcher matcher, int i, CharSequence seq);
+
+        boolean study(TreeInfo info);
+
+        char[] buffer;
+        int[] lastOcc;
+        int[] optoSft;
+    }
+*/
+    public static final int UNIX_LINES;
+    public static final int CASE_INSENSITIVE;
+    public static final int COMMENTS;
+    public static final int MULTILINE;
+    public static final int DOTALL;
+    public static final int UNICODE_CASE;
+    public static final int CANON_EQ;
+/*
+    transient Node root;
+    transient Node matchRoot;
+    transient char[] buffer;
+    transient GroupHead[] groupNodes;
+    transient int groupCount;
+    transient int localCount;
+    static final int MAX_REPS;
+    static final int GREEDY;
+    static final int LAZY;
+    static final int POSSESSIVE;
+    static final int INDEPENDENT;
+    static Node accept;
+    static Node lastAccept;
+    static HashMap families;
+    static HashMap categories;
+*/
+}
+

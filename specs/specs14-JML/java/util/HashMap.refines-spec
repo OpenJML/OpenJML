@@ -1,0 +1,200 @@
+// @(#)$Id: HashMap.refines-spec,v 1.8 2006/01/30 22:10:45 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.util;
+
+import org.jmlspecs.models.*;
+import java.io.*;
+
+/** JML's specification of java.util.HashMap.
+ * @author Katie Becker
+ * @author Gary T. Leavens
+ */
+public class HashMap extends AbstractMap
+    implements Map, Cloneable, Serializable
+{
+
+    //@ public model int initialCapacity;    
+    // loadFactor is spec_public below
+    
+    //@ public invariant initialCapacity >= 0;  
+    //@ public invariant loadFactor > 0;
+    
+     /*@ public normal_behavior
+       @    requires initialCapacity >= 0;
+       @    assignable theMap, this.initialCapacity, this.loadFactor;
+       @    ensures theMap != null && theMap.isEmpty();
+       @    ensures this.initialCapacity == initialCapacity
+       @         && this.loadFactor == loadFactor;
+       @*/ 
+    public HashMap(int initialCapacity, float loadFactor);
+
+    /*@ public normal_behavior
+       @    assignable theMap, this.initialCapacity, this.loadFactor;
+       @    ensures theMap != null && theMap.isEmpty();
+       @    ensures this.initialCapacity == initialCapacity
+       @         && this.loadFactor == 0.75;
+       @*/
+    public HashMap(int initialCapacity);
+
+    /*@ public normal_behavior
+       @   assignable theMap, initialCapacity, loadFactor;
+       @   ensures theMap != null && theMap.isEmpty();
+       @   ensures loadFactor == 0.75;
+       @   ensures initialCapacity == 16;
+       @*/
+    public HashMap();
+
+     /*@ public normal_behavior
+       @    requires m != null;
+       @    assignable theMap, initialCapacity, loadFactor;
+       @    ensures loadFactor == 0.75 
+       @         && theMap.equals(m.theMap);
+       @*/
+    public HashMap(Map m);
+
+    void init();
+
+    static Object maskNull(Object key);
+
+    static Object unmaskNull(Object key);
+
+    static int hash(Object x);
+
+    static boolean eq(Object x, Object y);
+
+    static int indexFor(int h, int length);
+
+    // specified by Map
+    public int size();
+
+    // specified by Map
+    public boolean isEmpty();
+
+    // specified by Map   
+    public Object get(/*@ nullable @*/ Object key);
+
+    // specified by Map
+    public boolean containsKey(/*@ nullable @*/ Object key); 
+
+    Entry getEntry(Object key);
+
+    // specified by Map     
+    public Object put(/*@ nullable @*/ Object key, /*@ nullable @*/ Object value); 
+
+    void putAllForCreate(Map m);
+
+    void resize(int newCapacity);
+
+    void transfer(Entry[] newTable);
+
+    // specified by Map     
+    public void putAll(Map t); 
+
+    // specified by Map     
+    public Object remove(/*@ nullable @*/ Object key);
+
+    Entry removeEntryForKey(Object key);
+
+    Entry removeMapping(Object o);
+
+    // specified by Map
+    public void clear();
+
+    // specified by Map 
+    public boolean containsValue(/*@ nullable @*/ Object value); 
+
+    /*@ also
+       @   public normal_behavior
+       @     assignable \nothing;
+       @     ensures \result instanceof Map && \fresh(\result)
+       @          && ((Map)\result).equals(this);
+       @     ensures_redundantly \result != this;
+       @*/    
+    public Object clone();
+
+    void addEntry(int hash, Object key, Object value, int bucketIndex);
+
+    void createEntry(int hash, Object key, Object value, int bucketIndex);
+
+    Iterator newKeyIterator();
+
+    Iterator newValueIterator();
+
+    Iterator newEntryIterator();
+
+    // specified by Map      
+    public Set keySet(); 
+
+    // specified by Map     
+    public Collection values(); 
+ 
+    // specified by Map
+    public Set entrySet(); 
+
+    int capacity();
+
+    float loadFactor();
+
+    // INNER CLASSES
+
+    static class Entry implements Map.Entry {
+
+        //@ assignable abstractKey, abstractValue;
+        //@ ensures abstractKey == k && abstractValue == v;
+        Entry(int h, Object k, Object v, Entry n);
+
+        public Object getKey();
+
+        public Object getValue();
+
+        public Object setValue(Object newValue);
+
+        public boolean equals(/*@ nullable @*/ Object o);
+
+        public int hashCode();
+
+        public String toString();
+
+        void recordAccess(HashMap m);
+
+        void recordRemoval(HashMap m);
+
+        final Object key; //@ in abstractKey;
+        Object value; //@ in abstractValue;
+
+        //@ represents abstractKey <- key;
+        //@ represents abstractValue <- value;
+
+        final int hash;
+        Entry next;
+    }
+
+    static final int DEFAULT_INITIAL_CAPACITY;
+    static final int MAXIMUM_CAPACITY;
+    static final float DEFAULT_LOAD_FACTOR;
+    transient Entry[] table;
+    transient int size;
+    int threshold;
+    final /*@ spec_public @*/ float loadFactor;
+    transient volatile int modCount;
+    static final Object NULL_KEY;
+}

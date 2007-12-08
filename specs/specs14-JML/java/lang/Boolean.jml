@@ -1,0 +1,110 @@
+// @(#)$Id: Boolean.jml,v 1.16 2005/12/23 17:02:04 chalin Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+
+package java.lang;
+//@ model import org.jmlspecs.models.*;
+
+/** JML's specification of java.lang.Boolean.
+ * @version $Revision: 1.16 $
+ * @author Brandon Shilling
+ * @author Gary T. Leavens
+ * @author Patrice Chalin
+ */
+//-@ immutable
+public final /*@ pure @*/ class Boolean implements java.io.Serializable {
+
+    public static final /*@non_null@*/ Boolean TRUE;
+
+    public static final /*@non_null@*/ Boolean FALSE;
+
+    public static final /*@non_null@*/ Class	TYPE;
+
+    //@ public model boolean theBoolean;
+    //@ represents theBoolean <- booleanValue();
+
+    /*@ public normal_behavior
+      @   assignable theBoolean;
+      @   ensures theBoolean == value;
+      @*/
+    public Boolean(boolean value);
+
+    /*@ public normal_behavior
+      @  assignable theBoolean;
+      @  ensures theBoolean == "true".equalsIgnoreCase(s);
+      @*/
+    public Boolean(String s);
+    
+    /*@ public normal_behavior
+      @   assignable \nothing;
+      @   ensures \result == theBoolean;
+      @*/
+    public boolean booleanValue();
+
+    /*@ public normal_behavior
+      @   assignable \nothing;
+      @   ensures \result.booleanValue() == b;
+      @*/
+    public static /*@ pure non_null @*/ Boolean valueOf(boolean b);
+
+    /*@ public normal_behavior
+      @  assignable \nothing;
+      @  ensures \result.booleanValue() == "true".equalsIgnoreCase(s);
+      @*/
+    public static /*@ pure non_null @*/ Boolean valueOf(String s);
+
+    /*@ public normal_behavior
+      @   assignable \nothing;
+      @   ensures valueOf(\result).booleanValue() == b;
+      @*/
+    public static /*@ pure non_null @*/ String toString(boolean b);
+
+    /*@ also
+      @ public normal_behavior
+      @   assignable \nothing;
+      @   ensures valueOf(\result).booleanValue() == theBoolean;
+      @*/
+    public /*@non_null@*/ String toString();
+
+    public int hashCode();
+
+    /*@ also
+      @ public normal_behavior
+      @ {|
+      @   requires obj != null && (obj instanceof Boolean);
+      @   assignable \nothing;
+      @   ensures \result == (theBoolean == ((Boolean) obj).booleanValue());
+      @ also
+      @   requires obj == null || !(obj instanceof Boolean);
+      @   assignable \nothing;
+      @   ensures !\result;
+      @ |}
+      @*/
+    public /*@ pure @*/ boolean equals(/*@ nullable @*/ Object obj);
+    
+    /*@ public normal_behavior
+      @   assignable \nothing;
+      @   ensures \result == (name == null || name.equals("")
+      @              ? false 
+      @              : valueOf(System.getProperty(name)).booleanValue());
+      @*/
+    public static /*@ pure @*/ boolean getBoolean(String name);
+}

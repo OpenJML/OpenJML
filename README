@@ -1,0 +1,116 @@
+                                           DATE: 10 November 2007
+                                           AUTHOR: David R. Cok
+                                           COPYRIGHT: (c) 2007 David Cok
+
+This file describes a completely rewritten JML tool (called OpenJML) based
+on the OpenJDK release of the Java tool set (http://openjdk.java.net).  It is
+an extension of the GPL source available through OpenJDK.
+
+The OpenJML tool is a JML syntax and semantics checker.  It does not (at
+present) do runtime assertion checking or static reasoning, nor does it do
+Java code generation or the Java error checking associated with flow analysis. 
+Also, it is onlyh a command-line tool and has no integration with any IDE.
+It does intend to parse and check all aspects of JML as they are defined in the
+JML reference manual (cf. http://www.jmlspecs.org), though that is an ongoing
+project.  (please report any difficulties or bugs)
+
+As is the case for the OpenJDK code, the OpenJML tool is run with a 1.6
+version of Java.  At present it cannot be run to check files against a set
+of Java 1.4 libraries.
+
+The gzipped tar file containing a release of OpenJML contains
+	jmlcheck.jar
+	jmlspecs.jar
+	jmlruntime.jar
+	README   (this file)
+
+Installation:
+
+To install OpenJML, simply gunzip and untar the distribution file into a 
+directory of your choice (call it $OPENJML).  Then you can run the tool
+simply using the command (your java installation must be version 1.6):
+
+	java -jar $OPENJML/jmlcheck.jar
+
+That command alone will show you a list of Java and JML command-line options.
+To run OpenJML on a specific set of files, you need to, in the conventional
+manner, specify
+	the classpath to use, using the -classpath option 
+	the sourcepath to use, using the -sourscepath option
+	the specification files to use, using the -specs option
+	the files to check, listed on the command-line by file name
+
+A typical simple scenario might be:
+	java -jar $OPENJML/jmlcheck.jar -classpath . *.java
+
+
+THE FILES:
+
+      These are conventional Java files for which either
+a) the Java files contain JML specifications directly, or
+b) there are specification files on the specs path with names corresponding
+to the Java files names (e.g. A.spec for A.java).  If you mix Java files and
+specification files in the same directory, be careful of the precedence of
+JML file suffixes.
+
+
+
+THE SPECS PATH:  
+
+    The jmlcheck.jar contains an internal copy of some Java
+library specification files.  By default those will be used, but you can
+supply your own or dirctories containing specifications for your own classes
+using the -specs option.  For example:
+	-specs ".;mySpecsDir;$OPENJML/jmlspecs.jar"
+By default, the internal specs are appended to any specifications you 
+provide (you can turn this off with -noInternalSpecs).  Also, if you do not
+provide an explicit -specs option, the value of org.jmlspecs.specspath is
+used, else the value of -sourcepath, else the value of -classpath, else the
+value of java.class.path.
+
+If you supply a value for the Java property org.jmlspecs.system.specs, that
+path will be used in place of the internal system specs.
+
+Typically, if you specify an explicit specs path, you will want to include
+on that path any directory entries from the classpath that contain your own
+source code and exclude 3rd party and system libraries.
+
+
+THE CLASSPATH:
+
+The classpath: Just as when compiling source code with javac, this lists
+directories in which one can find the Java files (by fully-qualified file
+name) that are referenced by the files that are being compiled.
+
+Note that the OpenJML tool needs a few classes to be available to it at
+runtime.  These are included in the jmlcheck.jar and are incorporated into
+the classpath automatically.  The same files are present in jmlruntime.jar,
+in case it is desired to included them explicitly.  The internal files can
+be excluded using the -noInternalRuntime option.
+
+
+THE SOURCEPATH:
+
+The sourcepath is not commonly used, but can be used to distinguish where
+source files are to be found (the source path) and where class files are
+to be found (the classpath).
+
+
+THE jmlruntime.jar:
+
+This contains some compiled classes that the OpenJML tool needs on the 
+classpath given to it.  These classes are also included by appending them
+to the user's classpath automatically, so normally the user need not be
+concerned with this jar file.
+
+
+THE jmlspecs.jar:
+
+This file contains a copy of the 1.6 JML system specs, such as they are.
+This is by no means a complete set, and includes a number of unmodified files
+from 1.4 (which, if referenced, may give errors related to type generics).
+The system specs are also part of jmlcheck.jar and are included automatically,
+so in simple uses the user need not be concerned withh jmlspecs.jar.  However
+if you wish to alther the specs or supply your own, you may wish to make use
+of the contents of this jar file.
+

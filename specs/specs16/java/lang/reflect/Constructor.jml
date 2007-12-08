@@ -1,0 +1,6 @@
+package java.lang.reflect;
+
+final public class Constructor<T> {
+
+
+}

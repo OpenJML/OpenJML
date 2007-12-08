@@ -1,0 +1,158 @@
+// @(#)$Id: Connection.jml,v 1.5 2006/01/28 05:10:44 chalin Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.sql;
+
+import java.util.Map;
+
+public interface Connection {
+
+	/*
+	 * NOTE: This file has only been partially specified. Feel free to complete.
+	 * (source: http://java.sun.com/j2se/1.4.2/docs/api/java/sql/Connection.html)
+	 */
+
+	// A constant indicating that transactions are not supported.
+	public static final int TRANSACTION_NONE;
+
+	// A constant indicating that dirty reads are prevented; non-repeatable reads and phantom reads can occur.
+	public static final int TRANSACTION_READ_COMMITTED;
+
+	// A constant indicating that dirty reads, non-repeatable reads and phantom reads can occur.
+	public static final int TRANSACTION_READ_UNCOMMITTED;
+
+	// A constant indicating that dirty; reads and non-repeatable reads are prevented; phantom reads can occur.
+	public static final int TRANSACTION_REPEATABLE_READ;
+
+	// A constant indicating that dirty reads, non-repeatable reads and phantom reads are prevented.
+	public static final int TRANSACTION_SERIALIZABLE;
+
+
+	// Clears all warnings reported for this Connection object.
+	public void clearWarnings() throws SQLException;
+
+	// Releases this Connection object's database and JDBC resources immediately instead of waiting for them to be automatically released.
+	public void close() throws SQLException;
+
+	// Makes all changes made since the previous commit/rollback permanent and releases any database locks currently held by this Connection object.
+	public void commit() throws SQLException;
+
+	// Creates a Statement object for sending SQL statements to the database.
+	public Statement createStatement() throws SQLException;
+
+	// Creates a Statement object that will generate ResultSet objects with the given type and concurrency.
+	public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException;
+
+	// Creates a Statement object that will generate ResultSet objects with the given type, concurrency, and holdability.
+	public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException;
+
+	// Retrieves the current auto-commit mode for this Connection object.
+	public boolean getAutoCommit() throws SQLException;
+
+	// Retrieves this Connection object's current catalog name.
+	public String getCatalog() throws SQLException;
+
+	// Retrieves the current holdability of ResultSet objects created using this Connection object.
+	public int getHoldability() throws SQLException;
+
+	// Retrieves a DatabaseMetaData object that contains metadata about the database to which this Connection object represents a connection.
+	public DatabaseMetaData getMetaData() throws SQLException;
+
+	// Retrieves this Connection object's current transaction isolation level.
+	public int getTransactionIsolation() throws SQLException;
+
+	// Retrieves the Map object associated with this Connection object.
+	public Map getTypeMap() throws SQLException;
+
+	// Retrieves the first warning reported by calls on this Connection object.
+	public SQLWarning getWarnings() throws SQLException;
+
+	// Retrieves whether this Connection object has been closed.
+	public boolean isClosed() throws SQLException;
+
+	// Retrieves whether this Connection object is in read-only mode.
+	public boolean isReadOnly() throws SQLException;
+
+	// Converts the given SQL statement into the system's native SQL grammar.
+	public String nativeSQL(String sql) throws SQLException;
+
+	// Creates a CallableStatement object for calling database stored procedures.
+	public CallableStatement prepareCall(String sql) throws SQLException;
+
+	// Creates a CallableStatement object that will generate ResultSet objects with the given type and concurrency.
+	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException;
+
+	// Creates a CallableStatement object that will generate ResultSet objects with the given type and concurrency.
+	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException;
+
+	// Creates a PreparedStatement object for sending parameterized SQL statements to the database.
+	// (specification based on an interpretation of the javadoc API)
+	public /*@ non_null @*/ PreparedStatement prepareStatement(String sql) throws SQLException;
+
+	// Creates a default PreparedStatement object that has the capability to retrieve auto-generated keys.
+	public /*@ non_null @*/ PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException;
+
+	// Creates a default PreparedStatement object capable of returning the auto-generated keys designated by the given array.
+	public /*@ non_null @*/ PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException;
+
+	// Creates a PreparedStatement object that will generate ResultSet objects with the given type and concurrency.
+	public /*@ non_null @*/ PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException;
+
+	// Creates a PreparedStatement object that will generate ResultSet objects with the given type, concurrency, and holdability.
+	public /*@ non_null @*/ PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException;
+
+	// Creates a default PreparedStatement object capable of returning the auto-generated keys designated by the given array.
+	public /*@ non_null @*/ PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException;
+
+	// Removes the given Savepoint object from the current transaction.
+	public void releaseSavepoint(Savepoint savepoint) throws SQLException;
+
+	// Undoes all changes made in the current transaction and releases any database locks currently held by this Connection object.
+	public void rollback() throws SQLException;
+
+	// Undoes all changes made after the given Savepoint object was set.
+	public void rollback(Savepoint savepoint) throws SQLException;
+
+	// Sets this connection's auto-commit mode to the given state.
+	public void setAutoCommit(boolean autoCommit) throws SQLException;
+
+	// Sets the given catalog name in order to select a subspace of this Connection object's database in which to work.
+	public void setCatalog(String catalog) throws SQLException;
+
+	// Changes the holdability of ResultSet objects created using this Connection object to the given holdability.
+	public void setHoldability(int holdability) throws SQLException;
+
+	// Puts this connection in read-only mode as a hint to the driver to enable database optimizations.
+	public void setReadOnly(boolean readOnly) throws SQLException;
+
+	// Creates an unnamed savepoint in the current transaction and returns the new Savepoint object that represents it.
+	public Savepoint setSavepoint() throws SQLException;
+
+	// Creates a savepoint with the given name in the current transaction and returns the new Savepoint object that represents it.
+	public Savepoint setSavepoint(String name) throws SQLException;
+
+	// Attempts to change the transaction isolation level for this Connection object to the one given.
+	public void setTransactionIsolation(int level) throws SQLException;
+
+	// Installs the given TypeMap object as the type map for this Connection object.
+	public void setTypeMap(Map map) throws SQLException;
+
+}

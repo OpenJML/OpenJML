@@ -1,0 +1,159 @@
+// @(#)$Id: PrintStream.refines-java,v 1.10 2006/09/26 00:33:39 chalin Exp $
+
+// Copyright (C) 2006 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.io;
+
+/** JML's specification of PrintStream
+ * @author David Cok
+ * @author Gary T. Leavens
+ * @author Patrice Chalin
+ */
+public class PrintStream extends FilterOutputStream {
+
+    // moved to OutputStream
+    // //@ model public JMLDataGroup output; in objectState;
+
+    //@ ghost public String outputText; in outputBytes;
+    //@ ghost public boolean endsInNewLine; in outputBytes;
+    //@ ghost public static final String eol;
+    //@ public model boolean error;
+
+    //@ ensures underlyingStream == os;
+    public PrintStream(OutputStream os);
+
+    //@ ensures underlyingStream == os;
+    public PrintStream(java.io.OutputStream os, boolean Param1);
+
+
+    //@ ensures underlyingStream == os;
+    public PrintStream(java.io.OutputStream os, boolean Param1, java.lang.String Param2)
+        throws java.io.UnsupportedEncodingException;
+
+
+    /*@ public normal_behavior
+      @   assignable outputText, endsInNewLine;
+      @   ensures endsInNewLine;
+      @   ensures outputText.equals(\old(outputText) + eol);
+      @*/
+    public void println();
+
+    /*@ protected normal_behavior
+      @   modifies error;
+      @   ensures error;
+      @*/
+    protected void setError();
+
+    /*@ public normal_behavior
+      @   requires !isOpen;
+      @   modifies error;
+      @   ensures error;
+      @   ensures \result == error;
+      @*/
+    public boolean checkError();
+
+    public void print(char Param0);
+
+    public void println(char Param0);
+
+    /*@ public normal_behavior
+      @   assignable outputText, endsInNewLine;
+      @   ensures endsInNewLine;
+      @   ensures s != null ==> outputText.equals(\old(outputText) + s + eol);
+      @*/
+    public void println(String s);
+
+    /*@ public normal_behavior
+      @   assignable outputText, endsInNewLine;
+      @   ensures s != null ==> outputText.equals(\old(outputText) + s);
+      @*/
+    public void print(String s);
+
+    public void print(double Param0);
+
+    public void println(double Param0);
+
+    public void print(float Param0);
+
+    public void println(float Param0);
+
+    //@ requires true;
+    //@ assignable outputText, endsInNewLine;
+    //@ ensures endsInNewLine;
+    //@ ensures outputText.startsWith(\old(outputText));
+    public void println(Object o);
+
+    //@ requires true;
+    //@ assignable outputText, endsInNewLine;
+    //@ ensures outputText.startsWith(\old(outputText));
+    public void print(Object o);
+
+    //@ requires true;
+    //@ assignable outputText, endsInNewLine;
+    //@ ensures endsInNewLine;
+    //@ ensures outputText.startsWith(\old(outputText));
+    public void println(boolean b);
+
+    public void print(boolean Param0);
+
+    public void print(int Param0);
+
+    //@ requires true;
+    //@ assignable outputText, endsInNewLine;
+    //@ ensures endsInNewLine;
+    //@ ensures outputText.startsWith(\old(outputText));
+    public void println(int i);
+
+    public void print(long Param0);
+
+    public void println(long Param0);
+
+    /*@ also
+      @ public normal_behavior
+      @   requires !isOpen;
+      @   modifies error;
+      @   ensures error;
+      @ also
+      @ public exceptional_behavior
+      @   modifies output, error;
+      @   signals (IOException) false;
+      @*/
+    public void flush();
+
+    public void print(char[] Param0);
+
+    public void println(char[] Param0);
+
+    public void write(int i);
+
+    public void write(byte[] b, int off, int len);
+
+    /*@ also
+      @ public normal_behavior
+      @   requires !isOpen;
+      @   modifies error;
+      @   ensures error;
+      @ also
+      @ public exceptional_behavior
+      @   modifies output, error;
+      @   signals (IOException) false;
+      @*/
+    public void close();
+}

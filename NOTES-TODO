@@ -1,0 +1,338 @@
+File review:
+DiagnosticFilter
+        - can this be removed?
+FileJavaFileObject - REMOVED
+        - cleanup equals, use of isNameCompatible
+        - is this used anywhere?
+IJmlVisitor - OK
+IVisitor
+        - perhaps should be in package com.sun.tools.javac.tree
+        - JCTree.Visitor should implement it, perhaps
+JmlInternalError - OK
+JmlOptionName
+        - use a resources file for help information
+        - integrate with the Option processing for the parent tool
+        - design a mechanism that is extensible (probably does not use Enums)
+JmlResolve
+        - sort out detection of spec_public and spec_protected
+        - Maintenance issues
+JmlScanner
+        - fix positional information for unicode situations
+        - be able to distinguish jml errors
+        - check behavior of unicode with multiple backslashes
+        - check recovery after a bad backslash
+        - find JML annotations in Javadoc
+        - potential buffer overflow in checking for DOTDOT
+        - should we protect the jml flag against exceptions?
+        - revise to not emit start and end of JML comment
+        - report series of @s that are not part of a end of JML comment
+        - better detection of unclosed informal comments
+        - encapsulate the backtracking
+        - handle nowarn pragmas
+        - overall redesign of relationship between Scanner and JmlScanner
+JmlSpecs
+        - some additional comment needed
+        - review the constructors of TypesSpecs
+        - clean up printDatabase method
+        - guard against lack of type information when methods/fields being added
+        ++ clean up TypeSpecs ADT
+JmlToken
+        - need an extensible design
+        - note the extensions
+        - need to handle _redundantly tokens
+JmlTree
+        - toString
+        - constraint
+        - various other misc stuff (TODOs)
+        - accept for JmlTypeClauseDecl
+JmlTreeCopier
+        - finish the implementation of the non-expression JML nodes
+JmlTreeScanner
+        - optional expression for assert, assume
+        - complete implementation of constraint
+        - think some more about which tree walking modes to distinguish and use
+JMLTreeVisitor
+        - OK, but need an implementation of JmlTreeScanner for the generic TreeScanner
+Main
+        - implement a test of the catastrophic failure catcher
+        - improve use of context field
+OptionInterface
+        - is this needed? where is it used?
+        - should it have a process() method
+TreePrinter
+        - what JML tree walking mode should be used?
+Utils
+        - use mockDirChar where it should be
+        - TEST: the property names defined here
+        - FIXMEs on annotation checking
+messages.properties
+        - organize
+        - check for logical duplication of messages
+        - check that all messages are tested
+
+com.sun.tools.javac.main.Main
+        - JAVAC: the exit codes should be public 
+        - JAVAC: bugMessage should be made protected
+        
+        
+To review:
+Interactive
+JmlAttr
+JmlEnter
+JmlFlow
+JmlMemberEnter
+JmlRac
+JmlParser
+TreePrinter
+DiagnosticFilter
+JmlCompiler
+JmlPretty
+JmlTypes - for now not being used
+all runtime files
+
+Changed Javac files
+- com.sun.tools.javac.comp.Annotate       
+- com.sun.tools.javac.comp.Attr       
+- com.sun.tools.javac.comp.AttrContext       
+- com.sun.tools.javac.comp.Check       
+- com.sun.tools.javac.comp.Enter       
+- com.sun.tools.javac.comp.MemberEnter       
+- com.sun.tools.javac.comp.Resolve
+- com.sun.tools.javac.main.JavaCompiler
+- com.sun.tools.javac.main.Main
+- com.sun.tools.javac.parser.DocCommentScanner ?
+- com.sun.tools.javac.parser.Parser
+- com.sun.tools.javac.parser.Scanner
+- com.sun.tools.javac.tree.Pretty  
+- com.sun.tools.javac.util.Log
+        
+               
+To Do:
++ finish scanning of DOT DOT
+++ matching of generic methods
++++ fix the issue with modifier checking, probably need tests with modifiers in spec files
++ test bad use of JML constructs in Java operators
++ interactive API: reset does not work
+++ turning off JML keywords in expressions - OK but test this (also revise)
+- do scopes for \old with a label
+- difference between expression and specExpression
+- nonstatic maps may not be in static data groups
+- specs in anonymous classes
+- labelled statements
+- implement constraints on the target of readable,writable,monitors
+- test anonymous classes, including modifiers and specifications
+- review the handling of secondary types, especially model types
+- move reading specs for binary into completion step
+- test setcomp and quant in initializer of old clause of method specs
+-     test nested setcomp and quant; test that the variables go away after the scope
+-     is memberEnter really the right thing to call?
+- may in group names be not model but spec_public?
+- undefinedness of model methods used in assertions
+
+++ RAC: fresh?
++ RAC: old with label, same
++ RAC: move method declarations from Attr to Rac
++ RAC: constraint for clause
++ RAC: model fields in interfaces; implementing stuff in interfaces in general
++ RAC: inherited specs
++ RAC: checking of invariants on method calls
++ RAC: checking of non_null fields after constructor
++ RAC: checking of assignable clause
++ RAC: checking of readable, writable, monitored, monitors_for
++ RAC: complete implementation of RAC-ignored messages, with command-line switch
++ RAC: install checks for non_null model fields
+
+- check that there are tests for the modifiers of forall and old
+- (checks & RAC) implement uninitialized, extract; test instance and interface
+- resolve issue of the definition of <: among primitive types
+- don't print typechecking of files already checked
+- enable full typechecking of all referenced files
+- find a way to not typecheck specs that will not be needed
+- would like to be able to give information about the exception type when signals_only tests fail
+- implement constraints on static and access visibility of identifier references within JML expressions
+- use refinement chains
+- review handling of position
+- axiom - may it have any free variables that are resolved in the outer scope?
+- nowarn lexical pragma - parsed but not recorded anywhere
+- distinguish redundantly
+- boxing and unboxing of \TYPE
+- inherited specs
+- what JML-specific flow test are needed
+- implement checking of types and packages (not just files)
+- options to typecheck fully, typecheck files on demand, typecheck methods on demand
+- need a programmatic interface
+- do not generate a default constructor unless for a .java file
+- review and implement refinement combining rules
+- is it possible to check changes of name in refinement sequences (not part of another sequence)
+- checking that most refined file also has the most active suffix
+- check which backslash expressions can have only Java expressions
+- test modifiers when specs come from a non-java file: class, field and method
+- redesign use of STARTJMLCOMMENT and ENDJMLCOMMENT to simplify scanner
+- what is refining?
+- readable/writable/monitors_for: check that identifiers are declared (in class or in any superclass?)
+- constant folding in operators
+- only_called
+- warn about specs in .java file that are ignored
+- JML keywords as type modifiers in casts, forall, old, set comprehension, quantified expressions, type literals?
+- backslash non_null and nullable
+- type modifiers in casts
+- alternate placement of method specifications
+- run on ESC; run on specs
+- new version of specs
+- JMLSetType ought to be generic
+- what is type of optional assert expression
+- check that toplevel model methods are not public if they should not be
+- setcomp and quantifier expressions do not work in ghost variable initializers
+- Refinement sequence issues: warning about changes in name, reuse of names,
+        that the MRCU has the most active suffix
+- "code" not allowed on abstract methods; no point on methods that cannot be overridden
+- no model programs in for_example or implies_that sections
+- both assert and assume statements have optional labels
+- check that store ref parsing matches the grammar
+- note the constraints on where \not_assigned, \not_modified, \only)accessed,
+        \only_assigned may be used
+- understand/clarify/implement the discussion of dynamic data groups
+- generalized quantifiers only allow numeric types
+- would like preconditions when there is only one spec case to give error messages specific to particular requires clauses
+- would like non_null pre and post conditions to have error messages about nonnullity
+- would like loop conditions to have error messages about which iteration
+- check use of non_null and nullable on non-reference types
+- am not recognizing @+*/ at end of JML comment
++ permit type modifiers (\peer, readonly, non_null, nullable,...) in appropriate
+        places: cast, generic args, formal params, decls
+        
+- desugaring- default sepcs for implicit constructor
+
+- test null checks sourcefile location for assignments in model methods, for 
+        initialization of ghost fields in spec files, for initialization of
+        Java fields where the non_null is in a spec file.
+- need more tests for method clause groups
+- need more tests for nullity in combination with method clause groups
+- fix issue of JML keywords as type modifiers in forall/old/quantified expression/set comprehension
+- parse, typecheck and test: for clause of constraint
+- initializer specifications: Java ones not in spec file; no modifiers; check static vs. instance
+- maps id must match field declaration id
+- implement & test: - group names in in and maps must be datagroups
+- implement & test: semantics of arithmetic operators & bigint & real, including promotions
+- test: continuing and stopping for parsing errors
+- test: continuing attribution despite errors
+- test embedded JML comments
+- for all JML constructs that take access modifiers - need to check for conflicts
+- finish error recovery and typechecking and test: readable writable monitors_for        
+- compare behavior visibility with method visibility
+- compare visibility of variable references with visibility of clauses they are in      
+- implement & test: no modifiers on axiom  
+- \same: need to check for previous spec cases and for being inside an expression
+- change field/method/constructor to be not modifiers and parse them immediately before the type in a declaration
+- implement weakly, probably along with other type modifiers
+- implement & test: not both model & final, not both model & monitored, not both pure & void   
+- implement & test: nullity on reference types only
+- test: ghost,model fields are implicitly static in interface
+- test: ghost fields are not implicitly final in interface
+- implement & test: name lookup in in/maps clauses
+        
+        
+        
+           
+Review other work:
+- Kitchen Sink Lang project
+- JML Annotations
+- JSR 308
+
+Tests to do:
+- command-line options
+- all expressions
+- redundantly
+- implies_that
+- examples
+- check resolution of variable names
+- check attributing of method specs when there is no body
+
+Remaining big issues:
+- OpenJML does not care about order of clauses
+- no jml in javadoc
+- problems with parsing quantified expression
+- problems with precedence of <:
+- model imports treated like Java imports
+- when model/ghost declarations are introduced
+- //-@ and //+@
+- nested method specs
+- refinement chains
+- need a .java or .class file
+- separate handling of redundantly and implies_that and examples
+- no checking of JML visibility
+- no implementation of arithmetic modes
+- no implementation of universe type checking
+
+JML issues
+- elemtype on type but not array type is null
+- Model types may not contain model/ghost declarations
+- Model types must be declared all in one specification file
+- May invariants forward reference variables, what about ghost or model declarations?
+- Represents can take a spec-ref, but only a limited form of them (should this be changed) - maybe the same as a group-name?
+- Does pure on a class apply to nested classes
+- Are method clauses allowed after a method clause group?
+
+Extension issues
+- tool registration works well
+- needs many more public/protected methods
+- extensions of scanner??
+- parser
+	- hand crafted
+	- extended by derivation
+	- needs more modularization
+- Enums need a way of being extended (can an interface be used?)
+- problem with introducing operators
+- type attribution generally works
+- used as is: Log (except for compiler.err), Symbol Table
+- JavaFIleObject works well
+- command-line arguments ok - options are a map
+- new types mostly ok
+- nuisance at compilationUnit level
+- Scanner
+	- protected: buf, ch, scanIdent, scanChar, scanOperator, isSpecial, lexError
+	- too many copies of array (still the case?)
+	- need a way to access one character
+	
+Significant design issues:
+- the way pt and pkind are stacked within the Attr visitor tree
+
+
+COMPILATION PHASES
+
+1) parsing
+- produces a parse tree of all of the input files; we get the ASTs for the
+specs sequence as well.
+So after parsing: JmlCompilationUnit.specsSequence has the specification ASTs
+
+2) enter
+- goes through the parse tree to find all class declarations and adds them to
+the symbol table.  We also connect specification class declarations to the 
+Java class declarations by matching names and we enter all model classes in 
+the symbol table.  It also associates a 'completer' with each class, which 
+knows how to enter all the classes members into the symbol table.  In JavaCOmpiler's
+compilation sequence, the enter phase also calls the completer for each class
+for which a source file was specified on the command line.  Otherwise, completion
+is done on demand.
+After being entered:
+        JmlClassDecl.specsDecl contains the AST of the specification declaration for the class
+        
+3) completion
+- for classes, done via MemberEnter.  This enters all members of the class into
+the symbol table (member classes are already entered).  In the process all types
+(e.g. types of field declarations, return and parameter types, generic type arguments)
+are resolved.  This can be done since the classes from source files are already
+in the symbol table.  New classes are loaded, and thus entered into the symbol
+table.  This also may invoke parsing of specs files.
+
+3.5) Loading classes
+when a class name is encountered that the symbol table does not know, that class
+is loaded from the file system.  If it is already known if it not read again.
+It is either read from a .class file or 
+parsed from a .java file (CHECK THIS PARSING).  It is also then entered into the
+symbol table and immediately completed.
+
+4) type checking (attribution)
+- next the source files are typechecked - all expressions and statements have
+names resolved, use of types is checked.  Resolution of names can result in
+more classes being loaded

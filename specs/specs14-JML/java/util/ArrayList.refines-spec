@@ -1,0 +1,192 @@
+// @(#)$Id: copyright-for-java.txt,v 1.3 2004/01/05 01:59:21 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.util;
+
+//@ model import org.jmlspecs.models.*;
+
+/** JML's specification of ArrayList.
+ *  @author Ajani Thomas
+ *  @author Gary T. Leavens
+ */
+public class ArrayList extends AbstractList
+    implements List, RandomAccess, Cloneable, java.io.Serializable
+{
+
+    /** This represents the size of the array used to store the elements 
+     *  in the ArrayList.
+     **/
+    /*@ public model int capacity;
+      @*/
+
+    // METHODS AND CONSTRUCTORS
+    /*@  public normal_behavior
+      @   requires 0 <= initialCapacity;
+      @   assignable capacity, theCollection;
+      @   ensures capacity == initialCapacity;
+      @   ensures this.isEmpty();
+      @ also
+      @  public exceptional_behavior
+      @   requires initialCapacity < 0;
+      @   assignable \nothing;
+      @   signals_only IllegalArgumentException;
+      @   signals (IllegalArgumentException) initialCapacity < 0;
+      @*/
+    public ArrayList(int initialCapacity);
+
+    /*@  public normal_behavior
+      @   assignable capacity, theCollection;
+      @   ensures capacity == 10;
+      @   ensures this.isEmpty();
+      @*/
+    public ArrayList();
+
+    /*@  public normal_behavior
+      @   requires c != null;
+      @   requires c.size()*1.1 <= Integer.MAX_VALUE;
+      @   assignable capacity, theCollection;
+      @   ensures this.size() == c.size();
+      @   ensures (\forall int i; 0 <= i && i < c.size();
+      @                     this.get(i).equals(c.iterator().nthNextElement(i)));
+      @   ensures_redundantly c.theCollection.equals(this.theCollection);
+      @   ensures capacity == c.size()*1.1;
+      @ also
+      @  public exceptional_behavior
+      @   requires c == null;
+      @   assignable \nothing;
+      @   signals_only NullPointerException;
+      @*/
+    public ArrayList(Collection c);
+
+    /*@  public normal_behavior
+      @   assignable capacity, theCollection;
+      @   ensures capacity == this.size();
+      @*/
+    public void trimToSize();
+
+    /*@  public normal_behavior
+      @   assignable capacity, theCollection;
+      @   ensures capacity >= minCapacity;
+      @*/
+    public void ensureCapacity(int minCapacity);
+
+    // specification inherited from List
+    public /*@ pure @*/ int size();
+
+    // specification inherited from List
+    public /*@ pure @*/ boolean isEmpty();
+
+    // specification inherited from List
+    public /*@ pure @*/ boolean contains(/*@nullable*/ Object elem);
+
+    // specification inherited from List
+    public /*@ pure @*/ int indexOf(Object elem);
+
+    // specification inherited from List
+    public /*@ pure @*/ int lastIndexOf(Object elem);
+
+    // specification inherited from Object
+    /*@ also
+      @ implies_that
+      @  public normal_behavior
+      @   assignable \nothing;
+      @   ensures \result != this;
+      @   ensures \result.getClass() == this.getClass();
+      @   ensures \result.equals(this);
+      @   ensures \result != null;
+      @   ensures ((ArrayList)\result).size() == this.size();
+      @   ensures (\forall int i; 0 <= i && i < this.size();
+      @             ((ArrayList)\result).get(i) == this.get(i));
+      @*/
+    public Object clone();
+
+    // specification inherited from List
+    public /*@ pure non_null @*/ Object[] toArray();
+
+    // specification inherited from List
+    /*@ also
+      @  public exceptional_behavior
+      @   requires elementType <: \elemtype(\typeof(a));
+      @   assignable \nothing;
+      @   signals_only ArrayStoreException;
+      @*/
+    public /*@ non_null */ Object[] toArray(Object[] a);
+
+    // specification inherited from List
+    /*@ also
+      @  public exceptional_behavior
+      @   requires index < 0 || index >= this.size();
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ Object get(int index);
+
+    // specification inherited from List
+    /*@ also
+      @  public exceptional_behavior
+      @   requires index < 0 || index >= this.size();
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public Object set(int index, Object element);
+
+    // specification inherited from List
+    public boolean add(/*@nullable*/ Object o);
+
+    // specification inherited from List
+    /*@ also
+      @  public exceptional_behavior
+      @   requires index < 0 || index >= this.size();
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public void add(int index, Object element);
+
+    // specification inherited from List
+    /*@ also
+      @  public exceptional_behavior
+      @   requires index < 0 || index >= this.size();
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public Object remove(int index);
+
+    // specification inherited from List
+    public void clear();
+
+    // specification inherited from List
+    public boolean addAll(Collection c);
+
+    // specification inherited from List
+    /*@ also
+      @  public exceptional_behavior
+      @   requires index < 0 || index >= this.size() || c == null;
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException, NullPointerException;
+      @   signals (IndexOutOfBoundsException)
+      @                                  index < 0 || index >= this.size();
+      @   signals (NullPointerException) c == null;
+      @*/
+    public boolean addAll(int index, Collection c);
+
+    // specification inherited from AbstractList
+    protected void removeRange(int fromIndex, int toIndex);
+}

@@ -1,0 +1,698 @@
+// @(#)$Id: Vector.refines-spec,v 1.41 2006/12/11 23:09:41 chalin Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.util;
+
+//@ model import org.jmlspecs.models.JMLEqualsSequence;
+
+/** JML's specification of java.util.Vector.
+ * Some of this specification is taken from ESC/Java.
+ * @version $Revision: 1.41 $
+ * @author Clyde Ruby
+ * @author Gary T. Leavens
+ * @author David Cok
+ */
+public class Vector extends AbstractList
+       implements List, RandomAccess, Cloneable, java.io.Serializable
+{
+
+    /*+@ protected represents theList <-
+      @               JMLEqualsSequence.convertFrom(elementData, elementCount);
+      @*/
+
+    //+@ public model int maxCapacity; in theList;
+    //-@ public model int maxCapacity; in _theList;
+
+    //@ public represents maxCapacity <- capacity();
+
+    //+@ public model int capIncrement; in theList;
+    //-@ public model int capIncrement; in _theList;
+
+    //@ protected represents capIncrement <- capacityIncrement;
+
+    //@ public constraint capIncrement == \old(capIncrement);
+
+    /*+@ public invariant maxCapacity >= 0 && capIncrement >= 0 
+      @          && theList.int_size() <= maxCapacity;
+      @*/
+    /*-@ public invariant maxCapacity >= 0 && capIncrement >= 0 
+      @          && _theList.length <= maxCapacity;
+      @*/
+
+    // Public Constructors
+
+    /*+@  public normal_behavior
+      @    requires initialCapacity >= 0 && capacityIncrement >= 0;
+      @    assignable theCollection, maxCapacity, capIncrement, elementType;
+      @    ensures maxCapacity == initialCapacity
+      @        && capIncrement == capacityIncrement;
+      @    ensures elementType == \type(Object);
+      @    ensures isEmpty();
+      @
+      @ implies_that
+      @    requires initialCapacity >= 0 && capacityIncrement >= 0;
+      @    ensures elementCount == 0;
+      @    ensures elementType == \type(Object);
+      @*/
+    public /*@ pure @*/ Vector (int initialCapacity, int capacityIncrement);
+
+    /*+@  public normal_behavior
+      @    requires initialCapacity >= 0;
+      @    assignable theCollection, maxCapacity, capIncrement, elementType,
+      @               containsNull;
+      @    ensures maxCapacity == initialCapacity
+      @        && capIncrement >= 0;
+      @    ensures elementType == \type(Object) && !containsNull;
+      @    ensures isEmpty();
+      @
+      @ implies_that
+      @    requires initialCapacity >= 0;
+      @    ensures elementCount == 0;
+      @    ensures elementType == \type(Object);
+      @*/
+    public /*@ pure @*/ Vector(int initialCapacity);
+
+    /*+@  public normal_behavior
+      @    assignable theCollection, maxCapacity, capIncrement, elementType,
+      @               containsNull;
+      @    ensures isEmpty();
+      @    ensures elementType == \type(Object) && !containsNull;
+      @    ensures maxCapacity > 0 && capIncrement >= 0;
+      @
+      @ implies_that
+      @    ensures elementCount == 0;
+      @    ensures elementType == \type(Object);
+      @*/
+    public /*@ pure @*/ Vector();
+
+    /*+@ public normal_behavior
+      @    requires c != null;
+      @    assignable theCollection, maxCapacity, capIncrement, elementType,
+      @               containsNull;
+      @    ensures theCollection.equals(c.theCollection);
+      @    ensures_redundantly elementCount == c.size();
+      @
+      @ implies_that
+      @    ensures this.elementType == c.elementType;
+      @    ensures this.containsNull == c.containsNull;
+      @*/
+    public /*@ pure @*/ Vector(/*@non_null*/ Collection c);
+
+
+    /*@  public normal_behavior
+      @    requires anArray != null && size() <= anArray.length;
+      @    assignable anArray[0 .. size() - 1];
+      @    ensures (\forall int i; 0 <= i && i < size();
+      @                             get(i) == anArray[i]);
+      @
+      @ also
+      @   requires elementType <: \elemtype(\typeof(anArray));
+      @   ensures (\forall int i; 0 <= i && i < elementCount;
+      @                          !containsNull ==> anArray[i] != null);
+      @*/
+    public synchronized void copyInto(Object[] anArray);
+
+    /*@ public normal_behavior
+      @    assignable maxCapacity;
+      @    ensures maxCapacity == size();
+      @*/
+    public synchronized void trimToSize();
+
+    /*@  public normal_behavior
+      @  {|
+      @    requires minCapacity <= maxCapacity;
+      @    ensures true;
+      @  also
+      @    requires minCapacity > maxCapacity;
+      @    assignable maxCapacity;
+      @    ensures maxCapacity == minCapacity;
+      @  |}
+      @*/
+    public synchronized void ensureCapacity(int minCapacity);
+
+    /*+@  public normal_behavior
+      @  {|
+      @    requires 0 <= newSize && newSize <= theList.int_size();
+      @    assignable theCollection;
+      @    ensures theList.equals(\old(theList).prefix(newSize));
+      @    ensures_redundantly theList.int_size() == newSize;
+      @  also
+      @    old int oldSize = theList.int_size();
+      @    requires newSize > theList.int_size();
+      @    assignable theCollection;
+      @    ensures theList.prefix(oldSize).equals(\old(theList))
+      @        && (\forall int i; oldSize<=i && i < newSize;
+      @                           theList.itemAt(i) == null);
+      @  |}
+      @  also exceptional_behavior
+      @    requires newSize < 0;
+      @    assignable \nothing;
+      @    signals_only ArrayIndexOutOfBoundsException;
+      @
+      @ implies_that
+      @    requires newSize >= 0;
+      @    requires containsNull;
+      @*/
+    public synchronized void setSize(int newSize);
+
+    /*@  public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result == maxCapacity;
+      @*/
+    public /*@ pure @*/ synchronized int capacity();
+
+    /*+@ also public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result == theList.int_size();
+      @    ensures_redundantly \result == elementCount;
+      @*/
+    /*-@ also public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result == _theList.length;
+      @*/
+    public /*@ pure @*/ synchronized int size();
+
+    /*+@ also public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result == theList.isEmpty();
+      @*/
+    /*-@ also public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result == (_theList.length == 0);
+      @*/
+    public /*@ pure @*/ synchronized boolean isEmpty();
+
+    /*@  public normal_behavior
+      @    assignable \nothing;
+      @    ensures (* \result is an Enumeration of this Vector *);
+      @    ensures \result != null && \result.elementType == elementType
+      @         && \result.returnsNull == containsNull;
+      @*/
+    public /*@ pure @*/ /*@ non_null @*/ Enumeration elements();
+
+    /*+@ also public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result <==> theList.has(elem);
+      @*/
+    /*-@ also public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result <== (\exists int i; 0<=i && i<_theList.length; _theList[i]==elem);
+      @*/
+    public /*@ pure @*/ boolean contains(/*@nullable*/ Object elem);
+
+    /*@ also
+      @  public normal_behavior
+      @    requires !contains(elem);
+      @    assignable \nothing;
+      @    ensures \result == -1;
+      @ implies_that
+      @  public normal_behavior
+      @    ensures \result >= -1 && \result < elementCount;
+      @*/
+    public /*@ pure @*/ int indexOf(Object elem);
+
+    /*+@  public normal_behavior
+      @    requires theList.removePrefix(index).has(elem);
+      @    assignable \nothing;
+      @    ensures \result
+      @             == (index<0?0:index)  
+      @                + theList.removePrefix(index).indexOf(elem);
+      @ also
+      @   public normal_behavior
+      @     requires !theList.removePrefix(index).has(elem);
+      @     assignable \nothing;
+      @     ensures \result == -1;
+      @
+      @ implies_that public normal_behavior
+      @    requires index >= 0;
+      @    assignable \nothing; 
+      @    ensures \result >= -1 && \result < elementCount;
+      @*/
+    public synchronized /*@ pure @*/ int indexOf(Object elem, int index);
+
+    /*+@ also public normal_behavior
+      @  {|
+      @    requires contains(elem);
+      @    assignable \nothing;
+      @    ensures (theList.itemAt(\result) == elem
+      @             || theList.itemAt(\result).equals(elem))
+      @        && !theList.removePrefix((int)(\result+1)).has(elem);
+      @    ensures_redundantly (* \result is the index of the last
+      @                            occurrence of obj in theList *);
+      @  also    
+      @    requires !contains(elem);
+      @    assignable \nothing;
+      @    ensures \result == -1;
+      @  |}
+      @*/
+    public /*@ pure @*/ synchronized int lastIndexOf (Object elem);
+
+    /*+@  public normal_behavior
+      @  requires index < theList.int_size();
+      @  {|
+      @    requires theList.prefix((int)(index+1)).has(elem);
+      @    assignable \nothing;
+      @    ensures theList.itemAt(\result) == elem ||
+      @            theList.itemAt(\result).equals(elem);
+      @    ensures (\forall int i; \result < i && i <= index;
+      @                theList.itemAt(i) != elem &&        
+      @                !theList.itemAt(i).equals(elem));
+      @    ensures_redundantly (* \result is the position of the last
+      @             occurrence of obj in theList that is <= index *);
+      @  also    
+      @    requires index < 0 
+      @		|| !theList.prefix((int)(index+1)).has(elem);
+      @    assignable \nothing;
+      @    ensures \result == -1;
+      @  |}
+      @  also
+      @    public exceptional_behavior
+      @      requires index >= theList.int_size();
+      @      assignable \nothing;
+      @      signals_only IndexOutOfBoundsException;
+      @
+      @ implies_that
+      @    ensures -1 <= \result && \result < elementCount;
+      @*/
+    public /*@ pure @*/ synchronized int lastIndexOf(Object elem, int index);
+
+    /*+@  public normal_behavior
+      @    requires 0 <= index && index < theList.int_size();
+      @    assignable \nothing;
+      @    ensures \result == theList.itemAt(index);
+      @ also
+      @  public exceptional_behavior
+      @    requires !(0 <= index && index < theList.int_size());
+      @    assignable \nothing;
+      @    signals_only ArrayIndexOutOfBoundsException;
+      @
+      @*/
+    /*-@  public normal_behavior
+      @    requires 0 <= index && index < size();
+      @    assignable \nothing;
+      @    ensures \result == _theList[index];
+      @ also
+      @  public exceptional_behavior
+      @    requires !(0 <= index && index < size());
+      @    assignable \nothing;
+      @    signals_only ArrayIndexOutOfBoundsException;
+      @
+      @*/
+    /*@
+      @ implies_that
+      @    requires 0 <= index && index < elementCount;
+      @    ensures \result == null || \typeof(\result) <: elementType;
+      @    ensures !containsNull ==> \result != null;
+      @*/
+    public /*@ pure @*/ synchronized Object elementAt(int index);
+
+    /*+@  public normal_behavior
+      @    requires 0 < theList.int_size();
+      @    assignable \nothing;
+      @    ensures \result == theList.itemAt(0);
+      @ also
+      @  public exceptional_behavior
+      @    requires 0 == theList.int_size();
+      @    assignable \nothing;
+      @    signals_only NoSuchElementException;
+      @
+      @ implies_that public normal_behavior
+      @    requires elementCount > 0;
+      @    modifies \nothing;
+      @    ensures \result == null || \typeof(\result) <: elementType;
+      @    ensures !containsNull ==> \result != null;
+      @*/
+    public /*@ pure @*/ synchronized Object firstElement();
+
+    /*+@    public normal_behavior
+      @    requires 0 < theList.int_size();
+      @    assignable \nothing;
+      @    ensures \result == theList.itemAt((int)(theList.int_size()-1));
+      @ also
+      @  public exceptional_behavior
+      @    requires 0 == theList.int_size();
+      @    assignable \nothing;
+      @    signals_only NoSuchElementException;
+      @
+      @ implies_that public normal_behavior
+      @    requires elementCount > 0;
+      @    modifies \nothing;
+      @    ensures \result == null || \typeof(\result) <: elementType;
+      @    ensures !containsNull ==> \result != null;
+      @*/
+    public /*@ pure @*/ synchronized Object lastElement();
+
+    /*+@  public normal_behavior
+      @    requires 0 <= index && index < theList.int_size();
+      @    assignable theCollection;
+      @    ensures theList.equals(\old(theList).replaceItemAt(index, obj));
+      @ also
+      @  public exceptional_behavior
+      @    requires !(0 <= index && index < theList.int_size());
+      @   assignable \nothing;
+      @    signals_only ArrayIndexOutOfBoundsException;
+      @
+      @ implies_that
+      @    requires 0 <= index && index < elementCount;
+      @    requires \typeof(obj) <: elementType;
+      @    requires containsNull || obj != null;
+      @*/
+    public synchronized void setElementAt(Object obj, int index);
+
+    /*+@  public normal_behavior
+      @    requires 0 <= index && index < theList.int_size();
+      @    assignable theCollection;
+      @    ensures theList.equals(\old(theList).removeItemAt(index));
+      @ also
+      @  public exceptional_behavior
+      @    requires !(0 <= index && index < theList.int_size());
+      @    assignable \nothing;
+      @    signals_only ArrayIndexOutOfBoundsException;
+      @
+      @ implies_that
+      @    requires 0 <= index && index < elementCount;
+      @    modifies elementCount;
+      @    ensures  elementCount == \old(elementCount)-1;
+      @*/
+    public synchronized void removeElementAt(int index);
+
+    /*+@  public normal_behavior
+      @    requires obj==null || \typeof(obj) <: elementType;
+      @    requires !containsNull ==> obj != null;
+      @    requires 0 <= index && index < theList.int_size();
+      @    assignable theCollection;
+      @    ensures theList.
+      @                  equals(\old(theList).insertBeforeIndex(index, obj));
+      @ also
+      @    requires obj==null || \typeof(obj) <: elementType;
+      @    requires !containsNull ==> obj != null;
+      @    requires index == theList.int_size();
+      @    assignable theCollection;
+      @    ensures theList.
+      @                  equals(\old(theList).insertBack(obj));
+      @ also
+      @   public exceptional_behavior
+      @    requires !(0 <= index && index <= theList.int_size());
+      @    assignable \nothing;
+      @    signals_only ArrayIndexOutOfBoundsException;
+      @ also
+      @  public normal_behavior
+      @    requires 0 <= index && index < theList.int_size();
+      @    requires \typeof(this) == \type(java.util.Vector);
+      @    {|
+      @      requires theList.int_size() < maxCapacity;
+      @      ensures \not_modified(maxCapacity);
+      @    also
+      @      requires theList.int_size() == maxCapacity;
+      @      {|
+      @        requires capIncrement > 0;
+      @        assignable maxCapacity, theList;
+      @        ensures maxCapacity == \old(maxCapacity) + capIncrement;
+      @      also
+      @        requires capIncrement == 0;
+      @        assignable maxCapacity, theList;
+      @        ensures maxCapacity == \old(maxCapacity) * 2;
+      @      |}
+      @    |}
+      @
+      @ implies_that
+      @    requires 0 <= index && index <= elementCount;
+      @    requires obj==null || \typeof(obj) <: elementType;
+      @    requires !containsNull ==> obj != null;
+      @*/
+    public synchronized void insertElementAt(Object obj, int index);
+
+    /*+@  public normal_behavior
+      @    requires \typeof(obj) <: elementType;
+      @    requires containsNull || obj!=null;
+      @    assignable theCollection;
+      @    ensures theList.equals(\old(theList).insertBack(obj));
+      @    ensures theList.int_size() <= maxCapacity;
+      @ also
+      @  public normal_behavior
+      @  requires \typeof(this) == \type(java.util.Vector);
+      @  {|
+      @    requires theList.int_size() < maxCapacity;
+      @    ensures \not_modified(maxCapacity) && \not_modified(capIncrement);
+      @  also
+      @    requires theList.int_size() == maxCapacity;
+      @    {|
+      @      requires 0 < capIncrement 
+      @            && maxCapacity <= Integer.MAX_VALUE - capIncrement;
+      @      assignable maxCapacity, theList;
+      @      ensures maxCapacity == \old(maxCapacity) + capIncrement;
+      @    also
+      @      requires capIncrement == 0 && maxCapacity == 0;
+      @      assignable maxCapacity, theList;
+      @      ensures maxCapacity == 1;
+      @    also
+      @      requires capIncrement == 0
+      @            && maxCapacity > 0
+      @            && maxCapacity < Integer.MAX_VALUE/2;
+      @      assignable maxCapacity, theList;
+      @      ensures maxCapacity == \old(maxCapacity) * 2;
+      @    |}
+      @  |}
+      @
+      @ also
+      @   requires obj == null || \typeof(obj) <: elementType;
+      @   requires containsNull || obj!=null;
+      @   modifies elementCount;
+      @   ensures  elementCount == \old(elementCount)+1;
+      @*/
+    public synchronized void addElement(Object obj);
+
+    /*+@  public normal_behavior
+      @  {|
+      @    requires contains(obj);
+      @    assignable theCollection;
+      @    ensures theList.
+      @          equals(\old(theList).removeItemAt(\old(theList).indexOf(obj)))
+      @        && \result;
+      @  also
+      @    requires !contains(obj);
+      @    ensures !\result;
+      @  |}
+      @
+      @ implies_that
+      @    requires !containsNull ==> obj != null;
+      @    requires obj==null || \typeof(obj) <: elementType;
+      @*/
+    public synchronized boolean removeElement(Object obj);
+
+    /*+@  public normal_behavior
+      @    assignable theCollection;
+      @    ensures isEmpty();
+      @*/
+    /*-@  public normal_behavior
+      @    assignable _theCollection;
+      @    ensures isEmpty();
+      @*/
+    public synchronized void removeAllElements();
+
+    /*@ also
+      @  public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result != this;
+      @    ensures \typeof(\result) <: \type(Vector);
+      @    ensures ((Vector)\result).size() == size();
+      @    ensures (* \result is a clone of this Vector *);
+      @*/
+    public synchronized Object clone(); // Overrides Object
+
+    /*+@ also public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result != null && \fresh(\result)
+      @      && \result.length == theList.int_size()
+      @      && (\forall int i; 0 <= i && i < theList.int_size();
+      @                         \result[i] == theList.itemAt(i));
+      @*/
+    public /*@ pure @*/ synchronized Object[] toArray();
+
+    /*+@ also public normal_behavior
+      @    requires a != null
+      @             && (\forall int i; 0 <= i && i < theList.int_size();
+      @                     theList.itemAt(i) == null ||
+      @                     \typeof(theList.itemAt(i)) <: \elemtype(\typeof(a)) );
+      @    {|
+      @       requires a.length < theList.int_size();
+      @       assignable \nothing;
+      @       ensures \result != null && \fresh(\result)
+      @         && \result.length == theList.int_size()
+      @         && (\forall int i; 0 <= i && i < theList.int_size();
+      @                            \result[i] == theList.itemAt(i));
+      @     also
+      @       requires a.length == theList.int_size();
+      @       assignable a[0 .. (theList.int_size()-1)];
+      @       ensures \result == a
+      @         && (\forall int i; 0 <= i && i < theList.int_size();
+      @                            \result[i] == theList.itemAt(i));
+      @     also
+      @       requires a.length > theList.int_size();
+      @       assignable a[0 .. theList.int_size()];
+      @       ensures \result == a
+      @         && (\forall int i; 0 <= i && i < theList.int_size();
+      @                            \result[i] == theList.itemAt(i))
+      @         && \result[theList.int_size()] == null;
+      @    |}
+      @*/
+    public synchronized Object[] toArray(Object[] a);
+
+    /*+@ also
+      @  public normal_behavior
+      @    requires 0 <= index && index < theList.int_size();
+      @    assignable \nothing;
+      @    ensures \result == theList.itemAt(index);
+      @    ensures !containsNull ==> \result != null;
+      @ also
+      @  public exceptional_behavior
+      @    requires !(0 <= index && index < theList.int_size());
+      @    assignable \nothing;
+      @    signals_only ArrayIndexOutOfBoundsException;
+      @*/
+    public /*@ pure @*/ synchronized Object get(int index);
+
+    /*+@ also
+      @  public normal_behavior
+      @    requires 0 <= index && index < theList.int_size();
+      @    requires element == null || \typeof(element) <: elementType;
+      @    requires containsNull || element != null;
+      @    assignable theCollection;
+      @    ensures theList.equals(
+      @                        \old(theList).replaceItemAt(index, element));
+      @ also
+      @  public exceptional_behavior
+      @    requires !(0 <= index && index < theList.int_size());
+      @    assignable \nothing;
+      @    signals_only ArrayIndexOutOfBoundsException;
+      @*/
+    public synchronized Object set(int index, Object element);
+
+    /*+@ also
+      @ public normal_behavior
+      @    requires o == null || \typeof(o) <: elementType;
+      @    requires containsNull || o != null;
+      @    assignable theCollection;
+      @    ensures theList.equals(\old(theList).insertBack(o));
+      @*/
+    public synchronized boolean add(/*@nullable*/ Object o);
+
+    /*+@ also
+      @ public normal_behavior
+      @  {|
+      @    requires contains(o);
+      @    assignable theCollection;
+      @    ensures theList.equals(
+      @               \old(theList).removeItemAt(\old(theList).indexOf(o)))
+      @        && \result;
+      @  also
+      @    requires !contains(o);
+      @    ensures !\result;
+      @  |}
+      @*/
+    public boolean remove(/*@nullable*/ Object o);
+
+    /*+@ also public normal_behavior
+      @    requires 0 <= index && index < theList.int_size();
+      @    assignable theCollection;
+      @    ensures theList
+      @             .equals(\old(theList).insertBeforeIndex(index, element));
+      @ also public normal_behavior
+      @    requires index == theList.int_size();
+      @    assignable theCollection;
+      @    ensures theList.equals(\old(theList).insertBack(element));
+      @ also
+      @   public exceptional_behavior
+      @    requires !(0 <= index && index <= theList.int_size());
+      @    assignable \nothing;
+      @    signals_only ArrayIndexOutOfBoundsException;
+      @*/
+    public void add(int index, Object element);
+
+    /*+@ also
+      @  public normal_behavior
+      @    requires 0 <= index && index < theList.int_size();
+      @    assignable theCollection;
+      @    ensures theList.equals(\old(theList).removeItemAt(index));
+      @ also
+      @  public exceptional_behavior
+      @    requires !(0 <= index && index < theList.int_size());
+      @    assignable \nothing;
+      @    signals_only ArrayIndexOutOfBoundsException;
+      @*/
+    public synchronized Object remove(int index);
+
+    /*+@ also
+      @  public normal_behavior
+      @    assignable theCollection;
+      @    ensures theList.isEmpty();
+      @*/
+    public void clear();
+
+    // specification inherited from List
+    public /*@ pure @*/ synchronized boolean containsAll(Collection c);
+
+    // specification inherited from List
+    public synchronized boolean addAll(Collection c);
+
+    // specification inherited from List
+    public synchronized boolean removeAll(Collection c);
+
+    // specification inherited from List
+    public synchronized boolean retainAll(Collection c);
+
+    // specification inherited from List
+    public synchronized boolean addAll(int index, Collection c);
+
+    public /*@ pure @*/ synchronized boolean equals(/*@ nullable @*/ Object o);
+
+    public /*@ pure @*/ synchronized int hashCode();
+
+    /*@  also
+      @  public normal_behavior
+      @    assignable \nothing;
+      @    ensures (* \result is a string representation of this Vector *);
+      @*/
+    public synchronized String toString();
+
+    // specification inherited from List
+    //@ pure
+    public synchronized List subList(int fromIndex, int toIndex);
+
+    // specification inherited from AbstractList
+    protected void removeRange(int fromIndex, int toIndex);
+
+    // protected members (for type checking in the java.util package
+    // or subclasses)
+    protected Object[] elementData; //+@ in theList; //-@ in theList;
+    //+@                   maps elementData[*] \into theList;
+    //-@                   maps elementData[*] \into _theList;
+
+    /*@ spec_public @*/ protected int elementCount;
+    //+@                                     in theList;
+    //-@                                     in _theList;
+
+    //@ public invariant 0 <= elementCount;
+    //@ public invariant elementCount == size();
+
+    protected int capacityIncrement;
+    //@                 in capIncrement;
+}

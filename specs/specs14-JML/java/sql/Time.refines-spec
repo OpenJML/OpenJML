@@ -1,0 +1,114 @@
+// @(#)$Id: Time.refines-spec,v 1.5 2006/01/24 17:09:48 leavens Exp $
+//
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.sql;
+
+//@ model import java.util.Calendar;
+//@ model import java.util.Date;
+
+/** JML specification for Time.
+ *  @author Chenwei Qiu
+ *  @author Gary T. Leavens
+ */
+public class Time extends Date {
+
+    //@ public static ghost final long millisInDay = 24*60*60*1000;
+
+    /*@   requires time >= 0 || time%millisInDay == 0;
+      @   assignable fastTime;
+      @   ensures this.cal == null && this.fastTime == time;
+      @ also
+      @   requires time < 0 && time%millisInDay != 0;
+      @   assignable fastTime;
+      @   ensures this.cal == null
+      @        && this.fastTime
+      @            == ((time/millisInDay) * millisInDay) - millisInDay;
+      @*/
+    public Time(long time);
+
+    /** @deprecated */
+    public Time(int hour, int minutes, int second);
+
+    /** @deprecated */
+    public int getDate();
+
+    /** @deprecated */
+    public int getDay();
+
+    /** @deprecated */
+    public int getMonth();
+
+    /** @deprecated */
+    public int getYear();
+
+    /** @deprecated */
+    public void setDate(int Param0);
+
+    /** @deprecated */
+    public void setMonth(int Param0);
+
+    /** @deprecated */
+    public void setYear(int Param0);
+
+    /*@ also
+      @   assignable fastTime;
+      @   ensures this.fastTime == time;
+      @*/
+    public void setTime(long time);
+
+    // specification inherited from Date
+    /*@ also
+      @   assignable \nothing;
+      @   ensures \result != null
+      @        && sameTimeOfDay(this.fastTime, valueOf(\result).fastTime);
+      @*/
+    public /*@ pure @*/ String toString();
+    
+    /** return true when t1 and t2 have the same hours, minutes, and seconds. */
+    /*@ public model pure boolean sameTimeOfDay(long t1, long t2) {
+
+           Calendar c1 = Calendar.getInstance();
+           Calendar c2 = Calendar.getInstance();
+           Date d1 = new Date(t1);
+           Date d2 = new Date(t2);
+           c1.setTime(d1);
+           c2.setTime(d2);
+           
+           return
+             (c1.get(Calendar.HOUR_OF_DAY) == c2.get(Calendar.HOUR_OF_DAY))
+             && (c1.get(Calendar.MINUTE) == c2.get(Calendar.MINUTE))
+             && (c1.get(Calendar.SECOND) == c2.get(Calendar.SECOND));
+        } 
+      @*/
+
+    /*@   requires s != null && s.matches("[0-9][0-9]:[0-9][0-9]:[0-9][0-9]");
+      @   assignable \nothing;
+      @   ensures \result != null && \result.toString().equals(s);
+      @*/
+    public static /*@ pure @*/ Time valueOf(String s);
+    
+    /*@ also
+      @   requires o instanceof Time;
+      @   ensures \result ==> (((Time)o).fastTime == this.fastTime);
+      @*/
+    public /*@ pure @*/ boolean equals(/*@ nullable @*/ Object o);
+
+}

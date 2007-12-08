@@ -1,0 +1,355 @@
+// @(#)$Id: URL.refines-spec,v 1.6 2006/01/24 17:09:48 leavens Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+package java.net;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+
+import org.jmlspecs.models.*;
+
+/** JML's specification of java.net.URL.
+ *  [[[This specification is still incomplete.]]]
+ * @author Katie Becker
+ * @author Gary T. Leavens
+ */
+public final class URL implements java.io.Serializable {
+
+    // CLASS SPECIFICATIONS
+
+    /*@  public model String protocol, host, file;
+      @  public model String scheme, authority, userInfo, path, query_, ref;
+      @  public model URLStreamHandler handler;
+      @  public model int port;  
+      @*/
+
+    /*@ public normal_behavior
+      @   ensures \result <==>
+      @           (host==null && this.host==null)
+      @        || (this.host.equals(host)) 
+      @        || (* the host names resolve to the same IP addresses *);
+      public pure model boolean hasEquivalentHosts(String host);
+      @*/
+            
+    /*@ public normal_behavior
+      @  requires file!=null;
+      @  ensures \result!=null;
+      @  ensures file.indexOf('#') < 0 ==> 
+      @            (file.lastIndexOf('?') != -1 
+      @              ? \result.equals(file.substring(0, file.lastIndexOf('?')))
+      @              : \result.equals(file));
+      @  ensures file.indexOf('#') >= 0 ==> 
+      @           (file.substring(0, file.indexOf('#')).lastIndexOf('?') != -1 
+      @              ? \result.equals(file
+      @                       .substring(0, file.indexOf('#'))
+      @                       .substring(0, file.lastIndexOf('?')))
+      @              : \result.equals(file.substring(0, file.indexOf('#'))));
+      public pure model String getPath(String file) {
+          int i = file.indexOf('#');
+          if (i>=0) {
+              file = file.substring(0, i);
+          }
+          int q = file.lastIndexOf('?');
+          if (q != -1) {
+              return file.substring(0, q);
+          } else {
+              return file;
+          }
+      }
+      @*/
+
+    /*@ public normal_behavior
+      @  requires file!=null;
+      @  ensures file.indexOf('#') < 0 ==> 
+      @            (file.lastIndexOf('?') != -1 
+      @               ? \result.equals(file.substring(file.lastIndexOf('?')+1))
+      @               : \result == null);
+      @  ensures file.indexOf('#') >= 0 ==> 
+      @           (file.substring(0, file.indexOf('#')).lastIndexOf('?') != -1 
+      @              ? \result.equals(file.substring(0, file.indexOf('#'))
+      @                                   .substring(file.lastIndexOf('?')+1))
+      @              : \result == null);
+      public pure model String getQuery(String file) {
+          int i = file.indexOf('#');
+          if (i>=0) {
+              file = file.substring(0, i);
+          }
+          int q = file.lastIndexOf('?');
+          if (q != -1) {
+              return file.substring(q+1);
+          } else {
+              return null;
+          }
+      }
+      @*/
+            
+    /*@ public normal_behavior
+      @  requires file!=null;
+      @  ensures (file.indexOf('#') < 0)
+      @            ? \result==null 
+      @            : \result.equals(file.substring(file.indexOf('#') + 1));
+      public pure model String getRef(String file) {
+          int i = file.indexOf('#');
+          if (i<0) {
+              return null;
+          } else {
+              return file.substring(i + 1);
+          }
+      }
+      @*/
+      
+    // METHODS AND CONSTRUCTORS
+
+    /*@  public behavior
+      @    assignable protocol, host, file, port, handler, scheme, authority,
+      @               userInfo, path, query_, ref;
+      @    ensures this.equals(new URL(protocol, host, port, file, null));
+      @    signals_only MalformedURLException;
+      @*/
+    public /*@ pure @*/ URL(String protocol, String host, int port,
+                            String file)
+        throws MalformedURLException;
+
+    /*@  public behavior
+      @    assignable protocol, host, file, port, handler, scheme, authority,
+      @               userInfo, path, query_, ref;
+      @    ensures this.equals(new URL(protocol, host, -1, file));
+      @    signals_only MalformedURLException;
+      @*/
+    public /*@ pure @*/ URL(String protocol, String host, String file)
+        throws MalformedURLException;
+
+    /*@  public behavior
+      @    assignable protocol, host, file, port, handler, scheme, authority,
+      @               userInfo, path, query_, ref;
+      @    ensures this.protocol.equals(protocol.toLowerCase())
+      @         && this.port==port;
+      @    ensures (file==null) ==> this.file==null;
+      @    ensures (file!=null) ==>
+      @              ( getQuery(file)!=null 
+      @                ? this.file.equals(getPath(file) + "?" + getQuery(file))
+      @                : this.file.equals(getPath(file)) );
+      @    ensures (host==null) ==>
+      @              ( authority==null && (port == -1) 
+      @                ? authority.equals(host) 
+      @                : authority.equals(host + ":" + port) );
+      @    ensures ( host!=null && host.indexOf(':') >= 0
+      @                         && !host.startsWith("[") )
+      @              ? this.host.equals("[" + host + "]")
+      @              : this.host==host;
+      @    ensures this.handler!=null;
+      @    ensures (file==null) ? this.ref==null
+      @                         : this.ref.equals(getRef(file));
+      @    signals_only MalformedURLException, SecurityException;
+      @*/
+    public /*@ pure @*/ URL(String protocol, String host, int port,
+                            String file, URLStreamHandler handler)
+        throws MalformedURLException;
+
+    /*@  public behavior
+      @    assignable protocol, host, file, port, handler, scheme, authority,
+      @               userInfo, path, query_, ref;
+      @    ensures this.equals(new URL(null, spec));
+      @    signals_only MalformedURLException;
+      @*/
+    public /*@ pure @*/ URL(String spec) throws MalformedURLException;
+
+    /*@  public behavior
+      @    assignable protocol, host, file, port, handler, scheme, authority,
+      @               userInfo, path, query_, ref;
+      @    ensures this.equals(new URL(context, spec, null));
+      @    signals_only MalformedURLException;
+      @*/
+    public /*@ pure @*/ URL(URL context, String spec)
+        throws MalformedURLException;
+
+    /*@  public behavior
+      @    assignable protocol, host, file, port, handler, scheme, authority,
+      @               userInfo, path, query_, ref;
+      @    ensures this.handler!=null;
+      @    signals_only MalformedURLException, SecurityException;
+      @*/
+    public /*@ pure @*/ URL(URL context, String spec, URLStreamHandler handler)
+        throws MalformedURLException;
+
+    /*@  protected normal_behavior
+      @    assignable protocol, host, file, port, authority, path, query_, ref;
+      @    ensures this.protocol.equals(protocol) && this.host.equals(host)
+      @         && this.port==port && this.file.equals(file)
+      @         && this.ref.equals(ref);
+      @    ensures (port == -1) ? this.authority.equals(host)
+      @                         : this.authority.equals(host + ":" + port);
+      @    ensures (file.lastIndexOf('?') != -1)
+      @              ? query_.equals(file.substring(file.lastIndexOf('?')))
+      @                && path.equals(file.substring(0, file.lastIndexOf('?')))
+      @              : path.equals(file);
+      @*/
+    protected void set(String protocol, String host, int port, String file,
+                       String ref);
+
+    /*@  protected normal_behavior
+      @    assignable protocol, host, file, port, authority, userInfo, path,
+      @               query_, ref;
+      @    ensures this.protocol.equals(protocol) && this.host.equals(host)
+      @            && this.port==port && this.authority.equals(authority) 
+      @            && this.userInfo.equals(userInfo) && this.path.equals(path)
+      @            && this.query_.equals(query_) && this.ref.equals(ref);
+      @    ensures query_ == null ? this.file.equals(path) 
+      @                          : this.file.equals(path + "?" + query_);
+      @*/
+    protected void set(String protocol, String host, int port,
+                       String authority, String userInfo, String path,
+                       String query_, String ref);
+
+    /*@  public normal_behavior
+      @    ensures \result.equals(query_);
+      @*/
+    public /*@ pure @*/ String getQuery();
+
+    /*@  public normal_behavior
+      @    ensures \result.equals(path);
+      @*/
+    public /*@ pure @*/ String getPath();
+
+    /*@  public normal_behavior
+      @    ensures \result.equals(userInfo);
+      @*/
+    public /*@ pure @*/ String getUserInfo();
+
+    /*@  public normal_behavior
+      @    ensures \result.equals(authority);
+      @*/
+    public /*@ pure @*/ String getAuthority();
+
+    /*@  public normal_behavior
+      @    ensures \result==port;
+      @*/
+    public /*@ pure @*/ int getPort();
+
+    /*@  public normal_behavior
+      @    ensures \result == -1 <==> 
+      @          (* the URL scheme or the URLStreamHandler does not have
+      @             a default port *);
+      @*/
+    public /*@ pure @*/ int getDefaultPort();
+
+    /*@  public normal_behavior
+      @    ensures \result.equals(protocol);
+      @*/
+    public /*@ pure @*/ String getProtocol();
+
+    /*@  public normal_behavior
+      @    ensures \result.equals(host);
+      @*/
+    public /*@ pure @*/ String getHost();
+
+    /*@  public normal_behavior
+      @    ensures \result.equals(file);
+      @*/
+    public /*@ pure @*/ String getFile();
+
+    /*@  public normal_behavior
+      @    ensures \result.equals(ref);
+      @*/
+    public /*@ pure @*/ String getRef();
+
+    /*@  also
+      @   public normal_behavior
+      @     requires obj instanceof URL;
+      @     ensures \result <==>
+      @               JMLNullSafe.equals(((URL)obj).protocol, protocol)
+      @               && hasEquivalentHosts(((URL)obj).host)
+      @               && ((URL)obj).port == port
+      @               && JMLNullSafe.equals(((URL)obj).file, file)
+      @               && JMLNullSafe.equals(((URL)obj).ref, ref);
+      @  also
+      @   public normal_behavior
+      @     requires !(obj instanceof URL);
+      @     ensures \result == false;
+      @*/
+    public /*@ pure @*/ boolean equals(/*@ nullable @*/ Object obj);
+
+    /*@ also
+      @  public normal_behavior
+      @   assignable \nothing;
+      @*/
+    public /*@ pure @*/ synchronized int hashCode();
+
+    /*@  public normal_behavior
+      @    ensures \result <==>
+      @             this.protocol.equals(other.protocol) 
+      @              && this.host.equals(other.host)
+      @              && this.port == other.port
+      @              && this.path.equals(other.path); 
+      @*/
+    public /*@ pure @*/ boolean sameFile(URL other);
+
+    /*@ also
+      @  public normal_behavior
+      @    ensures \result.equals(toExternalForm());
+      @*/
+    public /*@ pure @*/ String toString();
+
+    /*@  public normal_behavior
+      @    ensures \result != null;
+      @*/
+    public /*@ pure @*/ String toExternalForm();
+
+    /*@  public behavior
+      @    ensures \result != null;
+      @    signals_only IOException;
+      @*/
+    public /*@ pure @*/ URLConnection openConnection()
+        throws java.io.IOException;
+
+    /*@  public behavior
+      @    ensures \result.equals(openConnection().getInputStream());
+      @    signals_only IOException;
+      @*/
+    public /*@ pure @*/ final InputStream openStream()
+        throws java.io.IOException;
+
+    /*@  public behavior
+      @    ensures \result.equals(openConnection().getContent());
+      @    signals_only IOException;
+      @*/
+    public /*@ pure @*/ final Object getContent() throws java.io.IOException;
+
+    /*@  public behavior
+      @    ensures \result.equals(openConnection().getContent(classes));
+      @    signals_only IOException;
+      @*/
+    public /*@ pure @*/ final Object getContent(Class[] classes)
+        throws java.io.IOException;
+
+    /*@  public behavior
+      @    assignable factory;
+      @    ensures factory.equals(fac);
+      @    signals_only SecurityException;
+      @*/
+    public static void setURLStreamHandlerFactory(URLStreamHandlerFactory fac);
+
+    //@ public static model JMLDataGroup factory;
+}
+
