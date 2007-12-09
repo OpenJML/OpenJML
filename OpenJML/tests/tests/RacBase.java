@@ -66,7 +66,7 @@ public class RacBase extends JmlTestCase {
 //        helpTCX(filename,s,list);
 //    }
     
-    String[] defrac = new String[]{"C:/Apps/jdk1.6.0/bin/java", "-classpath","testdata;bin",null};
+    String[] defrac = new String[]{"C:/Apps/jdk1.6.0/bin/java", "-classpath","bin;testdata",null};
 
     String[] rac; // initialized in subclasses
     

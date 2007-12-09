@@ -1,15 +1,18 @@
-                                           DATE: 10 November 2007
+                                           DATE: 8 December 2007
                                            AUTHOR: David R. Cok
                                            COPYRIGHT: (c) 2007 David Cok
 
 This file describes a completely rewritten JML tool (called OpenJML) based
 on the OpenJDK release of the Java tool set (http://openjdk.java.net).  It is
-an extension of the GPL source available through OpenJDK.
+an extension of the GPL source available through OpenJDK.  The source code for
+this tool is kept at sourceforge (see www.jmlspecs.org, 
+http://sourceforge.net/projects/jmlspecs/, and
+http://jmlspecs.svn.sourceforge.net/viewvc/jmlspecs/OpenJML/ ).
 
 The OpenJML tool is a JML syntax and semantics checker.  It does not (at
 present) do runtime assertion checking or static reasoning, nor does it do
-Java code generation or the Java error checking associated with flow analysis. 
-Also, it is onlyh a command-line tool and has no integration with any IDE.
+Java code generation. 
+Also, it is only a command-line tool and has no integration with any IDE.
 It does intend to parse and check all aspects of JML as they are defined in the
 JML reference manual (cf. http://www.jmlspecs.org), though that is an ongoing
 project.  (please report any difficulties or bugs)
@@ -19,29 +22,29 @@ version of Java.  At present it cannot be run to check files against a set
 of Java 1.4 libraries.
 
 The gzipped tar file containing a release of OpenJML contains
-	jmlcheck.jar
+	openjml.jar
 	jmlspecs.jar
 	jmlruntime.jar
 	README   (this file)
 
-Installation:
+INSTALLATION:
 
 To install OpenJML, simply gunzip and untar the distribution file into a 
 directory of your choice (call it $OPENJML).  Then you can run the tool
 simply using the command (your java installation must be version 1.6):
 
-	java -jar $OPENJML/jmlcheck.jar
+	java -jar $OPENJML/openjml.jar
 
 That command alone will show you a list of Java and JML command-line options.
 To run OpenJML on a specific set of files, you need to, in the conventional
 manner, specify
 	the classpath to use, using the -classpath option 
-	the sourcepath to use, using the -sourscepath option
+	the sourcepath to use, using the -sourcepath option
 	the specification files to use, using the -specs option
 	the files to check, listed on the command-line by file name
 
 A typical simple scenario might be:
-	java -jar $OPENJML/jmlcheck.jar -classpath . *.java
+	java -jar $OPENJML/openjml.jar -classpath . *.java
 
 
 THE FILES:
@@ -57,9 +60,9 @@ JML file suffixes.
 
 THE SPECS PATH:  
 
-    The jmlcheck.jar contains an internal copy of some Java
+    The openjml.jar contains an internal copy of some Java
 library specification files.  By default those will be used, but you can
-supply your own or dirctories containing specifications for your own classes
+supply your own directories containing specifications for your own classes
 using the -specs option.  For example:
 	-specs ".;mySpecsDir;$OPENJML/jmlspecs.jar"
 By default, the internal specs are appended to any specifications you 
@@ -78,14 +81,14 @@ source code and exclude 3rd party and system libraries.
 
 THE CLASSPATH:
 
-The classpath: Just as when compiling source code with javac, this lists
+Just as when compiling source code with javac, the classpath lists
 directories in which one can find the Java files (by fully-qualified file
 name) that are referenced by the files that are being compiled.
 
 Note that the OpenJML tool needs a few classes to be available to it at
-runtime.  These are included in the jmlcheck.jar and are incorporated into
+runtime.  These are included in the openjml.jar and are incorporated into
 the classpath automatically.  The same files are present in jmlruntime.jar,
-in case it is desired to included them explicitly.  The internal files can
+in case it is desired to include them explicitly.  The internal files can
 be excluded using the -noInternalRuntime option.
 
 
@@ -99,9 +102,10 @@ to be found (the classpath).
 THE jmlruntime.jar:
 
 This contains some compiled classes that the OpenJML tool needs on the 
-classpath given to it.  These classes are also included by appending them
+classpath.  These classes are included by appending them
 to the user's classpath automatically, so normally the user need not be
-concerned with this jar file.
+concerned with this jar file.  If for some reason you use the -noInternalRuntime
+option, you may need to include jmlruntime.jar on the classpath explicitly.
 
 
 THE jmlspecs.jar:
@@ -109,8 +113,36 @@ THE jmlspecs.jar:
 This file contains a copy of the 1.6 JML system specs, such as they are.
 This is by no means a complete set, and includes a number of unmodified files
 from 1.4 (which, if referenced, may give errors related to type generics).
-The system specs are also part of jmlcheck.jar and are included automatically,
-so in simple uses the user need not be concerned withh jmlspecs.jar.  However
-if you wish to alther the specs or supply your own, you may wish to make use
+The system specs are also part of openjml.jar and are included automatically,
+so in simple uses the user need not be concerned with jmlspecs.jar.  However
+if you wish to alter the specs or supply your own, you may wish to make use
 of the contents of this jar file.
+
+STATUS OF THIS RELEASE
+
+This release is alpha quality.  Barring bugs, a valid Java/JML file will be
+parsed without errors, with at least these exceptions: the .. token in array ranges must
+sometimes be preceded by whitespace (e.g. a[0..5] is likely to fail); name lookup
+and type checking for old constructs with a label; JML comments may not be
+terminated by @+*/ ;  JML specs for anonymous classes are not read; matching of
+specs from a spec file to the signature in a Java file is fragile for generic methods.
+
+Some JML constructs are merely skipped over
+by the parser, including at least: model programs; accessible, callable, 
+captures clauses; for suffix of constraint clauses; only the first file of a
+specification sequence is used; JML in javadoc comments is ignored, as are
+method specifications that follow the method signature;
+
+Typechecking is in place for most JML constructs.  Omissions include at least
+accessible, callable, captures clauses; in and maps clauses.
+
+Although the -rac option is present, the implementation of runtime
+assertion checking is rudimentary.  With -rac enabled, compiled output files
+are produced that include some runtime checks, but no specification 
+inheritance is implemented.
+
+The -esc option is also present, but this is very preliminary and does nothing
+useful for the user (and will probably crash).
+
+Your feedback and comments are welcome.
 

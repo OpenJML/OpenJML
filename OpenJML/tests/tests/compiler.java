@@ -135,8 +135,8 @@ public class compiler extends TestCase {
                           { "-classpath","testfiles/testNoErrors"+z+"bin",
                             "testfiles/testNoErrors/A.java", "-jmlverbose", "-noInternalSpecs" 
                           },0,2,"",
-                          "parsing /home/projects/OpenJML/testfiles/testNoErrors/A.java" + eol +
-                          "parsing /home/projects/OpenJML/testfiles/testNoErrors/A.refines-java" + eol +
+                          "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.java" + eol +
+                          "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.refines-java" + eol +
                           "typechecking A true true" + eol +
                           "typechecking java.lang.Object false false" + eol +
                           "flow checks A" + eol + 
@@ -148,8 +148,8 @@ public class compiler extends TestCase {
                           { "-classpath","testfiles/testJavaErrors"+z+"bin",
                             "testfiles/testJavaErrors/A.java", "-jmlverbose", "-noInternalSpecs"
                           },0,2,"",
-                          "parsing /home/projects/OpenJML/testfiles/testJavaErrors/A.java" + eol +
-                          "parsing /home/projects/OpenJML/testfiles/testJavaErrors/A.refines-java" + eol +
+                          "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.java" + eol +
+                          "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.refines-java" + eol +
                           "typechecking A true true" + eol +
                           "typechecking java.lang.Object false false" + eol +
                           "flow checks A" + eol + 
@@ -176,6 +176,8 @@ public class compiler extends TestCase {
                           "");
     }
 
+    // This test requires jmlruntime.jar to have been created - run the Makefile
+    // in the OpenJML project
     public void testSourcePath4() throws Exception {
         helper(new String[]
                           { "-classpath","jmlruntime.jar",
