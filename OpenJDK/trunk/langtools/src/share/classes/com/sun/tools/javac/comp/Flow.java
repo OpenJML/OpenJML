@@ -671,7 +671,6 @@ public class Flow extends TreeScanner {
 
     public void visitMethodDef(JCMethodDecl tree) {
         if (tree.body == null) return;
-
         List<Type> caughtPrev = caught;
         List<Type> mthrown = tree.sym.type.getThrownTypes();
         Bits initsPrev = inits.dup();

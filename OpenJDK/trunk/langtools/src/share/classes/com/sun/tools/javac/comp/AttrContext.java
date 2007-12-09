@@ -82,10 +82,14 @@ public class AttrContext {
 
     /** Duplicate this context, copying all fields.
      */
-    AttrContext dup() {
+    public AttrContext dup() { // DRC - changed from default to public visibility
         return dup(scope);
     }
 
+    public AttrContext dupUnshared() { // DRC - added this method
+        return dup(scope.dupUnshared());
+    }
+    
     public Iterable<Symbol> getLocalElements() {
         if (scope == null)
             return List.nil();

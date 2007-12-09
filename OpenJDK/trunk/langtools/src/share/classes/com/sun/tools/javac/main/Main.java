@@ -415,7 +415,7 @@ public class Main {
             // Nasty.  If we've already reported an error, compensate
             // for buggy compiler error recovery by swallowing thrown
             // exceptions.
-            if (comp == null || comp.errorCount() == 0 ||
+            if (true || comp == null || comp.errorCount() == 0 ||  // DRC - report anyway
                 options == null || options.get("dev") != null)
                 bugMessage(ex);
             return EXIT_ABNORMAL;
@@ -429,7 +429,7 @@ public class Main {
 
     /** Print a message reporting an internal error.
      */
-    void bugMessage(Throwable ex) {
+    protected void bugMessage(Throwable ex) { // DRC - changed from default to protected
         Log.printLines(out, getLocalizedString("msg.bug",
                                                JavaCompiler.version()));
         ex.printStackTrace(out);

@@ -722,7 +722,7 @@ public class Resolve {
                           operator);
     }
     // where
-    private Symbol findMethod(Env<AttrContext> env,
+    protected Symbol findMethod(Env<AttrContext> env, // DRC - changed from private to protected
                               Type site,
                               Name name,
                               List<Type> argtypes,

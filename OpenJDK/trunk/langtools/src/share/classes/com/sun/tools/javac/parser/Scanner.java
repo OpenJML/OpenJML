@@ -106,11 +106,11 @@ public class Scanner implements Lexer {
 
     /** The token's position, 0-based offset from beginning of text.
      */
-    private int pos;
+    protected int pos; // DRC - changed from private to protected
 
     /** Character position just after the last character of the token.
      */
-    private int endPos;
+    protected int endPos; // DRC - changed from private to protected
 
     /** The last character position of the previous token.
      */
@@ -141,14 +141,14 @@ public class Scanner implements Lexer {
     /** The input buffer, index of next chacter to be read,
      *  index of one past last character in buffer.
      */
-    private char[] buf;
-    private int bp;
+    protected char[] buf; // DRC - changed to protected from private
+    protected int bp; // DRC - changed to protected from private
     private int buflen;
     private int eofPos;
 
     /** The current character.
      */
-    private char ch;
+    protected char ch; // DRC - changed to protected from private
 
     /** The buffer index of the last converted unicode character
      */
@@ -156,7 +156,7 @@ public class Scanner implements Lexer {
 
     /** The log to be used for error reporting.
      */
-    private final Log log;
+    protected final Log log; // DRC - changed from private to protected
 
     /** The name table. */
     private final Name.Table names;
@@ -221,7 +221,7 @@ public class Scanner implements Lexer {
 
     /** Report an error at the given position using the provided arguments.
      */
-    private void lexError(int pos, String key, Object... args) {
+    protected void lexError(int pos, String key, Object... args) {// DRC - changed from private to protected
         log.error(pos, key, args);
         token = ERROR;
         errPos = pos;
@@ -230,7 +230,7 @@ public class Scanner implements Lexer {
     /** Report an error at the current token position using the provided
      *  arguments.
      */
-    private void lexError(String key, Object... args) {
+    protected void lexError(String key, Object... args) { // DRC - changed from private to protected
         lexError(pos, key, args);
     }
 
@@ -282,7 +282,7 @@ public class Scanner implements Lexer {
 
     /** Read next character.
      */
-    private void scanChar() {
+    protected void scanChar() { // DRC - changed to protected from private
         ch = buf[++bp];
         if (ch == '\\') {
             convertUnicode();
@@ -510,7 +510,7 @@ public class Scanner implements Lexer {
 
     /** Read an identifier.
      */
-    private void scanIdent() {
+    protected void scanIdent() { // DRC - changed to protected from private
         boolean isJavaIdentifierPart;
         char high;
         do {
@@ -611,7 +611,7 @@ public class Scanner implements Lexer {
 
     /** Return true if ch can be part of an operator.
      */
-    private boolean isSpecial(char ch) {
+    protected boolean isSpecial(char ch) { // DRC - changed from private to protected
         switch (ch) {
         case '!': case '%': case '&': case '*': case '?':
         case '+': case '-': case ':': case '<': case '=':
@@ -626,7 +626,7 @@ public class Scanner implements Lexer {
     /** Read longest possible sequence of special characters and convert
      *  to token.
      */
-    private void scanOperator() {
+    protected void scanOperator() { // DRC - changed to protected from private
         while (true) {
             putChar(ch);
             Name newname = names.fromChars(sbuf, 0, sp);

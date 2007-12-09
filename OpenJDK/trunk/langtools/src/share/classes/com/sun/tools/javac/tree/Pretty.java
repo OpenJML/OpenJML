@@ -33,6 +33,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.code.*;
 
 import com.sun.tools.javac.code.Symbol.*;
+import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.tree.JCTree.*;
 
 import static com.sun.tools.javac.code.Flags.*;
@@ -45,6 +46,19 @@ import static com.sun.tools.javac.code.Flags.*;
  *  deletion without notice.</b>
  */
 public class Pretty extends JCTree.Visitor {
+
+    // DRC add a factory mechanism
+    /** The context key for the compiler. */
+    public static final Context.Key<Pretty> prettyKey = 
+        new Context.Key<Pretty>();
+
+    /** Get the JavaCompiler instance for this context. */
+    public static Pretty instance(Context context, Writer out, boolean sourceOutput) {
+        Pretty instance = context.get(prettyKey);
+        if (instance == null)
+            instance = new Pretty(out,sourceOutput);
+        return instance;
+    }
 
     public Pretty(Writer out, boolean sourceOutput) {
         this.out = out;
@@ -81,7 +95,7 @@ public class Pretty extends JCTree.Visitor {
 
     /** Align code to be indented to left margin.
      */
-    void align() throws IOException {
+    protected void align() throws IOException {  // DRC - changed from default to protected
         for (int i = 0; i < lmargin; i++) out.write(" ");
     }
 

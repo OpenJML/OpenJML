@@ -76,7 +76,7 @@ import javax.lang.model.SourceVersion;
  */
 public class JavaCompiler implements ClassReader.SourceCompleter {
     /** The context key for the compiler. */
-    protected static final Context.Key<JavaCompiler> compilerKey =
+    public static final Context.Key<JavaCompiler> compilerKey = // DRC - changed from protected to public
         new Context.Key<JavaCompiler>();
 
     /** Get the JavaCompiler instance for this context. */
@@ -118,7 +118,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         }
     }
 
-    private static enum CompilePolicy {
+    protected static enum CompilePolicy { // DRC - changed from private to protected
         /*
          * Just attribute the parse trees
          */
@@ -461,7 +461,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             return List.nil();
     }
 
-    protected final <T> List<T> stopIfError(List<T> list) {
+    protected  <T> List<T> stopIfError(List<T> list) { // DRC - made not final
         if (errorCount() == 0)
             return list;
         else

@@ -2183,7 +2183,7 @@ public class Attr extends JCTree.Visitor {
          *  @param env     The current environment.
          *  @param v       The variable's symbol.
          */
-        private void checkInit(JCTree tree,
+        protected void checkInit(JCTree tree,   // DRC - changed from private to protected
                                Env<AttrContext> env,
                                VarSymbol v,
                                boolean onlyWarning) {
@@ -2228,7 +2228,7 @@ public class Attr extends JCTree.Visitor {
          * @param v       The variable's symbol.
          * @see JLS 3rd Ed. (8.9 Enums)
          */
-        private void checkEnumInitializer(JCTree tree, Env<AttrContext> env, VarSymbol v) {
+        protected void checkEnumInitializer(JCTree tree, Env<AttrContext> env, VarSymbol v) { // DRC - changed from private to protected
             // JLS 3rd Ed.:
             //
             // "It is a compile-time error to reference a static field
@@ -2261,7 +2261,7 @@ public class Attr extends JCTree.Visitor {
             }
         }
 
-        private boolean isNonStaticEnumField(VarSymbol v) {
+        protected boolean isNonStaticEnumField(VarSymbol v) {  // DRC - changed from private to protected
             return Flags.isEnum(v.owner) && Flags.isStatic(v) && !Flags.isConstant(v);
         }
 
@@ -2270,7 +2270,7 @@ public class Attr extends JCTree.Visitor {
          *  a type or field, or if the symbol is the synthetic method.
          *  owning a block.
          */
-        private boolean canOwnInitializer(Symbol sym) {
+        protected boolean canOwnInitializer(Symbol sym) {  // DRC - changed from private to protected
             return
                 (sym.kind & (VAR | TYP)) != 0 ||
                 (sym.kind == MTH && (sym.flags() & BLOCK) != 0);
@@ -2679,7 +2679,7 @@ public class Attr extends JCTree.Visitor {
     }
 
     /** Finish the attribution of a class. */
-    private void attribClassBody(Env<AttrContext> env, ClassSymbol c) {
+    protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) { // DRC - changed from private to protected
         JCClassDecl tree = (JCClassDecl)env.tree;
         assert c == tree.sym;
 

@@ -690,7 +690,7 @@ public class Log {
      * for the current source file.  Zero is returned if no line exists
      * for the given position.
      */
-    protected int getLineNumber(int pos) {
+    public int getLineNumber(int pos) { // DRC - changed from protected to public
         if (findLine(pos))
             return line;
         return 0;
@@ -700,7 +700,7 @@ public class Log {
      * for the current source file.  Zero is returned if no column exists
      * for the given position.
      */
-    protected int getColumnNumber(int pos) {
+    public int getColumnNumber(int pos) { // DRC - changed from protected to public
         if (findLine(pos)) {
             int column = 0;
             for (bp = lineStart; bp < pos; bp++) {

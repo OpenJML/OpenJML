@@ -404,7 +404,7 @@ public class Enter extends JCTree.Visitor {
     //where
         /** Does class have the same name as the file it appears in?
          */
-        private static boolean classNameMatchesFileName(ClassSymbol c,
+        public boolean classNameMatchesFileName(ClassSymbol c,
                                                         Env<AttrContext> env) {
             return env.toplevel.sourcefile.isNameCompatible(c.name.toString(),
                                                             JavaFileObject.Kind.SOURCE);

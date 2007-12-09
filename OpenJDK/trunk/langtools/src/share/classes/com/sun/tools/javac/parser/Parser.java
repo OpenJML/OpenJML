@@ -110,7 +110,7 @@ public class Parser {
 
     /** The log to be used for error diagnostics.
      */
-    private Log log;
+    protected Log log; // DRC - changed from private to protected
 
     /** The keyword table. */
     private Keywords keywords;
@@ -191,7 +191,7 @@ public class Parser {
 
     /** The current mode.
      */
-    private int mode = 0;
+    protected int mode = 0; // DRC - changed from private to protected
 
     /** The mode of the term that was parsed last.
      */
@@ -276,7 +276,7 @@ public class Parser {
         return syntaxError(pos, null, key, arg);
     }
 
-    private JCErroneous syntaxError(int pos, List<JCTree> errs, String key, Object... arg) {
+    protected JCErroneous syntaxError(int pos, List<JCTree> errs, String key, Object... arg) { // DFRC - changed from private to protected
         setErrorEndPos(pos);
         reportSyntaxError(pos, key, arg);
         return toP(F.at(pos).Erroneous(errs));
@@ -759,7 +759,7 @@ public class Parser {
 //where
         /** Construct a binary or type test node.
          */
-        private JCExpression makeOp(int pos,
+        protected JCExpression makeOp(int pos,  // DRC - changed from private to protected
                                     Token topOp,
                                     JCExpression od1,
                                     JCExpression od2)
@@ -931,6 +931,7 @@ public class Parser {
                     case NEW: case IDENTIFIER: case ASSERT: case ENUM:
                     case BYTE: case SHORT: case CHAR: case INT:
                     case LONG: case FLOAT: case DOUBLE: case BOOLEAN: case VOID:
+                    case CUSTOM: // DRC -added to handle casts on JML functions - no easy way to do this by overriding
                         JCExpression t1 = term3();
                         return F.at(pos).TypeCast(t, t1);
                     }
@@ -976,77 +977,8 @@ public class Parser {
             } else return illegal();
             break;
         case IDENTIFIER: case ASSERT: case ENUM:
-            if (typeArgs != null) return illegal();
             t = toP(F.at(S.pos()).Ident(ident()));
-            loop: while (true) {
-                pos = S.pos();
-                switch (S.token()) {
-                case LBRACKET:
-                    S.nextToken();
-                    if (S.token() == RBRACKET) {
-                        S.nextToken();
-                        t = bracketsOpt(t);
-                        t = toP(F.at(pos).TypeArray(t));
-                        t = bracketsSuffix(t);
-                    } else {
-                        if ((mode & EXPR) != 0) {
-                            mode = EXPR;
-                            JCExpression t1 = term();
-                            t = to(F.at(pos).Indexed(t, t1));
-                        }
-                        accept(RBRACKET);
-                    }
-                    break loop;
-                case LPAREN:
-                    if ((mode & EXPR) != 0) {
-                        mode = EXPR;
-                        t = arguments(typeArgs, t);
-                        typeArgs = null;
-                    }
-                    break loop;
-                case DOT:
-                    S.nextToken();
-                    typeArgs = typeArgumentsOpt(EXPR);
-                    if ((mode & EXPR) != 0) {
-                        switch (S.token()) {
-                        case CLASS:
-                            if (typeArgs != null) return illegal();
-                            mode = EXPR;
-                            t = to(F.at(pos).Select(t, names._class));
-                            S.nextToken();
-                            break loop;
-                        case THIS:
-                            if (typeArgs != null) return illegal();
-                            mode = EXPR;
-                            t = to(F.at(pos).Select(t, names._this));
-                            S.nextToken();
-                            break loop;
-                        case SUPER:
-                            mode = EXPR;
-                            t = to(F.at(pos).Select(t, names._super));
-                            t = superSuffix(typeArgs, t);
-                            typeArgs = null;
-                            break loop;
-                        case NEW:
-                            if (typeArgs != null) return illegal();
-                            mode = EXPR;
-                            int pos1 = S.pos();
-                            S.nextToken();
-                            if (S.token() == LT) typeArgs = typeArguments();
-                            t = innerCreator(pos1, typeArgs, t);
-                            typeArgs = null;
-                            break loop;
-                        }
-                    }
-                    // typeArgs saved for next loop iteration.
-                    t = toP(F.at(pos).Select(t, ident()));
-                    break;
-                default:
-                    break loop;
-                }
-            }
-            if (typeArgs != null) illegal();
-            t = typeArgumentsOpt(t);
+            t = primarySuffix(t,typeArgs);
             break;
         case BYTE: case SHORT: case CHAR: case INT: case LONG: case FLOAT:
         case DOUBLE: case BOOLEAN:
@@ -1125,6 +1057,83 @@ public class Parser {
             S.nextToken();
         }
         return toP(t);
+    }
+    
+    // DRC - extracted this method from out of the middle of term3() so that it
+    // could be used in derived classes
+    protected JCExpression primarySuffix(JCExpression t, List<JCExpression> typeArgs) {
+        if (typeArgs != null) return illegal();
+        loop: while (true) {
+            int pos = S.pos();
+            switch (S.token()) {
+            case LBRACKET:
+                S.nextToken();
+                if (S.token() == RBRACKET) {
+                    S.nextToken();
+                    t = bracketsOpt(t);
+                    t = toP(F.at(pos).TypeArray(t));
+                    t = bracketsSuffix(t);
+                } else {
+                    if ((mode & EXPR) != 0) {
+                        mode = EXPR;
+                        JCExpression t1 = term();
+                        t = to(F.at(pos).Indexed(t, t1));
+                    }
+                    accept(RBRACKET);
+                }
+                continue loop;
+            case LPAREN:
+                if ((mode & EXPR) != 0) {
+                    mode = EXPR;
+                    t = arguments(typeArgs, t);
+                    typeArgs = null;
+                    continue loop;
+                }
+                break loop;
+            case DOT:
+                S.nextToken();
+                typeArgs = typeArgumentsOpt(EXPR);
+                if ((mode & EXPR) != 0) {
+                    switch (S.token()) {
+                    case CLASS:
+                        if (typeArgs != null) return illegal();
+                        mode = EXPR;
+                        t = to(F.at(pos).Select(t, names._class));
+                        S.nextToken();
+                        continue loop;
+                    case THIS:
+                        if (typeArgs != null) return illegal();
+                        mode = EXPR;
+                        t = to(F.at(pos).Select(t, names._this));
+                        S.nextToken();
+                        continue loop;
+                    case SUPER:
+                        mode = EXPR;
+                        t = to(F.at(pos).Select(t, names._super));
+                        t = superSuffix(typeArgs, t);
+                        typeArgs = null;
+                        continue loop;
+                    case NEW:
+                        if (typeArgs != null) return illegal();
+                        mode = EXPR;
+                        int pos1 = S.pos();
+                        S.nextToken();
+                        if (S.token() == LT) typeArgs = typeArguments();
+                        t = innerCreator(pos1, typeArgs, t);
+                        typeArgs = null;
+                        continue loop;
+                    }
+                }
+                // typeArgs saved for next loop iteration.
+                t = toP(F.at(pos).Select(t, ident()));
+                break;
+            default:
+                break loop;
+            }
+        }
+        if (typeArgs != null) illegal();
+        t = typeArgumentsOpt(t);
+        return t;
     }
 
     /** SuperSuffix = Arguments | "." [TypeArguments] Ident [Arguments]
@@ -1296,7 +1305,7 @@ public class Parser {
 
     /** BracketsOpt = {"[" "]"}
      */
-    private JCExpression bracketsOpt(JCExpression t) {
+    protected JCExpression bracketsOpt(JCExpression t) { // DRC - changed from private to protected
         if (S.token() == LBRACKET) {
             int pos = S.pos();
             S.nextToken();
@@ -1527,6 +1536,7 @@ public class Parser {
             int pos = S.pos();
             switch (S.token()) {
             case RBRACE: case CASE: case DEFAULT: case EOF:
+            case CUSTOM:  // DRC - added this case
                 return stats.toList();
             case LBRACE: case IF: case FOR: case WHILE: case DO: case TRY:
             case SWITCH: case SYNCHRONIZED: case RETURN: case THROW: case BREAK:
@@ -2705,7 +2715,7 @@ public class Parser {
     /** Return precedence of operator represented by token,
      *  -1 if token is not a binary operator. @see TreeInfo.opPrec
      */
-    static int prec(Token token) {
+    protected int prec(Token token) { // DRC - removed static
         int oc = optag(token);
         return (oc >= 0) ? TreeInfo.opPrec(oc) : -1;
     }
@@ -2713,7 +2723,7 @@ public class Parser {
     /** Return operation tag of binary operator represented by token,
      *  -1 if token is not a binary operator.
      */
-    static int optag(Token token) {
+    protected static int optag(Token token) {
         switch (token) {
         case BARBAR:
             return JCTree.OR;
@@ -2777,6 +2787,8 @@ public class Parser {
             return JCTree.MOD_ASG;
         case INSTANCEOF:
             return JCTree.TYPETEST;
+        case CUSTOM: // DRC - added for any jml operators - only need it for <:
+            return JCTree.LE; // DRC - use this since it has the right precedence
         default:
             return -1;
         }

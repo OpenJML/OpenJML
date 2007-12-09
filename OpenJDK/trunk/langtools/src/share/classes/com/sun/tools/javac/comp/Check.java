@@ -330,7 +330,7 @@ public class Check {
      *  @param found      The type that was found.
      *  @param req        The type that was required.
      */
-    Type checkType(DiagnosticPosition pos, Type found, Type req) {
+    public Type checkType(DiagnosticPosition pos, Type found, Type req) {  // DRC - changed to public from default
         if (req.tag == ERROR)
             return req;
         if (found.tag == FORALL)

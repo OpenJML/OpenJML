@@ -63,14 +63,14 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 
     private final Name.Table names;
     private final Enter enter;
-    private final Log log;
+    protected final Log log; // DRC - changed from private to protected
     private final Check chk;
     private final Attr attr;
     private final Symtab syms;
     private final TreeMaker make;
     private final ClassReader reader;
     private final Todo todo;
-    private final Annotate annotate;
+    protected final Annotate annotate; // DRC - changed from private to protected
     private final Types types;
     private final Target target;
 
@@ -393,7 +393,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     /** Enter field and method definitions and process import
      *  clauses, catching any completion failure exceptions.
      */
-    protected void memberEnter(JCTree tree, Env<AttrContext> env) {
+    public void memberEnter(JCTree tree, Env<AttrContext> env) { // DRC - changed from protected to public
         Env<AttrContext> prevEnv = this.env;
         try {
             this.env = env;
@@ -643,7 +643,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
      *  @param tree     The variable definition.
      *  @param env      The environment current outside of the variable definition.
      */
-    Env<AttrContext> initEnv(JCVariableDecl tree, Env<AttrContext> env) {
+    public Env<AttrContext> initEnv(JCVariableDecl tree, Env<AttrContext> env) { // DRC - changed from default to public visibility
         Env<AttrContext> localEnv = env.dupto(new AttrContextEnv(tree, env.info.dup()));
         if (tree.sym.owner.kind == TYP) {
             localEnv.info.scope = new Scope.DelegatedScope(env.info.scope);
@@ -743,7 +743,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 
 
     /** Enter a set of annotations. */
-    private void enterAnnotations(List<JCAnnotation> annotations,
+    protected void enterAnnotations(List<JCAnnotation> annotations, // DRC - changed from private to protected
                           Env<AttrContext> env,
                           Symbol s) {
         ListBuffer<Attribute.Compound> buf =
@@ -982,7 +982,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         }
     }
 
-    private Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) {
+    protected Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) {   // DRC- changed from private to protected
         Scope typaramScope = new Scope(tree.sym);
         if (tree.typarams != null)
             for (List<JCTypeParameter> typarams = tree.typarams;
