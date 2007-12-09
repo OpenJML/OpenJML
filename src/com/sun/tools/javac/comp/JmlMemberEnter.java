@@ -431,6 +431,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
     
     public void addRacMethods(ClassSymbol sym, Env<AttrContext> env) {
         if (!JmlOptionName.isOption(context,JmlOptionName.RAC)) return;
+        if ((sym.flags() & Flags.INTERFACE) != 0) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
         JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(sym);
         JCExpression vd = jmlF.Type(syms.voidType);
         JmlTree.JmlMethodDecl m = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),names.fromString(JmlRac.invariantMethodString),vd,

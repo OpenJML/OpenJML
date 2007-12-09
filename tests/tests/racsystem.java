@@ -3,7 +3,7 @@ package tests;
 
 public class racsystem extends RacBase {
 
-    String[] sysrac = new String[]{"C:/Apps/jdk1.6.0/bin/java", "-Xbootclasspath/p:jdkbin;bin", "-classpath","testdata;jdkbin;bin",null};
+    String[] sysrac = new String[]{"C:/Apps/jdk1.6.0/bin/java", "-Xbootclasspath/p:jdkbin;bin", "-classpath","jdkbin;bin;testdata",null};
 
     protected void setUp() throws Exception {
         rac = sysrac;
@@ -34,7 +34,6 @@ public class racsystem extends RacBase {
     }
     
     public void testFile3() {
-        print = true;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"try { m(); } catch (Exception e) {  } \n"
                 +"System.out.println(\"END\"); }"

@@ -283,7 +283,9 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 //                ((JmlClassDecl)tree).sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
 //            return;
 //        } // Model classes can have a sourcefile that is in an OTHER file
+        result = tree;
         if (tree.sym == null) return;
+        if (tree.sym.className().startsWith("org.jmlspecs")) return;  // FIXME - don't instrument runtime files (can get infinite loops)
         if (Utils.isInstrumented(tree.mods.flags)) {
             System.out.println("ALREADY INSTRUMENTED " + tree.name);
             return;
@@ -959,6 +961,15 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         //FIXME ownerClass.members_field.enter(msym);
         return mdecl;
     }
+    
+    /** Overridden so as not to try to do any RACing in annotations */
+    public void visitAnnotation(JCAnnotation tree) {
+        //tree.annotationType = translate(tree.annotationType);
+        //tree.args = translate(tree.args);
+        result = tree;
+    }
+
+
     
     public void visitAssign(JCAssign tree) {
         super.visitAssign(tree);
@@ -1711,6 +1722,10 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
     
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
+        if ((that.sym.flags() & Flags.INTERFACE) != 0) {
+            result = that;
+            return;
+        }
         visitClassDef(that);  // FIXME
     }
 
