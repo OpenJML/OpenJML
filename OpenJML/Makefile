@@ -1,15 +1,20 @@
 ROOT=..
+VERSION:=$(shell date +%Y%m%d)
+NAME=jml-${VERSION}.tar.gz
 
 jar: jars jmlruntime tar
 	@echo Release complete
+	@echo Testing
+	./releaseTest  ${NAME}
+	@echo Testing Complete
 
 tar:
-	tar -zcf jml-`date +%Y%m%d`.tar.gz README openjml.jar jmlruntime.jar jmlspecs.jar 
+	tar -zcf ${NAME} README openjml.jar jmlruntime.jar jmlspecs.jar 
 
 jars:
 	echo `pwd`
 	rm -rf temp temp2
-	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/JML-`date +%Y%m%d`/ > version.properties )
+	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/JML-${VERSION}/ > version.properties )
 	mkdir temp
 	cp -r ${ROOT}/OpenJML/bin/* temp
 	cp -r ${ROOT}/OpenJDK/bin/* temp
