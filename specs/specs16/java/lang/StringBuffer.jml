@@ -1,5 +1,0 @@
-package java.lang;
-
-final public class StringBuffer {
-
-}
