@@ -1,8 +1,0 @@
-package java.lang;
-
-public class Package {
-
-	private Package(java.lang.String s,java.util.jar.Manifest m,java.net.URL u,java.lang.ClassLoader c);
-
-	Package(java.lang.String s,java.lang.String ss,java.lang.String s3,java.lang.String s4,java.lang.String s5,java.lang.String s6,java.lang.String s7,java.net.URL url,java.lang.ClassLoader cl);
-}
