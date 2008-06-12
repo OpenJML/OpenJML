@@ -14,7 +14,7 @@ import com.sun.tools.javac.util.Log;
 
 
 
-public class TCBase extends JmlTestCase {
+public abstract class TCBase extends JmlTestCase {
 
     static String z = java.io.File.pathSeparator;
     static String testspecpath1 = "$A"+z+"$B";

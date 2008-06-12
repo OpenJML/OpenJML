@@ -88,13 +88,11 @@ public enum JmlOptionName implements OptionInterface {
      * @see org.jmlspecs.openjml.OptionInterface#optionName()
      */
      //@ non_null
-    @Override
     public String optionName() { return name; }
 
     /* Whether the option takes an argument
      * @see org.jmlspecs.openjml.OptionInterface#hasArg()
      */
-    @Override
     public boolean hasArg() { return hasArg; }
     
     /**

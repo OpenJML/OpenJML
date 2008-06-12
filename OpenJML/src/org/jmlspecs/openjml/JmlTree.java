@@ -5,6 +5,9 @@ import java.io.StringWriter;
 
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.esc.Label;
+
+import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.TreeVisitor;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -52,7 +55,7 @@ public class JmlTree {
         JmlImport JmlImport(JCTree qualid, boolean staticImport, boolean isModel);
         JmlRefines JmlRefines(String filename);
         JmlBinary JmlBinary(JmlToken t, JCTree.JCExpression left, JCTree.JCExpression right);
-        JmlStatementExpr JmlExpressionStatement(JmlToken t, JCTree.JCExpression e);
+        JmlStatementExpr JmlExpressionStatement(JmlToken t, Label label, JCTree.JCExpression e);
         JmlStatementDecls JmlStatementDecls(ListBuffer<JCTree.JCStatement> list);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
         JmlStatementLoop JmlStatementLoop(JmlToken t, JCTree.JCExpression e);
@@ -210,79 +213,63 @@ public class JmlTree {
         }
 
         
-        @Override
         public JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlToken jt) {
             return new JmlPrimitiveTypeTree(pos,jt);
         }
         
-        @Override
         public JmlSingleton JmlSingleton(JmlToken jt) {
             return new JmlSingleton(pos,jt);
         }
         
-        @Override
         public JmlRefines JmlRefines(String filename) {
             return new JmlRefines(pos,filename);
         }
         
-        @Override // Caution: you need to set the isModel field by hand
+        // Caution: you need to set the isModel field by hand
         public JmlImport JmlImport(JCTree qualid, boolean staticImport) {
             return new JmlImport(qualid, staticImport,false);
         }
         
-        @Override
         public JmlImport JmlImport(JCTree qualid, boolean staticImport, boolean isModel) {
             return new JmlImport(qualid, staticImport,isModel);
         }
         
-        @Override
         public JCTree.JCImport Import(JCTree qualid, boolean staticImport) {
             return JmlImport(qualid,staticImport);
         }
 
-        @Override
         public JmlFunction JmlFunction(JmlToken jt) {
             return new JmlFunction(pos,jt);
         }
         
-        @Override
         public JmlBinary JmlBinary(JmlToken t, JCTree.JCExpression left, JCTree.JCExpression right) {
             return new JmlBinary(pos,t,left,right);
         }
         
-        @Override
         public JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken t, JCModifiers mods, JCTree.JCExpression ty, ListBuffer<Name> names, JCTree.JCExpression range, JCTree.JCExpression predicate) {
             return new JmlQuantifiedExpr(pos,t,mods,ty,names,range,predicate);
         }
         
-        @Override
         public JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate) {
             return new JmlSetComprehension(pos,type,v,predicate);
         }
         
-        @Override
         public JmlLblExpression JmlLblExpression(JmlToken token, Name label, JCTree.JCExpression expr) {
             return new JmlLblExpression(pos,token,label,expr);
         }
 
-        
-        @Override
-        public JmlStatementExpr JmlExpressionStatement(JmlToken t, JCTree.JCExpression e) {
-            return new JmlStatementExpr(pos,t,e);
+        public JmlStatementExpr JmlExpressionStatement(JmlToken t, Label label, JCTree.JCExpression e) {
+            return new JmlStatementExpr(pos,t,label,e);
         }
         
-        @Override
         public JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs) {
             return new JmlStatementSpec(pos,specs);
         }
         
-        @Override
         public JmlStatementLoop JmlStatementLoop(JmlToken t, JCTree.JCExpression e) {
             return new JmlStatementLoop(pos,t,e);
         }
 
-        
-        @Override
         public JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs) {
             return new JmlDoWhileLoop(loop,loopSpecs);
         }
@@ -320,47 +307,38 @@ public class JmlTree {
 
 
 
-        @Override
         public JmlForLoop JmlForLoop(JCForLoop loop, List<JmlStatementLoop> loopSpecs) {
             return new JmlForLoop(loop,loopSpecs);
         }
         
-        @Override
         public JmlEnhancedForLoop JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs) {
             return new JmlEnhancedForLoop(loop,loopSpecs);
         }
         
-        @Override
         public JmlWhileLoop JmlWhileLoop(JCWhileLoop loop, List<JmlStatementLoop> loopSpecs) {
             return new JmlWhileLoop(loop,loopSpecs);
         }
 
-        @Override
         public JmlStatementDecls JmlStatementDecls(ListBuffer<JCTree.JCStatement> list) {
             return new JmlStatementDecls(pos,list);
         }
         
-        @Override
         public JmlStatement JmlStatement(JmlToken t, JCTree.JCStatement e) {
             return new JmlStatement(pos,t,e);
         }
 
-        @Override
         public JmlStoreRefListExpression JmlStoreRefListExpression(JmlToken t, ListBuffer<JCTree> list) {
             return new JmlStoreRefListExpression(pos,t,list);
         }
 
-        @Override
         public JmlStoreRefKeyword JmlStoreRefKeyword(JmlToken t) {
             return new JmlStoreRefKeyword(pos,t);
         }
 
-        @Override
         public JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi) {
             return new JmlStoreRefArrayRange(pos,expr,lo,hi);
         }
 
-        @Override
         public JmlTypeClauseExpr JmlTypeClauseExpr(JCModifiers mods, JmlToken token, JCTree.JCExpression e) {
             JmlTypeClauseExpr t = new JmlTypeClauseExpr(pos,mods,token,e);
             t.source = Log.instance(context).currentSource();
@@ -380,112 +358,93 @@ public class JmlTree {
             return t;
         }
         
-        @Override
         public JmlTypeClauseInitializer JmlTypeClauseInitializer(JmlToken token) {
             JmlTypeClauseInitializer t = new JmlTypeClauseInitializer(pos, token);
             t.source = Log.instance(context).currentSource();
             return t;
         }
         
-        @Override
         public JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCTree.JCExpression e, List<JmlConstraintMethodSig> sigs) {
             JmlTypeClauseConstraint t = new JmlTypeClauseConstraint(pos,mods,e,sigs);
             t.source = Log.instance(context).currentSource();
             return t;
         }
         
-        @Override
         public JmlConstraintMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes) {
             return new JmlConstraintMethodSig(pos,expr,argtypes);
         }
 
         
-        @Override
         public JmlTypeClauseRepresents JmlTypeClauseRepresents(JCModifiers mods, JCTree.JCExpression ident, boolean suchThat, JCTree.JCExpression e) {
             JmlTypeClauseRepresents t = new JmlTypeClauseRepresents(pos, mods, ident,suchThat,e);
             t.source = Log.instance(context).currentSource();
             return t;
         }
 
-        @Override
         public JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, JmlToken token, JCTree.JCIdent ident, JCTree.JCExpression p) {
             JmlTypeClauseConditional t = new JmlTypeClauseConditional(pos, mods, token,ident,p);
             t.source = Log.instance(context).currentSource();
             return t;
         }
 
-        @Override
         public JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, ListBuffer<JCTree.JCExpression> list) {
             JmlTypeClauseMonitorsFor t = new JmlTypeClauseMonitorsFor(pos, mods, ident, list);
             t.source = Log.instance(context).currentSource();
             return t;
         }
 
-        @Override
         public JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> list) {
             return new JmlMethodClauseGroup(pos,list);
         }
         
-        @Override
         public JmlMethodClauseDecl JmlMethodClauseDecl(JmlToken t, JCTree.JCExpression type, ListBuffer<JCTree.JCStatement> stats) {
             return new JmlMethodClauseDecl(pos,t,type,stats);
         }
         
-        @Override
         public JmlMethodClauseExpr JmlMethodClauseExpr(JmlToken t, JCTree.JCExpression e) {
             return new JmlMethodClauseExpr(pos,t,e);
         }
         
-        @Override
         public JmlMethodClauseConditional JmlMethodClauseConditional(JmlToken t, JCTree.JCExpression e, JCTree.JCExpression p) {
             return new JmlMethodClauseConditional(pos,t,e,p);
         }
         
-        @Override
         public JmlMethodClauseSignals JmlMethodClauseSignals(JmlToken t, JCTree.JCVariableDecl var, JCTree.JCExpression e) {
             return new JmlMethodClauseSignals(pos,t,var,e);
         }
         
-        @Override
         public JmlMethodClauseSigOnly JmlMethodClauseSignalsOnly(JmlToken t, List<JCTree.JCExpression> e) {
             return new JmlMethodClauseSigOnly(pos,t,e);
         }
 
-        @Override
         public JmlMethodClauseAssignable JmlMethodClauseAssignable(JmlToken t, List<JCTree> list) {
             return new JmlMethodClauseAssignable(pos, t, list);
         }
 
-        @Override
         public JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlToken t, JmlToken also, List<JmlMethodClause> clauses) {
             JmlSpecificationCase jcase = new JmlSpecificationCase(pos,mods,code,t,also,clauses);
             jcase.sourcefile = Log.instance(context).currentSource();
             return jcase;
         }
         
-        @Override
         public JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses) {
             return new JmlSpecificationCase(sc,clauses);
         }
         
-        @Override
         public JmlMethodSpecs JmlMethodSpecs(List<JmlSpecificationCase> cases) {
             return new JmlMethodSpecs(pos,cases);
         }
         
-        @Override
         public JmlGroupName JmlGroupName(JCExpression selection) {
             return new JmlGroupName(pos,selection);
         }
         
-        @Override
         public JmlTypeClauseIn JmlTypeClauseIn(List<JmlGroupName> list) {
             JmlTypeClauseIn r = new JmlTypeClauseIn(pos,list);
             r.source = Log.instance(context).currentSource();
             return r;
         }
         
-        @Override
         public JmlTypeClauseMaps JmlTypeClauseMaps(JCExpression e, List<JmlGroupName> list) {
             JmlTypeClauseMaps r = new JmlTypeClauseMaps(pos,e,list);
             r.source = Log.instance(context).currentSource();
@@ -684,7 +643,7 @@ public class JmlTree {
             this.pos = pos;
             this.filename = filename;
         }
-        @Override
+
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -843,7 +802,6 @@ public class JmlTree {
             this.token = token;
         }
 
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -890,7 +848,6 @@ public class JmlTree {
             this.list = list;
         }
 
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -938,7 +895,6 @@ public class JmlTree {
             this.token = token;
         }
 
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -974,7 +930,7 @@ public class JmlTree {
     }
     
     /** This class represents binary expressions with JML operators */
-    public static class JmlBinary extends JCTree.JCExpression {
+    public static class JmlBinary extends JCTree.JCExpression implements BinaryTree {
         public JmlToken op;
         public JCExpression lhs;
         public JCExpression rhs;
@@ -990,9 +946,9 @@ public class JmlTree {
         public JCExpression getLeftOperand() { return lhs; }
         public JCExpression getRightOperand() { return rhs; }
 
-        public Symbol getOperator() {
-            return null; // FIXME
-        }
+//        public Symbol getOperator() {
+//            return null; // FIXME
+//        }
 
         public Kind getKind() { 
             return Kind.OTHER; // See note above
@@ -1035,7 +991,6 @@ public class JmlTree {
             this.expression = expr;
         }
 
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -1086,7 +1041,6 @@ public class JmlTree {
             this.predicate = predicate;
         }
 
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -1129,7 +1083,6 @@ public class JmlTree {
             this.predicate = predicate;
         }
 
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -1264,7 +1217,6 @@ public class JmlTree {
         public int line;
         public JavaFileObject source;
 
-        @Override
         public JavaFileObject source() {
             return source;
         }
@@ -1437,16 +1389,18 @@ public class JmlTree {
      * that take an expression, such as assert, assume, unreachable
      */
     public static class JmlStatementExpr extends JmlAbstractStatement {
-        public JmlStatementExpr(int pos, JmlToken token, JCTree.JCExpression expression) {
+        public JmlStatementExpr(int pos, JmlToken token, Label label, JCTree.JCExpression expression) {
             this.pos = pos;
             this.token = token;
             this.expression = expression;
+            this.label = label;
         }
         public JmlToken token;
         public JCTree.JCExpression expression;
         public JCTree.JCExpression optionalExpression = null;
         public int line;
         public JavaFileObject source;
+        public Label label;
 
         @Override
         public int getTag() {
@@ -1845,7 +1799,6 @@ public class JmlTree {
             this.token = token;
         }
 
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -1888,7 +1841,6 @@ public class JmlTree {
             this.hi = hi;
         }
 
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -1952,7 +1904,6 @@ public class JmlTree {
         
         public JCExpression selection;
         
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -1995,7 +1946,6 @@ public class JmlTree {
         public List<JmlGroupName> list;
         public JmlVariableDecl parentVar;
         
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -2040,7 +1990,6 @@ public class JmlTree {
         public JCExpression expression;
         public List<JmlGroupName> list;
         
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -2082,7 +2031,6 @@ public class JmlTree {
         
         public JmlMethodSpecs specs;
         
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -2127,7 +2075,6 @@ public class JmlTree {
         public JCTree.JCExpression expression;
         public List<JmlConstraintMethodSig> sigs;
         
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -2168,7 +2115,6 @@ public class JmlTree {
             this.argtypes = argtypes;
         }
 
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -2215,7 +2161,6 @@ public class JmlTree {
         public boolean suchThat;
         public JCTree.JCExpression expression;
         
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -2258,7 +2203,6 @@ public class JmlTree {
         
         public JCTree.JCExpression expression;
         
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -2303,7 +2247,6 @@ public class JmlTree {
         public JCTree.JCIdent identifier;
         public JCTree.JCExpression expression;
         
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -2348,7 +2291,6 @@ public class JmlTree {
         public JCTree.JCIdent identifier;
         public ListBuffer<JCTree.JCExpression> list;
         
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -2390,7 +2332,6 @@ public class JmlTree {
         
         public JCTree decl;
         
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
@@ -2449,7 +2390,6 @@ public class JmlTree {
             this.clauses = clauses;
         }
         
-        @Override
         public JavaFileObject source() { return sourcefile; }
 
 
@@ -2628,7 +2568,6 @@ public class JmlTree {
             return token.internedName();
         }
 
-        @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }

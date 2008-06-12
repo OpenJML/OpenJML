@@ -14,7 +14,7 @@ import org.jmlspecs.openjml.JmlSpecs;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
-public class EscBase extends JmlTestCase {
+public abstract class EscBase extends JmlTestCase {
 
     static String z = java.io.File.pathSeparator;
     static String testspecpath1 = "$A"+z+"$B";
@@ -62,6 +62,7 @@ public class EscBase extends JmlTestCase {
     
     public void helpTCX(String classname, String s, Object... list) {
         try {
+            expectedErrors = list.length/2;
             String filename = classname.replace(".","/")+".java";
             JavaFileObject f = new TestJavaFileObject(filename,s);
             

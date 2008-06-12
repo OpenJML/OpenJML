@@ -142,6 +142,30 @@ To Do:
 + RAC: complete implementation of RAC-ignored messages, with command-line switch
 + RAC: install checks for non_null model fields
 
+ESC: model methods and model classes
+ESC: multiple classes per CU
+ESC: anonymous classes
+ESC: loop constructs - while, for, foreach, while-do
+ESC: block specifications
+ESC: local classes
+ESC: exceptions and corresponding warnings
+ESC: arrays and fields
+ESC: background predicate
+ESC: naming of fields (fully qualified path?)
+ESC: associated data
+ESC: Eclipse UI
+ESC: ability to prove just a method or just a class
+ESC: well-defined assumptions and assertions
+ESC: non-null preconditions
+ESC: NullCheck label in post and preconditions
+ESC: experiment as a syntax checker for specs
+
+ESC EXPERIMENTS:
+- with different VC styles
+- with and without definitions
+- with various provers: Yices, Z3, CVC3, Simplify
+
+
 - check that there are tests for the modifiers of forall and old
 - (checks & RAC) implement uninitialized, extract; test instance and interface
 - resolve issue of the definition of <: among primitive types

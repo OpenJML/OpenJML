@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.esc.JmlEsc;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
@@ -13,7 +14,6 @@ import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
-import com.sun.tools.javac.comp.JmlBoogie;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.comp.JmlMemberEnter;
 import com.sun.tools.javac.comp.JmlRac;
@@ -46,6 +46,7 @@ public class JmlCompiler extends JavaCompiler {
     /** The compilation context for this tool */
     protected Context context;
 
+    /** A cached value indicating the verbosity level of tracing information. */
     boolean verbose;
 
     
@@ -57,7 +58,8 @@ public class JmlCompiler extends JavaCompiler {
         super(context);
         this.context = context;
         this.verbose = JmlOptionName.isOption(context,"-verbose") ||
-                        JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || Utils.jmldebug;
+                        JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
+                        Utils.jmldebug;
     }
     
     /** A flag that controls whether to get specs during a parse or not (if false 
@@ -227,6 +229,8 @@ public class JmlCompiler extends JavaCompiler {
     /** Overridden to stop the processing at this point - no code generation unless rac is enabled */
     @Override
     protected void desugar(Env<AttrContext> env, ListBuffer<Pair<Env<AttrContext>, JCClassDecl>> results) {
+        // Note super.desugar() translates generic Java to non-generic Java and perhaps does other stuff.
+        // TODO - decide whether this should be executed before doing ESC or RAC
         if (JmlOptionName.isOption(context,JmlOptionName.ESC)) {
             esc(env);
         }
@@ -373,8 +377,9 @@ public class JmlCompiler extends JavaCompiler {
         // class declarations in the compilation unit will be translated on 
         // other calls.
         if (true||verbose) System.out.println("esc " + Utils.envString(env));
-        JmlBoogie esc = new JmlBoogie(context,env);  // FIXME - use a factory
-        env.tree.accept(esc,null);
+        
+        JmlEsc esc = new JmlEsc(context,env);  // FIXME - use a factory
+        env.tree.accept(esc);
         //        if (env.tree instanceof JCClassDecl) {
 //            esc.translate((JCClassDecl)env.tree);
 //        } else {

@@ -26,6 +26,8 @@ import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
+import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
@@ -121,7 +123,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     ClassSymbol utilsClass;
     JCIdent utilsClassIdent;
     protected JmlSpecs specs;
-    DiagnosticPosition make_pos;
+    //DiagnosticPosition make_pos;
     protected JCLiteral trueLit;
     protected JCLiteral falseLit;
     public ClassSymbol modelAnnotationSymbol = null;
@@ -687,7 +689,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 clauses.append(((JmlTree.Maker)make).JmlMethodClauseExpr(JmlToken.REQUIRES,e));
             }
         }
-        boolean isNonnull = (findMod(decl.mods,JmlToken.NONNULL) != null);
+        JCAnnotation nonnullAnnotation = findMod(decl.mods,JmlToken.NONNULL);
+        boolean isNonnull = (nonnullAnnotation != null);
         boolean isNullable = (findMod(decl.mods,JmlToken.NULLABLE) != null);
         JmlTree.Maker jmlF = (JmlTree.Maker)make;
         if (!isNonnull && !isNullable) isNonnull = defaultNonnull;
@@ -695,7 +698,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (isNonnull) {
             JCExpression id = jmlF.JmlSingleton(JmlToken.BSRESULT);
             JCExpression e = make.Binary(JCTree.NE,id,nulllit);
-            e.pos = decl.pos;
+            if (nonnullAnnotation != null) e.pos = nonnullAnnotation.getPreferredPosition();
+            else e.pos = decl.getPreferredPosition();
+            id.pos = e.pos; // FIXME - start and end as well?
             currentClauseType = JmlToken.ENSURES;
             attribExpr(e,env);
             currentClauseType = null;
@@ -917,7 +922,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     }
     
-    @Override
     public void visitJmlGroupName(JmlGroupName tree) {
         result = attribExpr(tree.selection,env,Type.noType);
         Symbol sym = null;
@@ -939,7 +943,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     JmlVariableDecl inVarDecl;
     
-    @Override
     public void visitJmlTypeClauseIn(JmlTypeClauseIn tree) {
         boolean prev = JmlResolve.setJML(context,true);
         boolean prevEnv = pureEnvironment;
@@ -956,7 +959,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlResolve.setJML(context,prev);
     }
 
-    @Override
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
         boolean prev = JmlResolve.setJML(context,true);
         boolean prevEnv = pureEnvironment;
@@ -974,7 +976,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlResolve.setJML(context,prev);
     }
 
-    @Override
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
         if (!attribSpecs) return;
         boolean prev = pureEnvironment;
@@ -1018,7 +1019,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
-    @Override
+    
     public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint tree) {
         if (!attribSpecs) return;
         JavaFileObject old = log.useSource(tree.source);
@@ -1079,7 +1080,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
    
-    @Override
+    
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
         if (!attribSpecs) return;
         JavaFileObject old = log.useSource(tree.source);
@@ -1092,7 +1093,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
-    @Override
+    
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) {
         if (!attribSpecs) return;
         JavaFileObject old = log.useSource(tree.source);
@@ -1112,7 +1113,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
-    @Override
+    
     public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents tree) {
         if (!attribSpecs) return;
         boolean prev = pureEnvironment;
@@ -1182,7 +1183,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return localEnv;
     }
     
-    @Override
+    
     public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor tree) {
         if (!attribSpecs) return;
         boolean prev = pureEnvironment;
@@ -1202,7 +1203,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
-    @Override
+    
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional tree) {
         if (!attribSpecs) return;
         JavaFileObject old = log.useSource(tree.source);
@@ -1221,14 +1222,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
-    @Override
+    
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
         for (JmlSpecificationCase c: tree.cases) {
             c.accept(this);
         }
     }
     
-    @Override
+    
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
         JmlToken t = tree.token;
         for (JCTree.JCStatement stat: tree.stats) {
@@ -1254,7 +1255,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * method specification clauses
      * @param tree the method specification clause being attributed
      */
-    @Override
+    
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         switch (tree.token) {
             case REQUIRES:
@@ -1281,7 +1282,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * method specification clauses
      * @param tree the method specification clause being attributed
      */
-    @Override
+    
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional tree) {
         if (tree.predicate != null) attribExpr(tree.predicate, env, syms.booleanType);
         switch (tree.token) {
@@ -1305,7 +1306,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * a signals method specification clause
      * @param tree the method specification clause being attributed
      */
-    @Override
+    
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {
         if (tree.vardef.name == null) {
             tree.vardef.name = names.fromString("jml$$syntheticExceptionID");
@@ -1327,7 +1328,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * a signals_only method specification clause
      * @param tree the method specification clause being attributed
      */
-    @Override
+    
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly tree) {
         for (JCExpression e: tree.list) {
             e.type = attribTree(e, env, TYP, syms.exceptionType);
@@ -1339,7 +1340,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * a assignable method specification clause
      * @param tree the method specification clause being attributed
      */
-    @Override
+    
     public void visitJmlMethodClauseAssignable(JmlMethodClauseAssignable tree) {
         for (JCTree e: tree.list) {
             attribExpr(e, env, Type.noType);
@@ -1347,7 +1348,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
 
-    @Override
+    
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
         for (JCTree t: that.list) {
             attribExpr(t,env,Type.noType);
@@ -1362,7 +1363,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * a visit of each clause in the case, setting the currentClauseType field
      * before visiting each one.
      */
-    @Override
+    
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
         JavaFileObject old = log.useSource(tree.sourcefile);
         Env<AttrContext> localEnv = null;
@@ -1411,7 +1412,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     /** Visits a JmlMethodSpecs by visiting each of its JmlSpecificationCases */
-    @Override
+    
     public void visitJmlMethodSpecs(JmlMethodSpecs tree) {
         // The following test just returns when a JmlMethodSpecs object is
         // encountered that is just a member of a type declaration and has not
@@ -1797,7 +1798,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlResolve.setJML(context,prevAllowJML);
     }
 
-    boolean savedSpecOK = false;
+    boolean savedSpecOK = false; // FIXME - never read
     
     public void attribLoopSpecs(List<JmlTree.JmlStatementLoop> loopSpecs, Env<AttrContext> loopEnv) {
         savedSpecOK = false;
@@ -1917,25 +1918,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = check(that, t, VAL, pkind, pt);
     }
     
-    @Override
     public void visitJmlFunction(JmlFunction that) {
         // Actually, I don't think this gets called.  It would get called through
         // visitApply.
         result = that.type = Type.noType;
     }
     
-    @Override
     public void visitJmlRefines(JmlRefines that) {
         // nothing to do
     }
     
-    @Override
+
     public void visitJmlImport(JmlImport that) {
         visitImport(that);
         // FIXME - ignoring model
     }
     
-    @Override
+
     public void visitJmlBinary(JmlBinary that) {  // FIXME - how do we handle unboxing, casting
         switch (that.op) {
             case EQUIVALENCE:
@@ -2076,7 +2075,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         else result = tree.type = Type.noType;
     }
     
-    @Override
+
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
         if (that.lo != null) attribExpr(that.lo,env,syms.intType); // FIXME - int or long or bigint
         if (that.hi != null && that.hi != that.lo) attribExpr(that.hi,env,syms.intType); // FIXME - int or long or bigint
@@ -2092,7 +2091,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
 
-    @Override
+
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
         result = that.type = Type.noType;
         // FIXME - call check
@@ -2331,13 +2330,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return s;
     }
 
-    @Override
+
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
         attribLoopSpecs(that.loopSpecs,env);
         super.visitDoLoop(that);
     }
 
-    @Override
+
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop tree) {
         // MAINTENANCE ISSUE: code duplicated mostly from the superclass
             Env<AttrContext> loopEnv =
@@ -2372,7 +2371,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     // MAINTENANCE ISSUE: code duplicated mostly from the superclass
-    @Override
+
     public void visitJmlForLoop(JmlForLoop tree) {
         Env<AttrContext> loopEnv =
             env.dup(env.tree, env.info.dup(env.info.scope.dup()));
@@ -2390,35 +2389,45 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = null;
     }
 
-    @Override
+
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         attribLoopSpecs(that.loopSpecs,env);
         super.visitWhileLoop(that);
     }
 
-    @Override
+
     public void visitJmlStatementLoop(JmlStatementLoop that) {
         attribExpr(that.expression,env);
     }
 
-    @Override
+
     public void visitJmlClassDecl(JmlClassDecl that) {
         visitClassDef(that);
     }
 
-    @Override
+
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
         visitTopLevel(that);
     }
 
-    @Override
+
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         visitMethodDef(that);
         
     }
 
-    @Override
+
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);
+    }
+
+    @Override
+    public void visitAuxVarDSA(AuxVarDSA that) {
+        // Should not happen here
+    }
+
+    @Override
+    public void visitProgVarDSA(ProgVarDSA that) {
+        // Should not happen here
     }
 }

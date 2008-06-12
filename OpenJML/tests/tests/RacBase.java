@@ -15,7 +15,7 @@ import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
-public class RacBase extends JmlTestCase {
+public abstract class RacBase extends JmlTestCase {
 
     static String z = java.io.File.pathSeparator;
     static String testspecpath1 = "$A"+z+"$B";
@@ -71,6 +71,8 @@ public class RacBase extends JmlTestCase {
     String[] rac; // initialized in subclasses
     
     public void helpTCX(String classname, String s, Object... list) {
+        BufferedReader r = null;
+        BufferedReader rerr = null;
         try {
             String filename = classname.replace(".","/")+".java";
             JavaFileObject f = new TestJavaFileObject(filename,s);
@@ -91,8 +93,8 @@ public class RacBase extends JmlTestCase {
             if (rac == null) rac = defrac;
             rac[rac.length-1] = classname;
             Process p = Runtime.getRuntime().exec(rac);
-            BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            BufferedReader rerr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            rerr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
             int i = expectedErrors*2;
             boolean done = false;
             boolean edone = false;
@@ -122,6 +124,9 @@ public class RacBase extends JmlTestCase {
         } catch (AssertionFailedError e) {
             if (!print && !noExtraPrinting) printErrors();
             throw e;
+        } finally {
+            if (r != null) try { r.close(); } catch (java.io.IOException e) {} // Give up if there is an exception
+            if (rerr != null) try { rerr.close(); } catch (java.io.IOException e) {} // Give up if there is an exception
         }
     }
 

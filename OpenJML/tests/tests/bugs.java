@@ -6,7 +6,7 @@ package tests;
 // they are simple situations.
 public class bugs extends TCBase {
 
-    static String testspecpath = "$A"+z+"$B"+z+"specs/specs16";
+    static String testspecpath = "$A"+z+"$B"+z+"../../../JMLspecs/trunk/java5";
 
     @Override
     public void setUp() throws Exception {

@@ -65,6 +65,7 @@ import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Flags;
@@ -88,15 +89,19 @@ import com.sun.tools.javac.util.Position;
 public class JmlParser extends EndPosParser {
 
     /** The context this parser was created for */
+    //@ non_null
     protected Context context;
     
     /** The scanner associated with the parser */
+    //@ non_null
     protected JmlScanner S;
     
     /** The node factory to use */
+    //@ non_null
     protected JmlTree.Maker jmlF;
     
     /** The table of identifiers */
+    //@ non_null
     protected Name.Table names;
     
     /** A constructor for a new parser, but you should get new instances of the
@@ -105,7 +110,7 @@ public class JmlParser extends EndPosParser {
      * @param S  the scanner to produce tokens for the parser to ask for
      * @param keepDocComments whether to keep javadoc comments
      */
-    public JmlParser(Parser.Factory fac, Lexer S, boolean keepDocComments) {
+    protected JmlParser(Parser.Factory fac, Lexer S, boolean keepDocComments) {
         super(fac, S, keepDocComments);
         if (!(S instanceof JmlScanner)) {
             log.error("jml.internal","S expected to be a JmlScanner in JmlParser");
@@ -158,6 +163,7 @@ public class JmlParser extends EndPosParser {
          * to whether to keep javadoc comments and whether to generate end
          * position information.
          */
+        //@ requires S != null;
         //@ ensures this.S != null && this.context != null;
         //@ ensures this.names != null && this.jmlF != null;
         @Override
@@ -196,8 +202,6 @@ public class JmlParser extends EndPosParser {
                     "JmlParser.compilationUnit expects to receive objects of type JmlCompilationUnit, but it found a " 
                     + u.getClass() + " instead, for source " + u.getSourceFile().toUri().getPath());
         }
-//        System.out.println(u);
-//        printTree(u,System.out);
         return u;
     }
     
@@ -206,6 +210,7 @@ public class JmlParser extends EndPosParser {
 
     /** The Java AST does not know about refines clauses, so we hang onto it here
      * until the JmlCompilationUnit is formed. */
+    //@ nullable
     public JmlRefines refinesClause = null;
     
     /** Overrides the super class importDeclaration in order to recognize
@@ -378,7 +383,8 @@ public class JmlParser extends EndPosParser {
                     S.nextToken();
                     JCExpression t = null;
                     t = expression();
-                    JmlTree.JmlStatementExpr ste = to(jmlF.at(pos).JmlExpressionStatement(jtoken,t));
+                    JmlTree.JmlStatementExpr ste = to(jmlF.at(pos).JmlExpressionStatement(jtoken,
+                            jtoken == JmlToken.ASSUME ? Label.EXPLICIT_ASSUME : Label.EXPLICIT_ASSERT, t));
                     if (S.token() == Token.COLON) {
                         S.nextToken();
                         ste.optionalExpression = expression();
@@ -391,7 +397,7 @@ public class JmlParser extends EndPosParser {
                     S.nextToken();
                     JCExpression t = null;
                     if (jtoken != UNREACHABLE) t = expression();
-                    JmlTree.JmlStatementExpr ste = to(jmlF.at(pos).JmlExpressionStatement(jtoken,t));
+                    JmlTree.JmlStatementExpr ste = to(jmlF.at(pos).JmlExpressionStatement(jtoken,Label.UNREACHABLE,t));
                     ste.source = log.currentSource();
                     ste.line = log.getLineNumber(pos);
                     st = ste;
@@ -1559,7 +1565,7 @@ public class JmlParser extends EndPosParser {
             }
             S.nextToken();
         }
-        JCModifiers mods = F.at(pos).Modifiers(partial.flags, annotations.toList());
+        JCModifiers mods = F.at(pos).Modifiers(partial==null?0:partial.flags, annotations.toList());
         storeEnd(mods, pos == Position.NOPOS ? pos: S.prevEndPos());
         return mods;
     }
@@ -2048,7 +2054,7 @@ public class JmlParser extends EndPosParser {
             S.nextToken();
     }
 
-    /** Skips up to a EOF or ENDJMLCOMMENT and up to and including a right parenthesis */
+    /** Skips up to a EOF or ENDJMLCOMMENT or up to and including a right parenthesis */
     public void skipThroughRightParen() {
         while (S.token() != Token.RPAREN && S.token() != Token.EOF && S.jmlToken() != JmlToken.ENDJMLCOMMENT)
             S.nextToken();

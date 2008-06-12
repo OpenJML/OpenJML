@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipFile;
 
@@ -177,7 +178,7 @@ public class JmlSpecs {
      */
     public void initializeSpecsPath() {
         String s = JmlOptionName.value(context,JmlOptionName.SPECS);
-        if (s == null) System.getProperty(Utils.specsPathEnvironmentPropertyName);
+        if (s == null) s = System.getProperty(Utils.specsPathEnvironmentPropertyName);
         if (s == null) s = Options.instance(context).get("-sourcepath");
         if (s == null) s = Options.instance(context).get("-classpath");
         if (s == null) s = System.getProperty("java.class.path");
@@ -230,6 +231,10 @@ public class JmlSpecs {
             if (verbose) System.out.println("No internal specs found - nor was the eclipse test property " + Utils.eclipseProjectLocation + " defined");
         }
         return false;
+    }
+    
+    public List<Dir> getSpecsPath() {
+        return specsDirs;
     }
     
     /** Sets the specifications path according to the given string; the
@@ -827,7 +832,7 @@ public class JmlSpecs {
         /*@ non_null */
         public Map<VarSymbol,FieldSpecs> fields = new HashMap<VarSymbol,FieldSpecs>();
         
-        /** A map from methods of the class to the specifications for the method. */
+        /** A map from initializers of the class to the specifications for the initializers. */ // FIXME - verify this comment
         /*@ non_null */
         public Map<JCTree.JCBlock,JmlMethodSpecs> blocks = new HashMap<JCTree.JCBlock,JmlMethodSpecs>();
 

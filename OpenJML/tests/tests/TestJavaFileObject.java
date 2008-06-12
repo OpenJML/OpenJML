@@ -24,7 +24,7 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
      * deal with exceptions in constructors.
      */
     //@ non_null
-    static protected URI uritest = makeURI();
+    static final protected URI uritest = makeURI();
     
     /** A utility method to make the URI, so it can handle the exceptions. 
      * We don't try to recover gracefully if the exception occurs - this is

@@ -1,10 +1,16 @@
 package org.jmlspecs.openjml;
 
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
+import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
+
 
 /** This is an interface for Visitors to JML and Java nodes; it extends 
  * IVisitor for Java nodes.  Any JML tree visitor should implement this
- * interface, if only to provide a check for missing visit methods.
+ * interface; it provides a check for missing visit methods and enables
+ * the visitor to be handled as an IJmlVisitor if needed.  There should
+ * be a method here for each kind of AST node that JML adds to the syntax
+ * tree.
  * 
  * @author David Cok
  *
@@ -56,4 +62,6 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that)   ;
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that);
 
+    public void visitProgVarDSA(ProgVarDSA that);
+    public void visitAuxVarDSA(AuxVarDSA that);
 }

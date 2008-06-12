@@ -23,13 +23,13 @@ import com.sun.tools.javac.util.Options;
  * It uses the javac compiler, but overrides some of the functionality
  * here in order to register tools for the compiler to use that are
  * extensions with JML functionality of the usual tools.  Also the
- * handling of JML-specific options is initiated here. */
+ * handling of JML-specific options is initialized here. */
 public class Main extends com.sun.tools.javac.main.Main {
 
     /** The compilation unit context most recently registered
      * (this can change if there are multiple contexts; it is really here
      * for convenience for testing. */
-    Context context;
+    protected Context context;
     
     /** This is a cached copy of the output writer, for use when
      * direct writing is needed (such as printing out help information) before
@@ -75,6 +75,11 @@ public class Main extends com.sun.tools.javac.main.Main {
           }
     }
     
+    /** The option string for requesting help information */
+    final public static String helpOption = "-help";
+    /** The option string for requesting interactive mode */
+    final public static String interactiveOption = "-i";
+    
     /** A programmatic interface to the compiler that returns the exit code, but
      * does not itself call System.exit.  [This is called compiler rather than
      * compile as in com.sun.tools.javac.Main because we also have to override
@@ -103,7 +108,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                         args[0].equals(JmlOptionName.USEJAVACOMPILER.optionName());
                 if (useJavaCompiler) {
                     errorcode = com.sun.tools.javac.Main.compile(args);
-                } else if (args.length > 0 && args[0].equals("-i")) {
+                } else if (args.length > 0 && args[0].equals(interactiveOption)) {
                     // interactive mode
                     errorcode = new org.jmlspecs.openjml.Interactive().run(args);
                     if (Utils.jmldebug || errorcode != 0) System.out.println("ENDING with exit code " + errorcode); 
@@ -154,14 +159,14 @@ public class Main extends com.sun.tools.javac.main.Main {
             // Note that the Java option processing happens in compile below.
             // Those options are not read at the time of the register call,
             // but the register call has to happen before compile is called.
-            if (Options.instance(context).get("-help") != null) {
+            if (Options.instance(context).get(helpOption) != null) {
                 exit = super.compile(args,context);
                 helpJML();
             } else {
                 exit = super.compile(args,context);
             }
         }
-//        JmlSpecs specs = JmlSpecs.instance(context);
+//        JmlSpecs specs = JmlSpecs.instance(context); // This is just for debugging
 //        specs.printDatabase();
         return exit;
     }
@@ -195,7 +200,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     o = JmlOptionName.find(s.substring(0,k));
                     if (s.substring(k+1,s.length()).equals("false")) res = null;
                 }
-                if (s.equals("-help")) options.put(s,"");
+                if (s.equals(helpOption)) options.put(s,"");
             }
             if (o == null) {
                 newargs.add(s);

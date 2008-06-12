@@ -14,16 +14,10 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.comp.AttrContext;
-import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.comp.JmlEnter;
-import com.sun.tools.javac.comp.JmlResolve;
-import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.parser.TreePrinter;
@@ -34,25 +28,42 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
+/** This class executes the openjml tool interactively; call the main routine
+ * to begin the interactive command loop.  See the list of implemented commands
+ * in the 'command' method.
+ * @author David Cok
+ */
 public class Interactive extends Main {
 
-    /**
-     * @param args
+    /** This is the main entry point for the application
+     * @param args the non-null array of command line argument
      */
+    //@ requires args != null && \nonnullelements(args);
+    //@ diverges true;
     public static void main(String[] args) {
         System.exit(new Interactive().run(args));
     }
     
+    /** The constructor for an object of this class, initiating the base class
+     * with System.out as the output location. */
     public Interactive() {
         super("jml-interactive", new PrintWriter(System.out, true));
     }
     
+    /** The top-level routine that implements the interactive command processing.
+     * 
+     * @param args the arguments as supplied on the command line
+     * @return 0
+     */ 
+    //@ requires args != null && \nonnullelements(args);
     public int run(String[] args) {
         setup(args);
         commandLoop();
         System.out.println("... exiting");
-        return 0; //compiler.compile(args);
+        return 0;
     }
+    
+    // FIXME - finish documentation
     
     public Context context;
     public JavacFileManager fileManager;
@@ -69,6 +80,15 @@ public class Interactive extends Main {
 //        }
     }
     
+    /** This method executes a command loop; each iteration does the following:
+     * <UL>
+     * <LI> prints a prompt to System.out
+     * <LI> reads a string from System.in (terminated by a newline)
+     * <LI> executes that string as a command (calling method command)
+     * </UL>
+     * The loop terminates when (a) the command method returns -1, (b) an 
+     * exception occurs when reading input or executing the command.
+     */ 
     public void commandLoop() {
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -89,6 +109,13 @@ public class Interactive extends Main {
         }
     }
     
+    /** This executes an interactive command; it returns -1 if the command loop
+     * should exit.  If the input command is null, -1 is returned.
+     * @param command the possibly null input command
+     * @return -1 if the command loop is to be exited, non-negative otherwise
+     * @throws Exception
+     */
+    //@ ensures command == null ==> \result == -1;
     public int command(String command) throws Exception {
         int e = 0;
         if (command == null) return -1;
@@ -104,6 +131,11 @@ public class Interactive extends Main {
         return e;
     }
     
+    /** Executes the help command
+     * 
+     * @param command - ignored, but should be "help"
+     * @return 0
+     */
     public int help(String command) {
         System.out.println("  Implemented commands:");
         System.out.println("     help - lists the commands");

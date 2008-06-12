@@ -5,6 +5,8 @@ import java.io.StringWriter;
 import java.io.Writer;
 
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
+import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.tree.JCTree;
@@ -23,22 +25,36 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 //        });
 //    }
     
-    Writer out;
-    public String indentAmount;
-    public String indentExtra;
-    protected String currentIndent;
+    /** The Writer to which this pretty printer prints, initialized in the
+     * constructor
+     */
+    /*@ non_null*/ Writer out;
     
-    public JmlPretty(Writer out, boolean sourceOutput) {
+    /** The character string that is the leading part of each line*/
+    /*@ non_null*/ public String indentAmount;
+    
+    /** The character string that is the additional indent */
+    /*@ non_null*/ public String indentExtra;
+    
+    /** The current indent string, only used internally; this should be
+     * indentAmount + zero or more copies of indentExtra
+     */
+    ///*@ non_null*/ protected String currentIndent;
+    
+    // TODO - and what about the indents?
+    public JmlPretty(/*@non_null*/Writer out, boolean sourceOutput) {
         super(out, sourceOutput);
         this.out = out;
     }
     
-    public JmlPretty(String indentAmount, String indentExtra) {
+    // TODO
+    public JmlPretty(/*@non_null*/String indentAmount, /*@non_null*/String indentExtra) {
         this(new StringWriter(),true);
         this.indentAmount = indentAmount;
         this.indentExtra = indentExtra;
     }
     
+    // TODO
     static String write(String in, String ad, JCTree tree) {
         StringWriter sw = new StringWriter();
         JmlPretty p = new JmlPretty(sw,true);
@@ -48,71 +64,74 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         return sw.toString();
     }
     
-    public void notImpl(JCTree that) {
-        try {
+    /** A method used for those pretty-printing methods that are not yet
+     * implemented; it just prints the class type.
+     * @param that a non-null AST node
+     * @throws IOException if there is a problem writing to the writer
+     */
+    public void notImpl(/*@non_null*/JCTree that) throws IOException {
             out.write("<");
             out.write(that.getClass().toString());
             out.write(">");
-            } catch (Exception e) { } // ignore - too much trouble to fix just for printing
+    }
+    
+    /** A method used to report exceptions that happen on writing to the writer
+     * 
+     * @param that a non-null AST node
+     * @param e the exception that is being reported
+     */
+    public void perr(/*@ non_null*/JCTree that, /*@ non_null*/Exception e) {
+        System.err.println(e.getClass() + " error in JMLPretty: " + that.getClass());
     }
 
-    @Override
     public void visitJmlBinary(JmlBinary that) {
         try {
             that.lhs.accept(this);
             out.write(that.op.internedName());
             that.rhs.accept(this);
-        } catch (Exception e) {}
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlLblExpression(JmlLblExpression that) {
-        try { notImpl(that); } catch (Exception e) {}
-        
+        try { notImpl(that); } // FIXME
+        catch (IOException e) { perr(that,e); }
     }
     
-    @Override
     public void visitJmlRefines(JmlRefines that) {
         try { 
             out.write(that.toString());
-        } catch (Exception e) {}
+        } catch (IOException e) { perr(that,e); }
     }
     
-    @Override
     public void visitJmlImport(JmlImport that) {
         // FIXME - print model
         visitImport(that);
     }
 
-    @Override
     public void visitJmlFunction(JmlFunction that) {
         try { 
             out.write(that.token.internedName());
-        } catch (Exception e) {}
-        
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
         // FIXME
     }
     
 
-    @Override
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
         try { 
             for (JCTree.JCStatement s: that.stats) {
-            out.write("         ");
-            out.write(that.token.internedName());
-            out.write(" ");
-            s.accept(this);
-            out.write(";");
-            println();
+                out.write("         ");
+                out.write(that.token.internedName());
+                out.write(" ");
+                s.accept(this);
+                out.write(";");
+                println();
             }
-        } catch (Exception e) {}
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
         try { 
             out.write("         ");
@@ -121,63 +140,54 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             that.expression.accept(this);
             out.write(";");
             println();
-        } catch (Exception e) {}
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
-        try { notImpl(that); } catch (Exception e) {}
-        
+        try { notImpl(that); // FIXME
+        } catch (IOException e) { perr(that,e); } 
     }
 
-    @Override
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) {
-        try { notImpl(that); } catch (Exception e) {}
-        
+        try { notImpl(that);  // FIXME
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlMethodClauseAssignable(JmlMethodClauseAssignable that) {
-        try { notImpl(that); } catch (Exception e) {}
-        
+        try { notImpl(that);  // FIXME
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
-        try { notImpl(that); } catch (Exception e) {}
-        
+        try { notImpl(that);  // FIXME
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlMethodSpecs(JmlMethodSpecs that) {
         try { 
             for (JmlSpecificationCase c: that.cases) {
                 c.accept(this);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) { perr(that,e); }
         
     }
 
-    @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        try { notImpl(that); } catch (Exception e) {}
-        
+        try { notImpl(that);  // FIXME
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {
-        try { notImpl(that); } catch (Exception e) {}
-        
+        try { notImpl(that);  // FIXME
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlSingleton(JmlSingleton that) {
         try {
             out.write(that.toString());
-        } catch (Exception e) {}
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlSpecificationCase(JmlSpecificationCase that) {
         try { 
             out.write("      ");
@@ -188,41 +198,48 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 c.accept(this);
                 //s.append(c.toString(indent2));
             }
-        } catch (Exception e) {}
-        
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlStatement(JmlStatement that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { notImpl(that);  // FIXME
+        } catch (IOException e) { perr(that,e); }
         
     }
 
-    @Override
     public void visitJmlStatementLoop(JmlStatementLoop that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { notImpl(that);  // FIXME
+        } catch (IOException e) { perr(that,e); }
         
     }
 
-    @Override
     public void visitJmlStatementSpec(JmlStatementSpec that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { notImpl(that);  // FIXME
+        } catch (IOException e) { perr(that,e); }
         
     }
 
-    @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { 
+            print(that.token.internedName());
+            print(" ");
+            if (that.label != null) {
+                print(that.label);
+                print(" ");
+            }
+            printExpr(that.expression); 
+            print(";");
+            println();
+        } catch (IOException e) { perr(that,e); }
         
     }
 
-    @Override
     public void visitJmlStatementDecls(JmlStatementDecls that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { notImpl(that);  // FIXME
+        } catch (IOException e) { perr(that,e); }
         
     }
 
-    @Override
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
         try { 
             printFlags(that.modifiers.flags);
@@ -231,70 +248,66 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             printExpr(that.expression);
             print(";");
             println();
-        } catch (Exception e) {}
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
         try { 
             print(that.decl);
-        } catch (Exception e) {}
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
         try { 
             print(that.token.internedName());
             print(" ");
             print("?????"); // FIXME
             println();
-        } catch (Exception e) {}
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { notImpl(that); }  // FIXME
+        catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlGroupName(JmlGroupName that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { notImpl(that); } // FIXME
+        catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
         try { 
             out.write(that.token.internedName());  // FIXME - indent, eol
-        } catch (Exception e) {}
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { notImpl(that); 
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { notImpl(that); 
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { notImpl(that); 
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { notImpl(that); 
+        } catch (IOException e) { perr(that,e); }
     }
 
-    @Override
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-        try { out.write(that.token.internedName()); } catch (Exception e) {}
+        try { out.write(that.token.internedName()); 
+        } catch (IOException e) { perr(that,e); }
         
     }
 
-    @Override
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
         try {
             that.expression.accept(this);
@@ -331,14 +344,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 //        } catch (Exception e) {}
 //    }
 
-    @Override
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-        try { out.write(that.token.internedName()); } catch (Exception e) {}
+        try { 
+            out.write(that.token.internedName()); 
+        } catch (IOException e) { perr(that,e); }
     }
     
-    @Override
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
-        try { notImpl(that); } catch (Exception e) {}
+        try { notImpl(that);         
+        } catch (IOException e) { perr(that,e); }
+
     }
 
 
@@ -369,52 +384,58 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         align();
     }
 
-    @Override
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
         super.visitDoLoop(that);
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
         super.visitForeachLoop(that);
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlForLoop(JmlForLoop that) {
         super.visitForLoop(that);
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         super.visitWhileLoop(that);
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
         visitClassDef(that);  // FIXME
     }
 
-    @Override
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
         visitTopLevel(that);  // FIXME
     }
 
-    @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         visitMethodDef(that);  // FIXME
     }
 
-    @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);  // FIXME
+    }
+
+    @Override
+    public void visitAuxVarDSA(AuxVarDSA that) {
+        try {
+            out.write(that.toString());
+        } catch(IOException e) {}
+    }
+
+    @Override
+    public void visitProgVarDSA(ProgVarDSA that) {
+        try {
+            out.write(that.toString());
+        } catch(IOException e) {}
     }
 
 }

@@ -1,4 +1,5 @@
 ROOT=..
+SPECS=../../../JMLspecs/trunk
 VERSION:=$(shell date +%Y%m%d)
 NAME=jml-${VERSION}.tar.gz
 
@@ -20,13 +21,13 @@ jars:
 	cp -r ${ROOT}/OpenJDK/bin/* temp
 	cp -r ${ROOT}/FreeBoogie/bin/* temp
 	mkdir temp/specs14 temp/specs15 temp/specs16
-	cp -r ${ROOT}/OpenJML/specs/specs14/* temp/specs14
+	cp -r ${SPECS}/java4/* temp/specs14
 	find temp/specs14 -name .svn -exec rm -rf \{\} +
 	cp -r temp/specs14/* temp/specs15
-	cp -r ${ROOT}/OpenJML/specs/specs15/* temp/specs15
+	cp -r ${SPECS}/java5/* temp/specs15
 	find temp/specs15 -name .svn -exec rm -rf \{\} +
 	cp -r temp/specs15/* temp/specs16
-	cp -r ${ROOT}/OpenJML/specs/specs16/* temp/specs16
+	cp -r ${SPECS}/java6/* temp/specs16
 	find temp/specs16 -name .svn -exec rm -rf \{\} +
 	(cd temp/specs16; jar -cf ../../jmlspecs.jar . )
 	mkdir temp2
