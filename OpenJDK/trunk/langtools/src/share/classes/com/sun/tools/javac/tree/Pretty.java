@@ -68,7 +68,7 @@ public class Pretty extends JCTree.Visitor {
     /** Set when we are producing source output.  If we're not
      *  producing source output, we can sometimes give more detail in
      *  the output even though that detail would not be valid java
-     *  soruce.
+     *  source.
      */
     private final boolean sourceOutput;
 
