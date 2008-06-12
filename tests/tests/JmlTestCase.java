@@ -24,7 +24,7 @@ import com.sun.tools.javac.util.Options;
  * @author David Cok
  *
  */
-public class JmlTestCase extends TestCase {
+public abstract class JmlTestCase extends TestCase {
 
     // References to various tools needed in testing
     Context context;
@@ -134,7 +134,7 @@ public class JmlTestCase extends TestCase {
 
 
     /* Just to avoid Junit framework complaints about no tests */
-    public void test() {} 
+//    public void test() {} 
 }
 
 

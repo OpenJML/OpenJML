@@ -3,7 +3,6 @@ package com.sun.tools.javac.comp;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;

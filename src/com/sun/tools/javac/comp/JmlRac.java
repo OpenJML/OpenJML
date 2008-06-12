@@ -9,6 +9,8 @@ import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeCopier;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
+import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
@@ -61,9 +63,9 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
     JCLiteral nulllit;
     JCLiteral maxIntLit;
     
-    static public String invariantMethodString = "_JML$$$checkInvariant";
+    static final public String invariantMethodString = "_JML$$$checkInvariant";
     Name invariantMethodName;
-    static public String staticinvariantMethodString = "_JML$$$checkStaticInvariant";
+    static final public String staticinvariantMethodString = "_JML$$$checkStaticInvariant";
     Name staticinvariantMethodName;
     
     Type integerType;
@@ -1057,7 +1059,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
     
     protected JCIdent makeThis(ClassSymbol csym) {
         JCIdent id = make.Ident(names._this);
-        Scope.Entry e = csym.members().lookup(names._this);
+        //Scope.Entry e = csym.members().lookup(names._this);
         id.type = csym.type;
         id.sym = new VarSymbol(0, id.name, csym.type, csym);
         return id;
@@ -1254,7 +1256,6 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         return make.Exec(c);
     }
     
-    @Override
     public void visitJmlStatementExpr(JmlStatementExpr tree) {
         int p = tree.pos;
         make_pos = tree;
@@ -1290,7 +1291,6 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         }
     }
 
-    @Override
     public void visitJmlBinary(JmlBinary that) {  // FIXME - how do we handle unboxing, casting
         JCExpression lhs = translate(that.lhs);
         JCExpression rhs = translate(that.rhs);
@@ -1331,22 +1331,18 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 }
     }
 
-    @Override
     public void visitJmlFunction(JmlFunction that) {
         log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlFunction");
     }
 
-    @Override
     public void visitJmlGroupName(JmlGroupName that) {
         log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlGroupName");
     }
 
-    @Override
     public void visitJmlImport(JmlImport that) {
         log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlImport");
     }
 
-    @Override
     public void visitJmlLblExpression(JmlLblExpression that) {
         JCExpression lit = makeLit(syms.stringType,that.label.toString());
         JCFieldAccess m = null;
@@ -1363,78 +1359,65 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         result = c;
     }
 
-    @Override
     public void visitJmlMethodClauseAssignable(JmlMethodClauseAssignable that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlMethodSpecs(JmlMethodSpecs that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         // FIXME - implement
         
     }
 
-    @Override
     public void visitJmlRefines(JmlRefines that) {
         log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlRefines");
     }
 
-    @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {
         // FIXME - implement
         
     }
 
-    @Override
     public void visitJmlSingleton(JmlSingleton that) {
         result = that;
         switch (that.token) {
@@ -1485,12 +1468,10 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
     }
 
 
-    @Override
     public void visitJmlSpecificationCase(JmlSpecificationCase that) {
         log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlSpecificationCase");
     }
 
-    @Override
     public void visitJmlStatement(JmlStatement that) {
         switch (that.token) {
             case SET:
@@ -1504,87 +1485,72 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         }
     }
 
-    @Override
     public void visitJmlStatementDecls(JmlStatementDecls that) {
         // FIXME - only handles the first one
         result = translate(that.list.first());
     }
 
-    @Override
     public void visitJmlStatementLoop(JmlStatementLoop that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlStatementSpec(JmlStatementSpec that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
         log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlTypeClauseConditional");
     }
 
-    @Override
     public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
         log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlTypeClauseConstraint");
     }
 
-    @Override
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
         log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlTypeClauseDecl");
     }
 
-    @Override
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
         log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlTypeClauseExpr");
     }
 
-    @Override
     public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
         // TODO Auto-generated method stub
         
     }
 
-    @Override
     public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
         // TODO Auto-generated method stub
         
@@ -1598,7 +1564,6 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         return s;
     }
 
-    @Override
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
         if (that.loopSpecs.isEmpty()) {
             super.visitDoLoop(that);
@@ -1618,7 +1583,6 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         //System.out.println("REWRITTEN " + result);
     }
 
-    @Override
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
         if (that.loopSpecs.isEmpty()) {
             super.visitForeachLoop(that);
@@ -1638,7 +1602,6 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         result = make.Block(0,stats.toList());
     }
 
-    @Override
     public void visitJmlForLoop(JmlForLoop that) {
         if (that.loopSpecs.isEmpty()) {
             super.visitForLoop(that);
@@ -1658,7 +1621,6 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         result = make.Block(0,stats.toList());
     }
 
-    @Override
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         if (that.loopSpecs.isEmpty()) {
             super.visitWhileLoop(that);
@@ -1720,7 +1682,6 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         }
     }
     
-    @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
         if ((that.sym.flags() & Flags.INTERFACE) != 0) {
             result = that;
@@ -1729,18 +1690,27 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         visitClassDef(that);  // FIXME
     }
 
-    @Override
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
         visitTopLevel(that);  // FIXME
     }
 
-    @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         visitMethodDef(that);  // FIXME
     }
 
-    @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);  // FIXME
+    }
+
+    @Override
+    public void visitAuxVarDSA(AuxVarDSA that) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void visitProgVarDSA(ProgVarDSA that) {
+        // TODO Auto-generated method stub
+        
     }
 }

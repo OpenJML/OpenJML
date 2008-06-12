@@ -5,7 +5,7 @@ JR=$DIR/jmlcheck.jar
 RT=$DIR/jmlruntime.jar
 ##SP=$DIR/jmlspecs.jar
 
-SD=$DIR/specs
-SP="$SD/specs16;$SD/specs15;$SD/specs14"
+SD=$DIR/../JMLspecs/trunk
+SP="$SD/java6;$SD/java5;$SD/java4"
 
 java -jar "$JR" -classpath "$RT;$CLASSPATH" -specs "$SP" $@

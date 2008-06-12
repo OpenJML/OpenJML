@@ -132,7 +132,7 @@ public class JmlScanner extends Scanner {
 
     /**
      * When jml is true, then (non-backslash) JML keywords are recognized if
-     * jmlkeyword is true and not if it is false; this is set by the parser
+     * jmlkeyword is true and not if jmlkeyword is false; this is set by the parser
      * according to whether non-backslash JML tokens should be recognized in the
      * current parser state (e.g. such tokens are not recognized while within
      * expressions).
@@ -146,7 +146,7 @@ public class JmlScanner extends Scanner {
     protected CommentStyle jmlcommentstyle;
 
     /** Valid after nextToken() */
-    // @ nullable
+    //@ nullable
     protected JmlToken     jmlToken;
 
     /**
@@ -204,7 +204,7 @@ public class JmlScanner extends Scanner {
      * @return the JML token for the most recent scan, null if the token is
      *         purely a Java token
      */
-    // @ pure nullable
+    //@ pure nullable
     public JmlToken jmlToken() {
         return jmlToken;
     }
@@ -292,7 +292,7 @@ public class JmlScanner extends Scanner {
     // TODO: We do quite a bit of hackery here to avoid changes in the Scanner.
     // We did however have to change some permissions, so perhaps we should have bitten
     // the bullet and just combined all of this into a revised scanner. It would
-    // have not made possible our goal of keeping changes in the javac copde minimal,
+    // have not made possible our goal of keeping changes in the javac code minimal,
     // for maintenance reasons, but it would have made for a simpler and more
     // understandable and better designed JML scanner.
     @Override

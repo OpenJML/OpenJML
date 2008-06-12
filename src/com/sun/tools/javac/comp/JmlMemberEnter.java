@@ -735,7 +735,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                 sb.append("\n    Signatures found:");
                 int len = sb.length();
                 e = javaClassSymbol.members().lookup(specMethod.name);
-                loop: while (sb.length() < 500) {
+                while (sb.length() < 500) {
                     //if (e.sym != null && e.sym.kind != Kinds.MTH && e.sym.owner == javaClassSymbol) e = e.next();
                     //if (!(e.sym != null && e.sym.owner == javaClassSymbol)) break;
                     // Allow to match inherited methods
