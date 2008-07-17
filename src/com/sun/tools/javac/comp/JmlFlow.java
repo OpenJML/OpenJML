@@ -13,7 +13,8 @@ import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
-/** This extends FLow to add flow checks to specifications.  FLow checks for:<BR>
+/**
+ * This extends Flow to add flow checks to specifications.  Flow checks for:<BR>
  * uninitialized statements<BR>
  * assignments to final variables<BR>
  * unreachable statements<BR>
@@ -23,8 +24,8 @@ import com.sun.tools.javac.util.Log;
  * exception never thrown in try<BR>
  * The JML additions just make sure that ghost fields, model methods and model classes
  * are visited by the flow tree walker.
- * @author David Cok
  *
+ * @author David Cok
  */
 public class JmlFlow extends Flow {
 

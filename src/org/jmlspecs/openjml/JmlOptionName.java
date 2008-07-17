@@ -3,16 +3,17 @@ package org.jmlspecs.openjml;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Options;
 
-/** This is an Enum that contains information about command-line
- * options for JML and related tools.  To assist with future
- * extensions, do not use the Enum type directly; rather use the 
- * OptionInterface interface.
+/**
+ * This is an Enum that contains information about command-line options for JML
+ * and related tools. To assist with future extensions, do not use the Enum type
+ * directly; rather use the OptionInterface interface.
  * 
  * @author David Cok
- *
  */
-// FIXME - investigate integrating this with Option, OptionName; also change to something other than an enum since it is not extensible
-// FIXME _ best practice would use a resources file for all the help information; javac loads its resources on demand
+// FIXME - investigate integrating this with Option, OptionName; also change to
+// something other than an enum since it is not extensible
+// FIXME - best practice would use a resources file for all the help
+// information; javac loads its resources on demand
 public enum JmlOptionName implements OptionInterface {
 
     SPECS("-specs",true,"Specifies the directory path to search for specification files"),
@@ -29,6 +30,7 @@ public enum JmlOptionName implements OptionInterface {
     RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks"),
     NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default"),
     ESC("-esc",false,"Enables static checking"),
+    ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!"),
     ;
     /** Convenience field for the name of the SPECS option. */
     public final static String specs = SPECS.optionName();

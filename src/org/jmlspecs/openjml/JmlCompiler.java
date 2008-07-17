@@ -27,13 +27,13 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Pair;
 
-/** This class extends the JavaCompiler class in order to find and parse
- * specification files when a java source file is parsed.
+/**
+ * This class extends the JavaCompiler class in order to find and parse
+ * specification files when a Java source file is parsed.
+ * 
  * @author David Cok
- *
  */
 public class JmlCompiler extends JavaCompiler {
-
 
     public static void preRegister(final Context context) {
         context.put(compilerKey, new Context.Factory<JavaCompiler>() {

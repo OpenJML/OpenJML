@@ -25,15 +25,16 @@ import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
 
-/** This class is used to construct visitors that walk a Java/JML parse tree.
- * The visit methods each call the method 'scan' on any children, which in
- * turn causes those subtrees to be visited.  A derived class that intends to do
- * some work while walking the tree will override selected visit methods to
- * do some work for that node and then will call the super method in order to
- * continue the walking.
+/**
+ * This class is used to construct visitors that walk a Java/JML parse tree. The
+ * visit methods each call the method 'scan' on any children, which in turn
+ * causes those subtrees to be visited. A derived class that intends to do some
+ * work while walking the tree will override selected visit methods to do some
+ * work for that node and then will call the super method in order to continue
+ * the walking.
  * 
  * @author David Cok
- *
+ * 
  */
 public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 

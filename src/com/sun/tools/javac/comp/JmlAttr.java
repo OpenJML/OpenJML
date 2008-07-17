@@ -67,40 +67,40 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
-/** This class is an extension of the Attr class; it adds visitors
- * methods so that as the Attr class walks the entire AST, attributing
- * all nodes (that is doing name lookup and type assignment), the JML parts of the source tree are attributed
- * and checked as well.  
+/**
+ * This class is an extension of the Attr class; it adds visitors methods so
+ * that as the Attr class walks the entire AST, attributing all nodes (that is
+ * doing name lookup and type assignment), the JML parts of the source tree are
+ * attributed and checked as well.
  * <P>
- * On input to this class all top-level types and
- * all their members, recursively, are already entered into the symbol table
- * (but local classes and declarations are not).  Also, the types of all
- * annotations and of member fields and member methods (return type, arguments
- * and type arguments) are already attributed. 
+ * On input to this class all top-level types and all their members,
+ * recursively, are already entered into the symbol table (but local classes and
+ * declarations are not). Also, the types of all annotations and of member
+ * fields and member methods (return type, arguments and type arguments) are
+ * already attributed.
  * <P>
- * The class has the responsibility of attributing the rest of the AST (e.g.
+ * The class has the responsibility of attributing the rest of the AST (e.g.,
  * method bodies, field initializers, expressions within JML annotations, etc.).
  * It also checks that JML modifiers are used correctly.
  * 
  * @author David Cok
- *
  */
 /* Note on the visitor class: Each node visitor is responsible to 
  * do the following:
  * a) any attribution of its subtrees, by calling an appropriate
- * attrib... method (e.g. attribExpr or attribType)
- * b) checking that the types of those subtrees are correct
- * c) determining the type of the node itself
+ * attrib... method (e.g., attribExpr or attribType),
+ * b) checking that the types of those subtrees are correct,
+ * c) determining the type of the node itself,
  * d) checking that against the value of pt.  If a check call is
  * used to do this, then tree.type is set for you.  If you do the
  * checking yourself, then you have to set tree.type directly.
- * The check call handles casting, widening etc. for you.
- * e) set the value of result to the resulting type
+ * The check call handles casting, widening etc. for you, and
+ * e) set the value of result to the resulting type.
  * 
  * This design appears to involve a lot of extra work.  Instead of
  * having the attrib calls pass in an expected type, which is set as
- * a member of the Attr class, why not just check it upon return.
- * That would save the stacking that is necessary in attribTree
+ * a member of the Attr class, why not just check it upon return?
+ * That would save the stacking that is necessary in attribTree.
  */
 public class JmlAttr extends Attr implements IJmlVisitor {
 

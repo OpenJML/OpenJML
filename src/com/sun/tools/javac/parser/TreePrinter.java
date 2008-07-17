@@ -6,8 +6,10 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 
 import com.sun.tools.javac.tree.JCTree;
 
-/** This class walks a JML AST printing debug information about each node.
- * Note that it needs a reference to the parser in order to get position information.
+/**
+ * This class walks a JML AST printing debug information about each node. Note
+ * that it needs a reference to the parser in order to get position information.
+ * 
  * @author David Cok
  */
 public class TreePrinter extends JmlTreeScanner {

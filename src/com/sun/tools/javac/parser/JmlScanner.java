@@ -1,7 +1,5 @@
 package com.sun.tools.javac.parser;
 
-// @author David Cok
-
 import java.nio.CharBuffer;
 
 import javax.tools.JavaFileObject;
@@ -40,8 +38,9 @@ import com.sun.tools.javac.util.Name;
  * protected that are not declared protected in the current version of OpenJDK.
  * No other changes to Scanner are made, which does require a few complicating
  * workarounds in this code (and probably ought to be redesigned to be simpler
- * to understand and maintain\).
- * 
+ * to understand and maintain).
+ *
+ * @author David Cok
  */
 public class JmlScanner extends Scanner {
 

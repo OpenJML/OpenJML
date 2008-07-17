@@ -27,18 +27,18 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
-/** This class extends Enter.  Enter has the job of creating symbols for all
- * the types mentioned in a set of parse trees.  JmlEnter adds to that 
- * functionality to create symbols for all JML types (e.g. model classes)
- * that are present in the parse trees.
+/**
+ * This class extends Enter, which has the job of creating symbols for all the
+ * types mentioned in a set of parse trees. JmlEnter adds to that functionality
+ * to create symbols for all JML types (e.g., model classes) that are present in
+ * the parse trees.
  * <P>
- * JmlEnter expects that a compilation unit knows its specification files.
- * It walks those specification files, matching classes in the specification
- * file to the corresponding classes in the Java file, making links from the
- * Java classes to their specifications.
+ * JmlEnter expects that a compilation unit knows its specification files. It
+ * walks those specification files, matching classes in the specification file
+ * to the corresponding classes in the Java file, making links from the Java
+ * classes to their specifications.
  * 
  * @author David Cok
- *
  */
 public class JmlEnter extends Enter {
 

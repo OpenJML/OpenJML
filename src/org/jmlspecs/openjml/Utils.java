@@ -11,7 +11,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Name;
 
-/** This class holds a number of static constants and utility methods */
+/** This class holds a number of static constants and utility methods. */
 public class Utils {
 
     /** Global utility value that enables printing of debugging information. */
@@ -124,10 +124,10 @@ public class Utils {
     public static final String jmlAnnotationPackage = "org.jmlspecs.annotations";
     
     
-    // The following are stored here globally (e.g. for all compilation contexts).
-    // I expect they will always be constant, but one could, for example, reset
-    // them by a command-line option.  No guarantees on the behavior of the tool
-    // if these are changed during processing.
+    // The following are stored here globally (e.g., for all compilation
+	// contexts). I expect they will always be constant, but one could, for
+	// example, reset them by a command-line option. No guarantees on the
+	// behavior of the tool if these are changed during processing.
 
     /** This string is the fully-qualified name of the JML compiler messages file */
     public static String messagesJML = "org.jmlspecs.openjml.messages";

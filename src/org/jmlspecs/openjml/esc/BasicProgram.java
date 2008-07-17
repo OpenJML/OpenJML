@@ -19,20 +19,20 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Name;
 
-
-/** A BasicProgram is an equivalent representation of a method.
- * There are three forms of BasicProgram
- * <UL>
- * <LI>(1) in formation - in this form the statements may be any JCTree statements
- * </LI><LI>(2) preDSA - in this form, the statements may be assignments with pure RHS,
- * simple method calls (including an assignment of the result of a method call),
- * assume statements and assert statements.
- * </LI><LI>(3) postDSA - in this form, all assigned variables are unique (in DSA form),
- * and all assignments are converted into assumptions
- * </LI></UL>
+/**
+ * A BasicProgram is an equivalent representation of a method. There are three
+ * forms of BasicProgram:
+ * <ol>
+ * <li>in formation - in this form the statements may be any JCTree
+ * statements,</li>
+ * <li>preDSA - in this form, the statements may be assignments with pure
+ * RHS, simple method calls (including an assignment of the result of a method
+ * call), assume statements and assert statements, and</li>
+ * <li>postDSA - in this form, all assigned variables are unique (in DSA
+ * form), and all assignments are converted into assumptions.</li>
+ * </ul>
  * 
  * @author David Cok
- *
  */
 public class BasicProgram {
 

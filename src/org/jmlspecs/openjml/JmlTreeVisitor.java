@@ -6,13 +6,16 @@ import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 
 import com.sun.source.tree.TreeVisitor;
 
-/** This interface is an interface for AST visitors with 
- * parameters and return types, as described in TreeVisitor.
+/**
+ * This is an interface for AST visitors with parameters and return types, as
+ * described in TreeVisitor.
  * 
  * @author David Cok
- *
- * @param <R> the return type from the visitor methods
- * @param <P> the type of additional parameters (or Void)
+ * 
+ * @param <R>
+ *            the return type from the visitor methods
+ * @param <P>
+ *            the type of additional parameters (or Void)
  */
 public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
 

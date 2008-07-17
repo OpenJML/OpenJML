@@ -45,16 +45,15 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
-/** This class is the main driver for executing ESC on a Java/JML AST.
- * It formulates the material to be proved, initiates the proofs, and
- * obtains and reports the results.  The class is also a TreeScanner
- * so that it can easily walk the tree to find all class and method
- * declarations.
+/**
+ * This class is the main driver for executing ESC on a Java/JML AST. It
+ * formulates the material to be proved, initiates the proofs, and obtains and
+ * reports the results. The class is also a TreeScanner so that it can easily
+ * walk the tree to find all class and method declarations.
  * 
  * FIXME - describe calling mechanism
  * 
  * @author David R. Cok
- *
  */
 public class JmlEsc extends JmlTreeScanner {
 

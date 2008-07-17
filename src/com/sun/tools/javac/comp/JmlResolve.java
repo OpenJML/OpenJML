@@ -35,23 +35,23 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
-/** This class extends Resolve in order to implement lookup of JML names.  In
- * the current design of OpenJML, we use just one symbol table for Java and
- * JML names.  This is no restriction because JML declarations have to be
- * legal Java declarations and have to create a legal Java compilation unit if
- * they were actual Java declarations.  However JML names must only be visible 
- * from within JML annotations.  To implement that, each JML declaration has
- * its JMLBIT set in the modifiers bit-vector and the field JmlResolve.allowJML
- * determines whether or not JML-flagged declarations are returned as the 
- * result of a name lookup: if allowJML is true, any declaration is returned;
- * if allowJML is false, JML-flagged declarations are not returned.
+/**
+ * This class extends Resolve in order to implement lookup of JML names. In the
+ * current design of OpenJML, we use just one symbol table for Java and JML
+ * names. This is no restriction because JML declarations have to be legal Java
+ * declarations and have to create a legal Java compilation unit if they were
+ * actual Java declarations. However JML names must only be visible from within
+ * JML annotations. To implement that, each JML declaration has its JMLBIT set
+ * in the modifiers bit-vector and the field JmlResolve.allowJML determines
+ * whether or not JML-flagged declarations are returned as the result of a name
+ * lookup: if allowJML is true, any declaration is returned; if allowJML is
+ * false, JML-flagged declarations are not returned.
  * <P>
  * MAINTENANCE ISSUE: Unfortunately, the methods that do the lookup had to be
- * copied wholesale from the superclass, in order to insert the JML checks.
- * Thus integration of changes will have to be performed by hand.
+ * copied wholesale from the superclass, in order to insert the JML checks. Thus
+ * integration of changes will have to be performed by hand.
  * 
  * @author David Cok
- *
  */
 public class JmlResolve extends Resolve {
 
