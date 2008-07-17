@@ -28,9 +28,11 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
-/** This class executes the openjml tool interactively; call the main routine
- * to begin the interactive command loop.  See the list of implemented commands
- * in the 'command' method.
+/**
+ * This class executes the OpenJML tool interactively; call the main routine to
+ * begin the interactive command loop. See the list of implemented commands in
+ * the 'command' method.
+ * 
  * @author David Cok
  */
 public class Interactive extends Main {

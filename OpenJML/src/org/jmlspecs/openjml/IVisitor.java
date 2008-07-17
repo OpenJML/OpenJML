@@ -2,12 +2,12 @@ package org.jmlspecs.openjml;
 
 import com.sun.tools.javac.tree.JCTree.*;
 
-/** This class is an interface to the JDK Visitor class.
- * Too bad it does not use it (or something like it)- they should.  
- * However, we use it as a base for extensions.
+/**
+ * This class is an interface to the JDK Visitor class. Too bad OpenJDK does not
+ * use it (or something like it)---they should. However, we use it as a base for
+ * extensions.
  * 
  * @author David Cok
- *
  */
 public interface IVisitor {
         public void visitTopLevel(JCCompilationUnit that)    ;

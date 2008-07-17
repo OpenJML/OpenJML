@@ -4,15 +4,16 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-/** This class defines the scanner tokens that represent JML 
- * syntax.
+/**
+ * This class defines the scanner tokens that represent JML syntax.
+ * 
  * @author David Cok
  */
 
-// These are represented as enums.  I'm not sure that is the best design since,
-// although Enums are nice, they are not extensible.  That is how Token is
+// These are represented as enums. I'm not sure that is the best design since,
+// although Enums are nice, they are not extensible. That is how Token is
 // implemented, and we could not extend that.
-// TODO - we should think about how to design JmlToken extensibly.
+// TODO - we should think about how to re-design JmlToken so that it is extensible.
 public enum JmlToken {
     STARTJMLCOMMENT("<JMLSTART>"),
     ENDJMLCOMMENT("<JMLEND>"),

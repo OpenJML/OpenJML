@@ -19,11 +19,13 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Messages;
 import com.sun.tools.javac.util.Options;
 
-/** This class is the main entry point for the JML tool. 
- * It uses the javac compiler, but overrides some of the functionality
- * here in order to register tools for the compiler to use that are
- * extensions with JML functionality of the usual tools.  Also the
- * handling of JML-specific options is initialized here. */
+/**
+ * This class is the main entry point for the JML tool. It uses the javac
+ * compiler, but overrides some of the functionality here in order to register
+ * tools for the compiler to use that are extensions with JML functionality of
+ * the usual tools. Also the handling of JML-specific options is initialized
+ * here.
+ */
 public class Main extends com.sun.tools.javac.main.Main {
 
     /** The compilation unit context most recently registered
@@ -53,7 +55,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         this.out = out;
     }
 
-    /** The external entry point - simply calls helper9args) and exits with the
+    /** The external entry point - simply calls helper(args) and exits with the
      * exit code returned.
      * @param args the command-line arguments
      */
@@ -237,8 +239,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * that use each other, if you can not careful.
      * @param context the compilation context into which to register the tools
      */
-    //@ requires context != null;
-    public void register(Context context) {
+    public void register(/*@ non_null @*/ Context context) {
         this.context = context;// A hack so that context is available in processArgs()
 
         // This is done later, but we do it here so that the Log is
@@ -280,7 +281,4 @@ public class Main extends com.sun.tools.javac.main.Main {
         System.err.println("Internal JML bug - please report.  Build" + JavaCompiler.version());
         ex.printStackTrace(System.out);
     }
-
-
-    
 }

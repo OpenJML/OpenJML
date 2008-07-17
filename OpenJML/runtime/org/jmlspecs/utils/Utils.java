@@ -17,7 +17,7 @@ public class Utils {
      */
     public static boolean showStack = false;
     
-    /** Reports a JML assertion (any JML precondition, postcondtion, etc.)
+    /** Reports a JML assertion (any JML precondition, postcondition, etc.)
      * failure with the given message.
      * @param message The message to report
      */
