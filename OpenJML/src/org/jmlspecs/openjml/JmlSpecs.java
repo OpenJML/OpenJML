@@ -22,13 +22,13 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.file.JavacFileManager;
+import com.sun.tools.javac.file.ZipArchive;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.JavacFileManager;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
-import com.sun.tools.javac.util.JavacFileManager.ZipArchive;
 
 /** This class manages the specifications during a compilation.  There should be
  * just one instance per compilation Context, ensured by calling the preRegister
@@ -572,7 +572,7 @@ public class JmlSpecs {
          */
         public JarDir(String zip, String name) {
             try {
-                this.zipArchive = ((JavacFileManager)context.get(JavaFileManager.class)).new ZipArchive(new ZipFile(zip));
+                this.zipArchive = new ZipArchive(((JavacFileManager)context.get(JavaFileManager.class)),new ZipFile(zip));
             } catch (IOException e) {
                 this.zipArchive = null;
             }
