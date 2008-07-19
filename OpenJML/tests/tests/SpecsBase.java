@@ -111,7 +111,7 @@ public class SpecsBase extends TCBase {
                 ss = ss.substring(0,p).replace(File.separatorChar,'.');
                 if (donttest.contains(ss)) continue;
                 String program = "public class AJDK { "+ss+" o; }";
-                //System.out.println("TESTING " + ss);
+                System.out.println("TESTING " + ss);
                 helpTCFile("AJDK.java",program,ss);
             }
         }
