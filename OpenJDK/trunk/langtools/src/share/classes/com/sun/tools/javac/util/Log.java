@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2006 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -33,11 +33,13 @@ import java.util.Map;
 import java.util.Set;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
-import com.sun.tools.javac.code.Source;
+
+import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticType;
 import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
+
 import static com.sun.tools.javac.util.LayoutCharacters.*;
 
 /** A class for error logs. Reports errors and warnings, and
@@ -82,10 +84,6 @@ public class Log {
     /** Switch: emit warning messages.
      */
     public boolean emitWarnings;
-
-    /** Enforce mandatory warnings.
-     */
-    private boolean enforceMandatoryWarnings;
 
     /** Print stack trace on errors?
      */
@@ -135,9 +133,6 @@ public class Log {
         DiagnosticListener<? super JavaFileObject> diagListener =
             context.get(DiagnosticListener.class);
         this.diagListener = diagListener;
-
-        Source source = Source.instance(context);
-        this.enforceMandatoryWarnings = source.enforceMandatoryWarnings();
     }
     // where
         private int getIntOption(Options options, String optionName, int defaultValue) {
@@ -203,6 +198,10 @@ public class Log {
      */
     private char[] buf = null;
 
+    /** The length of useful data in buf
+     */
+    private int bufLen = 0;
+
     /** The position in the buffer at which last error was reported
      */
     private int bp;
@@ -256,6 +255,7 @@ public class Log {
      */
     protected void setBuf(char[] newBuf) {
         buf = newBuf;
+        bufLen = buf.length;
         bp = 0;
         lineStart = 0;
         line = 1;
@@ -324,7 +324,7 @@ public class Log {
             return;
 
         int lineEnd = lineStart;
-        while (lineEnd < buf.length && buf[lineEnd] != CR && buf[lineEnd] != LF)
+        while (lineEnd < bufLen && buf[lineEnd] != CR && buf[lineEnd] != LF)
             lineEnd++;
         if (lineEnd - lineStart == 0)
             return;
@@ -336,12 +336,15 @@ public class Log {
         writer.flush();
     }
 
-    protected static char[] getCharContent(JavaFileObject fileObject) throws IOException {
+    protected void initBuf(JavaFileObject fileObject) throws IOException {
         CharSequence cs = fileObject.getCharContent(true);
         if (cs instanceof CharBuffer) {
-            return JavacFileManager.toArray((CharBuffer)cs);
+            CharBuffer cb = (CharBuffer) cs;
+            buf = JavacFileManager.toArray(cb);
+            bufLen = cb.limit();
         } else {
-            return cs.toString().toCharArray();
+            buf = cs.toString().toCharArray();
+            bufLen = buf.length;
         }
     }
 
@@ -353,7 +356,7 @@ public class Log {
             return false;
         try {
             if (buf == null) {
-                buf = getCharContent(currentSource());
+                initBuf(currentSource());
                 lineStart = 0;
                 line = 1;
             } else if (lineStart > pos) { // messages don't come in order
@@ -361,10 +364,10 @@ public class Log {
                 line = 1;
             }
             bp = lineStart;
-            while (bp < buf.length && bp < pos) {
+            while (bp < bufLen && bp < pos) {
                 switch (buf[bp++]) {
                 case CR:
-                    if (bp < buf.length && buf[bp] == LF) bp++;
+                    if (bp < bufLen && buf[bp] == LF) bp++;
                     line++;
                     lineStart = bp;
                     break;
@@ -374,7 +377,7 @@ public class Log {
                     break;
                 }
             }
-            return bp <= buf.length;
+            return bp <= bufLen;
         } catch (IOException e) {
             //e.printStackTrace();
             // FIXME: include e.getLocalizedMessage() in error message
@@ -462,10 +465,7 @@ public class Log {
      *  @param args   Fields of the warning message.
      */
     public void mandatoryWarning(DiagnosticPosition pos, String key, Object ... args) {
-        if (enforceMandatoryWarnings)
-            report(diags.mandatoryWarning(source, pos, key, args));
-        else
-            report(diags.warning(source, pos, key, args));
+        report(diags.mandatoryWarning(source, pos, key, args));
     }
 
     /** Report a warning that cannot be suppressed.
@@ -503,34 +503,43 @@ public class Log {
     }
 
     /** Provide a non-fatal notification, unless suppressed by the -nowarn option.
+     *  @param file   The file to which the note applies.
+     *  @param key    The key for the localized notification message.
+     *  @param args   Fields of the notification message.
+     */
+    public void note(JavaFileObject file, String key, Object ... args) {
+        report(diags.note(wrap(file), null, key, args));
+    }
+
+    /** Provide a non-fatal notification, unless suppressed by the -nowarn option.
      *  @param key    The key for the localized notification message.
      *  @param args   Fields of the notification message.
      */
     public void mandatoryNote(final JavaFileObject file, String key, Object ... args) {
-        JCDiagnostic.DiagnosticSource wrapper = null;
-        if (file != null) {
-            wrapper = new JCDiagnostic.DiagnosticSource() {
-                    public JavaFileObject getFile() {
-                        return file;
-                    }
-                    public CharSequence getName() {
-                        return JavacFileManager.getJavacBaseFileName(getFile());
-                    }
-                    public int getLineNumber(int pos) {
-                        return Log.this.getLineNumber(pos);
-                    }
-                    public int getColumnNumber(int pos) {
-                        return Log.this.getColumnNumber(pos);
-                    }
-                    public Map<JCTree, Integer> getEndPosTable() {
-                        return (endPosTables == null ? null : endPosTables.get(file));
-                    }
-                };
+        report(diags.mandatoryNote(wrap(file), key, args));
+    }
+
+    private JCDiagnostic.DiagnosticSource wrap(final JavaFileObject file) {
+        if (file == null) {
+            return null;
         }
-        if (enforceMandatoryWarnings)
-            report(diags.mandatoryNote(wrapper, key, args));
-        else
-            report(diags.note(wrapper, null, key, args));
+        return new JCDiagnostic.DiagnosticSource() {
+            public JavaFileObject getFile() {
+                return file;
+            }
+            public CharSequence getName() {
+                return JavacFileManager.getJavacBaseFileName(getFile());
+            }
+            public int getLineNumber(int pos) {
+                return Log.this.getLineNumber(pos);
+            }
+            public int getColumnNumber(int pos) {
+                return Log.this.getColumnNumber(pos);
+            }
+            public Map<JCTree, Integer> getEndPosTable() {
+                return (endPosTables == null ? null : endPosTables.get(file));
+            }
+        };
     }
 
     private DiagnosticPosition wrap(int pos) {
@@ -704,7 +713,7 @@ public class Log {
         if (findLine(pos)) {
             int column = 0;
             for (bp = lineStart; bp < pos; bp++) {
-                if (bp >= buf.length)
+                if (bp >= bufLen)
                     return 0;
                 if (buf[bp] == '\t')
                     column = (column / TabInc * TabInc) + TabInc;

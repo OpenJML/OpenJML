@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2006 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -1081,18 +1081,21 @@ public class Parser {
                     }
                     accept(RBRACKET);
                 }
-                continue loop;
+                continue loop; // DRC - changed - but document why FIXME
             case LPAREN:
                 if ((mode & EXPR) != 0) {
                     mode = EXPR;
                     t = arguments(typeArgs, t);
                     typeArgs = null;
-                    continue loop;
+                    continue loop; // DRC - changed - but document why FIXME
                 }
                 break loop;
             case DOT:
                 S.nextToken();
+                int oldmode = mode;  // DRC - FIXME - lines down to if added in b31 - investigate
+                mode &= ~NOPARAMS;
                 typeArgs = typeArgumentsOpt(EXPR);
+                mode = oldmode;
                 if ((mode & EXPR) != 0) {
                     switch (S.token()) {
                     case CLASS:
@@ -1100,19 +1103,19 @@ public class Parser {
                         mode = EXPR;
                         t = to(F.at(pos).Select(t, names._class));
                         S.nextToken();
-                        continue loop;
+                        continue loop; // DRC - changed - but document why FIXME
                     case THIS:
                         if (typeArgs != null) return illegal();
                         mode = EXPR;
                         t = to(F.at(pos).Select(t, names._this));
                         S.nextToken();
-                        continue loop;
+                        continue loop; // DRC - changed - but document why FIXME
                     case SUPER:
                         mode = EXPR;
                         t = to(F.at(pos).Select(t, names._super));
                         t = superSuffix(typeArgs, t);
                         typeArgs = null;
-                        continue loop;
+                        continue loop; // DRC - changed - but document why FIXME
                     case NEW:
                         if (typeArgs != null) return illegal();
                         mode = EXPR;
@@ -2723,7 +2726,7 @@ public class Parser {
     /** Return operation tag of binary operator represented by token,
      *  -1 if token is not a binary operator.
      */
-    protected static int optag(Token token) {
+    protected static int optag(Token token) { // DRC - made protected
         switch (token) {
         case BARBAR:
             return JCTree.OR;
