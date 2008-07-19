@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.esc;  // FIXME - change package
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Name;
 
@@ -36,17 +38,19 @@ import com.sun.tools.javac.util.Name;
  */
 public class BasicProgram {
 
-    /** A List of declarations of variables (program or auxiliary variables)
-     * that are used in this BasicProgram.
+    /** A List of declarations of variables
+     * that are used in this BasicProgram; note that these identifiers
+     * have encoded names that are different than the declared name,
+     * because of DSA renaming.
      */
     //@ non_null
-    protected List<VarDSA> declarations = new ArrayList<VarDSA>();
+    protected Collection<JCIdent> declarations = new ArrayList<JCIdent>();
     
     /** Returns the declarations in this program
      * 
      * @return the declarations of variables in this program
      */
-    public List<VarDSA> declarations() { return declarations; }
+    public Collection<JCIdent> declarations() { return declarations; }
     
     /** The name of the starting block */
     //@ non_null
@@ -75,7 +79,7 @@ public class BasicProgram {
     @Pure @NonNull
     public List<BasicBlock> blocks() { return blocks; }
     
-    public AuxVarDSA assumeCheckVar;
+    public JCIdent assumeCheckVar;
     
     // FIXME
     @Pure @NonNull
@@ -90,21 +94,15 @@ public class BasicProgram {
     
     /** Writes out the BasicProgram to System.out for diagnostics */
     public void write() {
-        JmlPretty p = new JmlPretty("  ", "  ");
         System.out.println("START = " + startId);
         try {
-            System.out.print("Decls: ");
-            for (VarDSA d: declarations) {
-                System.out.print(d.sym.type);
-                System.out.print(" ");
-                System.out.print(d.toString());
-                System.out.print("; ");
-            }
-            System.out.println();
             Writer w = new OutputStreamWriter(System.out);
             JmlPretty pw = new JmlPretty(w,true);
+            pw.useJMLComments = false;
             for (JCExpression e: definitions) {
-                pw.printExpr(e); pw.println();
+                e.accept(pw);
+                pw.println();
+                w.flush();
             }
             for (BasicProgram.BasicBlock b: this.blocks) {
                 b.write();
@@ -182,9 +180,18 @@ public class BasicProgram {
         
         /** Writes out the block to System.out, for diagnostic purposes */
         public void write() {
+            write(new OutputStreamWriter(System.out));
+        }
+        
+        public String toString() {
+            java.io.StringWriter s = new java.io.StringWriter();
+            write(s);
+            return s.toString();
+        }
+        
+        public void write(Writer w) {
             try {
-                Writer w = new OutputStreamWriter(System.out);
-                JmlPretty pw = new JmlPretty(w,true);
+                JmlPretty pw = new JmlPretty(w,false);
                 w.write(name+":\n");
                 w.write("    follows");
                 for (BasicBlock ss: preceding) {
@@ -196,8 +203,8 @@ public class BasicProgram {
                 for (JCTree t: statements) {
                     w.write("    "); // FIXME - use JMLPretty indentation?
                     t.accept(pw);
-                    if (t instanceof JCTree.JCExpressionStatement) w.write("\n");
-                    w.flush(); // FIXME - we should not need explicit newline after assignments?
+                    w.write("\n");
+                    w.flush();
                 }
                 w.write("    goto");
                 for (BasicBlock ss: succeeding) {
@@ -212,102 +219,4 @@ public class BasicProgram {
         }
     }
     
-    /** A parent class of Basic program variables - either those
-     * representing program variables or those that are helper
-     * auxiliary variables.
-     * @author avid Cok
-     *
-     */ // TODO - finish documentation
-    public static abstract class VarDSA extends JCTree.JCExpression {
-        public VarSymbol sym;
-        
-        public VarDSA(VarSymbol sym) {
-            this.sym = sym;
-        }
-
-       public Kind getKind() {
-           // TODO Auto-generated method stub
-           return null;
-       }
-
-       @Override
-       public int getTag() {
-           // TODO Auto-generated method stub
-           return 0;
-       }
-       public int hashCode() {
-           return toString().hashCode();
-       }
-       
-       public boolean equals(Object o) {
-           if (!(o instanceof VarDSA)) return false;
-           return toString().equals(o.toString());
-       }
-   }
-   
-   public static class ProgVarDSA extends VarDSA{
-       public ProgVarDSA(VarSymbol s, int usePos) {
-           super(s);
-           this.pos = usePos;
-           this.incarnation = 0;
-       }
-       private ProgVarDSA(VarSymbol s, int incarnation, int usePos) {
-           this(s,usePos);
-           this.incarnation = incarnation;
-       }
-       int incarnation;
-       
-       public String toString() {
-           return sym + "$" + sym.pos + "$" + incarnation;
-       }
-
-       public String root() {
-           return sym + "$" + sym.pos + "$";
-       }
-
-       @Override
-       public void accept(Visitor v) { 
-           ((IJmlVisitor)v).visitProgVarDSA(this); 
-       }
-
-       @Override
-       public <R,D> R accept(TreeVisitor<R,D> v, D d) {
-           return ((JmlTreeVisitor<R,D>)v).visitProgVarDSA(this, d);
-       }
-       
-       public ProgVarDSA copy() {
-           return new ProgVarDSA(sym,incarnation,pos);
-       }
-}
-   
-   public static class AuxVarDSA extends VarDSA {
-       public AuxVarDSA(Name root, Type type, JCExpression def) {
-           super(null);
-           this.root = root;
-           super.sym = new VarSymbol(0,root,type,null);
-           this.definition = def;
-       }
-       
-       public Name root;
-       
-       public JCExpression definition;
-
-       public String toString() {
-           return root.toString();
-       }
-
-       @Override
-       public void accept(Visitor v) { ((IJmlVisitor)v).visitAuxVarDSA(this); }
-
-       @Override
-       public <R,D> R accept(TreeVisitor<R,D> v, D d) {
-           return ((JmlTreeVisitor<R,D>)v).visitAuxVarDSA(this, d);
-       }
-       public AuxVarDSA copy() {
-           return new AuxVarDSA(root,sym.type,definition); // FIXME - use the same type?
-       }
-       
-   }
-
-
 }

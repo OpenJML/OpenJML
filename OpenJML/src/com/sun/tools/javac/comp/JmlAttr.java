@@ -26,8 +26,6 @@ import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
-import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
@@ -2419,15 +2417,5 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);
-    }
-
-    @Override
-    public void visitAuxVarDSA(AuxVarDSA that) {
-        // Should not happen here
-    }
-
-    @Override
-    public void visitProgVarDSA(ProgVarDSA that) {
-        // Should not happen here
     }
 }

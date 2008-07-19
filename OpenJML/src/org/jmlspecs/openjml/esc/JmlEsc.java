@@ -1,4 +1,5 @@
 package org.jmlspecs.openjml.esc;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -8,6 +9,7 @@ import java.util.regex.Pattern;
 
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.annotations.NonNull;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
@@ -15,9 +17,7 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
-import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
-import org.jmlspecs.openjml.esc.BasicProgram.VarDSA;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverException;
@@ -32,6 +32,7 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -68,13 +69,12 @@ public class JmlEsc extends JmlTreeScanner {
     JmlTree.JmlFactory factory;
     DiagnosticPosition make_pos;
     JmlAttr attr;
-    Name resultName;
-    Name exceptionName;
-    Name exceptionCatchName;
+//    Name resultName;
+//    Name exceptionName;
+//    Name exceptionCatchName;
     Log log;
 
-    JCLiteral zero;
-    JCLiteral maxIntLit;
+    static public String arraysRoot = "$$arrays";
 
     ListBuffer<Symbol> symsEncountered = new ListBuffer<Symbol>();;
 
@@ -85,7 +85,7 @@ public class JmlEsc extends JmlTreeScanner {
         this.env = env;
         this.attrEnv = env;
         this.syms = Symtab.instance(context);
-        this.rs = Resolve.instance(context);
+        //this.rs = Resolve.instance(context);
         this.names = Name.Table.instance(context);
         this.specs = JmlSpecs.instance(context);
         this.attr = (JmlAttr)JmlAttr.instance(context);
@@ -96,10 +96,9 @@ public class JmlEsc extends JmlTreeScanner {
         ClassReader reader = ClassReader.instance(context);
         this.integerType = reader.enterClass(names.fromString("java.lang.Integer")).type;
 
-        this.resultName = Name.Table.instance(context).fromString("_JML$$$result");
-        this.exceptionName = Name.Table.instance(context).fromString("_JML$$$exception");
-        this.exceptionCatchName = Name.Table.instance(context).fromString("_JML$$$exceptionCatch");
-
+//        this.resultName = Name.Table.instance(context).fromString("_JML$$$result");
+//        this.exceptionName = Name.Table.instance(context).fromString("_JML$$$exception");
+//        this.exceptionCatchName = Name.Table.instance(context).fromString("_JML$$$exceptionCatch");
 
     }
 
@@ -111,8 +110,6 @@ public class JmlEsc extends JmlTreeScanner {
         public JmlClassInfo(JCClassDecl d) { this.decl = d; }
         JCClassDecl decl;
         JmlSpecs.TypeSpecs typeSpecs = null;
-        JCMethodDecl invariantDecl = null;
-        JCMethodDecl staticinvariantDecl = null;
         public java.util.List<JmlTypeClauseConstraint> constraints = new LinkedList<JmlTypeClauseConstraint>();
         public java.util.List<JmlTypeClauseConstraint> staticconstraints = new LinkedList<JmlTypeClauseConstraint>();
         public java.util.List<JmlTypeClauseExpr> initiallys = new LinkedList<JmlTypeClauseExpr>();
@@ -269,43 +266,46 @@ public class JmlEsc extends JmlTreeScanner {
             JCExpression expr = factory.Literal(TypeTags.BOOLEAN,1);
             for (BasicBlock follower: block.succeeding()) {
                 Name n = names.fromString(follower.name());
-                JCExpression id = new AuxVarDSA(n,syms.booleanType,null);
+                JCExpression id = newAuxIdent(n,syms.booleanType,0);
                 expr = factory.Binary(JCTree.AND,expr,id);
             }
             return expr;
         }
     }
 
+    protected JCIdent newAuxIdent(@NonNull Name name, @NonNull Type type, int pos) {
+        JCIdent id = factory.Ident(name);
+        id.pos = pos;
+        id.sym = new VarSymbol(0,name,type,null);
+        id.type = type;
+        return id;
+    }
+ 
     public void prove(JCMethodDecl node, BasicProgram program) {
-        LinkedList<AuxVarDSA> trackedAssumes = new LinkedList<AuxVarDSA>();
+        LinkedList<JCIdent> trackedAssumes = new LinkedList<JCIdent>();
         IProver p;
         try {
 
             p = new YicesProver();
             // send any variable definitions
-            for (VarDSA var: program.declarations()) {
+            // FIXME - find another way to get the assumeChecks so that we can get rid of the declarations
+            for (JCIdent var: program.declarations()) {
                 String s = var.toString();
-                if (s.startsWith("assumeCheck$")) trackedAssumes.add((AuxVarDSA)var);
-                p.define(s,convert(var.sym.type));
+                if (s.startsWith("assumeCheck$")) trackedAssumes.add(var);
+//                p.define(s,var.type);
             }
-
+//
             for (BasicProgram.BasicBlock block : program.blocks()) {
-                p.define(block.name(),Sort.VARBOOL);
+                p.define(block.name(),syms.booleanType);
             }
             
-            // send definitions
-            
-            for (JCExpression expr: program.definitions()) {
-                p.assume(YicesJCExpr.toYices(context,expr));
-            }
-
             {
              // send preconditions
                 p.push();
                 BasicBlock bl = program.startBlock();
                 JCExpression e = blockExpr(bl);
                 e = factory.Unary(JCTree.NOT,e);
-                p.assume(YicesJCExpr.toYices(context,e));
+                p.assume(context,e);
                 IProverResult b = p.check();
                 if (b.result() == ProverResult.SAT) { // FIXME - control with verbosity
                     System.out.println("Invariants+Preconditions are satisfiable");
@@ -319,25 +319,34 @@ public class JmlEsc extends JmlTreeScanner {
                 p.pop();
             }
             
+            // send negated start block id
+            
+            JCIdent id = factory.Ident(names.fromString(program.startId()));
+            JCExpression negateStart = factory.Unary(JCTree.NOT,id);
+            p.assume(context,negateStart,100000);
+
             // send block equations
 
             for (BasicBlock bl : program.blocks()) {
                 JCExpression e = blockExpr(bl);
-                JCExpression id = new AuxVarDSA(names.fromString(bl.name()),syms.booleanType,null);
-                e = factory.JmlBinary(JmlToken.EQUIVALENCE,id,e); 
-                Term t = YicesJCExpr.toYices(context,e);
-                p.assume(t);
+                JCExpression idd = newAuxIdent(names.fromString(bl.name()),syms.booleanType,0);
+                e = factory.JmlBinary(JmlToken.EQUIVALENCE,idd,e); 
+                p.assume(context,e);
             }
 
-            JCIdent id = factory.Ident(names.fromString(program.startId()));
-            JCExpression negateStart = factory.Unary(JCTree.NOT,id);
-            p.assume(YicesJCExpr.toYices(context,negateStart));
+            // send definitions
+            
+            int n = 0;
+            for (JCExpression expr: program.definitions()) {
+                n = p.assume(context,expr,10);
+            }
+
             p.push();
 
             JCExpression trueLiteral = factory.Literal(TypeTags.BOOLEAN,1);
             if (trackedAssumes.size() != 0) {
                 JCExpression e = factory.Binary(JCTree.EQ, program.assumeCheckVar, factory.Literal(TypeTags.INT,0));
-                p.assume(YicesJCExpr.toYices(context,e));
+                p.assume(context,e);
             }
 
             IProverResult r = p.check();
@@ -345,50 +354,101 @@ public class JmlEsc extends JmlTreeScanner {
                 System.out.println("Method does NOT satisfy its specifications");
                 String s = r.counterexample();
                 // Look for "(assert$<Label>$<number> false"
-                Matcher m = Pattern.compile("(assert\\$(\\w+)\\$(\\d+)) false").matcher(s);
+                Matcher m = Pattern.compile("(assert\\$(\\w+)\\$(\\d+))\\$(\\d+) false").matcher(s);
                 boolean noinfo = true;
                 while (m.find()) {
-                    String sname = m.group(1);
-                    String label = m.group(2);
-                    int pos = Integer.valueOf(m.group(3));
+                    String sname = m.group(1); // full name of the assertion
+                    String label = m.group(2); // the label part (between 1st and 2nd $ signs)
+                    int usepos = Integer.parseInt(m.group(3)); // the textual location of the assert statement
+                    int declpos = Integer.parseInt(m.group(4)); // the textual location of associated information (or same as usepos if no associated information)
                     System.out.println("Assertion " + sname + " cannot be verified");
-                    log.warning(pos,"esc.assertion.invalid",label,node.getName());
+                    log.warning(usepos,"esc.assertion.invalid",label,node.getName());
+                    if (declpos != usepos) log.warning(declpos,"esc.associated.decl");
                     noinfo = false;
                 }
                 if (noinfo) {
                     // No counterexample information
                     // FIXME - need a test for this
                     log.warning("esc.method.invalid",node.getName());
+                } else {
+                    m = Pattern.compile("\\$\\$LBLPOS\\$(\\d+)\\$([^ ]+) true").matcher(s);
+                    while (m.find()) {
+                        int pos = Integer.parseInt(m.group(1));
+                        String label = m.group(2);
+                        //System.out.println("Label " + label + " reported (expression true)");
+                        log.warning(pos,"esc.label",label);
+                    }
+                    m = Pattern.compile("\\$\\$LBLNEG\\$(\\d+)\\$([^ ]+) false").matcher(s);
+                    while (m.find()) {
+                        int pos = Integer.parseInt(m.group(1));
+                        String label = m.group(2);
+                        //System.out.println("Label " + label + " reported (expression false)");
+                        log.warning(pos,"esc.label",label);
+                    }
                 }
-                if (true /*|| printCounterexample*/) System.out.println("Counterexample:" + s.substring(3));
+                if (true /*|| printCounterexample*/) {
+                    int k = s.indexOf(' ');
+                    System.out.println("Counterexample:" + s.substring(k+1));
+                }
             } else {
                 System.out.println("Method satisfies its specifications (as far as I can tell)");
+                int index = ((YicesProver)p).satResult.indexOf("unsat core ids:");
+                int[] ids = null;
+                if (index >= 0) {
+                    String[] sids = ((YicesProver)p).satResult.substring(index+"unsat core ids: ".length()).split("[ \n\r]");
+                    ids = new int[sids.length];
+                    for (int i=0; i<sids.length; i++) ids[i] = Integer.parseInt(sids[i]);
+                    Arrays.sort(ids);
+                }                 
+                int nn = n - program.definitions().size();
+                int k = 0;
+                while (n > nn) {
+                    JCExpression e = program.definitions().get(n-nn-1);
+                    // Presuming this is an equality
+                    String name = ((JCIdent)((JCBinary)e).getLeftOperand()).getName().toString();
+                    System.out.println("LABEL " + name);
+                    String[] parts = name.split("\\$");
+                    if (parts.length != 3) { n--; continue; }
+                    if (!parts[0].equals("checkAssumption")) { n--; continue;}
+                    int pos = Integer.parseInt(parts[2]);
+                    int found = Arrays.binarySearch(ids,n);
+                    if (found < 0) {
+                        // Already not part of the minimal core
+                        ((YicesProver)p).send("(retract " + (n--) + ")\n");
+                        ((YicesProver)p).eatPrompt();
+                        System.out.println("ALREADY NOT IN MINIMAL CORE");
+                        reportAssumptionProblem(parts[1],pos,node.getName(),p);
+                        continue;
+                    }
+                    p.push(); k++;
+                    ((YicesProver)p).send("(retract " + (n--) + ")\n");
+                    ((YicesProver)p).eatPrompt();
+                    r = p.check();
+                    if (r.isSat()) {
+                        System.out.println("NOW SAT - ASSUMPTION WAS OK");
+                        p.pop(); k--;
+                    } else {
+                        System.out.println("STILL UNSAT - CORE WAS NOT MINIMAL - ASSSUMPTION WAS INFEASIBLE");
+                        reportAssumptionProblem(parts[1],pos,node.getName(),p);
+                    }
+                }
+                while (k-- > 0) p.pop();
+                
             }
             p.pop();
 
-            for (AuxVarDSA aux: trackedAssumes) {
+            // Don't do this if we have done the core unsat method
+            if (false) for (JCIdent aux: trackedAssumes) {
                 p.push();
                 String nm = aux.toString();
                 String parts[] = nm.split("\\$");
-                int pos = Integer.valueOf(parts[1]);
+                int pos = Integer.parseInt(parts[1]);
                 JCExpression ex = factory.Binary(JCTree.EQ, program.assumeCheckVar, factory.Literal(TypeTags.INT,pos));
-                p.assume(YicesJCExpr.toYices(context,ex));
+                p.assume(context,ex);
                 r = p.check();
                 if (!r.isSat()) {
                     String label = parts[2];
-                    if (label.equals(Label.BRANCHT.toString())) {
-                        log.warning(Math.abs(pos),"esc.infeasible.branch","then",node.getName());
-                        System.out.println("Branch is infeasible at " + pos);
-                        System.out.println(((YicesProver)p).satResult); // FIXME - contradictory items by number ???
-                    } else if (label.equals(Label.BRANCHE.toString())) {
-                        log.warning(Math.abs(pos),"esc.infeasible.branch","else",node.getName());
-                        System.out.println("Branch is infeasible at " + pos);
-                        System.out.println(((YicesProver)p).satResult); // FIXME - contradictory items by number ???
-                    } else {
-                        log.warning(pos,"esc.infeasible.assumption",node.getName());
-                        System.out.println("Assumption (" + label + ") is infeasible");
-                        System.out.println(((YicesProver)p).satResult); // FIXME - contradictory items by number ???
-                    }
+                    reportAssumptionProblem(label,pos,node.getName(),p);
                 }
                 p.pop();
             }
@@ -398,6 +458,23 @@ public class JmlEsc extends JmlTreeScanner {
             System.out.println("PROVER FAILURE: " + e);
             if (e.mostRecentInput != null) System.out.println("INPUT: " + e.mostRecentInput);
         }
+    }
+    
+    public void reportAssumptionProblem(String label, int pos, Name method, IProver p) {
+        if (label.equals(Label.BRANCHT.toString())) {
+            log.warning(Math.abs(pos),"esc.infeasible.branch","then",method);
+            System.out.println("Branch is infeasible at " + pos);
+            System.out.println(((YicesProver)p).satResult); // FIXME - contradictory items by number ???
+        } else if (label.equals(Label.BRANCHE.toString())) {
+            log.warning(Math.abs(pos),"esc.infeasible.branch","else",method);
+            System.out.println("Branch is infeasible at " + pos);
+            System.out.println(((YicesProver)p).satResult); // FIXME - contradictory items by number ???
+        } else {
+            log.warning(pos,"esc.infeasible.assumption",method);
+            System.out.println("Assumption (" + label + ") is infeasible");
+            System.out.println(((YicesProver)p).satResult); // FIXME - contradictory items by number ???
+        }
+
     }
 
 

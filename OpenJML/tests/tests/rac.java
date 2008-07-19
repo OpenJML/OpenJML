@@ -165,7 +165,7 @@ public class rac extends RacBase {
                 " /*@ requires true; \nensures k != i; \nalso \nrequires true; \nensures k == 0; */ static void m(int i) { k = i; } " +
                 "}"
                 ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionFailure: /tt/TestJava.java:3: JML postcondition is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:25)"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:28)"
                 ,"\tat tt.TestJava.m(TestJava.java from TestJavaFileObject:1)"
                 ,"\tat tt.TestJava.main(TestJava.java from TestJavaFileObject:1)"
                 );
@@ -490,7 +490,7 @@ public class rac extends RacBase {
                 "} " +
                 "}"
                 ,"Exception in thread \"main\" java.lang.NullPointerException"
-                ,"\tat org.jmlspecs.utils.Utils.nonnullElementCheck(Utils.java:54)"
+                ,"\tat org.jmlspecs.utils.Utils.nonnullElementCheck(Utils.java:57)"
                 ,"\tat tt.TestJava.m(TestJava.java from TestJavaFileObject:5)"
                 ,"\tat tt.TestJava.main(TestJava.java from TestJavaFileObject:2)"
                 );

@@ -77,6 +77,7 @@ import com.sun.tools.javac.tree.JCTree.JCErroneous;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
@@ -1721,7 +1722,13 @@ public class JmlParser extends EndPosParser {
                         return syntaxError(p,null,"jml.args.required",jt.internedName());
                     } else {
                         accept(Token.LPAREN);
-                        JCExpression e = type();
+                        JCExpression e;
+                        if (S.token() == Token.VOID) {
+                            e = to(F.at(S.pos()).TypeIdent(TypeTags.VOID));
+                            S.nextToken();
+                        } else {
+                            e = type();
+                        }
                         if (S.token() != Token.RPAREN) {
                             if (!(e instanceof JCErroneous)) log.error(S.pos(),"jml.bad.bstype.expr");
                             skipThroughRightParen();

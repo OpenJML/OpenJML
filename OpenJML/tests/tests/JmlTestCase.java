@@ -6,8 +6,8 @@ import javax.tools.DiagnosticCollector;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
-import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
+import org.junit.*;
+import static org.junit.Assert.*;
 
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main;
@@ -24,7 +24,7 @@ import com.sun.tools.javac.util.Options;
  * @author David Cok
  *
  */
-public abstract class JmlTestCase extends TestCase {
+public abstract class JmlTestCase extends junit.framework.TestCase {
 
     // References to various tools needed in testing
     Context context;
@@ -57,7 +57,7 @@ public abstract class JmlTestCase extends TestCase {
      * set the options before we register most of the JML tools.
      */
     protected void setUp() throws Exception {
-        super.setUp();
+        //super.setUp();
         main = new Main();
         context = new Context();
         d = new DiagnosticCollector<JavaFileObject>();  // This collects all the diagnostic messages
@@ -69,8 +69,9 @@ public abstract class JmlTestCase extends TestCase {
     }
 
     /** Nulls out all the references visible in this class */
+    @After
     protected void tearDown() throws Exception {
-        super.tearDown();
+        //super.tearDown();
         context = null;
         main = null;
         d = null;
@@ -120,7 +121,7 @@ public abstract class JmlTestCase extends TestCase {
                 assertEquals("Node type for token " + i,a[2*i].toString(),diags.get(i).toString());
                 assertEquals("Column number for token " + i,((Integer)a[2*i+1]).intValue(),diags.get(i).getColumnNumber()); // Column number is 1-based
             }
-        } catch (AssertionFailedError ae) {
+        } catch (AssertionError ae) {
             if (!print && !noExtraPrinting) printErrors();
             throw ae;
         }

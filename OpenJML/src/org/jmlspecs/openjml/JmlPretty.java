@@ -4,19 +4,21 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 
+import org.jmlspecs.annotations.*;
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
-import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 
-import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.Pretty;
+import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Name;
 
 public class JmlPretty extends Pretty implements IJmlVisitor {
 
+// Pretty ought to be a registered tool, but since it is not we won't
+// register JmlPretty.  However, we are stuck if anyone calls 'new Pretty'
 //    public static void preRegister(final Context context) {
 //        context.put(prettyKey, new Context.Factory<Pretty>() {
 //            public Pretty make() {
@@ -28,40 +30,37 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     /** The Writer to which this pretty printer prints, initialized in the
      * constructor
      */
-    /*@ non_null*/ Writer out;
+    /*@ non_null*/ protected Writer out;
     
-    /** The character string that is the leading part of each line*/
-    /*@ non_null*/ public String indentAmount;
+    protected boolean sourceOutput;
     
-    /** The character string that is the additional indent */
-    /*@ non_null*/ public String indentExtra;
-    
-    /** The current indent string, only used internally; this should be
-     * indentAmount + zero or more copies of indentExtra
+    public boolean useJMLComments;
+        
+    /** Instantiates a pretty-printer for Jml nodes with default indentation
+     * @param out the Write to which output is to be put
+     * @param sourceOutput whether to produce output that is equivalent to source code
+     *   (if false, there may be additional, uncompilable, information)
      */
-    ///*@ non_null*/ protected String currentIndent;
-    
-    // TODO - and what about the indents?
     public JmlPretty(/*@non_null*/Writer out, boolean sourceOutput) {
         super(out, sourceOutput);
         this.out = out;
+        this.width = 2;
+        this.sourceOutput = sourceOutput;
+        this.useJMLComments = sourceOutput;
     }
     
-    // TODO
-    public JmlPretty(/*@non_null*/String indentAmount, /*@non_null*/String indentExtra) {
-        this(new StringWriter(),true);
-        this.indentAmount = indentAmount;
-        this.indentExtra = indentExtra;
-    }
-    
-    // TODO
-    static String write(String in, String ad, JCTree tree) {
+    /** Writes out a tree in pretty-printed fashion, with two-character indentation
+     * 
+     * @param tree the tree to print
+     * @return the resulting text
+     */
+    static public @NonNull String write(@NonNull JCTree tree) {
         StringWriter sw = new StringWriter();
         JmlPretty p = new JmlPretty(sw,true);
-        p.indentAmount = in;
-        p.indentExtra = ad;
+        p.width = 2;
         tree.accept(p);
         return sw.toString();
+        //return write("","  ",tree);
     }
     
     /** A method used for those pretty-printing methods that are not yet
@@ -69,7 +68,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
      * @param that a non-null AST node
      * @throws IOException if there is a problem writing to the writer
      */
-    public void notImpl(/*@non_null*/JCTree that) throws IOException {
+    protected void notImpl(/*@non_null*/JCTree that) throws IOException {
             out.write("<");
             out.write(that.getClass().toString());
             out.write(">");
@@ -80,32 +79,51 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
      * @param that a non-null AST node
      * @param e the exception that is being reported
      */
-    public void perr(/*@ non_null*/JCTree that, /*@ non_null*/Exception e) {
+    protected void perr(/*@ non_null*/JCTree that, /*@ non_null*/Exception e) {
         System.err.println(e.getClass() + " error in JMLPretty: " + that.getClass());
     }
-
+    
+    // FIXME _ needs to fix parentheses??? Like JCBInary does???
     public void visitJmlBinary(JmlBinary that) {
         try {
             that.lhs.accept(this);
+            out.write(" ");
             out.write(that.op.internedName());
+            out.write(" ");
             that.rhs.accept(this);
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlLblExpression(JmlLblExpression that) {
-        try { notImpl(that); } // FIXME
-        catch (IOException e) { perr(that,e); }
+        try { 
+            out.write("(");
+            out.write(that.token.internedName());
+            out.write(" ");
+            out.write(that.label.toString());
+            out.write(" ");
+            that.expression.accept(this);
+            out.write(")");
+        } catch (IOException e) { perr(that,e); }
     }
     
     public void visitJmlRefines(JmlRefines that) {
         try { 
-            out.write(that.toString());
+            out.write("//@ refines \"");
+            out.write(that.filename);
+            out.write("\";");
+            println();
         } catch (IOException e) { perr(that,e); }
     }
     
     public void visitJmlImport(JmlImport that) {
-        // FIXME - print model
-        visitImport(that);
+        try {
+            if (that.isModel) out.write("//@ model ");
+            print("import ");
+            if (that.staticImport) print("static ");
+            printExpr(that.qualid);
+            print(";");
+            println();
+        } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlFunction(JmlFunction that) {
@@ -202,9 +220,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlStatement(JmlStatement that) {
-        try { notImpl(that);  // FIXME
-        } catch (IOException e) { perr(that,e); }
-        
+        that.statement.accept(this);
     }
 
     public void visitJmlStatementLoop(JmlStatementLoop that) {
@@ -221,15 +237,15 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStatementExpr(JmlStatementExpr that) {
         try { 
+            if (useJMLComments) print ("/*@ ");
             print(that.token.internedName());
             print(" ");
-            if (that.label != null) {
+            if (that.label != null && !sourceOutput) {
                 print(that.label);
                 print(" ");
             }
             printExpr(that.expression); 
-            print(";");
-            println();
+            if (useJMLComments) print(";*/"); else print(";");
         } catch (IOException e) { perr(that,e); }
         
     }
@@ -247,7 +263,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(" ");
             printExpr(that.expression);
             print(";");
-            println();
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -283,7 +298,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-        try { notImpl(that); 
+        try {
+            printFlags(that.modifiers.flags);
+            out.write(that.token.internedName());
+            out.write(" ");
+            that.expression.accept(this);
+            if (that.sigs != null) {
+                out.write(" for <SIGNATURES>"); // FIXME
+            }
+            out.write(";");
+            println();
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -412,8 +436,40 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         visitClassDef(that);  // FIXME
     }
 
-    public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-        visitTopLevel(that);  // FIXME
+    public void visitJmlCompilationUnit(JmlCompilationUnit tree) {
+        // Duplicated from the super class in order to insert printing the refines statement
+        try {
+        printDocComment(tree);
+        if (tree.pid != null) {
+            print("package ");
+            printExpr(tree.pid);
+            print(";");
+            println();
+        }
+        if (tree.refinesClause != null) {
+            tree.refinesClause.accept(this);
+        }
+        boolean firstImport = true;
+        for (List<JCTree> l = tree.defs;
+        l.nonEmpty();
+        l = l.tail) {
+            if (l.head.getTag() == JCTree.IMPORT) {
+                JCImport imp = (JCImport)l.head;
+                Name name = TreeInfo.name(imp.qualid);
+                if (true) {
+                    if (firstImport) {
+                        firstImport = false;
+                        println();
+                    }
+                    printStat(imp);
+                }
+            } else {
+                printStat(l.head);
+            }
+        }
+        } catch (IOException e) {
+            perr(tree,e);
+        }
     }
 
     public void visitJmlMethodDecl(JmlMethodDecl that) {
@@ -424,18 +480,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         visitVarDef(that);  // FIXME
     }
 
-    @Override
-    public void visitAuxVarDSA(AuxVarDSA that) {
-        try {
-            out.write(that.toString());
-        } catch(IOException e) {}
-    }
-
-    @Override
-    public void visitProgVarDSA(ProgVarDSA that) {
-        try {
-            out.write(that.toString());
-        } catch(IOException e) {}
-    }
+//    public void visitAuxVarDSA(AuxVarDSA that) {
+//        try {
+//            out.write(that.toString());
+//        } catch(IOException e) {}
+//    }
+//
+//    public void visitProgVarDSA(ProgVarDSA that) {
+//        try {
+//            out.write(that.toString());
+//        } catch(IOException e) {}
+//    }
 
 }

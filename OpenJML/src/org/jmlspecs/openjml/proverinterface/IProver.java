@@ -1,5 +1,10 @@
 package org.jmlspecs.openjml.proverinterface;
 
+
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.Context;
+
 /**
  * A prover can be used to check if a formula is satisfiable,
  * given a set of assumptions. The prover may need to be restarted
@@ -22,10 +27,16 @@ public interface IProver {
    * @param t the assumption
    * @throws ProverException if something goes wrong
    */
-  public void assume(Term t) throws ProverException;
-  
+    public int assume(Term t) throws ProverException;
+    
+    public int assume(Term t, int weight) throws ProverException;
+
+    public int assume(Context context, JCTree tree) throws ProverException;
+
+    public int assume(Context context, JCTree tree, int weight) throws ProverException;
+
   // DRC - added FIXME - definition
-  public void define(String id, Sort sort) throws ProverException;
+  public void define(String id, Type t) throws ProverException;
   
   /**
    * Retract the last assumption. This discards all the empty 

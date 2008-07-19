@@ -142,13 +142,6 @@ public class typechecking extends TCBase {
     }
 
     public void testType5() {
-        helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(void);\n}}"
-                ,"/A.java:2: illegal start of type",18
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
-                                );
-    }
-
-    public void testType5a() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(int);\n}}"
                 ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
                                 );
@@ -180,6 +173,18 @@ public class typechecking extends TCBase {
 
     public void testType10() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(A);\n}}"
+                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                );
+    }
+
+    public void testType11() {
+        helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(void);\n}}"
+                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                );
+    }
+
+    public void testType12() {
+        helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(Void);\n}}"
                 ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
                 );
     }

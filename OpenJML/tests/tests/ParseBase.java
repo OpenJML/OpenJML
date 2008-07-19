@@ -21,7 +21,7 @@ import com.sun.tools.javac.util.Log;
  * @author David Cok
  *
  */
-public class ParseBase extends JmlTestCase {
+abstract public class ParseBase extends JmlTestCase {
 
     static String z = java.io.File.pathSeparator;
     static String testspecpath = "$A"+z+"$B";

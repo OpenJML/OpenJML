@@ -1,8 +1,6 @@
 package org.jmlspecs.openjml;
 
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
-import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 
 /**
  * This is an interface for Visitors to JML and Java nodes; it extends IVisitor
@@ -60,6 +58,6 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that)   ;
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that);
 
-    public void visitProgVarDSA(ProgVarDSA that);
-    public void visitAuxVarDSA(AuxVarDSA that);
+//    public void visitProgVarDSA(ProgVarDSA that);
+//    public void visitAuxVarDSA(AuxVarDSA that);
 }

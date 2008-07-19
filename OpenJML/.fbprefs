@@ -1,5 +1,5 @@
 #FindBugs User Preferences
-#Sun May 04 20:56:21 EDT 2008
+#Mon Jun 30 02:11:42 EDT 2008
 detectorAppendingToAnObjectOutputStream=AppendingToAnObjectOutputStream|true
 detectorBCPMethodReturnCheck=BCPMethodReturnCheck|false
 detectorBadAppletConstructor=BadAppletConstructor|false
@@ -120,6 +120,8 @@ detectorSuspiciousThreadInterrupted=SuspiciousThreadInterrupted|true
 detectorSwitchFallthrough=SwitchFallthrough|true
 detectorSynchronizationOnSharedBuiltinConstant=SynchronizationOnSharedBuiltinConstant|true
 detectorSynchronizeAndNullCheckField=SynchronizeAndNullCheckField|true
+detectorSynchronizeOnClassLiteralNotGetClass=SynchronizeOnClassLiteralNotGetClass|true
+detectorSynchronizingOnContentsOfFieldToProtectField=SynchronizingOnContentsOfFieldToProtectField|true
 detectorTestASM=TestASM|false
 detectorTestDataflowAnalysis=TestDataflowAnalysis|false
 detectorTestingGround=TestingGround|false

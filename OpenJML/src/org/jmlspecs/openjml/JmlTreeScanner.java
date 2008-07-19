@@ -19,8 +19,6 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
-import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
-import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
@@ -270,15 +268,4 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         // scan specsDecl, fieldSpecs?  // FIXME
         visitVarDef(that);
     }
-
-    @Override
-    public void visitAuxVarDSA(AuxVarDSA that) {
-        // no content to scan
-    }
-
-    @Override
-    public void visitProgVarDSA(ProgVarDSA that) {
-        // no content to scan
-    }
-
 }

@@ -133,6 +133,7 @@ public class Utils {
     public static String messagesJML = "org.jmlspecs.openjml.messages";
     
     /** This array gives the suffixes recognized as JML specification files, in order of priority */
+    // This is not final since it might be changed by command-line options
     public static String[] suffixes = { ".refines-java", ".refines-spec", ".refines-jml", ".java", ".spec", ".jml"   };
     
     /** This gives the character that marks a mock directory (cf. JmlSpecs), mostly for use in testing */
