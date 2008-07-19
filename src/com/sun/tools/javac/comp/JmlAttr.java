@@ -840,7 +840,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 (env.tree.getTag() != JCTree.ASSIGN ||
                         TreeInfo.skipParens(((JCAssign) env.tree).lhs) != tree)) {
 
-            if (!onlyWarning || isNonStaticEnumField(v)) {
+            if (!onlyWarning || isStaticEnumField(v)) {
+                // DRC - changed the following line to avoid complaints about forward references from invariants
                 if (currentClauseType == null || currentClauseType == JmlToken.JMLDECL) log.error(tree.pos(), "illegal.forward.ref");
             } else if (useBeforeDeclarationWarning) {
                 log.warning(tree.pos(), "forward.ref", v);
