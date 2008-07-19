@@ -1,10 +1,14 @@
 package org.jmlspecs.utils;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
-
+/** 
+ * This class contains utility methods used during runtime assertion
+ * checking.
+ * @author David Cok
+ *
+ */
 public class Utils {
     
     /** Determines whether to report assertion failures as exceptions (true)

@@ -9,8 +9,6 @@ import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeCopier;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
-import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
@@ -297,6 +295,11 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         ClassInfo prevClassInfo = classInfo;
         classInfo = new ClassInfo(tree);
         classInfo.typeSpecs = specs.get(tree.sym);
+        JmlSpecs.TypeSpecs typeSpecs = classInfo.typeSpecs;
+        if (typeSpecs == null) {
+            System.out.println("UNEXPECTEDLY NULL TYPESPECS");
+            return;
+        }
         
 //        JCMethodDecl invariantDecl = makeMethodDef(invariantMethodName,List.<JCStatement>nil(),tree.sym);
 //        classInfo.invariantDecl = invariantDecl;
@@ -317,11 +320,10 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         }
 
         // Divide up the various type specification clauses into the various types
-        JmlSpecs.TypeSpecs typeSpecs = classInfo.typeSpecs;
         ListBuffer<JmlTypeClauseExpr> invariants = new ListBuffer<JmlTypeClauseExpr>();
         ListBuffer<JmlTypeClauseRepresents> represents = new ListBuffer<JmlTypeClauseRepresents>();
         ListBuffer<JCVariableDecl> modelFields = new ListBuffer<JCVariableDecl>();
-        if (typeSpecs != null) for (JmlTypeClause c: typeSpecs.clauses) {
+        for (JmlTypeClause c: typeSpecs.clauses) {
             if (c instanceof JmlTypeClauseDecl) {
                 JCTree t = ((JmlTypeClauseDecl)c).decl;
                 if (t instanceof JCVariableDecl && attr.isModel(((JCVariableDecl)t).mods)) {
@@ -412,8 +414,8 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 
         super.visitClassDef(tree);
         if (env.tree == tree) env.tree = result;
-        if (typeSpecs == null) return;
-        if (tree.name.equals("org.jmlspecs.utils.Utils")) return;
+        //if (typeSpecs == null) return; - would get a NPE before this
+        if (tree.name.toString().equals("org.jmlspecs.utils.Utils")) return;
         
         // All ghost fields, model methods, model fields should have
         // been attributed.  So we append them to the class definitions.
@@ -1237,7 +1239,6 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         s = tree.source.getName() + ":" + tree.line + ": JML " + s;
         JCExpression lit = makeLit(syms.stringType,s);
         JCFieldAccess m = findUtilsMethod("assertionFailure");
-        JCExpression nulllit = makeLit(syms.botType, null);
         JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit));
         c.setType(Type.noType);
         return make.Exec(c);
@@ -1702,15 +1703,13 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         visitVarDef(that);  // FIXME
     }
 
-    @Override
-    public void visitAuxVarDSA(AuxVarDSA that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitProgVarDSA(ProgVarDSA that) {
-        // TODO Auto-generated method stub
-        
-    }
+//    public void visitAuxVarDSA(AuxVarDSA that) {
+//        // TODO Auto-generated method stub
+//        
+//    }
+//
+//    public void visitProgVarDSA(ProgVarDSA that) {
+//        // TODO Auto-generated method stub
+//        
+//    }
 }

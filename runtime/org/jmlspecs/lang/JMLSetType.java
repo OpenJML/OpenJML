@@ -19,9 +19,9 @@
 // Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 // 02110-1301  USA.
 
-
 package org.jmlspecs.lang;
 
+// FIXME - this needs to be generic
 // import java.util.Iterator;
 
 /** Common protocol for the JML set model types.  This is put in

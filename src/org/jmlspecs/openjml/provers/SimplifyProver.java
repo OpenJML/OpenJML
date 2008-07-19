@@ -18,6 +18,10 @@ import org.jmlspecs.openjml.proverinterface.SmtTerm;
 import org.jmlspecs.openjml.proverinterface.Sort;
 import org.jmlspecs.openjml.proverinterface.Term;
 
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.Context;
+
 
 /**
  * Used to interact with Simplify.
@@ -42,6 +46,7 @@ public class SimplifyProver implements IProver {
   private Deque<Term> assumptions;
   private Term marker; 
   
+  private int assumeCounter = 0;
 //  private SmtTermBuilder builder;
   
   /**
@@ -155,13 +160,35 @@ public class SimplifyProver implements IProver {
   }
   
   /* @see freeboogie.backend.Prover#assume(freeboogie.backend.Term) */
-  public void assume(Term t) throws ProverException {
-    sendAssume(t);
-    assumptions.add(t);
-    checkIfDead();
-  }
-  
-  public void define(String id, Sort sort) throws ProverException {
+  public int assume(Term t) throws ProverException {
+      sendAssume(t);
+      assumptions.add(t);
+      checkIfDead();
+      return ++assumeCounter;
+    }
+    
+  public int assume(Term t, int weight) throws ProverException {
+      sendAssume(t);
+      assumptions.add(t);
+      checkIfDead();
+      return ++assumeCounter;
+    }
+    
+  public int assume(Context context, JCTree t) throws ProverException {
+//      sendAssume(t);
+//      assumptions.add(t);
+//      checkIfDead();
+      return ++assumeCounter;
+    }
+    
+  public int assume(Context context, JCTree t, int weight) throws ProverException {
+//      sendAssume(t);
+//      assumptions.add(t);
+//      checkIfDead();
+      return ++assumeCounter;
+    }
+    
+  public void define(String id, Type t) throws ProverException {
       // FIXME
   }
 
@@ -261,7 +288,7 @@ public class SimplifyProver implements IProver {
    * @throws Exception thrown if something goes wrong
    */
   public static void main(String[] args) throws Exception {
-    IProver p = new SimplifyProver(args);
+//    IProver p = new SimplifyProver(args);
 //    TermBuilder b = p.getBuilder();
 //    Term x = b.mk("var_pred", "x");
 //    Term y = b.mk("var_pred", "y");

@@ -28,6 +28,7 @@ public class generics extends TCBase {
     /** Test mismatched type parameters*/
     public void testSimpleGeneric1() {
         addMockFile("$A/A.spec","public class A {  }");
+        //specs.printDatabase();
         helpTCF("A.java","public class A<T> { T t; T item() { return t; }}"
                 ,"/$A/A.spec:1: The type A in the specification matches a Java type A<T> with a different number of type arguments",8
                 );

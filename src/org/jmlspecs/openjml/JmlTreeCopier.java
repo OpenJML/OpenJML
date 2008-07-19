@@ -1,8 +1,6 @@
 package org.jmlspecs.openjml;
 
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
-import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;
@@ -481,14 +479,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    @Override
-    public JCTree visitAuxVarDSA(AuxVarDSA that, Void p) {
-        return that.copy();
-    }
-
-    @Override
-    public JCTree visitProgVarDSA(ProgVarDSA that, Void p) {
-        return that.copy();
-    }
+//    public JCTree visitAuxVarDSA(AuxVarDSA that, Void p) {
+//        return that.copy();
+//    }
+//
+//    public JCTree visitProgVarDSA(ProgVarDSA that, Void p) {
+//        return that.copy();
+//    }
 
 }

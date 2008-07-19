@@ -1,8 +1,6 @@
 package org.jmlspecs.openjml;
 
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.esc.BasicProgram.AuxVarDSA;
-import org.jmlspecs.openjml.esc.BasicProgram.ProgVarDSA;
 
 import com.sun.source.tree.TreeVisitor;
 
@@ -63,8 +61,4 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, P p);
     R visitJmlStoreRefKeyword(JmlStoreRefKeyword that, P p)   ;
     R visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that, P p);
-
-    R visitProgVarDSA(ProgVarDSA that, P p);
-    R visitAuxVarDSA(AuxVarDSA that, P p);
-
 }

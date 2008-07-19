@@ -29,7 +29,7 @@ package org.jmlspecs.lang;
  * @version $Revision: 1.4 $
  * @author Gary T. Leavens, based on an idea of Rustan Leino
  */
-public /*@ pure @*/ final class JMLDataGroup {
+public /*@ pure @*/ final class JMLDataGroup implements Cloneable {
 
     /** Initialize this object.
      * @see #IT

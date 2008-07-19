@@ -8,15 +8,26 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.Stack;
 
+import org.jmlspecs.openjml.esc.BasicBlocker;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.proverinterface.Sort;
 import org.jmlspecs.openjml.proverinterface.Term;
+
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.Type.ArrayType;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.Context;
 
 
 public class YicesProver implements IProver {
@@ -34,6 +45,7 @@ public class YicesProver implements IProver {
     List<String> sent = new LinkedList<String>();
     
     String app = "C:/home/apps/yices-cygwin/yices-1.0.12/bin/yices.exe";
+    int assumeCounter = 0;
     
     public YicesProver() throws ProverException {
         try {
@@ -50,7 +62,7 @@ public class YicesProver implements IProver {
         errors = new InputStreamReader(process.getErrorStream());
         eatPrompt();
         // Send the background predicate
-        send("(define-type REF) (define null::REF)\n");
+        send("(define-type REF) (define null::REF) (define length$0::(-> REF int)) (assert (forall (a::REF) (>= (length$0 a) 0)))\n");
         eatPrompt();
         //System.out.println("New Prover");
     }
@@ -104,7 +116,41 @@ public class YicesProver implements IProver {
         }
     }
     
-    public void assume(Term t) throws ProverException {
+    public int assume(Context context, JCTree tree) throws ProverException {
+        try {
+            Term t = YicesJCExpr.toYices(context,tree,this);
+            assertedTerms.add(t);
+            builder.setLength(0);
+            builder.append("(assert+ ");
+            builder.append(t.toString());
+            builder.append(")\n");
+            send(builder.toString());
+            eatPrompt();
+        } catch (ProverException e) {
+            e.mostRecentInput = builder.toString();
+            throw e;
+        }
+        return ++assumeCounter;
+    }
+    
+    public int assume(Context context, JCTree tree, int weight) throws ProverException {
+        try {
+            Term t = YicesJCExpr.toYices(context,tree,this);
+            assertedTerms.add(t);
+            builder.setLength(0);
+            builder.append("(assert+ ");
+            builder.append(t.toString());
+            builder.append(" " + weight + ")\n");
+            send(builder.toString());
+            eatPrompt();
+        } catch (ProverException e) {
+            e.mostRecentInput = builder.toString();
+            throw e;
+        }
+        return ++assumeCounter;
+    }
+    
+    public int assume(Term t) throws ProverException {
         try {
             assertedTerms.add(t);
             builder.setLength(0);
@@ -117,6 +163,24 @@ public class YicesProver implements IProver {
             e.mostRecentInput = builder.toString();
             throw e;
         }
+        return ++assumeCounter;
+    }
+    
+    public int assume(Term t, int weight) throws ProverException {
+        return assume(t);
+//        try {
+//            assertedTerms.add(t);
+//            builder.setLength(0);
+//            builder.append("(assert+ ");
+//            builder.append(t.toString());
+//            builder.append(" " + weight + ")\n");
+//            send(builder.toString());
+//            eatPrompt();
+//        } catch (ProverException e) {
+//            e.mostRecentInput = builder.toString();
+//            throw e;
+//        }
+//        return ++assumeCounter;
     }
     
     public void send(String s) throws ProverException {
@@ -130,17 +194,52 @@ public class YicesProver implements IProver {
         }
     }
     
-    public void define(String id, Sort sort) throws ProverException {
+    public String convertType(Type t) {
+        String s;
+        if (!t.isPrimitive()) {
+            if (t instanceof ArrayType) {
+                t = ((ArrayType)t).getComponentType();
+//                s = convertType(t);
+//                s = "(-> int " + s + ")";
+                s = "array$" + convertType(t);
+            } else {
+                s = "REF";
+            }
+        } else if (t.tag == TypeTags.BOOLEAN) {
+            s = "bool";
+        } else {
+            s = "int";
+        }
+        return s;
+    }
+    
+    private Set<String> defined = new HashSet<String>();
+    
+    private Deque<List<String>> stack = new LinkedList<List<String>>();
+    
+    private List<String> top = new LinkedList<String>();
+    
+    // returns true if already defined
+    public boolean checkAndDefine(String id) {
+        if (!defined.add(id)) return true;
+        top.add(id);
+        return false;
+    }
+
+    public void define(String id, Type t) throws ProverException {
+        if (checkAndDefine(id)) return; // DO nothing if already defined
         builder.setLength(0);
+        String s = convertType(t);
+        if (s.indexOf('$') != -1) {
+            if (!checkAndDefine(s)) {
+                builder.append("(define-type ");
+                builder.append(s);
+                builder.append(") ");
+            }
+        }
         builder.append("(define ");
         builder.append(id);
         builder.append("::");
-        String s;
-        switch (sort) {
-            case VARBOOL: s = "bool"; break;
-            case VARINT: s = "int"; break;
-            default: s = "REF"; break;
-        }
         builder.append(s);
         builder.append(")\n");
         try {
@@ -171,7 +270,7 @@ public class YicesProver implements IProver {
         send("(check)\n");
         String output = eatPrompt();
         //System.out.println("HEARD " + output);
-        boolean sat = output.startsWith("sat");
+        boolean sat = output.startsWith("sat") || output.startsWith("unknown");
         boolean unsat = output.startsWith("unsat");
         if (sat == unsat) throw new ProverException("Improper response to (check) query: \"" + output + "\"");
         satResult = output.substring(0,output.length()-8);
@@ -182,7 +281,7 @@ public class YicesProver implements IProver {
         send("(check)\n");
         String output = eatPrompt();
         //System.out.println("HEARD " + output);
-        boolean sat = output.startsWith("sat");
+        boolean sat = output.startsWith("sat") || output.startsWith("unknown");
         boolean unsat = output.startsWith("unsat");
         if (sat == unsat) throw new ProverException("Improper response to (check) query: \"" + output + "\"");
         ProverResult r = new ProverResult();
@@ -193,6 +292,8 @@ public class YicesProver implements IProver {
         } else if (unsat) {
             r.result(ProverResult.UNSAT);
             satResult = output.substring(0,output.length()-8);
+            System.out.println("UNSAT INFO:" + satResult);
+            //maxsat();
             // Need to show the unsat core FIXME
         } else {
             r.result(ProverResult.UNKNOWN);
@@ -202,17 +303,28 @@ public class YicesProver implements IProver {
         return r;
     }
     
+    public void maxsat() throws ProverException {
+        send("(max-sat)\n");
+        String output = eatPrompt();
+        //System.out.println("HEARD " + output);
+        System.out.println("MAXSAT INFO:" + output);
+    }
+    
     // FIXME - just temporary
     public String satResult = null;
 
     public void pop() throws ProverException {
         send("(pop)\n");
         eatPrompt();
+        defined.removeAll(top);
+        top = stack.removeFirst();
     }
 
     public void push() throws ProverException {
         send("(push)\n");
         eatPrompt();
+        stack.addFirst(top);
+        top = new LinkedList<String>();
     }
 
     public void restartProver() throws ProverException {

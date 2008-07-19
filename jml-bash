@@ -1,11 +1,25 @@
 #! /bin/bash
 
-DIR=C:/home/projects/OpenJML
-JR=$DIR/jmlcheck.jar
+DIR=C:/home/projects/OpenJML/trunk/OpenJML
+SPC=-specs
+
+JR=$DIR/openjml.jar
 RT=$DIR/jmlruntime.jar
-##SP=$DIR/jmlspecs.jar
 
-SD=$DIR/../JMLspecs/trunk
-SP="$SD/java6;$SD/java5;$SD/java4"
+## FIXME - test whether the specs files actually work
 
-java -jar "$JR" -classpath "$RT;$CLASSPATH" -specs "$SP" $@
+## Use default specs - FIXME this does not work
+#SPC=
+#SP=
+
+## Use internal specs 
+#SP=$DIR/openjml.jar
+
+## Use explicit specs file
+SP=$DIR/jmlspecs.jar
+
+## Use project specs files
+SPECSDIR=C:/home/projects/JMLspecs/trunk
+#SP="${SPECSDIR}/java6;${SPECSDIR}/java5;${SPECSDIR}/java4"
+
+java -jar "$JR" -classpath "$RT;$CLASSPATH" "$SPC" "$SP" $@

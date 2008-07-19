@@ -2,6 +2,7 @@ package org.jmlspecs.openjml;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.LinkedList;
 
 import javax.tools.JavaFileObject;
 
@@ -17,22 +18,9 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.TreeMaker;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
-import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
-import com.sun.tools.javac.tree.JCTree.JCForLoop;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -43,7 +31,24 @@ import com.sun.tools.javac.util.Position;
 // FIXME - the start and end positions are gotten from TreeInfo, which does not work for JML nodes
 /** This class simply holds the classes which are JML-specific nodes of parse trees. */
 public class JmlTree {
-    
+
+    /** Convert a tree to a pretty-printed string using the JmlPrettyPrinter; note that
+     * this is not inherited by anyone, it is here as a utility method and needs
+     * to be called by nodes of JmlTree. */
+    static public String toString(JCTree node) {
+        StringWriter s = new StringWriter();
+        try {
+            new JmlPretty(s, false).printExpr(node);
+        }
+        catch (IOException e) {
+            // should never happen, because StringWriter is defined
+            // never to throw any IOExceptions
+            throw new AssertionError(e);
+        }
+        return s.toString();
+    }
+
+
     /** This interface extends the node factory for Java parse tree nodes by adding factory
      * methods for all of the JML nodes.
      */
@@ -607,6 +612,11 @@ public class JmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        @Override
+        public String toString() {
+            return JmlTree.toString(this);
+        }
     }
         
     public static class JmlImport extends JCTree.JCImport {
@@ -635,6 +645,11 @@ public class JmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+
     }
     
     public static class JmlRefines extends JCTree {
@@ -654,11 +669,6 @@ public class JmlTree {
         }
         
         @Override
-        public String toString() {
-            return "refines " + filename;
-        }
-
-        @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlRefines(this); 
@@ -673,10 +683,16 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlRefines(this, d);
             } else {
-                System.out.println("A JmlResfines expects a JmlTreeVisitor, not a " + v.getClass());
+                System.out.println("A JmlRefines expects a JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }
+        
+        @Override
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+
    }
       
     /** This class adds some JML specific information to the JCClassDecl toplevel node. */
@@ -716,6 +732,10 @@ public class JmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        public String toString() {
+            return JmlTree.toString(this);
+        }
     }
 
     /** This class adds some JML specific information to the JCMethodDecl node. */
@@ -754,6 +774,11 @@ public class JmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+
     }
       
     /** This class adds some JML specific information to the JCVariableDecl node. */
@@ -791,10 +816,15 @@ public class JmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+
     }
 
     /** This class represents JML method name of constructs take arguments. */
-    public static class JmlFunction extends JCTree.JCExpression {
+    public static class JmlFunction extends JmlExpression {
         public JmlToken token;
         
         protected JmlFunction(int pos, JmlToken token) {
@@ -838,7 +868,7 @@ public class JmlTree {
     }
 
     /** This class represents JML functions that take a list of store-refs as arguments. */
-    public static class JmlStoreRefListExpression extends JCTree.JCExpression {
+    public static class JmlStoreRefListExpression extends JmlExpression {
         public JmlToken token;
         public ListBuffer<JCTree> list;
         
@@ -886,7 +916,7 @@ public class JmlTree {
     }
 
     /** This class represents JML expression constructs which do not have arguments (syntactically). */
-    public static class JmlSingleton extends JCTree.JCExpression {
+    public static class JmlSingleton extends JmlExpression {
         public JmlToken token;
         public Symbol symbol;  // Convenience for some node types
         
@@ -928,9 +958,15 @@ public class JmlTree {
             }
         }
     }
+
+    abstract public static class JmlExpression extends JCTree.JCExpression {
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+    }
     
     /** This class represents binary expressions with JML operators */
-    public static class JmlBinary extends JCTree.JCExpression implements BinaryTree {
+    public static class JmlBinary extends JmlExpression implements BinaryTree {
         public JmlToken op;
         public JCExpression lhs;
         public JCExpression rhs;
@@ -977,10 +1013,11 @@ public class JmlTree {
                 return null;
             }
         }
+        
     }
 
     /** This class represents JML LBL expressions */
-    public static class JmlLblExpression extends JCTree.JCExpression {
+    public static class JmlLblExpression extends JmlExpression {
         public JmlToken token;
         public Name label;
         public JCExpression expression;
@@ -1022,7 +1059,7 @@ public class JmlTree {
     }
 
     /** This class represents JML quantified expressions */
-    public static class JmlQuantifiedExpr extends JCTree.JCExpression {
+    public static class JmlQuantifiedExpr extends JmlExpression {
         public JmlToken op;
         public ListBuffer<Name> names;
         public JCModifiers modifiers;
@@ -1072,7 +1109,7 @@ public class JmlTree {
     }
     
     /** This class represents JML quantified expressions */
-    public static class JmlSetComprehension extends JCExpression {
+    public static class JmlSetComprehension extends JmlExpression {
         public JCExpression newtype;
         public JCVariableDecl variable;
         public JCExpression predicate;
@@ -1117,7 +1154,11 @@ public class JmlTree {
      * statements within the body of a method.  From a Java perspective, these
      * need to behave like Skip statements.
      */
-    public static abstract class JmlAbstractStatement extends JCTree.JCSkip {}
+    public static abstract class JmlAbstractStatement extends JCTree.JCSkip {
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+    }
 
     /** This class represents JML statements within the body of a method
      * that take a statement, such as set and debug
@@ -1284,6 +1325,11 @@ public class JmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+
     }
 
     /** This class wraps a Java for loop just so it can attach some specs
@@ -1317,6 +1363,11 @@ public class JmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+
     }
 
     /** This class wraps a Java enhanced loop just so it can attach some specs
@@ -1350,6 +1401,11 @@ public class JmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+
     }
 
     /** This class wraps a Java do while loop just so it can attach some specs
@@ -1383,6 +1439,11 @@ public class JmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+
     }
 
     /** This class represents JML statements within the body of a method
@@ -1480,7 +1541,7 @@ public class JmlTree {
     /** This is an abstract class that is a parent to any type of clause in
      * a method specification.
      */
-    abstract public static class JmlMethodClause extends JCTree.JCSkip {
+    abstract public static class JmlMethodClause extends JmlAbstractStatement {
         public JmlToken token;
         abstract public StringBuilder toString(String indent);
     }
@@ -1827,9 +1888,13 @@ public class JmlTree {
                 return null; //return super.accept(v,d);
             }
         }
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+
     }
 
-    public static class JmlStoreRefArrayRange extends JCExpression {
+    public static class JmlStoreRefArrayRange extends JmlExpression {
         public JCExpression expression;
         public JCExpression lo;
         public JCExpression hi;
@@ -1881,16 +1946,7 @@ public class JmlTree {
         public JavaFileObject source() { return source; }
         
         public String toString() {
-            StringWriter s = new StringWriter();
-            try {
-                new JmlPretty(s, false).printExpr(this);
-            }
-            catch (IOException e) {
-                // should never happen, because StringWriter is defined
-                // never to throw any IOExceptions
-            throw new AssertionError(e);
-            }
-            return s.toString();
+            return JmlTree.toString(this);
         }
     }
     
@@ -1931,7 +1987,12 @@ public class JmlTree {
                 System.out.println("A JmlGroupName expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
-        }    }
+        }
+        
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+    }
     
     /** This class represents an "in" type clause in a class specification */
     public static class JmlTypeClauseIn extends JmlTypeClause {
@@ -2143,7 +2204,11 @@ public class JmlTree {
                 return null; //return super.accept(v,d);
             }
         }
-}
+        
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+    }
     
     /** This class represents 'represents' type clauses  in a class specification */
     public static class JmlTypeClauseRepresents extends JmlTypeClause {
@@ -2363,7 +2428,7 @@ public class JmlTree {
     }
 
     /** This class represents a specification case in a method specification */
-    public static class JmlSpecificationCase extends JCTree.JCSkip implements JmlSource {
+    public static class JmlSpecificationCase extends JmlAbstractStatement implements JmlSource {
         public JCModifiers modifiers;
         public JmlToken token;
         public JmlToken also;
@@ -2494,7 +2559,7 @@ public class JmlTree {
     /** This class represents the specifications of a method (a list of 
      * specification cases).
      */
-    public static class JmlMethodSpecs extends JCTree.JCSkip {
+    public static class JmlMethodSpecs extends JmlAbstractStatement {
         public JmlMethodDecl decl = null; // A declaration that has the result and parameter modifiers
         public List<JmlSpecificationCase> cases;
         public List<JmlSpecificationCase> impliesThatCases;
@@ -2555,7 +2620,7 @@ public class JmlTree {
     }
     
     /** This class represents JML primitive types */
-    static public class JmlPrimitiveTypeTree extends JCTree.JCExpression {
+    static public class JmlPrimitiveTypeTree extends JmlExpression {
         
         public JmlToken token;
         
@@ -2600,5 +2665,46 @@ public class JmlTree {
 
     /** The system-defined end of line character string */
     static public final String eol = System.getProperty("line.separator");
+    
+    public static class JmlBBArrayAssignment extends JCMethodInvocation {
+        public JmlBBArrayAssignment(JCIdent newarrs, JCIdent oldarrs, JCExpression arr, JCExpression index, JCExpression rhs) {
+            super(null,null,null);
+            ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+            list.append(newarrs);
+            list.append(oldarrs);
+            list.append(arr);
+            list.append(index);
+            list.append(rhs);
+            args = list.toList();
+        }
+    }
+    
+    public static class JmlBBFieldAssignment extends JCMethodInvocation {
+        public JmlBBFieldAssignment(JCIdent newfield, JCIdent oldfield, JCExpression selected, JCExpression rhs) {
+            super(null,null,null);
+            ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+            list.append(newfield);
+            list.append(oldfield);
+            list.append(selected);
+            list.append(rhs);
+            args = list.toList();
+        }
+    }
+    
+    public static class JmlBBArrayAccess extends JCArrayAccess {
+        public JCIdent arraysId;
+        public JmlBBArrayAccess(JCIdent arraysId, JCExpression arr, JCExpression index) {
+            super(arr,index);
+            this.arraysId = arraysId;
+        }
+    }
+    
+    public static class JmlBBFieldAccess extends JCFieldAccess {
+        public JCIdent fieldId;
+        public JmlBBFieldAccess(JCIdent fieldId, JCExpression selected, Name field, Symbol sym) {
+            super(selected,field,sym);
+            this.fieldId = fieldId;
+        }
+    }
     
 }

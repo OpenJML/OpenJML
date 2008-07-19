@@ -107,6 +107,14 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
         // FIXME - this is a hack for the tests (the files are not real) - fix it
         return s.equals(ss) || s.endsWith(ss) || ss.endsWith(s);
     }
+    
+    /** A definition of hashCode, since we have a definition of equals */
+    public int hashCode() {
+        // Two things are equal if they have the same string, so we'll
+        // use that for the hashCode
+        return uri.normalize().getPath().hashCode();
+        // FIXME -0 this is not right, since if one is a suffix of the other they are equal and should have the same hashCode
+    }
 
 }
 

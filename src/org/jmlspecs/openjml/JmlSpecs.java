@@ -627,7 +627,7 @@ public class JmlSpecs {
                 for (MethodSymbol m: e.getValue().methods.keySet()) {
                     JmlMethodSpecs sp = getSpecs(m);
                     System.out.println("  " + m.enclClass().toString() + " " + m.flatName());
-                    System.out.print(JmlPretty.write("     ","  ",sp));
+                    System.out.print(JmlPretty.write(sp));
                     //System.out.println(sp.toString("     "));
                 }
                 System.out.println("  " + e.getValue().fields.size() + " FIELDS");
@@ -635,10 +635,14 @@ public class JmlSpecs {
                     FieldSpecs sp = getSpecs(m);
                     for (JmlTypeClause t: sp.list) {
                     System.out.println("  " + m.enclClass().toString() + " " + m.flatName());
-                    System.out.print(JmlPretty.write("     ","  ",t));
+                    System.out.print(JmlPretty.write(t));
                     //System.out.println(sp.toString("     "));
                     }
                 }
+            }
+            System.out.println("MOCK FILES");
+            for (String s: mockFiles.keySet()) {
+                System.out.println(s + " :: " + mockFiles.get(s));
             }
         } catch (Exception e) {
             System.out.println("Exception occurred in printing the database: " + e);

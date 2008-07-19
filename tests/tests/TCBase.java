@@ -6,6 +6,8 @@ import javax.tools.JavaFileObject;
 
 import junit.framework.AssertionFailedError;
 
+import org.junit.*;
+
 import org.jmlspecs.openjml.JmlSpecs;
 
 import com.sun.tools.javac.comp.JmlEnter;
@@ -18,7 +20,7 @@ public abstract class TCBase extends JmlTestCase {
 
     static String z = java.io.File.pathSeparator;
     static String testspecpath1 = "$A"+z+"$B";
-    static String testspecpath;
+    protected String testspecpath;
     int expectedExit = -1;
     boolean useSystemSpecs = false;
 
