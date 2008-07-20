@@ -42,7 +42,7 @@ public class Label {
     /** Used for assume statements generated from preconditions */
     public final static Label PRECONDITION = new Label("Precondition");
     
-    /** Used for assume or assert statements generated from invariants */
+    /** Used for assume or assert statements generated from invariants or initiallys */
     public final static Label INVARIANT = new Label("Invariant");
     
     /** Used for assume statements generated to define auxiliary variables */

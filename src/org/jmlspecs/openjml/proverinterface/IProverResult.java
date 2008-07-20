@@ -1,5 +1,6 @@
 package org.jmlspecs.openjml.proverinterface;
 
+
 public interface IProverResult {
 
   /** Kinds of results a prover can produce */
@@ -26,7 +27,7 @@ public interface IProverResult {
    * form of this output string is prover-dependent (FIXME)
    * @return The satisfying assignment produced by the prover
    */
-  public String counterexample();
+  public Counterexample counterexample();
   
   /** A marker interface for additional details produced by the prover -
    * these may be prover-dependent

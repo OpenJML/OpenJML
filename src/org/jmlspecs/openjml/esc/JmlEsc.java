@@ -18,6 +18,7 @@ import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.proverinterface.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverException;
@@ -352,43 +353,57 @@ public class JmlEsc extends JmlTreeScanner {
             IProverResult r = p.check();
             if (r.isSat()) {
                 System.out.println("Method does NOT satisfy its specifications");
-                String s = r.counterexample();
+                Counterexample s = r.counterexample();
                 // Look for "(assert$<Label>$<number> false"
-                Matcher m = Pattern.compile("(assert\\$(\\w+)\\$(\\d+))\\$(\\d+) false").matcher(s);
+                Pattern pat1 = Pattern.compile("(assert\\$(\\d+)\\$(\\w+))\\$(\\d+)");
                 boolean noinfo = true;
-                while (m.find()) {
-                    String sname = m.group(1); // full name of the assertion
-                    String label = m.group(2); // the label part (between 1st and 2nd $ signs)
-                    int usepos = Integer.parseInt(m.group(3)); // the textual location of the assert statement
-                    int declpos = Integer.parseInt(m.group(4)); // the textual location of associated information (or same as usepos if no associated information)
-                    System.out.println("Assertion " + sname + " cannot be verified");
-                    log.warning(usepos,"esc.assertion.invalid",label,node.getName());
-                    if (declpos != usepos) log.warning(declpos,"esc.associated.decl");
-                    noinfo = false;
+                if (s != null) for (Map.Entry<String,String> var: s.sortedEntries()) {
+                    Matcher m = pat1.matcher(var.getKey());
+                    if (var.getValue().equals("false") && m.find()) {
+                        String sname = m.group(1); // full name of the assertion
+                        String label = m.group(3); // the label part (between 1st and 2nd $ signs)
+                        int usepos = Integer.parseInt(m.group(2)); // the textual location of the assert statement
+                        int declpos = Integer.parseInt(m.group(4)); // the textual location of associated information (or same as usepos if no associated information)
+                        System.out.println("Assertion " + sname + " cannot be verified");
+                        log.warning(usepos,"esc.assertion.invalid",label,node.getName());
+                        if (declpos != usepos) log.warning(declpos,"esc.associated.decl");
+                        noinfo = false;
+                    }
                 }
                 if (noinfo) {
                     // No counterexample information
                     // FIXME - need a test for this
                     log.warning("esc.method.invalid",node.getName());
                 } else {
-                    m = Pattern.compile("\\$\\$LBLPOS\\$(\\d+)\\$([^ ]+) true").matcher(s);
-                    while (m.find()) {
-                        int pos = Integer.parseInt(m.group(1));
-                        String label = m.group(2);
-                        //System.out.println("Label " + label + " reported (expression true)");
-                        log.warning(pos,"esc.label",label);
+                    Pattern pat2 = Pattern.compile("\\$\\$LBLPOS\\$(\\d+)\\$([^ ]+)");
+                    for (Map.Entry<String,String> var: s.sortedEntries()) {
+                        Matcher m = pat2.matcher(var.getKey());
+                        if (var.getValue().equals("true") && m.find()) {
+                            int pos = Integer.parseInt(m.group(1));
+                            String label = m.group(2);
+                            //System.out.println("Label " + label + " reported (expression true)");
+                            log.warning(pos,"esc.label",label);
+                        }
                     }
-                    m = Pattern.compile("\\$\\$LBLNEG\\$(\\d+)\\$([^ ]+) false").matcher(s);
-                    while (m.find()) {
-                        int pos = Integer.parseInt(m.group(1));
-                        String label = m.group(2);
-                        //System.out.println("Label " + label + " reported (expression false)");
-                        log.warning(pos,"esc.label",label);
+                    Pattern pat3 = Pattern.compile("\\$\\$LBLNEG\\$(\\d+)\\$([^ ]+)");
+                    for (Map.Entry<String,String> var: s.sortedEntries()) {
+                        Matcher m = pat3.matcher(var.getKey());
+                        if (var.getValue().equals("false") && m.find()) {
+                            int pos = Integer.parseInt(m.group(1));
+                            String label = m.group(2);
+                            //System.out.println("Label " + label + " reported (expression false)");
+                            log.warning(pos,"esc.label",label);
+                        }
                     }
                 }
                 if (true /*|| printCounterexample*/) {
-                    int k = s.indexOf(' ');
-                    System.out.println("Counterexample:" + s.substring(k+1));
+                    System.out.println("Counterexample:");
+                    String spaces = "                                ";
+                    for (Map.Entry<String,String> var: s.sortedEntries()) {
+                        int k = var.getKey().length();
+                        if (k >= spaces.length()) k = spaces.length()-1;
+                        System.out.println("    " + var.getKey() + spaces.substring(k) + var.getValue());
+                    }
                 }
             } else {
                 System.out.println("Method satisfies its specifications (as far as I can tell)");
