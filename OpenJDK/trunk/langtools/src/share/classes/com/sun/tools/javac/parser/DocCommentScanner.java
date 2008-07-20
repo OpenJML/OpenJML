@@ -187,7 +187,7 @@ public class DocCommentScanner extends Scanner {
 
     /** Read next character.
      */
-    protected void scanChar() {
+    protected void scanChar() { // DRC - changed to protected
         bp++;
         ch = buf[bp];
         switch (ch) {
