@@ -1,6 +1,6 @@
-                                           DATE: 10 December 2007
+                                           DATE: 19 July 2008
                                            AUTHOR: David R. Cok
-                                           COPYRIGHT: (c) 2007 David Cok
+                                           COPYRIGHT: (c) 2007-2008 David Cok
 
 This file describes a completely rewritten JML tool (called OpenJML) based
 on the OpenJDK release of the Java tool set (http://openjdk.java.net).  It is
@@ -64,7 +64,7 @@ THE FILES:
       These are conventional Java files for which either
 a) the Java files contain JML specifications directly, or
 b) there are specification files on the specs path with names corresponding
-to the Java files names (e.g. A.spec for A.java).  If you mix Java files and
+to the Java files names (e.g. A.jml for A.java).  If you mix Java files and
 specification files in the same directory, be careful of the precedence of
 JML file suffixes.  The files on the command-line are given with absolute
 path names or with paths relative to the current working directory.
@@ -134,29 +134,34 @@ of the contents of this jar file.
 STATUS OF THIS RELEASE
 
 This release is alpha quality.  Barring bugs, a valid Java/JML file will be
-parsed without errors, with at least these exceptions: the .. token in array ranges must
-sometimes be preceded by whitespace (e.g. a[0..5] is likely to fail); name lookup
-and type checking for old constructs with a label; JML comments may not be
-terminated by @+*/ ;  JML specs for anonymous classes are not read; matching of
-specs from a spec file to the signature in a Java file is fragile for generic methods.
+parsed without errors, with at least these exceptions: 
+- the .. token in array ranges must sometimes be preceded by whitespace 
+        (e.g. a[0..5] is likely to fail); 
+- name lookup and type checking for old constructs with a label; 
+- JML comments may not be terminated by @+*/ ;  
+- JML specs for anonymous classes are not read; 
+- matching of specs from a spec file to the signature in a Java file is fragile 
+        for generic methods.
 
-Some JML constructs are merely skipped over
-by the parser, including at least: model programs; accessible, callable, 
-captures clauses; for suffix of constraint clauses; only the first file of a
-specification sequence is used; JML in javadoc comments is ignored, as are
-method specifications that follow the method signature; access modifiers on
-JML clauses are parsed but mostly ignored.
+Some JML constructs are merely skipped over by the parser, including at least: 
+- model programs; 
+- accessible, callable, captures clauses; 
+- for suffix of constraint clauses; 
+- only the first file of a specification sequence is used; 
+- JML in javadoc comments is ignored, as are method specifications that follow 
+        the method signature; 
+- access modifiers on JML clauses are parsed but mostly ignored.
 
-Typechecking is in place for most JML constructs.  Omissions include at least
-accessible, callable, captures clauses; in and maps clauses.
+Typechecking is in place for most JML constructs.  Omissions include at least:
+- accessible, callable, captures clauses; 
+- in and maps clauses.
 
 Although the -rac option is present, the implementation of runtime
 assertion checking is rudimentary.  With -rac enabled, compiled output files
 are produced that include some runtime checks, but no specification 
 inheritance is implemented, nor are there runtime checks for binary files.
 
-The -esc option is also present, but this is very preliminary and does nothing
-useful for the user (and will probably crash).
+The -esc option is also present, but this is very partial and preliminary.
 
 Your feedback and comments are welcome.
 
@@ -170,18 +175,14 @@ The source code is hosted in the jmlspecs project at sourceforge, in a
 subversion repository.  It is organized to be easily used within Eclipse.  
 
 The OpenJML source consists of the OpenJML code itself, plus slight
-modifications of two packages obtained from elsewhere.  The first is the 
-OpenJDK code itself, which comes from
-https://openjdk.dev.java.net/svn/openjdk/jdk/trunk/langtools . The
-second is the FreeBoogie library from the Mobius project:
-https://mobius.ucd.ie/repos/src/freeboogie/trunk/FreeBoogie.
-In each case the OpenJML project had to modify the source of these packages
-a bit (but my aim is to avoid and reduce the amount of such modification).
-So I've treated the originals as "vendor" code and made modifications in the
-versions incorporated into OpenJML.  More on that below.  For now, just note
-that the OpenJML/trunk subdirectories hold the development stream for the
-OpenJML tool; the OpenJML/vendor subdirectories hold the original sources from
-the locations indicated.
+modifications of the OpenJDK source.  OpenJDK comes from
+https://openjdk.dev.java.net/svn/openjdk/jdk/trunk/langtools .
+This source code did need to be modified somewhat (but my aim is to avoid and 
+reduce the amount of such modification).  I've treated the original as "vendor" 
+code and made modifications in the versions incorporated into OpenJML.  More on 
+that below.  For now, just note that the OpenJML/trunk subdirectories hold the 
+development stream for the OpenJML tool; the OpenJML/vendor subdirectories hold 
+the original sources from the location indicated.
 
 Note that OpenJML has been developed under Eclipse RUNNING IN A CYGWIN
 ENVIRONMENT.  That is Eclipse is launched from a Cygwin shell, not from the
@@ -220,18 +221,7 @@ Either of these procedures leave you with three new projects in your workspace.
 Building:  
 
 The build procedure is straightforward and automatic for OpenJML and
-OpenJDK.  FreeBoogie has some complications.  It has a build.xml script that 
-is used to (a) generate the .java files for the AST nodes and (b) to generate
-(using Antlr) the scanner and parser.  To accomplish this automatically,
-FreeBoogie has an additional builder as part of its project definitions that
-invokes the build.xml ant script with the "compile" or "dist" target for
-building and the "clean" target for cleaning.  Furthermore, after the build.xml
-script runs to generate these files, the directories containing the generated
-files need to be refreshed for the regular Eclipse builder to operate
-correctly.  If you get failures in building, they can sometimes be the result
-of this complex mechanism failing to work (or to be set up to work) as desired.
-If you are not modifying FreeBoogie, you may wish to disable this extra builder
-or Automatic Building for the FreeBoogie project.
+OpenJDK.
 
 Launch configurations:
 
@@ -251,16 +241,15 @@ You may need to modify this configuration to identify the location of the
 
 Vendor branches:
 
-The two vendor branches OpenJML/vendor/OpenJDK and OpenJML/vendor/FreeBoogie
-contain exports of the source for those two packages verbatim, for the 
-revisions of those packages as identified in the commit comments.  The intent
-is to manage those as vendor branches as described in the Subversion 
-documentation.  Those verbatim copies were copied into the trunk branch and
+The vendor branch OpenJML/vendor/OpenJDK contains an export
+of the source of openjdk verbatim, for the 
+revisions identified in the commit comments.  The intent
+is to manage this vendor branch as described in the Subversion 
+documentation.  This verbatim copy was copied into the trunk branch and
 identified with the original revision number.  Then modifications to those
 sources were made and committed within the trunk.  When new versions of 
-OpenJDK or FreeBoogie are available they will be copied and committed into the
+OpenJDK are available they will be copied and committed into the
 vendor branch; then the changes that have occurred in the vendor branch will be
 merged into the trunk.  When the details of this merging procedure are worked out,
-they will be described here.  This may be complicated by OpenJDK moving to 
-Mercurial repositories.
+they will be described here. 
 

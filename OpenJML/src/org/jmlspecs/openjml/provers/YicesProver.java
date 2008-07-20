@@ -14,8 +14,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jmlspecs.openjml.esc.BasicBlocker;
+import org.jmlspecs.openjml.proverinterface.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverException;
@@ -276,7 +279,9 @@ public class YicesProver implements IProver {
         satResult = output.substring(0,output.length()-8);
         return sat;
     }
-    
+
+    static Pattern p = Pattern.compile("\\(=[ ]+(.+)[ ]+([^)]+)\\)");
+
     public IProverResult check() throws ProverException {
         send("(check)\n");
         String output = eatPrompt();
@@ -288,7 +293,12 @@ public class YicesProver implements IProver {
         if (sat) {
             r.result(ProverResult.SAT);
             satResult = output.substring(0,output.length()-8);
-            r.add(new ProverResult.Counterexample(satResult));
+            Counterexample ce = new Counterexample();
+            Matcher m = p.matcher(satResult);
+            while (m.find()) {
+                ce.put(m.group(1),m.group(2));
+            }
+            r.add(ce);
         } else if (unsat) {
             r.result(ProverResult.UNSAT);
             satResult = output.substring(0,output.length()-8);

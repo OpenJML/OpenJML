@@ -1,5 +1,5 @@
 #FindBugs User Preferences
-#Mon Jun 30 02:11:42 EDT 2008
+#Sat Jul 19 09:59:45 EDT 2008
 detectorAppendingToAnObjectOutputStream=AppendingToAnObjectOutputStream|true
 detectorBCPMethodReturnCheck=BCPMethodReturnCheck|false
 detectorBadAppletConstructor=BadAppletConstructor|false
@@ -26,6 +26,7 @@ detectorDumbMethods=DumbMethods|true
 detectorDuplicateBranches=DuplicateBranches|true
 detectorEmptyZipFileEntry=EmptyZipFileEntry|true
 detectorEqStringTest=EqStringTest|false
+detectorFieldItemSummary=FieldItemSummary|true
 detectorFinalizerNullsFields=FinalizerNullsFields|true
 detectorFindBadCast=FindBadCast|false
 detectorFindBadCast2=FindBadCast2|true
@@ -141,5 +142,6 @@ detectorWrongMapIterator=WrongMapIterator|true
 detectorXMLFactoryBypass=XMLFactoryBypass|true
 detector_threshold=2
 effort=max
+excludefilter0=openjmlfilter.xml
 filter_settings=Medium|BAD_PRACTICE,CORRECTNESS,I18N,MALICIOUS_CODE,MT_CORRECTNESS,PERFORMANCE,SECURITY,STYLE|false
 filter_settings_neg=|

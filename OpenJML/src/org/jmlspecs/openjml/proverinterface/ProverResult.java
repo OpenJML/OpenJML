@@ -3,6 +3,8 @@ package org.jmlspecs.openjml.proverinterface;
 import org.jmlspecs.annotations.*;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ProverResult implements IProverResult {
 
@@ -45,18 +47,20 @@ public class ProverResult implements IProverResult {
         details.add(o);
     }
 
-    public static class Counterexample implements IProverResult.Item {
-        public Counterexample(String s) { counterexample = s; }
-        public String counterexample;
-        public String toString() { return counterexample; }
-    }
+//    public static class Counterexample implements IProverResult.Item {
+//        public Counterexample(String s) { counterexample = s; }
+//        public String counterexample;
+//        public String toString() { return counterexample; }
+//    }
 
-    public String counterexample() {
-        if (details == null) return "";
+    public Counterexample counterexample() {
+        if (details == null) return null;
         for (IProverResult.Item i: details) {
-            if (i instanceof Counterexample) return i.toString();
+            if (i instanceof Counterexample) {
+                return (Counterexample)i;
+            }
         }
-        return "";
+        return null;
     }
 
 }
