@@ -115,7 +115,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitJmlQuantifiedExpr(JmlQuantifiedExpr that, Void p) {
-        return M.at(that.pos).JmlQuantifiedExpr(that.op,copy(that.modifiers),copy(that.localtype),that.names,copy(that.range),copy(that.predicate)).setType(that.type);
+        return M.at(that.pos).JmlQuantifiedExpr(that.op,copy(that.modifiers),copy(that.localtypes),that.names,copy(that.range),copy(that.predicate)).setType(that.type);
     }
 
     public JCTree visitJmlRefines(JmlRefines that, Void p) {

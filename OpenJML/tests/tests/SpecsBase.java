@@ -62,7 +62,7 @@ public class SpecsBase extends TCBase {
                 System.out.println("Unexpected return code for "  + testClass + " " + ex);
                 foundErrors = true;
             }
-            if (d.getDiagnostics().size() != 0) {
+            if (collector.getDiagnostics().size() != 0) {
                 System.out.println("ERRORS FOUND " + testClass);
                 foundErrors = true;
                 printErrors();

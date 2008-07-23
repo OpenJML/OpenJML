@@ -4,24 +4,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.math.BigInteger;
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.List;
 import java.util.logging.Logger;
 
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverException;
-import org.jmlspecs.openjml.proverinterface.SmtTerm;
-import org.jmlspecs.openjml.proverinterface.Sort;
-import org.jmlspecs.openjml.proverinterface.Term;
 
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 
+// FIXME - needs implementation
 
 /**
  * Used to interact with Simplify.
@@ -43,8 +37,8 @@ public class SimplifyProver implements IProver {
   private PrintStream out;
   
   // a |marker| is used to mark the beginning of an assumption frame
-  private Deque<Term> assumptions;
-  private Term marker; 
+//  private Deque<Term> assumptions;
+//  private Term marker; 
   
   private int assumeCounter = 0;
 //  private SmtTermBuilder builder;
@@ -56,9 +50,9 @@ public class SimplifyProver implements IProver {
    */
   public SimplifyProver(String[] cmd) throws ProverException {
     this.cmd = Arrays.asList(cmd);
-    assumptions = new ArrayDeque<Term>();
-    marker = new Term(null);
-    assumptions.add(marker);
+//    assumptions = new ArrayDeque<Term>();
+//    marker = new Term(null);
+//    assumptions.add(marker);
     restartProver();
     
 //    // TODO some of this stuff is probably common to multiple provers
@@ -89,53 +83,53 @@ public class SimplifyProver implements IProver {
   }
   
   // TODO This is quite incomplete now
-  private void printTerm(Term t, StringBuilder sb) {
-    SmtTerm st = (SmtTerm)t;
-    if (st.id.startsWith("var")) { 
-      sb.append((String)st.data);
-    } else if (st.id.startsWith("forall")) {
-      sb.append("(FORALL (");
-      printTerm(st.children[0], sb);
-      sb.append(") ");
-      printTerm(st.children[1], sb);
-      sb.append(")");
-    } else if (st.id.equals("const_int")) {
-      sb.append(st.data);
-    } else if (st.id.equals("const_bool")) {
-      if ((Boolean)st.data)
-        sb.append("|true|");
-      else
-        sb.append("|false|");
-    } else if (st.id.startsWith("eq")) {
-      sb.append("(EQ ");
-      printTerm(st.children[0], sb);
-      sb.append(" ");
-      printTerm(st.children[1], sb);
-      sb.append(")");
-    } else {
-      sb.append("(");
-      sb.append(st.id.toUpperCase());
-      for (Term c : st.children) {
-        sb.append(" ");
-        printTerm(c, sb);
-      }
-      sb.append(")");
-    }
-  }
-  
-  private void sendTerm(Term t) {
-    StringBuilder sb = new StringBuilder();
-    printTerm(t, sb);
-    log.info("backend> " + sb);
-    out.print(sb);
-  }
-  
-  private void sendAssume(Term t) {
-    out.print("(BG_PUSH ");
-    sendTerm(t);
-    out.print(")\n");
-    out.flush();
-  }
+//  private void printTerm(Term t, StringBuilder sb) {
+//    SmtTerm st = (SmtTerm)t;
+//    if (st.id.startsWith("var")) { 
+//      sb.append((String)st.data);
+//    } else if (st.id.startsWith("forall")) {
+//      sb.append("(FORALL (");
+//      printTerm(st.children[0], sb);
+//      sb.append(") ");
+//      printTerm(st.children[1], sb);
+//      sb.append(")");
+//    } else if (st.id.equals("const_int")) {
+//      sb.append(st.data);
+//    } else if (st.id.equals("const_bool")) {
+//      if ((Boolean)st.data)
+//        sb.append("|true|");
+//      else
+//        sb.append("|false|");
+//    } else if (st.id.startsWith("eq")) {
+//      sb.append("(EQ ");
+//      printTerm(st.children[0], sb);
+//      sb.append(" ");
+//      printTerm(st.children[1], sb);
+//      sb.append(")");
+//    } else {
+//      sb.append("(");
+//      sb.append(st.id.toUpperCase());
+//      for (Term c : st.children) {
+//        sb.append(" ");
+//        printTerm(c, sb);
+//      }
+//      sb.append(")");
+//    }
+//  }
+//  
+//  private void sendTerm(Term t) {
+//    StringBuilder sb = new StringBuilder();
+//    printTerm(t, sb);
+//    log.info("backend> " + sb);
+//    out.print(sb);
+//  }
+//  
+//  private void sendAssume(Term t) {
+//    out.print("(BG_PUSH ");
+//    sendTerm(t);
+//    out.print(")\n");
+//    out.flush();
+//  }
   
   private void checkIfDead() throws ProverException {
     try {
@@ -159,29 +153,29 @@ public class SimplifyProver implements IProver {
     }
   }
   
-  /* @see freeboogie.backend.Prover#assume(freeboogie.backend.Term) */
-  public int assume(Term t) throws ProverException {
-      sendAssume(t);
-      assumptions.add(t);
-      checkIfDead();
-      return ++assumeCounter;
-    }
+//  /* @see freeboogie.backend.Prover#assume(freeboogie.backend.Term) */
+//  public int assume(Term t) throws ProverException {
+//      sendAssume(t);
+//      assumptions.add(t);
+//      checkIfDead();
+//      return ++assumeCounter;
+//    }
+//    
+//  public int assume(Term t, int weight) throws ProverException {
+//      sendAssume(t);
+//      assumptions.add(t);
+//      checkIfDead();
+//      return ++assumeCounter;
+//    }
     
-  public int assume(Term t, int weight) throws ProverException {
-      sendAssume(t);
-      assumptions.add(t);
-      checkIfDead();
-      return ++assumeCounter;
-    }
-    
-  public int assume(Context context, JCTree t) throws ProverException {
+  public int assume(JCExpression t) throws ProverException {
 //      sendAssume(t);
 //      assumptions.add(t);
 //      checkIfDead();
       return ++assumeCounter;
     }
     
-  public int assume(Context context, JCTree t, int weight) throws ProverException {
+  public int assume(JCExpression t, int weight) throws ProverException {
 //      sendAssume(t);
 //      assumptions.add(t);
 //      checkIfDead();
@@ -214,48 +208,46 @@ public class SimplifyProver implements IProver {
     return null;
 }
 
-  /* @see freeboogie.backend.Prover#isSat(freeboogie.backend.Term) */
-  public boolean isSat(Term t) throws ProverException {
-    waitPrompt();
-    log.fine("Got prompt, sending query.");
-//    sendTerm(builder.mk("not", t));
-    out.println();
-    out.flush();
-    
-    // wait for prompt or for Valid, Invalid, Unknown
-    try {
-      StringBuilder sb = new StringBuilder();
-      while (true) {
-        int c = in.read();
-        if (c == '\n' || c == '\r') {
-          String line = sb.toString();
-          log.info("simplify> " + line);
-          if (line.contains("Valid")) return false;
-          if (line.contains("Invalid") || line.contains("Unknown"))
-            return true;
-          sb.setLength(0);
-          continue;
-        }
-        if (c == '>' && sb.length() == 0)
-          throw new ProverException("The prover seems a bit confused.");
-        if (c == -1)
-          throw new ProverException("Prover died.");
-        sb.append((char)c);
-      }
-    } catch (IOException e) {
-      throw new ProverException("Failed to read prover answer.");
-    }
-  }
+//  /* @see freeboogie.backend.Prover#isSat(freeboogie.backend.Term) */
+//  public boolean isSat(Term t) throws ProverException {
+//    waitPrompt();
+//    log.fine("Got prompt, sending query.");
+////    sendTerm(builder.mk("not", t));
+//    out.println();
+//    out.flush();
+//    
+//    // wait for prompt or for Valid, Invalid, Unknown
+//    try {
+//      StringBuilder sb = new StringBuilder();
+//      while (true) {
+//        int c = in.read();
+//        if (c == '\n' || c == '\r') {
+//          String line = sb.toString();
+//          log.info("simplify> " + line);
+//          if (line.contains("Valid")) return false;
+//          if (line.contains("Invalid") || line.contains("Unknown"))
+//            return true;
+//          sb.setLength(0);
+//          continue;
+//        }
+//        if (c == '>' && sb.length() == 0)
+//          throw new ProverException("The prover seems a bit confused.");
+//        if (c == -1)
+//          throw new ProverException("Prover died.");
+//        sb.append((char)c);
+//      }
+//    } catch (IOException e) {
+//      throw new ProverException("Failed to read prover answer.");
+//    }
+//  }
 
-  /* @see freeboogie.backend.Prover#pop() */
   public void pop() throws ProverException {
-    while (assumptions.getLast() != marker) retract();
-    assumptions.removeLast();
+//    while (assumptions.getLast() != marker) retract();
+//    assumptions.removeLast();
   }
 
-  /* @see freeboogie.backend.Prover#push() */
   public void push() {
-    assumptions.push(marker);
+//    assumptions.push(marker);
   }
 
   /* @see freeboogie.backend.Prover#restartProver() */
@@ -267,7 +259,7 @@ public class SimplifyProver implements IProver {
       in = new BufferedReader(new InputStreamReader(prover.getInputStream()));
       out = new PrintStream(prover.getOutputStream());
       out.println("(PROMPT_ON)"); // make sure prompt is ON
-      for (Term t : assumptions) if (t != marker) sendAssume(t);
+//      for (Term t : assumptions) if (t != marker) sendAssume(t);
       out.flush();
     } catch (Exception e) {
       throw new ProverException("Cannot start prover." + cmd);
@@ -276,10 +268,18 @@ public class SimplifyProver implements IProver {
 
   /* @see freeboogie.backend.Prover#retract() */
   public void retract() {
-    Term last;
-    do last = assumptions.getLast(); while (last == marker);
+//    Term last;
+//    do last = assumptions.getLast(); while (last == marker);
     out.print("(BG_POP)");
     out.flush();
+  }
+  
+  public void retract(int n) {
+      // FIXME
+  }
+  
+  public void kill() throws ProverException {
+      
   }
   
   /**

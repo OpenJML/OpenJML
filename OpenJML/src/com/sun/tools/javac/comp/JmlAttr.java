@@ -13,6 +13,7 @@ import static org.jmlspecs.openjml.JmlToken.*;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Iterator;
 
 import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
@@ -660,12 +661,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * restrictions (non_null) and purity, desugars lightweight and heavyweight
      * to behavior cases, adds in defaults, desugars signals_only and denests.
      * It does not merge multiple specification cases (so we can give better
-     * error messages).
+     * error messages) and it does not pull in inherited specs.  So in the end 
+     * the desugared specs consist of a set of specification cases, each of 
+     * which consists of a series of clauses without nesting; there is no
+     * combining of requires or other clauses and no insertion of preconditions
+     * into the other clauses.
      * @param msym
      * @param specs
      */
     // FIXME - base this on symbol rather than decl, but first check when all
     // the modifiers are added into the symbol
+    // FIXME - check everything for position information
     public void deSugarMethodSpecs(JmlMethodDecl decl, JmlMethodSpecs specs) {
         JCLiteral nulllit = make.Literal(TypeTags.BOT, null).setType(syms.objectType.constType(null));
         boolean defaultNonnull = determineDefaultNullability();
@@ -679,8 +685,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JCIdent id = make.Ident(p.name);
                 id.sym = p.sym;
                 id.type = p.type;
-                JCExpression e = make.Binary(JCTree.NE,id,nulllit);
-                e.pos = p.pos;
+                JCExpression e = make.at(p.pos).Binary(JCTree.NE,id,nulllit);
                 currentClauseType = JmlToken.REQUIRES;
                 attribExpr(e,env);
                 currentClauseType = null;
@@ -1980,12 +1985,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        attribType(that.localtype,env);
+        JCExpression last = null;
+        for (JCExpression t: that.localtypes) {
+            if (t != last) {
+                if (t != null) attribType(t,env);
+                last = t;
+            }
+        }
+        
         // Need to create a local environment with the new names
         Env<AttrContext> localEnv =
             env.dup(that, env.info.dup(env.info.scope.dup()));
+        Iterator<JCExpression> iter = that.localtypes.iterator();
         for (Name n: that.names) {
-            JCVariableDecl result = JmlTree.Maker.instance(context).at(that.localtype.pos()).VarDef(JmlTree.Maker.instance(context).Modifiers(0), n, that.localtype, null);
+            // FIXME - need to associate a better position with each type
+            JCExpression localtype = iter.next();
+            JCVariableDecl result = JmlTree.Maker.instance(context).at(localtype.pos()).VarDef(JmlTree.Maker.instance(context).Modifiers(0), n, localtype, null);
             memberEnter.memberEnter(result, localEnv);
         }
         if (that.range != null) attribExpr(that.range, localEnv, syms.booleanType);
@@ -2019,7 +2034,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
         }
         JCModifiers mods = that.modifiers;
-        if (Utils.hasOnly(mods,0)!=0) log.error(that.localtype.pos,"jml.no.java.mods.allowed","quantified expression");
+        if (Utils.hasOnly(mods,0)!=0) log.error(that.localtypes.first().pos,"jml.no.java.mods.allowed","quantified expression");
         attribAnnotationTypes(mods.annotations,env);
         allAllowed(mods.annotations, JmlToken.typeModifiers, "quantified expression");
 

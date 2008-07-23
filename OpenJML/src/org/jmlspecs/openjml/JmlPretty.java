@@ -191,7 +191,24 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        try { notImpl(that);  // FIXME
+        try { 
+            out.write("(");
+            out.write(that.op.internedName());
+            out.write(" ");
+            if (that.modifiers != null) printFlags(that.modifiers.flags);  // FIXME - any annotations?
+            // FIXME - fix for different types
+            if (that.localtypes.first() == null) out.write("NULL"); // FIXME - a hack for object type
+            else that.localtypes.first().accept(this);
+            out.write(" ");
+            for (Name n: that.names) {
+                out.write(n.toString());
+                out.write(",");  // FIXME - one too many commas
+            }
+            out.write(";");
+            if (that.range != null) that.range.accept(this);
+            out.write(";");
+            that.predicate.accept(this);
+            out.write(")");
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -202,6 +219,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlSingleton(JmlSingleton that) {
         try {
+            out.write("JML");
             out.write(that.toString());
         } catch (IOException e) { perr(that,e); }
     }

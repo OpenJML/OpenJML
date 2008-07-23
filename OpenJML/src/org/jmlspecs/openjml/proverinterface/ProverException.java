@@ -12,7 +12,7 @@ public class ProverException extends Exception {
     /** Serializable ID */
     private static final long serialVersionUID = -3260524298115196815L;
 
-    /** Possible holds the most recent input, used for error messages */
+    /** Possibly holds the most recent input, used for error messages */
     //@ nullable
     public String mostRecentInput = null;
 

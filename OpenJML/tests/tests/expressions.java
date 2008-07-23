@@ -61,9 +61,9 @@ public class expressions extends ParseBase {
                     System.out.println(t.getClass() + " " + t.getPreferredPosition());
                 }
             }
-            if (print || d.getDiagnostics().size() != 0)
+            if (print || collector.getDiagnostics().size() != 0)
                 printErrors();
-            if (d.getDiagnostics().size() != 0) {
+            if (collector.getDiagnostics().size() != 0) {
                 fail("Saw unexpected errors");
             }
             if (out.size()*2 != list.length) {
@@ -91,9 +91,9 @@ public class expressions extends ParseBase {
             Parser p = fac.newParser(sc,false,true);
             p.expression();
             int i = 0;
-            if (print || d.getDiagnostics().size() != list.length) printErrors();
-            assertEquals("Saw wrong number of errors ",list.length,d.getDiagnostics().size());
-            for (Diagnostic<? extends JavaFileObject> dd: d.getDiagnostics()) {
+            if (print || collector.getDiagnostics().size() != list.length) printErrors();
+            assertEquals("Saw wrong number of errors ",list.length,collector.getDiagnostics().size());
+            for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
                 assertEquals("Error message " + i,list[i++],dd.toString());
             }
         } catch (Exception e) {

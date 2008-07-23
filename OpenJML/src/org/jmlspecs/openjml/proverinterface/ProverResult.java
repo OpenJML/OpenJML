@@ -1,14 +1,18 @@
 package org.jmlspecs.openjml.proverinterface;
 
 import org.jmlspecs.annotations.*;
+
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+/** This class is a concrete representation of an IProverResult
+ * 
+ * @author David Cok
+ */
 public class ProverResult implements IProverResult {
 
     /** The result obtained on testing a logical assertion */
+    @Nullable
     protected Kind result;
 
     /** The details of the result produced by the prover, if any */
@@ -35,24 +39,25 @@ public class ProverResult implements IProverResult {
         return result == SAT;
     }
     
-    // TODO - review/revise the rest
-
-    /** The details of the result */
-    public List<IProverResult.Item> details() {
+    /** The details of the result 
+     * @return a list of Item objects giving more detail
+     */
+    @NonNull public List<IProverResult.Item> details() {
         return details;
     }
 
-    public void add(IProverResult.Item o) {
+    /** Adds an item to the list of details
+     * 
+     * @param item the detail item to add
+     */
+    public void add(@NonNull IProverResult.Item item) {
         if (details == null) details = new LinkedList<IProverResult.Item>();
-        details.add(o);
+        details.add(item);
     }
 
-//    public static class Counterexample implements IProverResult.Item {
-//        public Counterexample(String s) { counterexample = s; }
-//        public String counterexample;
-//        public String toString() { return counterexample; }
-//    }
-
+    /** Returns the counterexample information, if any available and if the
+     * prover supports it
+     */
     public Counterexample counterexample() {
         if (details == null) return null;
         for (IProverResult.Item i: details) {
@@ -63,4 +68,17 @@ public class ProverResult implements IProverResult {
         return null;
     }
 
+    /** Returns any core id information, if available and supported by the
+     * prover
+     * @return an object holding the core id information
+     */
+    public ICoreIds coreIds() {
+        if (details == null) return null;
+        for (IProverResult.Item i: details) {
+            if (i instanceof ICoreIds) {
+                return (ICoreIds)i;
+            }
+        }
+        return null;
+    }
 }

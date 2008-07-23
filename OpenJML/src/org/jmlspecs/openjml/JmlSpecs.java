@@ -223,9 +223,9 @@ public class JmlSpecs {
         String sy = System.getProperty(Utils.eclipseProjectLocation);
         // These are used in testing - sy should be the directory of the OpenJML project
         if (sy != null) {
-            dirs.add(make(sy+"/specs/specs16"));
-            dirs.add(make(sy+"/specs/specs15"));
-            dirs.add(make(sy+"/specs/specs14"));
+            dirs.add(make(sy+"/../../../JMLspecs/trunk/java6"));
+            dirs.add(make(sy+"/../../../JMLspecs/trunk/java5"));
+            dirs.add(make(sy+"/../../../JMLspecs/trunk/java4"));
             return true;
         } else {
             if (verbose) System.out.println("No internal specs found - nor was the eclipse test property " + Utils.eclipseProjectLocation + " defined");
@@ -676,7 +676,7 @@ public class JmlSpecs {
     public void putSpecs(ClassSymbol type, /*@ nullable */ TypeSpecs spec) {
         spec.csymbol = type;
         specs.put(type,spec);
-        if (Utils.jmldebug) System.out.println("PUTTING SPECS " + type.flatname);
+        if (Utils.jmldebug) System.out.println("PUTTING SPECS " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     /** Adds the specs for a given method to the database, overwriting anything
@@ -815,6 +815,8 @@ public class JmlSpecs {
         //@ nullable   // may be null if there are no specs
         public JCTree.JCModifiers modifiers;
 
+        // FIXME - document
+        //@ nullable
         private JmlToken defaultNullity = null;
         
         /** All the specification clauses for the class (not method clauses or field clauses or block clauses) */
@@ -848,10 +850,12 @@ public class JmlSpecs {
         /*@ nullable */ // will be null if there is no static_initializer specification
         public JmlTypeClauseInitializer staticInitializerSpec = null;
         
+        // FIXME - comment
         public JmlMethodDecl checkInvariantDecl;
+        // FIXME - comment
         public JmlMethodDecl checkStaticInvariantDecl;
         
-        // FIXME - comment
+        // FIXME - comment - only partially fills in the class - used for a binary file - I think everything is pretty much empty and null
         public TypeSpecs(JavaFileObject file, JCTree.JCModifiers mods, ListBuffer<JmlTree.JmlTypeClause> clauses) {
             this.file = file;
             this.decl = null;
@@ -859,7 +863,7 @@ public class JmlSpecs {
             this.clauses = clauses != null ? clauses : new ListBuffer<JmlTree.JmlTypeClause>();
         }
         
-        // FIXME - comment
+        // FIXME - comment - only partially fills in the class
         public TypeSpecs(JmlClassDecl decl) {
             this.file = decl.sourcefile;
             this.decl = decl;
