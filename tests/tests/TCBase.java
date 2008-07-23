@@ -75,10 +75,10 @@ public abstract class TCBase extends JmlTestCase {
             
             if (print) JmlSpecs.instance(context).printDatabase();
             if (print) printErrors();
-            assertEquals("Wrong number of messages seen",list.length,2*d.getDiagnostics().size());
+            assertEquals("Wrong number of messages seen",list.length,2*collector.getDiagnostics().size());
             int i=0;
             int k = 0;
-            for (Diagnostic<? extends JavaFileObject> dd: d.getDiagnostics()) {
+            for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
                 if (k >= list.length) break;
                 assertEquals("Message " + i + " mismatch",list[k++],dd.toString());
                 if (k >= list.length) break;

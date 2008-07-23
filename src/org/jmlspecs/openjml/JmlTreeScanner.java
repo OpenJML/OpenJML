@@ -76,7 +76,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     }
 
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        scan(that.localtype);
+        scan(that.localtypes);
         scan(that.range);
         scan(that.predicate);
     }
@@ -227,22 +227,22 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
         scan(that.loopSpecs);
-        super.scan(that);
+        visitDoLoop(that);
     }
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
         scan(that.loopSpecs);
-        super.scan(that);
+        visitForeachLoop(that);
     }
 
     public void visitJmlForLoop(JmlForLoop that) {
         scan(that.loopSpecs);
-        super.scan(that);
+        visitForLoop(that);
     }
 
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         scan(that.loopSpecs);
-        super.scan(that);
+        visitWhileLoop(that);
     }
 
     public void visitJmlClassDecl(JmlClassDecl that) {

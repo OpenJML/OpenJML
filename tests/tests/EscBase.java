@@ -3,8 +3,12 @@ package tests;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
 import junit.framework.AssertionFailedError;
@@ -13,6 +17,7 @@ import org.jmlspecs.openjml.JmlSpecs;
 
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+
 
 public abstract class EscBase extends JmlTestCase {
 
@@ -24,6 +29,7 @@ public abstract class EscBase extends JmlTestCase {
 
     protected void setUp() throws Exception {
         testspecpath = testspecpath1;
+        collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
         options.put("-specs",   testspecpath);
         options.put("-esc",   "");
@@ -32,7 +38,7 @@ public abstract class EscBase extends JmlTestCase {
         Log.instance(context).multipleErrors = true;
         expectedExit = 0;
         expectedErrors = 0;
-        print = true;
+        print = false;
     }
     
     protected void tearDown() throws Exception {
@@ -70,11 +76,11 @@ public abstract class EscBase extends JmlTestCase {
             List<JavaFileObject> files = List.of(f);
             int ex = main.compile(new String[]{}, context, files, null);
             
-            if (print || d.getDiagnostics().size()!=expectedErrors) printErrors();
-            assertEquals("Errors seen",expectedErrors,d.getDiagnostics().size());
+            if (print || collector.getDiagnostics().size()!=expectedErrors) printErrors();
+            assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
             for (int i=0; i<expectedErrors; i++) {
-                assertEquals("Error " + i, list[2*i].toString(), d.getDiagnostics().get(i).toString());
-                assertEquals("Error " + i, ((Integer)list[2*i+1]).intValue(), d.getDiagnostics().get(i).getColumnNumber());
+                assertEquals("Error " + i, list[2*i].toString(), collector.getDiagnostics().get(i).toString());
+                assertEquals("Error " + i, ((Integer)list[2*i+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
             

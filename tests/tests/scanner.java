@@ -68,9 +68,9 @@ public class scanner extends JmlTestCase {
             if (sc.token() != Token.EOF) {
                 fail("Scanner not at EOF: " + sc.token());
             }
-            if (d.getDiagnostics().size() != numErrors) {
+            if (collector.getDiagnostics().size() != numErrors) {
                 printErrors();
-                fail("Saw wrong number of errors: expected " + numErrors + " actual " + d.getDiagnostics().size());
+                fail("Saw wrong number of errors: expected " + numErrors + " actual " + collector.getDiagnostics().size());
             }
         } catch (Exception e) {
             e.printStackTrace(System.out);

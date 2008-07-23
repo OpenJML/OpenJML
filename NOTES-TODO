@@ -321,6 +321,50 @@ Extension issues
 Significant design issues:
 - the way pt and pkind are stacked within the Attr visitor tree
 
+JDK REVIEW
+Check for my changes in:
+com.sun.tools.apt.main
+com.sun.tools.classfile
+com.sun.tools.javac.api
+com.sun.tools.javac.code
+com.sun.tools.javac.comp
+com.sun.tools.javac.file
+com.sun.tools.javac.jvm
+com.sun.tools.javac.main
+com.sun.tools.javac.parser
+com.sun.tools.javac.tree
+com.sun.tools.javac.util
+com.sun.tools.javac.javadoc
+com.sun.tools.javac.javap
+com.sun.tools.javac.javap.resources
+sun.tools.javap
+
+ESC ISSUES
+
+- method and class inherited specs - both method and called methods and constructors
+- position references to other files
+- finish try/catch/exceptions
+- handling of types
+- fix hack with null for Object type
+- finish arrays - especially multiple dimension
+- LetExpr?
+- ANnotations?
+- QuantifiedExpr
+- SetComprehension
+- ImplicitConversion
+- SAT vs. POSSIBLESAT vs. UNSAT vs FAILED
+- labelled statements, labelled old
+- loops
+- definedness
+- basic checks (NPE, Array...)
+- trace exposition of counterexamples
+
+- implement Simplify
+- batch version of Yices
+- improvement of efficiency of interactive Yices
+- means to choose prover
+
+- Eclipse plugin
 
 COMPILATION PHASES
 

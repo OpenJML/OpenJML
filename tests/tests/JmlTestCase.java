@@ -1,4 +1,6 @@
 package tests;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.tools.Diagnostic;
@@ -26,12 +28,39 @@ import com.sun.tools.javac.util.Options;
  */
 public abstract class JmlTestCase extends junit.framework.TestCase {
 
+    static public interface DiagnosticListenerX<S> extends DiagnosticListener<S> {
+        public List<Diagnostic<? extends S>> getDiagnostics();
+    }
+
+    final static public class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
+        public FilteredDiagnosticCollector(boolean filtered) {
+            this.filtered = filtered;
+        }
+        boolean filtered;
+        
+        private java.util.List<Diagnostic<? extends S>> diagnostics =
+            Collections.synchronizedList(new ArrayList<Diagnostic<? extends S>>());
+
+        public void report(Diagnostic<? extends S> diagnostic) {
+            diagnostic.getClass(); // null check
+            if (!filtered || diagnostic.getKind() != Diagnostic.Kind.NOTE)
+                diagnostics.add(diagnostic);
+        }
+
+        /**
+         * Gets a list view of diagnostics collected by this object.
+         *
+         * @return a list view of diagnostics
+         */
+        public java.util.List<Diagnostic<? extends S>> getDiagnostics() {
+            return Collections.unmodifiableList(diagnostics);
+        }
+    }
+
     // References to various tools needed in testing
     Context context;
     Main main;
     Options options;
-    /** A collector for all of the diagnostic messages */
-    DiagnosticCollector<JavaFileObject> d;
     JmlSpecs specs; // initialized in derived classes
     
     /** Normally false, but set to true in tests of the test harness itself, to
@@ -50,6 +79,9 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
      */
     public boolean noCollectDiagnostics = false;
     
+    /** A collector for all of the diagnostic messages */
+    DiagnosticListenerX<JavaFileObject> collector = new FilteredDiagnosticCollector<JavaFileObject>(false);
+    
     /** Set this to true (for an individual test) if you want debugging information */
     public boolean jmldebug = false;
     
@@ -60,8 +92,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         //super.setUp();
         main = new Main();
         context = new Context();
-        d = new DiagnosticCollector<JavaFileObject>();  // This collects all the diagnostic messages
-        if (!noCollectDiagnostics) context.put(DiagnosticListener.class, d);
+        if (!noCollectDiagnostics) context.put(DiagnosticListener.class, collector);
         JavacFileManager.preRegister(context); // can't create it until Log has been set up
         options = Options.instance(context);
         if (jmldebug) { Utils.jmldebug = true; options.put("-jmldebug", "");}
@@ -74,7 +105,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         //super.tearDown();
         context = null;
         main = null;
-        d = null;
+        collector = null;
         options = null;
         specs = null;
     }
@@ -85,8 +116,8 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     
     /** Prints out the errors collected by the diagnostic listener */
     public void printErrors() {
-        System.out.println("ERRORS " + d.getDiagnostics().size() + " " + getName());
-        for (Diagnostic<? extends JavaFileObject> dd: d.getDiagnostics()) {
+        System.out.println("ERRORS " + collector.getDiagnostics().size() + " " + getName());
+        for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
             System.out.println(dd + " col=" + dd.getColumnNumber());
         }
     }
@@ -97,7 +128,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
      * @param cols an array of expected column numbers that are checked against the actual diagnostics
      */
     public void checkMessages(/*@ non_null */String[] errors, /*@ non_null */int[] cols) {
-        List<Diagnostic<? extends JavaFileObject>> diags = d.getDiagnostics();
+        List<Diagnostic<? extends JavaFileObject>> diags = collector.getDiagnostics();
         if (print || (!noExtraPrinting && errors.length != diags.size())) printErrors();
         assertEquals("Saw wrong number of errors ",errors.length,diags.size());
         assertEquals("Saw wrong number of columns ",cols.length,diags.size());
@@ -113,8 +144,8 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
      */
     public void checkMessages(/*@ nonnullelements */Object ... a) {
         try {
-            assertEquals("Wrong number of messages seen",a.length,2*d.getDiagnostics().size());
-            List<Diagnostic<? extends JavaFileObject>> diags = d.getDiagnostics();
+            assertEquals("Wrong number of messages seen",a.length,2*collector.getDiagnostics().size());
+            List<Diagnostic<? extends JavaFileObject>> diags = collector.getDiagnostics();
             if (print || 2*diags.size() != a.length) printErrors();
             assertEquals("Saw wrong number of errors ",a.length,2*diags.size());
             for (int i = 0; i<diags.size(); ++i) {
@@ -129,8 +160,8 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     
     /** Checks that there are no diagnostic messages */
     public void checkMessages() {
-        if (print || (!noExtraPrinting && 0 != 2*d.getDiagnostics().size())) printErrors();
-        assertEquals("Saw wrong number of errors ",0,d.getDiagnostics().size());
+        if (print || (!noExtraPrinting && 0 != 2*collector.getDiagnostics().size())) printErrors();
+        assertEquals("Saw wrong number of errors ",0,collector.getDiagnostics().size());
     }
 
 

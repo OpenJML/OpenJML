@@ -223,7 +223,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         Context context = this.context; // At least cache it here at the beginning
         args = processJmlArgs(args,Options.instance(context));
         List<File> files = super.processArgs(args);
-        Utils.jmldebug = Options.instance(context).get(JmlOptionName.JMLDEBUG.optionName()) != null;
+        Utils.jmldebug = Options.instance(context).get(JmlOptionName.JMLDEBUG.optionName()) != null; 
         JmlSpecs.instance(context).initializeSpecsPath();
         if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALRUNTIME)) {
             JmlSpecs.instance(context).appendRuntime();

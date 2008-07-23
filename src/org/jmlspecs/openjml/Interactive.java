@@ -67,7 +67,6 @@ public class Interactive extends Main {
     
     // FIXME - finish documentation
     
-    public Context context;
     public JavacFileManager fileManager;
     
     public void setup(String[] args) {

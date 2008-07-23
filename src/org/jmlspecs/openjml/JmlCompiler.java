@@ -43,9 +43,6 @@ public class JmlCompiler extends JavaCompiler {
         });
     }
     
-    /** The compilation context for this tool */
-    protected Context context;
-
     /** A cached value indicating the verbosity level of tracing information. */
     boolean verbose;
 
@@ -376,7 +373,7 @@ public class JmlCompiler extends JavaCompiler {
         // Presumably other
         // class declarations in the compilation unit will be translated on 
         // other calls.
-        if (true||verbose) System.out.println("esc " + Utils.envString(env));
+        if (verbose) System.out.println("Running ESC on " + Utils.envString(env));
         
         JmlEsc esc = new JmlEsc(context,env);  // FIXME - use a factory
         env.tree.accept(esc);

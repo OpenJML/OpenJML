@@ -1,4 +1,4 @@
-package org.jmlspecs.openjml.esc;  // FIXME - change package
+package org.jmlspecs.openjml.esc;
 
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -8,34 +8,30 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jmlspecs.annotations.*;
-import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlPretty;
-import org.jmlspecs.openjml.JmlTreeVisitor;
 
-import com.sun.source.tree.TreeVisitor;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.util.Name;
 
 /**
- * A BasicProgram is an equivalent representation of a method. There are three
- * forms of BasicProgram:
- * <ol>
- * <li>in formation - in this form the statements may be any JCTree
- * statements,</li>
- * <li>preDSA - in this form, the statements may be assignments with pure
- * RHS, simple method calls (including an assignment of the result of a method
- * call), assume statements and assert statements, and</li>
- * <li>postDSA - in this form, all assigned variables are unique (in DSA
- * form), and all assignments are converted into assumptions.</li>
- * </ul>
+ * A BasicProgram is an equivalent representation of a method:
+ * <UL>
+ * <LI>it expresses the program as a DAG of basic blocks
+ * <LI>each block represents a non-branching set of code
+ * <LI>DSA has been applied
+ * <LI>all statements have been converted to assumptions and assertions
+ * <LI>the AST used for expressions is simplified
+ * </UL>
+ * The BasicBlocks are allowed to have regular Java/JML statements but are then
+ * massaged (by the BasicBlocker) into the official BasicProgram form.  This 
+ * class just holds the data and does not provide transforming functionality.
  * 
  * @author David Cok
  */
+// Note: everything declared protected is intended for use just in this class
+// and any future derived classes - not in the containing package
 public class BasicProgram {
 
     /** A List of declarations of variables
@@ -43,6 +39,7 @@ public class BasicProgram {
      * have encoded names that are different than the declared name,
      * because of DSA renaming.
      */
+    // FIXME - we want to get rid of this
     //@ non_null
     protected Collection<JCIdent> declarations = new ArrayList<JCIdent>();
     
@@ -52,16 +49,16 @@ public class BasicProgram {
      */
     public Collection<JCIdent> declarations() { return declarations; }
     
-    /** The name of the starting block */
+    /** The id of the starting block */
     //@ non_null
-    String startId;
+    protected JCIdent startId;
     
-    /** A list of equalities that are definitions used in the block equations
-     *  but are not block equations themselves.
+    /** A list of logical assertions (e.g. equalities that are definitions)
+     *  used in the block equations but are not block equations themselves.
      */
-    List<JCExpression> definitions;
+    protected List<JCExpression> definitions;
 
-    /** Returns the definitions that are part of this program
+    /** Returns the (mutable) list of definitions that are part of this program
      * @return the program's definitions
      */
     @Pure
@@ -73,20 +70,21 @@ public class BasicProgram {
     //@ non_null
     ArrayList<BasicBlock> blocks = new ArrayList<BasicBlock>();
     
-    /** Returns this programs list of blocks 
-     * @return this programs blocks
+    /** Returns this program's list of blocks 
+     * @return this program's blocks
      */
     @Pure @NonNull
     public List<BasicBlock> blocks() { return blocks; }
     
     public JCIdent assumeCheckVar;
     
-    // FIXME
+    /** The identifier for the starting block - must match one of the blocks. */
     @Pure @NonNull
-    public String startId() {
+    public JCIdent startId() {
         return startId;
     }
     
+    /** The starting block */
     @Pure @NonNull
     public BasicBlock startBlock() {
         return blocks.get(0); // FIXME - is it always the first one?
@@ -121,25 +119,26 @@ public class BasicProgram {
      *
      */
     static public class BasicBlock {
+        
         /** A constructor creating an empty block with a name 
          * 
          * @param name the name of the block
          */
-        BasicBlock(/*@ non_null*/String name) { 
-            this.name = name;
+        BasicBlock(/*@ non_null*/JCIdent id) { 
+            this.id = id;
         }
         
         /** A constructor creating an empty block with a given name; the
          * newly created block becomes the block that precedes the blocks
-         * that previously succeeding the argument. 
-         * @param name the name of the new block
+         * that previously succeeded the argument. 
+         * @param id the identifier of the new block
          * @param b the block donating its followers
          */
         // BEFORE  b.succeeding -> List
         // AFTER   b.succeeding -> NONE; this.succeeding -> List
-        BasicBlock(@NonNull String name, @NonNull BasicBlock b) {
-            this(name);
-            List<BasicBlock> s = succeeding;
+        BasicBlock(@NonNull JCIdent id, @NonNull BasicBlock b) {
+            this(id);
+            List<BasicBlock> s = succeeding; // empty I expect
             succeeding = b.succeeding;
             b.succeeding = s;
             for (BasicBlock f: succeeding) {
@@ -148,17 +147,17 @@ public class BasicProgram {
             }
         }
         
-        /** The name of the block */
-        /*@ non_null*/String name;
+        /** The identifier of the block */
+        /*@ non_null*/protected JCIdent id;
         
-        /** Returns the name of the block
-         * @return the block's name
+        /** Returns the id of the block
+         * @return the block's id
          */
         @Pure @NonNull
-        public String name() { return name; }
+        public JCIdent id() { return id; }
         
         /** The ordered list of statements in the block */
-        /*@ non_null*/List<JCStatement> statements = new LinkedList<JCStatement>();
+        @NonNull protected List<JCStatement> statements = new LinkedList<JCStatement>();
         
         /** Returns the block's statements
          * @return the block's statements
@@ -167,7 +166,7 @@ public class BasicProgram {
         public List<JCStatement> statements() { return statements; }
         
         /** The set of blocks that succeed this one */
-        @NonNull List<BasicBlock> succeeding = new ArrayList<BasicBlock>();
+        @NonNull protected List<BasicBlock> succeeding = new ArrayList<BasicBlock>();
         
         /** Returns the block's followers
          * @return the block's followers
@@ -178,25 +177,33 @@ public class BasicProgram {
         /** The set of blocks that precede this one */ // FIXME - is this ever needed?
         /*@ non_null*/List<BasicBlock> preceding = new ArrayList<BasicBlock>();
         
-        /** Writes out the block to System.out, for diagnostic purposes */
-        public void write() {
-            write(new OutputStreamWriter(System.out));
-        }
-        
+        /** Generates a human-readable String representation of the block */
+        @NonNull
         public String toString() {
             java.io.StringWriter s = new java.io.StringWriter();
             write(s);
             return s.toString();
         }
         
+        /** Writes out the block to System.out, for diagnostic purposes */
+        public void write() {
+            write(new OutputStreamWriter(System.out));
+        }
+        
+        /** Writes out the block to the given Writer
+         * 
+         * @param w where to put a String representation of the block
+         */
         public void write(Writer w) {
             try {
+                // The 'false' argument allows non-compilable output and avoids
+                // putting JML comment symbols everywhere
                 JmlPretty pw = new JmlPretty(w,false);
-                w.write(name+":\n");
+                w.write(id+":\n");
                 w.write("    follows");
                 for (BasicBlock ss: preceding) {
                     w.write(" ");
-                    w.write(ss.name);
+                    w.write(ss.id.toString());
                 }
                 w.write("\n");
                 w.flush();
@@ -209,7 +216,7 @@ public class BasicProgram {
                 w.write("    goto");
                 for (BasicBlock ss: succeeding) {
                     w.write(" ");
-                    w.write(ss.name);
+                    w.write(ss.id.toString());
                 }
                 w.write("\n");
                 w.flush();

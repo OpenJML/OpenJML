@@ -27,8 +27,8 @@ public class prettyprinting extends ParseBase {
             Parser p = fac.newParser(sc,false,true);
             JCTree tree = p.compilationUnit();
             String out = JmlPretty.write(tree);
-            if (d.getDiagnostics().size() != 0) printErrors();
-            assertEquals("Found parsing errors",0,d.getDiagnostics().size());
+            if (collector.getDiagnostics().size() != 0) printErrors();
+            assertEquals("Found parsing errors",0,collector.getDiagnostics().size());
             if (!precise) {
                 code = code.replaceAll("[ \t\r\n]+"," ");
                 out = out.replaceAll("[ \t\r\n]+"," ");

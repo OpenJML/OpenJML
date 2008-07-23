@@ -255,6 +255,10 @@ public class JmlTree {
             return new JmlQuantifiedExpr(pos,t,mods,ty,names,range,predicate);
         }
         
+        public JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken t, JCModifiers mods, ListBuffer<JCTree.JCExpression> types, ListBuffer<Name> names, JCTree.JCExpression range, JCTree.JCExpression predicate) {
+            return new JmlQuantifiedExpr(pos,t,mods,types,names,range,predicate);
+        }
+        
         public JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate) {
             return new JmlSetComprehension(pos,type,v,predicate);
         }
@@ -1060,10 +1064,14 @@ public class JmlTree {
 
     /** This class represents JML quantified expressions */
     public static class JmlQuantifiedExpr extends JmlExpression {
+        // Current JML allows multiple bound variables in a quantified expression,
+        // but requires them all to have the same type.  However, in anticipation of
+        // relaxing this requirement and for use elsewhere (i.e. in ESC) this
+        // class permits different types.
         public JmlToken op;
         public ListBuffer<Name> names;
         public JCModifiers modifiers;
-        public JCExpression localtype;
+        public ListBuffer<JCExpression> localtypes;
         public JCExpression range;
         public JCExpression predicate;
         protected JmlQuantifiedExpr(int pos, JmlToken op, JCModifiers mods,
@@ -1073,7 +1081,21 @@ public class JmlTree {
             this.op = op;
             this.modifiers = mods;
             this.names = names;
-            this.localtype = localtype;
+            this.localtypes = new ListBuffer<JCExpression>();
+            int i = names.size();
+            while (--i >= 0) this.localtypes.append(localtype);
+            this.range = range;
+            this.predicate = predicate;
+        }
+
+        protected JmlQuantifiedExpr(int pos, JmlToken op, JCModifiers mods,
+                ListBuffer<JCExpression> localtypes, ListBuffer<Name> names,
+                JCExpression range, JCExpression predicate) {
+            this.pos = pos;
+            this.op = op;
+            this.modifiers = mods;
+            this.names = names;
+            this.localtypes = localtypes;
             this.range = range;
             this.predicate = predicate;
         }
@@ -2701,10 +2723,9 @@ public class JmlTree {
     
     public static class JmlBBFieldAccess extends JCFieldAccess {
         public JCIdent fieldId;
-        public JmlBBFieldAccess(JCIdent fieldId, JCExpression selected, Name field, Symbol sym) {
-            super(selected,field,sym);
+        public JmlBBFieldAccess(JCIdent fieldId, JCExpression selected) {
+            super(selected,fieldId.name,fieldId.sym);
             this.fieldId = fieldId;
         }
-    }
-    
+    }    
 }
