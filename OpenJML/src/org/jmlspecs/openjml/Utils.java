@@ -163,4 +163,11 @@ public class Utils {
      */
     /*@ non_null*/
     public static final String eclipseProjectLocation = "openjml.eclipseProjectLocation";
+
+    /** Set this to the name of a Java property that contains the location of 
+     * the project files in Eclipse, so that testing proceeds OK. 
+     * If this directory is null or does not exist, it is ignored and tests will fail.
+     */
+    /*@ non_null*/
+    public static final String eclipseSpecsProjectLocation = "openjml.eclipseSpecsProjectLocation";
 }
