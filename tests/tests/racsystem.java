@@ -3,7 +3,7 @@ package tests;
 
 public class racsystem extends RacBase {
 
-    String[] sysrac = new String[]{"C:/Apps/jdk1.6.0/bin/java", "-Xbootclasspath/p:jdkbin;bin", "-classpath","jdkbin;bin;testdata",null};
+    String[] sysrac = new String[]{jdk, "-Xbootclasspath/p:jdkbin;bin", "-classpath","jdkbin;bin;testdata",null};
 
     protected void setUp() throws Exception {
         rac = sysrac;

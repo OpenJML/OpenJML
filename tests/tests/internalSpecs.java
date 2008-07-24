@@ -12,7 +12,7 @@ public class internalSpecs extends TCBase {
     public void setUp() throws Exception {
 //      noCollectDiagnostics = true;
 //      jmldebug = true;
-        useSystemSpecs = true;
+        useSystemSpecs = true;  // FIXME - these tests are not doing their job
         super.setUp();
     }
 

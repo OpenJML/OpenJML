@@ -1,6 +1,7 @@
 package tests;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.URI;
 
@@ -10,6 +11,7 @@ import javax.tools.JavaFileObject;
 import junit.framework.AssertionFailedError;
 
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.util.List;
@@ -25,14 +27,29 @@ public abstract class RacBase extends JmlTestCase {
     int expectedErrors = 0;
     boolean jdkrac = false;
 
+    String jdk = System.getProperty("java.home") + "/bin/java";
+
+    String[] defrac = new String[]{jdk, "-classpath","bin;testdata",null};
+
+    String[] rac; // initialized in subclasses
+    
+
     protected void setUp() throws Exception {
         testspecpath = testspecpath1;
         super.setUp();
         options.put("-specs",   testspecpath);
         options.put("-d", "testdata");
         options.put("-rac",   "");
-        // FIXME - hard coded path - and wrong
-        if (jdkrac) options.put("-classpath","C:/home/projects/OpenJML/testdata;C:/home/projects/OpenJML/jdkbin;C:/home/projects/OpenJML/bin");
+        if (jdkrac) {
+            String sy = System.getProperty(Utils.eclipseProjectLocation);
+            if (sy == null) {
+                fail("The OpenJML project location should be set using -D" + Utils.eclipseProjectLocation + "=...");
+            } else if (!new File(sy).exists()) {
+                fail("The OpenJML project location set using -D" + Utils.eclipseProjectLocation + " to " + sy + " does not exist");
+            } else {
+                options.put("-classpath",sy+"/testdata"+z+sy+"/jdkbin"+z+sy+"/bin");
+            }
+        }
         main.register(context);
         specs = JmlSpecs.instance(context);
         Log.instance(context).multipleErrors = true;
@@ -66,10 +83,6 @@ public abstract class RacBase extends JmlTestCase {
 //    public void helpTCF(String filename,String s, Object ... list) {
 //        helpTCX(filename,s,list);
 //    }
-    
-    String[] defrac = new String[]{"C:/Apps/jdk1.6.0/bin/java", "-classpath","bin;testdata",null};
-
-    String[] rac; // initialized in subclasses
     
     public void helpTCX(String classname, String s, Object... list) {
         BufferedReader r = null;

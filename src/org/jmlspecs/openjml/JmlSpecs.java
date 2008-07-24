@@ -220,15 +220,30 @@ public class JmlSpecs {
                 }
             }
         }
-        String sy = System.getProperty(Utils.eclipseProjectLocation);
-        // These are used in testing - sy should be the directory of the OpenJML project
+        String sy = System.getProperty(Utils.eclipseSpecsProjectLocation);
+        // These are used in testing - sy should be the trunk directory of the JMLspecs project
         if (sy != null) {
-            dirs.add(make(sy+"/../../../JMLspecs/trunk/java6"));
-            dirs.add(make(sy+"/../../../JMLspecs/trunk/java5"));
-            dirs.add(make(sy+"/../../../JMLspecs/trunk/java4"));
+            Dir dd = make(sy+"/java6");
+            if (!dd.exists()) { 
+                Log.instance(context).error("jml.internal.specs.dir.not.exist",sy);
+            } else {
+                dirs.add(dd);
+            }
+            dd = make(sy+"/java5");
+            if (!dd.exists()) { 
+                Log.instance(context).error("jml.internal.specs.dir.not.exist",sy);
+            } else {
+                dirs.add(dd);
+            }
+            dd = make(sy+"/java4");
+            if (!dd.exists()) { 
+                Log.instance(context).error("jml.internal.specs.dir.not.exist",sy);
+            } else {
+                dirs.add(dd);
+            }
             return true;
         } else {
-            if (verbose) System.out.println("No internal specs found - nor was the eclipse test property " + Utils.eclipseProjectLocation + " defined");
+            Log.instance(context).error("jml.internal.specs.dir.not.defined");
         }
         return false;
     }

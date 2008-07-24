@@ -60,10 +60,9 @@ public class YicesProver implements IProver {
     /*@ non_null */
     List<String> sent = new LinkedList<String>();
     
-    // FIXME - this needs to be made prover independent !!!!!
     /** The String by which to invoke the prover */
     /*@ non_null */
-    String app = "C:/home/apps/yices-cygwin/yices-1.0.12/bin/yices.exe";
+    String app = System.getProperty("openjml.prover.yices");
 
     /** A counter of assumptions sent to the prover */
     int assumeCounter = 0;
