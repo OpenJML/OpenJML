@@ -348,8 +348,23 @@ public class esc extends EscBase {
                 );
     }
     
+    // FIXME  need tests for for loops
+    // FIXME need tests for do loops
 
-    public void testWhileSpecs() {  // FIXME
+    // FIXME - more tests needed, and with specs
+    public void testForeachSpecs() { 
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+                +"public class TestJava { \n"
+                +"  public void inst(int[] a) { \n"
+                +"    //@ assume a.length > 2 && a[0] == 1;\n"
+                +"    for(int i: a) a[i] = 0; \n"
+                +"    //@ assert a[1] == 0;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+
+    public void testWhileSpecs() { 
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
@@ -357,18 +372,14 @@ public class esc extends EscBase {
                 +"  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }\n"
                 +"  public void instd() { int i = 5; /*@ loop_invariant i>0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
                 +"}",
-                // FIXME - check that these are all correct
-                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopInvariant) in method instb",91,
+                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopInvariant) in method instb",91, // This presumably an effect of the 
                  "/tt/TestJava.java:4: warning: Associated declaration",40,
                  "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method instb",91,
                  "/tt/TestJava.java:4: warning: Associated declaration",61,
-                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method instb", 108,
                  "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",89,
                  "/tt/TestJava.java:5: warning: Associated declaration",61,
-                 "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method instc",106,
                  "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method instd",88,
-                 "/tt/TestJava.java:6: warning: Associated declaration",40,
-                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method instd",105
+                 "/tt/TestJava.java:6: warning: Associated declaration",40
                 );
     }
 

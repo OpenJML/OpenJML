@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.net.URI;
 
-import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import junit.framework.AssertionFailedError;
@@ -13,7 +12,6 @@ import junit.framework.AssertionFailedError;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Utils;
 
-import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 

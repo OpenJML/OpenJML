@@ -27,4 +27,9 @@ package org.jmlspecs.models.resolve;
  * @author Gary T. Leavens
  */
 public class UndefinedException extends Exception {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -621296235538469786L;
 }

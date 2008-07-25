@@ -33,6 +33,7 @@ import java.math.BigInteger;
 public /*@ pure @*/ class NaturalNumber extends Number
     implements TotallyOrderedCompareTo, org.jmlspecs.models.JMLType
 {
+    private static final long serialVersionUID = -388120386774993267L;
 
     /** The value of this natural number. */
     private final /*@ non_null @*/ BigInteger value;

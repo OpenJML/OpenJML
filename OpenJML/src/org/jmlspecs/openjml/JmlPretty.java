@@ -197,8 +197,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             out.write(" ");
             if (that.modifiers != null) printFlags(that.modifiers.flags);  // FIXME - any annotations?
             // FIXME - fix for different types
-            if (that.localtypes.first() == null) out.write("NULL"); // FIXME - a hack for object type
-            else that.localtypes.first().accept(this);
+            that.localtypes.first().accept(this);
             out.write(" ");
             for (Name n: that.names) {
                 out.write(n.toString());
