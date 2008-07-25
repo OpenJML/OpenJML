@@ -31,38 +31,38 @@ import com.sun.tools.javac.util.Context;
 
 public class YicesProver implements IProver {
     /** A debugging flag - 0 = show nothing; 1 = show errors; 2 = show something; 3 = show everything */
-    static int showCommunication = 2;
+    static protected int showCommunication = 2;
     
     /** The process that is the actual prover */
-    Process process = null;
+    protected Process process = null;
     
     /** The stream connection to send information to the prover process. */
     //@ invariant process != null ==> toProver != null;
-    Writer toProver;
+    protected Writer toProver;
     
     /** The stream connection to read information from the prover process. */
     //@ invariant process != null ==> fromProver != null;
-    Reader fromProver;
+    protected Reader fromProver;
     
     /** The error stream connection to read information from the prover process. */
     //@ invariant process != null ==> errors != null;
-    Reader errors;
+    protected Reader errors;
     
     /** A buffer to hold input */
     /*@ non_null */
-    CharBuffer buf = CharBuffer.allocate(10000);
+    protected CharBuffer buf = CharBuffer.allocate(10000);
 
     /** A handy StringBuilder to build strings internally */
     /*@ non_null */
-    StringBuilder builder = new StringBuilder();
+    protected StringBuilder builder = new StringBuilder();
     
     /** The accumulated list of input sent to the prover process */
     /*@ non_null */
-    List<String> sent = new LinkedList<String>();
+    protected List<String> sent = new LinkedList<String>();
     
     /** The String by which to invoke the prover */
-    /*@ non_null */
-    String app = System.getProperty("openjml.prover.yices");
+    /*@ nullable */
+    protected String app = System.getProperty("openjml.prover.yices");
 
     /** A counter of assumptions sent to the prover */
     int assumeCounter = 0;
@@ -82,6 +82,11 @@ public class YicesProver implements IProver {
     
     /** Does the startup work */
     public void start() throws ProverException {
+        if (app == null) {
+            throw new ProverException("No path to the executable found; specify it using -Dopenjml.prover.yices");
+        } else if (!new java.io.File(app).exists()) {
+            throw new ProverException("The sepcified executable does not appear to exist: " + app);
+        }
         try {
             // The interactive mode is used so that we get a prompt back, thereby
             // knowing when we have received the prover's response

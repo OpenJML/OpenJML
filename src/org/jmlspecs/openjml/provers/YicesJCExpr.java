@@ -105,10 +105,8 @@ public class YicesJCExpr extends JmlTreeScanner {
                     // Was not already defined
                     String s = "(define " + that.meth + "::(->";
                     for (JCExpression e: that.args) {
-                        if (e.type == null) s = s + " REF"; // FIXME - a hack for now
-                        else s = s + " " + p.convertType(e.type);
+                        s = s + " " + p.convertType(e.type);
                     }
-                    String typ = that.meth.type == null ? "REF" : p.convertType(that.meth.type); // FIXME - a hack for now
                     s = s + " " + p.convertType(that.meth.type) + "))\n";
                     try {
                         p.send(s);
@@ -392,12 +390,7 @@ public class YicesJCExpr extends JmlTreeScanner {
             for (Name n: that.names) {
                 JCExpression localtype = localtypes.head;
                 localtypes = localtypes.tail;
-                if (localtype == null) {  // FIXME - a hack
-                    ytype = "REF";
-                } else {
-                    Type type = localtype.type;
-                    ytype = p.convertType(type);
-                }
+                ytype = p.convertType(localtype.type);
 
                 result.append(n.toString());
                 result.append("::");
