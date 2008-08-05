@@ -93,6 +93,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             that.rhs.accept(this);
         } catch (IOException e) { perr(that,e); }
     }
+    
+    public void visitJmlMethodInvocation(JmlMethodInvocation that) {
+        try {
+            print(that.token.internedName());
+            print("(");
+            printExprs(that.args);
+            print(")");
+        } catch (IOException e) { perr(that,e); }
+    }
+
 
     public void visitJmlLblExpression(JmlLblExpression that) {
         try { 
@@ -126,11 +136,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
 
-    public void visitJmlFunction(JmlFunction that) {
-        try { 
-            out.write(that.token.internedName());
-        } catch (IOException e) { perr(that,e); }
-    }
+//    public void visitJmlFunction(JmlFunction that) {
+//        try { 
+//            out.write(that.token.internedName());
+//        } catch (IOException e) { perr(that,e); }
+//    }
 
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
         // FIXME
@@ -218,7 +228,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlSingleton(JmlSingleton that) {
         try {
-            out.write("JML");
             out.write(that.toString());
         } catch (IOException e) { perr(that,e); }
     }

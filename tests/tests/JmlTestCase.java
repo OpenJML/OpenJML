@@ -89,7 +89,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
      * set the options before we register most of the JML tools.
      */
     protected void setUp() throws Exception {
-        //super.setUp();
+        //super.setUp(); // Why commented out FIXME
         main = new Main();
         context = new Context();
         if (!noCollectDiagnostics) context.put(DiagnosticListener.class, collector);
@@ -97,6 +97,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         options = Options.instance(context);
         if (jmldebug) { Utils.jmldebug = true; options.put("-jmldebug", "");}
         print = false;
+        //System.out.println("JUnit: Testing " + getName());
     }
 
     /** Nulls out all the references visible in this class */

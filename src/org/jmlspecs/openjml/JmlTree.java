@@ -9,6 +9,7 @@ import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.TreeVisitor;
+import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
@@ -36,6 +37,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
+import com.sun.tools.javac.tree.JCTree.Visitor;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -70,11 +72,12 @@ public class JmlTree {
     public interface JmlFactory extends JCTree.Factory {
         JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlToken jt);
         JmlSingleton JmlSingleton(JmlToken jt);
-        JmlFunction JmlFunction(JmlToken jt);
+        //JmlFunction JmlFunction(JmlToken jt);
         JmlImport JmlImport(JCTree qualid, boolean staticImport);
         JmlImport JmlImport(JCTree qualid, boolean staticImport, boolean isModel);
         JmlRefines JmlRefines(String filename);
         JmlBinary JmlBinary(JmlToken t, JCTree.JCExpression left, JCTree.JCExpression right);
+        JmlMethodInvocation JmlMethodInvocation(JmlToken token, List<JCExpression> args);
         JmlStatementExpr JmlExpressionStatement(JmlToken t, Label label, JCTree.JCExpression e);
         JmlStatementDecls JmlStatementDecls(ListBuffer<JCTree.JCStatement> list);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
@@ -258,12 +261,15 @@ public class JmlTree {
             return JmlImport(qualid,staticImport);
         }
 
-        public JmlFunction JmlFunction(JmlToken jt) {
-            return new JmlFunction(pos,jt);
-        }
+//        public JmlFunction JmlFunction(JmlToken jt) {
+//            return new JmlFunction(pos,jt);
+//        }
         
         public JmlBinary JmlBinary(JmlToken t, JCTree.JCExpression left, JCTree.JCExpression right) {
             return new JmlBinary(pos,t,left,right);
+        }
+        public JmlMethodInvocation JmlMethodInvocation(JmlToken token,List<JCExpression> args) {
+            return new JmlMethodInvocation(pos,token,args);
         }
         
         public JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken t, JCModifiers mods, JCTree.JCExpression ty, ListBuffer<Name> names, JCTree.JCExpression range, JCTree.JCExpression predicate) {
@@ -716,9 +722,20 @@ public class JmlTree {
       
     /** This class adds some JML specific information to the JCClassDecl toplevel node. */
     public static class JmlClassDecl extends JCTree.JCClassDecl implements JmlSource {
-        public JmlClassDecl specsDecl;
-        public JmlSpecs.TypeSpecs typeSpecs;
-        public JavaFileObject sourcefile;
+        public JmlClassDecl specsDecl; // This is a source-code declaration that 
+                // contains the accumulated specs, but not necessarily the Java code.
+                // It will be a 'matching' declaration to the Java declaration,
+                // but may have more specs declarations
+                // than would necessarily be present in the Java declaration.
+                // However, it might also simply point to the Java declaration itself.
+                // TODO - this may not be useful in the long run - we have to deal with 
+                // the specs sequence and then we divvy the contents up into typeSpecs anyway
+        public JmlSpecs.TypeSpecs typeSpecs; // This field accumulates all the 
+                // class-level specifications in a sorted fashion
+        public JavaFileObject sourcefile; // The sourcefile from which the class was parsed, for convenience
+                    // This is not necessarily the source location of particular bits
+                    // of specifications however
+                    // TODO - decide how useful this is in the long run
         
         public JmlClassDecl(JCModifiers mods, Name name,
                 List<JCTypeParameter> typarams, JCTree extending,
@@ -799,7 +816,47 @@ public class JmlTree {
         }
 
     }
-      
+    
+    /** This class represents JML function invocations (e.g. \typeof, \old, ...) */
+    // FIXME - this is not really a proper subclass of its parent
+    public static class JmlMethodInvocation extends JCMethodInvocation {
+        public JmlToken token;
+        
+        protected JmlMethodInvocation(int pos,
+                JmlToken token,
+                List<JCExpression> args)
+        {
+            super(List.<JCExpression>nil(),null,args);
+            this.token = token;
+            this.pos = pos;
+        }
+        
+        @Override
+        public void accept(Visitor v) { 
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlMethodInvocation(this); 
+            } else {
+                //System.out.println("A JmlVariableDecl expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlMethodInvocation(this, d);
+            } else {
+                //System.out.println("A JmlVariableDecl expects a JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+        
+        public int getTag() {
+            return JMLFUNCTION;
+        }
+
+    }
+
     /** This class adds some JML specific information to the JCVariableDecl node. */
     public static class JmlVariableDecl extends JCTree.JCVariableDecl implements JmlSource {
         public JmlVariableDecl specsDecl;
@@ -842,49 +899,49 @@ public class JmlTree {
 
     }
 
-    /** This class represents JML method name of constructs take arguments. */
-    public static class JmlFunction extends JmlExpression {
-        public JmlToken token;
-        
-        protected JmlFunction(int pos, JmlToken token) {
-            this.pos = pos;
-            this.token = token;
-        }
-
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-        @Override
-        public int getTag() {
-            return JMLFUNCTION;
-        }
-        
-        @Override
-        public String toString() {
-            return token.internedName();
-        }
-
-        @Override
-        public void accept(Visitor v) {
-            if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlFunction(this); 
-            } else {
-                //System.out.println("A JmlFunction expects an IJmlVisitor, not a " + v.getClass());
-                //super.accept(v);
-            }
-        }
-
-        @Override
-        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
-            if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlFunction(this, d);
-            } else {
-                //System.out.println("A JmlFunction expects a JmlTreeVisitor, not a " + v.getClass());
-                return null; //return super.accept(v,d);
-            }
-        }
-    }
+//    /** This class represents JML method name of constructs take arguments. */
+//    public static class JmlFunction extends JmlExpression {
+//        public JmlToken token;
+//        
+//        protected JmlFunction(int pos, JmlToken token) {
+//            this.pos = pos;
+//            this.token = token;
+//        }
+//
+//        public Kind getKind() { 
+//            return Kind.OTHER; // See note above
+//        }
+//        
+//        @Override
+//        public int getTag() {
+//            return JMLFUNCTION;
+//        }
+//        
+//        @Override
+//        public String toString() {
+//            return token.internedName();
+//        }
+//
+//        @Override
+//        public void accept(Visitor v) {
+//            if (v instanceof IJmlVisitor) {
+//                ((IJmlVisitor)v).visitJmlFunction(this); 
+//            } else {
+//                //System.out.println("A JmlFunction expects an IJmlVisitor, not a " + v.getClass());
+//                //super.accept(v);
+//            }
+//        }
+//
+//        @Override
+//        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+//            if (v instanceof JmlTreeVisitor) {
+//                return ((JmlTreeVisitor<R,D>)v).visitJmlFunction(this, d);
+//            } else {
+//                //System.out.println("A JmlFunction expects a JmlTreeVisitor, not a " + v.getClass());
+//                return null; //return super.accept(v,d);
+//            }
+//        }
+//    }
 
     /** This class represents JML functions that take a list of store-refs as arguments. */
     public static class JmlStoreRefListExpression extends JmlExpression {
@@ -1241,7 +1298,7 @@ public class JmlTree {
     }
     
     /** This class represents JML method specifications within the body of a method
-     * that then apply to the next statement
+     * that then apply to the next statement (FIXME - this is not implemented in JML yet)
      */
     public static class JmlStatementSpec extends JmlAbstractStatement {
         public JmlStatementSpec(int pos, JmlMethodSpecs statementSpecs) {

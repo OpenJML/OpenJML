@@ -10,6 +10,7 @@ public class rac extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true;
         super.setUp();
+        options.put("-noPurityCheck","");
         //options.put("-jmlverbose",   "");
         //options.put("-noInternalSpecs",   "");
     }

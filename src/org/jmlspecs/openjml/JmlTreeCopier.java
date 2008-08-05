@@ -6,6 +6,7 @@ import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.util.List;
 
 
 public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JCTree,Void> {
@@ -32,6 +33,14 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         b.type = that.type;
         return b;
     }
+    
+    public JCTree visitJmlMethodInvocation(JmlMethodInvocation that, Void p) {
+        List<JCExpression> args = copy(that.args, p);
+        JmlMethodInvocation b = M.at(that.pos).JmlMethodInvocation(that.token, args);
+        b.type = that.type;
+        return b;
+    }
+
 
     public JCTree visitJmlDoWhileLoop(JmlDoWhileLoop that, Void p) {
         return M.at(that.pos).JmlDoWhileLoop(that,copy(that.loopSpecs));  // FIXME - I don't think this copies 'that'
@@ -48,11 +57,11 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return null;
     }
 
-    public JCTree visitJmlFunction(JmlFunction that, Void p) {
-        JmlFunction r = M.at(that.pos).JmlFunction(that.token);
-        r.type = that.type;
-        return r;
-    }
+//    public JCTree visitJmlFunction(JmlFunction that, Void p) {
+//        JmlFunction r = M.at(that.pos).JmlFunction(that.token);
+//        r.type = that.type;
+//        return r;
+//    }
 
     public JCTree visitJmlGroupName(JmlGroupName that, Void p) {
         visitTree(that); // FIXME - implement

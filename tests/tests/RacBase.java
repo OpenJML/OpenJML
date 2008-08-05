@@ -12,6 +12,8 @@ import junit.framework.AssertionFailedError;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Utils;
 
+import tests.JmlTestCase.FilteredDiagnosticCollector;
+
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
@@ -33,7 +35,9 @@ public abstract class RacBase extends JmlTestCase {
     
 
     protected void setUp() throws Exception {
+        //System.out.println("Using " + jdk);
         testspecpath = testspecpath1;
+        collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
         options.put("-specs",   testspecpath);
         options.put("-d", "testdata");
@@ -91,6 +95,7 @@ public abstract class RacBase extends JmlTestCase {
             
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);
+            //int ex = main.compile(new String[]{"-target","5"}, context, files, null);  // FIXME - don't yet have multiple versions working - perhaps 
             int ex = main.compile(new String[]{}, context, files, null);
             
             if (print || collector.getDiagnostics().size()!=expectedErrors) printErrors();

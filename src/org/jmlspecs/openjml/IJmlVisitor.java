@@ -17,10 +17,11 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlRefines(JmlRefines that)                   ;
     public void visitJmlImport(JmlImport that)                     ;
     public void visitJmlClassDecl(JmlClassDecl that)               ;
+    public void visitJmlMethodInvocation(JmlMethodInvocation that) ;
     public void visitJmlMethodDecl(JmlMethodDecl that)             ;
     public void visitJmlVariableDecl(JmlVariableDecl that)         ;
     public void visitJmlSingleton(JmlSingleton that)               ;
-    public void visitJmlFunction(JmlFunction that)                 ;
+    //public void visitJmlFunction(JmlFunction that)                 ;
     public void visitJmlBinary(JmlBinary that)                     ;
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that)     ;
     public void visitJmlSetComprehension(JmlSetComprehension that) ;

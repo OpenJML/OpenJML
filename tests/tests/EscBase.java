@@ -69,7 +69,7 @@ public abstract class EscBase extends JmlTestCase {
             List<JavaFileObject> files = List.of(f);
             int ex = main.compile(new String[]{}, context, files, null);
             
-            if (print || collector.getDiagnostics().size()!=expectedErrors) printErrors();
+            if (print) printErrors();
             assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
             for (int i=0; i<expectedErrors; i++) {
                 assertEquals("Error " + i, list[2*i].toString(), collector.getDiagnostics().get(i).toString());

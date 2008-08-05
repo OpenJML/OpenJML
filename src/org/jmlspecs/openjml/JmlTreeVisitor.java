@@ -21,10 +21,11 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlRefines(JmlRefines that, P p)                   ;
     R visitJmlImport(JmlImport that, P p)                     ;
     R visitJmlClassDecl(JmlClassDecl that, P p)               ;
+    R visitJmlMethodInvocation(JmlMethodInvocation that, P p) ;
     R visitJmlMethodDecl(JmlMethodDecl that, P p)             ;
     R visitJmlVariableDecl(JmlVariableDecl that, P p)         ;
     R visitJmlSingleton(JmlSingleton that, P p)               ;
-    R visitJmlFunction(JmlFunction that, P p)                 ;
+    //R visitJmlFunction(JmlFunction that, P p)                 ;
     R visitJmlBinary(JmlBinary that, P p)                     ;
     R visitJmlQuantifiedExpr(JmlQuantifiedExpr that, P p)     ;
     R visitJmlSetComprehension(JmlSetComprehension that, P p) ;

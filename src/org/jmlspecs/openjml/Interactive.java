@@ -192,7 +192,7 @@ public class Interactive extends Main {
             csym.complete();
             JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(csym);
             if (tsp == null) {
-                ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(csym);
+                ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(null,csym);
             }
             JmlAttr.instance(context).attribClass(csym);
         }
@@ -209,7 +209,7 @@ public class Interactive extends Main {
             csym.complete();
             JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(csym);
             if (tsp == null) {
-                ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(csym);
+                ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(null,csym);
             }
             JmlAttr.instance(context).attribClass(csym);
             tsp = JmlSpecs.instance(context).get(csym);

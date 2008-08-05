@@ -152,12 +152,11 @@ ESC: exceptions and corresponding warnings
 ESC: arrays and fields
 ESC: background predicate
 ESC: naming of fields (fully qualified path?)
-ESC: associated data
+ESC: alternate files for associated data
 ESC: Eclipse UI
 ESC: ability to prove just a method or just a class
-ESC: well-defined assumptions and assertions
+ESC: well-defined assumptions and assertions: check Type Cast, Array Element, Called Preconditions in specs
 ESC: non-null preconditions
-ESC: NullCheck label in post and preconditions
 ESC: experiment as a syntax checker for specs
 
 ESC EXPERIMENTS:
@@ -371,11 +370,19 @@ COMPILATION PHASES
 1) parsing
 - produces a parse tree of all of the input files; we get the ASTs for the
 specs sequence as well.
-So after parsing: JmlCompilationUnit.specsSequence has the specification ASTs
+- the method JavaCompiler.parseFiles parses all the files in its input and finds
+and parses referenced files, such as super classes.   parseFiles returns a list 
+of JCCompilationUnit objects corresponding to the named files for its input.
 
-2) enter
+After parsing: JmlCompilationUnit.specsSequence has the specification ASTs
+for the input file.
+
+2) enter + completion
 - goes through the parse tree to find all class declarations and adds them to
-the symbol table.  We also connect specification class declarations to the 
+the symbol table.  This involves resolving all types in the AST; consequently
+new types may need to be loaded, either by parsing source + specs files or by
+loading binary definitions and parsing the spec files.  
+We also connect specification class declarations to the 
 Java class declarations by matching names and we enter all model classes in 
 the symbol table.  It also associates a 'completer' with each class, which 
 knows how to enter all the classes members into the symbol table.  In JavaCOmpiler's

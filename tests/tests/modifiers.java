@@ -5,8 +5,8 @@ public class modifiers extends TCBase {
 
     @Before
     protected void setUp() throws Exception {
-//      noCollectDiagnostics = true;
-//      jmldebug = true;
+      //noCollectDiagnostics = true;
+      //jmldebug = true;
       super.setUp();
     }
     
@@ -921,7 +921,6 @@ public class modifiers extends TCBase {
                 ,"/A.java:6: illegal combination of modifiers: public and private", 22
                 ,"/A.java:7: This JML modifier is not allowed for a initially clause", 7
                 ,"/A.java:8: This JML modifier is not allowed for a initially clause", 7
-                ,"/A.java:9: These modifiers are not allowed here: static ", 14
                 );
     }
      
@@ -939,6 +938,7 @@ public class modifiers extends TCBase {
                 +"public boolean equals(Object o);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  boolean m() { return new Object().equals(null); } }"
+                ,"/$A/java/lang/Object.spec:2: A declaration may not be both spec_public and spec_protected",17
                 ,"/$A/java/lang/Object.spec:1: This JML modifier is not allowed for a type declaration",5
                 );
     }

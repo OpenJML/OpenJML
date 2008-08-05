@@ -10,6 +10,7 @@ import static com.sun.tools.javac.code.Kinds.ERR;
 import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAR;
+import static com.sun.tools.javac.code.Kinds.WRONG_MTHS;
 import static com.sun.tools.javac.code.TypeTags.CLASS;
 import static com.sun.tools.javac.code.TypeTags.TYPEVAR;
 
@@ -168,6 +169,29 @@ public class JmlResolve extends Resolve {
         }
         return super.resolveBinaryOperator(pos, optag, env, left, right);
     }
+    
+    
+
+    /** Based on super.resolveMethod */
+    Symbol findMatchingMethod(DiagnosticPosition pos,
+            Env<AttrContext> env,
+            Name name,
+            List<Type> argtypes,
+            List<Type> typeargtypes) {
+        Symbol sym = findFun(env, name, argtypes, typeargtypes, false, env.info.varArgs=false);
+        if (varargsEnabled && sym.kind >= WRONG_MTHS) {
+            sym = findFun(env, name, argtypes, typeargtypes, true, false);
+            if (sym.kind >= WRONG_MTHS)
+                sym = findFun(env, name, argtypes, typeargtypes, true, env.info.varArgs=true);
+        }
+        if (sym.kind >= AMBIGUOUS) {
+            return null;
+//            sym = access(
+//                    sym, pos, env.enclClass.sym.type, name, false, argtypes, typeargtypes);
+        }
+        return sym;
+    }
+
 
 
     /** This overrides the superclass method in order to implement distinguishing
@@ -421,6 +445,8 @@ public class JmlResolve extends Resolve {
         return bestSoFar;
     }
     
+    public boolean noSuper = false;
+    
      /** This overrides the superclass method in order to distinguish JML
       * and Java name lookup.
       */
@@ -438,9 +464,9 @@ public class JmlResolve extends Resolve {
             boolean allowBoxing,
             boolean useVarargs,
             boolean operator) {
-        for (Type ct = intype; ct.tag == CLASS; ct = types.supertype(ct)) {
+        for (Type ct = intype; ct.tag == CLASS; ct = noSuper? Type.noType : types.supertype(ct)) {
             ClassSymbol c = (ClassSymbol)ct.tsym;
-            if ((c.flags() & (ABSTRACT | INTERFACE)) == 0)
+            if (!allowJML && (c.flags() & (ABSTRACT | INTERFACE)) == 0 && !noSuper)
                 abstractok = false;
             for (Scope.Entry e = c.members().lookup(name);
                         e.scope != null;
@@ -475,6 +501,46 @@ public class JmlResolve extends Resolve {
                     bestSoFar = concrete;
             }
         }
+        // Added this in - when we are within JML we can look in interfaces for 
+        // model methods
+        // FIXME - does this do interfaces recursively?
+//        if (allowJML) 
+//            for (Type ct : types.interfaces(intype)) {
+//            ClassSymbol c = (ClassSymbol)ct.tsym;
+//            abstractok = true;
+//            for (Scope.Entry e = c.members().lookup(name);
+//                        e.scope != null;
+//                        e = e.next()) {
+////              - System.out.println(" e " + e.sym);
+//                if (e.sym.kind == MTH &&
+//                        (e.sym.flags_field & SYNTHETIC) == 0 &&
+//                        !(!allowJML && Utils.isJML(e.sym.flags_field))) {
+//                    bestSoFar = selectBest(env, site, argtypes, typeargtypes,
+//                            e.sym, bestSoFar,
+//                            allowBoxing,
+//                            useVarargs,
+//                            operator);
+//                }
+//            }
+////          - System.out.println(" - " + bestSoFar);
+//            if (abstractok) {
+//                Symbol concrete = methodNotFound;
+//                if ((bestSoFar.flags() & ABSTRACT) == 0)
+//                    concrete = bestSoFar;
+//                for (List<Type> l = types.interfaces(c.type);
+//                l.nonEmpty();
+//                l = l.tail) {
+//                    bestSoFar = findMethod(env, site, name, argtypes,
+//                            typeargtypes,
+//                            l.head, abstractok, bestSoFar,
+//                            allowBoxing, useVarargs, operator);
+//                }
+//                if (concrete != bestSoFar &&
+//                        concrete.kind < ERR  && bestSoFar.kind < ERR &&
+//                        types.isSubSignature(concrete.type, bestSoFar.type))
+//                    bestSoFar = concrete;
+//            }
+//        }
         return bestSoFar;
      }
 
@@ -490,15 +556,13 @@ public class JmlResolve extends Resolve {
       */
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
-         //if (Utils.jmldebug) System.out.println("LOADING " + name);
+         if (Utils.jmldebug) System.out.println("LOADING REQUESTED " + name + ClassReader.isClassAlreadyRead(context,name));
          Symbol s = super.loadClass(env, name);
-         if (!(s instanceof ClassSymbol)) return s;
-         //if (Utils.jmldebug) System.out.println("   LOADED " + name + " HAS SYMBOL " + s);
-         //if (Utils.jmldebug) System.out.println("   LOADED " + name + " HAS SCOPE " + s.members());
+         if (!(s instanceof ClassSymbol)) return s; // loadClass can be called for a package
          JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get((ClassSymbol)s);
          if (tsp == null) {
-             if (Utils.jmldebug) System.out.println("   LOADING SPECS FOR BINARY CLASS " + name);
-             ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary((ClassSymbol)s);
+             if (Utils.jmldebug) System.out.println("   LOADING SPECS FOR (BINARY) CLASS " + name);
+             ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(env,(ClassSymbol)s);
              //if (Utils.jmldebug) System.out.println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
              return s;
          } else {
@@ -541,9 +605,9 @@ public class JmlResolve extends Resolve {
              specProtectedSym = ClassReader.instance(context).enterClass(JmlAttr.instance(context).tokenToAnnotationName.get(JmlToken.SPEC_PROTECTED));
          }
          // FIXME - sort out what is really happening here - the second part seems at least needed when a java file is referencing a binary file with a spec
-         boolean isSpecPublic = sym.attribute(specPublicSym) != null || JmlAttr.instance(context).findMod(mods,JmlToken.SPEC_PUBLIC)!=null;
+         boolean isSpecPublic = sym.attributes_field == null ? false : (sym.attribute(specPublicSym) != null || JmlAttr.instance(context).findMod(mods,JmlToken.SPEC_PUBLIC)!=null);
          if (isSpecPublic) return true;
-         boolean isSpecProtected = sym.attribute(specProtectedSym) != null || JmlAttr.instance(context).findMod(mods,JmlToken.SPEC_PROTECTED)!=null;
+         boolean isSpecProtected = sym.attributes_field == null ? false : (sym.attribute(specProtectedSym) != null || JmlAttr.instance(context).findMod(mods,JmlToken.SPEC_PROTECTED)!=null);
          int flag = (int)((sym.flags() & AccessFlags));
          if (isSpecProtected && flag != Flags.PUBLIC) return true;
 //         if (sym.name.toString().equals("elementCount")) {

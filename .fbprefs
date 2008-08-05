@@ -1,5 +1,5 @@
 #FindBugs User Preferences
-#Sun Jul 20 21:44:23 EDT 2008
+#Mon Jul 28 09:06:02 EDT 2008
 detectorAppendingToAnObjectOutputStream=AppendingToAnObjectOutputStream|true
 detectorBCPMethodReturnCheck=BCPMethodReturnCheck|false
 detectorBadAppletConstructor=BadAppletConstructor|false
@@ -36,7 +36,7 @@ detectorFindBadEqualsImplementation=FindBadEqualsImplementation|false
 detectorFindBadForLoop=FindBadForLoop|true
 detectorFindBugsSummaryStats=FindBugsSummaryStats|true
 detectorFindCircularDependencies=FindCircularDependencies|false
-detectorFindDeadLocalStores=FindDeadLocalStores|true
+detectorFindDeadLocalStores=FindDeadLocalStores|false
 detectorFindDoubleCheck=FindDoubleCheck|true
 detectorFindEmptySynchronizedBlock=FindEmptySynchronizedBlock|true
 detectorFindFieldSelfAssignment=FindFieldSelfAssignment|true
@@ -145,8 +145,8 @@ detectorVolatileUsage=VolatileUsage|true
 detectorWaitInLoop=WaitInLoop|true
 detectorWrongMapIterator=WrongMapIterator|true
 detectorXMLFactoryBypass=XMLFactoryBypass|true
-detector_threshold=2
+detector_threshold=3
 effort=max
 excludefilter0=FB-NoNotABug.xml
-filter_settings=Medium|BAD_PRACTICE,CORRECTNESS,I18N,MALICIOUS_CODE,MT_CORRECTNESS,PERFORMANCE,SECURITY,STYLE|false
+filter_settings=Low|BAD_PRACTICE,CORRECTNESS,I18N,MALICIOUS_CODE,MT_CORRECTNESS,PERFORMANCE,SECURITY,STYLE|false
 filter_settings_neg=|

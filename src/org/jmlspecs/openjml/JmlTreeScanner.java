@@ -66,8 +66,12 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         // no children to scan
     }
     
-    public void visitJmlFunction(JmlFunction that) {
-        // no children to scan
+//    public void visitJmlFunction(JmlFunction that) {
+//        // no children to scan
+//    }
+    
+    public void visitJmlMethodInvocation(JmlMethodInvocation that) {
+        scan(that.args);
     }
     
     public void visitJmlBinary(JmlBinary that) {
