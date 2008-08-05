@@ -326,6 +326,7 @@ public class Flow extends TreeScanner {
      *  I.e. is symbol either a local or a blank final variable?
      */
     boolean trackable(VarSymbol sym) {
+        if (sym == null) return false; // DRC - added - explore why sym is null for JMLDataGroup FIXME
         return
             (sym.owner.kind == MTH ||
              ((sym.flags() & (FINAL | HASINIT | PARAMETER)) == FINAL &&
@@ -553,6 +554,8 @@ public class Flow extends TreeScanner {
 
     /* ------------ Visitor methods for various sorts of trees -------------*/
 
+    public void moreClassDef(JCClassDecl tree) {}
+    
     public void visitClassDef(JCClassDecl tree) {
         if (tree.sym == null) return;
 
@@ -656,6 +659,8 @@ public class Flow extends TreeScanner {
                     errorUncaught();
                 }
             }
+            
+            moreClassDef(tree);
 
             thrown = thrownPrev;
         } finally {

@@ -2293,4 +2293,9 @@ public class ClassReader extends ClassFile implements Completer {
             return flatname.toString();
         }
     }
+    
+    /** This method added for debugging information */
+    public static boolean isClassAlreadyRead(Context context, Name flatname) {
+        return instance(context).classes.get(flatname) != null;
+    }
 }

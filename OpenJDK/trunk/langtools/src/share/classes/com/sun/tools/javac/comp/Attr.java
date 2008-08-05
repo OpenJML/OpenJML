@@ -691,6 +691,8 @@ public class Attr extends JCTree.Visitor {
             chk.setLint(prevLint);
         }
     }
+    
+    protected void adjustVarDef(JCVariableDecl tree, Env<AttrContext> initenv) {}
 
     public void visitVarDef(JCVariableDecl tree) {
         // Local variables have not been entered yet, so we need to do it now:
@@ -725,6 +727,8 @@ public class Attr extends JCTree.Visitor {
                     // Check that initializer conforms to variable's declared type.
                     Env<AttrContext> initEnv = memberEnter.initEnv(tree, env);
                     initEnv.info.lint = lint;
+                    adjustVarDef(tree,initEnv);
+                    
                     // In order to catch self-references, we set the variable's
                     // declaration position to maximal possible value, effectively
                     // marking the variable as undefined.

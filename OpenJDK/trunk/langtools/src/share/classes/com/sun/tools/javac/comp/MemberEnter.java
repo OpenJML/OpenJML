@@ -800,7 +800,8 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 /* ********************************************************************
  * Source completer
  *********************************************************************/
-
+    protected boolean binary = false;
+    
     /** Complete entering a class.
      *  @param sym         The symbol of the class to be completed.
      */
@@ -906,7 +907,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             attr.attribTypeVariables(tree.typarams, baseEnv);
 
             // Add default constructor if needed.
-            if ((c.flags() & INTERFACE) == 0 &&
+            if ((c.flags() & INTERFACE) == 0 && !binary && // DRC added for now
                 !TreeInfo.hasConstructors(tree.defs)) {
                 List<Type> argtypes = List.nil();
                 List<Type> typarams = List.nil();
@@ -982,7 +983,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         }
     }
 
-    protected Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) {   // DRC- changed from private to protected
+    private Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) {
         Scope typaramScope = new Scope(tree.sym);
         if (tree.typarams != null)
             for (List<JCTypeParameter> typarams = tree.typarams;
@@ -1000,7 +1001,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     /** Enter member fields and methods of a class
      *  @param env        the environment current for the class block.
      */
-    private void finish(Env<AttrContext> env) {
+    protected void finish(Env<AttrContext> env) {  // DRC - changed from private to protected
         JavaFileObject prev = log.useSource(env.toplevel.sourcefile);
         try {
             JCClassDecl tree = (JCClassDecl)env.tree;

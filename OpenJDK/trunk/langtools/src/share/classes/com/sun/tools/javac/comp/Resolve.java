@@ -855,7 +855,7 @@ public class Resolve {
      *  @param env       The current environment.
      *  @param name      The fully qualified name of the class to be loaded.
      */
-    Symbol loadClass(Env<AttrContext> env, Name name) {
+    public Symbol loadClass(Env<AttrContext> env, Name name) { // DRC - changed from package to public
         try {
             ClassSymbol c = reader.loadClass(name);
             return isAccessible(env, c) ? c : new AccessError(c);
