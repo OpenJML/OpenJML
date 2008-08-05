@@ -10,9 +10,12 @@ public class racsystem extends RacBase {
         jdkrac = true;
         //noCollectDiagnostics = true;
         super.setUp();
+        options.put("-noPurityCheck",""); // To shut off complaints about misuse of purity in Java specifications
+        //options.put("-jmldebug",   "");
         //options.put("-jmlverbose",   "");
         //options.put("-noInternalSpecs",   "");
         //options.put("-useExceptions",   "");
+        //print = true;
     }
 
     public void testFile2() {

@@ -265,8 +265,7 @@ public class expressions extends ParseBase {
     /** Test scanning \old expression */
     public void testOld() {
         helpExpr(" \\old(a+b)",
-                JCMethodInvocation.class, 5,
-                JmlFunction.class, 1,
+                JmlMethodInvocation.class, 5,
                 JCBinary.class, 7,
                 JCIdent.class ,6,
                 JCIdent.class ,8);
@@ -275,8 +274,7 @@ public class expressions extends ParseBase {
     /** Test scanning \elemtype expression */
     public void testElemtype() {
         helpExpr(" \\elemtype(a+b)",
-                JCMethodInvocation.class, 10,
-                JmlFunction.class, 1,
+                JmlMethodInvocation.class, 10,
                 JCBinary.class, 12,
                 JCIdent.class ,11,
                 JCIdent.class ,13);
@@ -285,8 +283,7 @@ public class expressions extends ParseBase {
     /** Test scanning \nonnullelements expression */
     public void testNonnullelements() {
         helpExpr(" \\nonnullelements(a+b)",
-                JCMethodInvocation.class, 17,
-                JmlFunction.class, 1,
+                JmlMethodInvocation.class, 17,
                 JCBinary.class, 19,
                 JCIdent.class ,18,
                 JCIdent.class ,20);
@@ -295,8 +292,7 @@ public class expressions extends ParseBase {
     /** Test scanning \typeof expression */
     public void testTypeof() {
         helpExpr(" \\typeof(a+b)",
-                JCMethodInvocation.class, 8,
-                JmlFunction.class, 1,
+                JmlMethodInvocation.class, 8,
                 JCBinary.class, 10,
                 JCIdent.class ,9,
                 JCIdent.class ,11);
@@ -305,8 +301,7 @@ public class expressions extends ParseBase {
     /** Test scanning \max(\lockset) expression */
     public void testMaxLockset() {
         helpExpr(" \\max(\\lockset)",
-                JCMethodInvocation.class, 5,
-                JmlFunction.class, 1,
+                JmlMethodInvocation.class, 5,
                 JmlSingleton.class, 6);
     }
 

@@ -8,7 +8,6 @@ import java.io.Writer;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,7 +29,12 @@ import com.sun.tools.javac.util.Context;
 
 
 public class YicesProver implements IProver {
+    public static final String TYPE = "TYPE$";
+    public static final String TYPEOF = "typeof$";
+    public static final String SUBTYPE = "subtype$";
+    
     /** A debugging flag - 0 = show nothing; 1 = show errors; 2 = show something; 3 = show everything */
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_SHOULD_BE_FINAL")
     static protected int showCommunication = 2;
     
     /** The process that is the actual prover */
@@ -67,9 +71,14 @@ public class YicesProver implements IProver {
     /** A counter of assumptions sent to the prover */
     int assumeCounter = 0;
     
+    /** The one instance of the associated translator */
+    /*@ non_null */
+    protected YicesJCExpr translator;
+    
     // FIXME - will need to separate start from construction so there is an opportunity to set parameters (e.g. timeout)
     /** Creates and starts the prover process, sending any startup information */
     public YicesProver(Context context) throws ProverException {
+        translator = new YicesJCExpr(this);
         start();
     }
     
@@ -77,15 +86,35 @@ public class YicesProver implements IProver {
     /*@ non_null */
     private final static String backgroundPredicate =
           "(define-type REF) (define null::REF) "
-        + "(define length$0::(-> REF int)) (assert (forall (a::REF) (>= (length$0 a) 0)))"
+        + "(define length::(-> REF int)) (assert (forall (a::REF) (>= (length a) 0)))"
+        + "(define length$0::(-> REF int)) (assert (= length length$0))"
+        + "(define-type "+TYPE+")"
+        + "(define "+TYPEOF+"::(-> REF "+TYPE+"))"
+        + "(define "+SUBTYPE+"::(-> "+TYPE+" "+TYPE+" bool))"
+        + "(assert (forall (t::" + TYPE + ") ("+SUBTYPE + " t t)))"
+        + "(assert (forall (t1::" + TYPE + " t2::" + TYPE + ") (=> (and ("+SUBTYPE + " t1 t2)("+SUBTYPE + " t2 t1)) (=  t1 t2)) ))"
+        + "(assert (forall (t1::" + TYPE + " t2::" + TYPE + " t3::" + TYPE + ") (=> (and ("+SUBTYPE + " t1 t2)("+SUBTYPE + " t2 t3)) ("+SUBTYPE + " t1 t3)) ))"
+        + "(define idiv::(-> int int int)) (define rdiv::(-> real real real))"
+        + "(define imod::(-> int int int)) (define rmod::(-> real real real))"
+        + "(define imul::(-> int int int)) (define rmul::(-> real real real))"
+        + "(assert (forall (i::int j::int) (= (imul i j) (imul j i)) ))"
+        + "(assert (forall (i::int j::int) (=> (> j 0) (= (imod (imul i j) j)) 0) ))"
+        + "(define distinct$::(-> "+TYPE+" int))"
+//        + "(define T$java.lang.RuntimeException::"+TYPE+")" + "(assert (= (distinct$ T$java.lang.RuntimeException) 0))"
+//        + "(define T$java.lang.Exception::"+TYPE+")" + "(assert (= (distinct$ T$java.lang.Exception) 1))"
+//        + "(assert ("+SUBTYPE+" T$java.lang.RuntimeException T$java.lang.Exception))"
         + "\n";
+    
+    private final static String[] predefined = { TYPE, TYPEOF, SUBTYPE, "length", "length$0", "idiv", "rdiv", "imod", "rmod", "imul", "rmul",
+//        "T$java.lang.RuntimeException","T$java.lang.Exception"
+        };
     
     /** Does the startup work */
     public void start() throws ProverException {
         if (app == null) {
             throw new ProverException("No path to the executable found; specify it using -Dopenjml.prover.yices");
         } else if (!new java.io.File(app).exists()) {
-            throw new ProverException("The sepcified executable does not appear to exist: " + app);
+            throw new ProverException("The specified executable does not appear to exist: " + app);
         }
         try {
             // The interactive mode is used so that we get a prompt back, thereby
@@ -103,7 +132,7 @@ public class YicesProver implements IProver {
         send(backgroundPredicate);
         //send("\n");
         eatPrompt();
-        defined.add("length$0");
+        for (String s: predefined) defined.add(s);
     }
     
     public String eatPrompt() throws ProverException {
@@ -159,7 +188,7 @@ public class YicesProver implements IProver {
     
     public int assume(JCExpression tree) throws ProverException {
         try {
-            String t = YicesJCExpr.toYices(tree,this);
+            String t = translator.toYices(tree);
             builder.setLength(0);
             builder.append("(assert+ ");
             builder.append(t);
@@ -177,12 +206,27 @@ public class YicesProver implements IProver {
     
     public int assume(JCExpression tree, int weight) throws ProverException {
         try {
-            String t = YicesJCExpr.toYices(tree,this);
+            String t = translator.toYices(tree);
             builder.setLength(0);
             builder.append("(assert+ ");
             builder.append(t);
             builder.append(" ");
             builder.append(weight);
+            builder.append(")\n");
+            send(builder.toString());
+            eatPrompt();
+        } catch (ProverException e) {
+            e.mostRecentInput = builder.toString();
+            throw e;
+        }
+        return ++assumeCounter;
+    }
+    
+    public int rawassume(String t) throws ProverException {
+        try {
+            builder.setLength(0);
+            builder.append("(assert+ ");
+            builder.append(t);
             builder.append(")\n");
             send(builder.toString());
             eatPrompt();
@@ -242,7 +286,7 @@ public class YicesProver implements IProver {
     /** A stack holding lists of defined variables between various push() calls,
      * since a pop removes the definitions as well.
      */
-    private Deque<List<String>> stack = new LinkedList<List<String>>();
+    private List<List<String>> stack = new LinkedList<List<String>>();
     
     /** The list of definitions since the last push (duplicates some of those
      * in 'defined'.
@@ -284,6 +328,39 @@ public class YicesProver implements IProver {
             e.mostRecentInput = builder.toString();
             throw e;
         }
+    }
+
+    /** Defines an id as a given (raw) type; returns true and does nothing if the
+     * id was already defined.
+     * @param id the identifier to be defined
+     * @param typeString the string denoting the already converted type
+     * @return true if already defined, false if now newly defined
+     * @throws ProverException
+     */
+    public boolean rawdefine(String id, String typeString) throws ProverException {
+        if (checkAndDefine(id)) return true; // DO nothing if already defined
+        builder.setLength(0);
+        if (typeString.indexOf('$') != -1) {
+            // A user-defined type
+            if (!checkAndDefine(typeString)) {
+                builder.append("(define-type ");
+                builder.append(typeString);
+                builder.append(") ");
+            }
+        }
+        builder.append("(define ");
+        builder.append(id);
+        builder.append("::");
+        builder.append(typeString);
+        builder.append(")\n");
+        try {
+            send(builder.toString());
+            eatPrompt();
+        } catch (ProverException e) {
+            e.mostRecentInput = builder.toString();
+            throw e;
+        }
+        return false;
     }
 
 
@@ -345,13 +422,13 @@ public class YicesProver implements IProver {
         send("(pop)\n");
         eatPrompt();
         defined.removeAll(top);
-        top = stack.removeFirst();
+        top = stack.remove(0);
     }
 
     public void push() throws ProverException {
         send("(push)\n");
         eatPrompt();
-        stack.addFirst(top);
+        stack.add(0,top);
         top = new LinkedList<String>();
     }
 
@@ -378,7 +455,6 @@ public class YicesProver implements IProver {
     static public class CoreIds implements IProverResult.ICoreIds {
         Collection<Integer> coreIds = new ArrayList<Integer>();
         
-        @Override
         public Collection<Integer> coreIds() {
             return coreIds;
         }

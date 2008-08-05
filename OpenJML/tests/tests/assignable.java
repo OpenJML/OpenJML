@@ -193,6 +193,12 @@ public class assignable extends TCBase {
                 );
     }
 
+    public void testAssignableNoSemi() {
+        helpTCF("A.java","public class A { B[] o; \n//@ assignable o\n void m(boolean b) {} }  class B{ int kk; }"
+                ,"/A.java:2: Invalid expression or missing semicolon here",17
+                );
+    }
+
 
 
 }

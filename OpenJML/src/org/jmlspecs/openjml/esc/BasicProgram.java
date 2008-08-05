@@ -56,7 +56,7 @@ public class BasicProgram {
     /** A list of logical assertions (e.g. equalities that are definitions)
      *  used in the block equations but are not block equations themselves.
      */
-    protected List<JCExpression> definitions;
+    protected List<JCExpression> definitions = new ArrayList<JCExpression>();;
 
     /** Returns the (mutable) list of definitions that are part of this program
      * @return the program's definitions
@@ -64,6 +64,19 @@ public class BasicProgram {
     @Pure
     public List<JCExpression> definitions() {
         return definitions;
+    }
+    
+    /** A list of background assertions that are needed to support the functions
+     * and constants used in the program.
+     */
+    protected List<JCExpression> background = new ArrayList<JCExpression>();
+
+    /** Returns the (mutable) list of background assertions that are part of this program
+     * @return the program's definitions
+     */
+    @Pure
+    public List<JCExpression> background() {
+        return background;
     }
     
     /** A list of blocks that constitute this BasicProgram. */
@@ -97,6 +110,11 @@ public class BasicProgram {
             Writer w = new OutputStreamWriter(System.out);
             JmlPretty pw = new JmlPretty(w,true);
             pw.useJMLComments = false;
+            for (JCExpression e: background) {
+                e.accept(pw);
+                pw.println();
+                w.flush();
+            }
             for (JCExpression e: definitions) {
                 e.accept(pw);
                 pw.println();

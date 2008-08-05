@@ -7,6 +7,7 @@ import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.esc.BasicBlocker;
 import org.jmlspecs.openjml.proverinterface.ProverException;
@@ -15,6 +16,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
 /** This class converts OpenJDK ASTs (i.e., JCTree) into Strings appropriate
@@ -38,12 +40,12 @@ public class YicesJCExpr extends JmlTreeScanner {
      * @param p the prover invoking this translation
      * @return the translated string
      */
-    static public String toYices(JCTree t, YicesProver p) 
+    public String toYices(JCTree t) 
             throws ProverException {
         try {
-        YicesJCExpr tr = new YicesJCExpr(p);
-        t.accept(tr);
-        return tr.result.toString(); // FIXME - no type given?
+            result.setLength(0);
+            t.accept(this);
+            return result.toString(); // FIXME - no type given?
         } catch (RuntimeException e) {
             if (e.getCause() instanceof ProverException) {
                 throw (ProverException)e.getCause();
@@ -69,6 +71,33 @@ public class YicesJCExpr extends JmlTreeScanner {
     /*@ non_null */
     private StringBuilder result = new StringBuilder();
 
+    protected void send(String s) {
+        try {
+            p.send(s);
+            p.eatPrompt();
+        } catch (ProverException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    int distinctCount = 100;
+    protected boolean define(String name, String type) {
+        try {
+            if (type == YicesProver.TYPE) {
+                boolean n = p.rawdefine(name,type);
+                if (n) return n;
+                String s = "(= ("+"distinct$"+" "+name+") " + (++distinctCount) +")";
+                p.rawassume(s);
+                return false;
+            } else {
+                return p.rawdefine(name,type);
+            }
+        } catch (ProverException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void visitIdent(JCIdent that) {
         // Make sure the id is defined.
         // Emit it simply as its string
@@ -80,22 +109,56 @@ public class YicesJCExpr extends JmlTreeScanner {
         result.append(that.toString());
     }
         
+    @Override
     public void visitParens(JCParens that) {
         // Ignore parenthesized expression - all the output for Yices
         // is parenthesized in prefix form anyway
         that.expr.accept(this);
     }
     
+    @Override
     public void visitLiteral(JCLiteral that) {
-        // Just use the string form.  Should only get basic types: boolean
-        // and int.  // FIXME - characters, strings? others?
-        result.append(that.toString());
+        // Should only get these: boolean, int, class, null, ...
+        // FIXME - characters, strings? others?
+        switch (that.typetag) {
+            case TypeTags.CLASS:  // FIXME - generic
+                String s = "T$" + ((Type)that.value).toString();
+                int k = s.indexOf("<");
+                if (k>=0) s = s.substring(0,k);
+//                s = s.replace("[<]","$|");
+//                s = s.replace("[>]","|$");
+                define(s,YicesProver.TYPE);
+                result.append(s);
+                break;
+            default:
+                result.append(that.toString());
+        }
+    }
+
+    @Override
+    public void visitJmlMethodInvocation(JmlMethodInvocation that) {
+        // Should have only one argument (an \old or \pre can get here)
+        //System.out.println("visit Apply: " + that.meth.getClass() + " " + that.meth);
+        switch (that.token) {
+            case BSTYPEOF:
+                result.append("(");
+                result.append(YicesProver.TYPEOF);
+                result.append(" ");
+                that.args.get(0).accept(this);
+                result.append(")");
+                break;
+            default:
+                // FIXME
+                System.out.println("Unknown token in YicsJCExpr.visitJmlMethodInvocation: " + that.token.internedName());
+                break;
+        }
     }
     
+    @Override
     public void visitApply(JCMethodInvocation that) {
         // FIXME - document
         if (that.meth != null) {
-            // Should have only one argument (an \old or \pre can get here)
+            // FIXME - review this
             //System.out.println("visit Apply: " + that.meth.getClass() + " " + that.meth);
             if (!(that.meth instanceof JCIdent)) 
                 that.args.get(0).accept(this);
@@ -197,6 +260,7 @@ public class YicesJCExpr extends JmlTreeScanner {
         }
     }
     
+    @Override
     public void visitUnary(JCUnary that) {
         // boolean not (!) encoded as: (not arg)
         // arithmetic negation (-) as: (- 0 arg)   [there is no unary negation]
@@ -219,9 +283,11 @@ public class YicesJCExpr extends JmlTreeScanner {
         result.append(")");
     }
     
+    @Override
     public void visitBinary(JCBinary that) {
         // encoded as: (op lhs rhs)
         result.append("(");
+        int typetag = that.type.tag;
         switch (that.getTag()) {
             case JCTree.EQ:
                 result.append("= ");
@@ -239,18 +305,46 @@ public class YicesJCExpr extends JmlTreeScanner {
                 result.append("- ");
                 break;
             case JCTree.MUL:
-                result.append("* ");
-                break;
-            case JCTree.DIV:
-                int tag = that.type.tag;
-                if (tag == TypeTags.INT || tag == TypeTags.SHORT || tag == TypeTags.LONG || tag == TypeTags.BYTE)
-                    result.append("div ");
+                if (typetag == TypeTags.INT || typetag == TypeTags.SHORT || typetag == TypeTags.LONG || typetag == TypeTags.BYTE)
+                    result.append("imul ");
                 else // float, double
-                    result.append("/ ");
+                    result.append("rmul ");
+                if (that.lhs instanceof JCLiteral) {
+                    String s = that.lhs.toString();
+                    String ss = "(assert (forall (x::int) (= (imul " + s + " x) (* " + s + " x))))\n";
+                    send(ss);
+                } else if (that.rhs instanceof JCLiteral) {
+                    String s = that.rhs.toString();
+                    String ss = "(assert (forall (x::int) (= (imul x " + s + ") (* x " + s + "))))\n";
+                    send(ss);
+                }
+                break;
+                //result.append("* ");
+                //break;
+            case JCTree.DIV:
+                if (typetag == TypeTags.INT || typetag == TypeTags.SHORT || typetag == TypeTags.LONG || typetag == TypeTags.BYTE)
+                    result.append("idiv ");
+                else // float, double
+                    result.append("rdiv ");
+                if (that.rhs instanceof JCLiteral) {
+                    String s = that.rhs.toString();
+                    String ss = "(assert (forall (x::int) (= (idiv x " + s + ") (div x " + s + "))))\n";
+                    send(ss);
+                }
                 break;
             case JCTree.MOD:
-                result.append("mod ");
+                if (typetag == TypeTags.INT || typetag == TypeTags.SHORT || typetag == TypeTags.LONG || typetag == TypeTags.BYTE)
+                    result.append("imod ");
+                else // float, double
+                    result.append("rmod ");
+                if (that.rhs instanceof JCLiteral) {
+                    String s = that.rhs.toString();
+                    String ss = "(assert (forall (x::int) (= (imod x " + s + ") (mod x " + s + "))))\n";
+                    send(ss);
+                }
                 break;
+                //result.append("mod ");
+                //break;
             case JCTree.NE:
                 result.append("/= ");
                 break;
@@ -281,6 +375,7 @@ public class YicesJCExpr extends JmlTreeScanner {
         result.append(")");
     }
 
+    @Override
     public void visitJmlBinary(JmlBinary that) {
         // encoded as: (op lhs rhs)
         result.append("(");
@@ -297,8 +392,9 @@ public class YicesJCExpr extends JmlTreeScanner {
             that.lhs.accept(this);
             result.append(")");
             return;
-        } else if (that.op == JmlToken.SUBTYPE_OF) {    // FIXME - need subtype
-            throw new RuntimeException(new ProverException("Binary operator not implemented for Yices: " + that.getTag()));
+        } else if (that.op == JmlToken.SUBTYPE_OF) {
+            result.append(YicesProver.SUBTYPE);
+            result.append(" ");
         } else {
            throw new RuntimeException(new ProverException("Binary operator not implemented for Yices: " + that.getTag()));
         }
@@ -308,6 +404,7 @@ public class YicesJCExpr extends JmlTreeScanner {
         result.append(")");
     }
     
+    @Override
     public void visitConditional(JCConditional that) {
         // encoded as:  (ite cond lhs rhs)
         result.append("(ite ");
@@ -319,6 +416,7 @@ public class YicesJCExpr extends JmlTreeScanner {
         result.append(")");
     }
     
+    @Override
     public void visitIndexed(JCArrayAccess that) {
         if (!(that instanceof JmlBBArrayAccess)) {
             throw new RuntimeException(new ProverException("A BasicBlock AST should have JMLBBArrayAccess nodes for array access: " + that.getClass()));
@@ -353,6 +451,7 @@ public class YicesJCExpr extends JmlTreeScanner {
         result.append(")");
     }
     
+    @Override
     public void visitSelect(JCFieldAccess that) {
         if (!(that instanceof JmlBBFieldAccess)) {
             throw new RuntimeException(new ProverException("A BasicBlock AST should have JmlBBFieldAccess nodes for field access: " + that.getClass()));
@@ -378,6 +477,7 @@ public class YicesJCExpr extends JmlTreeScanner {
         result.append(")");
     }
     
+    @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         // Presuming all expression to this point are FORALL - FIXME
         // translates to (forall (name::type ... name::type) expr)
@@ -406,6 +506,16 @@ public class YicesJCExpr extends JmlTreeScanner {
         result.append(") ");
         that.predicate.accept(this);
         result.append(")");
+    }
+    
+    @Override
+    public void visitTypeTest(JCInstanceOf that) {
+        System.out.println("INSTASNCEOF SHOULD NOT BE CALLED"); // FIXME
+    }
+    
+    @Override
+    public void visitTypeCast(JCTypeCast that) {
+        System.out.println("TYPER CAST NOT IMPLEMENTED"); // FIXME
     }
     
 }

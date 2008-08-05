@@ -52,6 +52,9 @@ public class Label {
     /** Used for assume or assert statements generated from invariants */
     /*@ non_null*/ public final static Label INVARIANT = new Label("Invariant");
     
+    /** Used for assume statements generated to guard a catch block */
+    /*@ non_null*/ public final static Label CATCH_CONDITION = new Label("CatchCondition");
+
     /** Used for assume statements generated to define auxiliary variables */
     /*@ non_null*/ public final static Label SYN = new Label("Synthetic");
 
@@ -90,4 +93,40 @@ public class Label {
     
     /** Used to designate the conditional test of a loop */
     /*@ non_null*/ public final static Label LOOP = new Label("LoopCondition");
+    
+    /** Used to designate an undefined pure expression because of a potential null reference */
+    /*@ non_null*/ public final static Label UNDEFINED_NULL = new Label("UndefinedNullReference");
+    
+    /** Used to designate an undefined pure expression because of a potential negative index */
+    /*@ non_null*/ public final static Label UNDEFINED_NEGATIVEINDEX = new Label("UndefinedNegativeIndex");
+    
+    /** Used to designate an undefined pure expression because of a potential too-large index */
+    /*@ non_null*/ public final static Label UNDEFINED_TOOLARGEINDEX = new Label("UndefinedTooLargeIndex");
+    
+    /** Used to designate an undefined pure expression because of a potential divide by 0 */
+    /*@ non_null*/ public final static Label UNDEFINED_DIV0 = new Label("UndefinedDivideByZero");
+    
+    /** Used to designate an undefined pure expression because of a potential bad cast */
+    /*@ non_null*/ public final static Label UNDEFINED_CAST = new Label("UndefinedBadCast");
+    
+    /** Used to designate an undefined pure expression because of a failed precondition in a called method */
+    /*@ non_null*/ public final static Label UNDEFINED_PRECONDITION = new Label("UndefinedCalledMethodPrecondition");
+    
+    
+    /** Used to designate a possible exception because of a potential null reference */
+    /*@ non_null*/ public final static Label POSSIBLY_NULL = new Label("PossiblyNullReference");
+    
+    /** Used to designate a possible exception because of a potential negative index */
+    /*@ non_null*/ public final static Label POSSIBLY_NEGATIVEINDEX = new Label("PossiblyNegativeIndex");
+    
+    /** Used to designate a possible exception because of a potential too-large index */
+    /*@ non_null*/ public final static Label POSSIBLY_TOOLARGEINDEX = new Label("PossiblyTooLargeIndex");
+    
+    /** Used to designate a possible exception because of a potential divide by 0 */
+    /*@ non_null*/ public final static Label POSSIBLY_DIV0 = new Label("PossiblyDivideByZero");
+
+    /** Used to designate a possible exception because of a bad cast */
+    /*@ non_null*/ public final static Label POSSIBLY_CAST = new Label("PossiblyBadCast");
+    
+
 }

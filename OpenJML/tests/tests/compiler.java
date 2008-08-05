@@ -18,8 +18,8 @@ public class compiler extends TestCase {
     boolean capture = true;
     
     protected void setUp() throws Exception {
-//        capture = false;
-//        print = true;
+        //capture = false;
+        //print = true;
         super.setUp();
         savederr = System.err;
         savedout = System.out;
@@ -111,6 +111,7 @@ public class compiler extends TestCase {
     public void testRecursiveCP() throws Exception {
         helper(new String[]
                           { "-classpath","testfiles/testNoErrors"+z+"bin"+z+"$CP",
+                            "-noInternalSpecs",
                             "testfiles/testNoErrors/A.java",  
                           },0,0,"warning: $CP is included in the specs path recursively or multiple times"+eol
                           + "1 warning" + eol);
@@ -137,8 +138,7 @@ public class compiler extends TestCase {
                           },0,2,"",
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.java" + eol +
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.refines-java" + eol +
-                          "typechecking A true true" + eol +
-                          "typechecking java.lang.Object false false" + eol +
+                          "typechecking A" + eol +
                           "flow checks A" + eol + 
                           "");
     }
@@ -150,8 +150,7 @@ public class compiler extends TestCase {
                           },0,2,"",
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.java" + eol +
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.refines-java" + eol +
-                          "typechecking A true true" + eol +
-                          "typechecking java.lang.Object false false" + eol +
+                          "typechecking A" + eol +
                           "flow checks A" + eol + 
                           "");
     }
@@ -161,9 +160,26 @@ public class compiler extends TestCase {
                           { "-classpath","",
                             "-sourcepath","testfiles/testNoErrors"+z+"runtime",
                             "-specs","runtime",
+                            "-noInternalSpecs",
                             "testfiles/testNoErrors/A.java",  
                           },0,0,"",
                           "");
+    }
+
+    /** Tests using source path but including java spec files - may encounter
+     * compilation warnings in the spec files as they evolve.
+     * @throws Exception
+     */
+    public void testSourcePathX() throws Exception {
+        helper(new String[]
+                          { "-classpath","bin",
+                            "-sourcepath","testfiles/testNoErrors",
+                            "-specs","runtime",
+                            "-noPurityCheck",
+                            "testfiles/testNoErrors/A.java"
+                          },0,0,
+                          "Note: Some input files use unchecked or unsafe operations."+eol+
+                          "Note: Recompile with -Xlint:unchecked for details."+eol);
     }
 
     public void testSourcePath3() throws Exception {
@@ -171,6 +187,7 @@ public class compiler extends TestCase {
                           { "-classpath","",
                             "-sourcepath","testfiles/testNoErrors"+z+"runtime",
                             "-specs","",
+                            "-noInternalSpecs",
                             "testfiles/testNoErrors/A.java",  
                           },0,0,"",
                           "");
@@ -183,6 +200,7 @@ public class compiler extends TestCase {
                           { "-classpath","jmlruntime.jar",
                             "-sourcepath","testfiles/testNoErrors",
                             "-specs","",
+                            "-noInternalSpecs",
                             "testfiles/testNoErrors/A.java",  
                           },0,0,"",
                           "");
@@ -193,6 +211,7 @@ public class compiler extends TestCase {
                           { "-classpath","bin",
                             "-sourcepath","testfiles/testNoErrors",
                             "-specs","",
+                            "-noInternalSpecs",
                             "testfiles/testNoErrors/A.java", 
                           },0,0,"",
                           "");
@@ -203,6 +222,7 @@ public class compiler extends TestCase {
                           { "-classpath","bin",
                             "-sourcepath","testfiles/testNoErrors",
                             "-specs","runtime",
+                            "-noInternalSpecs",
                             "testfiles/testNoErrors/A.java"
                           },0,0,"",
                           "");

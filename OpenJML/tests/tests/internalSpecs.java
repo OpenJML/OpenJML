@@ -12,11 +12,13 @@ public class internalSpecs extends TCBase {
     public void setUp() throws Exception {
 //      noCollectDiagnostics = true;
 //      jmldebug = true;
-        useSystemSpecs = true;  // FIXME - these tests are not doing their job
+        useSystemSpecs = true;
         super.setUp();
+        options.put("-noPurityCheck",""); // FIXME - there are too many purity problems in the specs right now
     }
 
-    /** Test scanning something very simple */
+    /** Scan something very simple but use the internal spaces to see what 
+     * problems there might be in the specs and to be sure they are pulled in. */
     public void testPure() {
         helpTC(" class A { /*@ pure */ boolean m() { return true; }  \n //@ invariant m(); \n}"
         );

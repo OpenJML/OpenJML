@@ -239,6 +239,7 @@ public enum JmlToken {
     public final static EnumSet<JmlToken> modifiers = EnumSet.range(PURE,CODE_BIGINT_MATH);  // BSREADONLY added below
     
     /** This is a set of the modifiers that may be used to characterize a type. */
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_MUTABLE_ARRAY")
     public final static JmlToken[] typeModifiers = new JmlToken[]{NULLABLE,NONNULL,BSREADONLY};
     
     /** This is a set of all of the tokens that begin method specification clauses,

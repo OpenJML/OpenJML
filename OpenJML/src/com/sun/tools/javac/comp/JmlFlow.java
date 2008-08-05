@@ -10,6 +10,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
@@ -68,21 +69,35 @@ public class JmlFlow extends Flow {
     @Override
     public void visitClassDef(JCClassDecl tree) {
         super.visitClassDef(tree);
+    }
+    
+    @Override
+    public void moreClassDef(JCClassDecl tree) {
         if (tree.sym == null) return;
         if (Utils.isInstrumented(tree.mods.flags)) return;
         JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(tree.sym);
         if (tspecs == null) return;
+        
         JavaFileObject prev = Log.instance(context).currentSource();
-        for (JmlTypeClause c : tspecs.clauses) {
-            if (c instanceof JmlTypeClauseDecl) {
-                JCTree d = ((JmlTypeClauseDecl)c).decl;
-                Log.instance(context).useSource(c.source());
-                if (c.modifiers != null && (c.modifiers.flags & Flags.SYNTHETIC) != 0) {
-                    continue;
+        try {
+            for (JmlTypeClause c : tspecs.clauses) {
+                if (c instanceof JmlTypeClauseDecl) {
+                    JCTree d = ((JmlTypeClauseDecl)c).decl;
+                    Log.instance(context).useSource(c.source());
+                    if (c.modifiers != null && (c.modifiers.flags & Flags.SYNTHETIC) != 0) {
+                        continue;
+                    }
+                    d.accept(this);
                 }
-                d.accept(this);
             }
+        } finally {
+            Log.instance(context).useSource(prev);
         }
-        Log.instance(context).useSource(prev);
+    }
+    
+    @Override
+    public void visitApply(JCMethodInvocation tree) {
+        if (tree.meth != null) super.visitApply(tree);
+        // Ignore JML functions (FIXME - should we make this a JmlTreeScanner and do lots more checks?)
     }
 }

@@ -41,7 +41,7 @@ public class binaries extends TCBase {
         addMockFile("$A/java/io/File.spec",
                 "package java.io; //@ model class VVV{ static int i; }\n" + 
                 "public class File { \n" +
-                " public void exists() { /*@ assert i; assume j; */ }\n" +
+                " public void exists() { /*@ assert true; assume true; */ }\n" +
                 "//@model static public class TTT { static int j; } " +
                 "\n }");
         helpTCF("A.java",
@@ -68,6 +68,8 @@ public class binaries extends TCBase {
                 "}"
                 ,"/java/io/A.java:3: incompatible types\nfound   : int\nrequired: boolean",42
                 ,"/java/io/A.java:3: incompatible types\nfound   : int\nrequired: boolean",69
+                ,"/$A/java/io/File.spec:3: incompatible types\nfound   : int\nrequired: boolean",18
+                ,"/$A/java/io/File.spec:3: incompatible types\nfound   : int\nrequired: boolean",35
         );
     }
 

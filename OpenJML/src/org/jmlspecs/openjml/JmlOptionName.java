@@ -21,6 +21,7 @@ public enum JmlOptionName implements OptionInterface {
     USEJAVACOMPILER("-useJavaCompiler",false,"When on, the tool uses only the underlying javac compiler (must be the first option)"),
     NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored"),
     NOCHECKSPECSPATH("-noCheckSpecsPath",false,"When on, no warnings for non-existent specification path directories are issued"),
+    NOPURITYCHECK("-noPurityCheck",false,"When on, no warnings for use of impure methods are issued"),
     SHOW_NOT_IMPLEMENTED("-showNotImplemented",false,"When on, warnings about unimplemented constructs are issued"),
     JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much"),
     INTERACTIVE("-i",false,"Must be first, starts interactive mode"),
@@ -56,6 +57,25 @@ public enum JmlOptionName implements OptionInterface {
         this.name = s;
         this.hasArg = hasArg;
         this.help = help;
+    }
+    
+    /** Enables the given option
+     * 
+     * @param context the compilation context
+     * @param option the option to enable
+     */
+    public static void putOption(Context context, JmlOptionName option) {
+        putOption(context,option,"");
+    }
+    
+    /** Sets the value of the given option
+     * 
+     * @param context the compilation context
+     * @param option the option to set
+     * @param value the value to give the option
+     */
+    public static void putOption(Context context, JmlOptionName option, String value) {
+        Options.instance(context).put(option.name,value);
     }
     
     /** Return whether an option is enabled in the given context

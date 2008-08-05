@@ -1,26 +1,35 @@
 package tests;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
-import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import junit.framework.AssertionFailedError;
 
+import org.jmlspecs.openjml.JmlOptionName;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.Dir;
 
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
-/** This is the parent class for classes that simply test whether the spec file for a JDK class parses correctly.  Simply create a
- * derived test of the form
+/** This is the parent class for classes that simply test whether the spec file 
+ * for a JDK class parses without error.  The 'testFiles' test dynamically 
+ * creates and tests source code for each specification file that is found
+ * in the specification path (which is set to contain just the system specification
+ * directories).
+ * <P>
+ * Alternatively, you can create explicit tests for individual system classes.
+ * The template is the following:
  * 
  *<PRE>
     public void testFile() {
-        helpTCF("A.java","public class A { java.io.File f; }"
+        helpTCF("A.java","public class A { <fully-qualified-type-name> f; }"
                 );
     }
    </PRE>
@@ -31,24 +40,37 @@ import com.sun.tools.javac.util.Log;
  * @author David Cok
  *
  */
-// FIXME - create a test that makes sure the class path is finding specs
-// FIXME - make the path more robust across different environments
-// FIXME - check that all jdk files are actually tested
+// Note - this does not test spec files that are hidden by a later version
+//   you need to rerun Eclipse with a different JDK and correspondingly different
+//   specifications path.  You can do this with separate Run Configurations.
+
 // FIXME - enabling this interferes with some later tests
 public class SpecsBase extends TCBase {
 
-    boolean dotests = false;
+    private boolean dotests = false;  // Change this to enable/disable tests
     
     protected void setUp() throws Exception {
-        if (dotests) testspecpath1 = "../../../JMLspecs/trunk/java6"+z+"../../../JMLspecs/trunk/java5" + z+"../../../JMLspecs/trunk/java4";
+        if (dotests) {
+            //testspecpath1 = "$SY";
+            useSystemSpecs = true;
+        }
         super.setUp();
+        JmlOptionName.putOption(context,JmlOptionName.NOPURITYCHECK);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
         print = false;
     }
     
+    /** Set to true if errors are found in any test in checkFiles */
     boolean foundErrors;
     
+    /** Helper method that executes a test 
+     * 
+     * @param filename name to use for the pseudo source file
+     * @param s the code for the pseudo source file
+     * @param testClass class being tested, for output only
+     */
+    //@ modifies foundErrors;
     public void helpTCFile(String filename, String s, String testClass) {
         try {
             setUp();
@@ -76,46 +98,82 @@ public class SpecsBase extends TCBase {
         }
     }
 
-    
+    /** The test to run - finds all system specs and runs tests on them that
+     * at least are sure that the specifications parse and typecheck.
+     */
     public void testFindFiles() {
-        if (!dotests) return;
+        if (!dotests) {
+            System.out.println("System spec tests are being skipped");
+            return;
+        }
+        System.out.println("JRE version " + System.getProperty("java.version"));
         foundErrors = false;
         helpTCF("AJDK.java","public class AJDK {  }");
         java.util.List<Dir> dirs = specs.getSpecsPath();
         assertTrue ("Null specs path",dirs != null); 
         assertTrue ("No specs path",dirs.size() != 0); 
+        SortedSet<String> classes = new TreeSet<String>(); 
         for (Dir dir: dirs) {
             File d = new File(dir.toString());
-            checkAllFiles(d, dir.toString());
+            classes.addAll(findAllFiles(d, dir.toString()));
         }
+        classes.removeAll(donttest);
+        checkFiles(classes);
         assertTrue("Errors found",!foundErrors);
+        System.out.println(classes.size() + " system specification classes tested");
     }
     
+    /** Set of classes (fully qualified, dot-separated names) that should not
+     * be tested.
+     */
     Set<String> donttest = new HashSet<String>();
     {
-        donttest.add("java.lang.StringCoding");
+        donttest.add("java.lang.StringCoding"); // Turn this off because it is not public (FIXME)
     }
     
-    public void checkAllFiles(File d, String root) {
+    /** Creates a list of all the files (of any suffix), interpreted as fully-qualified Java class 
+     * names when the 'root; prefix is removed,
+     * recursively found underneath the given directory
+     * @param d the directory in which to search
+     * @param root the prefix of the path to ignore
+     * @return list of dot-separated class names for which files were found
+     */
+    public java.util.List<String> findAllFiles(File d, String root) {
         String[] files = d.list();
-        if (files == null) return;
+        java.util.List<String> list = new ArrayList<String>();
+        if (files == null) return list;
         for (String s: files) {
             if (s.charAt(0) == '.') continue;
             File f = new File(d,s);
             if (f.isDirectory()) {
-                checkAllFiles(f, root);
+                list.addAll(findAllFiles(f, root));
             } else {
                 String ss = f.toString().substring(root.length()+1);
-                // Is there a test for f
                 int p = ss.lastIndexOf('.');
                 ss = ss.substring(0,p).replace(File.separatorChar,'.');
-                if (donttest.contains(ss)) continue;
-                String program = "public class AJDK { "+ss+" o; }";
-                System.out.println("TESTING " + ss);
-                helpTCFile("AJDK.java",program,ss);
+                list.add(ss);
             }
+        }
+        return list;
+    }
+
+    /** Does a test on each class in the given set of fully qualified,
+     * dot-separated class names
+     * 
+     * @param classNames set of classes to test
+     */
+    //@ modifies foundErrors;
+    public void checkFiles(Set<String> classNames) {
+        for (String qname: classNames) {
+            String program = "public class AJDK { "+ qname +" o; }";
+            System.out.println("JUnit SpecsBase: " + qname);
+            helpTCFile("AJDK.java",program,qname);
         }
     }
 
+//    public void testFileTemp() {
+//        helpTCF("A.java","public class A { java.util.GregorianCalendar f; }"
+//                );
+//    }
 
 }

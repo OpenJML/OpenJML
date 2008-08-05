@@ -1,20 +1,6 @@
 package com.sun.tools.javac.parser;
 
-import static com.sun.tools.javac.parser.Token.BAR;
-import static com.sun.tools.javac.parser.Token.COMMA;
-import static com.sun.tools.javac.parser.Token.CUSTOM;
-import static com.sun.tools.javac.parser.Token.DOT;
-import static com.sun.tools.javac.parser.Token.EOF;
-import static com.sun.tools.javac.parser.Token.IDENTIFIER;
-import static com.sun.tools.javac.parser.Token.LBRACE;
-import static com.sun.tools.javac.parser.Token.LBRACKET;
-import static com.sun.tools.javac.parser.Token.LPAREN;
-import static com.sun.tools.javac.parser.Token.LT;
-import static com.sun.tools.javac.parser.Token.QUES;
-import static com.sun.tools.javac.parser.Token.RBRACE;
-import static com.sun.tools.javac.parser.Token.RPAREN;
-import static com.sun.tools.javac.parser.Token.SEMI;
-import static com.sun.tools.javac.parser.Token.STAR;
+import static com.sun.tools.javac.parser.Token.*;
 import static com.sun.tools.javac.util.ListBuffer.lb;
 import static org.jmlspecs.openjml.JmlToken.*;
 
@@ -443,6 +429,7 @@ public class JmlParser extends EndPosParser {
                 }
                 S.nextToken(); // swallow the STARTJMLTOKEN
             }
+            if (S.jml) S.setJmlKeyword(true);
             JCModifiers mods = modifiersOpt(); // Gets anything in that is in pushBackModifiers
             int pos = S.pos();
             JmlToken jt = S.jmlToken();
@@ -943,12 +930,15 @@ public class JmlParser extends EndPosParser {
         if (JmlOptionName.isOption(context, JmlOptionName.SHOW_NOT_IMPLEMENTED)) 
             log.warning(pos, "jml.unimplemented.construct", "model program", "JmlParser.getSpecificationCase()");
 
+        int count = 0;
         do {
             S.nextToken();
             jt = S.jmlToken();
-        } while (S.token() != EOF && !stops.contains(jt));
+            if (S.token() == LBRACE) count++;
+            else if (S.token() == RBRACE) count--;
+        } while (S.token() != EOF && count != 0);
         JmlSpecificationCase spc = toP(jmlF.at(pos).JmlSpecificationCase(mods,code,MODEL_PROGRAM,also,List.<JmlMethodClause>nil()));
-        if (jt == ENDJMLCOMMENT) S.nextToken();
+        if (jt == ENDJMLCOMMENT || S.token() == RBRACE) S.nextToken();
         return spc;
     }
     
@@ -1285,7 +1275,6 @@ public class JmlParser extends EndPosParser {
             } else if (S.token() == SEMI) {
                 return list;
             } else if (S.jmlToken == ENDJMLCOMMENT) {
-                // FIXME - missing semi
                 return list;
             } else {
                 syntaxError(S.pos(),null,"jml.missing.comma"); 
@@ -1658,8 +1647,7 @@ public class JmlParser extends EndPosParser {
                     return t;
                     
                 case BSRESULT :
-                case BSLOCKSET :
-                case BSSAME:
+                case BSLOCKSET : // FIXME - what can follow this?
                     t = to(jmlF.at(p).JmlSingleton(jt));
                     S.nextToken();
                     if (S.token() == Token.LPAREN) {
@@ -1672,14 +1660,15 @@ public class JmlParser extends EndPosParser {
                         return primarySuffix(t,typeArgs);
                     }
                     
+                case BSSAME:
                 case INFORMAL_COMMENT:
                     t = to(jmlF.at(p).JmlSingleton(jt));
                     S.nextToken();
                     return t;
 
                 case BSTYPELC :
-                    t = to(jmlF.at(p).JmlFunction(jt));
                     S.nextToken();
+                    // FIXME - check that typeargs is null
                     if (S.token() != Token.LPAREN) {
                         return syntaxError(p,null,"jml.args.required",jt.internedName());
                     } else {
@@ -1696,13 +1685,10 @@ public class JmlParser extends EndPosParser {
                             skipThroughRightParen();
                         }
                         else S.nextToken();
-                        return toP(jmlF.at(p).Apply(typeArgs, t, List.of(e)));
+                        // FIXME - this should be a type literal
+                        return toP(jmlF.at(p).JmlMethodInvocation(jt, List.of(e)));
                     }
                     
-                case BSOLD :
-                case BSPRE :
-                case BSTYPEOF :
-                case BSELEMTYPE :
                 case BSNONNULLELEMENTS :
                 case BSMAX :
                 case BSFRESH :
@@ -1712,14 +1698,6 @@ public class JmlParser extends EndPosParser {
                 case BSDURATION :
                 case BSISINITIALIZED :
                 case BSINVARIANTFOR :
-                case BSNOWARN:
-                case BSNOWARNOP:
-                case BSWARN:
-                case BSWARNOP:
-                case BSBIGINT_MATH:
-                case BSSAFEMATH:
-                case BSJAVAMATH:
-                    t = to(jmlF.at(p).JmlFunction(jt));
                     S.nextToken();
                     if (S.token() != Token.LPAREN) {
                         if (jt == BSMAX) {
@@ -1727,13 +1705,43 @@ public class JmlParser extends EndPosParser {
                         }
                         return syntaxError(p,null,"jml.args.required",jt.internedName());
                     } else {
+                        // FIXME - check no typeargs
+                        int pp = S.pos;
+                        List<JCExpression> args = arguments();
+                        return toP(jmlF.at(pp).JmlMethodInvocation(jt,args));
+                    }
+                    
+                case BSOLD :
+                case BSPRE :
+                case BSTYPEOF :
+                case BSELEMTYPE :
+                case BSNOWARN:
+                case BSNOWARNOP:
+                case BSWARN:
+                case BSWARNOP:
+                case BSBIGINT_MATH:
+                case BSSAFEMATH:
+                case BSJAVAMATH:
+                    S.nextToken();
+                    if (S.token() != Token.LPAREN) {
+                        if (jt == BSMAX) {
+                            return parseQuantifiedExpr(p,jt);
+                        }
+                        return syntaxError(p,null,"jml.args.required",jt.internedName());
+                    } else {
+                        // FIXME - check no typeargs
+                        int pp = S.pos;
+                        List<JCExpression> args = arguments();
+                        t = toP(jmlF.at(pp).JmlMethodInvocation(jt,args));
                         return primarySuffix(t,typeArgs);
                     }
                     
                 case BSNOTMODIFIED:
-                    t = to(jmlF.at(p).JmlFunction(jt));
                     S.nextToken();
-                    return primarySuffix(t,typeArgs);
+                    // FIXME - check no typeargs
+                    int pp = S.pos;
+                    List<JCExpression> args = arguments();
+                    return toP(jmlF.at(pp).JmlMethodInvocation(jt,args));
 
                 case BSNOTASSIGNED:
                 case BSONLYACCESSED:

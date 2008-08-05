@@ -10,6 +10,8 @@ import org.junit.*;
 
 import org.jmlspecs.openjml.JmlSpecs;
 
+import tests.JmlTestCase.FilteredDiagnosticCollector;
+
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
@@ -26,6 +28,7 @@ public abstract class TCBase extends JmlTestCase {
 
     protected void setUp() throws Exception {
         testspecpath = testspecpath1;
+        collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
         options.put("-specs",   testspecpath);
         options.put("-sourcepath",   testspecpath);

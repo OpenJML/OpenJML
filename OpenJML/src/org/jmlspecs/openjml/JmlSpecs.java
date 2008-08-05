@@ -2,7 +2,6 @@ package org.jmlspecs.openjml;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -223,24 +222,30 @@ public class JmlSpecs {
         String sy = System.getProperty(Utils.eclipseSpecsProjectLocation);
         // These are used in testing - sy should be the trunk directory of the JMLspecs project
         if (sy != null) {
-            Dir dd = make(sy+"/java6");
-            if (!dd.exists()) { 
-                Log.instance(context).error("jml.internal.specs.dir.not.exist",sy);
-            } else {
-                dirs.add(dd);
+            String versionString = System.getProperty("java.version");
+            int version = 6; // the current default
+            if (versionString.startsWith("1.6")) version = 6;
+            else if (versionString.startsWith("1.5")) version = 5;
+            else if (versionString.startsWith("1.4")) version = 4;
+            else if (versionString.startsWith("1.7")) version = 7;
+            else {
+                System.out.println("Unrecognized version: " + versionString);
+                version = 6; // default, if the version string is in an unexpected format
             }
-            dd = make(sy+"/java5");
-            if (!dd.exists()) { 
-                Log.instance(context).error("jml.internal.specs.dir.not.exist",sy);
-            } else {
-                dirs.add(dd);
+            
+            boolean found = false;
+            Dir dd;
+            for (int v = version; v >= 4; --v) {
+                dd = make(sy+"/java"+v);
+                if (dd.exists()) { 
+                    dirs.add(dd);
+                    found = true;
+                } else {
+                    // We found some directories - the others ought to exist
+                    if (found) Log.instance(context).error("jml.internal.specs.dir.not.exist",dd);
+                }
             }
-            dd = make(sy+"/java4");
-            if (!dd.exists()) { 
-                Log.instance(context).error("jml.internal.specs.dir.not.exist",sy);
-            } else {
-                dirs.add(dd);
-            }
+            if (!found) Log.instance(context).error("jml.internal.specs.dir.not.exist",sy);
             return true;
         } else {
             Log.instance(context).error("jml.internal.specs.dir.not.defined");
@@ -276,23 +281,24 @@ public class JmlSpecs {
             Options.instance(context).get("-verbose") != null;
 
         specsDirs = new LinkedList<Dir>();
-        Deque<String> todo = new LinkedList<String>();
+        List<String> todo = new LinkedList<String>();
         for (int i = 0; i<specsPathArray.length; i++) {
             String s = specsPathArray[i];
             if (s == null || s.length() == 0) continue;
-            todo.addLast(s);
+            todo.add(s);
         }
         String dir;
         boolean checkDirectories = !JmlOptionName.isOption(context,JmlOptionName.NOCHECKSPECSPATH);
         if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALSPECS)) {
-            todo.addLast("$SY");
+            todo.add("$SY");
         }
 
         boolean syIncluded = false;
         boolean spIncluded = false;
         boolean cpIncluded = false;
         boolean ecpIncluded = false;
-        while ((dir=todo.pollFirst()) != null) {
+        while (!todo.isEmpty()) {
+            dir=todo.remove(0);
             if (dir.equals("$SY")) {
                 if (syIncluded) {
                     // If we are processing the last entry and it is a duplicate, just
@@ -407,10 +413,10 @@ public class JmlSpecs {
      * @param dirs the directory path to process
      * @param todo the list of directories yet to be processed
      */
-    protected void pushback(String dirs, Deque<String> todo) {
+    protected void pushback(String dirs, List<String> todo) {
         String[] array = dirs.split(java.io.File.pathSeparator);
         for (int i=array.length-1; i>=0; --i) {
-            todo.addFirst(array[i]);
+            todo.add(0,array[i]);
         }
     }
     
@@ -736,7 +742,11 @@ public class JmlSpecs {
     
     public JmlMethodSpecs getDenestedSpecs(MethodSymbol m) {
         JmlMethodSpecs s = getSpecs(m);
-        return s == null ? null : s.deSugared;
+        if (s == null) return null;
+        if (s.deSugared == null) {
+            attr.deSugarMethodSpecs(s.decl,s);
+        }
+        return s.deSugared;
     }
     
     

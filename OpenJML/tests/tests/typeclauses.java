@@ -177,11 +177,10 @@ public class typeclauses extends TCBase {
                 "/A.java:2: cannot find symbol\nsymbol  : variable x\nlocation: class A",15);
     }
 
-    /** Tests initially may not be static */
+    /** Tests initially may be static */
     public void testInitially5() {
         helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ static initially b;\n}"
                 ,"/A.java:2: non-static variable b cannot be referenced from a static context",22
-                ,"/A.java:2: These modifiers are not allowed here: static ",12
                 );
     }
 

@@ -25,6 +25,7 @@ import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
+import org.jmlspecs.openjml.proverinterface.IProverResult.ICoreIds;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.jmlspecs.openjml.provers.YicesProver;
 
@@ -33,8 +34,6 @@ import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.comp.AttrContext;
-import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
@@ -63,7 +62,7 @@ public class JmlEsc extends JmlTreeScanner {
     boolean verbose;
     
     /** Just for debugging esc */
-    static boolean escdebug = true || Utils.jmldebug;
+    static boolean escdebug = Utils.jmldebug || true;
     
     /** true if counterexample information is desired */
     boolean showCounterexample;
@@ -77,6 +76,9 @@ public class JmlEsc extends JmlTreeScanner {
     /** The database of JML specifications for methods, classes, fields, ... */
     @NonNull JmlSpecs specs;
     
+    /** The names database */
+    @NonNull Name.Table names;
+    
     /** The factory for making AST nodes */
     @NonNull JmlTree.JmlFactory factory;
     
@@ -89,16 +91,17 @@ public class JmlEsc extends JmlTreeScanner {
     @NonNull final static public String arraysRoot = "$$arrays";
 
     /** The tool constructor, which initializes all the tools. */
-    public JmlEsc(Context context, Env<AttrContext> env) {
+    public JmlEsc(Context context) {
         this.context = context;
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
-        this.attr = (JmlAttr)JmlAttr.instance(context);
+        this.attr = JmlAttr.instance(context);
         this.log = Log.instance(context);
+        this.names = Name.Table.instance(context);
         this.factory = (JmlTree.JmlFactory)JmlTree.Maker.instance(context);
         this.verbose = JmlOptionName.isOption(context,"-verbose") ||
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
-            Utils.jmldebug || true;
+            Utils.jmldebug;
         this.showCounterexample = JmlOptionName.isOption(context,"-ce") || escdebug ; // FIXME
     }
 
@@ -145,7 +148,7 @@ public class JmlEsc extends JmlTreeScanner {
 
             // FIXME - turn off in quiet mode? 
             log.note("esc.checking.method",node.sym); 
-            if (verbose) System.out.println("CHECKING METHOD " + node.sym);
+            if (verbose) System.out.println("ESC: Checking method " + node.sym);
             if (escdebug) System.out.println(node.toString());
             BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
             if (escdebug) program.write();
@@ -179,9 +182,18 @@ public class JmlEsc extends JmlTreeScanner {
             if (st instanceof JmlStatementExpr) {
                 JmlStatementExpr as = (JmlStatementExpr)st;
                 if (as.token == JmlToken.ASSUME) {
-                    return factory.JmlBinary(JmlToken.IMPLIES,as.expression,rest);
+                    JCExpression e = factory.JmlBinary(JmlToken.IMPLIES,as.expression,rest);
+                    e.type = syms.booleanType;
+                    e.pos = as.expression.pos;
+                    return e;
                 } else if (as.token == JmlToken.ASSERT) {
-                    return factory.Binary(JCTree.AND,as.expression,rest);
+//                    JCExpression ee = factory.JmlBinary(JmlToken.IMPLIES,as.expression,rest);
+//                    ee.pos = as.expression.pos;
+//                    ee.type = syms.booleanType;
+                    JCExpression e = factory.Binary(JCTree.AND,as.expression,rest);
+                    e.type = syms.booleanType;
+                    e.pos = as.expression.pos;
+                    return e;
                 } else {
                     log.error("esc.internal.error","An unexpected statement type in a BasicBlock: " + as.token.internedName());
                 }
@@ -191,8 +203,12 @@ public class JmlEsc extends JmlTreeScanner {
             return rest;
         } else {
             JCExpression expr = factory.Literal(TypeTags.BOOLEAN,1);
+            expr.type = syms.booleanType;
             for (BasicBlock follower: block.succeeding()) {
-                expr = factory.Binary(JCTree.AND,expr,follower.id);
+                JCExpression e = factory.Binary(JCTree.AND,expr,follower.id);
+                e.pos = follower.id.pos;
+                e.type = syms.booleanType;
+                expr = e;
             }
             return expr;
         }
@@ -247,6 +263,7 @@ public class JmlEsc extends JmlTreeScanner {
                 BasicBlock bl = program.startBlock();
                 JCExpression e = blockExpr(bl);
                 e = factory.Unary(JCTree.NOT,e);
+                e.type = syms.booleanType;
                 p.assume(e);
                 IProverResult b = p.check();
                 if (b.result() == ProverResult.UNSAT) { // FIXME - control with verbosity
@@ -278,9 +295,12 @@ public class JmlEsc extends JmlTreeScanner {
                 p.assume(e);
             }
 
-            // send any other axioms, including definitions
+            // send any other axioms and definitions
             
             int n = 0;
+            for (JCExpression expr: program.background()) {
+                n = p.assume(expr,10);
+            }
             for (JCExpression expr: program.definitions()) {
                 n = p.assume(expr,10);
             }
@@ -288,7 +308,10 @@ public class JmlEsc extends JmlTreeScanner {
             p.push();
 
             if (trackedAssumes.size() != 0) {
-                JCExpression e = factory.Binary(JCTree.EQ, program.assumeCheckVar, factory.Literal(TypeTags.INT,0));
+                JCExpression e = factory.Literal(TypeTags.INT,0);
+                e.type = syms.intType;
+                e = factory.Binary(JCTree.EQ, program.assumeCheckVar, e);
+                e.type = syms.booleanType;
                 p.assume(e);
             }
 
@@ -306,10 +329,21 @@ public class JmlEsc extends JmlTreeScanner {
                         String label = m.group(4); // the label part 
                         int usepos = Integer.parseInt(m.group(2)); // the textual location of the assert statement
                         int declpos = Integer.parseInt(m.group(3)); // the textual location of associated information (or same as usepos if no associated information)
-                        if (escdebug) System.out.println("Assertion " + sname + " cannot be verified");
-                        log.warning(usepos,"esc.assertion.invalid",label,methodDecl.getName());
-                        if (declpos != usepos) log.warning(declpos,"esc.associated.decl");
-                        noinfo = false;
+                        
+                        Name v = names.fromString(var.getKey());
+                        BasicBlock bl = findContainingBlock(v,program);
+                        // A 'false' assertion is spurious if it happens in a block 
+                        // which is not executed (its block variable is 'true')
+                        // So we list the assertion if
+                        //      - we cannot find a block containing the assertion (just to be safe)
+                        //      - we find a block but find no value for the block variable (just to be safe)
+                        //      - the block variable is 'false' (not 'true')
+                        if (bl == null || !"true".equals(s.get(bl.id.name.toString())) ) {
+                            if (escdebug) System.out.println("Assertion " + sname + " cannot be verified");
+                            log.warning(usepos,"esc.assertion.invalid",label,methodDecl.getName());
+                            if (declpos != usepos) log.warning(declpos,"esc.associated.decl");
+                            noinfo = false;
+                        }
                     }
                 }
                 if (noinfo) {
@@ -336,7 +370,8 @@ public class JmlEsc extends JmlTreeScanner {
                 }
                 if (showCounterexample) {
                     System.out.println("Trace");
-                    BasicBlocker.Tracer.trace(context,methodDecl,s);
+                    //BasicBlocker.Tracer.trace(context,methodDecl,s);
+                    BasicBlocker.TracerBB.trace(context,program,s);
                     System.out.println("Counterexample:");
                     // Just some arbitrary number of spaces used to format lines
                     String spaces = "                                ";
@@ -350,7 +385,9 @@ public class JmlEsc extends JmlTreeScanner {
                 if (escdebug) System.out.println("Method satisfies its specifications (as far as I can tell)");
 
                 boolean useCoreIds = true;
-                Collection<Integer> cids = r.coreIds().coreIds();
+                ICoreIds cid = r.coreIds();
+                if (cid == null) System.out.println("Warning: Core ids unexpectedly not returned");
+                Collection<Integer> cids = cid == null ? null : cid.coreIds();
                 if (useCoreIds && cids != null) {
                     Integer[] ids = new Integer[cids.size()]; 
                     ids = cids.toArray(ids);
@@ -397,6 +434,7 @@ public class JmlEsc extends JmlTreeScanner {
                         String parts[] = nm.split("\\$");
                         int pos = Integer.parseInt(parts[1]);
                         JCExpression ex = factory.Binary(JCTree.EQ, program.assumeCheckVar, factory.Literal(TypeTags.INT,pos));
+                        ex.type = syms.booleanType;
                         p.assume(ex);
                         r = p.check();
                         if (!r.isSat()) {
@@ -441,5 +479,19 @@ public class JmlEsc extends JmlTreeScanner {
             log.warning(pos,"esc.infeasible.assumption",methodSignature);
             if (escdebug) System.out.println("Assumption (" + label + ") is infeasible");
         }
+    }
+    
+    public BasicBlock findContainingBlock(Name assertName, BasicProgram program) {
+        for (BasicBlock block: program.blocks) {
+            for (JCStatement st: block.statements) {
+                if ((st instanceof JmlStatementExpr) &&
+                        ((JmlStatementExpr)st).token == JmlToken.ASSERT) {
+                    JCExpression expr = ((JmlStatementExpr)st).expression;
+                    if ((expr instanceof JCIdent) &&
+                            ((JCIdent)expr).name == assertName) return block;
+                }
+            }
+        }
+        return null;
     }
 }

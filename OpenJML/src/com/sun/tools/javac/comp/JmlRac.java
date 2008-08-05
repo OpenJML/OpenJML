@@ -116,80 +116,75 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         tree.type = ctype;
         return tree;
     }
-    
-    @Override
-    public void visitApply(JCMethodInvocation tree) {
-        JCExpression m = tree.meth;
-        if (m instanceof JmlFunction) {
-            JmlToken t = ((JmlFunction)m).token;
-            JCExpression arg;
-            switch (t) {
-                case BSOLD:
-                case BSPRE:
-                    arg = translate(tree.args.get(0));
-                    int n = methodInfo.olds.size();
-                    String s = "_JML$$$old_" + n;
-                    Name nm = names.fromString(s);
-                    JCVariableDecl v = makeVarDef(arg.type,nm,methodInfo.owner,arg);
-                    methodInfo.olds.append(v);
-                    JCIdent r = make.Ident(nm);
-                    r.sym = v.sym;
-                    r.type = v.sym.type;
-                    result = r;
-                    break;
 
-                case BSTYPEOF:
-                    translateTypeOf(tree);
-                    break;
+    public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
+        JmlToken t = tree.token;
+        JCExpression arg;
+        switch (t) {
+            case BSOLD:
+            case BSPRE:
+                arg = translate(tree.args.get(0));
+                int n = methodInfo.olds.size();
+                String s = "_JML$$$old_" + n;
+                Name nm = names.fromString(s);
+                JCVariableDecl v = makeVarDef(arg.type,nm,methodInfo.owner,arg);
+                methodInfo.olds.append(v);
+                JCIdent r = make.Ident(nm);
+                r.sym = v.sym;
+                r.type = v.sym.type;
+                result = r;
+                break;
 
-                case BSNONNULLELEMENTS :
-                    translateNonnullelements(tree);
-                    break;
+            case BSTYPEOF:
+                translateTypeOf(tree);
+                break;
 
-                case BSTYPELC:
-                    translateTypelc(tree);
-                    break;
+            case BSNONNULLELEMENTS :
+                translateNonnullelements(tree);
+                break;
+
+            case BSTYPELC:
+                translateTypelc(tree);
+                break;
+            
+            case BSELEMTYPE:
+                translateElemtype(tree);
+                break;
                 
-                case BSELEMTYPE:
-                    translateElemtype(tree);
-                    break;
-                    
-                case BSMAX:
-                case BSNOTMODIFIED:
-                case BSNOTASSIGNED :
-                case BSONLYASSIGNED :
-                case BSONLYACCESSED :
-                case BSONLYCAPTURED :
-                case BSISINITIALIZED :
-                case BSFRESH:
-                case BSREACH:
-                case BSINVARIANTFOR :
-                case BSDURATION :
-                case BSWORKINGSPACE :
+            case BSMAX:
+            case BSNOTMODIFIED:
+            case BSNOTASSIGNED :
+            case BSONLYASSIGNED :
+            case BSONLYACCESSED :
+            case BSONLYCAPTURED :
+            case BSISINITIALIZED :
+            case BSFRESH:
+            case BSREACH:
+            case BSINVARIANTFOR :
+            case BSDURATION :
+            case BSWORKINGSPACE :
 
-                case BSSPACE:
-                case BSNOWARN:
-                case BSNOWARNOP:
-                case BSWARN:
-                case BSWARNOP:
-                case BSBIGINT_MATH:
-                case BSSAFEMATH:
-                case BSJAVAMATH:
-                case BSONLYCALLED:
-                    Log.instance(context).error(tree.pos, "jml.unimplemented.construct",t.internedName(),"JmlRac.visitApply");
-                    // FIXME - recovery possible?
-                    break;
-
-                default:
-                    Log.instance(context).error(tree.pos, "jml.unknown.construct",t.internedName(),"JmlRac.visitApply");
+            case BSSPACE:
+            case BSNOWARN:
+            case BSNOWARNOP:
+            case BSWARN:
+            case BSWARNOP:
+            case BSBIGINT_MATH:
+            case BSSAFEMATH:
+            case BSJAVAMATH:
+            case BSONLYCALLED:
+                Log.instance(context).error(tree.pos, "jml.unimplemented.construct",t.internedName(),"JmlRac.visitApply");
                 // FIXME - recovery possible?
-                    break;
-            }
-            return;
+                break;
+
+            default:
+                Log.instance(context).error(tree.pos, "jml.unknown.construct",t.internedName(),"JmlRac.visitApply");
+            // FIXME - recovery possible?
+                break;
         }
-        super.visitApply(tree);
+        return;
     }
-    
+
     public void translateNonnullelements(JCMethodInvocation tree) {
         JCExpression r = trueLit;
         for (int i = 0; i<tree.args.size(); i++) {
@@ -1330,10 +1325,6 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
                 log.error(that.pos(),"jml.unknown.operator",that.op.internedName(),"JmlRac");
                 break;
 }
-    }
-
-    public void visitJmlFunction(JmlFunction that) {
-        log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlFunction");
     }
 
     public void visitJmlGroupName(JmlGroupName that) {

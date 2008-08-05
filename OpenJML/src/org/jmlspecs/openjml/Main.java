@@ -43,6 +43,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /**
      * Construct a compiler instance.
      */
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_SAME_SIMPLE_NAME_AS_SUPERCLASS")
     public Main() {
         this("jml", new PrintWriter(System.err, true));
     }
@@ -218,6 +219,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * arguments and to do any tool-specific initialization
      * after the command-line arguments are processed.  
      */   // FIXME - we are hacking the availability of 'context' here in a non-thread-safe way
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     @Override
     public List<File> processArgs(String[] args) {
         Context context = this.context; // At least cache it here at the beginning

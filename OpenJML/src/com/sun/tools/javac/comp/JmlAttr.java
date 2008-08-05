@@ -26,6 +26,7 @@ import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.code.Flags;
@@ -43,22 +44,7 @@ import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCAssign;
-import com.sun.tools.javac.tree.JCTree.JCAssignOp;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCErroneous;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCReturn;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
-import com.sun.tools.javac.tree.JCTree.JCUnary;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -252,36 +238,70 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void attribClass(ClassSymbol c) throws CompletionFailure {
-        if (verbose && c != syms.predefClass) {
-            System.out.println("typechecking " + c + " " + (specs.get(c) != null) + " " + ((c.flags_field & UNATTRIBUTED)!=0));
-        }
-        if (specs.get(c) == null) {
-            ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(c);
-            if (specs.get(c) != null) {
+        //System.out.println("REQUESTING ATTRIBUTION " + c);
+        // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
+        JmlSpecs.TypeSpecs classSpecs = specs.get(c);
+        if (classSpecs == null) {
+            ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(env,c);
+            classSpecs = specs.get(c);
+            if (classSpecs == null) {
+                // loadSpecsForBinary should always result in a TypeSpecs for the
+                // class symbol, even if it is empty
+                log.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
+            } else if (classSpecs.decl == null) {
+                // Class is loaded: it is a binary class and has no specs
+                // We do not need to attribute it
                 c.flags_field &= ~UNATTRIBUTED;
-                //c.flags_field |= UNATTRIBUTED;
+            } else {
+                // If it is newly loaded and has specs
+                // we make sure it is unattributed, so that we attribute all
+                // the specs
+                c.flags_field |= UNATTRIBUTED;
+                // FIXME - check that we are not attributing more than once
             }
         }
         
+        // The previous operations might have attributed the current class
+        // if there was a cycle. So we test first whether the class is still
+        // UNATTRIBUTED.
+        if ((c.flags_field & UNATTRIBUTED) == 0) return;
+        // We let the super class turn it off to avoid recursion
+
+        if (verbose && c != syms.predefClass) {
+            System.out.println("typechecking " + c);
+        }
+        
+        // FIXME - this won't be correct if specs come from multiple files
+        JavaFileObject prev = log.useSource(classSpecs.file);
+        
+        // We are doing this with pureEnvironment since calls can be nested -
+        // we can enter a pure environment from either an impure or pure
+        // environment and we need to restore it properly.  Also, when in a
+        // pure environment we may need to attribute a class, not all of which
+        // is pure.
         boolean prevPureEnvironment = pureEnvironment;
-        pureEnvironment = false;
-        this.racOption = JmlOptionName.isOption(context,JmlOptionName.RAC);
-        super.attribClass(c);
-        Env<AttrContext> e = enter.getEnv(c);
-        
-        // Binary files with specs had entries put in the Env map so that the
-        // specs had environments against which to be attributed.  However, the
-        // presence of envs for non-.java files confuses later compiler phases,
-        // and we no longer need that mapping since all the specs are now
-        // attributed and entered into the JmlSpecs database.  Hence we remove
-        // the entry.
-        if (e != null) {  // SHould be non-null the first time, but subsequent calls will have e null and so we won't do duplicate checking
-            if (!JmlCompilationUnit.isJava(((JmlCompilationUnit)e.toplevel).mode)) {
-                attribClassBodySpecs(e,c,false,true);// Binary class - we still need to do all the body stuff
-                enter.typeEnvs.remove(c);
+        pureEnvironment = false;  
+        try {
+            this.racOption = JmlOptionName.isOption(context,JmlOptionName.RAC);
+            super.attribClass(c);
+            Env<AttrContext> e = enter.getEnv(c);
+
+            // Binary files with specs had entries put in the Env map so that the
+            // specs had environments against which to be attributed.  However, the
+            // presence of envs for non-.java files confuses later compiler phases,
+            // and we no longer need that mapping since all the specs are now
+            // attributed and entered into the JmlSpecs database.  Hence we remove
+            // the entry.
+            if (e != null) {  // SHould be non-null the first time, but subsequent calls will have e null and so we won't do duplicate checking
+                if (!JmlCompilationUnit.isJava(((JmlCompilationUnit)e.toplevel).mode)) {
+                    //attribClassBodySpecs(e,c,false,true);// Binary class - we still need to do all the body stuff
+                    enter.typeEnvs.remove(c); // FIXME - do we need this?
+                }
             }
+        } finally {
+            pureEnvironment = prevPureEnvironment;
+            log.useSource(prev);
         }
-        pureEnvironment = prevPureEnvironment;
         if (Utils.jmldebug) System.out.println("ATTRIBUTING-END " + c.fullname);
     }
     
@@ -290,18 +310,32 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) {
         boolean prevIsInJmlDeclaration = isInJmlDeclaration;
         isInJmlDeclaration = Utils.isJML(c.flags());
-        if (Utils.jmldebug) System.out.println("ATTRIBUTING-BODY " + c.fullname + " " + isInJmlDeclaration + " WAS " + prevIsInJmlDeclaration);
+        if (Utils.jmldebug) System.out.println("ATTRIBUTING-BODY " + c.fullname + " " + (isInJmlDeclaration?"inJML":"notInJML") + " WAS " + (prevIsInJmlDeclaration?"inJML":"notInJML"));
         boolean prevAttribSpecs = attribSpecs;  // Class definitions might be nested
-        attribSpecs = false; // Need to do this to avoid attributing specs twice, for the case where
-                        // a Java file is also the specification file
-        // Do the regular Java attributing.  This also attributes specs of
-        // regular Java methods.
-        super.attribClassBody(env,c);
-        attribSpecs = true; // Now do all the specs
-        attribClassBodySpecs(env,c,prevIsInJmlDeclaration,false);
-        attribSpecs = prevAttribSpecs;
-        isInJmlDeclaration = prevIsInJmlDeclaration;
-        if (Utils.jmldebug) System.out.println("ATTRIBUTING-MODS " + c.fullname + " " + isInJmlDeclaration);
+        JavaFileObject prev = log.useSource(((JmlCompilationUnit)env.toplevel).sourcefile);  // FIXME - no write for multiple source files
+        boolean oldRelax = relax;
+        try {
+            // We have a bit of confusion because JML specs are in multiple
+            // places.  The consolidated material is in the specifications
+            // structures obtained from JmlSpecs.  However, anything that was
+            // in the original Java source file may still be there (but that is
+            // only part of it).  So we arrange to NOT attribute the JML material
+            // that may be in the Java file; and we attribute all the specs
+            // later in attribClassBodySpecs.
+
+            // This field is looked at by all the visit... methods
+            attribSpecs = false;
+            relax = true;  // Turns off some bogus lack of overriding warnings
+            super.attribClassBody(env,c);
+            attribSpecs = true; // Now do all the specs
+            attribClassBodySpecs(env,c,prevIsInJmlDeclaration,false);
+        } finally {
+            relax = oldRelax;
+            attribSpecs = prevAttribSpecs;
+            isInJmlDeclaration = prevIsInJmlDeclaration;
+            log.useSource(prev);
+            if (Utils.jmldebug) System.out.println("ATTRIBUTING-MODS " + c.fullname + " " + isInJmlDeclaration);
+        }
         // Finally, check the class modifiers
         // FIXME - actually we need to get the modifiers from TypeSpecs
         //Env<AttrContext> e = enter.typeEnvs.get(c);
@@ -313,22 +347,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(c);
         JavaFileObject prev = log.currentSource();
         JmlToken prevClauseType = currentClauseType;
-        if (tspecs != null) {
+        if (tspecs != null && tspecs.decl != null) {
             Env<AttrContext> prevEnv = this.env;
             this.env = env;
-//            if (doJava) {  // FIXME - we are not completely checking specs for binary classes
-//                attribStats(tspecs.decl.defs,env);
-//            }
-            // Do all the class level declarations (ghost/model fields, methods, nested classes, invariants...)
-            for (JmlTree.JmlTypeClause t: tspecs.clauses) {
-                log.useSource(t.source);
-                currentClauseType = t.token;
-                t.accept(this);
+
+            // modifiers? annotations?
+            
+            // clauses and declarations
+            for (JmlTypeClause clause: tspecs.clauses) {
+                currentClauseType = clause.token;
+                clause.accept(this);
             }
+            currentClauseType = null;
+            
             // Do the specs for initialization blocks // FIXME - wouldn't this duplicate work done in tree-walking
             for (JCTree.JCBlock m: tspecs.blocks.keySet()) {
                 m.accept(this);
             }
+            
             // Do the JML initializer and static initializer specs
             currentClauseType = JmlToken.INITIALIZER;
             if (tspecs.initializerSpec != null) tspecs.initializerSpec.accept(this); // FIXME - need to set log
@@ -340,12 +376,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 isInJmlDeclaration = prevIsInJmlDeclaration;
                 checkClassMods(c.owner,tspecs.decl,tspecs.modifiers);
             }
+            
+            
             this.env = prevEnv;
         }
         currentClauseType = prevClauseType;
         log.useSource(prev);
     }
-
+    
     /** This is overridden to attribute the specs for the method, 
      * if there are any.  The specs are walked at the
      * time the block that is the method body is walked so that the scope 
@@ -361,14 +399,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
            // FIXME - if we are in a spec source file that is not Java, we may not have one of these - error
             super.visitBlock(tree);
             JmlMethodSpecs sp = JmlSpecs.instance(context).getSpecs(env.enclClass.sym,tree);
-            if (attribSpecs && sp != null) {
+            //if (attribSpecs && sp != null) {
+            if (sp != null) {
                 Env<AttrContext> localEnv =
                     env.dup(tree, env.info.dup(env.info.scope.dupUnshared()));
                 localEnv.info.scope.owner =
                     new MethodSymbol(tree.flags | BLOCK, names.empty, null,
                                      env.info.scope.owner);
                 if (isStatic(tree.flags)) localEnv.info.staticLevel++;
+//                boolean prev = attribSpecs;
+//                attribSpecs = true;
                 attribStat(sp,localEnv);
+//                attribSpecs = prev;
             }
         } else {
             // Method blocks
@@ -485,20 +527,30 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // Setting relax to true keeps super.visitMethodDef from complaining
         // that a method declaration in a spec file does not have a body
         // FIXME - what else is relaxed?  We should do the check under the right conditions?
+        if (m.sym == null) return; // Guards against specification method declarations that are not matched - FIXME
         boolean oldrelax = relax;
         relax = true;
+        JavaFileObject prevSource = null;
         try {
-            if (Utils.jmldebug) System.out.println("ATTRIBUTING METHOD " + env.enclClass.sym + " " + m.name);
-
+            if (Utils.jmldebug) System.out.println("ATTRIBUTING METHOD " + env.enclClass.sym + " " + m.sym);
+            JmlMethodDecl jmethod = (JmlMethodDecl)m;
+            prevSource = log.useSource(jmethod.source());
             attribAnnotationTypes(m.mods.annotations,env); // This is needed at least for the spec files of binary classes
             for (JCAnnotation a : m.mods.annotations) a.type = a.annotationType.type;  // It seems we need this, but it seems this should happen while walking the tree - FIXME
-            super.visitMethodDef(m);
-            JmlMethodDecl jmethod = (JmlMethodDecl)m;
-            if (m.body == null && jmethod.methodSpecs != null) { // FIXME - should we get the specs to check from JmlSpecs?
-                checkMethodSpecsDirectly(jmethod);
-            }
+            boolean prevRelax = relax;
+            // FIXME - need a better test than this
+            // Set relax to true if this method declaration is allowed to have no body
+            // because it is a model declaration or it is in a specification file.
             boolean isJavaFile = jmethod.sourcefile.getName().endsWith(".java");
             boolean isJmlDecl = Utils.isJML(m.mods);
+            relax = isJmlDecl || !isJavaFile;
+            super.visitMethodDef(m);
+            relax = prevRelax;
+            if (jmethod.methodSpecs != null) { // FIXME - should we get the specs to check from JmlSpecs?
+                if (m.body == null) checkMethodSpecsDirectly(jmethod);
+                // If the body is null, the specs are checked in visitBlock
+                //else deSugarMethodSpecs(jmethod,jmethod.methodSpecs);
+            }
             if (isJavaFile && !isJmlDecl) {
                 // Java methods in Java files must have a body (usually)
                 if (m.body == null) {
@@ -511,13 +563,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         !oldrelax)
                         log.error(m.pos(), "missing.meth.body.or.decl.abstract");
                 }
-            } else if (!isJmlDecl && !isJavaFile && !isInJmlDeclaration && (m.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
+            } else if (m.body != null && !isJmlDecl && !isJavaFile && !isInJmlDeclaration && (m.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
                 // Java methods not in Java files may not have bodies (generated constructors do)
-                log.error(m.pos(),"jml.no.body.allowed",m.sym);
+                //log.error(m.pos(),"jml.no.body.allowed",m.sym);
+                // A warning is appropriate, but this is a duplicate.
+                // A warning is already given in JmlMemberEnter.checkMethodMatch
             }
             checkMethodModifiers(jmethod);
         } finally {
             relax = oldrelax;
+            if (prevSource != null) log.useSource(prevSource);
         }
     }
     
@@ -656,6 +711,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
+    JCExpression makeBinary(int optag, JCExpression lhs, JCExpression rhs, int pos) {
+        if (optag == JCTree.OR && lhs == falseLit) return rhs;
+        if (optag == JCTree.AND && lhs == trueLit) return rhs;
+        JCBinary tree = make.at(pos).Binary(optag, lhs, rhs);
+        tree.operator = rs.resolveBinaryOperator(
+            null, optag, env, lhs.type, rhs.type);
+        tree.type = tree.operator.type.getReturnType();
+        return tree;
+    }
+
+    
     /** Does a custom desugaring of the method specs.  It adds in the type
      * restrictions (non_null) and purity, desugars lightweight and heavyweight
      * to behavior cases, adds in defaults, desugars signals_only and denests.
@@ -672,71 +738,92 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // the modifiers are added into the symbol
     // FIXME - check everything for position information
     public void deSugarMethodSpecs(JmlMethodDecl decl, JmlMethodSpecs specs) {
-        JCLiteral nulllit = make.Literal(TypeTags.BOT, null).setType(syms.objectType.constType(null));
-        boolean defaultNonnull = determineDefaultNullability();
-        ListBuffer<JmlMethodClause> clauses = new ListBuffer<JmlMethodClause>();
-        for (JCVariableDecl p : decl.params) {
-            boolean isNonnull = (findMod(p.mods,JmlToken.NONNULL) != null);
-            boolean isNullable = (findMod(p.mods,JmlToken.NULLABLE) != null);
+        //System.out.println("DESUGARING " + decl.sym.owner + " " + decl.sym);
+        if (specs == null || specs.decl == null) return;
+        Env<AttrContext> prevEnv = env;
+        env = enter.getEnv((ClassSymbol)decl.sym.owner);
+        JCMethodDecl prevEnclMethod = env == null ? null : env.enclMethod;
+        if (env != null) env.enclMethod = decl; // This is here to handle the situation when deSugarMethodSPecs
+                // is called from JmlSpecs to provide on demand desugaring.  In that case we are not within
+                // a tree hierarchy, so we have to set the enclosing method declaration directly.  If we were only
+                // calling deSugarMethodSpecs during AST attribution, then we would not need to set env or adjust
+                // env.enclMethod.
+        // FIXME if (specs.decl != decl) System.out.println("UNEXPECTED MISMATCH " + decl.sym + " " + specs.decl.sym);
+        JavaFileObject prevSource = log.useSource(specs.decl.sourcefile);
+        try {
+            JCLiteral nulllit = make.Literal(TypeTags.BOT, null).setType(syms.objectType.constType(null));
+            boolean defaultNonnull = determineDefaultNullability();
+            ListBuffer<JmlMethodClause> clauses = new ListBuffer<JmlMethodClause>();
+            for (JCVariableDecl p : decl.params) {
+                boolean isNonnull = (findMod(p.mods,JmlToken.NONNULL) != null);
+                boolean isNullable = (findMod(p.mods,JmlToken.NULLABLE) != null);
+                if (!isNonnull && !isNullable) isNonnull = defaultNonnull;
+                else if (isNullable) isNonnull = false;
+                if (isNonnull) {
+                    JCIdent id = make.Ident(p.name);
+                    id.sym = p.sym;
+                    id.type = p.type;
+                    JCExpression e = makeBinary(JCTree.NE,id,nulllit,p.pos);
+                    //e.type = syms.booleanType;
+                    //currentClauseType = JmlToken.REQUIRES;
+                    //currentClauseType = null;
+                    clauses.append(((JmlTree.Maker)make).JmlMethodClauseExpr(JmlToken.REQUIRES,e));
+                }
+            }
+            JCAnnotation nonnullAnnotation = findMod(decl.mods,JmlToken.NONNULL);
+            boolean isNonnull = (nonnullAnnotation != null);
+            boolean isNullable = (findMod(decl.mods,JmlToken.NULLABLE) != null);
+            JmlTree.Maker jmlF = (JmlTree.Maker)make;
             if (!isNonnull && !isNullable) isNonnull = defaultNonnull;
             else if (isNullable) isNonnull = false;
             if (isNonnull) {
-                JCIdent id = make.Ident(p.name);
-                id.sym = p.sym;
-                id.type = p.type;
-                JCExpression e = make.at(p.pos).Binary(JCTree.NE,id,nulllit);
-                currentClauseType = JmlToken.REQUIRES;
+                JCExpression id = jmlF.JmlSingleton(JmlToken.BSRESULT);
+                id.type = decl.restype.type;
+                JCExpression e = make.Binary(JCTree.NE,id,nulllit);
+                id.type = syms.booleanType;
+                if (nonnullAnnotation != null) e.pos = nonnullAnnotation.getPreferredPosition();
+                else e.pos = decl.getPreferredPosition();
+                id.pos = e.pos; // FIXME - start and end as well?
+                currentClauseType = JmlToken.ENSURES;
                 attribExpr(e,env);
                 currentClauseType = null;
-                clauses.append(((JmlTree.Maker)make).JmlMethodClauseExpr(JmlToken.REQUIRES,e));
+                clauses.append(jmlF.at(decl.pos).JmlMethodClauseExpr(JmlToken.ENSURES,e));
             }
+            if (desugaringPure = (findMod(decl.mods,JmlToken.PURE) != null)) {
+                JmlMethodClause c = jmlF.JmlMethodClauseAssignable(JmlToken.ASSIGNABLE,
+                        List.<JCTree>of(jmlF.JmlSingleton(JmlToken.BSNOTHING)));
+                //attribStat(c,env);
+                clauses.append(c);
+            }
+            if (specs == null) return;
+            JmlMethodSpecs newspecs;
+            if (specs != null && !specs.cases.isEmpty()) {
+                ListBuffer<JmlSpecificationCase> newcases = deNest(clauses,specs.cases,null,decl);
+                newspecs = jmlF.at(specs.pos).JmlMethodSpecs(newcases.toList());
+                if (!specs.impliesThatCases.isEmpty()) newspecs.impliesThatCases = deNest(clauses,specs.impliesThatCases,null,decl).toList();
+                if (!specs.forExampleCases.isEmpty()) newspecs.forExampleCases = deNest(clauses,specs.forExampleCases,null,decl).toList();
+            } else if (!clauses.isEmpty()) {
+                JCModifiers mods = jmlF.at(decl.pos).Modifiers(decl.mods.flags & Flags.AccessFlags);
+                JmlSpecificationCase c = jmlF.JmlSpecificationCase(mods,false,null,null,clauses.toList());
+                newspecs = jmlF.JmlMethodSpecs(List.<JmlSpecificationCase>of(c));
+            } else {
+                newspecs = specs;
+            }
+            newspecs.decl = specs.decl;
+            specs.deSugared = newspecs;
+        } finally {
+            if (env != null) env.enclMethod = prevEnclMethod;
+            env = prevEnv;
+            log.useSource(prevSource);
         }
-        JCAnnotation nonnullAnnotation = findMod(decl.mods,JmlToken.NONNULL);
-        boolean isNonnull = (nonnullAnnotation != null);
-        boolean isNullable = (findMod(decl.mods,JmlToken.NULLABLE) != null);
-        JmlTree.Maker jmlF = (JmlTree.Maker)make;
-        if (!isNonnull && !isNullable) isNonnull = defaultNonnull;
-        else if (isNullable) isNonnull = false;
-        if (isNonnull) {
-            JCExpression id = jmlF.JmlSingleton(JmlToken.BSRESULT);
-            JCExpression e = make.Binary(JCTree.NE,id,nulllit);
-            if (nonnullAnnotation != null) e.pos = nonnullAnnotation.getPreferredPosition();
-            else e.pos = decl.getPreferredPosition();
-            id.pos = e.pos; // FIXME - start and end as well?
-            currentClauseType = JmlToken.ENSURES;
-            attribExpr(e,env);
-            currentClauseType = null;
-            clauses.append(jmlF.at(decl.pos).JmlMethodClauseExpr(JmlToken.ENSURES,e));
-        }
-        if (desugaringPure = (findMod(decl.mods,JmlToken.PURE) != null)) {
-            JmlMethodClause c = jmlF.JmlMethodClauseAssignable(JmlToken.ASSIGNABLE,
-                    List.<JCTree>of(jmlF.JmlSingleton(JmlToken.BSNOTHING)));
-            attribStat(c,env);
-            clauses.append(c);
-        }
-        if (specs == null) return;
-        JmlMethodSpecs newspecs;
-        if (specs != null && !specs.cases.isEmpty()) {
-            ListBuffer<JmlSpecificationCase> newcases = deNest(clauses,specs.cases,null);
-            newspecs = jmlF.at(specs.pos).JmlMethodSpecs(newcases.toList());
-            if (!specs.impliesThatCases.isEmpty()) newspecs.impliesThatCases = deNest(clauses,specs.impliesThatCases,null).toList();
-            if (!specs.forExampleCases.isEmpty()) newspecs.forExampleCases = deNest(clauses,specs.forExampleCases,null).toList();
-        } else if (!clauses.isEmpty()) {
-            JCModifiers mods = jmlF.at(decl.pos).Modifiers(decl.mods.flags & Flags.AccessFlags);
-            JmlSpecificationCase c = jmlF.JmlSpecificationCase(mods,false,null,null,clauses.toList());
-            newspecs = jmlF.JmlMethodSpecs(List.<JmlSpecificationCase>of(c));
-        } else {
-            newspecs = specs;
-        }
-        newspecs.decl = specs.decl;
-        specs.deSugared = newspecs;
     }
+    
     
     boolean desugaringPure = false;
     
     // FIXME -could be optimized for situatinos where there is just one spec case and/or no clause groups
     // FIXME - this ignores anything after a clause group.  That is OK in strict JML.  DO we want it?  There is no warning.
-    public ListBuffer<JmlSpecificationCase> deNest(ListBuffer<JmlMethodClause> prefix, List<JmlSpecificationCase> cases, /*@ nullable */JmlSpecificationCase parent) {
+    public ListBuffer<JmlSpecificationCase> deNest(ListBuffer<JmlMethodClause> prefix, List<JmlSpecificationCase> cases, /*@ nullable */JmlSpecificationCase parent, JmlMethodDecl decl) {
         ListBuffer<JmlSpecificationCase> newlist = new ListBuffer<JmlSpecificationCase>();
         if (cases.isEmpty()) {
             newlist.append(((JmlTree.Maker)make).at(parent.pos).JmlSpecificationCase(parent.modifiers,parent.code,parent.token,parent.also,prefix.toList()));
@@ -752,7 +839,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         prefix.append(jmlF.at(c.pos).JmlMethodClauseExpr(JmlToken.ENSURES,falseLit));
                     }
                 }
-                newlist.appendList(deNestHelper(pr,c.clauses,parent==null?c:parent));
+                newlist.appendList(deNestHelper(pr,c.clauses,parent==null?c:parent,decl));
             }
         }
         return newlist;
@@ -764,10 +851,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return copy;
     }
     
-    public ListBuffer<JmlSpecificationCase> deNestHelper(ListBuffer<JmlMethodClause> prefix, List<JmlMethodClause> clauses, JmlSpecificationCase parent) {
+    public ListBuffer<JmlSpecificationCase> deNestHelper(ListBuffer<JmlMethodClause> prefix, List<JmlMethodClause> clauses, JmlSpecificationCase parent, JmlMethodDecl decl) {
         for (JmlMethodClause m: clauses) {
             if (m instanceof JmlMethodClauseGroup) {
-                return deNest(prefix,((JmlMethodClauseGroup)m).cases, parent);
+                return deNest(prefix,((JmlMethodClauseGroup)m).cases, parent,decl);
             }
             JmlToken t = m.token;
             if (t == JmlToken.ENSURES) {
@@ -793,7 +880,36 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     log.error(m.pos,"jml.multiple.signalsonly");
                 }
             } else if (desugaringPure && t == JmlToken.ASSIGNABLE) {
-                log.error(m.pos,"jml.misplaced.clause","Assignable","pure");
+                JmlMethodClauseAssignable asg = (JmlMethodClauseAssignable)m;
+                if (decl.sym.isConstructor()) {
+                    // A pure constructor allows assigning to class member fields
+                    // So if there is an assignable clause the elements of the clause
+                    // may only be members of the class
+                    for (JCTree tt: asg.list) {
+                        if (tt instanceof JmlSingleton) {
+                            if (((JmlSingleton)tt).token == JmlToken.BSNOTHING) {
+                                // OK
+                            } else if (tt instanceof JCIdent) {
+                                // Simple identifier - OK
+                            } else {
+                                // FIXME - also allow this.*  or super.* or super.<ident> ?
+                                log.error(m.pos,"jml.misplaced.clause","Assignable","pure");
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    for (JCTree tt: asg.list) {
+                        if (tt instanceof JmlStoreRefKeyword &&
+                            ((JmlStoreRefKeyword)tt).token == JmlToken.BSNOTHING) {
+                                // OK
+                        } else {
+                            // FIXME - also allow this.*  or super.* or super.<ident> ?
+                            log.error(m.pos,"jml.misplaced.clause","Assignable","pure");
+                            break;
+                        }
+                    }
+                }
             }
             prefix.append(m);
         }
@@ -810,16 +926,37 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return false;  // FIXME
     }
     
+    protected void adjustVarDef(JCVariableDecl tree, Env<AttrContext> localEnv) {
+        if (!forallOldEnv) return;
+        // Undo the super class
+        if ((tree.mods.flags & STATIC) != 0 ||
+                (env.enclClass.sym.flags() & INTERFACE) != 0)
+                localEnv.info.staticLevel--;
+        // FIXME - actually, any initializer in an interface needs adjustment - might be instance
+        
+        // Redo, just dependent on static
+        // FIXME - actually depends on whether the containing method is static
+        // FIXME - check whetehr all specs are properly checked for stastic/nonstatic use of fields and methods
+        // including material inherited from interfaces where the defaults are different
+        if ((localEnv.enclMethod.mods.flags & STATIC) != 0)
+                localEnv.info.staticLevel++;
+        
+    }
+    
     /** This is overridden in order to check the JML modifiers of the variable declaration */
     @Override
     public void visitVarDef(JCVariableDecl tree) {
+        attribAnnotationTypes(tree.mods.annotations,env);  // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
+        for (JCAnnotation a: tree.mods.annotations) a.type = a.annotationType.type;
         super.visitVarDef(tree);
         if (tree instanceof JmlVariableDecl) checkVarMods((JmlVariableDecl)tree);
         // Anonymous classes construct synthetic members (constructors at least)
         // which are not JML nodes.
+        FieldSpecs fspecs = specs.getSpecs(tree.sym);
+        if (fspecs != null) for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
     }
     
-    // MAINTENACNE ISSUE - copied from super class
+    // MAINTENANCE ISSUE - copied from super class
     @Override
     protected void checkInit(JCTree tree,   // DRC - changed from private to protected
             Env<AttrContext> env,
@@ -1006,8 +1143,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     public void checkTypeClauseMods(JCTree tree, JCModifiers mods,String where, JmlToken token) {
         long f = 0;
-        if (token == JmlToken.INITIALLY) f = Flags.AccessFlags;
-        else if (token != JmlToken.AXIOM) f = Flags.AccessFlags | Flags.STATIC;
+        if (token != JmlToken.AXIOM) f = Flags.AccessFlags | Flags.STATIC;
         long diff = Utils.hasOnly(mods,f);
         if (diff != 0) log.error(tree.pos,"jml.bad.mods",Flags.toString(diff));
         JCAnnotation a = Utils.findMod(mods,tokenToAnnotationName.get(INSTANCE));
@@ -1232,12 +1368,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
+    boolean forallOldEnv = false;
     
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
         JmlToken t = tree.token;
         for (JCTree.JCStatement stat: tree.stats) {
             if (stat instanceof JmlVariableDecl) {
+                forallOldEnv = true;
                 stat.accept(this);
+                forallOldEnv = false;
                 JCTree.JCExpression init = ((JmlVariableDecl)stat).init;
                 if (t == JmlToken.FORALL) {
                     if (init != null) log.error(init.pos(),"jml.forall.no.init");
@@ -1424,6 +1563,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (!attribSpecs && currentClauseType == null && env.enclMethod == null) return; 
         boolean prev = pureEnvironment;
         pureEnvironment = true;
+        //System.out.println("JMLATTR for specs cases of " + tree.decl.sym.owner + " " + tree.decl.sym);
         for (JmlSpecificationCase c: tree.cases) {
             c.accept(this);
         }
@@ -1439,349 +1579,349 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         oldNoLabelTokens = oldNoLabelTokens.clone();
         oldNoLabelTokens.addAll(EnumSet.of(ENSURES,SIGNALS,CONSTRAINT,DURATION,WORKING_SPACE));
     }
+
+    public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
+        JmlToken token = tree.token;
+        if (tree.typeargs != null && tree.typeargs.size() != 0) {
+            // At present the parser cannot produce anything with typeargs, but just in case
+            // one squeaks through by some means or another
+            log.error(tree.typeargs.head.pos(),"jml.no.typeargs.for.fcn",token.internedName());
+        }
+        
+        Env<AttrContext> localEnv = env.dup(tree, env.info.dup());
+            // FIXME: We create localEnv because that is what the super call does,
+            // but I'm not sure why it is needed - DRC
+        Type t = null;
+        int n;
+        switch (token) {
+            case BSOLD:
+            case BSPRE:
+                // The argument can be a JML spec-expression
+                // Expect one argument, result type is the same type
+                n = tree.args.size();
+                if (!(n == 1 || (token == JmlToken.BSOLD && n == 2))) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),
+                            token == BSPRE ? "1" : "1 or 2",n);
+                }
+                if (token == BSPRE) {
+                    // pre
+                    if (!preTokens.contains(currentClauseType)) {
+                        log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", currentClauseType.internedName());
+                        t = syms.errType;
+                    }
+                } else if (n == 1) {
+                    // old with no label
+                    if (!oldNoLabelTokens.contains(currentClauseType)) {
+                        log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", currentClauseType.internedName());
+                        t = syms.errType;
+                    }
+                } else {
+                    // old with label
+                    if (!preTokens.contains(currentClauseType)) {
+                        log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", currentClauseType.internedName());
+                        t = syms.errType;
+                    }
+                }
+                Name label = null;
+                if (n == 2) {
+                    JCTree tr = tree.args.get(1);
+                    if (tr.getTag() != JCTree.IDENT) {
+                        log.error(tr.pos(),"jml.bad.label");
+                    } else {
+                        label = ((JCTree.JCIdent)tr).getName();
+                    }
+                }
+                if (n == 0 || t == syms.errType) {
+                    t = syms.errType;
+                } else if (env.enclMethod == null) { // FIXME - what about types declared within methods
+                    // In an type clause
+                    attribExpr(tree.args.get(0), localEnv, Type.noType);
+                    attribTypes(tree.typeargs, localEnv);
+                    t = tree.args.get(0).type;
+                } else {
+                    // in a method clause
+                    Env<AttrContext> oldenv = enclosingMethodEnv;
+                    if (enclosingMethodEnv == null) {
+                        // Just a precaution
+                        Log.instance(context).error("jml.internal","Unsupported context for pre-state reference (anonymous class? initializer block?).  Please report the program.");
+                        oldenv = env;
+                        //
+                    }
+                    attribExpr(tree.args.get(0), oldenv, Type.noType);
+                    attribTypes(tree.typeargs, oldenv);
+                    t = tree.args.get(0).type;
+                }
+                result = check(tree, t, VAL, pkind, pt);
+                break;
+                
+            case BSMAX:
+                // Expect one argument of type JMLSetType, result type Lock
+                // FIXME - this should be one argument of type JMLObjectSet, result type is Object
+                // The argument expression may contain JML constructs
+                attribArgs(tree.args, localEnv);  // We can't send in Lock as the requested type because Types does not know what to do with it - FIXME: perhaps make a JmlTypes that can handle the new primitives
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                if (n != 1) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                }
+                if (n == 0) t = syms.errType;
+                else {
+                    if (!tree.args.get(0).type.equals(JMLSetType)) {  // FIXME - use isSameType or check?  what about errors?
+                        log.error(tree.args.get(0).pos(),"jml.max.expects.lockset",JMLSetType,tree.args.get(0).type.toString());
+                    }
+                    t = Lock;
+                }
+                result = check(tree, t, VAL, pkind, pt);
+                break;
+
+            case BSTYPEOF :
+                // Expect one argument of any type, result type \TYPE
+                // The argument expression may contain JML constructs
+                attribArgs(tree.args, localEnv);
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                if (n != 1) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                }
+                t = this.TYPE;
+                result = check(tree, t, VAL, pkind, pt);
+                break;
+
+            case BSNOTMODIFIED :
+                // Expect any number of arguments of any type, result type is boolean
+                // Can be used where an \old is used
+                // FIXME - JML wants this to be a store-ref list
+                if (!oldNoLabelTokens.contains(currentClauseType)) {
+                    log.error(tree.pos+1, "jml.misplaced.old", "\\not_modified token", currentClauseType.internedName());
+                    t = syms.errType;
+                }
+                attribArgs(tree.args, localEnv);
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                t = syms.booleanType;
+                result = check(tree, t, VAL, pkind, pt);
+                break;
+
+            case BSNOTASSIGNED :
+            case BSONLYASSIGNED :
+            case BSONLYACCESSED :
+            case BSONLYCAPTURED :
+                // Expect any number of arguments of store-refs; result type is boolean
+                attribArgs(tree.args, localEnv);
+                attribTypes(tree.typeargs, localEnv);
+                t = syms.booleanType;
+                result = check(tree, t, VAL, pkind, pt);
+                break;
+
+            case BSNONNULLELEMENTS :
+                // The argument can be a JML spec-expression
+                // Expect any number of arguments of any array type, result type is boolean
+                // TODO: Jml may require just one argument
+                attribArgs(tree.args, localEnv);
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                t = syms.booleanType;
+//                if (n != 1) {
+//                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+//                }
+                // FIXME - check that arguments are array type
+                result = check(tree, t, VAL, pkind, pt);
+                break;
+
+            case BSELEMTYPE :
+                // Expect one argument of any array type, result type is \TYPE
+                // The argument expression may contain JML constructs
+                attribArgs(tree.args, localEnv);
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                if (n != 1) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                }
+                if (n > 0) {
+                    //attribTree(tree.args.get(0), localEnv, pkind, syms.classType); // FIXME - THIS DOES not work either
+                    if (!(tree.args.get(0).type.tsym == syms.classType.tsym)) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
+                        log.error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
+                    }
+                }
+                // FIXME - need to check that argument is an array type - see comment above
+                t = this.TYPE;
+                result = check(tree, t, VAL, pkind, pt);
+                break;
+
+
+            case BSISINITIALIZED :
+                // The argument is a type that is a reference type; the result is boolean
+                // The argument may contain JML constructs
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                if (n != 1) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                }
+                if (n > 0) {
+                    JCExpression arg = tree.args.get(0);
+                    attribTree(arg, localEnv, TYP, Type.noType);
+                    if (arg.type.isPrimitive()) {
+                        log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
+                    }
+                }
+                
+                t = syms.booleanType;
+                result = check(tree, t, VAL, pkind, pt);
+                break;
+
+            case BSTYPELC :
+                // Takes one argument which is a type (not an expression); the result is of type \TYPE
+                // The argument may contain JML constructs
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                if (n != 1) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                }
+                if (n > 0) {
+                    attribTree(tree.args.get(0), localEnv, TYP, Type.noType);
+                }
+                t = this.TYPE;
+                result = check(tree, t, VAL, pkind, pt);
+                break;
+
+            case BSFRESH :
+                // The arguments can be JML spec-expressions
+                // The arguments can be any reference type; the result is boolean
+                attribArgs(tree.args, localEnv); 
+                attribTypes(tree.typeargs, localEnv);
+                for (int i=0; i<tree.args.size(); i++) {
+                    JCExpression arg = tree.args.get(i);
+                    if (arg.type.isPrimitive()) {
+                        log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
+                    }
+                }
+                result = check(tree, syms.booleanType, VAL, pkind, pt);
+                break;
+
+            case BSREACH :
+                // The argument can be a JML spec-expressions
+                // Expects one argument of reference type; result is of type JMLObjectSet
+                attribArgs(tree.args, localEnv);
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                if (n != 1) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                } else {
+                    JCExpression arg = tree.args.get(0);
+                    if (arg.type.isPrimitive()) {
+                        log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
+                    }
+                }
+                if (JmlOptionName.isOption(context, JmlOptionName.SHOW_NOT_IMPLEMENTED)) log.warning(tree.pos,"jml.unimplemented.construct",token.internedName(),"JmlAttr.visitApply");
+                result = tree.type = syms.errType;  // FIXME - result type not implemented
+                break;
+                
+            case BSINVARIANTFOR :
+                // The argument can be a JML spec-expression
+                // Expects one argument of reference type; result is of type boolean
+                attribArgs(tree.args, localEnv);
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                if (n != 1) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                } else {
+                    JCExpression arg = tree.args.get(0);
+                    if (arg.type.isPrimitive()) {
+                        log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
+                    }
+                }
+                result = check(tree, syms.booleanType, VAL, pkind, pt);
+                break;
+
+
+            case BSDURATION :
+            case BSWORKINGSPACE :
+                // The argument must be a Java expression
+                // Expects one argument that is an arbitrary expression; result is of type long
+                // Note: The JML reference manual puts constraints on the form of the expression; those seem to be unneeded
+                // Note also: the argument is not actually evaluated (but needs to be evaluatable), 
+                //   thus it may only contain Java constructs  (FIXME - there is no check on that)
+                attribArgs(tree.args, localEnv); 
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                if (n != 1) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                }
+                result = check(tree, syms.longType, VAL, pkind, pt);
+                break;
+
+            case BSSPACE :
+                // The argument may be a JML spec-expression
+                // Expects one argument of reference type; result is of type long
+                attribArgs(tree.args, localEnv);
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                if (n != 1) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                }
+                // FIXME - there is no check that the argument is of reference type - can't this apply to primitives as well?
+                result = check(tree, syms.longType, VAL, pkind, pt);
+                break;
+
+            case BSNOWARN:
+            case BSNOWARNOP:
+            case BSWARN:
+            case BSWARNOP:
+            case BSBIGINT_MATH:
+            case BSSAFEMATH:
+            case BSJAVAMATH:
+                // Expects one expression argument of any type; result is of the same type
+                // FIXME - does this allow any JML spec-expression?
+                // FIXME - the JMLb rules will require some numeric type promotions
+                attribArgs(tree.args, localEnv);
+                attribTypes(tree.typeargs, localEnv);
+                n = tree.args.size();
+                if (n != 1) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                }
+                if (n == 0) {
+                    t = syms.errType;
+                } else {
+                    t = tree.args.get(0).type;
+                }
+                result = check(tree, t, VAL, pkind, pt);
+                break;
+                 
+            case BSONLYCALLED: // FIXME - needs implementation
+            default:
+                log.error(tree.pos,"jml.unknown.construct",token.internedName(),"JmlAttr.visitApply");
+                result = tree.type = syms.errType;
+                break;
+                
+        }
+    }
     
-    /** This is overridden to handle all of the function-like JML 
-     * constructs (those that take an argument list).
+    /** This is overridden to check that if we are in a pure environment,
+     * the method is declared pure.
      */
     @Override
     public void visitApply(JCTree.JCMethodInvocation tree) {
-        if (tree.meth instanceof JmlFunction) {
-            JmlFunction f = (JmlFunction)tree.meth;
-            if (tree.typeargs != null && tree.typeargs.size() != 0) {
-                // At present the parser cannot produce anything with typeargs, but just in case
-                // one squeaks through by some means or another
-                log.error(tree.typeargs.head.pos(),"jml.no.typeargs.for.fcn",f.token.internedName());
-            }
-            
-            Env<AttrContext> localEnv = env.dup(tree, env.info.dup());
-                // FIXME: We create localEnv because that is what the super call does,
-                // but I'm not sure why it is needed - DRC
-            Type t = null;
-            int n;
-            switch (f.token) {
-                case BSOLD:
-                case BSPRE:
-                    // The argument can be a JML spec-expression
-                    // Expect one argument, result type is the same type
-                    n = tree.args.size();
-                    if (!(n == 1 || (f.token == JmlToken.BSOLD && n == 2))) {
-                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),
-                                f.token == BSPRE ? "1" : "1 or 2",n);
+        // Otherwise this is just a Java method application
+        super.visitApply(tree);
+        if (pureEnvironment && tree.meth.type != null && tree.meth.type.tag != TypeTags.ERROR) {
+            // Check that the method being called is pure
+            JCExpression m = tree.meth;
+            Symbol sym = (m instanceof JCIdent ? ((JCIdent)m).sym : m instanceof JCFieldAccess ? ((JCFieldAccess)m).sym : null);
+            if (sym instanceof MethodSymbol) {
+                MethodSymbol msym = (MethodSymbol)sym;
+                JmlMethodSpecs sp = JmlSpecs.instance(context).getSpecs(msym);
+                if (sp != null) {
+                    boolean isPure = isPure(msym) || isPure(msym.enclClass());
+                    if (!isPure && !JmlOptionName.isOption(context,JmlOptionName.NOPURITYCHECK)) {
+                        log.warning(tree.pos,"jml.non.pure.method",msym);
                     }
-                    if (f.token == BSPRE) {
-                        // pre
-                        if (!preTokens.contains(currentClauseType)) {
-                            log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", currentClauseType.internedName());
-                            t = syms.errType;
-                        }
-                    } else if (n == 1) {
-                        // old with no label
-                        if (!oldNoLabelTokens.contains(currentClauseType)) {
-                            log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", currentClauseType.internedName());
-                            t = syms.errType;
-                        }
-                    } else {
-                        // old with label
-                        if (!preTokens.contains(currentClauseType)) {
-                            log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", currentClauseType.internedName());
-                            t = syms.errType;
-                        }
-                    }
-                    Name label = null;
-                    if (n == 2) {
-                        JCTree tr = tree.args.get(1);
-                        if (tr.getTag() != JCTree.IDENT) {
-                            log.error(tr.pos(),"jml.bad.label");
-                        } else {
-                            label = ((JCTree.JCIdent)tr).getName();
-                        }
-                    }
-                    if (n == 0 || t == syms.errType) {
-                        t = syms.errType;
-                    } else if (env.enclMethod == null) { // FIXME - what about types declared within methods
-                        // In an type clause
-                        attribExpr(tree.args.get(0), localEnv, Type.noType);
-                        attribTypes(tree.typeargs, localEnv);
-                        t = tree.args.get(0).type;
-                    } else {
-                        // in a method clause
-                        Env<AttrContext> oldenv = enclosingMethodEnv;
-                        if (enclosingMethodEnv == null) {
-                            // Just a precaution
-                            Log.instance(context).error("jml.internal","Unsupported context for pre-state reference (anonymous class? initializer block?).  Please report the program.");
-                            oldenv = env;
-                            //
-                        }
-                        attribExpr(tree.args.get(0), oldenv, Type.noType);
-                        attribTypes(tree.typeargs, oldenv);
-                        t = tree.args.get(0).type;
-                    }
-                    result = check(tree, t, VAL, pkind, pt);
-                    break;
-                    
-                case BSMAX:
-                    // Expect one argument of type JMLSetType, result type Lock
-                    // FIXME - this should be one argument of type JMLObjectSet, result type is Object
-                    // The argument expression may contain JML constructs
-                    attribArgs(tree.args, localEnv);  // We can't send in Lock as the requested type because Types does not know what to do with it - FIXME: perhaps make a JmlTypes that can handle the new primitives
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    if (n != 1) {
-                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),1,n);
-                    }
-                    if (n == 0) t = syms.errType;
-                    else {
-                        if (!tree.args.get(0).type.equals(JMLSetType)) {  // FIXME - use isSameType or check?  what about errors?
-                            log.error(tree.args.get(0).pos(),"jml.max.expects.lockset",JMLSetType,tree.args.get(0).type.toString());
-                        }
-                        t = Lock;
-                    }
-                    result = check(tree, t, VAL, pkind, pt);
-                    break;
-
-                case BSTYPEOF :
-                    // Expect one argument of any type, result type \TYPE
-                    // The argument expression may contain JML constructs
-                    attribArgs(tree.args, localEnv);
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    if (n != 1) {
-                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),1,n);
-                    }
-                    t = this.TYPE;
-                    result = check(tree, t, VAL, pkind, pt);
-                    break;
-
-                case BSNOTMODIFIED :
-                    // Expect any number of arguments of any type, result type is boolean
-                    // Can be used where an \old is used
-                    // FIXME - JML wants this to be a store-ref list
-                    if (!oldNoLabelTokens.contains(currentClauseType)) {
-                        log.error(tree.pos+1, "jml.misplaced.old", "\\not_modified token", currentClauseType.internedName());
-                        t = syms.errType;
-                    }
-                    attribArgs(tree.args, localEnv);
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    t = syms.booleanType;
-                    result = check(tree, t, VAL, pkind, pt);
-                    break;
-
-                case BSNOTASSIGNED :
-                case BSONLYASSIGNED :
-                case BSONLYACCESSED :
-                case BSONLYCAPTURED :
-                    // Expect any number of arguments of store-refs; result type is boolean
-                    attribArgs(tree.args, localEnv);
-                    attribTypes(tree.typeargs, localEnv);
-                    t = syms.booleanType;
-                    result = check(tree, t, VAL, pkind, pt);
-                    break;
-
-                case BSNONNULLELEMENTS :
-                    // The argument can be a JML spec-expression
-                    // Expect any number of arguments of any array type, result type is boolean
-                    // TODO: Jml may require just one argument
-                    attribArgs(tree.args, localEnv);
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    t = syms.booleanType;
-//                    if (n != 1) {
-//                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),1,n);
-//                    }
-                    // FIXME - check that arguments are array type
-                    result = check(tree, t, VAL, pkind, pt);
-                    break;
-
-                case BSELEMTYPE :
-                    // Expect one argument of any array type, result type is \TYPE
-                    // The argument expression may contain JML constructs
-                    attribArgs(tree.args, localEnv);
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    if (n != 1) {
-                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),1,n);
-                    }
-                    if (n > 0) {
-                        //attribTree(tree.args.get(0), localEnv, pkind, syms.classType); // FIXME - THIS DOES not work either
-                        if (!(tree.args.get(0).type.tsym == syms.classType.tsym)) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
-                            log.error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
-                        }
-                    }
-                    // FIXME - need to check that argument is an array type - see comment above
-                    t = this.TYPE;
-                    result = check(tree, t, VAL, pkind, pt);
-                    break;
-
-
-                case BSISINITIALIZED :
-                    // The argument is a type that is a reference type; the result is boolean
-                    // The argument may contain JML constructs
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    if (n != 1) {
-                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),1,n);
-                    }
-                    if (n > 0) {
-                        JCExpression arg = tree.args.get(0);
-                        attribTree(arg, localEnv, TYP, Type.noType);
-                        if (arg.type.isPrimitive()) {
-                            log.error(arg.pos(),"jml.ref.arg.required",f.token.internedName());
-                        }
-                    }
-                    
-                    t = syms.booleanType;
-                    result = check(tree, t, VAL, pkind, pt);
-                    break;
-
-                case BSTYPELC :
-                    // Takes one argument which is a type (not an expression); the result is of type \TYPE
-                    // The argument may contain JML constructs
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    if (n != 1) {
-                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),1,n);
-                    }
-                    if (n > 0) {
-                        attribTree(tree.args.get(0), localEnv, TYP, Type.noType);
-                    }
-                    t = this.TYPE;
-                    result = check(tree, t, VAL, pkind, pt);
-                    break;
-
-                case BSFRESH :
-                    // The arguments can be JML spec-expressions
-                    // The arguments can be any reference type; the result is boolean
-                    attribArgs(tree.args, localEnv); 
-                    attribTypes(tree.typeargs, localEnv);
-                    for (int i=0; i<tree.args.size(); i++) {
-                        JCExpression arg = tree.args.get(i);
-                        if (arg.type.isPrimitive()) {
-                            log.error(arg.pos(),"jml.ref.arg.required",f.token.internedName());
-                        }
-                    }
-                    result = check(tree, syms.booleanType, VAL, pkind, pt);
-                    break;
-
-                case BSREACH :
-                    // The argument can be a JML spec-expressions
-                    // Expects one argument of reference type; result is of type JMLObjectSet
-                    attribArgs(tree.args, localEnv);
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    if (n != 1) {
-                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),1,n);
-                    } else {
-                        JCExpression arg = tree.args.get(0);
-                        if (arg.type.isPrimitive()) {
-                            log.error(arg.pos(),"jml.ref.arg.required",f.token.internedName());
-                        }
-                    }
-                    if (JmlOptionName.isOption(context, JmlOptionName.SHOW_NOT_IMPLEMENTED)) log.warning(tree.pos,"jml.unimplemented.construct",f.token.internedName(),"JmlAttr.visitApply");
-                    result = tree.type = syms.errType;  // FIXME - result type not implemented
-                    break;
-                    
-                case BSINVARIANTFOR :
-                    // The argument can be a JML spec-expression
-                    // Expects one argument of reference type; result is of type boolean
-                    attribArgs(tree.args, localEnv);
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    if (n != 1) {
-                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),1,n);
-                    } else {
-                        JCExpression arg = tree.args.get(0);
-                        if (arg.type.isPrimitive()) {
-                            log.error(arg.pos(),"jml.ref.arg.required",f.token.internedName());
-                        }
-                    }
-                    result = check(tree, syms.booleanType, VAL, pkind, pt);
-                    break;
-
-
-                case BSDURATION :
-                case BSWORKINGSPACE :
-                    // The argument must be a Java expression
-                    // Expects one argument that is an arbitrary expression; result is of type long
-                    // Note: The JML reference manual puts constraints on the form of the expression; those seem to be unneeded
-                    // Note also: the argument is not actually evaluated (but needs to be evaluatable), 
-                    //   thus it may only contain Java constructs  (FIXME - there is no check on that)
-                    attribArgs(tree.args, localEnv); 
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    if (n != 1) {
-                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),1,n);
-                    }
-                    result = check(tree, syms.longType, VAL, pkind, pt);
-                    break;
-
-                case BSSPACE :
-                    // The argument may be a JML spec-expression
-                    // Expects one argument of reference type; result is of type long
-                    attribArgs(tree.args, localEnv);
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    if (n != 1) {
-                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),1,n);
-                    }
-                    // FIXME - there is no check that the argument is of reference type - can't this apply to primitives as well?
-                    result = check(tree, syms.longType, VAL, pkind, pt);
-                    break;
-
-                case BSNOWARN:
-                case BSNOWARNOP:
-                case BSWARN:
-                case BSWARNOP:
-                case BSBIGINT_MATH:
-                case BSSAFEMATH:
-                case BSJAVAMATH:
-                    // Expects one expression argument of any type; result is of the same type
-                    // FIXME - does this allow any JML spec-expression?
-                    // FIXME - the JMLb rules will require some numeric type promotions
-                    attribArgs(tree.args, localEnv);
-                    attribTypes(tree.typeargs, localEnv);
-                    n = tree.args.size();
-                    if (n != 1) {
-                        log.error(tree.pos(),"jml.wrong.number.args",f.token.internedName(),1,n);
-                    }
-                    if (n == 0) {
-                        t = syms.errType;
-                    } else {
-                        t = tree.args.get(0).type;
-                    }
-                    result = check(tree, t, VAL, pkind, pt);
-                    break;
-                     
-                case BSONLYCALLED: // FIXME - needs implementation
-                default:
-                    log.error(tree.pos,"jml.unknown.construct",f.token.internedName(),"JmlAttr.visitApply");
-                    result = tree.type = syms.errType;
-                    break;
-                    
-            }
-        } else {
-            // Otherwise this is just a Java method application
-            super.visitApply(tree);
-            if (pureEnvironment && tree.meth.type != null && tree.meth.type.tag != TypeTags.ERROR) {
-                // Check that the method being called is pure
-                JCExpression m = tree.meth;
-                Symbol sym = (m instanceof JCIdent ? ((JCIdent)m).sym : m instanceof JCFieldAccess ? ((JCFieldAccess)m).sym : null);
-                if (sym instanceof MethodSymbol) {
-                    MethodSymbol msym = (MethodSymbol)sym;
-                    JmlMethodSpecs sp = JmlSpecs.instance(context).getSpecs(msym);
-                    if (sp != null) {
-                        boolean isPure = isPure(msym) || isPure(msym.enclClass());
-                        if (!isPure) {
-                            log.warning(tree.pos,"jml.non.pure.method");
-                        }
-                    }
-                } else {
-                    // We are expecting that the expression that is the method
-                    // receiver (tree.meth) is either a JCIdent or a JCFieldAccess
-                    // If it is something else we end up here.
-                    if (sym == null) log.error("jml.internal.notsobad","Unepxected parse tree node for a method call in JmlAttr.visitApply: " + m.getClass());
-                    else log.error("jml.internal.notsobad","Unexpected symbol type for method expression in JmlAttr.visitApply: ", sym.getClass());
                 }
+            } else {
+                // We are expecting that the expression that is the method
+                // receiver (tree.meth) is either a JCIdent or a JCFieldAccess
+                // If it is something else we end up here.
+                if (sym == null) log.error("jml.internal.notsobad","Unexpected parse tree node for a method call in JmlAttr.visitApply: " + m.getClass());
+                else log.error("jml.internal.notsobad","Unexpected symbol type for method expression in JmlAttr.visitApply: ", sym.getClass());
             }
         }
     }
@@ -1821,7 +1961,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     
-    /** This handles JML statements such as assert and assume and unreachable and decreases and loop_invariant and hence_by. */
+    /** This handles JML statements that give method-type specs for method body statements. */
     public void visitJmlStatementSpec(JmlTree.JmlStatementSpec tree) {
         boolean prevAllowJML = JmlResolve.setJML(context,true);
         JmlToken prevClauseType = currentClauseType;
@@ -1885,10 +2025,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     log.error(that.pos+1, "jml.misplaced.result", currentClauseType.internedName());
                 }
                 JCTree.JCMethodDecl md = env.enclMethod;
-                t = md.sym.getReturnType();
-                if (types.isSameType(t,syms.voidType)) {
+                JCTree res = md.getReturnType();
+                if (res == null || types.isSameType(res.type,syms.voidType)) {
                     log.error(that.pos+1, "jml.void.result");
                     t = syms.errType;
+                } else {
+                    t = res.type;
                 }
                 break;
                 
@@ -1921,11 +2063,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = check(that, t, VAL, pkind, pt);
     }
     
-    public void visitJmlFunction(JmlFunction that) {
-        // Actually, I don't think this gets called.  It would get called through
-        // visitApply.
-        result = that.type = Type.noType;
-    }
+//    public void visitJmlFunction(JmlFunction that) {
+//        // Actually, I don't think this gets called.  It would get called through
+//        // visitApply.
+//        result = that.type = Type.noType;
+//    }
     
     public void visitJmlRefines(JmlRefines that) {
         // nothing to do
@@ -2343,12 +2485,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return s;
     }
 
-
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
         attribLoopSpecs(that.loopSpecs,env);
         super.visitDoLoop(that);
     }
-
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop tree) {
         // MAINTENANCE ISSUE: code duplicated mostly from the superclass
@@ -2402,35 +2542,31 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = null;
     }
 
-
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         attribLoopSpecs(that.loopSpecs,env);
         super.visitWhileLoop(that);
     }
 
-
     public void visitJmlStatementLoop(JmlStatementLoop that) {
         attribExpr(that.expression,env);
     }
 
-
     public void visitJmlClassDecl(JmlClassDecl that) {
         visitClassDef(that);
+        // the work of attributing the specs is done in JmlAttr.attribClass
+        // through attribClassBodySpecs - FIXME - not right
     }
-
 
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
         visitTopLevel(that);
     }
 
-
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         visitMethodDef(that);
-        
     }
-
 
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);
     }
+
 }

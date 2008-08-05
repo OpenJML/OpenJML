@@ -1,13 +1,11 @@
 package com.sun.tools.javac.comp;
 
-import static com.sun.tools.javac.code.Flags.DEPRECATED;
 import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.Flags.HASINIT;
 import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.Kinds.PCK;
 import static com.sun.tools.javac.code.Kinds.TYP;
 
-import java.util.Deque;
 import java.util.HashSet;
 
 import javax.tools.JavaFileObject;
@@ -17,16 +15,7 @@ import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
@@ -43,6 +32,7 @@ import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ClassType;
+import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -56,10 +46,44 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.FatalError;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Position;
 
+/**
+ * This class extends MemberEnter to add some JML processing to the process of
+ * entering the members of a class into the class definition.  The Enter 
+ * process has already happened, creating a ClassSymbol and an Env for the class.
+ * Now the contents of the class have to be filled in.
+ * <P>
+ * MemberEnter does the following when it 'completes' a class:
+ * <UL>
+ * <LI>makes sure imports have been read into the class environment
+ * <LI>marks the class as not yet attributed
+ * <LI>completes any enclosing classes
+ * <LI>attributes any declared super types
+ * <LI>attributes the annotation types
+ * <LI>sets the annotations for later processing
+ * <LI>attributes any type variables the class has
+ * <LI>puts the class on the 'halfcompleted' list for finishing
+ * </UL>
+ * The finishing process, for each method and field of the class, defines a 
+ * symbol, puts it into the AST, puts the symbol in the class's scope(Env).
+ * Field Declarations: type is attributed, symbol defined, annotations put on 
+ * annotateLater list.  Method Declarations: creates method symbol and type; in 
+ * the process attributes type variables, result, parameter, and exception types.
+ * Annotations are put on the annotateLater list.
+ * <P>
+ * JmlMemberEnter adds to the above.  When a class is completed, it enters any
+ * ghost variables and model methods that were declared in the specifications;
+ * it also parses up the specifications and fills in the TypeSpecs, MethodSpecs
+ * and FieldSpecs corresponding to the various declarations.
+ * <P>
+ * Note that when specs are read for a binary class, we also need to do all the
+ * matching up of members to Java elements and then create all of the same 
+ * specification infrastructure.
+ */
 public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
 
     protected Context context;
@@ -101,7 +125,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             modeOfFileBeingChecked = prevMode;
             return; 
         }
-        if (Utils.jmldebug) System.out.println("FINISHING CLASS " + tree.sym.fullname);
+        if (Utils.jmldebug) System.out.println("    MEMBER ENTER FINISHING CLASS " + tree.sym.fullname);
         
         // First we do everything that Java does.  However, note that we ignore
         // ghost/model declarations in the AST (although we could implement
@@ -123,9 +147,10 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         // into the class's scope.
 
         JavaFileObject prevSource = null;
+        boolean prevAllowJML = resolve.allowJML;
         try {
             JmlClassDecl jtree = (JmlClassDecl)tree;
-            JmlClassDecl specsDecl = jtree.specsDecl;  // FIXME - where was this set - is there just one?
+            JmlClassDecl specsDecl = jtree.specsDecl;  // This match was made in JmlEnter; but only one (at most) match is kept - needs to be a sequence FIXME
             if (specsDecl == null) {
                 if (Utils.jmldebug) System.out.println("FINISHING CLASS - NO SPECS " + tree.sym.fullname);
                 return;
@@ -146,6 +171,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             JmlMethodSpecs savedMethodSpecs = null;
             JmlSpecs.FieldSpecs mostRecentFieldSpecs = null;
             JmlVariableDecl mostRecentVarDecl = null;
+            ListBuffer<JCTree> newdefs = ListBuffer.lb();
             for (JCTree t: specsDecl.defs) {
                 if (!(t instanceof JmlTypeClauseIn || t instanceof JmlTypeClauseMaps)) {
                     mostRecentFieldSpecs = null;
@@ -173,6 +199,8 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                         Log.instance(context).error(vardecl.pos(),"jml.no.var.match",vardecl.name);
                     } else {
                         checkFieldMatch(match,vardecl);
+                        vardecl.sym = match.sym;
+                        newdefs.append(t);
                     }
                 } else if (t instanceof JmlMethodDecl) {
                     JmlMethodDecl match = matchMethod((JmlMethodDecl)t,jtree,env);
@@ -189,6 +217,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                         match.methodSpecs = savedMethodSpecs;
                         JmlSpecs.instance(context).putSpecs(match.sym, match.methodSpecs);
                         savedMethodSpecs = null;
+                        newdefs.append(t);
                     }
                 } else if (t instanceof JmlMethodSpecs) {
                     savedMethodSpecs = (JmlMethodSpecs)t;
@@ -225,11 +254,11 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                         JCTree tr = cl.decl;
                         // We have already entered any model classes
                         if (tr instanceof JmlVariableDecl) {
-                            if (Utils.jmldebug) System.out.println("JML VAR ENTER FOR " + ((JmlVariableDecl)tr).name);
+                            if (Utils.jmldebug) System.out.println("JML VAR ENTER FOR " + jtree.name + " " + ((JmlVariableDecl)tr).name);
                             memberEnter(tr,env);
                             JmlSpecs.instance(context).putSpecs(((JmlVariableDecl)tr).sym,mostRecentFieldSpecs=new JmlSpecs.FieldSpecs(((JmlVariableDecl)tr).mods));
                         } else if (tr instanceof JmlMethodDecl) {
-                            if (Utils.jmldebug) System.out.println("JML METH ENTER FOR " + ((JmlMethodDecl)tr).name);
+                            if (Utils.jmldebug) System.out.println("JML METH ENTER FOR " + jtree.name + " " + ((JmlMethodDecl)tr).name);
                             memberEnter(tr,env);
                             JmlMethodDecl match = (JmlMethodDecl)tr;
                             if (savedMethodSpecs == null) savedMethodSpecs = new JmlMethodSpecs();
@@ -238,11 +267,13 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                             JmlSpecs.instance(context).putSpecs(match.sym, match.methodSpecs);
                             savedMethodSpecs = null;
                         }
+                        newdefs.append(t);
                     }
                     // All JML declarations, invariants, etc. are put in tsp.clauses
                     tsp.clauses.append((JmlTypeClause)t);
                 } else if (t instanceof JmlClassDecl) {
                     // skip this - classes were already handled in Enter/JmlEnter
+                    newdefs.append(t);
                 } else if (t instanceof JCTree.JCBlock){
                     if (savedMethodSpecs != null) JmlSpecs.instance(context).putSpecs((ClassSymbol)specsDecl.sym, (JCTree.JCBlock)t, savedMethodSpecs);
                     savedMethodSpecs = null;
@@ -250,14 +281,17 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                         // Initializer blocks are not allowed in specs (but are in model classes)
                         log.error(t.pos(),"jml.initializer.block.allowed");
                     }
+                    newdefs.append(t);
                 } else {
                     System.out.println("  FOUND & NOT SUPPORTED " + t.getClass());  // FIXME
+                    newdefs.append(t);
                 }
                 if (savedMethodSpecs != null && !(t instanceof JmlMethodSpecs)) {
                     Log.instance(context).error(savedMethodSpecs.pos(),"jml.misplaced.method.specs",specsDecl.name);
                     savedMethodSpecs = null;
                 }
             }
+            specsDecl.defs = newdefs.toList();
             if (savedMethodSpecs != null) {
                 Log.instance(context).error(savedMethodSpecs.pos(),"jml.misplaced.method.specs",specsDecl.name);
                 savedMethodSpecs = null;
@@ -266,7 +300,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             // FIXME - unify this method with the near duplicate below
         } finally {
             addRacMethods(tree.sym,env);
-            resolve.allowJML = false;
+            resolve.allowJML = prevAllowJML;
             Log.instance(context).useSource(prevSource);
             if (Utils.jmldebug) {
                 System.out.println("FINISHING CLASS - COMPLETE " + tree.sym.fullname);
@@ -285,6 +319,9 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         // and/or entered.
 
         JavaFileObject prevSource = null;
+        Env<AttrContext> prevEnv = this.env;
+        this.env = env;
+        boolean prevAllowJML = resolve.allowJML;
         try {
             if (Utils.jmldebug) System.out.println("FINISHING SPEC CLASS - JML PHASE " + specsDecl.sym.fullname);
             JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(specsDecl.sym);
@@ -305,6 +342,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             JmlMethodSpecs savedMethodSpecs = null;
             JmlSpecs.FieldSpecs mostRecentFieldSpecs = null;
             JmlVariableDecl mostRecentVarDecl = null;
+            ListBuffer<JCTree> newdefs = ListBuffer.lb();
             for (JCTree t: specsDecl.defs) {
                 if (t instanceof JmlVariableDecl) {
                     // make the match, check it, link it
@@ -323,7 +361,9 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                     } else {
                         JmlSpecs.instance(context).putSpecs(match,mostRecentFieldSpecs=new JmlSpecs.FieldSpecs(vardecl.mods));
                         checkFieldMatch(match,vardecl);
+                        vardecl.sym = match;
                         mostRecentVarDecl = vardecl;
+                        newdefs.append(t);
                     }
                 } else if (t instanceof JmlMethodDecl) {
                     mostRecentFieldSpecs = null;
@@ -341,6 +381,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                             JmlSpecs.instance(context).putSpecs(match, savedMethodSpecs);
                         }
                         savedMethodSpecs = null;
+                        newdefs.append(t);
                     }
                 } else if (t instanceof JmlMethodSpecs) {
                     mostRecentFieldSpecs = null;
@@ -372,6 +413,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                         }
                     }
                     savedMethodSpecs = null;
+                    newdefs.append(t);
                 } else if (t instanceof JmlTypeClause) {
                     mostRecentFieldSpecs = null;
                     // These are JML declarations
@@ -393,6 +435,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                             JmlSpecs.instance(context).putSpecs(match.sym, match.methodSpecs);
                             savedMethodSpecs = null;
                         }
+                        newdefs.append(t);
                     }
                     {
                         tsp.clauses.append((JmlTypeClause)t);
@@ -400,21 +443,25 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                 } else if (t instanceof JmlClassDecl) {
                     mostRecentFieldSpecs = null;
                     // skip this - classes were already handled in Enter/JmlEnter
+                    newdefs.append(t);
                 } else if (t instanceof JCTree.JCBlock){
                     mostRecentFieldSpecs = null;
                     if (savedMethodSpecs != null) JmlSpecs.instance(context).putSpecs((ClassSymbol)specsDecl.sym, (JCTree.JCBlock)t, savedMethodSpecs);
                     savedMethodSpecs = null;
                     // Initializer blocks are not allowed in specs (but are in model classes)
                     log.error(t.pos(),"jml.initializer.block.allowed");
+                    newdefs.append(t);
                 } else {
                     mostRecentFieldSpecs = null;
                     System.out.println("  FOUND & NOT SUPPORTED " + t.getClass());  // FIXME
+                    newdefs.append(t);
                 }
                 if (savedMethodSpecs != null && !(t instanceof JmlMethodSpecs) && !(t instanceof JCTree.JCBlock)) {
                     Log.instance(context).error(savedMethodSpecs.pos(),"jml.misplaced.method.specs",specsDecl.name);
                     savedMethodSpecs = null;
                 }
             }
+            specsDecl.defs = newdefs.toList();
             if (savedMethodSpecs != null) {
                 Log.instance(context).error(savedMethodSpecs.pos(),"jml.misplaced.method.specs",specsDecl.name);
                 savedMethodSpecs = null;
@@ -424,12 +471,13 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             // FIXME - unify this method with the near duplicate above
         } finally {
             addRacMethods(specsDecl.sym,env);
-            resolve.allowJML = false;
+            resolve.allowJML = prevAllowJML;
             Log.instance(context).useSource(prevSource);
             if (Utils.jmldebug) {
                 System.out.println("FINISHING SPEC CLASS - COMPLETE " + specsDecl.sym.fullname);
                 System.out.println("   SCOPE IS " + specsDecl.sym.members());
             }
+            this.env = prevEnv;
         }
     }
     
@@ -507,7 +555,6 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         }
         {
             // check that types are the same
-            //Attr.instance(context).attribType(specField.vartype, javaField.sym.enclClass());
             Attr.instance(context).attribType(specField.vartype, javaField.sym.enclClass());
             if (!Types.instance(context).isSameType(javaField.vartype.type,specField.vartype.type)) {
                 Log.instance(context).error(specField.vartype.pos(),"jml.mismatched.field.types",specField.name,javaField.sym.enclClass().getQualifiedName()+"."+javaField.name,specField.vartype.type,javaField.vartype.type);
@@ -616,14 +663,23 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         //attribAnnotations(javaClass,method.mods); // FIXME
 
         Attr.instance(context).attribTypeVariables(specMethod.typarams, env);
+        ListBuffer<Type> tatypes = ListBuffer.<Type>lb();  // FIXME - use TreeInfo method
+        for (JCTypeParameter tp: specMethod.typarams) {
+            tatypes.append(tp.type);
+        }
         //Attr.instance(context).attribBounds(specMethod.typarams); //, Enter.instance(context).getEnv(javaClassDecl.sym));
         int n = specMethod.getParameters().size();
+        ListBuffer<Type> ptypes = ListBuffer.<Type>lb();
         for (int i=0; i<n; i++) {
             Attr.instance(context).attribType(specMethod.getParameters().get(i).vartype, Enter.instance(context).getEnv(javaClassDecl.sym));
+            ptypes.append(specMethod.getParameters().get(i).vartype.type);
         }
         JmlMethodDecl match = null;
         try {
             if (Utils.jmldebug) System.out.println("  CLASS " + javaClassDecl.name + " SPECS HAVE METHOD " + specMethod.name);
+            
+            
+            
             loop: for (JCTree t : javaClassDecl.defs) {
                 // FIXME - allow this to match inherited methods also?
                 if (t instanceof JmlMethodDecl) {
@@ -638,7 +694,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                     match = javaMethod;
                 }
             }
-            //if (match == null && ...
+            
                 // Check for a match against Object methods
             if (match == null) {
                 // Make a string of the signatures of the Java methods that we are comparing against
@@ -669,76 +725,141 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
     }
 
     public MethodSymbol matchMethod(JmlMethodDecl specMethod, ClassSymbol javaClassSymbol) {
-        //attribAnnotations(javaClass,method.mods); // FIXME
         // FIXME - set env properly for the following call?  Is it really attribBOunds?
 
+        Env<AttrContext> localenv = Enter.instance(context).getEnv(javaClassSymbol);
+        //Env<AttrContext> localenv = methodEnv(specMethod, env);
         
-        Scope enclScope = enter.enterScope(env);
-        MethodSymbol m = new MethodSymbol(0, specMethod.name, null, javaClassSymbol);
-        m.flags_field = specMethod.mods.flags;
-        specMethod.sym = m;
-        Env<AttrContext> localEnv = methodEnv(specMethod, env);
-        Type t = specMethod.type = signature(specMethod.typarams, specMethod.params,
-                specMethod.restype, specMethod.thrown,
-                localEnv);
+        //Scope enclScope = enter.enterScope(env);
+//        MethodSymbol m = new MethodSymbol(0, specMethod.name, null, javaClassSymbol);
+//        m.flags_field = specMethod.mods.flags;
+//        specMethod.sym = m;
+//        Env<AttrContext> localEnv = methodEnv(specMethod, env);
         
+        Env<AttrContext> prevEnv = env;
+        env = localenv;
         
-        //Attr.instance(context).attribTypeVariables(specMethod.typarams, env);
-        //Attr.instance(context).attribBounds(specMethod.typarams); //, Enter.instance(context).getEnv(javaClassDecl.sym));
+        Attr attr = Attr.instance(context);
+        
+        // Enter and attribute type parameters.
+        {   // From Enter.visitTypeParameter
+            for (JCTypeParameter tree: specMethod.typarams) {
+                TypeVar a = (tree.type != null)
+                ? (TypeVar)tree.type
+                        : new TypeVar(tree.name, env.info.scope.owner, syms.botType);
+                tree.type = a;
+                //if (Check.instance(context).checkUnique(tree.pos(), a.tsym, localenv.info.scope)) {
+                    env.info.scope.enter(a.tsym);
+                //}
+            }
+        }
+        attr.attribTypeVariables(specMethod.typarams, localenv);
+
+        ListBuffer<Type> tatypes = ListBuffer.<Type>lb();
+        for (JCTypeParameter tp: specMethod.typarams) {
+            tatypes.append(tp.type);
+        }
+        
+        // attribute value parameters.
         int n = specMethod.getParameters().size();
+        ListBuffer<Type> ptypes = ListBuffer.<Type>lb();
+        for (List<JCVariableDecl> l = specMethod.params; l.nonEmpty(); l = l.tail) {
+            attr.attribType(l.head.vartype,javaClassSymbol);
+            ptypes.append(l.head.vartype.type);
+        }
+
+        // Attribute result type, if one is given.
+        if (specMethod.restype != null) attr.attribType(specMethod.restype, env);
+
+        // Attribute thrown exceptions.
+        ListBuffer<Type> thrownbuf = new ListBuffer<Type>();
+        for (List<JCExpression> l = specMethod.thrown; l.nonEmpty(); l = l.tail) {
+            Type exc = attr.attribType(l.head, env);
+//            if (exc.tag != TYPEVAR)
+// FIXME               exc = chk.checkClassType(l.head.pos(), exc);
+            thrownbuf.append(exc);
+        }
+        
+//        int n = specMethod.getParameters().size();
 //        for (int i=0; i<n; i++) {
 //            // FIXME - should the following use getEnv, getClassEnv? should it use the env of the javaClassSymbol or the spec decl?
-//            Attr.instance(context).attribType(specMethod.getParameters().get(i).vartype, Enter.instance(context).getEnv(javaClassSymbol));
+//            Attr.instance(context).attribType(specMethod.getParameters().get(i).vartype, localenv);
 //        }
         boolean hasTypeParameters = specMethod.getTypeParameters().size() != 0;
         MethodSymbol match = null;
         try {
-            if (Utils.jmldebug) System.out.println("  CLASS " + javaClassSymbol.name + " SPECS HAVE METHOD " + specMethod.name);
-            Entry e = javaClassSymbol.members().lookup(specMethod.name);
-            loop: while (true) {
-                //if (e.sym != null && e.sym.kind != Kinds.MTH && e.sym.owner == javaClassSymbol) e = e.next();
-                //if (!(e.sym != null && e.sym.owner == javaClassSymbol)) break;
-                // Allow to match inherited methods
-                if (e.sym != null && e.sym.kind != Kinds.MTH) e = e.next();
-                if (e.sym == null) break;
-                MethodSymbol javaMethod = (Symbol.MethodSymbol)e.sym;
-                if (javaMethod.getParameters().size() != specMethod.getParameters().size()) { e = e.next(); continue; }
-                if (javaMethod.getTypeParameters().size() != specMethod.getTypeParameters().size()) { e = e.next(); continue; }
-                if (!hasTypeParameters) for (int i=0; i<n; i++) {  // FIXME - need to do actual matching for parameters with types
-                    if (!Types.instance(context).isSameType(javaMethod.getParameters().get(i).type,specMethod.getParameters().get(i).vartype.type)) { e = e.next(); continue loop; }
+            if (Utils.jmldebug) {
+                System.out.println("  CLASS " + javaClassSymbol.name + " SPECS HAVE METHOD " + specMethod.name);
+                if (specMethod.name.toString().equals("equals")) {
+                    System.out.println("  CLASS " + javaClassSymbol.name + " SPECS HAVE METHOD " + specMethod.name);
                 }
-                match = javaMethod;
-                break;
             }
-            if (match == null && javaClassSymbol.isInterface()) {
-                // Check for a match against Object methods
-                e = Symtab.instance(context).objectType.tsym.members().lookup(specMethod.name);
-                loop: while (true) {
-                    //if (e.sym != null && e.sym.kind != Kinds.MTH && e.sym.owner == javaClassSymbol) e = e.next();
-                    //if (!(e.sym != null && e.sym.owner == javaClassSymbol)) break;
-                    // Allow to match inherited methods
-                    if (e.sym != null && e.sym.kind != Kinds.MTH) e = e.next();
-                    if (e.sym == null) break;
-                    MethodSymbol javaMethod = (Symbol.MethodSymbol)e.sym;
-                    if (javaMethod.getParameters().size() != specMethod.getParameters().size()) { e = e.next(); continue; }
-                    if (javaMethod.getTypeParameters().size() != specMethod.getTypeParameters().size()) { e = e.next(); continue; }
-                    // FIXME - need to check that type parameters have the same names and put them in scope so that we can test whether the
-                    // parameters have the same type; also check the bounds
-                    for (int i=0; i<n; i++) {
-                        if (!Types.instance(context).isSameType(javaMethod.getParameters().get(i).type,specMethod.getParameters().get(i).vartype.type)) { e = e.next(); continue loop; }
-                    }
-                    match = javaMethod;
-                    break;
+            JmlResolve rs = (JmlResolve)Resolve.instance(context);
+            try {
+                rs.noSuper = true;
+                //Symbol sym = rs.resolveMethod(specMethod.pos(), env, specMethod.name, ptypes.toList(), tatypes.toList());
+                Symbol sym = rs.findMatchingMethod(specMethod.pos(), env, specMethod.name, ptypes.toList(), tatypes.toList());
+                if (sym instanceof MethodSymbol) {
+                    match = (MethodSymbol)sym;
+                } else if (sym == null) {
+                    match = null;
+                } else {
+                    System.out.println("IGNORING GENERIC METHOD " + sym);
+                    return  null;
+                    //System.out.println("GOT A " + sym + " " + sym.getClass());
                 }
+            } finally {
+                rs.noSuper = false;
             }
 
+//            Entry e = javaClassSymbol.members().lookup(specMethod.name);
+//            loop: while (true) {
+//                //if (e.sym != null && e.sym.kind != Kinds.MTH && e.sym.owner == javaClassSymbol) e = e.next();
+//                //if (!(e.sym != null && e.sym.owner == javaClassSymbol)) break;
+//                // Allow to match inherited methods
+//                if (e.sym != null && e.sym.kind != Kinds.MTH) e = e.next();
+//                if (e.sym == null) break;
+//                MethodSymbol javaMethod = (Symbol.MethodSymbol)e.sym;
+//                if (javaMethod.getParameters().size() != specMethod.getParameters().size()) { e = e.next(); continue; }
+//                if (javaMethod.getTypeParameters().size() != specMethod.getTypeParameters().size()) { e = e.next(); continue; }
+//                n = javaMethod.getParameters().size();
+//                if (!hasTypeParameters) for (int i=0; i<n; i++) {  // FIXME - need to do actual matching for parameters with types
+//                    if (!Types.instance(context).isSameType(javaMethod.getParameters().get(i).type,specMethod.getParameters().get(i).vartype.type)) { e = e.next(); continue loop; }
+//                }
+//                match = javaMethod;
+//                break;
+//            }
+//            if (match == null && javaClassSymbol.isInterface()) {
+//                // Check for a match against Object methods
+//                e = Symtab.instance(context).objectType.tsym.members().lookup(specMethod.name);
+//                loop: while (true) {
+//                    //if (e.sym != null && e.sym.kind != Kinds.MTH && e.sym.owner == javaClassSymbol) e = e.next();
+//                    //if (!(e.sym != null && e.sym.owner == javaClassSymbol)) break;
+//                    // Allow to match inherited methods
+//                    if (e.sym != null && e.sym.kind != Kinds.MTH) e = e.next();
+//                    if (e.sym == null) break;
+//                    MethodSymbol javaMethod = (Symbol.MethodSymbol)e.sym;
+//                    if (javaMethod.getParameters().size() != specMethod.getParameters().size()) { e = e.next(); continue; }
+//                    if (javaMethod.getTypeParameters().size() != specMethod.getTypeParameters().size()) { e = e.next(); continue; }
+//                    // FIXME - need to check that type parameters have the same names and put them in scope so that we can test whether the
+//                    // parameters have the same type; also check the bounds
+//                    int n = javaMethod.getParameters().size();
+//                    for (int i=0; i<n; i++) {
+//                        if (!Types.instance(context).isSameType(javaMethod.getParameters().get(i).type,specMethod.getParameters().get(i).vartype.type)) { e = e.next(); continue loop; }
+//                    }
+//                    match = javaMethod;
+//                    break;
+//                }
+//            }
+            
             if (match == null) {
+
                 // Make a string of the signatures of the Java methods that we are comparing against
                 // and that do not match, to make a nice error message
                 StringBuilder sb = new StringBuilder();
                 sb.append("\n    Signatures found:");
                 int len = sb.length();
-                e = javaClassSymbol.members().lookup(specMethod.name);
+                Entry e = javaClassSymbol.members().lookup(specMethod.name);
                 while (sb.length() < 500) {
                     //if (e.sym != null && e.sym.kind != Kinds.MTH && e.sym.owner == javaClassSymbol) e = e.next();
                     //if (!(e.sym != null && e.sym.owner == javaClassSymbol)) break;
@@ -755,12 +876,20 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                         javaClassSymbol.fullname + "." + specMethod.name,
                         sb.toString());
             } else {
-                checkMethodMatch(match,specMethod);
+                checkMethodMatch(match,specMethod,javaClassSymbol);
+                specMethod.sym = match;
+                Env<AttrContext> localEnv = methodEnv(specMethod, env);
+                // FIXME - are the annotations attributed?
+                //attr.attribAnnotationTypes(specMethod.mods.annotations,localenv);
                 addAnnotations(match,localEnv,specMethod.mods);
+                for (int i = 0; i<specMethod.typarams.size(); i++) {
+                    specMethod.typarams.get(i).type = match.getTypeParameters().get(i).type;
+                }
             }
         } catch (Exception e) {
             System.out.println("METHOD EXCEOPTION " + e);
         }
+        env = prevEnv;
         return match;
     }
 
@@ -771,7 +900,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             // Check that modifiers are the same
             long matchf = match.mods.flags;
             long specf = specMethodDecl.mods.flags;
-            matchf &= ~(~specf & Flags.SYNCHRONIZED); // Ignore synchronized modifiers on implementation
+            //matchf &= ~(~specf & Flags.SYNCHRONIZED); // Ignore synchronized modifiers on implementation
             long diffs = (matchf ^ specf)&Flags.MethodFlags;
             if (diffs != 0) {
                 if ((Flags.NATIVE & matchf & ~specf)!= 0) diffs &= ~Flags.NATIVE;
@@ -811,18 +940,23 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         }
     }
 
-    public void checkMethodMatch(MethodSymbol match, JmlMethodDecl specMethodDecl) {
+    public void checkMethodMatch(MethodSymbol match, JmlMethodDecl specMethodDecl, ClassSymbol javaClassSymbol) {
         {
-            boolean isInterface = match.enclClass().isInterface();
+            boolean isInterface = match.owner.isInterface();
             // Check that modifiers are the same
             long matchf = match.flags();
             long specf = specMethodDecl.mods.flags;
-            matchf &= ~(~specf & Flags.SYNCHRONIZED); // Ignore synchronized modifiers on implementation
+            matchf |= (specf & Flags.SYNCHRONIZED); // binary files do not seem to always have the synchronized modifier?  FIXME
             long diffs = (matchf ^ specf)&Flags.MethodFlags;
             if (diffs != 0) {
                 if ((Flags.NATIVE & matchf & ~specf)!= 0) diffs &= ~Flags.NATIVE;
                 if (isInterface) diffs &= ~Flags.PUBLIC & ~Flags.ABSTRACT;
-                if (diffs != 0) Log.instance(context).error(specMethodDecl.pos(),"jml.mismatched.method.modifiers", specMethodDecl.name, match.toString(), Flags.toString(diffs));  // FIXME - test thi
+                if (diffs != 0 && !(match.isConstructor() && diffs == 3)) {
+                    // FIXME - hide this case for now because of default constructors in binary files
+                        //System.out.println("MATCH: " + Flags.toString(matchf));
+                        //System.out.println("SPECS: " + Flags.toString(specf));
+                        Log.instance(context).error(specMethodDecl.pos(),"jml.mismatched.method.modifiers", specMethodDecl.name, match.toString(), Flags.toString(diffs));  // FIXME - test thi
+                }
             }
             
             // Check that parameter names are the same (a JML requirement to avoid having to rename within specs)
@@ -872,19 +1006,20 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
     }
 
     public void completeBinaryTodo() {
-        Deque<Env<AttrContext>> todo = ((JmlEnter)JmlEnter.instance(context)).binaryMemberTodo;
+        java.util.List<Env<AttrContext>> todo = ((JmlEnter)JmlEnter.instance(context)).binaryMemberTodo;
         Env<AttrContext> env;
-        while ((env = todo.pollFirst()) != null) {
+        while (!todo.isEmpty()) {
+            env = todo.remove(0);
             if (Utils.jmldebug) System.out.println("DOING BINARY TODO " + 
                     (env.toplevel.sourcefile));
             
-            completeSpecCUForBinary(env);
+            completeSpecCUForBinary(env); // Might add more to to todo list
         }
     }
     
     // We have to do the equivalent of complete, except that the Java class is
     // already completed and all we want to do is the spec part.  Note that 
-    // super.complete is for class symbols
+    // super.complete is for class symbols.
     public void completeSpecCUForBinary(Env<AttrContext> specEnv) {
         Env<AttrContext> prevEnv = env;
         env = specEnv;
@@ -905,28 +1040,59 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         
         // We need to put the compilation unit on the todo list for attribution
         // WAS: Todo.instance(context).append(enter.typeEnvs.get(((JmlCompilationUnit)env.tree).packge));
-        Todo.instance(context).append(specEnv);
+        //Todo.instance(context).append(specEnv); - NO - we put the individual classes on, in completeSpecClassForBInary
         env = prevEnv;
         Log.instance(context).useSource(prev);
         modeOfFileBeingChecked = prevMode;
     }
     
     public void completeSpecClassForBinary(JmlClassDecl d) {
-            // FIXME - super.complete(), which we are emulating here sets baseEnv = baseEnv(d,env)
-            // but that causes a problem since env.outer is null.  The following code works for
-            // now but needs to be tested for nested classes and where the annotation is declared
-            // in the same class file, perhaps nested.  ALso, need to see what else needs proper setting
-            // up in this env created from a spec file instead of a source file.
         
-        if (d.sym == null) return; // FIXME - why would this happen?
-        if (d.mods.annotations.nonEmpty() && d.mods.annotations.head.annotationType.type == null) { // Check if already attributed
-            Env<AttrContext> baseEnv = env; // FIXME  baseEnv(d, env);
-            JmlAttr.instance(context).attribAnnotationTypes(d.mods.annotations, baseEnv);
-            if (hasDeprecatedAnnotation(d.mods.annotations))
-                d.sym.flags_field |= DEPRECATED;
-            annotateLaterConditional(d.mods.annotations, baseEnv, d.sym);
+        if (d.sym == null) {
+            // This happens when a class declaration in the spec file has no
+            // match in the binary class.  So we just skip it.
+            //System.out.println("NULL SYM IN completeSpecClassForBinary " + d.name);
+            return; // FIXME - why would this happen?
         }
-        finishClass(d,enter.typeEnvs.get(d.sym));
+        
+        // If we are completing a class with a Java source file then we walk the
+        // class declaration, attributing types, creating symbols for each
+        // class member (and entering them in the class scope), and noting the
+        // symbols in the class AST for each member.
+        
+        // Here we have a binary class with a spec file.  The binary class
+        // already has all the (java) members entered in the class scope.
+        // However, we still have to walk the AST for the spec file in order
+        // to do the following:
+        //      - attribute any types (including annotations)
+        //      - enter symbols for declarations
+        //      - add ghost/model declarations to the class
+
+        // OLD:
+        
+//        if (d.mods.annotations.nonEmpty() && d.mods.annotations.head.annotationType.type == null) { // Check if already attributed
+//            Env<AttrContext> baseEnv = env; // FIXME  baseEnv(d, env);
+//            JmlAttr.instance(context).attribAnnotationTypes(d.mods.annotations, baseEnv);
+//            if (hasDeprecatedAnnotation(d.mods.annotations))
+//                d.sym.flags_field |= DEPRECATED;
+//            annotateLaterConditional(d.mods.annotations, baseEnv, d.sym);
+//        }
+//
+//        Env<AttrContext> cenv = enter.typeEnvs.get(d.sym);
+//        // FIXME _ not sure the next four lines are needed
+//        if (d.sym.owner.kind == PCK) {
+//            Todo.instance(context).append(cenv);
+//        }
+//        System.out.println("BSC " + d.sym + " " + ((d.sym.flags_field&UNATTRIBUTED)!=0?"unattributed":"attributed"));
+//        d.sym.flags_field |= UNATTRIBUTED; // Binary classes start life already attributed
+//                                // so we need to reset this so that the specifications get processed
+//                                            
+//        finishClass(d,cenv);
+
+        boolean prev = binary;
+        binary = true;
+        complete(d.sym);
+        binary = prev;
     }
     
     /** When we are handling the specs for a binary file, we have the situation
@@ -941,6 +1107,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
      * @param localEnv
      * @param s
      */
+    // MAINTENANCE - modified from MemberEnter.annotateLater
     void annotateLaterConditional(final List<JCAnnotation> annotations,
             final Env<AttrContext> localEnv,
             final Symbol s) {
@@ -967,6 +1134,12 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             }
         });
     }
+    
+    void annotateLater(final List<JCAnnotation> annotations,
+            final Env<AttrContext> localEnv,
+            final Symbol s) {
+        annotateLaterConditional(annotations,localEnv,s);
+    }
 
     
     // duplicated from MemberEnter because it is private
@@ -983,6 +1156,16 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
     @Override
     public void visitTopLevel(JCTree.JCCompilationUnit tree) {
         super.visitTopLevel(tree);
+        if (binary) {
+            // process package annotations
+            annotateLater(tree.packageAnnotations, env, tree.packge);
+
+            // Import-on-demand java.lang.
+            //importAll(tree.pos, reader.enterPackage(names.java_lang), env);
+
+            // Process all import clauses.
+            memberEnter(tree.defs, env);
+        }
         // Import-on-demand org.jmlspecs.lang.
         importAll(tree.pos, ClassReader.instance(context).enterPackage(org_jmlspecs_lang), env);
     }
@@ -998,6 +1181,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         }
         
         super.visitMethodDef(tree);
+        if (Utils.jmldebug) System.out.println("      ENTERING MEMBER " + tree.sym + " IN " + tree.sym.owner);
         if (removedStatic) {
             tree.sym.flags_field |= Flags.STATIC;
             tree.mods.flags |= Flags.STATIC;
@@ -1011,6 +1195,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         }
     }
         
+    // TODO - review this
     // Duplicated from MemberEnter because it is declared private
     protected void importAll(int pos,
             final TypeSymbol tsym,
@@ -1036,31 +1221,30 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
     /** We override the superclass method in order to add the symbol for 'this'
      * into the environment for an interface.  The javac tool does not because
      * there is never a need - all expressions are static.  However, I have not
-     * done the same for super.  
+     * done the same for super.  (TODO)
      */
     @Override
     public void complete(Symbol sym) throws CompletionFailure {
         //System.out.println("completing " + sym);
         super.complete(sym);
-        // If this is a class, enter symbols for this and super into
+        // If this is a class, enter symbol for this into
         // current scope.
         ClassSymbol c = (ClassSymbol)sym;
-        ClassType ct = (ClassType)c.type;
         Env<AttrContext> env = enter.typeEnvs.get(c);
         if ((c.flags_field & INTERFACE) == INTERFACE) {
             VarSymbol thisSym =
                 new VarSymbol(FINAL | HASINIT, Name.Table.instance(context)._this, c.type, c);
             thisSym.pos = Position.FIRSTPOS;
             env.info.scope.enter(thisSym);
-//            if (ct.supertype_field.tag == CLASS) {
-//                VarSymbol superSym =
-//                    new VarSymbol(FINAL | HASINIT, names._super,
-//                                  ct.supertype_field, c);
-//                superSym.pos = Position.FIRSTPOS;
-//                env.info.scope.enter(superSym);
-//            }
         }
-        //System.out.println("   completed " + sym);
+    }
+    
+    protected void finish(Env<AttrContext> env) {
+        if (env.tree instanceof JmlCompilationUnit) {
+            JmlCompilationUnit cu = (JmlCompilationUnit)env.tree;
+            if ((cu.mode&6)==6) return;  // FIXME   - why do this?  no finishing for binary classes?
+        }
+        super.finish(env);
     }
     
     @Override
@@ -1090,7 +1274,6 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         JCAnnotation ann = jmlF.Annotation(t, List.<JCExpression>nil());
         return ann;
     }
-    
 
 //    // FIXME - actually, perhaps we do not need to make JmlMemberEnter
 //    // a IJmlVIsitor, in which case we can do away with all of these 
