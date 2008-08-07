@@ -70,6 +70,12 @@ public class Label {
     /** Used for assert statements generated from postcondition checks */
     /*@ non_null*/ public final static Label POSTCONDITION = new Label("Postcondition");
     
+    /** Used for assert statements generated from exceptional postcondition checks */
+    /*@ non_null*/ public final static Label SIGNALS = new Label("ExceptionalPostcondition");
+    
+    /** Used for assert statements generated from signals_only checks */
+    /*@ non_null*/ public final static Label SIGNALS_ONLY = new Label("ExceptionList");
+    
     /** Used for assume statements generated from uses of pure methods in specifications */
     /*@ non_null*/ public final static Label METHODAXIOM = new Label("MethodAxiom");
     

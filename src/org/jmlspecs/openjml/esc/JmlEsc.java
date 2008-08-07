@@ -62,7 +62,7 @@ public class JmlEsc extends JmlTreeScanner {
     boolean verbose;
     
     /** Just for debugging esc */
-    static boolean escdebug = Utils.jmldebug || true;
+    public static boolean escdebug = Utils.jmldebug;
     
     /** true if counterexample information is desired */
     boolean showCounterexample;
@@ -150,9 +150,12 @@ public class JmlEsc extends JmlTreeScanner {
             log.note("esc.checking.method",node.sym); 
             if (verbose) System.out.println("ESC: Checking method " + node.sym);
             if (escdebug) System.out.println(node.toString());
+            //Utils.Timer t = new Utils.Timer();
             BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
             if (escdebug) program.write();
+            //System.out.println("PREP  " +  t.elapsed()/1000.);
             prove(node,program);
+            //System.out.println("PREP AND PROVE " +  t.elapsed()/1000.);
         } finally {
             log.useSource(prev);
         }
@@ -316,7 +319,7 @@ public class JmlEsc extends JmlTreeScanner {
             }
 
             IProverResult r = p.check();
-            if (r.result() == IProverResult.SAT) {
+            if (r.result() == IProverResult.SAT  || r.result() == IProverResult.POSSIBLYSAT) {
                 if (escdebug) System.out.println("Method does NOT satisfy its specifications, it appears");
                 ICounterexample s = r.counterexample();
                 // Look for "assert$<number>$<Label>$<number> false"
@@ -337,8 +340,8 @@ public class JmlEsc extends JmlTreeScanner {
                         // So we list the assertion if
                         //      - we cannot find a block containing the assertion (just to be safe)
                         //      - we find a block but find no value for the block variable (just to be safe)
-                        //      - the block variable is 'false' (not 'true')
-                        if (bl == null || !"true".equals(s.get(bl.id.name.toString())) ) {
+                        //      - the block variable is 'false' (not 'true') and there is a chain of false blocks back to the beginning
+                        if (bl == null || hasFeasibleChain(bl,s) ) {
                             if (escdebug) System.out.println("Assertion " + sname + " cannot be verified");
                             log.warning(usepos,"esc.assertion.invalid",label,methodDecl.getName());
                             if (declpos != usepos) log.warning(declpos,"esc.associated.decl");
@@ -386,7 +389,7 @@ public class JmlEsc extends JmlTreeScanner {
 
                 boolean useCoreIds = true;
                 ICoreIds cid = r.coreIds();
-                if (cid == null) System.out.println("Warning: Core ids unexpectedly not returned");
+                if (cid == null && verbose) System.out.println("Warning: Core ids unexpectedly not returned");
                 Collection<Integer> cids = cid == null ? null : cid.coreIds();
                 if (useCoreIds && cids != null) {
                     Integer[] ids = new Integer[cids.size()]; 
@@ -479,6 +482,15 @@ public class JmlEsc extends JmlTreeScanner {
             log.warning(pos,"esc.infeasible.assumption",methodSignature);
             if (escdebug) System.out.println("Assumption (" + label + ") is infeasible");
         }
+    }
+    
+    public boolean hasFeasibleChain(BasicBlock bl, ICounterexample s) {
+        if ("true".equals(s.get(bl.id.name.toString()))) return false;
+        if (bl.preceding.size() == 0) return true;
+        for (BasicBlock b: bl.preceding) {
+            if (hasFeasibleChain(b,s)) return true;
+        }
+        return false;
     }
     
     public BasicBlock findContainingBlock(Name assertName, BasicProgram program) {

@@ -272,6 +272,14 @@ public class JmlTree {
             return new JmlMethodInvocation(pos,token,args);
         }
         
+        public JmlMethodInvocation JmlMethodInvocation(JmlToken token,JCExpression arg) {
+            return new JmlMethodInvocation(pos,token,List.<JCExpression>of(arg));
+        }
+        
+        public JmlMethodInvocation JmlMethodInvocation(JmlToken token,JCExpression arg, JCExpression arg2) {
+            return new JmlMethodInvocation(pos,token,List.<JCExpression>of(arg,arg2));
+        }
+        
         public JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken t, JCModifiers mods, JCTree.JCExpression ty, ListBuffer<Name> names, JCTree.JCExpression range, JCTree.JCExpression predicate) {
             return new JmlQuantifiedExpr(pos,t,mods,ty,names,range,predicate);
         }

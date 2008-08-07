@@ -228,7 +228,8 @@ public class BasicBlocker extends JmlTreeScanner {
     // FIXME - document the following
     
     protected JCExpression resultVar = null;
-    protected JCIdent exceptionVar;
+    protected JCIdent exceptionVar = null;
+    protected JCIdent signalsVar = null; //Used when translating a signals clause
     protected JCIdent allocVar;
     //protected JCIdent stateVar;
     protected JCIdent terminationVar;  // 0=no termination requested; 1=return executed; 2 = exception happening
@@ -297,6 +298,7 @@ public class BasicBlocker extends JmlTreeScanner {
     /** Should not need this when everything is implemented */
     protected void notImpl(JCTree that) {
         System.out.println("NOT IMPLEMENTED: BasicBlocker - " + that.getClass());
+        result = trueLiteral;
     }
     
     /** Called by visit methods that should never be called. */
@@ -337,8 +339,8 @@ public class BasicBlocker extends JmlTreeScanner {
         return lit;
     }
     
-    protected JCLiteral makeTypeLiteral(TypeSymbol sym, int pos) {
-        JCLiteral lit = factory.at(pos).Literal(TypeTags.CLASS,sym.type);
+    protected JCLiteral makeTypeLiteral(Type type, int pos) {
+        JCLiteral lit = factory.at(pos).Literal(TypeTags.CLASS,type);
         lit.type = syms.classType;
         return lit;
     }
@@ -352,6 +354,18 @@ public class BasicBlocker extends JmlTreeScanner {
         JCLiteral lit = factory.at(pos).Literal(TypeTags.BOOLEAN,value?1:0);
         lit.type = syms.booleanType;
         return lit;
+    }
+    
+    /** Makes an identifier for a symbol, as in the AST prior to any translation
+     * by BasicBlocker.
+     * @param sym the variable to put in the AST
+     * @param pos the pseudo-position at which to place it
+     * @return a JCIdent node
+     */
+    protected JCIdent makeIdent(VarSymbol sym, int pos) {
+        JCIdent id = factory.at(pos).Ident(sym);
+        id.type = sym.type;
+        return id;
     }
     
     /** Makes a Jml binary operator node (with boolean result)
@@ -504,15 +518,7 @@ public class BasicBlocker extends JmlTreeScanner {
     
     // FIXME - document
     protected JCIdent newArrayIncarnation(Type componentType, int usePosition) {
-        String s = "arrays$" + encodeType(componentType);
-        JCIdent id = arrayIdMap.get(s);
-        if (id == null) {
-            id = factory.Ident(names.fromString(s));
-            id.pos = 0;
-            id.type = componentType;
-            id.sym = new VarSymbol(0,id.name,id.type,null);
-            arrayIdMap.put(s,id);
-        }
+        JCIdent id = getArrayIdent(componentType);
         currentMap.put((VarSymbol)id.sym,Integer.valueOf(usePosition));
         id = newIdentUse((VarSymbol)id.sym,usePosition,usePosition);
         return id;
@@ -812,6 +818,7 @@ public class BasicBlocker extends JmlTreeScanner {
             processBlock(blocksToDo.remove(0));
         }
         addPostconditions(returnBlock,tree,denestedSpecs);
+        addExPostconditions(exceptionBlock,tree,denestedSpecs);
         
         // Make the BasicProgram
         BasicProgram program = new BasicProgram();
@@ -902,16 +909,19 @@ public class BasicBlocker extends JmlTreeScanner {
         }
         expr.pos = expr.getStartPosition();
         
-        addClassPredicate(classInfo.csym);
+        addClassPredicate(classInfo.csym.type);
+        
         Iterator<JCVariableDecl> baseParams = tree.params.iterator();
         while (baseParams.hasNext()) {
             JCVariableDecl base = baseParams.next();
             if (!base.type.isPrimitive()) {
                 // for each reference parameter p: assume (p == null) || ( \typeof(p) <: <statictype> )
+                // also add the class predicate for the argument type
+                addClassPredicate(base.type);
                 JCIdent baseId = newIdentUse(base.sym,base.pos);
                 JCExpression t = factory.at(base.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,com.sun.tools.javac.util.List.<JCExpression>of(baseId));
                 t.type = syms.classType;
-                JCExpression lit = makeTypeLiteral(base.type.tsym,base.pos);
+                JCExpression lit = makeTypeLiteral(base.type,base.pos);
                 JCExpression eq = makeJmlBinary(JmlToken.SUBTYPE_OF,t,lit,base.pos);
                 eq = makeBinary(JCTree.OR,makeBinary(JCTree.EQ,baseId,nullLiteral,base.pos),eq,baseId.pos);
                 addAssume(Label.SYN,eq,b.statements,false);
@@ -937,11 +947,11 @@ public class BasicBlocker extends JmlTreeScanner {
             addParameterMappings(baseMethod,mi.decl,pos,b);
         }
 
-        if (mi.requiresPredicates.size() == 0) expr = trueLiteral;
-        else for (JCExpression pre: mi.requiresPredicates) {
+        for (JCExpression pre: mi.requiresPredicates) {
             int p = expr.pos == 0 ? pre.getStartPosition() : expr.pos;
             pre = trSpecExpr(pre);
-            expr = makeBinary(JCTree.OR,expr,pre,p);
+            if (expr == null) expr = pre;
+            else expr = makeBinary(JCTree.OR,expr,pre,p);
         }
         return expr;
     }
@@ -1033,7 +1043,7 @@ public class BasicBlocker extends JmlTreeScanner {
     
     static public String encodeType(Type t) {   // FIXME String? char? void? unsigned?
         if (t instanceof ArrayType) {
-            return "array$" + encodeType(((ArrayType)t).getComponentType());
+            return "refA$" + encodeType(((ArrayType)t).getComponentType());
         } else if (!t.isPrimitive()) {
             return "REF";
         } else if (t.tag == TypeTags.INT || t.tag == TypeTags.SHORT || t.tag == TypeTags.LONG || t.tag == TypeTags.BYTE) {
@@ -1042,6 +1052,8 @@ public class BasicBlocker extends JmlTreeScanner {
             return "bool";
         } else if (t.tag == TypeTags.FLOAT || t.tag == TypeTags.DOUBLE) {
             return "real";
+        } else if (t.tag == TypeTags.CHAR) {
+            return "int";
         } else {
             return "unknown";
         }
@@ -1096,8 +1108,6 @@ public class BasicBlocker extends JmlTreeScanner {
                 addMethodPostconditions(msym,b,decl.pos,decl);
             }
         }
-
-
         
         // FIXME - reevaluate the last argument: this is the location that the error message
         // indicates as where the assertion failed - it could be the return statement, or the
@@ -1105,9 +1115,7 @@ public class BasicBlocker extends JmlTreeScanner {
         // location of the method declaration (unless we could get the ending information).
         addClassPostconditions(classInfo,b,decl.pos);
 
-        // FIXME _ need inherited method preconditions
         // FIXME - this is wrong - we assume th OR of everything
-            // Need definedness checks?  FIXME
     }
     
     protected void addMethodPostconditions(MethodSymbol msym, BasicBlock b, int pos, JCMethodDecl baseMethod) {
@@ -1121,7 +1129,43 @@ public class BasicBlocker extends JmlTreeScanner {
         for (JCExpression post: mi.ensuresPredicates) {
             addAssert(Label.POSTCONDITION,trSpecExpr(post),post.getStartPosition(),statements,pos);
         }
+    }
+    
+    protected void addExPostconditions(BasicBlock b, JCMethodDecl decl, JmlMethodSpecs denestedSpecs) {
+        currentBlock = b;
+        currentMap = blockmaps.get(b);
 
+        addMethodExPostconditions(decl.sym,b,decl.pos,decl);
+
+        if (!isConstructor && !isStatic) {
+            MethodSymbol msym = decl.sym;
+            while ((msym = getOverrided(msym)) != null) {
+                addMethodExPostconditions(msym,b,decl.pos,decl);
+            }
+        }
+    }
+    
+    protected void addMethodExPostconditions(MethodSymbol msym, BasicBlock b, int pos, JCMethodDecl baseMethod) {
+        List<JCStatement> statements = b.statements;
+
+        // FIXME - argument names???  Will the pre and post names be different?
+        JmlMethodInfo mi = getMethodInfo(msym);
+        if (msym != baseMethod.sym) {
+            addParameterMappings(baseMethod,mi.decl,pos,b);
+        }
+        // signals/exsures predicates
+        for (JCExpression post: mi.exPredicates) {
+            JCExpression ex = ((JmlBinary)post).lhs;
+            ex = ((JmlBinary)ex).lhs;
+            ex = ((JmlMethodInvocation)ex).args.get(0);
+            signalsVar = (JCIdent)ex;
+            addAssert(Label.SIGNALS,trSpecExpr(post),post.getStartPosition(),statements,pos);
+            signalsVar = null;
+        }
+        // signals_only predicates
+        for (JCExpression post: mi.sigPredicates) {
+            addAssert(Label.SIGNALS,trSpecExpr(post),post.getStartPosition(),statements,pos);
+        }
     }
     
     protected void addClassPostconditions(JmlClassInfo cInfo, BasicBlock b, int usepos) {
@@ -1169,14 +1213,14 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     Set<TypeSymbol> typesAdded = new HashSet<TypeSymbol>();
-    protected void addClassPredicate(TypeSymbol type) {
-        if (typesAdded.contains(type)) return;
-        typesAdded.add(type);
-        TypeSymbol t = ((ClassSymbol)type).getSuperclass().tsym;
+    protected void addClassPredicate(Type type) {
+        if (typesAdded.contains(type.tsym)) return;
+        typesAdded.add(type.tsym);
+        TypeSymbol t = ((ClassSymbol)type.tsym).getSuperclass().tsym;
         if (t != null && t.type.tag != TypeTags.NONE) {
-            addClassPredicate((ClassSymbol)t);
+            addClassPredicate(t.type);
             JCLiteral lit1 = makeTypeLiteral(type,0);
-            JCLiteral lit2 = makeTypeLiteral(t,0);
+            JCLiteral lit2 = makeTypeLiteral(t.type,0);
             JCExpression e = makeJmlBinary(JmlToken.SUBTYPE_OF,lit1,lit2,0);
             background.add(e);
         }
@@ -1283,6 +1327,9 @@ public class BasicBlocker extends JmlTreeScanner {
         ListBuffer<JCVariableDecl> olds = new ListBuffer<JCVariableDecl>();
         java.util.List<JCExpression> requiresPredicates = new LinkedList<JCExpression>();
         java.util.List<JCExpression> ensuresPredicates = new LinkedList<JCExpression>();
+        java.util.List<JCExpression> exPredicates = new LinkedList<JCExpression>();
+        java.util.List<JCExpression> sigPredicates = new LinkedList<JCExpression>();
+        java.util.List<JCExpression> divergesPredicates = new LinkedList<JCExpression>();
         
         public static class Entry {
             public Entry(JCExpression pre, java.util.List<JCTree> list) {
@@ -1318,6 +1365,7 @@ public class BasicBlocker extends JmlTreeScanner {
         }
         if (mspecs.decl == null) {
             System.out.println("METHOD DECL IS UNEXPECTEDLY NULL " + msym);
+            return null;
         }
         JmlMethodInfo mi = new JmlMethodInfo(mspecs.decl);
         JmlMethodSpecs denestedSpecs = msym == null ? null : specs.getDenestedSpecs(msym);
@@ -1350,7 +1398,6 @@ public class BasicBlocker extends JmlTreeScanner {
             for (JmlSpecificationCase spc: denestedSpecs.cases) {
                 JCExpression spre = trueLiteral;
                 for (JmlMethodClause c: spc.clauses) {
-                    // FIXME - need definedness checks ??
                     if (c.token == JmlToken.REQUIRES) {
                         int pos = spre==trueLiteral ? c.pos : spre.pos;
                         spre = makeBinary(JCTree.AND,spre,(((JmlMethodClauseExpr)c).expression),pos);
@@ -1363,19 +1410,65 @@ public class BasicBlocker extends JmlTreeScanner {
                     if (c.token == JmlToken.ENSURES) {
                         JCExpression e = ((JmlMethodClauseExpr)c).expression;
                         JCExpression post = makeJmlBinary(JmlToken.IMPLIES,spre,e,e.getStartPosition());
-                        // FIXME - need definedness checks ??
                         mi.ensuresPredicates.add(post);
                     } else if (c.token == JmlToken.ASSIGNABLE) {
                         JmlMethodClauseAssignable mod = (JmlMethodClauseAssignable)c;
                         // spre is the precondition under which the store-refs are modified
                         List<JCTree> list = mod.list; // store-ref expressions
                         mi.assignables.add(new JmlMethodInfo.Entry(spre,list));
+                    } else if (c.token == JmlToken.SIGNALS) {
+                        // FIXME - what if there is no variable? - is there one already inserted or is it null?
+                        JmlMethodClauseSignals mod = (JmlMethodClauseSignals)c;
+                        JCExpression e = mod.expression;
+                        // If vardef is null, then there is no declaration in the signals clause (e.g. it is just false).
+                        // We use the internal \exception token instead; we presume the type is java.lang.Exception 
+                        JCExpression post = makeJmlBinary(JmlToken.IMPLIES,spre,e,e.getStartPosition());
+                        if (mod.vardef != null) {
+                            JCIdent id = makeIdent(mod.vardef.sym,mod.vardef.pos);
+                            e = makeInstanceof(id,c.pos, mod.vardef.type, mod.vardef.pos);
+                            post = makeJmlBinary(JmlToken.IMPLIES,e,post,c.pos);
+                        } else {
+                            JCExpression id = factory.at(c.pos).JmlSingleton(JmlToken.BSEXCEPTION);
+                            e = makeInstanceof(id,c.pos, syms.exceptionType, c.pos);
+                            post = makeJmlBinary(JmlToken.IMPLIES,e,post,c.pos);
+                        }
+                        mi.exPredicates.add(post);
+                    } else if (c.token == JmlToken.DIVERGES) {
+                        JCExpression e = ((JmlMethodClauseExpr)c).expression;
+                        JCExpression post = makeJmlBinary(JmlToken.IMPLIES,spre,e,e.getStartPosition());
+                        mi.divergesPredicates.add(post);
+                    } else if (c.token == JmlToken.SIGNALS_ONLY) {
+                        mi.sigPredicates.add(makeSignalsOnly((JmlMethodClauseSigOnly)c));
                     }
+                    // FIXME - is signals_only desugared or handled here?
+                    // FIXME - we are ignoring forall old when diverges duration working_space callable accessible measured_by captures
                 }
             }
         }
         newstatements = prev;
         return mi;
+    }
+    
+    protected JCExpression makeTypeof(JCExpression e) {
+        JCExpression typeof = factory.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,e);
+        typeof.type = syms.classType;
+        return typeof;
+    }
+    
+    /** Makes the equivalent of an instanceof operation:  \typeof(e) <: \type(type) */
+    protected JCExpression makeInstanceof(JCExpression e, int epos, Type type, int typepos) {
+        return makeJmlBinary(JmlToken.SUBTYPE_OF,makeTypeof(e),makeTypeLiteral(type,typepos),epos);
+    }
+    
+    protected JCExpression makeSignalsOnly(JmlMethodClauseSigOnly clause) {
+        JCExpression e = makeLiteral(false,clause.pos);
+        JCExpression id = factory.at(0).JmlSingleton(JmlToken.BSEXCEPTION);
+        for (JCExpression typetree: clause.list) {
+            int pos = typetree.getStartPosition();
+            e = makeBinary(JCTree.OR, 
+                    makeInstanceof(id, pos, typetree.type, pos), e, pos);
+        }
+        return e;
     }
 
 
@@ -1987,7 +2080,7 @@ public class BasicBlocker extends JmlTreeScanner {
             String catchBlockName = blockPrefix + cpos + "$catch";
             BasicBlock catchBlock = newBlock(catchBlockName,cpos);
 
-            addClassPredicate(catcher.param.vartype.type.tsym);
+            addClassPredicate(catcher.param.vartype.type);
             JCIdent ev = newIdentUse((VarSymbol)exceptionVar.sym,cpos);
             JCExpression inst = factory.at(cpos).TypeTest(ev,catcher.param.vartype);
             inst.type = syms.booleanType;
@@ -2244,8 +2337,8 @@ public class BasicBlocker extends JmlTreeScanner {
 
             case BSTYPELC:
                 Type type = that.args.get(0).type;
-                addClassPredicate(type.tsym);
-                result = makeTypeLiteral(type.tsym,that.pos);
+                addClassPredicate(type);
+                result = makeTypeLiteral(type,that.pos);
                 return;
 
             case BSELEMTYPE :
@@ -2304,7 +2397,7 @@ public class BasicBlocker extends JmlTreeScanner {
             } else {
                 JmlMethodDecl decl = mspecs.decl;
                 JmlMethodInfo mi = getMethodInfo(sym);
-                JCIdent newMethodName = newAuxIdent(encodedName(sym,decl.pos,pos).toString(),sym.type,pos); // FIXME - string to name to string to name
+                JCIdent newMethodName = newAuxIdent(encodedName(sym,decl.pos,pos).toString(),sym.getReturnType(),pos); // FIXME - string to name to string to name
                 
                 if (obj == null && args.size() == 0) {
                     // Static and no arguments, so we just use the new method name
@@ -2367,7 +2460,7 @@ public class BasicBlocker extends JmlTreeScanner {
     protected JCIdent insertMethodCall(int pos, MethodSymbol sym, JCExpression obj, List<JCExpression> args) {
         Map<VarSymbol,Integer> prevOldMap = oldMap;
         JCIdent prevThisId = thisId;
-        JCIdent retId = sym.type == null ? null : newAuxIdent("$$result$"+pos,sym.type,pos);
+        JCIdent retId = sym.type == null ? null : newAuxIdent("$$result$"+pos,sym.getReturnType(),pos);
         JCExpression prevResultVar = resultVar;
         
         // What do do about 'condition' when checking the preconditions
@@ -2412,20 +2505,20 @@ public class BasicBlocker extends JmlTreeScanner {
                     if (!isHelperCalled) {
                         for (JmlTypeClauseExpr inv : calledClassInfo.staticinvariants) {
                             JCExpression e = inv.expression;
-                            e = trExpr(e);
+                            e = trSpecExpr(e);
                             addAssert(Label.INVARIANT,e,inv.getStartPosition(),newstatements,pos);
                         }
                     }
                 } else if (!isConstructor && !isHelper) {
                     for (JmlTypeClauseExpr inv : classInfo.staticinvariants) {
                         JCExpression e = inv.expression;
-                        e = trExpr(e);
+                        e = trSpecExpr(e);
                         addAssert(Label.INVARIANT,e,inv.getStartPosition(),newstatements,pos);
                     }
                     if (!isStatic) {
                         for (JmlTypeClauseExpr inv : classInfo.invariants) {
                             JCExpression e = inv.expression;
-                            e = trExpr(e);
+                            e = trSpecExpr(e);
                             addAssert(Label.INVARIANT,e,inv.getStartPosition(),newstatements,pos);
                         }
                     }
@@ -2434,7 +2527,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 JmlMethodInfo mi = getMethodInfo(sym);
                 if (mi.requiresPredicates.size()==0) exprr = makeLiteral(true,mi.decl.pos);
                 else for (JCExpression pre: mi.requiresPredicates) {
-                    pre = trExpr(pre);
+                    pre = trSpecExpr(pre);
                     if (exprr == null) exprr = pre;
                     else {
                         exprr = makeBinary(JCTree.OR,exprr,pre,exprr.pos);
@@ -2478,7 +2571,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 
                 resultVar = retId;
                 for (JCExpression post: mi.ensuresPredicates) {
-                    addAssume(Label.POSTCONDITION,trExpr(post),newstatements,false);
+                    addAssume(Label.POSTCONDITION,trSpecExpr(post),newstatements,false);
                 }
                 if (!isConstructorCalled && !isStaticCalled) {
                     MethodSymbol msym = sym;
@@ -2486,7 +2579,7 @@ public class BasicBlocker extends JmlTreeScanner {
                         mi = getMethodInfo(msym);
                         for (JCExpression post: mi.ensuresPredicates) {
                             addParameterMappings(mspecs.decl,mi.decl,pos,currentBlock);
-                            addAssume(Label.POSTCONDITION,trExpr(post),newstatements,false);
+                            addAssume(Label.POSTCONDITION,trSpecExpr(post),newstatements,false);
                         }
                     }
                 }
@@ -2499,43 +2592,43 @@ public class BasicBlocker extends JmlTreeScanner {
                     if (!isHelperCalled) {
                         for (JmlTypeClauseExpr inv : calledClassInfo.staticinvariants) {
                             JCExpression e = inv.expression;
-                            e = trExpr(e);
+                            e = trSpecExpr(e);
                             addAssume(Label.INVARIANT,e,newstatements,false);
                         }
                         for (JmlTypeClauseExpr inv : calledClassInfo.invariants) {
                             JCExpression e = inv.expression;
-                            e = trExpr(e);
+                            e = trSpecExpr(e);
                             addAssume(Label.INVARIANT,e,newstatements,false);
                         }
                         for (JmlTypeClauseConstraint inv : calledClassInfo.staticconstraints) {
                             JCExpression e = inv.expression;
-                            e = trExpr(e);
+                            e = trSpecExpr(e);
                             addAssume(Label.CONSTRAINT,e,newstatements,false);
                         }
                     }
                 } else if (!isHelper) {
                     for (JmlTypeClauseExpr inv : classInfo.staticinvariants) {
                         JCExpression e = inv.expression;
-                        e = trExpr(e);
+                        e = trSpecExpr(e);
                         addAssume(Label.INVARIANT,e,newstatements,false);
                     }
                     if (!isStatic) {
                         for (JmlTypeClauseExpr inv : classInfo.invariants) {
                             JCExpression e = inv.expression;
-                            e = trExpr(e);
+                            e = trSpecExpr(e);
                             addAssume(Label.INVARIANT,e,newstatements,false);
                         }
                     }
                     for (JmlTypeClauseConstraint inv : classInfo.staticconstraints) {
                         JCExpression e = inv.expression;
-                        e = trExpr(e);
+                        e = trSpecExpr(e);
                         addAssume(Label.CONSTRAINT,e,newstatements,false);
                     }
                     if (!isConstructor) {
                         if (!isStatic) {
                             for (JmlTypeClauseConstraint inv : classInfo.constraints) {
                                 JCExpression e = inv.expression;
-                                e = trExpr(e);
+                                e = trSpecExpr(e);
                                 addAssume(Label.CONSTRAINT,e,newstatements,false);
                             }
                         }
@@ -2687,7 +2780,7 @@ public class BasicBlocker extends JmlTreeScanner {
             int op = tag == JCTree.PREDEC || tag == JCTree.POSTDEC ?
                     JCTree.MINUS : JCTree.PLUS;
             JCExpression e = makeBinary(op,arg,makeLiteral(1,that.pos),that.pos);
-            result = doAssignment(arg,e,that.pos);
+            result = doAssignment(that.type,arg,e,that.pos);
             if (tag == JCTree.POSTDEC || tag == JCTree.POSTINC) result = arg;
             return;
         }
@@ -2753,7 +2846,7 @@ public class BasicBlocker extends JmlTreeScanner {
         JCExpression e = trExpr(that.getExpression());
         // Note - we are not translating the type argument
         e = factory.at(that.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,com.sun.tools.javac.util.List.<JCExpression>of(e));
-        JCLiteral lit = makeTypeLiteral(that.getType().type.tsym,that.pos);
+        JCLiteral lit = makeTypeLiteral(that.getType().type,that.pos);
         e = makeJmlBinary(JmlToken.SUBTYPE_OF,e,lit,that.pos);
         result = e;
     }
@@ -2780,7 +2873,7 @@ public class BasicBlocker extends JmlTreeScanner {
         e = new JmlBBFieldAccess(lengthIdent,array);
         e.pos = that.pos;
         e.type = syms.intType;
-        e = makeBinary(JCTree.LT,that.index,e,that.indexed.pos);
+        e = makeBinary(JCTree.LT,index,e,that.indexed.pos);
         e = makeJmlBinary(JmlToken.IMPLIES,condition,e,e.pos);
         addAssert(inSpecExpression?Label.UNDEFINED_TOOLARGEINDEX:Label.POSSIBLY_TOOLARGEINDEX,
                 e,that.pos,currentBlock.statements,that.pos);
@@ -2800,7 +2893,7 @@ public class BasicBlocker extends JmlTreeScanner {
             // FIXME - is there something predefined to compare against?
             if (sym.toString().equals("class")) {
                 // Class literal
-                addClassPredicate(that.selected.type.tsym);
+                addClassPredicate(that.selected.type);
                 JCExpression now = factory.at(that.pos).Literal(TypeTags.CLASS,that.selected.type);
                 now.type = syms.classType;
                 result = now;
@@ -2856,6 +2949,8 @@ public class BasicBlocker extends JmlTreeScanner {
                 now.type = that.type;
                 now.sym = vsym;
                 result = trExpr(now);
+            } else if (signalsVar != null && vsym == signalsVar.sym) {
+                result = newIdentUse((VarSymbol)exceptionVar.sym,that.pos);
             } else if (vsym.toString().equals("this")) {
                 result = currentThisId;
             } else {
@@ -2866,21 +2961,39 @@ public class BasicBlocker extends JmlTreeScanner {
         }
     }
     
+    Map<String,Integer> strings = new HashMap<String,Integer>();
+    
     public void visitLiteral(JCLiteral that) { 
         // numeric, boolean, character, String, null
         // FIXME - not sure about characters or String or class literals
         result = that;
+        if (that.typetag == TypeTags.CLASS) {
+            if (that.value instanceof Type) {
+                Type type = (Type)that.value;
+                addClassPredicate(type);
+            } else if (that.value instanceof String) {
+                String s = that.value.toString();
+                Integer i = strings.get(s);
+                if (i == null) {
+                    i = strings.size();
+                    strings.put(s,i);
+                }
+                Name n = names.fromString("STRING" + i);
+                result = factory.at(that.pos).Ident(n);
+                result.type = that.type;
+            }
+        }
     }
     
     public void visitAssign(JCAssign that) { 
         JCExpression left = trExpr(that.lhs);
         JCExpression right = trExpr(that.rhs);
-        result = doAssignment(left,right,that.pos);
+        result = doAssignment(that.type,left,right,that.pos);
     }
     
     // FIXME - embedded assignments to array elements are not implemented; no warning either
     
-    protected JCExpression doAssignment(JCExpression left, JCExpression right, int pos) {
+    protected JCExpression doAssignment(Type restype, JCExpression left, JCExpression right, int pos) {
         if (left instanceof JCIdent) {
             JCIdent id = (JCIdent)left;
             left = newIdentIncarnation(id,pos);
@@ -2896,7 +3009,7 @@ public class BasicBlocker extends JmlTreeScanner {
             JCIdent nid = newArrayIncarnation(right.type,pos);
             JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,((JCArrayAccess)left).index,right);
             expr.pos = pos;
-            expr.type = syms.booleanType;
+            expr.type = restype;
 
             // FIXME - set line and source
             JmlStatementExpr assume = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME,Label.ASSIGNMENT,expr);
@@ -2909,7 +3022,7 @@ public class BasicBlocker extends JmlTreeScanner {
             JCIdent newfield = newIdentIncarnation(oldfield,pos);
             JCExpression expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,right);
             expr.pos = pos;
-            expr.type = syms.booleanType;
+            expr.type = restype;
 
             // FIXME - set line and source
             JmlStatementExpr assume = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME,Label.ASSIGNMENT,expr);
@@ -2927,7 +3040,7 @@ public class BasicBlocker extends JmlTreeScanner {
         JCExpression right = trExpr(that.rhs);
         int op = that.getTag() - JCTree.ASGOffset;
         JCExpression e = makeBinary(op,left,right,that.pos);
-        result = doAssignment(left,e,that.pos);
+        result = doAssignment(that.type,left,e,that.pos);
     }
 
     public void visitVarDef(JCVariableDecl that) { 
@@ -3035,7 +3148,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 }
             }
             
-            addClassPredicate(that.clazz.type.tsym);
+            addClassPredicate(that.clazz.type);
 
             JCIdent oldalloc = newIdentUse((VarSymbol)allocVar.sym,pos);
             JCIdent alloc = newIdentIncarnation(allocVar,pos);
@@ -3051,7 +3164,7 @@ public class BasicBlocker extends JmlTreeScanner {
             // assume \typeof(<newid>) <: <declared type>
             ee = factory.at(pos).JmlMethodInvocation(JmlToken.BSTYPEOF,com.sun.tools.javac.util.List.<JCExpression>of(id));
             ee.type = syms.classType;
-            JCLiteral lit = makeTypeLiteral(that.clazz.type.tsym,pos); // FIXME - type arguments?
+            JCLiteral lit = makeTypeLiteral(that.clazz.type,pos); // FIXME - type arguments?
             ee = makeBinary(JCTree.EQ,ee,lit,pos);
             addAssume(Label.SYN,ee,newstatements,false);
             
@@ -3091,6 +3204,24 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     public void visitNewArray(JCNewArray that) { //that.dims, elems, elemtype
+        // that.dims - the array of explicit dimensions, if they exist; empty list if the dimensions are implicit
+        // that.elems - list of initializers
+        // that.elemtype - the element type.  This includes all implicit dimensions
+        //    but not the explicit ones.  So
+        //       new boolean[][]           dims = empty list elems != null     elemtype = boolean[]    type = boolean[][]
+        //       new boolean[3][]          dims = {3},       elems = null      elemtype = boolean[]    type = boolean[][]
+        //       new boolean[3][5]         dims = {3,5}      elems = null,     elemtype = boolean      type = boolean[][]
+        // This visit method is also called for the sub-initializers of an initializer, in which case, for example for the components of  { {1}, {2,3,4} }
+        //                                 dims = empty list elems != null     elemtype = null         type = int[]
+        
+        // First translate the initializer if it exists, since it makes recursive calls
+        List<JCExpression> newelems = null;
+        if (that.elems != null) {
+            newelems = new LinkedList<JCExpression>();
+            for (JCExpression elem: that.elems) {
+                newelems.add(trExpr(elem));
+            }
+        }
         
         // assume <oldalloc> < <newalloc>
         JCIdent oldalloc = newIdentUse((VarSymbol)allocVar.sym,that.pos);
@@ -3098,43 +3229,118 @@ public class BasicBlocker extends JmlTreeScanner {
         JCExpression e = makeBinary(JCTree.LT,oldalloc,alloc,that.pos);
         addAssume(Label.SYN,e,newstatements,false);
         
-        // assume $$newarray$<pos> != null;
-        JCIdent id = newAuxIdent("$$newarray$"+that.pos+"$",that.type,that.pos);
-        e = makeBinary(JCTree.NE,id,nullLiteral,that.pos);
+        // assume <newarray> != null;
+        JCIdent newarray = newAuxIdent("$$newarray$"+that.pos+"$",that.type,that.pos);
+        e = makeBinary(JCTree.NE,newarray,nullLiteral,that.pos);
         addAssume(Label.SYN,e,newstatements,false);
         
-        // assume $$newarray$<pos>.alloc = <newalloc>
-        e = new JmlBBFieldAccess(allocIdent,id); // FIXME pos
+        // assume <newarray>.alloc = <newalloc>
+        e = new JmlBBFieldAccess(allocIdent,newarray);
+        e.pos = that.pos;
         e.type = syms.intType;
         e = makeBinary(JCTree.EQ,e,alloc,that.pos);
         addAssume(Label.SYN,e,newstatements,false);
         
         List<JCExpression> dims = that.dims;
+        int ndims = dims.size();
+        Type arrayType = that.type;
         
-        JCExpression len;
-        if (dims.size() != 0) {
-            len = trExpr(that.dims.get(0));
-        } else {
-            len = makeLiteral(that.elems.size(),that.pos);
-        }
-            // FIXME - only handling one-D arrays // FIXME - how to encode element types
-        e = new JmlBBFieldAccess(lengthIdent,id); // FIXME pos
-        e.type = syms.intType;
-        e = makeBinary(JCTree.EQ,e,trExpr(len),that.pos);
-        addAssume(Label.SYN,e,newstatements,false);
+        ListBuffer<JCExpression> types = ListBuffer.<JCExpression>lb();
+        JCExpression intTypeTree = factory.at(that.pos).TypeIdent(TypeTags.INT);
+        intTypeTree.type = syms.intType;
+        ListBuffer<Name> inames = ListBuffer.<Name>lb();
+        JCExpression range = trueLiteral;
+        JCExpression access = null;
         
-        if (that.elems != null) {
-                int i = 0;
-                for (JCExpression ee: that.elems) {
-                    JCLiteral lit = makeLiteral(i++,ee.pos);
-                    e = new JmlBBArrayAccess(getArrayIdent(ee.type),id,lit); // FIXME - fix the type, pos
-                    e.type = ee.type; // FIXME - actually this is the type of the initializer, which may need conversion
-                    e = makeBinary(JCTree.EQ,e,trExpr(ee),ee.pos);  // FIXME - pos?
-                    addAssume(Label.SYN,e,newstatements,false);
+        if (newelems == null) {
+            // no initializer, one or more dimensions given
+            // FIXME - need to set the last elements to null
+            
+            int ind;
+            for (ind = 0; ind<ndims; ind++) {
+
+                JCExpression len = trExpr(that.dims.get(ind));
+                if (ind == 0) {
+                    // <newarray>.length == <len>
+                    e = new JmlBBFieldAccess(lengthIdent,newarray);
+                    e.pos = that.pos;
+                    e.type = syms.intType;
+                    e = makeBinary(JCTree.EQ,e,trExpr(len),that.pos);
+                    access = newarray;
+                } else {
+                    // (forall (i1::int ...) <range> => (...( <newarray> i1 ) i2 ) ... in ).length == <len> )
+                    types.append(intTypeTree);
+                    Name nm = names.fromString("i"+ind);
+                    JCIdent id = factory.at(that.pos).Ident(nm);
+                    id.type = syms.intType;
+                    inames.append(nm);
+                    range = makeBinary(JCTree.AND, range,
+                                makeBinary(JCTree.AND,
+                                      makeBinary(JCTree.LE,zeroLiteral,id,that.pos),
+                                      makeBinary(JCTree.LT,id,len,that.pos),
+                                      that.pos),
+                                that.pos);
+                    arrayType = ((ArrayType)arrayType).elemtype;
+                    JCIdent arraysID = getArrayIdent(arrayType);
+                    access = new JmlBBArrayAccess(arraysID,access,id);
+                    access.pos = that.pos;
+                    access.type = arrayType;
+                    JCExpression predicate = new JmlBBFieldAccess(lengthIdent,access);
+                    predicate.pos = that.pos;
+                    predicate.type = syms.intType;
+                    predicate = makeBinary(JCTree.AND,
+                                        makeBinary(JCTree.NE,access,nullLiteral,that.pos),
+                                        makeBinary(JCTree.EQ,predicate,trExpr(len),that.pos),that.pos);
+                    e = factory.at(that.pos).JmlQuantifiedExpr(JmlToken.BSFORALL,null,types,inames,range,predicate);
                 }
+                addAssume(Label.SYN,e,newstatements,false);
+            }
+            // (forall (i1::int ...) (...( <newarray> i1 ) i2 ) ... in ) != null )
+            arrayType = ((ArrayType)arrayType).elemtype;
+            if (arrayType instanceof ArrayType) {
+                types.append(intTypeTree);
+                Name nm = names.fromString("i"+ind);
+                JCIdent id = factory.at(that.pos).Ident(nm);
+                id.type = syms.intType;
+                inames.append(nm);
+                JCIdent arraysID = getArrayIdent(arrayType);
+                access = new JmlBBArrayAccess(arraysID,access,id);
+                access.pos = that.pos;
+                access.type = arrayType;
+                e = makeBinary(JCTree.EQ,access,nullLiteral,that.pos);
+                e = factory.at(that.pos).JmlQuantifiedExpr(JmlToken.BSFORALL,null,types,inames,trueLiteral,e);
+                addAssume(Label.SYN,e,newstatements,false);
+            }
+            
+
+        } else {
+            // an initializer, but no dimensions given
+
+            int num = newelems.size();
+            JCExpression len = makeLiteral(num,that.pos);
+
+            // <newarray>.length == <len>
+            e = new JmlBBFieldAccess(lengthIdent,newarray);
+            e.pos = that.pos;
+            e.type = syms.intType;
+            e = makeBinary(JCTree.EQ,e,trExpr(len),that.pos);
+            addAssume(Label.SYN,e,newstatements,false);
+
+            int i = 0;
+            for (JCExpression ee: newelems) {
+                // create an assumption about each element of the new array, 
+                // given the initializer value (which might be a new array itself)
+                JCLiteral lit = makeLiteral(i++,ee.pos);
+                e = new JmlBBArrayAccess(getArrayIdent(ee.type),newarray,lit);
+                e.pos = ee.pos;
+                e.type = ee.type;
+                e = makeBinary(JCTree.EQ,e,ee,ee.pos);
+                addAssume(Label.SYN,e,newstatements,false);
+            }
         }
-        result = id;
+        result = newarray;
     }
+    
     
     // FIXME
     public void visitTypeIdent(JCPrimitiveTypeTree that) { notImpl(that); }
@@ -3182,17 +3388,27 @@ public class BasicBlocker extends JmlTreeScanner {
                 result = makeLiteral(true,that.pos);
                 break;
                 
+            case BSEXCEPTION:
+                if (exceptionVar == null) {
+                    // FIXME -error
+                    System.out.println("EXCEPTION VAR IS NULL");
+                    result = null;
+                } else {
+                    result = newIdentUse((VarSymbol)exceptionVar.sym,that.pos);
+                }
+                break;
+                
             case BSLOCKSET:
             case BSSAME:
             case BSNOTSPECIFIED:
             case BSNOTHING:
             case BSEVERYTHING:
-                Log.instance(context).error(that.pos, "jml.unimplemented.construct",that.token.internedName(),"JmlRac.visitJmlSingleton");
+                Log.instance(context).error(that.pos, "jml.unimplemented.construct",that.token.internedName(),"BasicBlocker.visitJmlSingleton");
                 // FIXME - recovery possible?
                 break;
 
             default:
-                Log.instance(context).error(that.pos, "jml.unknown.construct",that.token.internedName(),"JmlRac.visitJmlSingleton");
+                Log.instance(context).error(that.pos, "jml.unknown.construct",that.token.internedName(),"BasicBlocker.visitJmlSingleton");
             // FIXME - recovery possible?
                 break;
         }
@@ -3269,7 +3485,26 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     // FIXME - how are these checked for definedness?
-    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that)     { notImpl(that); }
+    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        JmlToken op = that.op;
+        if (op == JmlToken.BSFORALL || op == JmlToken.BSEXISTS) {
+            JCExpression prevCondition = condition;
+            try {
+                JCExpression range = trExpr(that.range);
+                condition = makeBinary(JCTree.AND,condition,range,condition.pos);
+                JCExpression predicate = trExpr(that.predicate);
+                JmlQuantifiedExpr now = factory.at(that.pos).JmlQuantifiedExpr(op,that.modifiers,that.localtypes,that.names,range,predicate);
+                now.type = that.type;
+                result = now;
+            } finally {
+                condition = prevCondition;
+            }
+        } else {
+            result = trueLiteral;
+            notImpl(that);
+        }
+    }
+
     public void visitJmlSetComprehension(JmlSetComprehension that) { notImpl(that); }
     
     public void visitJmlLblExpression(JmlLblExpression that) {

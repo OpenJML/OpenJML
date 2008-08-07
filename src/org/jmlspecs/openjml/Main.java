@@ -273,6 +273,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlMemberEnter.preRegister(context);
         JmlFlow.preRegister(context);
         JmlAttr.preRegister(context);  // registering a JML-aware type checker
+        JmlPretty.preRegister(context);
     }
 
     /** This is overridden so that serious internal bugs are reported as OpenJML

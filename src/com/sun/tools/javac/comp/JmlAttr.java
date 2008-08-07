@@ -720,6 +720,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         tree.type = tree.operator.type.getReturnType();
         return tree;
     }
+    
+    JCIdent makeIdent(JCVariableDecl decl) {
+        JCIdent id = make.Ident(decl.name);
+        id.sym = decl.sym;
+        id.type = decl.type;
+        // id.pos = ??? FIXME
+        return id;
+    }
 
     
     /** Does a custom desugaring of the method specs.  It adds in the type
@@ -751,6 +759,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME if (specs.decl != decl) System.out.println("UNEXPECTED MISMATCH " + decl.sym + " " + specs.decl.sym);
         JavaFileObject prevSource = log.useSource(specs.decl.sourcefile);
         try {
+            JmlTree.Maker jmlF = (JmlTree.Maker)make;
             JCLiteral nulllit = make.Literal(TypeTags.BOT, null).setType(syms.objectType.constType(null));
             boolean defaultNonnull = determineDefaultNullability();
             ListBuffer<JmlMethodClause> clauses = new ListBuffer<JmlMethodClause>();
@@ -760,27 +769,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (!isNonnull && !isNullable) isNonnull = defaultNonnull;
                 else if (isNullable) isNonnull = false;
                 if (isNonnull) {
-                    JCIdent id = make.Ident(p.name);
-                    id.sym = p.sym;
-                    id.type = p.type;
+                    JCIdent id = makeIdent(p);
                     JCExpression e = makeBinary(JCTree.NE,id,nulllit,p.pos);
-                    //e.type = syms.booleanType;
-                    //currentClauseType = JmlToken.REQUIRES;
-                    //currentClauseType = null;
-                    clauses.append(((JmlTree.Maker)make).JmlMethodClauseExpr(JmlToken.REQUIRES,e));
+                    clauses.append(jmlF.JmlMethodClauseExpr(JmlToken.REQUIRES,e));
                 }
             }
             JCAnnotation nonnullAnnotation = findMod(decl.mods,JmlToken.NONNULL);
             boolean isNonnull = (nonnullAnnotation != null);
             boolean isNullable = (findMod(decl.mods,JmlToken.NULLABLE) != null);
-            JmlTree.Maker jmlF = (JmlTree.Maker)make;
             if (!isNonnull && !isNullable) isNonnull = defaultNonnull;
             else if (isNullable) isNonnull = false;
             if (isNonnull) {
                 JCExpression id = jmlF.JmlSingleton(JmlToken.BSRESULT);
                 id.type = decl.restype.type;
-                JCExpression e = make.Binary(JCTree.NE,id,nulllit);
-                id.type = syms.booleanType;
+                JCExpression e = makeBinary(JCTree.NE,id,nulllit,0);
                 if (nonnullAnnotation != null) e.pos = nonnullAnnotation.getPreferredPosition();
                 else e.pos = decl.getPreferredPosition();
                 id.pos = e.pos; // FIXME - start and end as well?
