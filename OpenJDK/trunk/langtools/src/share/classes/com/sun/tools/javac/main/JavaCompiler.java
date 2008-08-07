@@ -617,7 +617,8 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         } else {
             BufferedWriter out = new BufferedWriter(outFile.openWriter());
             try {
-                new Pretty(out, true).printUnit(env.toplevel, cdef);
+                //new Pretty(out, true).printUnit(env.toplevel, cdef);
+                Pretty.instance(out, true).printUnit(env.toplevel, cdef);  // DRC - changed to use a factory
                 if (verbose)
                     printVerbose("wrote.file", outFile);
             } finally {

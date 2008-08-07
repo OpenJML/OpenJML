@@ -48,16 +48,27 @@ import static com.sun.tools.javac.code.Flags.*;
 public class Pretty extends JCTree.Visitor {
 
     // DRC add a factory mechanism
-    /** The context key for the compiler. */
-    public static final Context.Key<Pretty> prettyKey = 
-        new Context.Key<Pretty>();
+    // The pretty-printer is called in situations (e.g. toString()) in which
+    // a compilation context is not readily available.  So to be least 
+    // invasive, we just define a factory that does not depend on the context
+    // (so it will be global to all compilation instances).  For simplicity
+    // we just put the factory in the class itself.
+    protected static Pretty cachedInstance = null;
+    
+    public static void preRegister(final Context context) {
+        cachedInstance = new Pretty(null,false); 
+    }
 
     /** Get the JavaCompiler instance for this context. */
-    public static Pretty instance(Context context, Writer out, boolean sourceOutput) {
-        Pretty instance = context.get(prettyKey);
-        if (instance == null)
-            instance = new Pretty(out,sourceOutput);
-        return instance;
+    public static Pretty instance(Writer out, boolean sourceOutput) {
+        // guard this because legacy tools might not preRegister
+        if (cachedInstance == null)
+            cachedInstance = new Pretty(out,sourceOutput);
+        return cachedInstance.inst(out,sourceOutput);
+    }
+    
+    protected Pretty inst(Writer out, boolean sourceOutput) {
+        return new Pretty(out,sourceOutput);
     }
 
     public Pretty(Writer out, boolean sourceOutput) {
