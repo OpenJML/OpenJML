@@ -170,4 +170,29 @@ public class Utils {
      */
     /*@ non_null*/
     public static final String eclipseSpecsProjectLocation = "openjml.eclipseSpecsProjectLocation";
+    
+    /** A little class to encapsulate elapsed wall-clock time */
+    public static class Timer {
+        /** Time the object was constructed or reset */
+        protected long startTime;
+        
+        /** Constructs a new object, marking the time */
+        public Timer() {
+            reset();
+        }
+        
+        /** Resets the timestamp */
+        public void reset() {
+            startTime = System.currentTimeMillis();
+        }
+        
+        /** Returns the wall-clock time elapsed since object construction or the
+         * most recent call to reset
+         * 
+         * @return elapsed time in milliseconds
+         */
+        public long elapsed() {
+            return System.currentTimeMillis() - startTime;
+        }
+    }
 }

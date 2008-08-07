@@ -7,25 +7,32 @@ import java.io.Writer;
 import org.jmlspecs.annotations.*;
 import org.jmlspecs.openjml.JmlTree.*;
 
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCImport;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 
 public class JmlPretty extends Pretty implements IJmlVisitor {
 
-// Pretty ought to be a registered tool, but since it is not we won't
-// register JmlPretty.  However, we are stuck if anyone calls 'new Pretty'
-//    public static void preRegister(final Context context) {
-//        context.put(prettyKey, new Context.Factory<Pretty>() {
-//            public Pretty make() {
-//                return new JmlPretty(context); 
-//            }
-//        });
-//    }
+    // Pretty was not originally a registered tool.  In order to be able to
+    // slide in JmlPretty, I added a registration mechanism, but see the comments
+    // in Pretty: it does not depend on context (so compiler options are not
+    // available).
+    public static void preRegister(final Context context) {
+        cachedInstance = new JmlPretty(null,false); 
+    }
+
+    protected JmlPretty inst(Writer out, boolean sourceOutput) {
+        return new JmlPretty(out,sourceOutput);
+    }
+
     
     /** The Writer to which this pretty printer prints, initialized in the
      * constructor
@@ -86,11 +93,13 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     // FIXME _ needs to fix parentheses??? Like JCBInary does???
     public void visitJmlBinary(JmlBinary that) {
         try {
+            out.write("(");
             that.lhs.accept(this);
             out.write(" ");
             out.write(that.op.internedName());
             out.write(" ");
             that.rhs.accept(this);
+            out.write(")");
         } catch (IOException e) { perr(that,e); }
     }
     
@@ -136,14 +145,22 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
 
-//    public void visitJmlFunction(JmlFunction that) {
-//        try { 
-//            out.write(that.token.internedName());
-//        } catch (IOException e) { perr(that,e); }
-//    }
-
-    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
-        // FIXME
+    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
+        try {
+            if (that.cases.size() == 1) {
+                that.cases.get(0).accept(this);
+            } else {  // FIXME - handle indenting properly
+                out.write("         {|");
+                boolean first = true;
+                for (JmlSpecificationCase t: that.cases) {
+                    if (first) first = false;
+                    else out.write("         also");
+                    t.accept(this);
+                }
+                out.write("         |}");
+            }
+            
+        } catch (IOException e) { perr(that,e); }
     }
     
 
@@ -172,22 +189,52 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
-        try { notImpl(that); // FIXME
-        } catch (IOException e) { perr(that,e); } 
+        try { 
+            out.write("         ");
+            out.write(that.token.internedName());
+            out.write(" ");
+            that.expression.accept(this);
+            if (that.predicate != null) {
+                out.write(" if ");
+                that.predicate.accept(this);
+            }
+            out.write(";");
+            println();
+        } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) {
-        try { notImpl(that);  // FIXME
+        try { 
+            out.write("         ");
+            out.write(that.token.internedName());
+            out.write(" ");
+            for (JCExpression item: that.list) item.accept(this);
+            out.write(";");
+            println();
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlMethodClauseAssignable(JmlMethodClauseAssignable that) {
-        try { notImpl(that);  // FIXME
+        try { 
+            out.write("         ");
+            out.write(that.token.internedName());
+            out.write(" ");
+            for (JCTree item: that.list) item.accept(this);
+            out.write(";");
+            println();
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
-        try { notImpl(that);  // FIXME
+        try { 
+            out.write("         ");
+            out.write(that.token.internedName());
+            out.write(" (");
+            if (that.vardef != null) that.vardef.accept(this);
+            out.write(") ");
+            that.expression.accept(this);
+            out.write(";");
+            println();
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -250,20 +297,23 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlStatementLoop(JmlStatementLoop that) {
-        try { notImpl(that);  // FIXME
+        try { 
+            out.write("         ");
+            out.write(that.token.internedName());
+            out.write(" ");
+            that.expression.accept(this);
+            out.write(";");
+            println();
         } catch (IOException e) { perr(that,e); }
-        
     }
 
     public void visitJmlStatementSpec(JmlStatementSpec that) {
-        try { notImpl(that);  // FIXME
-        } catch (IOException e) { perr(that,e); }
-        
+        that.statementSpecs.accept(this);
     }
 
     public void visitJmlStatementExpr(JmlStatementExpr that) {
         try { 
-            if (useJMLComments) print ("/*@ ");
+            if (useJMLComments) print ("/*@ ");  // FIXME - this is needed in lots more places
             print(that.token.internedName());
             print(" ");
             if (that.label != null && !sourceOutput) {
@@ -319,7 +369,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
         try { 
-            out.write(that.token.internedName());  // FIXME - indent, eol
+            that.specs.accept(this);
+            out.write(that.token.internedName());
+            out.write(" {}");
+            println();
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -374,7 +427,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 out.write(" .. ");
                 that.hi.accept(this);
             }
-        } catch (Exception e) {}
+        } catch (IOException e) { perr(that,e); }
     }
 
 //    @Override
@@ -435,87 +488,91 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
+        for (JmlStatementLoop s: that.loopSpecs) {
+            s.accept(this);
+        }
         super.visitDoLoop(that);
-        // TODO Auto-generated method stub
         
     }
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
+        for (JmlStatementLoop s: that.loopSpecs) {
+            s.accept(this);
+        }
         super.visitForeachLoop(that);
-        // TODO Auto-generated method stub
-        
     }
 
     public void visitJmlForLoop(JmlForLoop that) {
+        for (JmlStatementLoop s: that.loopSpecs) {
+            s.accept(this);
+        }
         super.visitForLoop(that);
-        // TODO Auto-generated method stub
-        
     }
 
     public void visitJmlWhileLoop(JmlWhileLoop that) {
+        for (JmlStatementLoop s: that.loopSpecs) {
+            s.accept(this);
+        }
         super.visitWhileLoop(that);
-        // TODO Auto-generated method stub
-        
     }
 
     public void visitJmlClassDecl(JmlClassDecl that) {
-        visitClassDef(that);  // FIXME
+        // FIXME - does this print the class specs?
+        visitClassDef(that);
     }
 
     public void visitJmlCompilationUnit(JmlCompilationUnit tree) {
-        // Duplicated from the super class in order to insert printing the refines statement
+        // Duplicated from the super class in order to insert printing the refines statement - MAINTENANCE
         try {
-        printDocComment(tree);
-        if (tree.pid != null) {
-            print("package ");
-            printExpr(tree.pid);
-            print(";");
-            println();
-        }
-        if (tree.refinesClause != null) {
-            tree.refinesClause.accept(this);
-        }
-        boolean firstImport = true;
-        for (List<JCTree> l = tree.defs;
-        l.nonEmpty();
-        l = l.tail) {
-            if (l.head.getTag() == JCTree.IMPORT) {
-                JCImport imp = (JCImport)l.head;
-                Name name = TreeInfo.name(imp.qualid);
-                if (true) {
-                    if (firstImport) {
-                        firstImport = false;
-                        println();
-                    }
-                    printStat(imp);
-                }
-            } else {
-                printStat(l.head);
+            printDocComment(tree);
+            if (tree.pid != null) {
+                print("package ");
+                printExpr(tree.pid);
+                print(";");
+                println();
             }
-        }
+            if (tree.refinesClause != null) {
+                tree.refinesClause.accept(this);
+            }
+            boolean firstImport = true;
+            for (List<JCTree> l = tree.defs; l.nonEmpty(); l = l.tail) {
+                if (l.head.getTag() == JCTree.IMPORT) {
+                    JCImport imp = (JCImport)l.head;
+                    if (true) {
+                        if (firstImport) {
+                            firstImport = false;
+                            println();
+                        }
+                        printStat(imp);
+                    }
+                } else {
+                    printStat(l.head);
+                }
+            }
         } catch (IOException e) {
             perr(tree,e);
         }
     }
 
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-        visitMethodDef(that);  // FIXME
+        if (that.methodSpecs != null) that.methodSpecs.accept(this);
+        visitMethodDef(that);
     }
 
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-        visitVarDef(that);  // FIXME
+        visitVarDef(that);  // FIXME - print field specs
     }
-
-//    public void visitAuxVarDSA(AuxVarDSA that) {
-//        try {
-//            out.write(that.toString());
-//        } catch(IOException e) {}
-//    }
-//
-//    public void visitProgVarDSA(ProgVarDSA that) {
-//        try {
-//            out.write(that.toString());
-//        } catch(IOException e) {}
-//    }
+    
+    public void visitLiteral(JCLiteral that) {
+        if (that.value instanceof Type) {
+            try {
+                print(that.value.toString());
+            } catch (IOException e) {
+                perr(that,e);
+            }
+        } else {
+            super.visitLiteral(that);
+        }
+    }
 
 }

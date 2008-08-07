@@ -12,8 +12,11 @@ import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.esc.BasicBlocker;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.Type.ArrayType;
+import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Log;
@@ -101,12 +104,52 @@ public class YicesJCExpr extends JmlTreeScanner {
     public void visitIdent(JCIdent that) {
         // Make sure the id is defined.
         // Emit it simply as its string
-        try {
-            p.define(that.toString(),that.type);
-        } catch (ProverException e) {
-            throw new RuntimeException(e);
-        }
+        try { 
+            p.rawdefine(that.toString(),convertIdentType(that));
+        } catch (ProverException e) { System.out.println("PROVER ERROR");   }
         result.append(that.toString());
+    }
+    
+    public static String convertIdentType(JCIdent that) {
+        Type t = that.type;
+        String s;
+        if (t.isPrimitive()) {
+            s = convertExprType(t);
+        } else if (t.tag == TypeTags.ARRAY) {
+            s =  BasicBlocker.encodeType(t);
+        } else {
+            s = "REF"; // FIXME
+        }
+        if (that.sym != null && that.sym.owner instanceof Symbol.ClassSymbol && !that.sym.isStatic() ) {
+            // If at this point s is a new type, it won't get defined  FIXME
+            // FIXME - the translating of types is a MESS - some here some in YicesProver some in BasicBlocker
+            s = "(-> REF " + s + ")";
+        }
+        return s;
+    }
+    
+    public static String convertExprType(Type t) {
+        String s;
+        if (!t.isPrimitive()) {
+            if (t instanceof ArrayType) {
+                t = ((ArrayType)t).getComponentType();
+//                s = convertType(t);
+//                s = "(-> int " + s + ")";
+                s = "refA$" + convertExprType(t);
+            } else {
+                s = "REF";
+            }
+        } else if (t.tag == TypeTags.BOOLEAN) {
+            s = "bool";
+        } else if (t.tag == TypeTags.INT){
+            s = "int";
+        } else if (t.tag == TypeTags.CHAR){
+            s = "int";
+        } else {
+            s = "int";
+        }
+        return s;
+
     }
         
     @Override
@@ -121,14 +164,18 @@ public class YicesJCExpr extends JmlTreeScanner {
         // Should only get these: boolean, int, class, null, ...
         // FIXME - characters, strings? others?
         switch (that.typetag) {
-            case TypeTags.CLASS:  // FIXME - generic
-                String s = "T$" + ((Type)that.value).toString();
-                int k = s.indexOf("<");
-                if (k>=0) s = s.substring(0,k);
-//                s = s.replace("[<]","$|");
-//                s = s.replace("[>]","|$");
-                define(s,YicesProver.TYPE);
-                result.append(s);
+            case TypeTags.CLASS:
+                if (that.value instanceof Type) {
+                    String s = "T$" + ((Type)that.value).toString();
+                    s = s.replace("[]","$$A");
+                    s = s.replace("<","$_");
+                    s = s.replace(",","..");
+                    s = s.replace(">","_$");
+                    define(s,YicesProver.TYPE);
+                    result.append(s);
+                } else {
+                    result.append(that.toString());
+                }
                 break;
             default:
                 result.append(that.toString());
@@ -170,7 +217,7 @@ public class YicesJCExpr extends JmlTreeScanner {
                     for (JCExpression e: that.args) {
                         s = s + " " + p.convertType(e.type);
                     }
-                    s = s + " " + p.convertType(that.meth.type) + "))\n";
+                    s = s + " " + p.convertType(that.type) + "))\n";
                     try {
                         p.send(s);
                         p.eatPrompt();
@@ -195,36 +242,42 @@ public class YicesJCExpr extends JmlTreeScanner {
             JCExpression arr = that.args.get(2);
             JCExpression index = that.args.get(3);
             JCExpression rhs = that.args.get(4);
-            Type t = rhs.type;
-            String s = BasicBlocker.encodeType(t);
-            String ty = "array$" + s;
-            try {
-                if (!p.checkAndDefine(ty)) {
-                    p.send("(define-type " + ty + ")\n");
-                    p.eatPrompt();
-                }
-                if (!p.checkAndDefine(newarrs.toString())) {
-                    // Was not already defined
-                    p.send("(define " + newarrs + "::(-> " + ty + "  int " + s + "))\n");
-                    p.eatPrompt();
-                } 
-                if (!p.checkAndDefine(oldarrs.toString())) {
-                    // Was not already defined
-                    p.send("(define " + oldarrs + "::(-> " + ty + "  int " + s + "))\n");
-                    p.eatPrompt();
-                } 
+            
+            // One might think that rhs.type could be used as the element type,
+            // but no, there might be some conversions that happen.  In particular,
+            // rhs may be a null literal.
+            // Of course - what if arr is a null literal ?  FIXME
+            //System.out.println("BBASSIGN TYPES " + that.type + " " + arr.type + " " + rhs.type);
+            Type t = ((ArrayType)arr.type).elemtype;
+            defineArrayTypesIfNeeded(t,oldarrs.toString(),newarrs.toString());
+            
+            {
+                // 2-D array formulation
+//                result.append("(= " + newarrs);
+//                result.append(" (update ");
+//                result.append(oldarrs);
+//                result.append(" (");
+//                arr.accept(this);
+//                result.append(" ");
+//                index.accept(this);
+//                result.append(") ");
+//                rhs.accept(this);
+//                result.append("))");
+                // (= newarrs (update oldarrs (arr) (update (oldarrs arr) (index) value)))
                 result.append("(= " + newarrs);
                 result.append(" (update ");
                 result.append(oldarrs);
                 result.append(" (");
                 arr.accept(this);
+                result.append(") (update (");
+                result.append(oldarrs);
                 result.append(" ");
+                arr.accept(this);
+                result.append(") (");
                 index.accept(this);
                 result.append(") ");
                 rhs.accept(this);
-                result.append("))");
-            } catch (ProverException e) {
-                throw new RuntimeException(e);
+                result.append(")))");
             }
         } else if (that instanceof JmlBBFieldAssignment) {
             JCIdent newfield = (JCIdent)that.args.get(0);
@@ -423,32 +476,48 @@ public class YicesJCExpr extends JmlTreeScanner {
         }
         // FIXME - document
         JCIdent arraysId = ((JmlBBArrayAccess)that).arraysId;
-        Type t = that.type;
-        String s = BasicBlocker.encodeType(t);
         String arr = arraysId.toString();
-        String ty = "array$" + s;
+
+        defineArrayTypesIfNeeded(that.type,arr);
+        
+        result.append("((");
+        result.append(arr);
+        result.append(" ");
+        that.indexed.accept(this);
+        result.append(") ");
+        that.index.accept(this);
+        result.append(")");
+    }
+    
+    protected void defineArrayTypesIfNeeded(Type componenttype, String... ids) {
+        if (componenttype instanceof ArrayType)
+            defineArrayTypesIfNeeded( ((ArrayType)componenttype).elemtype );
         try {
-            if (!p.checkAndDefine(ty)) {
-                // Was not already defined
-                p.send("(define-type " + ty + ")\n");
-                p.eatPrompt();
-            }
-            if (!p.checkAndDefine(arr)) {
-                // Was not already defined
-                p.send("(define " + arr + "::(-> " + ty + "  int " + s + "))\n");
-                p.eatPrompt();
+            String comptype = BasicBlocker.encodeType(componenttype);
+//            String tyy = "array$" + comptype;
+//            if (!p.checkAndDefine(tyy)) {
+//                // Was not already defined
+//                p.send("(define-type " + tyy + " (-> int "+comptype+"))\n");
+//                p.eatPrompt();
+//            }
+            String ty = "refA$" + comptype;
+            p.defineType(componenttype);
+//            if (!p.checkAndDefine(ty)) {
+//                // Was not already defined
+//                p.send("(define-type " + ty + " (subtype (a:ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))\n");
+//                p.eatPrompt();
+//            }
+            for (String arr: ids) {
+                if (!p.checkAndDefine(arr)) {
+                    // Was not already defined
+                    p.send("(define " + arr + "::(-> " + ty + " (-> int "+comptype+")))\n");
+                    p.eatPrompt();
+                }
             }
         } catch (ProverException e) {
             throw new RuntimeException(e);
         }
 
-        result.append("(");
-        result.append(arr);
-        result.append(" ");
-        that.indexed.accept(this);
-        result.append(" ");
-        that.index.accept(this);
-        result.append(")");
     }
     
     @Override
@@ -509,13 +578,15 @@ public class YicesJCExpr extends JmlTreeScanner {
     }
     
     @Override
-    public void visitTypeTest(JCInstanceOf that) {
-        System.out.println("INSTASNCEOF SHOULD NOT BE CALLED"); // FIXME
+    public void visitTypeCast(JCTypeCast that) {
+        that.expr.accept(this);
+        System.out.println("TYPER CAST NOT IMPLEMENTED"); // FIXME
     }
     
     @Override
-    public void visitTypeCast(JCTypeCast that) {
-        System.out.println("TYPER CAST NOT IMPLEMENTED"); // FIXME
+    public void visitTree(JCTree tree) {
+        Exception e = new ProverException("Did not expect to call a visit method in YicesJCExpr: " + tree.getClass());
+        throw new RuntimeException(e);
     }
     
 }

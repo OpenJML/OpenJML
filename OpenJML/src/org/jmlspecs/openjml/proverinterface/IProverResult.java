@@ -12,6 +12,10 @@ public interface IProverResult {
   /** The logical assertions were satisfiable */
   static public final Kind SAT = new Kind();
   
+  /** The logical assertions were satisfiable, but since the logic engine
+   * is incomplete, the counterexample may actually be spurious */
+  static public final Kind POSSIBLYSAT = new Kind();
+  
   /** The logical assertions were not satisfiable */
   static public final Kind UNSAT = new Kind();
   

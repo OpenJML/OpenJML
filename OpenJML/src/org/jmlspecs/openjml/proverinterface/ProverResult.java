@@ -36,7 +36,7 @@ public class ProverResult implements IProverResult {
      */
     //@ ensures \result == (result() == SAT);
     public boolean isSat() {
-        return result == SAT;
+        return result == SAT || result == POSSIBLYSAT;
     }
     
     /** The details of the result 

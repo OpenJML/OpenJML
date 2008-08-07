@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.proverinterface.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
@@ -35,7 +36,7 @@ public class YicesProver implements IProver {
     
     /** A debugging flag - 0 = show nothing; 1 = show errors; 2 = show something; 3 = show everything */
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_SHOULD_BE_FINAL")
-    static protected int showCommunication = 2;
+    static protected int showCommunication = 1;
     
     /** The process that is the actual prover */
     protected Process process = null;
@@ -54,7 +55,7 @@ public class YicesProver implements IProver {
     
     /** A buffer to hold input */
     /*@ non_null */
-    protected CharBuffer buf = CharBuffer.allocate(10000);
+    protected CharBuffer buf = CharBuffer.allocate(100000);
 
     /** A handy StringBuilder to build strings internally */
     /*@ non_null */
@@ -79,6 +80,7 @@ public class YicesProver implements IProver {
     /** Creates and starts the prover process, sending any startup information */
     public YicesProver(Context context) throws ProverException {
         translator = new YicesJCExpr(this);
+        if (org.jmlspecs.openjml.esc.JmlEsc.escdebug && showCommunication <= 1) showCommunication = 2;
         start();
     }
     
@@ -87,26 +89,26 @@ public class YicesProver implements IProver {
     private final static String backgroundPredicate =
           "(define-type REF) (define null::REF) "
         + "(define length::(-> REF int)) (assert (forall (a::REF) (>= (length a) 0)))"
+        + "(define isArray::(-> REF bool)) (define-type ARRAY (subtype (r::REF) (isArray r)))"
+        + "(define isType::(-> REF bool))"
         + "(define length$0::(-> REF int)) (assert (= length length$0))"
-        + "(define-type "+TYPE+")"
+        + "(define-type "+TYPE+"  (subtype (r::REF) (isType r)))"
         + "(define "+TYPEOF+"::(-> REF "+TYPE+"))"
         + "(define "+SUBTYPE+"::(-> "+TYPE+" "+TYPE+" bool))"
         + "(assert (forall (t::" + TYPE + ") ("+SUBTYPE + " t t)))"
-        + "(assert (forall (t1::" + TYPE + " t2::" + TYPE + ") (=> (and ("+SUBTYPE + " t1 t2)("+SUBTYPE + " t2 t1)) (=  t1 t2)) ))"
+        + "(assert (forall (t1::" + TYPE + " t2::" + TYPE + ") (= (and ("+SUBTYPE + " t1 t2) ("+SUBTYPE + " t2 t1)) (=  t1 t2)) ))"
         + "(assert (forall (t1::" + TYPE + " t2::" + TYPE + " t3::" + TYPE + ") (=> (and ("+SUBTYPE + " t1 t2)("+SUBTYPE + " t2 t3)) ("+SUBTYPE + " t1 t3)) ))"
         + "(define idiv::(-> int int int)) (define rdiv::(-> real real real))"
         + "(define imod::(-> int int int)) (define rmod::(-> real real real))"
         + "(define imul::(-> int int int)) (define rmul::(-> real real real))"
         + "(assert (forall (i::int j::int) (= (imul i j) (imul j i)) ))"
-        + "(assert (forall (i::int j::int) (=> (> j 0) (= (imod (imul i j) j)) 0) ))"
+        + "(assert (forall (i::int j::int) (=> (> j 0) (= (imod (imul i j) j) 0)) ))"
         + "(define distinct$::(-> "+TYPE+" int))"
-//        + "(define T$java.lang.RuntimeException::"+TYPE+")" + "(assert (= (distinct$ T$java.lang.RuntimeException) 0))"
-//        + "(define T$java.lang.Exception::"+TYPE+")" + "(assert (= (distinct$ T$java.lang.Exception) 1))"
-//        + "(assert ("+SUBTYPE+" T$java.lang.RuntimeException T$java.lang.Exception))"
+        + "(define T$java.lang.Object$$A::"+TYPE+") (assert (= (distinct$ T$java.lang.Object$$A) 99))"
         + "\n";
     
     private final static String[] predefined = { TYPE, TYPEOF, SUBTYPE, "length", "length$0", "idiv", "rdiv", "imod", "rmod", "imul", "rmul",
-//        "T$java.lang.RuntimeException","T$java.lang.Exception"
+        "ARRAY", "bool", "int", "REF", "T$java.lang.Object$$A"
         };
     
     /** Does the startup work */
@@ -119,7 +121,7 @@ public class YicesProver implements IProver {
         try {
             // The interactive mode is used so that we get a prompt back, thereby
             // knowing when we have received the prover's response
-            process = Runtime.getRuntime().exec(new String[]{app,"-i","-e","-v","0"});
+            process = Runtime.getRuntime().exec(new String[]{app,"-i","-tc","-e","-v","2"});
         } catch (IOException e) {
             process = null;
             throw new ProverException("Failed to launch prover process: " + app + " " + e);
@@ -174,8 +176,12 @@ public class YicesProver implements IProver {
                 if (buf.position() > 0) {
                     buf.limit(buf.position());
                     buf.rewind();
-                    if (!buf.toString().startsWith("\nWARNING"))
-                        throw new ProverException("Prover error message: " + buf);
+                    String sbuf = buf.toString();
+                    if (!sbuf.startsWith("\nWARNING") &&
+                            !sbuf.startsWith("Yices (version") &&
+                            !sbuf.startsWith("searching")) {
+                        throw new ProverException("Prover error message: " + sbuf);
+                    }
                 }
                 buf.clear();
             }
@@ -264,9 +270,7 @@ public class YicesProver implements IProver {
         if (!t.isPrimitive()) {
             if (t instanceof ArrayType) {
                 t = ((ArrayType)t).getComponentType();
-//                s = convertType(t);
-//                s = "(-> int " + s + ")";
-                s = "array$" + convertType(t);
+                s = "refA$" + convertType(t);
             } else {
                 s = "REF";
             }
@@ -303,19 +307,40 @@ public class YicesProver implements IProver {
         top.add(id);
         return false;
     }
+    
+    public String defineType(Type t) {
+        String s = convertType(t);
+        if (checkAndDefine(s)) return s; // DO nothing if already defined
+        if (t.tag == TypeTags.ARRAY) {
+            Type ct = ((ArrayType)t).elemtype;
+            if (ct instanceof ArrayType) defineType(ct);
+            builder.append("(define-type " + s + " (subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))");
+        } else {
+            builder.append("(define-type ");
+            builder.append(s);
+            builder.append(") ");
+        }
+        return s;
+    }
+
+    public String defineType(String s, boolean array) {
+        if (checkAndDefine(s)) return s; // DO nothing if already defined
+        if (array) {
+            String cs = s.substring("refA$".length());
+            defineType(cs,cs.startsWith("refA"));
+            builder.append("(define-type " + s + " (subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))");
+        } else {
+            builder.append("(define-type ");
+            builder.append(s);
+            builder.append(") ");
+        }
+        return s;
+    }
 
     public void define(String id, Type t) throws ProverException {
         if (checkAndDefine(id)) return; // DO nothing if already defined
         builder.setLength(0);
-        String s = convertType(t);
-        if (s.indexOf('$') != -1) {
-            // A user-defined type
-            if (!checkAndDefine(s)) {
-                builder.append("(define-type ");
-                builder.append(s);
-                builder.append(") ");
-            }
-        }
+        String s = defineType(t);
         builder.append("(define ");
         builder.append(id);
         builder.append("::");
@@ -340,14 +365,7 @@ public class YicesProver implements IProver {
     public boolean rawdefine(String id, String typeString) throws ProverException {
         if (checkAndDefine(id)) return true; // DO nothing if already defined
         builder.setLength(0);
-        if (typeString.indexOf('$') != -1) {
-            // A user-defined type
-            if (!checkAndDefine(typeString)) {
-                builder.append("(define-type ");
-                builder.append(typeString);
-                builder.append(") ");
-            }
-        }
+        if (!typeString.startsWith("(")) defineType(typeString,typeString.startsWith("refA"));
         builder.append("(define ");
         builder.append(id);
         builder.append("::");
@@ -378,16 +396,21 @@ public class YicesProver implements IProver {
     /** A pattern to interpret Yices counterexample information */
     static private Pattern pattern = Pattern.compile("\\(=[ ]+(.+)[ ]+([^)]+)\\)");
 
+    //Utils.Timer timer = new Utils.Timer();
+
     public IProverResult check() throws ProverException {
+        //timer.reset();
         send("(check)\n");
         String output = eatPrompt();
+        //System.out.println("CHECK TIME " + timer.elapsed()/1000.);
         boolean sat = output.startsWith("sat");
         boolean unknown = output.startsWith("unknown");
         boolean unsat = output.startsWith("unsat");
         if (sat == unsat && !unknown) throw new ProverException("Improper response to (check) query: \"" + output + "\"");
         ProverResult r = new ProverResult();
         if (sat || unknown) {
-            r.result(ProverResult.SAT);
+            if (unknown) r.result(ProverResult.POSSIBLYSAT);
+            else r.result(ProverResult.SAT);
             Counterexample ce = new Counterexample();
             Matcher m = pattern.matcher(output);
             while (m.find()) {

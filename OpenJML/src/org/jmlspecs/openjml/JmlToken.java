@@ -120,6 +120,7 @@ public enum JmlToken {
     WEAKLY("weakly"),
     
     // These are various tokens related to JML expressions
+    BSEXCEPTION("\\exception"), // This is for internal use only, so it is before \result
     BSRESULT("\\result"), // Keep this one the first of the backslash tokens
     BSEVERYTHING("\\everything"),
     BSLOCKSET("\\lockset"),
@@ -262,6 +263,7 @@ public enum JmlToken {
         for (JmlToken t: JmlToken.values()) {
             allTokens.put(t.internedName(),t);
         }
+        allTokens.remove(BSEXCEPTION.internedName());
         modifiers.add(BSREADONLY);
         
         // Synonyms
