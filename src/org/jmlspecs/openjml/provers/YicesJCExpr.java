@@ -4,6 +4,7 @@ import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
+import org.jmlspecs.openjml.JmlTree.JmlBBArrayHavoc;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
@@ -110,12 +111,13 @@ public class YicesJCExpr extends JmlTreeScanner {
         result.append(that.toString());
     }
     
-    public static String convertIdentType(JCIdent that) {
+    public String convertIdentType(JCIdent that) {
         Type t = that.type;
         String s;
         if (t.isPrimitive()) {
             s = convertExprType(t);
         } else if (t.tag == TypeTags.ARRAY) {
+            defineArrayTypesIfNeeded(t);
             s =  BasicBlocker.encodeType(t);
         } else {
             s = "REF"; // FIXME
@@ -177,6 +179,9 @@ public class YicesJCExpr extends JmlTreeScanner {
                     result.append(that.toString());
                 }
                 break;
+            case TypeTags.BOT:
+                result.append("NULL");
+                break;
             default:
                 result.append(that.toString());
         }
@@ -215,9 +220,9 @@ public class YicesJCExpr extends JmlTreeScanner {
                     // Was not already defined
                     String s = "(define " + that.meth + "::(->";
                     for (JCExpression e: that.args) {
-                        s = s + " " + p.convertType(e.type);
+                        s = s + " " + p.defineType(e.type);
                     }
-                    s = s + " " + p.convertType(that.type) + "))\n";
+                    s = s + " " + p.defineType(that.type) + "))\n";
                     try {
                         p.send(s);
                         p.eatPrompt();
@@ -252,17 +257,6 @@ public class YicesJCExpr extends JmlTreeScanner {
             defineArrayTypesIfNeeded(t,oldarrs.toString(),newarrs.toString());
             
             {
-                // 2-D array formulation
-//                result.append("(= " + newarrs);
-//                result.append(" (update ");
-//                result.append(oldarrs);
-//                result.append(" (");
-//                arr.accept(this);
-//                result.append(" ");
-//                index.accept(this);
-//                result.append(") ");
-//                rhs.accept(this);
-//                result.append("))");
                 // (= newarrs (update oldarrs (arr) (update (oldarrs arr) (index) value)))
                 result.append("(= " + newarrs);
                 result.append(" (update ");
@@ -308,8 +302,68 @@ public class YicesJCExpr extends JmlTreeScanner {
             } catch (ProverException e) {
                 throw new RuntimeException(e);
             }
+        } else if (that instanceof JmlBBArrayHavoc) {
+            JCIdent newarrs = (JCIdent)that.args.get(0);
+            JCIdent oldarrs = (JCIdent)that.args.get(1);
+            JCExpression arr = that.args.get(2);
+            JCExpression indexlo = that.args.get(3);
+            JCExpression indexhi = that.args.get(4);
+            JCExpression precondition = that.args.get(5);
+            boolean above = ((JmlBBArrayHavoc)that).above;
+            
+            // One might think that rhs.type could be used as the element type,
+            // but no, there might be some conversions that happen.  In particular,
+            // rhs may be a null literal.
+            // Of course - what if arr is a null literal ?  FIXME
+            //System.out.println("BBASSIGN TYPES " + that.type + " " + arr.type + " " + rhs.type);
+            Type t = ((ArrayType)arr.type).elemtype;
+            defineArrayTypesIfNeeded(t,oldarrs.toString(),newarrs.toString());
+            
+            {
+                // (and (forall (b::<a type>) (=> (/= b a) (= (newarrs b) (oldarrs b)) ))
+                //      (/= (newarrs a) (oldarrs a))
+                //      (forall (i::int) (=> (not <precondition && i in range>) (= ((newarrs a) i) ((oldarrs a) i)))))
+                result.append("(and (forall (b::");
+                result.append(p.defineType(arr.type));
+                result.append(") (=> (/= b ");
+                arr.accept(this);
+                result.append(") (= (");
+                result.append(newarrs);
+                result.append(" b) (");
+                result.append(oldarrs);
+                result.append(" b))))");
+                
+                result.append("(/= (");
+                result.append(newarrs);
+                result.append(" ");
+                arr.accept(this);
+                result.append(") (");
+                result.append(oldarrs);
+                result.append(" ");
+                arr.accept(this);
+                result.append("))");
+                
+                result.append("(forall (i::int) (=> (not (and ");
+                precondition.accept(this);
+                result.append(" (<= ");
+                indexlo.accept(this);
+                result.append(" i) (");
+                result.append(above ? "<" : "<=");
+                result.append(" i ");
+                indexhi.accept(this);
+                result.append("))) (= ((");
+                result.append(newarrs);
+                result.append(" ");
+                arr.accept(this);
+                result.append(") i) ((");
+                result.append(oldarrs);
+                result.append(" ");
+                arr.accept(this);
+                result.append(") i)))))");
+            }
         } else {
-            // FIXME - what might this be
+            // FIXME
+            System.out.println("UNEXPECTED");
         }
     }
     
@@ -501,12 +555,11 @@ public class YicesJCExpr extends JmlTreeScanner {
 //                p.eatPrompt();
 //            }
             String ty = "refA$" + comptype;
-            p.defineType(componenttype);
-//            if (!p.checkAndDefine(ty)) {
-//                // Was not already defined
-//                p.send("(define-type " + ty + " (subtype (a:ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))\n");
-//                p.eatPrompt();
-//            }
+            if (!p.checkAndDefine(ty)) {
+                // Was not already defined
+                p.send("(define-type " + ty + " (subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))\n");
+                p.eatPrompt();
+            }
             for (String arr: ids) {
                 if (!p.checkAndDefine(arr)) {
                     // Was not already defined
@@ -528,8 +581,8 @@ public class YicesJCExpr extends JmlTreeScanner {
         // FIXME - document
         JCIdent fieldId = ((JmlBBFieldAccess)that).fieldId;
         Type t = that.type;
-        String s = BasicBlocker.encodeType(t);
         try {
+            String s = p.defineType(t);
             if (!p.checkAndDefine(fieldId.toString())) {
                 // Was not already defined
                 p.send("(define " + fieldId + "::(-> REF " + s + "))\n");
@@ -559,7 +612,7 @@ public class YicesJCExpr extends JmlTreeScanner {
             for (Name n: that.names) {
                 JCExpression localtype = localtypes.head;
                 localtypes = localtypes.tail;
-                ytype = p.convertType(localtype.type);
+                ytype = p.defineType(localtype.type);
 
                 result.append(n.toString());
                 result.append("::");
@@ -579,8 +632,13 @@ public class YicesJCExpr extends JmlTreeScanner {
     
     @Override
     public void visitTypeCast(JCTypeCast that) {
+        result.append("(");
+        result.append(YicesProver.CAST);
+        result.append(" ");
         that.expr.accept(this);
-        System.out.println("TYPER CAST NOT IMPLEMENTED"); // FIXME
+        result.append(" ");
+        that.clazz.accept(this);
+        result.append(")");
     }
     
     @Override

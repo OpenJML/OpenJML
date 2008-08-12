@@ -1253,8 +1253,13 @@ public class JmlParser extends EndPosParser {
     }
     
     /** Parses ("\|nothing"|"\\everything"|"\\not_specified"| <store-ref> [ "," <store-ref> ]* ) ";" 
+     * <BR>
+     * a store-ref
+     *  is a JCIdent, a JCSelect (potentially with a null field), or a JmlStoreRefArrayRange;
+     *  there may be more than one use of a JmlStoreRefArrayRange, e.g. a[2..3][4..5] or
+     *  a.f[4..5].g[6..7]
      * @param strictId if true, keywords and wildcards are not allowed
-     * @return list of zero or more store-refs or a list of one store-ref-keyword
+     * @return list of zero or more store-refs or a list of one store-ref-keyword; 
      */
     protected ListBuffer<JCTree> parseStoreRefList(boolean strictId) {
         JmlToken jt = S.jmlToken();
@@ -1275,6 +1280,7 @@ public class JmlParser extends EndPosParser {
             } else if (S.token() == SEMI) {
                 return list;
             } else if (S.jmlToken == ENDJMLCOMMENT) {
+                // The missing semi-colon is reported by the caller
                 return list;
             } else {
                 syntaxError(S.pos(),null,"jml.missing.comma"); 
@@ -1295,11 +1301,12 @@ public class JmlParser extends EndPosParser {
             JCExpression e = (JCExpression)ss;
             while (true) {
                 if (S.token() == Token.DOT) {
+                    int dotpos = S.pos();
                     S.nextToken();
                     if (!strictId && S.token() == Token.STAR) {
                         S.nextToken();
                         // Caution: Java will not expect the field selector to be null
-                        e = toP(jmlF.at(e.pos).Select(e,(Name)null));
+                        e = toP(jmlF.at(dotpos).Select(e,(Name)null));
                         if (S.token() != Token.COMMA && S.token() != Token.SEMI) {
                             log.error(S.pos(),"jml.not.after.star");
                             skipToCommaOrSemi();
@@ -1307,7 +1314,7 @@ public class JmlParser extends EndPosParser {
                         break;
                     } else if (S.token() == Token.IDENTIFIER) {
                         Name n = ident();
-                        e = to(jmlF.at(e.pos).Select(e,n));
+                        e = to(jmlF.at(dotpos).Select(e,n));
                         continue;
                     } else {
                         if (strictId) log.error(S.pos(),"jml.expected.id");
@@ -1331,6 +1338,8 @@ public class JmlParser extends EndPosParser {
                 }
             }
             ss = e;
+        } else {
+            if (ss != null) log.error(S.pos(), "jml.internal", "Code branch thought to be infeasable in JmlParser.parseStoreRef: " + ss.getClass());
         }
         return ss;
     }
@@ -1340,6 +1349,7 @@ public class JmlParser extends EndPosParser {
      *  this, or super are allowed
      * @return
      */
+    //@ ensures \result == null || \result instanceof JmlStoreRefKeyword || \result instanceof JCIdent;
     protected JCTree parseStoreRefInit(boolean strictId) {
         JmlToken jt = S.jmlToken;
         int p = S.pos();
@@ -1771,6 +1781,7 @@ public class JmlParser extends EndPosParser {
                     // FIXME - ignoring these type modifiers for now
                     return term3();
                 
+                case BSLBLANY:
                 case BSLBLNEG:
                 case BSLBLPOS:
                     S.nextToken();

@@ -37,8 +37,17 @@ public class Label {
     /** Used for basic assume statements generated from assignments */
     /*@ non_null*/ public final static Label ASSIGNMENT = new Label("Assignment");
     
+    /** Used for basic assume statements generated evaluating arguments of called methods */
+    /*@ non_null*/ public final static Label ARGUMENT = new Label("ArgumentValue");
+    
+    /** Used for basic assume statements generated evaluating the receiver object of called methods */
+    /*@ non_null*/ public final static Label RECEIVER = new Label("ReceiverValue");
+    
     /** Used for basic assume statements generated from top-level block equations */
     /*@ non_null*/ public final static Label BLOCKEQ = new Label("BlockEquation");
+    
+    /** Used for assume statements generated from branches (condition) */
+    /*@ non_null*/ public final static Label BRANCHC = new Label("BranchCondition");
     
     /** Used for assume statements generated from branches (then branch) */
     /*@ non_null*/ public final static Label BRANCHT = new Label("BranchThen");
@@ -46,8 +55,14 @@ public class Label {
     /** Used for assume statements generated from branches (else branch) */
     /*@ non_null*/ public final static Label BRANCHE = new Label("BranchElse");
     
+    /** Used for assume statements generated from case statements in switch statements */
+    /*@ non_null*/ public final static Label CASECONDITION = new Label("Case");
+    
     /** Used for assume statements generated from preconditions */
     /*@ non_null*/ public final static Label PRECONDITION = new Label("Precondition");
+    
+    /** Used for assume statements generated from assignable clauses */
+    /*@ non_null*/ public final static Label HAVOC = new Label("Assignable");
     
     /** Used for assume or assert statements generated from invariants */
     /*@ non_null*/ public final static Label INVARIANT = new Label("Invariant");
@@ -55,8 +70,26 @@ public class Label {
     /** Used for assume statements generated to guard a catch block */
     /*@ non_null*/ public final static Label CATCH_CONDITION = new Label("CatchCondition");
 
+    /** Used for assume statements generated to capture the switch value */
+    /*@ non_null*/ public final static Label SWITCH_VALUE = new Label("SwitchValue");
+    
+    /** Used for assume statements generated to initialize a new array */
+    /*@ non_null*/ public final static Label ARRAY_INIT = new Label("ArrayInit");
+    
+    /** Used for assume statements generated to determine lbl, lblpos, lblneg expressions */
+    /*@ non_null*/ public final static Label LBL = new Label("Lbl");
+    
+    /** Used for assume statements generated to capture the return value */
+    /*@ non_null*/ public final static Label RETURN = new Label("Return");
+    
+    /** Used for assume statements generated to capture the return value */
+    /*@ non_null*/ public final static Label TERMINATION = new Label("Termination");
+    
     /** Used for assume statements generated to define auxiliary variables */
     /*@ non_null*/ public final static Label SYN = new Label("Synthetic");
+
+    /** Used for assume statements generated to adjust DSA variables */
+    /*@ non_null*/ public final static Label DSA = new Label("DSA");
 
     /** Used for explicit, user-specified assert statements */
     /*@ non_null*/ public final static Label EXPLICIT_ASSERT = new Label("Assert");
@@ -113,7 +146,7 @@ public class Label {
     /*@ non_null*/ public final static Label UNDEFINED_DIV0 = new Label("UndefinedDivideByZero");
     
     /** Used to designate an undefined pure expression because of a potential bad cast */
-    /*@ non_null*/ public final static Label UNDEFINED_CAST = new Label("UndefinedBadCast");
+    /*@ non_null*/ public final static Label UNDEFINED_BADCAST = new Label("UndefinedBadCast");
     
     /** Used to designate an undefined pure expression because of a failed precondition in a called method */
     /*@ non_null*/ public final static Label UNDEFINED_PRECONDITION = new Label("UndefinedCalledMethodPrecondition");
@@ -132,7 +165,7 @@ public class Label {
     /*@ non_null*/ public final static Label POSSIBLY_DIV0 = new Label("PossiblyDivideByZero");
 
     /** Used to designate a possible exception because of a bad cast */
-    /*@ non_null*/ public final static Label POSSIBLY_CAST = new Label("PossiblyBadCast");
+    /*@ non_null*/ public final static Label POSSIBLY_BADCAST = new Label("PossiblyBadCast");
     
 
 }

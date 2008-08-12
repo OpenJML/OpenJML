@@ -44,10 +44,18 @@ import com.sun.tools.javac.util.Log;
 //   you need to rerun Eclipse with a different JDK and correspondingly different
 //   specifications path.  You can do this with separate Run Configurations.
 
-// FIXME - enabling this interferes with some later tests
+// At one point in development, running these tests would cause later tests in
+// the JUnit sequence to fail, when they would not fail otherwise.  Before that
+// problem could be solved, it disappeared, so its cause and resolution are
+// unknown.  For now we will leave these tests in, but beware that this was once
+// the case and may crop up again in the future.
+
+// Since these tests are a bit time-consuming (about 2 min right now) and will be
+// more so as more spec files are added, you can turn them off with the dotests
+// flag.
 public class SpecsBase extends TCBase {
 
-    private boolean dotests = false;  // Change this to enable/disable tests
+    private boolean dotests = true;  // Change this to enable/disable tests
     
     protected void setUp() throws Exception {
         if (dotests) {
@@ -103,7 +111,7 @@ public class SpecsBase extends TCBase {
      */
     public void testFindFiles() {
         if (!dotests) {
-            System.out.println("System spec tests are being skipped");
+            System.out.println("System spec tests (test.SpecBase) are being skipped " + System.getProperty("java.version"));
             return;
         }
         System.out.println("JRE version " + System.getProperty("java.version"));
