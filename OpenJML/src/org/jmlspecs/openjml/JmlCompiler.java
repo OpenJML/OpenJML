@@ -283,10 +283,10 @@ public class JmlCompiler extends JavaCompiler {
             JCTree t = env.tree;
             env = rac(env);
             if (env == null) return;
-            if (verbose) System.out.println("desugaring " + errorCount() + " " + 
+            // Continue with the usual compilation phases
+            if (verbose) System.out.println("desugar " + todo.size() + " " + 
                     (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
                         t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
-            // Continue with the usual compilation phases
             super.desugar(env,results);
         }
     }
@@ -364,12 +364,15 @@ public class JmlCompiler extends JavaCompiler {
         super.flow(env,results);
     }
     
+    int oldsize = -1;
+    
     /** Does the RAC processing on the argument. */
     // FIXME - the argument is probably a class, not a CU; are we going to get
     // an env for each class if there are more than one in a CU?
     protected Env<AttrContext> rac(Env<AttrContext> env) {
         JCTree tree = env.tree;
         if (!JmlCompilationUnit.isJava(((JmlCompilationUnit)env.toplevel).mode)) {
+            // TODO - explain why we remove these from the symbol tables
             if (env.tree instanceof JCClassDecl) {
                 Symbol c = ((JCClassDecl)tree).sym;
                 ((JmlEnter)enter).remove(c);
@@ -378,8 +381,9 @@ public class JmlCompiler extends JavaCompiler {
                     if (t instanceof JCClassDecl) ((JmlEnter)enter).remove(((JCClassDecl)t).sym);
                 }
             } else {
-                // FIXME - unknown
-                System.out.println("UNKNOWN - rac");
+                // This is a bug, but we can probably get by with just not instrumenting
+                // whatever this is.
+                log.warning("jml.internal.notsobad","Did not expect to encounter this option in JmlCompiler.rac: " + env.tree.getClass());
             }
             return null;
         }
@@ -387,7 +391,7 @@ public class JmlCompiler extends JavaCompiler {
         // We have to adjust the toplevel tree accordingly.  Presumably other
         // class declarations in the compilation unit will be translated on 
         // other calls.
-        if (verbose) System.out.println("rac " + errorCount() + " " + Utils.envString(env));
+        if (verbose) System.out.println("rac " + todo.size() + " " + Utils.envString(env));
         JmlRac rac = new JmlRac(context,env);  // FIXME - use a factory
         if (env.tree instanceof JCClassDecl) {
             List<JCTree> t = env.toplevel.defs;

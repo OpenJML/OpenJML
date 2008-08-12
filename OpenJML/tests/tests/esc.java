@@ -1,5 +1,6 @@
 package tests;
 
+import org.jmlspecs.openjml.esc.JmlEsc;
 
 public class esc extends EscBase {
 
@@ -10,7 +11,491 @@ public class esc extends EscBase {
         //options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
-        //org.jmlspecs.openjml.esc.JmlEsc.escdebug = true;
+        //JmlEsc.escdebug = true;
+    }
+    
+    public void testAssignables4() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  static TestJava p;\n"
+                
+                +"  //@ requires p != null && p != this;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m1() {\n"
+                +"    //@ assume k == 0;\n"
+                +"    c1(p);\n"
+                +"    //@ assert k == 0;\n"
+                +"  }\n"
+                
+                +"  //@ requires p != null && p != this;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m1a() {\n"
+                +"    //@ assume sk == 0;\n"
+                +"    c1(p);\n"
+                +"    //@ assert sk == 0;\n"  // FAILS
+                +"  }\n"
+                
+                +"  //@ requires p != null && p != this;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m2a() {\n"
+                +"    //@ assume k == 0;\n"
+                +"    c1(this);\n"
+                +"    //@ assert k == 0;\n" // FAILS
+                +"  }\n"
+                
+                +"  //@ requires p != null && p != this;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m2b() {\n"
+                +"    //@ assume sk == 0;\n"
+                +"    c1(this);\n"
+                +"    //@ assert sk == 0;\n"  // FAILS
+                +"  }\n"
+                
+                +"  //@ requires p != null && p != this;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m3() {\n"
+                +"    //@ assume k == 0;\n"
+                +"    c2(this);\n"
+                +"    //@ assert k == 0;\n"
+                +"  }\n"
+                
+                +"  //@ requires p != null && p != this;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m3a() {\n"
+                +"    //@ assume sk == 0;\n"
+                +"    c2(this);\n"
+                +"    //@ assert sk == 0;\n"  // FAILS
+                +"  }\n"
+                
+
+                
+                +"  //@ requires o != null;\n"
+                +"  //@ modifies o.*;\n"
+                +"  public void c1(TestJava o) { } \n"
+                
+                +"  //@ requires o != null;\n"
+                +"  //@ modifies TestJava.*;\n"
+                +"  public void c2(TestJava o) { } \n"
+                +"}"
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assert) in method m2a",9
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Assert) in method m2b",9
+                ,"/tt/TestJava.java:45: warning: The prover cannot establish an assertion (Assert) in method m3a",9
+                );
+    }
+    
+    public void testAssignables1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m1() {\n"
+                +"    //@ assume k == 0;\n"
+                +"    c1(1);\n"
+                +"    //@ assert k == 0;\n"
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m1a() {\n"
+                +"    //@ assume k == 0;\n"
+                +"    c1(0);\n"
+                +"    //@ assert k == 0;\n" // FAILS
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m2() {\n"
+                +"    //@ assume sk == 0;\n"
+                +"    c1(1);\n"
+                +"    //@ assert sk == 0;\n"
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m2a() {\n"
+                +"    //@ assume sk == 0;\n"
+                +"    c1(0);\n"
+                +"    //@ assert sk == 0;\n" // FAILS
+                +"  }\n"
+                
+                +"  //@ requires a != null && a.length > 10;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m3() {\n"
+                +"    //@ assume a[0] == 0;\n"
+                +"    c1(1);\n"
+                +"    //@ assert a[0] == 0;\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null && a.length > 10;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m3a() {\n"
+                +"    //@ assume a[0] == 0;\n"
+                +"    c1(0);\n"
+                +"    //@ assert a[0] == 0;\n" // FAILS
+                +"  }\n"
+                
+                +"  //@ requires sa != null && sa.length > 10;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m4() {\n"
+                +"    //@ assume sa[0] == 0;\n"
+                +"    c1(1);\n"
+                +"    //@ assert sa[0] == 0;\n"
+                +"  }\n"
+                
+                +"  //@ requires sa != null && sa.length > 10;\n"  // Line 50
+                +"  //@ modifies \\everything;\n"
+                +"  public void m4a() {\n"
+                +"    //@ assume sa[0] == 0;\n"
+                +"    c1(0);\n"
+                +"    //@ assert sa[0] == 0;\n" // FAILS
+                +"  }\n"
+                
+                +"  //@ requires sa != null && sa.length > 10;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m5() {\n"
+                +"    //@ assume a == \\old(a);\n"
+                +"    c1(1);\n"
+                +"    //@ assert a == \\old(a);\n"
+                +"  }\n"
+                
+                +"  //@ requires sa != null && sa.length > 10;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m5a() {\n"
+                +"    //@ assume a == \\old(a);\n"
+                +"    c1(0);\n"
+                +"    //@ assert a == \\old(a);\n" // FAILS
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m6(/*@ non_null*/TestJava t) {\n"
+                +"    //@ assume t.k == 0;\n"
+                +"    c1(1);\n"
+                +"    //@ assert t.k == 0;\n"
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m6a(/*@ non_null*/TestJava t) {\n"
+                +"    //@ assume t.k == 0;\n"
+                +"    c1(0);\n"
+                +"    //@ assert t.k == 0;\n" // FAILS
+                +"  }\n"
+
+                +"  //@ modifies \\everything;\n"
+                +"  public void m7() {\n"
+                +"    c1(1);\n"
+                +"    //@ assert sk == \\old(sk);\n" // Should be OK - FIXME
+                +"  }\n"
+
+                +"  //@ modifies \\everything;\n"
+                +"  public void m7a() {\n"
+                +"    c1(0);\n"
+                +"    //@ assert sk == \\old(sk);\n" // FAILS
+                +"  }\n"
+
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m2a",9
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Assert) in method m3a",9
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m3a",17
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",17
+                ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (Assert) in method m4a",9
+                ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m4a",18
+                ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",18
+                ,"/tt/TestJava.java:69: warning: The prover cannot establish an assertion (Assert) in method m5a",9
+                ,"/tt/TestJava.java:81: warning: The prover cannot establish an assertion (Assert) in method m6a",9
+                ,"/tt/TestJava.java:86: warning: The prover cannot establish an assertion (Assert) in method m7",9
+                ,"/tt/TestJava.java:91: warning: The prover cannot establish an assertion (Assert) in method m7a",9
+                );
+    }
+    
+    public void testAssignables2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k;\n"
+                +"  static int sk;\n"
+                
+                +"  //@ modifies k,sk;\n"
+                +"  public void m1() {\n"
+                +"    //@ assume k == 0 && sk == 0;\n"
+                +"    c1(0);\n"
+                +"    //@ assert sk == 0;\n"
+                +"  }\n"
+                
+                +"  //@ modifies k,sk;\n"
+                +"  public void m1a() {\n"
+                +"    //@ assume k == 0 && sk == 0;\n"
+                +"    c1(1);\n"
+                +"    //@ assert sk == 0;\n" // FAILS
+                +"  }\n"
+                
+                +"  //@ modifies k,sk;\n"
+                +"  public void m2() {\n"
+                +"    //@ assume k == 0 && sk == 0;\n"
+                +"    c1(1);\n"
+                +"    //@ assert k == 0;\n"
+                +"  }\n"
+                
+                +"  //@ modifies k,sk;\n"
+                +"  public void m2a() {\n"
+                +"    //@ assume k == 0 && sk == 0;\n"
+                +"    c1(0);\n"
+                +"    //@ assert k == 0;\n" // FAILS
+                +"  }\n"
+                
+                +"  //@ modifies k,sk;\n"
+                +"  public void m3() {\n"
+                +"    //@ assume k == 0 && sk == 0;\n"
+                +"    c2(0,this);\n"
+                +"    //@ assert k == 0;\n"
+                +"  }\n"
+                
+                +"  //@ modifies k,sk;\n"
+                +"  public void m3a() {\n"
+                +"    //@ assume k == 0 && sk == 0;\n"
+                +"    c2(10,this);\n"
+                +"    //@ assert k == 0;\n" // FAILS
+                +"  }\n"
+                
+                +"  static int[] a; int[] b;\n"
+                +"  //@ requires a != null && a.length == 5;\n"
+                +"  //@ modifies a[0];\n"
+                +"  public void m4() {\n"
+                +"    //@ assume a[0] == 0 && a[1] == 1;\n"
+                +"    c3(0);\n"
+                +"    //@ assert a[1] == 1;\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null && a.length == 5;\n"
+                +"  //@ modifies a[0];\n"
+                +"  public void m4a() {\n"
+                +"    //@ assume a[0] == 0 && a[1] == 1;\n"
+                +"    c3(0);\n"
+                +"    //@ assert a[0] == 0;\n" // FAILS
+                +"  }\n"
+                
+                +"  //@ requires b != null && b.length == 5;\n"
+                +"  //@ modifies b[0];\n"
+                +"  public void m5() {\n"
+                +"    //@ assume b[0] == 0 && b[1] == 1;\n"
+                +"    c4(0);\n"
+                +"    //@ assert b[1] == 1;\n"
+                +"  }\n"
+                
+                +"  //@ requires b != null && b.length == 5;\n"
+                +"  //@ modifies b[0];\n"
+                +"  public void m5a() {\n"
+                +"    //@ assume b[0] == 0 && b[1] == 1;\n"
+                +"    c4(0);\n"
+                +"    //@ assert b[0] == 0;\n" // FAILS
+                +"  }\n"
+                
+                +"  //@ requires b != null && b.length == 5;\n"
+                +"  //@ modifies b[0];\n"
+                +"  public void m6a() {\n"
+                +"    //@ assume b[0] == 0 && b[1] == 1;\n"
+                +"    c3(0);\n"  // changes a - get a null deference warning
+                +"  }\n"
+                
+                +"  //@ requires a != null && b != null && b.length == 5  && a.length ==5;\n"
+                +"  //@ modifies b[0];\n"
+                +"  public void m6() {\n"
+                +"    //@ assume b[0] == 0 && b[1] == 1;\n"
+                +"    c3(0);\n"  // changes a - now ok
+                +"    //@ assert b[1] == 1;\n"
+                +"  }\n"
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies sk;\n"
+                +"  public void c1(int i) { } \n"
+                
+                +"  //@ requires i == 10;\n"
+                +"  //@ modifies t.k;\n"
+                +"  //@ also requires i == 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c2(int i, TestJava t) {}\n"
+                
+                +"  //@ requires a!=null && 0<=i && i<a.length;\n"
+                +"  //@ modifies a[i];\n"
+                +"  public void c3(int i) {}\n"
+                +"  //@ requires b!=null && 0<=i && i<b.length;\n"
+                +"  //@ modifies b[i];\n"
+                +"  public void c4(int i) {}\n"
+                +"}"
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m2a",9
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (Assert) in method m3a",9
+                ,"/tt/TestJava.java:54: warning: The prover cannot establish an assertion (Assert) in method m4a",9
+                ,"/tt/TestJava.java:68: warning: The prover cannot establish an assertion (Assert) in method m5a",9
+                ,"/tt/TestJava.java:74: warning: The prover cannot establish an assertion (Precondition) in method m6a",7
+                ,"/tt/TestJava.java:93: warning: Associated declaration",16
+                );
+    }
+    
+    public void testAssignables3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static int[] a;  //@ invariant a != null && a.length == 10;\n"
+                
+                +"  public TestJava() {\n"
+                +"     a = new int[10];\n"
+                +"  }\n"
+                
+                +"  //@ modifies a[*];\n"
+                +"  public void m1() {\n"
+                +"    //@ assume a[0] == 0 && a[2] == 2;\n"
+                +"    c1();\n"
+                +"    //@ assert a[0] == 0;\n"
+                +"  }\n"
+                
+                +"  //@ modifies a[*];\n"
+                +"  public void m1a() {\n"
+                +"    //@ assume a[0] == 0 && a[2] == 2;\n"
+                +"    c1();\n"
+                +"    //@ assert a[2] == 3;\n"  // FAILS
+                +"  }\n"
+                
+                +"  //@ modifies a[*];\n"
+                +"  public void m2a() {\n"
+                +"    //@ assume a[0] == 0 && a[2] == 2;\n"
+                +"    c2();\n"
+                +"    //@ assert a[0] == 0;\n" // FAILS
+                +"  }\n"
+                
+                +"  //@ modifies a[*];\n"
+                +"  public void m2b() {\n"
+                +"    //@ assume a[0] == 0 && a[2] == 2;\n"
+                +"    c2();\n"
+                +"    //@ assert a[2] == 2;\n"  // FAILS
+                +"  }\n"
+                
+                +"  //@ modifies a[*];\n"
+                +"  public void m3() {\n"
+                +"    //@ assume a[0] == 0 && a[2] == 2;\n"
+                +"    c3();\n"
+                +"    //@ assert a[0] == 0;\n" 
+                +"  }\n"
+                
+                +"  //@ modifies a[*];\n"
+                +"  public void m3a() {\n"
+                +"    //@ assume a[0] == 0 && a[9] == 2;\n"
+                +"    c3();\n"
+                +"    //@ assert a[9] == 2;\n"  // FAILS
+                +"  }\n"
+                
+                
+                +"  //@ modifies a[2 .. 4];\n"
+                +"  public void c1() { } \n"
+                
+                +"  //@ modifies a[*];\n"
+                +"  public void c2() {}\n"
+                
+                +"  //@ modifies a[2 .. ];\n"
+                +"  public void c3() {}\n"
+                +"}"
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Assert) in method m2a",9
+                ,"/tt/TestJava.java:29: warning: The prover cannot establish an assertion (Assert) in method m2b",9
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Assert) in method m3a",9
+                );
+    }
+    
+    public void testMethodCallsWithExceptions() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static int k;\n"
+                +"  //@ requires i >= 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ ensures k == 10;\n"
+                +"  //@ signals (Exception e) k<0;\n"
+                +"  public void m1(int i) {\n"
+                +"    m(i);\n"
+                +"    k = 10;\n"
+                +"  }\n"
+                +"  //@ requires i >= 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ ensures k == 10;\n"
+                +"  //@ signals (Exception e) k==-11;\n"
+                +"  public void m2(int i) {\n"
+                +"    m(1);\n"
+                +"    m(2);\n"
+                +"    k = 10;\n"
+                +"  }\n"
+
+                +"  //@ requires i >= 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ ensures k == 10;\n"
+                +"  //@ signals (Exception e) k==-12;\n"
+                +"  public void m3(int i) {\n"
+                +"    m(0);\n"
+                +"    m(2);\n"
+                +"    k = 10;\n"
+                +"  }\n"
+                
+                +"  //@ requires i >= 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ ensures k == 10;\n"
+                +"  //@ signals (Exception e) k==-13;\n" // FAILS
+                +"  public void m3a(int i) {\n"
+                +"    m(0);\n"
+                +"    m(2);\n"
+                +"    k = 10;\n"
+                +"  }\n"
+                
+                +"  //@ requires i >= 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ ensures \\result == 12;\n"
+                +"  //@ signals (Exception e) false;\n"
+                +"  public int m4(int i) {\n"
+                +"    return 10+m(0)+m(0);\n"
+                +"  }\n"
+                
+                +"  //@ requires i >= 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ ensures false;\n"
+                +"  //@ signals (Exception e) k == -11;\n"
+                +"  public int m5(int i) {\n"
+                +"    return 10+m(1)+m(0);\n"
+                +"  }\n"
+                
+                +"  //@ requires i >= 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ ensures false;\n"
+                +"  //@ signals (Exception e) k == -12;\n"
+                +"  public int m6(int i) {\n"
+                +"    return 10+m(0)+m(2);\n"
+                +"  }\n"
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ ensures k>0 && \\result == i+1;\n"
+                +"  //@ signals (Exception e) false;\n"
+                +"  //@ also \n"
+                +"  //@ requires i > 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ ensures false;\n"
+                +"  //@ signals (Exception e) k == -10-i;\n"
+                +"  //@ signals_only Exception;\n"
+                +"  public int m(int i) {\n"
+                +"    if (i > 0) {\n"
+                +"      k = -10-i;\n"
+                +"      throw new RuntimeException();\n"
+                +"    }\n"
+                +"    k = 1;\n"
+                +"    return i+1;\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3a",6
+                ,"/tt/TestJava.java:33: warning: Associated declaration",7
+                );
     }
     
     public void testStrings() {
@@ -44,8 +529,8 @@ public class esc extends EscBase {
                 +"}",
                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Invariant) in method <init>",10,
                 "/tt/TestJava.java:10: warning: Associated declaration",24,
-                "/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method bf",25,
-                "/tt/TestJava.java:12: warning: Invariants+Preconditions appear to be contradictory in method bq",25);
+                "/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method bf(boolean)",25,
+                "/tt/TestJava.java:12: warning: Invariants+Preconditions appear to be contradictory in method bq(boolean)",25);
     }
 
     public void testJava() {
@@ -78,7 +563,7 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:9: warning: Associated declaration",16,
                 "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",8,
                 "/tt/TestJava.java:10: warning: Associated declaration",16,
-                "/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method i",21,
+                "/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method i(int)",21,
                 "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Invariant) in method inst",17,
                 "/tt/TestJava.java:9: warning: Associated declaration",16
         );
@@ -125,11 +610,11 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method bifOK",113,
                 "/tt/TestJava.java:9: warning: An assumption appears to be infeasible in method bifBAD(boolean,boolean)",84,
                 "/tt/TestJava.java:12: warning: An assumption appears to be infeasible in method bassumeBADASSUMP2(boolean)",57,
-                "/tt/TestJava.java:13: warning: An assumption appears to be infeasible in method bassumeCHAIN1(boolean,boolean)",87,
                 "/tt/TestJava.java:13: warning: An assumption appears to be infeasible in method bassumeCHAIN1(boolean,boolean)",75,
+                "/tt/TestJava.java:13: warning: An assumption appears to be infeasible in method bassumeCHAIN1(boolean,boolean)",87,
                 "/tt/TestJava.java:14: warning: An assumption appears to be infeasible in method bassumeCHAIN2(boolean,boolean)",85,
-                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",153,
                 "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",142,
+                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",153,
                 "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",83
         );
     }
@@ -167,8 +652,8 @@ public class esc extends EscBase {
                 +"  public static void bifbad2(boolean b) { int k = 10; if (b) { k = k+1; if (!b) k = k+1; } else { k=k-1; if (b) {k=k-1; b = false; } } /*@ assert k == 11; */}\n" // We want to be sure it fails
                 +"}",
                 "/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Assert) in method bnotok",106,
-                "/tt/TestJava.java:4: warning: then branch apparently never taken in method bifok(boolean)", 120,
                 "/tt/TestJava.java:4: warning: else branch apparently never taken in method bifok(boolean)", 75,
+                "/tt/TestJava.java:4: warning: then branch apparently never taken in method bifok(boolean)", 120,
                 "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method bifbad",150,
                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method bifbad2",140
         );
@@ -215,7 +700,7 @@ public class esc extends EscBase {
                 +"  //@ ensures \\result == -ii;\n"
                 +"  public static int bbad(int ii) { if (ii==1) return -1; else if (ii==2) return -2; else if (ii==3) return -3; return 0; }\n"
                 +"}",
-                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method bbad",21,
+                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method bbad",112,
                 "/tt/TestJava.java:6: warning: Associated declaration",15
         );
     }
@@ -240,9 +725,9 @@ public class esc extends EscBase {
                 +"  //@ ensures true;\n"
                 +"  public @NonNull Object inst2(int ii) {  return null; }\n"
                 +"}",
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method inst",32,
+                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method inst",47,
                 "/tt/TestJava.java:5: warning: Associated declaration",14,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method inst2",26,
+                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method inst2",43,
                 "/tt/TestJava.java:8: warning: Associated declaration",10
         );
     }
@@ -259,9 +744,9 @@ public class esc extends EscBase {
                 +"  //@ ensures \\result != null;\n"
                 +"  public Object inst2bad(boolean b, @NonNull Object i, Object ii) { return ii; }\n"
                 +"}",
-                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",17,
+                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",74,
                 "/tt/TestJava.java:5: warning: Associated declaration",15,
-                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 17,
+                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 69,
                 "/tt/TestJava.java:9: warning: Associated declaration",15
         );
     }
@@ -285,11 +770,11 @@ public class esc extends EscBase {
                 +"  //@ ensures \\result == i;\n"
                 +"  public int instbad2(boolean b, int i) { m(1); return j; }\n"
                 +"}",
-                "/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Postcondition) in method instbad",14,
-                "/tt/TestJava.java:13: warning: Associated declaration",15,
+                //"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Postcondition) in method instbad",14,
+                //"/tt/TestJava.java:13: warning: Associated declaration",15,
                 "/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",43,
                 "/tt/TestJava.java:4: warning: Associated declaration",16,
-                "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",14,
+                "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",49,
                 "/tt/TestJava.java:16: warning: Associated declaration",15
         );
     }
@@ -317,7 +802,7 @@ public class esc extends EscBase {
                 //"/tt/TestJava.java:13: warning: Associated declaration",15,
                 "/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",43,
                 "/tt/TestJava.java:4: warning: Associated declaration",16,
-                "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",14,
+                "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",49,
                 "/tt/TestJava.java:16: warning: Associated declaration",15
         );
     }
@@ -347,22 +832,53 @@ public class esc extends EscBase {
                 +"public class TestJava { \n"
                 +"  static TestJava o;\n"
                 +"  static TestJava p;\n"
-                +"  public int j;\n"
+                +"  public int j; static public int sj; \n"
+                
                 +"  //@ ensures \\result == j;\n"
                 +"  public int m() { return j; }\n"
-                +"  //@ modifies j;\n"
+                
+                +"  //@ modifies j,sj;\n"
+                +"  //@ ensures \\result == \\old(j);\n"
+                +"  public int nold() { return j; }\n"
+                
+                +"  //@ modifies j,sj;\n"
                 +"  //@ ensures \\result == j;\n"
                 +"  public int n() { return j; }\n"
-                +"  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;"
+                
+                +"  //@ modifies j,sj;\n"
+                +"  //@ ensures \\result == sj;\n"
+                +"  public int sn() { return sj; }\n"
+                
+                +"  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
+                +"  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n"
                 +"  //@ ensures \\result == 6;\n"
                 +"  public int inst() { return o.m() + p.m() + j; }\n"
-                +"  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;"
-                +"  //@ modifies j;\n"
+                
+                +"  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
+                +"  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n"
                 +"  //@ ensures \\result == 6;\n"
-                +"  public int instbad() { return o.n() + p.n() + j; }\n"
-                +"}",
-                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Postcondition) in method instbad",14,
-                "/tt/TestJava.java:14: warning: Associated declaration",15
+                +"  public int instok() { return o.nold() + p.nold() + j; }\n" // o.n and p.n modify o.j and p.j, returned value is before mod
+                
+                +"  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
+                +"  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n"
+                +"  //@ ensures \\result == 6;\n"
+                +"  public int instbadx() { return o.n() + p.n() + j; }\n" // returned value is after modification
+                
+                +"  //@ modifies j,sj;\n"
+                +"  //@ ensures \\result == 6;\n"
+                +"  public int instbad() { return n() + j; }\n"  // n() modifies this.j
+                
+                +"  //@ requires o!=null && p != null && sj == 3;\n"
+                +"  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n"
+                +"  //@ ensures \\result == 9;\n"
+                +"  public int instbad2() { return o.sn() + p.sn() + sj; }\n"
+                +"}"
+                ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method instbadx",27
+                ,"/tt/TestJava.java:27: warning: Associated declaration",15
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method instbad",26
+                ,"/tt/TestJava.java:30: warning: Associated declaration",15
+                ,"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",27
+                ,"/tt/TestJava.java:34: warning: Associated declaration",15
         );
     }
 
@@ -432,8 +948,12 @@ public class esc extends EscBase {
                 +"  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }\n"
                 +"  public void instd() { int i = 5; /*@ loop_invariant i>0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
                 +"}",
-//                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopInvariant) in method instb",91, // This presumably an effect of the 
-//                "/tt/TestJava.java:4: warning: Associated declaration",40,
+                // The first two lines below appear or not appear seemingly at random.  
+                // Since we are already reporting an error in the VC for method instb,
+                // the system may or may not detect an additional assertion failure
+                // depending on what satisfying assignment it finds.
+                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopInvariant) in method instb",91,
+                "/tt/TestJava.java:4: warning: Associated declaration",40,
                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method instb",91,
                 "/tt/TestJava.java:4: warning: Associated declaration",61,
                 "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",89,
@@ -522,7 +1042,7 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method inst3d",57,
                 "/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Assert) in method inst4b",47,
                 "/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method inst4d",57
-        ); // FIXME - not getting errors for / ; need %= <<= >>= >>>= &= |= ^=
+        ); // FIXME -  need %= <<= >>= >>>= &= |= ^=
     }
 
     public void testConditional() {
@@ -535,7 +1055,7 @@ public class esc extends EscBase {
         );
     }
 
-    public void testLbl() {
+    public void testLblx() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst1(int i) { /*@ assume i > 0; */ /*@ assert (\\lblpos ISP i>0); */}\n" // no report
@@ -736,7 +1256,7 @@ public class esc extends EscBase {
                 +"  //@ ensures i == 1;\n"
                 +"  public void inst1a() { i=0; try { i = 1; return; } finally { i = 2; } }\n" // BAD
                 +"}",
-                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method inst1a",15, // FIXME - really ought to point to the return or finally statement
+                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method inst1a",44,
                 "/tt/TestJava.java:6: warning: Associated declaration",15
         );
     }
@@ -894,8 +1414,8 @@ public class esc extends EscBase {
                 +"  //@ ensures \\result == a;\n"
                 +"  public int m1a(int a) { return m(-1); }\n"
                 +"}",
-                "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Postcondition) in method m1a",14,
-                "/tt/TestJava.java:22: warning: Associated declaration",15,
+                //"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Postcondition) in method m1a",14,
+                //"/tt/TestJava.java:22: warning: Associated declaration",15,
                 "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Precondition) in method m1a",35,
                 "/tt/TestJava.java:15: warning: Associated declaration",7
         );
@@ -938,13 +1458,13 @@ public class esc extends EscBase {
                 +"    }"
                 +"    return 0; }\n"
                 +"}",
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m",21,
+                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m",5,
                 "/tt/TestJava.java:4: warning: Associated declaration",15,
-                "/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method mm",21,
+                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Postcondition) in method mm",16,
                 "/tt/TestJava.java:12: warning: Associated declaration",15,
-                "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (Postcondition) in method m3",21,
+                "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Postcondition) in method m3",20,
                 "/tt/TestJava.java:19: warning: Associated declaration",38,
-                "/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m4",21,
+                "/tt/TestJava.java:29: warning: The prover cannot establish an assertion (Postcondition) in method m4",20,
                 "/tt/TestJava.java:26: warning: Associated declaration",15
         );
     }
@@ -1052,7 +1572,7 @@ public class esc extends EscBase {
                 +"  public static void m6a(TestJava o) { \n"
                 +"    int i = ( o != null ? 7 : o.j); \n"
                 +"  }\n"
-                +"  //@ ensures \\result == (oo != null);\n"
+                +"  //@ public normal_behavior  ensures \\result == (oo != null);\n"
                 +"  public static boolean p(TestJava oo) { \n"
                 +"    return oo != null; \n"
                 +"  }\n"
@@ -1069,7 +1589,7 @@ public class esc extends EscBase {
         );
     }
     /** Tests whether the various kinds of undefined constructs are actually detected.
-     */  // FIXME - need a bad cast
+     */ 
     public void testUndefinedInJava2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1095,6 +1615,22 @@ public class esc extends EscBase {
                 +"  public static void m5(int i, int j) { \n"
                 +"    int k = i%j; \n"
                 +"  }\n"
+                +"  public static void m6( RuntimeException r) { \n"
+                +"    Throwable t = r;\n"
+                +"    Exception rr = ((Exception)t); \n"
+                +"  }\n"
+                +"  public static void m6a(Exception r) { \n"
+                +"    Throwable t = r;\n"
+                +"    RuntimeException rr = ((RuntimeException)t) ; \n"
+                +"  }\n"
+                +"  public static void m7(/*@ non_null*/ RuntimeException r) { \n"
+                +"    Throwable t = r;\n"
+                +"    Exception rr = ((Exception)t); \n"
+                +"  }\n"
+                +"  public static void m7a(/*@ non_null*/Exception r) { \n"
+                +"    Throwable t = r;\n"
+                +"    RuntimeException rr = ((RuntimeException)t) ; \n"
+                +"  }\n"
                 +"}",
                 "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m",14,
                 "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1",14,
@@ -1102,7 +1638,9 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m2",14,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3",14,
                 "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4",14,
-                "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m5",14
+                "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m5",14,
+                "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a",28,
+                "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a",28
         );
     }
 
@@ -1139,7 +1677,7 @@ public class esc extends EscBase {
     }
 
     /** Tests whether the various kinds of undefined constructs are actually detected.
-     */  // FIXME - need a bad cast, pure method violating preconditions
+     */  // FIXME - need pure method violating preconditions, bad array element assignment
     public void testUndefinedInSpec2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1165,14 +1703,32 @@ public class esc extends EscBase {
                 +"  public static void m5(int i, int j) { \n"
                 +"    //@ assume i%j == 4; \n"
                 +"  }\n"
+                +"  public static void m6(RuntimeException r) { \n"
+                +"    Throwable t = r;\n"
+                +"    //@ assume ((Exception)t) != null ? true : true; \n"
+                +"  }\n"
+                +"  public static void m6a(Exception r) { \n"
+                +"    Throwable t = r;\n"
+                +"    //@ assume ((RuntimeException)t) != null ? true : true ; \n"
+                +"  }\n"
+                +"  public static void m7(/*@ non_null*/RuntimeException r) { \n"
+                +"    Throwable t = r;\n"
+                +"    //@ assume ((Exception)t) != null ? true : true; \n"
+                +"  }\n"
+                +"  public static void m7a(/*@ non_null*/Exception r) { \n"
+                +"    Throwable t = r;\n"
+                +"    //@ assume ((RuntimeException)t) != null ? true : true ; \n"
+                +"  }\n"
                 +"}",
                 "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m",17,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1",17,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1",17,
+                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1",-17, // Sometimes found
+                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1",-17, // Sometimes found
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m2",17,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3",17,
                 "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4",17,
                 "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m5",17
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a",17
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a",17
         );
     }
 
@@ -1216,7 +1772,7 @@ public class esc extends EscBase {
         );   
     }
     /** Tests whether undefinedness is caught in various JML constructions */
-    // FIXME - readable writable, represents, assertother clauses
+    // FIXME - readable writable, represents, assert, other clauses
     public void testUndefinedInSpec4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1224,12 +1780,27 @@ public class esc extends EscBase {
                 +"  static TestJava t;\n"
                 +"  public void m(TestJava o) { \n"
                 +"    //@ assume o.j == 1; \n"
-                +"  }\n  "
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m",17
+        );
+    }
+    
+    public void testUndefinedInSpec4d() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int j = 1;\n"
+                +"  static TestJava t;\n"
+                +"  public void m(TestJava o) { \n"
+                +"  }\n"
                 +"  //@ invariant t.j ==1;\n"
                 +"}"
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
-                ,"/tt/TestJava.java:8: warning: Associated declaration",19
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m",17
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullReference) in method <init>",18
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",-8  // Optional
+                ,"/tt/TestJava.java:7: warning: Associated declaration",-17 // Optional
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m",18
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method m",-8  // Optional
+                ,"/tt/TestJava.java:7: warning: Associated declaration",-17 // Optional
         );
     }
     
@@ -1275,7 +1846,7 @@ public class esc extends EscBase {
         );
     }
     
-    // FIXME
+    // FIXME - class initialization
     public void _testUndefinedInSpec5() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1304,7 +1875,7 @@ public class esc extends EscBase {
                 +"    int i = 0; i += t.j; \n"
                 +"  }\n  "
                 +"  public void m5(TestJava o) { \n"
-                +"    assert t.j == 1; \n"
+                +"    assert t.j == 1 ? true : true; \n"
                 +"  }\n  "
                 // FIXME
                 // for, while, foreach, do, switch, case, if, throw, method call, index, conditional, 
@@ -1314,15 +1885,13 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2",6,
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3",6,
                 "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m4",22,
-                "/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m5",12  // FIXME
+                "/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m5",13
         );
     }
 
     // FIXME - need tests within various Java constructs, including with short-circuits
 
     /** This test tests catch blocks */
-    // FIXME - make sure this works once instanceof is implemented
-    // FIXME - add more tests
     public void testCatch() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1548,9 +2117,9 @@ public class esc extends EscBase {
                 +"    if (i==0) throw new RuntimeException();\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1a",15
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1a",15
                 ,"/tt/TestJava.java:12: warning: Associated declaration",7
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3a",15
+                ,"/tt/TestJava.java:32: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3a",15
                 ,"/tt/TestJava.java:30: warning: Associated declaration",7
                 );
     }
@@ -1572,9 +2141,9 @@ public class esc extends EscBase {
                 +"    if (i==0) throw new RuntimeException();\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1a",15
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1a",15
                 ,"/tt/TestJava.java:4: warning: Associated declaration",20
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2a",15
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2a",15
                 ,"/tt/TestJava.java:8: warning: Associated declaration",7
                 );
     }

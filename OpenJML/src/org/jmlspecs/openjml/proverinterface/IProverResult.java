@@ -7,20 +7,24 @@ import java.util.Set;
 public interface IProverResult {
 
   /** Kinds of results a prover can produce */
-  static public final class Kind {}
+  static public final class Kind {
+      final private /*@non_null*/String string;
+      private Kind(/*@non_null*/String s) { string = s; }
+      public String toString() { return string; }
+  }
   
   /** The logical assertions were satisfiable */
-  static public final Kind SAT = new Kind();
+  static public final Kind SAT = new Kind("SAT");
   
   /** The logical assertions were satisfiable, but since the logic engine
    * is incomplete, the counterexample may actually be spurious */
-  static public final Kind POSSIBLYSAT = new Kind();
+  static public final Kind POSSIBLYSAT = new Kind("POSSIBLYSAT");
   
   /** The logical assertions were not satisfiable */
-  static public final Kind UNSAT = new Kind();
+  static public final Kind UNSAT = new Kind("UNSAT");
   
   /** The result could not be determined (prover died, timed out, ...) */
-  static public final Kind UNKNOWN = new Kind();
+  static public final Kind UNKNOWN = new Kind("UNKNOWN");
   
   /** Category of result produced by the prover */
   public Kind result();
@@ -28,7 +32,7 @@ public interface IProverResult {
   /** True if the prover was able to produce a satisfying assignment 
    * @return true if there is a satisfying assignment
    */
-  //@ ensures \result == (result() == SAT);
+  //@ ensures \result == (result() == SAT || result() == POSSIBLY_SAT);
   public boolean isSat();
   
   /** The satisfying assignment produced by the prover.

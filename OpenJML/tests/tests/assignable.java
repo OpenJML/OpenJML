@@ -28,7 +28,7 @@ public class assignable extends TCBase {
 
     public void testAssignableField() {
         helpTC(" class A { int k; boolean b; Object o; \n//@ assignable A.k;\n void m(){} }"
-                ,"/TEST.java:2: non-static variable k cannot be referenced from a static context",16
+                ,"/TEST.java:2: non-static variable k cannot be referenced from a static context",17
                 );
     }
 
@@ -96,7 +96,7 @@ public class assignable extends TCBase {
 
     public void testAssignableThis2() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable this.x;\n void m(boolean b) {} }"
-                ,"/A.java:2: cannot find symbol\nsymbol  : variable x\nlocation: class A",16
+                ,"/A.java:2: cannot find symbol\nsymbol  : variable x\nlocation: class A",20
 		);
     }
 
@@ -107,8 +107,8 @@ public class assignable extends TCBase {
 
     public void testAssignableSuper2() {
         helpTCF("A.java","public class A extends B { int[] k; Object b; Object[] o; \n//@ assignable super.b, super.x;\n void m(boolean b) {} }  class B{ int kk; }"
-                ,"/A.java:2: cannot find symbol\nsymbol  : variable b\nlocation: class B",16
-                ,"/A.java:2: cannot find symbol\nsymbol  : variable x\nlocation: class B",25
+                ,"/A.java:2: cannot find symbol\nsymbol  : variable b\nlocation: class B",21
+                ,"/A.java:2: cannot find symbol\nsymbol  : variable x\nlocation: class B",30
                 );
     }
 

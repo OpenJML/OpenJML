@@ -2,8 +2,9 @@ package org.jmlspecs.openjml.esc;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +35,6 @@ import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -67,6 +67,9 @@ public class JmlEsc extends JmlTreeScanner {
     /** true if counterexample information is desired */
     boolean showCounterexample;
     
+    /** true if counterexample trace information is desired */
+    boolean showTrace;
+    
     /** The compilation context, needed to get common tools, but unique to this compilation run*/
     @NonNull Context context;
 
@@ -82,27 +85,29 @@ public class JmlEsc extends JmlTreeScanner {
     /** The factory for making AST nodes */
     @NonNull JmlTree.JmlFactory factory;
     
-    // FIXME - used in just one place - do we need it?
-    @NonNull JmlAttr attr;
-
     /** The tool to log problem reports */ 
     @NonNull Log log;
+    
+    /** Whether to check that key assumptions are feasible */
+    boolean checkAssumptions = true;
 
-    @NonNull final static public String arraysRoot = "$$arrays";
+
+    @NonNull final static public String arraysRoot = "$$arrays";  // Reference in masicblocker?
 
     /** The tool constructor, which initializes all the tools. */
     public JmlEsc(Context context) {
         this.context = context;
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
-        this.attr = JmlAttr.instance(context);
         this.log = Log.instance(context);
         this.names = Name.Table.instance(context);
         this.factory = (JmlTree.JmlFactory)JmlTree.Maker.instance(context);
         this.verbose = JmlOptionName.isOption(context,"-verbose") ||
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
             Utils.jmldebug;
-        this.showCounterexample = JmlOptionName.isOption(context,"-ce") || escdebug ; // FIXME
+        this.showCounterexample = JmlOptionName.isOption(context,"-ce") || escdebug ; // FIXME - options
+        this.showTrace = showCounterexample || JmlOptionName.isOption(context,"-trace");
+        this.checkAssumptions = !JmlOptionName.isOption(context,"-noCheckAssumptions");
     }
 
     /** Set to the currently owning class declaration while visiting JCClassDecl and its children. */
@@ -124,7 +129,6 @@ public class JmlEsc extends JmlTreeScanner {
      * we do not walk into the method any further from this call, only through
      * the translation mechanism.
      */  // FIXME - what about local classes or anonymous classes
-    //@ requires node instanceof JmlMethodDecl;
     public void visitMethodDef(@NonNull JCMethodDecl node) {
         if (!(node instanceof JmlMethodDecl)) {
             log.warning("esc.not.implemented","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + node.sym);
@@ -149,10 +153,11 @@ public class JmlEsc extends JmlTreeScanner {
             // FIXME - turn off in quiet mode? 
             log.note("esc.checking.method",node.sym); 
             if (verbose) System.out.println("ESC: Checking method " + node.sym);
-            if (escdebug) System.out.println(node.toString());
+            if (escdebug) System.out.println(node.toString()); // print the method
+            
             //Utils.Timer t = new Utils.Timer();
             BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
-            if (escdebug) program.write();
+            if (JmlOptionName.isOption(context,"-bb") || escdebug) program.write(); // print the basic block program // FIXME - the option
             //System.out.println("PREP  " +  t.elapsed()/1000.);
             prove(node,program);
             //System.out.println("PREP AND PROVE " +  t.elapsed()/1000.);
@@ -190,9 +195,6 @@ public class JmlEsc extends JmlTreeScanner {
                     e.pos = as.expression.pos;
                     return e;
                 } else if (as.token == JmlToken.ASSERT) {
-//                    JCExpression ee = factory.JmlBinary(JmlToken.IMPLIES,as.expression,rest);
-//                    ee.pos = as.expression.pos;
-//                    ee.type = syms.booleanType;
                     JCExpression e = factory.Binary(JCTree.AND,as.expression,rest);
                     e.type = syms.booleanType;
                     e.pos = as.expression.pos;
@@ -221,9 +223,9 @@ public class JmlEsc extends JmlTreeScanner {
      * variable in the eventual VC; the identifier has the given type and node
      * position (the given position is not encoded into the identifier name);
      * an associated VarSymbol is also created.
-     * @param name the name of the identifier (including any encoded incarnation number)
+     * @param name the name of the identifier (including any encoded numbers)
      * @param type the Java type of the identifier (e.g. syms.booleanType)
-     * @param nodepos the position at which to place the node
+     * @param nodepos the pseudo source position at which to place the node
      * @return the created identifier
      */
     protected @NonNull JCIdent newAuxIdent(@NonNull Name name, @NonNull Type type, int nodepos) {
@@ -231,37 +233,33 @@ public class JmlEsc extends JmlTreeScanner {
         id.pos = nodepos;
         id.type = type;
         id.sym = new VarSymbol(0,name,type,null);
-        // Note: the owner of the symbol is null - FIXME: should that be the method or something - this does not seem to cause any harm to date
-        // FIXME - set the end position?
+        // Note: the owner of the symbol is null, because we do not want it to
+        // be interpreted as a Java declaration of some sort.
         return id;
     }
- 
+    
     /** Initiate proving of the VC for the method.  The given program must be
      * the BasicProgram corresponding to the given method declaration.
      * @param methodDecl the method whose implementation is being proved
      * @param program the basic program corresponding to the method implementation
      */
     public void prove(@NonNull JCMethodDecl methodDecl, @NonNull BasicProgram program) {
-        LinkedList<JCIdent> trackedAssumes = new LinkedList<JCIdent>();
         IProver p;
         try {
 
             // Pick a prover to use
             p = new YicesProver(context);
             
-            // FIXME - find another way to get the assumeChecks so that we can get rid of the declarations
-            for (JCIdent var: program.declarations()) {
-                String s = var.toString();
-                if (s.startsWith("assumeCheck$")) trackedAssumes.add(var);
-            }
-
             for (BasicProgram.BasicBlock block : program.blocks()) {
                 p.define(block.id.toString(),syms.booleanType);
             }
             
-            {
-             // Check that the preconditions are satisfiable
-             // FIXME - move this check to after the overall satisfiability check
+            if (JmlOptionName.isOption(context,"-checkPreconditions")) {
+                // Check that the preconditions are satisfiable
+                // This is here in case one wants a quick smoke test of the 
+                // preconditions.  Normally one would do the general check of
+                // the method, and only if it is successful would one go on to
+                // check that the various assumptions are feasible.
                 p.push();
                 BasicBlock bl = program.startBlock();
                 JCExpression e = blockExpr(bl);
@@ -269,14 +267,14 @@ public class JmlEsc extends JmlTreeScanner {
                 e.type = syms.booleanType;
                 p.assume(e);
                 IProverResult b = p.check();
-                if (b.result() == ProverResult.UNSAT) { // FIXME - control with verbosity
+                if (b.result() == ProverResult.UNSAT) {
                     log.warning(methodDecl.pos(),"esc.unsat.preconditions",methodDecl.getName());
                     if (escdebug) System.out.println("Invariants+Preconditions are NOT satisfiable in " + methodDecl.getName());
                     // FIXME - print out core ids if available?
                     p.pop();
                     return ;
                 } else {
-                    if (escdebug) System.out.println("Invariants+Preconditions are satisfiable");
+                    if (verbose) System.out.println("Invariants+Preconditions are satisfiable");
                 }
                 p.pop();
             }
@@ -308,9 +306,9 @@ public class JmlEsc extends JmlTreeScanner {
                 n = p.assume(expr,10);
             }
 
-            p.push();
+            if (checkAssumptions) p.push();
 
-            if (trackedAssumes.size() != 0) {
+            { // FIXME - we have to include this unless no assumption encoding is done
                 JCExpression e = factory.Literal(TypeTags.INT,0);
                 e.type = syms.intType;
                 e = factory.Binary(JCTree.EQ, program.assumeCheckVar, e);
@@ -319,36 +317,64 @@ public class JmlEsc extends JmlTreeScanner {
             }
 
             IProverResult r = p.check();
-            if (r.result() == IProverResult.SAT  || r.result() == IProverResult.POSSIBLYSAT) {
+            if (r.isSat()) {
                 if (escdebug) System.out.println("Method does NOT satisfy its specifications, it appears");
                 ICounterexample s = r.counterexample();
-                // Look for "assert$<number>$<Label>$<number> false"
-                Pattern pat1 = Pattern.compile("(assert\\$(\\d+)\\$(\\d+))\\$(\\w+)");
                 boolean noinfo = true;
-                if (s != null) for (Map.Entry<String,String> var: s.sortedEntries()) {
-                    Matcher m = pat1.matcher(var.getKey());
-                    if (var.getValue().equals("false") && m.find()) {
-                        String sname = m.group(1); // full name of the assertion
-                        String label = m.group(4); // the label part 
-                        int usepos = Integer.parseInt(m.group(2)); // the textual location of the assert statement
-                        int declpos = Integer.parseInt(m.group(3)); // the textual location of associated information (or same as usepos if no associated information)
-                        
-                        Name v = names.fromString(var.getKey());
-                        BasicBlock bl = findContainingBlock(v,program);
-                        // A 'false' assertion is spurious if it happens in a block 
-                        // which is not executed (its block variable is 'true')
-                        // So we list the assertion if
-                        //      - we cannot find a block containing the assertion (just to be safe)
-                        //      - we find a block but find no value for the block variable (just to be safe)
-                        //      - the block variable is 'false' (not 'true') and there is a chain of false blocks back to the beginning
-                        if (bl == null || hasFeasibleChain(bl,s) ) {
-                            if (escdebug) System.out.println("Assertion " + sname + " cannot be verified");
-                            log.warning(usepos,"esc.assertion.invalid",label,methodDecl.getName());
-                            if (declpos != usepos) log.warning(declpos,"esc.associated.decl");
-                            noinfo = false;
+                if (s != null) {
+                    // Find out the termination position; null means that the information
+                    // was not available from the counterexample - either because the
+                    // prover did not return it, or because of some bug in the
+                    // program
+                    String terminationValue = s.get(BasicBlocker.TERMINATION_VAR);
+                    int terminationPosition = terminationValue == null ? 0 :
+                                        Integer.valueOf(terminationValue);
+                    // Look for "assert$<number>$<Label>$<number> false"
+                    Pattern pat1 = Pattern.compile("(assert\\$(\\d+)\\$(\\d+))\\$(\\w+)");
+                    for (Map.Entry<String,String> var: s.sortedEntries()) {
+                        Matcher m = pat1.matcher(var.getKey());
+                        if (var.getValue().equals("false") && m.find()) {
+                            String sname = m.group(1); // full name of the assertion
+                            String label = m.group(4); // the label part 
+                            int usepos = Integer.parseInt(m.group(2)); // the textual location of the assert statement
+                            int declpos = Integer.parseInt(m.group(3)); // the textual location of associated information (or same as usepos if no associated information)
+                            int termpos = usepos;
+                            if (terminationValue != null &&
+                                    (Label.POSTCONDITION.toString().equals(label) ||
+                                            Label.SIGNALS.toString().equals(label) ||
+                                            Label.SIGNALS_ONLY.toString().equals(label))) {
+                                // terminationPosition is, 
+                                // if positive, the source code location of the return statement,
+                                // if negative, the negative of the source code location of
+                                //          the throw statement or method call of an exception exit
+                                // if 0, the method exits out the end of the block.  
+                                // In this last case, one would like to point the
+                                // error message to the end of the block, but since
+                                // we do not at the moment have support for 
+                                // end positions, we use the position of the 
+                                // method declaration. (TODO)
+                                if (terminationPosition == 0) termpos = usepos; 
+                                else if (terminationPosition > 0) termpos = terminationPosition;
+                                else                             termpos = -terminationPosition;
+                            }
+                            Name v = names.fromString(var.getKey());
+                            BasicBlock bl = findContainingBlock(v,program);
+                            // A 'false' assertion is spurious if it happens in a block 
+                            // which is not executed (its block variable is 'true')
+                            // So we list the assertion if
+                            //      - we cannot find a block containing the assertion (just to be safe)
+                            //      - we find a block but find no value for the block variable (just to be safe)
+                            //      - the block variable is 'false' (not 'true') and there is a chain of false blocks back to the beginning
+                            if (bl == null || hasFeasibleChain(bl,s) ) {
+                                if (escdebug) System.out.println("Assertion " + sname + " cannot be verified");
+                                log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName());
+                                if (declpos != usepos) log.warning(declpos,"esc.associated.decl");
+                                noinfo = false;
+                            }
                         }
                     }
                 }
+
                 if (noinfo) {
                     log.warning("esc.method.invalid",methodDecl.getName());
                 } else {
@@ -359,6 +385,7 @@ public class JmlEsc extends JmlTreeScanner {
                             int pos = Integer.parseInt(m.group(1));
                             String label = m.group(2);
                             log.warning(pos,"esc.label",label);
+                            if (escdebug) System.out.println("Label " + label + " has value " + var.getValue());
                         }
                     }
                     Pattern pat3 = Pattern.compile("\\$\\$LBLNEG\\$(\\d+)\\$([^ ]+)");
@@ -368,13 +395,27 @@ public class JmlEsc extends JmlTreeScanner {
                             int pos = Integer.parseInt(m.group(1));
                             String label = m.group(2);
                             log.warning(pos,"esc.label",label);
+                            if (escdebug) System.out.println("Label " + label + " has value " + var.getValue());
+                        }
+                    }
+                    Pattern pat4 = Pattern.compile("\\$\\$LBLANY\\$(\\d+)\\$([^ ]+)");
+                    for (Map.Entry<String,String> var: s.sortedEntries()) {
+                        Matcher m = pat4.matcher(var.getKey());
+                        if (m.find()) {
+                            int pos = Integer.parseInt(m.group(1));
+                            String label = m.group(2);
+                            log.warning(pos,"esc.label.value",label,var.getValue());
+                            if (escdebug) System.out.println("Label " + label + " has value " + var.getValue());
                         }
                     }
                 }
-                if (showCounterexample) {
+                
+                if (showTrace) {
                     System.out.println("Trace");
                     //BasicBlocker.Tracer.trace(context,methodDecl,s);
-                    BasicBlocker.TracerBB.trace(context,program,s);
+                    BasicBlocker.TracerBB.trace(context,program,s,p);
+                }
+                if (showCounterexample) {
                     System.out.println("Counterexample:");
                     // Just some arbitrary number of spaces used to format lines
                     String spaces = "                                ";
@@ -386,10 +427,11 @@ public class JmlEsc extends JmlTreeScanner {
                 }
             } else if (r.result() == IProverResult.UNSAT) {
                 if (escdebug) System.out.println("Method satisfies its specifications (as far as I can tell)");
-
-                boolean useCoreIds = true;
+                if (!checkAssumptions) return;
+                
+                boolean useCoreIds = false; // FIXME - use an option
                 ICoreIds cid = r.coreIds();
-                if (cid == null && verbose) System.out.println("Warning: Core ids unexpectedly not returned");
+                if (useCoreIds && cid == null && verbose) System.out.println("Warning: Core ids unexpectedly not returned");
                 Collection<Integer> cids = cid == null ? null : cid.coreIds();
                 if (useCoreIds && cids != null) {
                     Integer[] ids = new Integer[cids.size()]; 
@@ -428,12 +470,20 @@ public class JmlEsc extends JmlTreeScanner {
 
                     p.pop();
 
-                } else {
+                } else if (checkAssumptions) {
                     p.pop();
 
-                    for (JCIdent aux: trackedAssumes) {
+                    // Find assumptions that need tracking
+                    SortedSet<String> trackedAssumes = new TreeSet<String>();
+                    for (JCIdent var: BasicBlocker.VarFinder.findVars(program)) {
+                        String s = var.toString();
+                        if (s.startsWith("assumeCheck$")) {
+                            trackedAssumes.add(s);
+                        }
+                    }
+
+                    for (String nm: trackedAssumes) {
                         p.push();
-                        String nm = aux.toString();
                         String parts[] = nm.split("\\$");
                         int pos = Integer.parseInt(parts[1]);
                         JCExpression ex = factory.Binary(JCTree.EQ, program.assumeCheckVar, factory.Literal(TypeTags.INT,pos));
@@ -451,6 +501,7 @@ public class JmlEsc extends JmlTreeScanner {
                 // Result is unknown
                 // FIXME - need some tests and more output information here
                 if (escdebug) System.out.println("Status of method is UNKNOWN - prover failed");
+                log.error("esc.proof.failed", r.result(), methodDecl.sym);
             }
 
         } catch (ProverException e) {
@@ -478,22 +529,40 @@ public class JmlEsc extends JmlTreeScanner {
         } else if (label.equals(Label.BRANCHE.toString())) {
             log.warning(Math.abs(pos),"esc.infeasible.branch","else",methodSignature);
             if (escdebug) System.out.println("Branch is infeasible at " + pos);
+        } else if (label.equals(Label.PRECONDITION.toString())) {
+            log.warning(Math.abs(pos),"esc.infeasible.preconditions",methodSignature);
+            if (escdebug) System.out.println("Preconditions are infeasible at " + pos);
         } else {
             log.warning(pos,"esc.infeasible.assumption",methodSignature);
             if (escdebug) System.out.println("Assumption (" + label + ") is infeasible");
         }
     }
     
-    public boolean hasFeasibleChain(BasicBlock bl, ICounterexample s) {
+    /** Checks to see if the given BasicBLock has a feasible chain back to the
+     * program start, within the set of variable assignments given in a
+     * counterexample.  A BasicBlock is feasible if its block variable is 'false' in
+     * the counterexample and either it is the start block or it follows a
+     * feasible block.
+     * @param bl the BasicBlock to check
+     * @param s the counterexample whose assignments to use
+     * @return true if feasible, false if not
+     */
+    public boolean hasFeasibleChain(/*@ non_null*/ BasicBlock bl, /*@ non_null*/ ICounterexample s) {
         if ("true".equals(s.get(bl.id.name.toString()))) return false;
-        if (bl.preceding.size() == 0) return true;
+        if (bl.preceding.size() == 0) return true; // presuming it is the start block, which may not be the case?? FIXME
         for (BasicBlock b: bl.preceding) {
             if (hasFeasibleChain(b,s)) return true;
         }
         return false;
     }
     
-    public BasicBlock findContainingBlock(Name assertName, BasicProgram program) {
+    /** Finds the basic block containing an assertion with the given name
+     * 
+     * @param assertName the name of the assertion as used in the definition
+     * @param program the basic program in which to find the block
+     * @return the BasicBlock in which the assertion occurs, or null if not found
+     */
+    public /*@ nullable */ BasicBlock findContainingBlock(/*@ non_null*/ Name assertName, /*@ non_null*/ BasicProgram program) {
         for (BasicBlock block: program.blocks) {
             for (JCStatement st: block.statements) {
                 if ((st instanceof JmlStatementExpr) &&

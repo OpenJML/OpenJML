@@ -282,7 +282,12 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         if (tree.sym == null) return;
         if (tree.sym.className().startsWith("org.jmlspecs")) return;  // FIXME - don't instrument runtime files (can get infinite loops)
         if (Utils.isInstrumented(tree.mods.flags)) {
-            System.out.println("ALREADY INSTRUMENTED " + tree.name);
+            // The file is already instrumented.
+            // This can happen if desugarLater is called on a file, so that it
+            // is put back on the todo list.  If we are in the mode of BY_FILE
+            // in JavaCompiler, that means that it is run through the 
+            // attribute/flow/desugar sequence again.  Thus we need to check
+            // for and skip this case.
             return;
         }
         Utils.setInstrumented(tree.mods);

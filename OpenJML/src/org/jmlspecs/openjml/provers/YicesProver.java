@@ -33,6 +33,7 @@ public class YicesProver implements IProver {
     public static final String TYPE = "TYPE$";
     public static final String TYPEOF = "typeof$";
     public static final String SUBTYPE = "subtype$";
+    public static final String CAST = "cast$";
     
     /** A debugging flag - 0 = show nothing; 1 = show errors; 2 = show something; 3 = show everything */
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_SHOULD_BE_FINAL")
@@ -69,9 +70,6 @@ public class YicesProver implements IProver {
     /*@ nullable */
     protected String app = System.getProperty("openjml.prover.yices");
 
-    /** A counter of assumptions sent to the prover */
-    int assumeCounter = 0;
-    
     /** The one instance of the associated translator */
     /*@ non_null */
     protected YicesJCExpr translator;
@@ -79,6 +77,12 @@ public class YicesProver implements IProver {
     // FIXME - will need to separate start from construction so there is an opportunity to set parameters (e.g. timeout)
     /** Creates and starts the prover process, sending any startup information */
     public YicesProver(Context context) throws ProverException {
+        assumeCounter = -1;
+        int k = 1;
+        while (k>0) {
+            assumeCounter++;
+            k = backgroundPredicate.indexOf("assert+",k)+1;
+        }
         translator = new YicesJCExpr(this);
         if (org.jmlspecs.openjml.esc.JmlEsc.escdebug && showCommunication <= 1) showCommunication = 2;
         start();
@@ -87,14 +91,20 @@ public class YicesProver implements IProver {
     /**The background predicate that is sent prior to anything else.  Do not include any newline characters. */
     /*@ non_null */
     private final static String backgroundPredicate =
-          "(define-type REF) (define null::REF) "
-        + "(define length::(-> REF int)) (assert (forall (a::REF) (>= (length a) 0)))"
-        + "(define isArray::(-> REF bool)) (define-type ARRAY (subtype (r::REF) (isArray r)))"
+          "(define-type REF) (define NULL::REF) "
         + "(define isType::(-> REF bool))"
-        + "(define length$0::(-> REF int)) (assert (= length length$0))"
-        + "(define-type "+TYPE+"  (subtype (r::REF) (isType r)))"
+        + "(define-type "+TYPE+"  (subtype (r::REF) (isType r))) "
+        + "(assert (not (isType NULL)))"
+        + "(define isArray::(-> REF bool)) (define-type ARRAY (subtype (r::REF) (isArray r)))"
+        + "(define length::(-> REF int)) "
+        + "(assert (forall (a::REF) (>= (length a) 0)))"
+        + "(define length$0::(-> REF int)) "
+        + "(assert (= length length$0))"
         + "(define "+TYPEOF+"::(-> REF "+TYPE+"))"
         + "(define "+SUBTYPE+"::(-> "+TYPE+" "+TYPE+" bool))"
+        + "(define "+CAST+"::(-> REF "+TYPE+" REF))"
+        + "(assert (forall (r::REF t::"+TYPE+") (=> (and (/= r NULL) ("+SUBTYPE+" ("+TYPEOF+" r) t))  (= ("+CAST+" r t) r) ) ))"
+        + "(assert (forall (t::"+TYPE+") (= ("+CAST+" NULL t) NULL) ))"
         + "(assert (forall (t::" + TYPE + ") ("+SUBTYPE + " t t)))"
         + "(assert (forall (t1::" + TYPE + " t2::" + TYPE + ") (= (and ("+SUBTYPE + " t1 t2) ("+SUBTYPE + " t2 t1)) (=  t1 t2)) ))"
         + "(assert (forall (t1::" + TYPE + " t2::" + TYPE + " t3::" + TYPE + ") (=> (and ("+SUBTYPE + " t1 t2)("+SUBTYPE + " t2 t3)) ("+SUBTYPE + " t1 t3)) ))"
@@ -102,10 +112,18 @@ public class YicesProver implements IProver {
         + "(define imod::(-> int int int)) (define rmod::(-> real real real))"
         + "(define imul::(-> int int int)) (define rmul::(-> real real real))"
         + "(assert (forall (i::int j::int) (= (imul i j) (imul j i)) ))"
+//        + "(assert (forall (i::int) (and (= (imul i 0) 0) (= (imul 0 i) 0) (= (imul 1 i) i) (= (imul i 1) i) (= (imul -1 i) (- 0 i)) (= (imul i -1) (- 0 i)) )))"
+//        + "(assert (forall (i::int j::int) (= (imul i (+ j 1)) (+ (imul i j) i) ) ))"
+//        + "(assert (forall (i::int j::int) (= (imul i (- j 1)) (- (imul i j) i) ) ))"
         + "(assert (forall (i::int j::int) (=> (> j 0) (= (imod (imul i j) j) 0)) ))"
+        + "(assert (forall (i::int) (and (= (imod i 1) 0) (= (imod i -1) 0) )))"
         + "(define distinct$::(-> "+TYPE+" int))"
-        + "(define T$java.lang.Object$$A::"+TYPE+") (assert (= (distinct$ T$java.lang.Object$$A) 99))"
+        + "(define T$java.lang.Object$$A::"+TYPE+") "
+        + "(assert (= (distinct$ T$java.lang.Object$$A) 99))"
         + "\n";
+    
+    /** A counter of assumptions sent to the prover */
+    int assumeCounter = 1;
     
     private final static String[] predefined = { TYPE, TYPEOF, SUBTYPE, "length", "length$0", "idiv", "rdiv", "imod", "rmod", "imul", "rmul",
         "ARRAY", "bool", "int", "REF", "T$java.lang.Object$$A"
@@ -251,13 +269,52 @@ public class YicesProver implements IProver {
      */
     protected void send(String s) throws ProverException {
         sent.add(s);
-        if (showCommunication >= 2) System.out.print("SENDING " + s);
+        if (showCommunication >= 2) System.out.print("SENDING " + pretty(s));
         try {
             toProver.append(s);
             toProver.flush();
         } catch (IOException e) {
             throw new ProverException("Failed to write to prover: " + e);
         }
+    }
+    
+    protected String pretty(String s) {
+        if (s.length() <= 50) return s;
+        StringBuilder sb = new StringBuilder();
+        char[] cc = s.toCharArray();
+        int nparens = 0;
+        int nind = 2;
+        for (int i=0; i<cc.length; ++i) {
+            char c = cc[i];
+            if (c == ')') { nparens--; sb.append(c); continue; }
+            if (c == '(') { 
+                if (cc[i+1]=='=' && cc[i+2]=='>' && nind == nparens) {
+                    nind++;
+                    nparens++;
+                    sb.append("\n                    ");
+                    int k = nparens;
+                    while (--k >= 0) sb.append(' ');
+                    sb.append("(=>");
+                    i += 2;
+                    continue;
+                } else if (cc[i+1] == 'a' && cc[i+2] == 'n' && nind == nparens) {
+                    nind++;
+                    nparens++;
+                    sb.append("\n                    ");
+                    int k = nparens;
+                    while (--k >= 0) sb.append(' ');
+                    sb.append("(an");
+                    i += 2;
+                    continue;
+                }
+                if (i != 0 && nparens == 0) sb.append("\n               ");
+                nparens++; 
+                sb.append(c);
+                continue; 
+            }
+            sb.append(c);
+        }
+        return sb.toString();
     }
     
     /** Converts an AST type to a type that Yices knows
@@ -311,28 +368,44 @@ public class YicesProver implements IProver {
     public String defineType(Type t) {
         String s = convertType(t);
         if (checkAndDefine(s)) return s; // DO nothing if already defined
+        builder.setLength(0);
         if (t.tag == TypeTags.ARRAY) {
             Type ct = ((ArrayType)t).elemtype;
             if (ct instanceof ArrayType) defineType(ct);
-            builder.append("(define-type " + s + " (subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))");
+            builder.append("(define-type " + s + " (subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))\n");
         } else {
             builder.append("(define-type ");
             builder.append(s);
-            builder.append(") ");
+            builder.append(")\n");
+        }
+        try {
+            send(builder.toString());
+            eatPrompt();
+        } catch (ProverException e) {
+            e.mostRecentInput = builder.toString();
+            throw new RuntimeException(e);
         }
         return s;
     }
 
-    public String defineType(String s, boolean array) {
+    public String defineType(String s, boolean array) throws ProverException {
         if (checkAndDefine(s)) return s; // DO nothing if already defined
+        builder.setLength(0);
         if (array) {
             String cs = s.substring("refA$".length());
             defineType(cs,cs.startsWith("refA"));
-            builder.append("(define-type " + s + " (subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))");
+            builder.append("(define-type " + s + " (subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))\n");
         } else {
             builder.append("(define-type ");
             builder.append(s);
-            builder.append(") ");
+            builder.append(")\n");
+        }
+        try {
+            send(builder.toString());
+            eatPrompt();
+        } catch (ProverException e) {
+            e.mostRecentInput = builder.toString();
+            throw e;
         }
         return s;
     }

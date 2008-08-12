@@ -921,8 +921,17 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                     }
                 }
             }
-            // Check that the specification method has no body if it is not a .java file
-            if (specMethodDecl.body != null && match != specMethodDecl) {
+            // A specification method may not have a body.  However, the spec
+            // method declaration may also be identical to the java method (if the
+            // java file is in the specification sequence) - hence the second test.
+            // There is an unusual case in which a method declaration is duplicated
+            // in a .java file (same signature).  In that case, there is already
+            // an error message, but the duplicate will be matched against the
+            // first declaration at this point, though they are different
+            // delcarations (so the second test will be true).  Hence we include the
+            // 3rd test as well. [ TODO - perhaps we need just the third test and not the second.]
+            if (specMethodDecl.body != null && match != specMethodDecl
+                    && match.sourcefile != specMethodDecl.sourcefile) {
                 Log.instance(context).error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.sym.enclClass().fullname + "." + match.sym.toString());
             }
             

@@ -831,7 +831,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             newlist.append(((JmlTree.Maker)make).at(parent.pos).JmlSpecificationCase(parent.modifiers,parent.code,parent.token,parent.also,prefix.toList()));
         } else {
             for (JmlSpecificationCase c: cases) {
-                ListBuffer<JmlMethodClause> pr = copy(prefix);
                 if (parent == null) {
                     JmlTree.Maker jmlF = (JmlTree.Maker)make;
                     JmlToken t = c.token;
@@ -841,6 +840,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         prefix.append(jmlF.at(c.pos).JmlMethodClauseExpr(JmlToken.ENSURES,falseLit));
                     }
                 }
+                ListBuffer<JmlMethodClause> pr = copy(prefix);
                 newlist.appendList(deNestHelper(pr,c.clauses,parent==null?c:parent,decl));
             }
         }
@@ -2229,7 +2229,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitSelect(JCFieldAccess tree) {
         if (tree.name != null) super.visitSelect(tree);
         // This is a store-ref with a wild-card field
-        else result = tree.type = Type.noType;
+        else {
+            super.visitSelect(tree);
+            result = tree.type = Type.noType;
+        }
     }
     
 

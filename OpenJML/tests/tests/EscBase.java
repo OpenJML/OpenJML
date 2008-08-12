@@ -70,13 +70,34 @@ public abstract class EscBase extends JmlTestCase {
             int ex = main.compile(new String[]{}, context, files, null);
             
             if (print) printErrors();
-            assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
+            int j = 0;
             for (int i=0; i<expectedErrors; i++) {
-                assertEquals("Error " + i, list[2*i].toString(), collector.getDiagnostics().get(i).toString());
-                assertEquals("Error " + i, ((Integer)list[2*i+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
+                int col = ((Integer)list[2*i+1]).intValue();
+                if (col < 0) {
+                    // allowed to be optional
+                    if (j >= collector.getDiagnostics().size()) {
+                        // OK - just skip
+                    } else if (list[2*i].toString().equals(collector.getDiagnostics().get(j).toString())) {
+                        assertEquals("Error " + i, -col, collector.getDiagnostics().get(j).getColumnNumber());
+                        j++;
+                    } else {
+                        // Not equal and the expected error is optional so just skip
+                    }
+                } else {
+                    if (j >= collector.getDiagnostics().size()) {
+                        assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
+                    } else {
+                        assertEquals("Error " + i, list[2*i].toString(), collector.getDiagnostics().get(j).toString());
+                        assertEquals("Error " + i, col, collector.getDiagnostics().get(j).getColumnNumber());
+                        j++;
+                    }
+                }
+            }
+            if (j < collector.getDiagnostics().size()) {
+                assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
-            
+
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);

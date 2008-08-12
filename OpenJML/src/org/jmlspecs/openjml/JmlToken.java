@@ -133,6 +133,7 @@ public enum JmlToken {
     BSFRESH("\\fresh"),
     BSINVARIANTFOR("\\invariant_for"),
     BSISINITIALIZED("\\is_initialized"),
+    BSLBLANY("\\lbl"),
     BSLBLNEG("\\lblneg"),
     BSLBLPOS("\\lblpos"),
     BSMAX("\\max"),
