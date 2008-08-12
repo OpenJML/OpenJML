@@ -51,4 +51,11 @@ public class Todo extends ListBuffer<Env<AttrContext>> {
     protected Todo(Context context) {
         context.put(todoKey, this);
     }
+    
+//    public ListBuffer<Env<AttrContext>> append(Env<AttrContext> o) {
+//        System.out.println("TODO APPEND " + 
+//                (o.tree instanceof com.sun.tools.javac.tree.JCTree.JCClassDecl ? ((com.sun.tools.javac.tree.JCTree.JCClassDecl)o.tree).name.toString()
+//                        : "???"));
+//        return super.append(o);
+//    }
 }

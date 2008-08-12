@@ -1874,6 +1874,8 @@ public class Attr extends JCTree.Visitor {
             env.info.tvars = pstype.tvars;
             site = tree.selected.type = pstype.qtype;
         }
+        
+        if (tree.name == null) { tree.sym = null; result = null; return; } // DRC - added to support wildcards more easily
 
         // Determine the symbol represented by the selection.
         env.info.varArgs = false;
