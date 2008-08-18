@@ -110,12 +110,20 @@ public abstract class RacBase extends JmlTestCase {
             if (rac == null) rac = defrac;
             rac[rac.length-1] = classname;
             Process p = Runtime.getRuntime().exec(rac);
+            // Give the process some time to get started and generate output
+            Thread.sleep(100);  // If we use p.waitFor() we sometimes get a process that locks up - esp. if it has errors
             r = new BufferedReader(new InputStreamReader(p.getInputStream()));
             rerr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
             int i = expectedErrors*2;
             boolean done = false;
             boolean edone = false;
             while (!done || !edone) {
+                // DO we read the output or the error?  Every test is supposed to
+                // generate output if it is successful.  If it fails to run (which
+                // it should not), only error output may be generated.  We hope that
+                // rerr is ready at this point (hence to delay above) if there is
+                // only error output, otherwise we block on the readLine call.
+                // (we did not used to have this problem??)
                 while (!done && !rerr.ready()) {
                     String ss = r.readLine();
                     if (ss == null) { done = true; break; }

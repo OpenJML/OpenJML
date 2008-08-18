@@ -228,6 +228,7 @@ public class JmlCompiler extends JavaCompiler {
         nestingLevel++;
         loadSuperSpecs(env,csymbol);
         java.util.List<JmlCompilationUnit> specSequence = parseSpecs(csymbol);
+        if (verbose && specSequence.isEmpty()) System.out.println("No specs for " + csymbol);
         for (JmlCompilationUnit cu: specSequence) {
             if (cu.sourcefile.toString().endsWith(".java")) cu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
             else cu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
@@ -354,15 +355,15 @@ public class JmlCompiler extends JavaCompiler {
 //    Set<Symbol> savedSupers = null;
 
 
-    /** Overridden just to put out tracking information in verbose mode */
-    @Override
-    protected void flow(Env<AttrContext> env, ListBuffer<Env<AttrContext>> results) {
-        JCTree t = env.tree;
-        if (verbose) System.out.println("flow checks " +  
-                (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
-                    t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
-        super.flow(env,results);
-    }
+//    /** Overridden just to put out tracking information in verbose mode */
+//    @Override
+//    protected void flow(Env<AttrContext> env, ListBuffer<Env<AttrContext>> results) {
+//        JCTree t = env.tree;
+//        if (verbose) System.out.println("flow checks " +  
+//                (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
+//                    t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
+//        super.flow(env,results);
+//    }
     
     int oldsize = -1;
     
@@ -394,6 +395,12 @@ public class JmlCompiler extends JavaCompiler {
         if (verbose) System.out.println("rac " + todo.size() + " " + Utils.envString(env));
         JmlRac rac = new JmlRac(context,env);  // FIXME - use a factory
         if (env.tree instanceof JCClassDecl) {
+            // When we do the RAC translation, we create a new instance
+            // of the JCClassDecl for the class.  So we have to find where
+            // it is kept in the JCCompilationUnit and replace it there.
+            // If there is more than one class in the compilation unit, we are
+            // presuming that each one that is to be translated will be 
+            // separately called - so we just translate each one when it comes.
             List<JCTree> t = env.toplevel.defs;
             while (t.head != null) {
                 if (t.head == env.tree) {
@@ -407,6 +414,8 @@ public class JmlCompiler extends JavaCompiler {
         } else {
             env.toplevel = rac.translate(env.toplevel);
         }
+//        System.out.println("TRANSLATED RAC");
+//        System.out.println(env.tree);
         //flow(env);  // FIXME - give a better explanation if this produces errors.
                 // IF it does, it is because we have done the RAC translation wrong.
         return env;
@@ -432,13 +441,8 @@ public class JmlCompiler extends JavaCompiler {
             }
             return;
         }
-        // Note that if env.tree is a class, we translate just that class.  
-        // Presumably other
-        // class declarations in the compilation unit will be translated on 
-        // other calls.
-        if (verbose) System.out.println("Running ESC on " + Utils.envString(env));
         
-        JmlEsc esc = new JmlEsc(context);  // FIXME - use a factory
+        JmlEsc esc = JmlEsc.instance(context);
         env.tree.accept(esc);
 
         return;

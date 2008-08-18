@@ -17,7 +17,7 @@ import com.sun.tools.javac.tree.JCTree.JCClassDecl;
  */
 public class JmlClassInfo {
     public JmlClassInfo(@NonNull JCClassDecl d) { this.decl = d; }
-    /** The source code declaration */  // FIXME - when null?
+    /** The source code declaration - null if no source and no specs */ 
     @Nullable JCClassDecl decl;
     /** The symbol for the class */
     @NonNull ClassSymbol csym;

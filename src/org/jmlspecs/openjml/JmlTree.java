@@ -107,7 +107,7 @@ public class JmlTree {
         JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, ListBuffer<JCTree.JCExpression> list);
         JmlTypeClauseIn JmlTypeClauseIn(List<JmlGroupName> list);
         JmlTypeClauseMaps JmlTypeClauseMaps(JCExpression e, List<JmlGroupName> list);
-        JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken token, JCModifiers mods, JCTree.JCExpression type, ListBuffer<Name> names, JCTree.JCExpression range, JCTree.JCExpression predicate);
+        JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken token, ListBuffer<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
         JmlLblExpression JmlLblExpression(JmlToken token, Name label, JCTree.JCExpression expr);
         JmlGroupName JmlGroupName(JCExpression selection);
@@ -231,6 +231,7 @@ public class JmlTree {
                 JCExpression init) {
             JmlVariableDecl tree =  new JmlVariableDecl(mods,name,vartype,init,null);
             tree.pos = pos;
+            tree.type = vartype.type; // attribute if the type is known
             tree.sourcefile = Log.instance(context).currentSource();
             return tree;
         }
@@ -280,12 +281,16 @@ public class JmlTree {
             return new JmlMethodInvocation(pos,token,List.<JCExpression>of(arg,arg2));
         }
         
-        public JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken t, JCModifiers mods, JCTree.JCExpression ty, ListBuffer<Name> names, JCTree.JCExpression range, JCTree.JCExpression predicate) {
-            return new JmlQuantifiedExpr(pos,t,mods,ty,names,range,predicate);
-        }
+//        public JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken t, JCModifiers mods, JCTree.JCExpression ty, ListBuffer<Name> names, JCTree.JCExpression range, JCTree.JCExpression predicate) {
+//            return new JmlQuantifiedExpr(pos,t,mods,ty,names,range,predicate);
+//        }
+//        
+//        public JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken t, JCModifiers mods, ListBuffer<JCTree.JCExpression> types, ListBuffer<Name> names, JCTree.JCExpression range, JCTree.JCExpression predicate) {
+//            return new JmlQuantifiedExpr(pos,t,mods,types,names,range,predicate);
+//        }
         
-        public JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken t, JCModifiers mods, ListBuffer<JCTree.JCExpression> types, ListBuffer<Name> names, JCTree.JCExpression range, JCTree.JCExpression predicate) {
-            return new JmlQuantifiedExpr(pos,t,mods,types,names,range,predicate);
+        public JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken t, ListBuffer<JCTree.JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate) {
+            return new JmlQuantifiedExpr(pos,t,decls,range,predicate);
         }
         
         public JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate) {
@@ -1149,36 +1154,47 @@ public class JmlTree {
         // relaxing this requirement and for use elsewhere (i.e. in ESC) this
         // class permits different types.
         public JmlToken op;
-        public ListBuffer<Name> names;
-        public JCModifiers modifiers;
-        public ListBuffer<JCExpression> localtypes;
+//        public ListBuffer<Name> names;
+//        public JCModifiers modifiers;
+//        public ListBuffer<JCExpression> localtypes;
         public JCExpression range;
+        public ListBuffer<JCVariableDecl> decls;
         public JCExpression predicate;
-        protected JmlQuantifiedExpr(int pos, JmlToken op, JCModifiers mods,
-                JCExpression localtype, ListBuffer<Name> names,
+        protected JmlQuantifiedExpr(int pos, JmlToken op,
+                ListBuffer<JCVariableDecl> decls,
                 JCExpression range, JCExpression predicate) {
             this.pos = pos;
             this.op = op;
-            this.modifiers = mods;
-            this.names = names;
-            this.localtypes = new ListBuffer<JCExpression>();
-            int i = names.size();
-            while (--i >= 0) this.localtypes.append(localtype);
+            this.decls = decls;
             this.range = range;
             this.predicate = predicate;
         }
 
-        protected JmlQuantifiedExpr(int pos, JmlToken op, JCModifiers mods,
-                ListBuffer<JCExpression> localtypes, ListBuffer<Name> names,
-                JCExpression range, JCExpression predicate) {
-            this.pos = pos;
-            this.op = op;
-            this.modifiers = mods;
-            this.names = names;
-            this.localtypes = localtypes;
-            this.range = range;
-            this.predicate = predicate;
-        }
+//        protected JmlQuantifiedExpr(int pos, JmlToken op, JCModifiers mods,
+//                JCExpression localtype, ListBuffer<Name> names,
+//                JCExpression range, JCExpression predicate) {
+//            this.pos = pos;
+//            this.op = op;
+//            this.modifiers = mods;
+//            this.names = names;
+//            this.localtypes = new ListBuffer<JCExpression>();
+//            int i = names.size();
+//            while (--i >= 0) this.localtypes.append(localtype);
+//            this.range = range;
+//            this.predicate = predicate;
+//        }
+
+//        protected JmlQuantifiedExpr(int pos, JmlToken op, JCModifiers mods,
+//                ListBuffer<JCExpression> localtypes, ListBuffer<Name> names,
+//                JCExpression range, JCExpression predicate) {
+//            this.pos = pos;
+//            this.op = op;
+//            this.modifiers = mods;
+//            this.names = names;
+//            this.localtypes = localtypes;
+//            this.range = range;
+//            this.predicate = predicate;
+//        }
 
         public Kind getKind() { 
             return Kind.OTHER; // See note above
@@ -1557,6 +1573,7 @@ public class JmlTree {
             this.token = token;
             this.expression = expression;
             this.label = label;
+            this.declPos = pos;
         }
         public JmlToken token;
         public JCTree.JCExpression expression;
@@ -1564,6 +1581,9 @@ public class JmlTree {
         public int line;
         public JavaFileObject source;
         public Label label;
+        public int declPos; // the source position that generated the assert
+                            // (for an explicit assert or assume, this should
+                            // be the same as this.pos)
 
         @Override
         public int getTag() {
@@ -2828,6 +2848,7 @@ public class JmlTree {
         public JmlBBFieldAccess(JCIdent fieldId, JCExpression selected) {
             super(selected,fieldId.name,fieldId.sym);
             this.fieldId = fieldId;
+            this.type = fieldId.type;
         }
     }    
 }

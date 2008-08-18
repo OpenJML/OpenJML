@@ -294,7 +294,7 @@ public class typeclauses extends TCBase {
     /** Check that the target of a static represents clause is in the same class */
     public void testRepresents15() {
         helpTCF("A.java","public class A extends B {\n //@ static represents i = 0;\n} class B { //@ static model int i; \n}"
-                ,"/A.java:2: A static represents clause must be declared in the same class as the model field it represents",13
+                ,"/A.java:2: A represents clause must be declared in the same class as the static model field it represents",13
                 );
     }
     

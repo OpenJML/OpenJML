@@ -26,7 +26,7 @@ public class expressions extends ParseBase {
     
 
     protected void setUp() throws Exception {
-//        noCollectDiagnostics = true;
+        //noCollectDiagnostics = true;
         super.setUp();
         jml = true;
     }
@@ -372,6 +372,8 @@ public class expressions extends ParseBase {
     public void testQuantifier() {
         helpExpr(" \\exists  int i; 0 <= i; i < 0  ",
                 JmlQuantifiedExpr.class,1,
+                JmlVariableDecl.class,14,
+                JCModifiers.class,10,
                 JCPrimitiveTypeTree.class, 10,
                 JCBinary.class, 19,
                 JCLiteral.class ,17,
@@ -385,6 +387,8 @@ public class expressions extends ParseBase {
         helpExpr("(\\forall  int i; 0 <= i; i < 0 ) ",
                 JCParens.class, 0,
                 JmlQuantifiedExpr.class,1,
+                JmlVariableDecl.class,14,
+                JCModifiers.class,10,
                 JCPrimitiveTypeTree.class, 10,
                 JCBinary.class, 19,
                 JCLiteral.class ,17,
@@ -398,6 +402,8 @@ public class expressions extends ParseBase {
         helpExpr("(\\sum     int i; 0 <= i; i + 1 ) ",
                 JCParens.class, 0,
                 JmlQuantifiedExpr.class,1,
+                JmlVariableDecl.class,14,
+                JCModifiers.class,10,
                 JCPrimitiveTypeTree.class, 10,
                 JCBinary.class, 19,
                 JCLiteral.class ,17,
@@ -411,6 +417,8 @@ public class expressions extends ParseBase {
         helpExpr("(\\product int i; ; i + 1 ) ",
                 JCParens.class, 0,
                 JmlQuantifiedExpr.class,1,
+                JmlVariableDecl.class,14,
+                JCModifiers.class,10,
                 JCPrimitiveTypeTree.class, 10,
                 JCBinary.class ,21,
                 JCIdent.class ,19,
@@ -421,6 +429,8 @@ public class expressions extends ParseBase {
         helpExpr("(\\min     int i;   i + 1 ) ",
                 JCParens.class, 0,
                 JmlQuantifiedExpr.class,1,
+                JmlVariableDecl.class,14,
+                JCModifiers.class,10,
                 JCPrimitiveTypeTree.class, 10,
                 JCBinary.class ,21,
                 JCIdent.class ,19,
@@ -431,6 +441,8 @@ public class expressions extends ParseBase {
         helpExpr("(\\max     int i;   i + 1 ) ",
                 JCParens.class, 0,
                 JmlQuantifiedExpr.class,1,
+                JmlVariableDecl.class,14,
+                JCModifiers.class,10,
                 JCPrimitiveTypeTree.class, 10,
                 JCBinary.class ,21,
                 JCIdent.class ,19,

@@ -157,6 +157,51 @@ public class modifiers extends TCBase {
                 );
     }
     
+    @Test public void testInterface1() {
+        helpTCF("t/A.java","package t; \n interface I { /*@ instance model  int i; */ } public class A implements I { /*@ represents i = 8; */ }"
+                );  // OK no errors
+    }
+    
+    @Test public void testInterface1a() {
+        helpTCF("t/A.java","package t; \n interface I { /*@  model  int i; */ } public class A implements I { /*@ represents i = 8; */ }"
+                ,"/t/A.java:2: A represents clause and its associated model field must both be static or both not be static",74
+                ,"/t/A.java:2: A represents clause must be declared in the same class as the static model field it represents",74
+                );  
+    }
+    
+    @Test public void testInterface1b() {
+        helpTCF("t/A.java","package t; \n interface I { /*@ instance model  int i; */ } public class A implements I { /*@ static represents i = 8; */ }"
+                ,"/t/A.java:2: A represents clause and its associated model field must both be static or both not be static",89
+                );  
+    }
+    
+    @Test public void testInterface1c() {
+        helpTCF("t/A.java","package t; \n interface I { /*@ model  int i; */ } public class A implements I { /*@ static represents i = 8; */ }"
+                ,"/t/A.java:2: A represents clause must be declared in the same class as the static model field it represents",80
+                ); 
+    }
+    
+    // make sure ghost fields are not final by default; should be static by default
+    @Test public void testInterface2() {
+        helpTCF("t/A.java","package t; \n interface I { /*@ ghost int i; */ } public class A implements I { static void m() { /*@ set i = 8; */ }}"
+                ); // OK - no errors
+    }
+    
+    // make sure that instance works
+    @Test public void testInterface3() {
+        helpTCF("t/A.java","package t; \n interface I { /*@ instance ghost int i; */ } public class A implements I { static void m() { /*@ set i = 8; */ }}"
+                ,"/t/A.java:2: non-static variable i cannot be referenced from a static context",103
+                );
+    }
+    
+    // cannot be model and final
+    @Test public void testInterface4() {
+        helpTCF("t/A.java","package t; \n interface I { /*@ final model int i; */ } public class A implements I { /*@ final model int j;*/ }"
+                ,"/t/A.java:2: A declaration may not be both model and final",26
+                ,"/t/A.java:2: A declaration may not be both model and final",84
+                );
+    }
+    
     @Test public void testMatchClass() {
         addMockFile("$A/A.spec"," class A {}");
         helpTCF("A.java","public class A{}",
@@ -805,7 +850,7 @@ public class modifiers extends TCBase {
                 "  //@ invariant (\\exists @Nullable Object o; o == null); \n" +
                 "  //@ invariant (\\exists @Pure Object o; o == null); \n" +
                 "  }"
-                ,"/A.java:2: No Java modifiers are allowed in a quantified expression",32
+                ,"/A.java:2: No Java modifiers are allowed in a quantified expression",26
                 ,"/A.java:5: This JML modifier is not allowed for a quantified expression",26
                 );
     }

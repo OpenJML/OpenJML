@@ -13,6 +13,7 @@ import org.jmlspecs.openjml.JmlPretty;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 
 /**
@@ -41,13 +42,16 @@ public class BasicProgram {
      */
     // FIXME - we want to get rid of this
     //@ non_null
-    protected Collection<JCIdent> declarations = new ArrayList<JCIdent>();
+    //protected Collection<JCIdent> declarations = new ArrayList<JCIdent>();
     
     /** Returns the declarations in this program
      * 
      * @return the declarations of variables in this program
      */
-    public Collection<JCIdent> declarations() { return declarations; }
+    //public Collection<JCIdent> declarations() { return declarations; }
+    
+    /** The method declaration generating this program */
+    protected JCMethodDecl methodDecl;
     
     /** The id of the starting block */
     //@ non_null

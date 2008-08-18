@@ -122,7 +122,7 @@ public class YicesJCExpr extends JmlTreeScanner {
         } else {
             s = "REF"; // FIXME
         }
-        if (that.sym != null && that.sym.owner instanceof Symbol.ClassSymbol && !that.sym.isStatic() ) {
+        if (that.sym != null && that.sym.owner instanceof Symbol.ClassSymbol && !that.sym.isStatic() ) { // FIXME - isStatis is not correct for JML fields in interfaces
             // If at this point s is a new type, it won't get defined  FIXME
             // FIXME - the translating of types is a MESS - some here some in YicesProver some in BasicBlocker
             s = "(-> REF " + s + ")";
@@ -181,6 +181,12 @@ public class YicesJCExpr extends JmlTreeScanner {
                 break;
             case TypeTags.BOT:
                 result.append("NULL");
+                break;
+            case TypeTags.CHAR:
+                // toString uses pretty printing which knows to convert the
+                // value (which is an Integer) into a quoted char
+                // We want to use it simply as an int
+                result.append(that.value.toString());
                 break;
             default:
                 result.append(that.toString());
@@ -606,15 +612,11 @@ public class YicesJCExpr extends JmlTreeScanner {
         result.append("(forall (");
         
         do {
-            com.sun.tools.javac.util.List<JCExpression> localtypes = that.localtypes.toList();
-            String ytype;
 
-            for (Name n: that.names) {
-                JCExpression localtype = localtypes.head;
-                localtypes = localtypes.tail;
-                ytype = p.defineType(localtype.type);
+            for (JCVariableDecl decl: that.decls) {
+                String ytype = p.defineType(decl.type);
 
-                result.append(n.toString());
+                result.append(decl.name.toString());
                 result.append("::");
                 result.append(ytype);
                 result.append(" ");
@@ -624,9 +626,17 @@ public class YicesJCExpr extends JmlTreeScanner {
                 that = (JmlQuantifiedExpr)that.predicate;
             } else break;
         } while (true);
-            
+        
         result.append(") ");
-        that.predicate.accept(this);
+        if (that.range == null) {
+            that.predicate.accept(this);
+        } else {
+            result.append("(=> ");
+            that.range.accept(this);
+            result.append(" ");
+            that.predicate.accept(this);
+            result.append(")");
+        }
         result.append(")");
     }
     

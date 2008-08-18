@@ -1806,16 +1806,21 @@ public class JmlParser extends EndPosParser {
     protected boolean inCreator = false;
         
     public JCExpression parseQuantifiedExpr(int pos, JmlToken jt) {
-        JCModifiers mods = modifiersOpt();  // FIXME - these are ignored for now
+        JCModifiers mods = modifiersOpt();
         JCExpression t = type();
         if (t.getTag() == JCTree.ERRONEOUS) return t;
-        ListBuffer<Name> names = new ListBuffer<Name>();
+        if (mods.pos == -1) mods.pos = t.pos; // set the beginning of the modifiers
+                                        // to the beginning of the type, if there
+                                        // are no modifiers
+        ListBuffer<JCVariableDecl> decls = new ListBuffer<JCVariableDecl>();
+        int idpos = S.pos();
         Name id = ident(); // FIXME  JML allows dimensions after the ident
-        names.append(id); 
+        decls.append(jmlF.at(idpos).VarDef(mods,id,t,null));
         while (S.token() == COMMA) {
             S.nextToken();
+            idpos = S.pos();
             id = ident(); // FIXME  JML allows dimensions after the ident
-            names.append(id);
+            decls.append(jmlF.at(idpos).VarDef(mods,id,t,null));
         }
         if (S.token() != SEMI) {
             log.error(S.pos(),"jml.expected.semicolon.quantified");
@@ -1849,7 +1854,7 @@ public class JmlParser extends EndPosParser {
                 return toP(jmlF.at(p).Erroneous());
             }
         }
-        return toP(jmlF.at(pos).JmlQuantifiedExpr(jt,mods,t,names,range,pred));
+        return toP(jmlF.at(pos).JmlQuantifiedExpr(jt,decls,range,pred));
     }
 
     // MAINTENANCE ISSUE:

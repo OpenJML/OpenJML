@@ -296,6 +296,20 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                 Log.instance(context).error(savedMethodSpecs.pos(),"jml.misplaced.method.specs",specsDecl.name);
                 savedMethodSpecs = null;
             }
+            
+            // Fill in default method specs for anything that does not have them
+            // FIXME - same for other kinds of fields? Or should we just interpret absence as default everywhere?
+            for (JCTree t: jtree.defs) {
+                if (t instanceof JmlMethodDecl) {
+                    JmlMethodDecl mdecl = (JmlMethodDecl)t;
+                    if (mdecl.methodSpecs == null) {
+                        JmlMethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(mdecl.pos);
+                        mdecl.methodSpecs = defaultSpecs;
+                        defaultSpecs.decl = mdecl;
+                        JmlSpecs.instance(context).putSpecs(mdecl.sym, mdecl.methodSpecs);
+                    }
+                }
+            }
                 // FIXME = use a visitor to be more O-O ?
             // FIXME - unify this method with the near duplicate below
         } finally {
@@ -931,7 +945,8 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             // delcarations (so the second test will be true).  Hence we include the
             // 3rd test as well. [ TODO - perhaps we need just the third test and not the second.]
             if (specMethodDecl.body != null && match != specMethodDecl
-                    && match.sourcefile != specMethodDecl.sourcefile) {
+                    && match.sourcefile != specMethodDecl.sourcefile
+                    && (specMethodDecl.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
                 Log.instance(context).error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.sym.enclClass().fullname + "." + match.sym.toString());
             }
             
@@ -982,7 +997,8 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             }
 
             // Check that the specification method has no body if it is not a .java file
-            if (specMethodDecl.body != null && !JmlCompilationUnit.isJava(modeOfFileBeingChecked)) {
+            if (specMethodDecl.body != null && !JmlCompilationUnit.isJava(modeOfFileBeingChecked)
+                    && (specMethodDecl.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
                 Log.instance(context).error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.enclClass().fullname + "." + match.toString());
             }
             
@@ -1259,16 +1275,21 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
     @Override
     public void visitVarDef(JCVariableDecl tree) {
         long flags = tree.mods.flags;
+        boolean wasFinal = (flags&FINAL) != 0;
+        boolean wasStatic = (flags&Flags.STATIC) != 0;
         super.visitVarDef(tree);
         Symbol sym = tree.sym;
         if (sym.kind == Kinds.VAR && sym.owner.kind == TYP && (sym.owner.flags_field & INTERFACE) != 0
                 && Utils.isJML(tree.mods)) {
-            // In the case of a JML variable that is a field of an interface, the default is not static and not final
+            // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
             // (unless explicitly specified final)
             // FIXME _ the following is not robust because annotations are not attributed yet
             boolean isInstance = JmlAttr.instance(context).findMod(tree.mods,JmlToken.INSTANCE) != null;
-            if (isInstance) tree.sym.flags_field &= ~Flags.STATIC;
-            if (isInstance && (flags&FINAL) == 0) sym.flags_field &= ~FINAL; 
+            boolean isGhost = JmlAttr.instance(context).findMod(tree.mods,JmlToken.GHOST) != null;
+            boolean isModel = JmlAttr.instance(context).findMod(tree.mods,JmlToken.MODEL) != null;
+            if (isInstance && !wasStatic) tree.sym.flags_field &= ~Flags.STATIC;
+            if (isGhost && !wasFinal) sym.flags_field &= ~FINAL; 
+            if (isModel && !wasFinal) sym.flags_field &= ~FINAL; 
         }
         
     }

@@ -303,6 +303,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             log.useSource(prev);
         }
         if (Utils.jmldebug) System.out.println("ATTRIBUTING-END " + c.fullname);
+        if (verbose && c != syms.predefClass) {
+            System.out.println("typechecked " + c);
+        }
     }
     
     /** Overrides in order to attribute class specs appropriately. */
@@ -1045,6 +1048,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (a != null && isStatic(tree.mods)) {
                 log.error(a.pos(),"jml.conflicting.modifiers","instance","static");
             }
+            if (model && ((tree.mods.flags & Flags.FINAL)!=0)) {
+                a = Utils.findMod(tree.mods,tokenToAnnotationName.get(MODEL));
+                log.error(a.pos(),"jml.conflicting.modifiers","model","final");
+            }
         } else if ((tree.mods.flags & Flags.PARAMETER) != 0) { // formal parameters
             allAllowed(tree.mods.annotations, allowedFormalParameterModifiers, "formal parameter");
         } else { // local declaration
@@ -1078,7 +1085,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (!isModel(sym)) {
             log.error(tree.pos,"jml.datagroup.must.be.model");
         }
-        if (inVarDecl != null && sym.isStatic() && !inVarDecl.sym.isStatic()) {
+        if (inVarDecl != null && sym.isStatic() && !inVarDecl.sym.isStatic()) {  // FIXME - isStatic is not correct for JML fields in interfaces - use isStatic(sym.flags()) ?
             log.error(tree.pos,"jml.instance.in.static.datagroup");
         }
     }
@@ -1286,16 +1293,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             checkTypeClauseMods(tree,tree.modifiers,"represents clause",tree.token);
             if (sym != null && !sym.type.isErroneous() && sym.type.tag != TypeTags.ERROR) {
-                if ( sym.isStatic() != isStatic(tree.modifiers)) {
+                if ( isStatic(sym.flags()) != isStatic(tree.modifiers)) {
+                    // Note: we cannot use sym.isStatic() in the line above because it
+                    // replies true when the flag is not set, if we are in an 
+                    // interface and not a method.  Model fields do not obey that rule.
                     log.error(tree.pos,"jml.represents.bad.static");
                     // Presume that the model field is correct and proceed
-                    if (sym.isStatic()) tree.modifiers.flags |= Flags.STATIC;
+                    if (isStatic(sym.flags())) tree.modifiers.flags |= Flags.STATIC;
                     else tree.modifiers.flags &=  ~Flags.STATIC;
                 }
                 if (!isModel(sym)) {
                     log.error(tree.pos,"jml.represents.expected.model");
                 }
-                if (env.enclClass.sym != sym.owner && sym.isStatic()) {
+                if (env.enclClass.sym != sym.owner && isStatic(sym.flags())) {
                     log.error(tree.pos,"jml.misplaced.static.represents");
                 }
             }
@@ -2128,24 +2138,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        JCExpression last = null;
-        for (JCExpression t: that.localtypes) {
-            if (t != last) {
-                if (t != null) attribType(t,env);
-                last = t;
-            }
-        }
+//        for (JCVariableDecl decl: that.decls) {
+//            attribType(decl.getType(),env);
+//            decl.type = decl.vartype.type;
+//        }
         
         // Need to create a local environment with the new names
         Env<AttrContext> localEnv =
             env.dup(that, env.info.dup(env.info.scope.dup()));
-        Iterator<JCExpression> iter = that.localtypes.iterator();
-        for (Name n: that.names) {
-            // FIXME - need to associate a better position with each type
-            JCExpression localtype = iter.next();
-            JCVariableDecl result = JmlTree.Maker.instance(context).at(localtype.pos()).VarDef(JmlTree.Maker.instance(context).Modifiers(0), n, localtype, null);
-            memberEnter.memberEnter(result, localEnv);
+        for (JCVariableDecl decl: that.decls) {
+            memberEnter.memberEnter(decl, localEnv);
+            decl.type = decl.vartype.type; // FIXME not sure this is needed
         }
+//        Iterator<JCExpression> iter = that.localtypes.iterator();
+//        for (Name n: that.names) {
+//            // FIXME - need to associate a better position with each type
+//            JCExpression localtype = iter.next();
+//            JCVariableDecl result = JmlTree.Maker.instance(context).at(localtype.pos()).VarDef(JmlTree.Maker.instance(context).Modifiers(0), n, localtype, null);
+//            memberEnter.memberEnter(result, localEnv);
+//        }
+
         if (that.range != null) attribExpr(that.range, localEnv, syms.booleanType);
         Type resultType = syms.errType;
         switch (that.op) {
@@ -2176,11 +2188,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 log.error(that.pos(),"jml.unknown.construct",that.op.internedName(),"JmlAttr.visitJmlQuantifiedExpr");
                 break;
         }
-        JCModifiers mods = that.modifiers;
-        if (Utils.hasOnly(mods,0)!=0) log.error(that.localtypes.first().pos,"jml.no.java.mods.allowed","quantified expression");
-        attribAnnotationTypes(mods.annotations,env);
-        allAllowed(mods.annotations, JmlToken.typeModifiers, "quantified expression");
-
+        for (JCVariableDecl decl: that.decls) {
+            JCModifiers mods = decl.getModifiers();
+            if (Utils.hasOnly(mods,0)!=0) log.error(mods.pos,"jml.no.java.mods.allowed","quantified expression");
+            attribAnnotationTypes(mods.annotations,env);
+            allAllowed(mods.annotations, JmlToken.typeModifiers, "quantified expression");
+        }
         result = check(that, resultType, VAL, pkind, pt);
         localEnv.info.scope.leave();
         return;

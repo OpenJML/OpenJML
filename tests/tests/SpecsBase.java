@@ -10,23 +10,46 @@ import java.util.TreeSet;
 import javax.tools.JavaFileObject;
 
 import junit.framework.AssertionFailedError;
+import junit.framework.TestSuite;
 
 import org.jmlspecs.openjml.JmlOptionName;
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.JmlSpecs.Dir;
 
+import com.sun.tools.javac.file.JavacFileManager;
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
 /** This is the parent class for classes that simply test whether the spec file 
- * for a JDK class parses without error.  The 'testFiles' test dynamically 
- * creates and tests source code for each specification file that is found
- * in the specification path (which is set to contain just the system specification
- * directories).
+ * for a JDK class parses without error.  There are two methods of creating
+ * these tests implemented here.
+ * <P>
+ * One is to create a TestSuite, and dynamically add to it an individual test
+ * for each class found.  That construction has to be done statically.  It has
+ * the advantage that each test appears in the JUnit list of tests and marked
+ * as successful or not.  The individual tests can be rerun from the JUnit
+ * test runner, but the suite as a whole cannot.  The suite can be run as a
+ * Run Configuration.  Another advantage is that the tests can
+ * be canceled while in progress.
+ * <P>
+ * A second implementation, currently disabled, has SpecsBase consisting of
+ * just one test, that loops through all the classes being tested.  A disadvantage
+ * is that one cannot cancel the tests while in progress and they do not appear
+ * in the JUnit listing.  They can also be run from the RunConfiguration.  To
+ * enable this mode, comment out the suite() and runTest() methods.
+ * 
  * <P>
  * Alternatively, you can create explicit tests for individual system classes.
  * The template is the following:
  * 
+ *<PRE>
+    public void testFile() {
+        checkFile("<fully-qualified-type-name>");
+    }
+   </PRE>
+ * or
  *<PRE>
     public void testFile() {
         helpTCF("A.java","public class A { <fully-qualified-type-name> f; }"
@@ -55,18 +78,51 @@ import com.sun.tools.javac.util.Log;
 // flag.
 public class SpecsBase extends TCBase {
 
-    private boolean dotests = true;  // Change this to enable/disable tests
+    static private boolean dotests = true;  // Change this to enable/disable tests
+    
+    /** If true, then a progress message is printed as each test is executed.*/
+    private static boolean verbose;
+    
+    /** Sets up a test suite dynamically */
+    public static TestSuite suite() { 
+        verbose = false;
+        TestSuite suite = new TestSuite(); 
+        suite.setName("SpecsBase");
+        if (dotests) {
+            Set<String> names = findAllFiles(null);
+            for (String n: names) suite.addTest(new SpecsBase(n));  
+        }
+        return suite;
+    }
+
+    /** Runs the test in dynamically created test mode */
+    public void runTest() { checkFile(classname); }
+
+    /** The name of the class to be tested (which is also the name of the test)
+     * when the suite mode is used.
+     */
+    /*@ non_null*/
+    private String classname;
+    
+    /** We use SpecsBase as a test case, with a name and its own runTest, to
+     * execute the test on a given class name.
+     * @param classname the fully qualified class to test
+     */
+    public SpecsBase(String classname) {
+        this.classname = classname;
+        setName(classname);
+    }
+
+
     
     protected void setUp() throws Exception {
-        if (dotests) {
-            //testspecpath1 = "$SY";
-            useSystemSpecs = true;
-        }
+        useSystemSpecs = true;
         super.setUp();
+        // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
         JmlOptionName.putOption(context,JmlOptionName.NOPURITYCHECK);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
-        print = false;
+        print = false; // true = various debugging output
     }
     
     /** Set to true if errors are found in any test in checkFiles */
@@ -114,28 +170,47 @@ public class SpecsBase extends TCBase {
             System.out.println("System spec tests (test.SpecBase) are being skipped " + System.getProperty("java.version"));
             return;
         }
-        System.out.println("JRE version " + System.getProperty("java.version"));
+        verbose = true;
         foundErrors = false;
-        helpTCF("AJDK.java","public class AJDK {  }");
+        helpTCF("AJDK.java","public class AJDK {  }");  // smoke test
+        SortedSet<String> classes = findAllFiles(specs); 
+        checkFiles(classes);
+        assertTrue("Errors found",!foundErrors);
+    }
+    
+    /** The test to run - finds all system specs and runs tests on them that
+     * at least are sure that the specifications parse and typecheck.
+     */
+    static public SortedSet<String> findAllFiles(/*@ nullable*/ JmlSpecs specs) {
+        System.out.println("JRE version " + System.getProperty("java.version"));
+        //Main m = new Main();
+        if (specs == null) {
+            Context context = new Context();
+            JavacFileManager.preRegister(context); // can't create it until Log has been set up
+            specs = JmlSpecs.instance(context);
+            specs.setSpecsPath("$SY");
+        }
         java.util.List<Dir> dirs = specs.getSpecsPath();
         assertTrue ("Null specs path",dirs != null); 
         assertTrue ("No specs path",dirs.size() != 0); 
+        
+//        assertTrue ("Null specs path",dirs != null); 
+//        assertTrue ("No specs path",dirs.size() != 0); 
         SortedSet<String> classes = new TreeSet<String>(); 
         for (Dir dir: dirs) {
             File d = new File(dir.toString());
             classes.addAll(findAllFiles(d, dir.toString()));
         }
         classes.removeAll(donttest);
-        checkFiles(classes);
-        assertTrue("Errors found",!foundErrors);
-        System.out.println(classes.size() + " system specification classes tested");
+        System.out.println(classes.size() + " system specification classes found");
+        return classes;
     }
     
     /** Set of classes (fully qualified, dot-separated names) that should not
      * be tested.
      */
-    Set<String> donttest = new HashSet<String>();
-    {
+    static Set<String> donttest = new HashSet<String>();
+    static {
         donttest.add("java.lang.StringCoding"); // Turn this off because it is not public (FIXME)
     }
     
@@ -146,7 +221,7 @@ public class SpecsBase extends TCBase {
      * @param root the prefix of the path to ignore
      * @return list of dot-separated class names for which files were found
      */
-    public java.util.List<String> findAllFiles(File d, String root) {
+    static public java.util.List<String> findAllFiles(File d, String root) {
         String[] files = d.list();
         java.util.List<String> list = new ArrayList<String>();
         if (files == null) return list;
@@ -172,12 +247,23 @@ public class SpecsBase extends TCBase {
      */
     //@ modifies foundErrors;
     public void checkFiles(Set<String> classNames) {
-        for (String qname: classNames) {
-            String program = "public class AJDK { "+ qname +" o; }";
-            System.out.println("JUnit SpecsBase: " + qname);
-            helpTCFile("AJDK.java",program,qname);
-        }
+        for (String qname: classNames) checkFile(qname);
     }
+
+    /** Does a test on the given fully qualified,
+     * dot-separated class name
+     * 
+     * @param className the name of the class to test
+     */
+    //@ modifies foundErrors;
+    public void checkFile(String className) {
+        String program = "public class AJDK { "+ className +" o; }";
+        if (verbose) System.out.println("JUnit SpecsBase: " + className);
+        helpTCFile("AJDK.java",program,className);
+    }
+    
+    // FIXME - the above test template does not seem to trigger all the
+    // modifier checking in attribute testing.
 
 //    public void testFileTemp() {
 //        helpTCF("A.java","public class A { java.util.GregorianCalendar f; }"

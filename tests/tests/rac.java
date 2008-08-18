@@ -10,9 +10,10 @@ public class rac extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true;
         super.setUp();
-        options.put("-noPurityCheck","");
+        options.put("-noPurityCheck",""); // System specs have a lot of purity errors, so turn this off for now
         //options.put("-jmlverbose",   "");
-        //options.put("-noInternalSpecs",   "");
+        options.put("-noInternalSpecs",   ""); // Faster with this option; should work either way
+        //print = true;
     }
 
     public void testJava() {
@@ -1027,6 +1028,57 @@ public class rac extends RacBase {
 
     }
     
+    // FIXME - the following two tests fail when the compile policy is
+    // SIMPLE instead of BY_TODO - for some reason the principal class
+    // file (PA or QA) does not get written.
+    
+    /** Represents with super model field */
+    public void testModelField3() {
+        helpTCX("tt.PA","package tt; public class PA extends PB { \n"
+                +" int j = 5; \n "
+                +"//@  represents i = j+1; \n "
+                +"public static void main(String[] args) { \n"
+                +"PA a = new PA();\n"
+                +"PB b = new PB();\n"
+                +"//@ debug System.out.println(\"A \" + a.i); \n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"b = new PA();\n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"System.out.println(\"END\"); "
+                +"}} class PB { //@ model  int i; \n}"
+                ,"A 6"
+                ,"/tt/PA.java:11: JML model field is not implemented: i"
+                ,"B 0"
+                ,"B 6"
+                ,"END"
+                );
+
+    }
+
+    /** Represents with super model field */
+    public void testModelField4() {
+        helpTCX("tt.QA","package tt; public class QA extends QB { \n"
+                +" int j = 5; \n "
+                +"public static void main(String[] args) { \n"
+                +"QA a = new QA();\n"
+                +"QB b = new QB();\n"
+                +"//@ debug System.out.println(\"A \" + a.i); \n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"b = new QA();\n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"System.out.println(\"END\"); "
+                +"}} class QB { //@ model  int i; \n}"
+                ,"/tt/QA.java:10: JML model field is not implemented: i"
+                ,"A 0"
+                ,"/tt/QA.java:10: JML model field is not implemented: i"
+                ,"B 0"
+                ,"/tt/QA.java:10: JML model field is not implemented: i"
+                ,"B 0"
+                ,"END"
+                );
+
+    }
+
     /** Model field with no represents */
     public void testModelField2() {
         helpTCX("tt.A","package tt; public class A { \n"
@@ -1042,52 +1094,6 @@ public class rac extends RacBase {
         );
     }
     
-    /** Represents with super model field */
-    public void testModelField3() {
-        helpTCX("tt.A","package tt; public class A extends B { \n"
-                +" int j = 5; \n "
-                +"//@  represents i = j+1; \n "
-                +"public static void main(String[] args) { \n"
-                +"A a = new A();\n"
-                +"B b = new B();\n"
-                +"//@ debug System.out.println(\"A \" + a.i); \n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
-                +"b = new A();\n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
-                +"System.out.println(\"END\"); "
-                +"}} class B { //@ model  int i; \n}"
-                ,"A 6"
-                ,"/tt/A.java:11: JML model field is not implemented: i"
-                ,"B 0"
-                ,"B 6"
-                ,"END"
-                );
-
-    }
-
-    /** Represents with super model field */
-    public void testModelField4() {
-        helpTCX("tt.A","package tt; public class A extends B { \n"
-                +" int j = 5; \n "
-                +"public static void main(String[] args) { \n"
-                +"A a = new A();\n"
-                +"B b = new B();\n"
-                +"//@ debug System.out.println(\"A \" + a.i); \n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
-                +"b = new A();\n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
-                +"System.out.println(\"END\"); "
-                +"}} class B { //@ model  int i; \n}"
-                ,"/tt/A.java:10: JML model field is not implemented: i"
-                ,"A 0"
-                ,"/tt/A.java:10: JML model field is not implemented: i"
-                ,"B 0"
-                ,"/tt/A.java:10: JML model field is not implemented: i"
-                ,"B 0"
-                ,"END"
-                );
-
-    }
 //    /** Represents with super model field */
 //    public void testModelField5() {
 //        print = true;
