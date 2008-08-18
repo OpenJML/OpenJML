@@ -16,6 +16,7 @@ import com.sun.tools.javac.util.Options;
 // information; javac loads its resources on demand
 public enum JmlOptionName implements OptionInterface {
 
+    // Arguments: option as on CL; true=1 argument, false=0 args; help string
     SPECS("-specs",true,"Specifies the directory path to search for specification files"),
     JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output"),
     USEJAVACOMPILER("-useJavaCompiler",false,"When on, the tool uses only the underlying javac compiler (must be the first option)"),
@@ -31,6 +32,9 @@ public enum JmlOptionName implements OptionInterface {
     RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks"),
     NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default"),
     ESC("-esc",false,"Enables static checking"),
+    TRACE("-trace",false,"ESC: Enables tracing of counterexamples"),
+    COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample"),
+    SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions"),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!"),
     ;
     /** Convenience field for the name of the SPECS option. */

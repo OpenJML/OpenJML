@@ -750,6 +750,13 @@ public class JmlSpecs {
     }
     
     
+    public static JmlMethodSpecs defaultSpecs(int pos) {
+        JmlMethodSpecs ms = new JmlMethodSpecs();
+        ms.pos = pos;
+        ms.deSugared = ms;
+        return ms;
+    }
+
     /** Retrieves the specs for a given field
      * @param m the VarSymbol of the field whose specs are wanted
      * @return the specs of the field, or null if none are present

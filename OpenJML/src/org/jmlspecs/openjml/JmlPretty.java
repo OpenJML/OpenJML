@@ -252,11 +252,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             out.write("(");
             out.write(that.op.internedName());
             out.write(" ");
-            if (that.modifiers != null) printFlags(that.modifiers.flags);  // FIXME - any annotations?
-            // FIXME - fix for different types
-            that.localtypes.first().accept(this);
-            out.write(" ");
-            for (Name n: that.names) {
+            for (JCTree.JCVariableDecl n: that.decls) {
                 out.write(n.toString());
                 out.write(",");  // FIXME - one too many commas
             }

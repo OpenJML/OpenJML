@@ -35,6 +35,7 @@ import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.comp.Attr;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -58,6 +59,16 @@ import com.sun.tools.javac.util.Name;
  */
 public class JmlEsc extends JmlTreeScanner {
 
+    protected static final Context.Key<JmlEsc> escKey =
+        new Context.Key<JmlEsc>();
+
+    public static JmlEsc instance(Context context) {
+        JmlEsc instance = context.get(escKey);
+        if (instance == null)
+            instance = new JmlEsc(context);
+        return instance;
+    }
+    
     /** true if compiler options are set to a verbose mode */
     boolean verbose;
     
@@ -69,6 +80,9 @@ public class JmlEsc extends JmlTreeScanner {
     
     /** true if counterexample trace information is desired */
     boolean showTrace;
+    
+    /** true if subexpression trace information is desired */
+    boolean showSubexpressions;
     
     /** The compilation context, needed to get common tools, but unique to this compilation run*/
     @NonNull Context context;
@@ -89,7 +103,7 @@ public class JmlEsc extends JmlTreeScanner {
     @NonNull Log log;
     
     /** Whether to check that key assumptions are feasible */
-    boolean checkAssumptions = true;
+    public boolean checkAssumptions = true;
 
 
     @NonNull final static public String arraysRoot = "$$arrays";  // Reference in masicblocker?
@@ -105,8 +119,9 @@ public class JmlEsc extends JmlTreeScanner {
         this.verbose = JmlOptionName.isOption(context,"-verbose") ||
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
             Utils.jmldebug;
-        this.showCounterexample = JmlOptionName.isOption(context,"-ce") || escdebug ; // FIXME - options
-        this.showTrace = showCounterexample || JmlOptionName.isOption(context,"-trace");
+        this.showCounterexample = JmlOptionName.isOption(context,"-ce") || JmlOptionName.isOption(context,JmlOptionName.COUNTEREXAMPLE) || escdebug ; // FIXME - options
+        this.showSubexpressions = JmlOptionName.isOption(context,JmlOptionName.SUBEXPRESSIONS);
+        this.showTrace = showCounterexample || JmlOptionName.isOption(context,JmlOptionName.TRACE) || showSubexpressions;
         this.checkAssumptions = !JmlOptionName.isOption(context,"-noCheckAssumptions");
     }
 
@@ -150,21 +165,58 @@ public class JmlEsc extends JmlTreeScanner {
             if (currentClassDecl.sym == syms.objectType.tsym && isConstructor) doEsc = false;
             if (!doEsc) return;
 
+            String name = node.sym.owner + "." + node.sym;
+//            Log.printLines(log.noticeWriter,"["+(++ord)+"] "+ "Checking method "+ name);
+//            if (true) return;
+            
+            Pattern doPattern = 
+                null; 
+                //Pattern.compile("javafe[.]ClassInputEntry[.]verify[(]java[.]lang[.]String[)]"); // out of resources
+            Pattern[] avoids = {
+                    Pattern.compile(".*anonymous.*"),
+
+                    Pattern.compile("javafe[.]ast[.][a-zA-Z]*[.]getTag[(].*"), // too much time
+                    Pattern.compile("javafe[.]ast[.]CompoundName[.]prefix[(].*"), // out of resources
+                    Pattern.compile("javafe[.]ast[.]BinaryExpr[.]getStartLoc[(].*"), // out of resources
+                    Pattern.compile("javafe[.]ast[.]BinaryExpr[.]postCheck[(].*"), // out of resources
+                    Pattern.compile("javafe[.]ast[.]BinaryExpr[.]accept[(].*"), // out of resources
+                    Pattern.compile("javafe[.]Options[.]processOption[(].*"), // out of resources
+                    Pattern.compile("javafe[.]parser[.]Token[.]ztoString[(].*"), // out of resources
+
+                    Pattern.compile("javafe[.]ast[.].*[.]toString[(].*"), // out of resources
+                    Pattern.compile("escjava[.]AnnotationHandler[.]NestedPragmaParser[.]parseAlsoSeq[(].*"), // out of resources
+                    Pattern.compile("escjava[.]AnnotationHandler[.]NestedPragmaParser[.]parseSeq[(].*"), // out of resources
+            
+            };
+            if (doPattern != null) {
+                if (!doPattern.matcher(name).matches()) return;//{System.out.println("skipping " + name); return; }
+            }
+            for (Pattern avoid: avoids) {
+                if (avoid.matcher(name).matches()) {System.out.println("skipping " + name); return; }
+            }
             // FIXME - turn off in quiet mode? 
-            log.note("esc.checking.method",node.sym); 
-            if (verbose) System.out.println("ESC: Checking method " + node.sym);
+            Log.printLines(log.noticeWriter,"["+(++ord)+"] "+ "ESC: Checking method "+ name);
             if (escdebug) System.out.println(node.toString()); // print the method
             
-            //Utils.Timer t = new Utils.Timer();
+            boolean showTimes = true;
+            Utils.Timer t = null;
+            if (showTimes) t = new Utils.Timer();
             BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
-            if (JmlOptionName.isOption(context,"-bb") || escdebug) program.write(); // print the basic block program // FIXME - the option
-            //System.out.println("PREP  " +  t.elapsed()/1000.);
+            if (JmlOptionName.isOption(context,"-showbb") || escdebug) program.write(); // print the basic block program // FIXME - the option
+            //if (showTimes) System.out.println("    ... prep           " +  t.elapsed()/1000.);
+            System.out.println("\t\t" + program.blocks().size() + " blocks, " + program.definitions().size() + " definitions, " + program.background().size() + " axioms, " + BasicBlocker.Counter.count(program) + " nodes");
             prove(node,program);
-            //System.out.println("PREP AND PROVE " +  t.elapsed()/1000.);
+            if (showTimes) System.out.println("    ... prep and prove " +  t.elapsed()/1000.);
+        } catch (RuntimeException e) {
+            System.out.println("PROOF FAILED - EXCEPTION");
+            // go on with next 
         } finally {
             log.useSource(prev);
+            //System.gc();
         }
     }
+    
+    static int ord = 0;
     
     /** Returns the VC expression for a basic block
      * 
@@ -244,7 +296,7 @@ public class JmlEsc extends JmlTreeScanner {
      * @param program the basic program corresponding to the method implementation
      */
     public void prove(@NonNull JCMethodDecl methodDecl, @NonNull BasicProgram program) {
-        IProver p;
+        IProver p = null;
         try {
 
             // Pick a prover to use
@@ -369,6 +421,7 @@ public class JmlEsc extends JmlTreeScanner {
                                 if (escdebug) System.out.println("Assertion " + sname + " cannot be verified");
                                 log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName());
                                 if (declpos != usepos) log.warning(declpos,"esc.associated.decl");
+                                //if (declpos != usepos) Log.printLines(log.noticeWriter,"Associated information");
                                 noinfo = false;
                             }
                         }
@@ -429,7 +482,7 @@ public class JmlEsc extends JmlTreeScanner {
                 if (escdebug) System.out.println("Method satisfies its specifications (as far as I can tell)");
                 if (!checkAssumptions) return;
                 
-                boolean useCoreIds = false; // FIXME - use an option
+                boolean useCoreIds = true; // FIXME - use an option
                 ICoreIds cid = r.coreIds();
                 if (useCoreIds && cid == null && verbose) System.out.println("Warning: Core ids unexpectedly not returned");
                 Collection<Integer> cids = cid == null ? null : cid.coreIds();
@@ -445,14 +498,14 @@ public class JmlEsc extends JmlTreeScanner {
                         String name = ((JCIdent)((JCBinary)e).getLeftOperand()).getName().toString();
                         String[] parts = name.split("\\$");
                         if (parts.length != 3) { n--; continue; }
-                        if (!parts[0].equals("checkAssumption")) { n--; continue;}
-                        int pos = Integer.parseInt(parts[2]);
+                        if (!parts[0].equals("assumeCheck")) { n--; continue;}
+                        int pos = Integer.parseInt(parts[1]);
                         int found = Arrays.binarySearch(ids,n);
                         if (found < 0) {
                             // Already not part of the minimal core
                             p.retract(n--);
                             if (escdebug) System.out.println("ALREADY NOT IN MINIMAL CORE: " + name);
-                            reportAssumptionProblem(parts[1],pos,methodDecl.sym.toString());
+                            reportAssumptionProblem(parts[2],pos,methodDecl.sym.toString());
                             continue;
                         }
                         p.push(); k++;
@@ -463,7 +516,7 @@ public class JmlEsc extends JmlTreeScanner {
                             p.pop(); k--;
                         } else {
                             if (escdebug) System.out.println("STILL UNSAT - CORE WAS NOT MINIMAL - ASSSUMPTION WAS INFEASIBLE: " + name);
-                            reportAssumptionProblem(parts[1],pos,methodDecl.sym.toString());
+                            reportAssumptionProblem(parts[2],pos,methodDecl.sym.toString());
                         }
                     }
                     while (k-- > 0) p.pop();
@@ -510,6 +563,15 @@ public class JmlEsc extends JmlTreeScanner {
                 System.out.println("PROVER FAILURE: " + e);
                 if (e.mostRecentInput != null) System.out.println("INPUT: " + e.mostRecentInput);
             }
+            try {
+                if (p != null) p.kill();
+            } catch (ProverException ee) {
+                // Report but ignore any problems in killing
+                // FIXME - report
+            }
+        } catch (Throwable e) {
+            log.warning("esc.prover.failure",methodDecl.sym.toString() + ": " + e.getLocalizedMessage());
+            System.out.println("PROVER FAILURE: " + e.getClass() + " " + e);
         }
     }
     

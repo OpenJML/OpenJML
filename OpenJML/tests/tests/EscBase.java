@@ -77,8 +77,8 @@ public abstract class EscBase extends JmlTestCase {
                     // allowed to be optional
                     if (j >= collector.getDiagnostics().size()) {
                         // OK - just skip
-                    } else if (list[2*i].toString().equals(collector.getDiagnostics().get(j).toString())) {
-                        assertEquals("Error " + i, -col, collector.getDiagnostics().get(j).getColumnNumber());
+                    } else if (list[2*i].toString().equals(collector.getDiagnostics().get(j).toString()) &&
+                            -col == collector.getDiagnostics().get(j).getColumnNumber()) {
                         j++;
                     } else {
                         // Not equal and the expected error is optional so just skip

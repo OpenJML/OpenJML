@@ -205,7 +205,7 @@ public class counterexamples extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  //@ requires i>=0; ensures i==0;\n"
+                +"  //@ requires i>=0; ensures \\result==0;\n"
                 +"  public int m1(int i) {\n"
                 +"      if (i==0) return 0;\n"
                 +"      if (i==1) return i+20;\n"
@@ -227,7 +227,7 @@ public class counterexamples extends EscBase {
                 
                 +"}\n"
                 
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",17
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1",17
                 ,"/tt/TestJava.java:3: warning: Associated declaration",30
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method m2",26
                 ,"/tt/TestJava.java:12: warning: Associated declaration",30
@@ -320,7 +320,7 @@ public class counterexamples extends EscBase {
                 
                 +"  //@ signals (Exception) false;\n"
                 +"  public void m2(int i) {\n"
-                +"      int k = c(i) + c(i-15);\n"
+                +"      int k = c(i);\n"
                 +"      //@ assert k != 9;\n"
                 +"  }\n"
                 

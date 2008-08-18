@@ -139,7 +139,7 @@ public class YicesProver implements IProver {
         try {
             // The interactive mode is used so that we get a prompt back, thereby
             // knowing when we have received the prover's response
-            process = Runtime.getRuntime().exec(new String[]{app,"-i","-tc","-e","-v","2"});
+            process = Runtime.getRuntime().exec(new String[]{app,"-i","-tc","--timeout=60","-e","-v","2"});
         } catch (IOException e) {
             process = null;
             throw new ProverException("Failed to launch prover process: " + app + " " + e);
@@ -189,21 +189,25 @@ public class YicesProver implements IProver {
             if (errors.ready()) {
                 while (errors.ready()) {
                     int n = errors.read(buf);
-                    if (n <= 0) break;
+                    if (n < 0) throw new ProverException("Prover died");
+                    if (n == 0) break;
                 }
                 if (buf.position() > 0) {
                     buf.limit(buf.position());
                     buf.rewind();
-                    String sbuf = buf.toString();
-                    if (!sbuf.startsWith("\nWARNING") &&
-                            !sbuf.startsWith("Yices (version") &&
-                            !sbuf.startsWith("searching")) {
-                        throw new ProverException("Prover error message: " + sbuf);
+                    String errorString = buf.toString();
+                    if (!errorString.startsWith("\nWARNING") &&
+                            !errorString.startsWith("Yices (version") &&
+                            !errorString.startsWith("searching")) {
+                        if (showCommunication >= 1) System.out.println("HEARD ERROR: " + errorString);
+                        throw new ProverException("Prover error message: " + errorString);
+                    } else {
+                        if (showCommunication >= 3) System.out.println("HEARD ERROR: " + errorString);
                     }
                 }
                 buf.clear();
             }
-            if (showCommunication >= 3) System.out.println("HEARD " + s);
+            if (showCommunication >= 3) System.out.println("HEARD: " + s);
             return s;
         } catch (IOException e) {
             throw new ProverException("IO Error on reading from prover: " + e);
@@ -281,6 +285,7 @@ public class YicesProver implements IProver {
     protected String pretty(String s) {
         if (s.length() <= 50) return s;
         StringBuilder sb = new StringBuilder();
+        //System.out.println("CONVERTING " + s);
         char[] cc = s.toCharArray();
         int nparens = 0;
         int nind = 2;

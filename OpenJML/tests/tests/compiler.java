@@ -47,13 +47,16 @@ public class compiler extends TestCase {
         int e = org.jmlspecs.openjml.Main.compiler(args);
         System.setErr(savederr);
         System.setOut(savedout);
+        // Depending on how the log is setup, error output can go to either bout or berr
+        String actualOutput = berr.toString();
+        if (print && !capture) System.out.println("EXPECTING: " + output[0]);
         if (capture) try {
-            if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + berr.toString());
-            if (all==0) assertEquals("The error message is wrong",output[0],berr.toString());
-            else if (all == 1 && !berr.toString().startsWith(output[0])) {
-                fail("Output does not begin with: " + output[0] + eol + "Instead is: " + berr.toString());
-            } else if (all == 2 && berr.toString().indexOf(output[0]) == -1) {
-                fail("Output does not end with: " + output[0] + eol + "Instead is: " + berr.toString());
+            if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + actualOutput);
+            if (all==0) assertEquals("The error message is wrong",output[0],actualOutput);
+            else if (all == 1 && !actualOutput.startsWith(output[0])) {
+                fail("Output does not begin with: " + output[0] + eol + "Instead is: " + actualOutput);
+            } else if (all == 2 && actualOutput.indexOf(output[0]) == -1 ) {
+                fail("Output does not end with: " + output[0] + eol + "Instead is: " + actualOutput);
             }
             if (output.length > 1) {
                 if (print) System.out.println("TEST: " + getName() + " STANDARD OUT: " + eol + bout.toString());
@@ -139,7 +142,8 @@ public class compiler extends TestCase {
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.java" + eol +
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.refines-java" + eol +
                           "typechecking A" + eol +
-                          "flow checks A" + eol + 
+                          "typechecked A" + eol +
+                          //"flow checks A" + eol + 
                           "");
     }
 
@@ -151,7 +155,8 @@ public class compiler extends TestCase {
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.java" + eol +
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.refines-java" + eol +
                           "typechecking A" + eol +
-                          "flow checks A" + eol + 
+                          "typechecked A" + eol +
+                          //"flow checks A" + eol + 
                           "");
     }
 

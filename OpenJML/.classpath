@@ -3,6 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry including="org/jmlspecs/**" kind="src" path="runtime"/>
 	<classpathentry kind="src" path="tests"/>
+	<classpathentry kind="src" path="tests-external"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OpenJDK"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>

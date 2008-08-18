@@ -45,7 +45,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_SAME_SIMPLE_NAME_AS_SUPERCLASS")
     public Main() {
-        this("jml", new PrintWriter(System.err, true));
+        this(applicationName, new PrintWriter(System.err, true));
     }
 
     /**
@@ -78,11 +78,17 @@ public class Main extends com.sun.tools.javac.main.Main {
           }
     }
     
+    final public static String applicationName = "jml";
+    
     /** The option string for requesting help information */
     final public static String helpOption = "-help";
     /** The option string for requesting interactive mode */
     final public static String interactiveOption = "-i";
-    
+
+    public static int compiler(String[] args) {
+        return compiler(args,true);
+    }
+
     /** A programmatic interface to the compiler that returns the exit code, but
      * does not itself call System.exit.  [This is called compiler rather than
      * compile as in com.sun.tools.javac.Main because we also have to override
@@ -91,7 +97,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return the exit code
      */ 
     //@ requires args != null && \nonnullelements(args);
-    public static int compiler(String[] args) {
+    public static int compiler(String[] args, boolean useStdErr) {
         //System.out.println("STARTING");
         int errorcode = 1; //com.sun.tools.javac.main.Main.EXIT_ERROR;
         try {
@@ -116,7 +122,9 @@ public class Main extends com.sun.tools.javac.main.Main {
                     errorcode = new org.jmlspecs.openjml.Interactive().run(args);
                     if (Utils.jmldebug || errorcode != 0) System.out.println("ENDING with exit code " + errorcode); 
                 } else {
-                    com.sun.tools.javac.main.Main compiler = new org.jmlspecs.openjml.Main();
+                    com.sun.tools.javac.main.Main compiler = 
+                        new org.jmlspecs.openjml.Main(applicationName, 
+                                new PrintWriter(useStdErr ? System.err : System.out, true));
                     errorcode = compiler.compile(args);
                     if (Utils.jmldebug || errorcode != 0) System.out.println("ENDING with exit code " + errorcode);
                 }

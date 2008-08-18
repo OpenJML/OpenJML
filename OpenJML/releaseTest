@@ -20,9 +20,9 @@ java -jar openjml.jar
 echo "public class A { /*@ invariant 0; */ }" > A.java
 echo "public class B { /*@ invariant true; */ }" > B.java
 java -jar openjml.jar -version
-java -jar openjml.jar -specs . B.java
-java -jar openjml.jar -specs . A.java
-java -jar openjml.jar -specs . B.java -jmlverbose
+java -jar openjml.jar -noPurityCheck -specs . B.java
+java -jar openjml.jar -noPurityCheck -specs . A.java
+java -jar openjml.jar -noPurityCheck -specs . B.java -jmlverbose
 java -jar openjml.jar -specs . B.java -jmlverbose -noInternalSpecs
 
 cd ..

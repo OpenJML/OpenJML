@@ -76,7 +76,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     }
 
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        scan(that.localtypes);
+        scan(that.decls);
         scan(that.range);
         scan(that.predicate);
     }
