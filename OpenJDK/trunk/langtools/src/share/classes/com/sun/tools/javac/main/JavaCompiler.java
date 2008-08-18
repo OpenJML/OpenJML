@@ -173,7 +173,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         }
     }
 
-    private static CompilePolicy DEFAULT_COMPILE_POLICY = CompilePolicy.BY_TODO;
+    private static CompilePolicy DEFAULT_COMPILE_POLICY = CompilePolicy.SIMPLE; //SIMPLE; //BY_TODO;
 
     private static enum ImplicitSourcePolicy {
         /** Don't generate or process implicitly read source files. */
