@@ -1,5 +1,8 @@
 package org.jmlspecs.openjml;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Options;
 
@@ -30,13 +33,19 @@ public enum JmlOptionName implements OptionInterface {
     NOINTERNALSPECS("-noInternalSpecs",false,"Disables automatically appending the internal specs directory to the specification path"),
     NOINTERNALRUNTIME("-noInternalRuntime",false,"Disables automatically appending the internal JML runtime library to the classpath"),
     RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks"),
-    NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default"),
+    NONNULLBYDEFAULT("-nonnullByDefault",false,"Makes references non_null by default")
+        { public void process(Options options) { options.put(NULLABLEBYDEFAULT.name,null); }},
+    NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default")
+        { public void process(Options options) { options.put(NONNULLBYDEFAULT.name,null); }},
     ESC("-esc",false,"Enables static checking"),
     TRACE("-trace",false,"ESC: Enables tracing of counterexamples"),
     COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample"),
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions"),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!"),
     ;
+    public void process(Options options) {}
+    
+
     /** Convenience field for the name of the SPECS option. */
     public final static String specs = SPECS.optionName();
     
@@ -135,9 +144,20 @@ public enum JmlOptionName implements OptionInterface {
     //@ ensures \result == null || \result.optionName().equals(s);
     //@ nullable
     static JmlOptionName find(/*@ non_null */ String s) {
-        for (JmlOptionName j : values()) 
-            if (j.name.equals(s)) return j;
-        return null;
+        return map.get(s);
+    }
+    
+    static Map<String,JmlOptionName> map = new HashMap<String,JmlOptionName>();
+    static {
+        // Puts all the options in the map and adds any synonyms
+        // synonyms include the all lowercase versions of each name
+        for (JmlOptionName n:JmlOptionName.values()) {
+            map.put(n.name,n);
+            map.put(n.name.toLowerCase(),n);
+        }
+        // Other synonyms
+        map.put("-nonnull",NONNULLBYDEFAULT);
+        map.put("-nullable",NULLABLEBYDEFAULT);
     }
     
     /** A help value which is the platform-dependent line termination string */

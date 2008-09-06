@@ -584,7 +584,9 @@ public class JmlParser extends EndPosParser {
             log.error(S.pos(),"jml.bad.construct",jt.internedName() + " declaration");
             skipThroughSemi();
         } else {
-            list.append(to(jmlF.at(pos).JmlTypeClauseExpr(mods,jt,e)));
+            JmlTypeClauseExpr tcl = to(jmlF.at(pos).JmlTypeClauseExpr(mods,jt,e));
+            tcl.source = log.currentSource();
+            list.append(tcl);
             S.nextToken();
         }
     }
@@ -647,6 +649,7 @@ public class JmlParser extends EndPosParser {
             }
         }
         JmlTypeClause tcl=to(jmlF.at(pos).JmlTypeClauseConstraint(mods,e,sigs==null?null:sigs.toList()));
+        tcl.source = log.currentSource();
         list.append(tcl);
         if (S.token() != SEMI) {
             log.error(S.pos(),"jml.bad.construct","constraint declaration");
@@ -1042,6 +1045,7 @@ public class JmlParser extends EndPosParser {
                 break;
 
         }
+        if (res != null) res.sourcefile = log.currentSource();
         S.setJmlKeyword(true);  // Just in case, but it is too late, since the
                         // token after the semicolon is already read
         return res;

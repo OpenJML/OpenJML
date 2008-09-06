@@ -824,20 +824,20 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 
     }
     
-    ClassSymbol nonnullAnnotationSymbol = null;
-    ClassSymbol nullableAnnotationSymbol = null;
-    public boolean isNonNull(Symbol symbol) {
-        if (nonnullAnnotationSymbol == null) {
-            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.NonNull"));
-        }
-        if (symbol.attribute(nonnullAnnotationSymbol)!=null) return true;
-        if (nullableAnnotationSymbol == null) {
-            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.Nullable"));
-        }
-        if (symbol.attribute(nullableAnnotationSymbol)!=null) return false;
-        return specs.defaultNullity(classInfo.typeSpecs.csymbol) == JmlToken.NONNULL;
-
-    }
+//    ClassSymbol nonnullAnnotationSymbol = null;
+//    ClassSymbol nullableAnnotationSymbol = null;
+//    public boolean isNonNull(Symbol symbol) {
+//        if (nonnullAnnotationSymbol == null) {
+//            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.NonNull"));
+//        }
+//        if (symbol.attribute(nonnullAnnotationSymbol)!=null) return true;
+//        if (nullableAnnotationSymbol == null) {
+//            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.Nullable"));
+//        }
+//        if (symbol.attribute(nullableAnnotationSymbol)!=null) return false;
+//        return specs.defaultNullity(classInfo.typeSpecs.csymbol) == JmlToken.NONNULL;
+//
+//    }
     
 
     
@@ -983,7 +983,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
             if (tree.lhs instanceof JCIdent) sym = ((JCIdent)tree.lhs).sym;
             else if (tree.lhs instanceof JCFieldAccess) sym = ((JCFieldAccess)tree.lhs).sym;
             if (sym != null) {
-                if (isNonNull(sym)) {
+                if (specs.isNonNull(sym,classInfo.typeSpecs.csymbol)) {
                     String s = "assignment of null to non_null";
                     tree.rhs = nullCheck(s,tree.pos,tree.rhs);
                     result = tree;
@@ -994,7 +994,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 
     public void visitVarDef(JCVariableDecl tree) {
         super.visitVarDef(tree);
-        if (tree.init != null && isNonNull(tree.sym)) {
+        if (tree.init != null && specs.isNonNull(tree.sym,classInfo.typeSpecs.csymbol)) {
             String s = "null initialization of non_null variable";
             tree.init = nullCheck(s,tree.pos,tree.init);
         }

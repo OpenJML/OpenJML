@@ -120,6 +120,12 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     }
 
     protected static enum CompilePolicy { // DRC - changed from private to protected
+        /* Do thing in the second compile phase
+         * (presumably a derived class is doing something)
+         * 
+         */
+        SKIP,                               // DRC - added
+        
         /*
          * Just attribute the parse trees
          */
@@ -173,7 +179,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         }
     }
 
-    private static CompilePolicy DEFAULT_COMPILE_POLICY = CompilePolicy.SIMPLE; //SIMPLE; //BY_TODO;
+    private static CompilePolicy DEFAULT_COMPILE_POLICY = CompilePolicy.BY_TODO;
 
     private static enum ImplicitSourcePolicy {
         /** Don't generate or process implicitly read source files. */
@@ -748,7 +754,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             delegateCompiler = processAnnotations(enterTrees(stopIfError(parseFiles(sourceFileObjects))),
                                                   classnames);
 
-            delegateCompiler.compile2();
+            delegateCompiler.compile2(compilePolicy);  // DRC - passed in the argument, to make it more convenient to use in derived classes
             delegateCompiler.close();
             elapsed_msec = delegateCompiler.elapsed_msec;
         } catch (Abort ex) {
@@ -761,9 +767,12 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
      * The phases following annotation processing: attribution,
      * desugar, and finally code generation.
      */
-    private void compile2() {
+    protected void compile2(CompilePolicy compPolicy) { // DRC - changed from private to protected
         try {
-            switch (compilePolicy) {
+            switch (compPolicy) {
+            case SKIP:   // DRC - added for the convenience of derived classes defining new compile policy options
+                break;
+                    
             case ATTR_ONLY:
                 attribute(todo);
                 break;

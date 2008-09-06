@@ -1578,7 +1578,7 @@ public class JmlTree {
         public JmlToken token;
         public JCTree.JCExpression expression;
         public JCTree.JCExpression optionalExpression = null;
-        public int line;
+        public int line; // FIXME - I don't think this is used
         public JavaFileObject source;
         public Label label;
         public int declPos; // the source position that generated the assert
@@ -1663,9 +1663,11 @@ public class JmlTree {
     /** This is an abstract class that is a parent to any type of clause in
      * a method specification.
      */
-    abstract public static class JmlMethodClause extends JmlAbstractStatement {
+    abstract public static class JmlMethodClause extends JmlAbstractStatement implements JmlSource {
         public JmlToken token;
+        public JavaFileObject sourcefile;
         abstract public StringBuilder toString(String indent);
+        public JavaFileObject source() { return sourcefile; }
     }
     
     /** This class represents a method specification clause that has just an

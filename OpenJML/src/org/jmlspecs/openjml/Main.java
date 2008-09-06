@@ -201,28 +201,52 @@ public class Main extends com.sun.tools.javac.main.Main {
     //@ ensures \result != null && \nonnullelements(\result);
     String[] processJmlArgs(/*@ non_null */String [] args,/*@ non_null */ Options options) {
         ArrayList<String> newargs = new ArrayList<String>();
-        for (int i = 0; i<args.length; ) {
-            String res = "";
-            String s = args[i++];
-            OptionInterface o = JmlOptionName.find(s);
-            if (o == null) {
-                int k = s.indexOf('=');
-                if (k != -1) {
-                    o = JmlOptionName.find(s.substring(0,k));
-                    if (s.substring(k+1,s.length()).equals("false")) res = null;
-                }
-                if (s.equals(helpOption)) options.put(s,"");
-            }
-            if (o == null) {
-                newargs.add(s);
-            } else {
-                if (!o.hasArg()) options.put(s,res);
-                else options.put(s, args[i++]);
-            }
+        int i = 0;
+        while (i<args.length) {
+            i = processJmlArg(args,i,options,newargs);
         }
         return newargs.toArray(new String[]{});
     }
     
+    /** Processes a single JML command-line option and any arguments.
+     * 
+     * @param args the full array of command-line arguments
+     * @param i    the index of the argument to be processed
+     * @param options the options object to be adjusted as JML options are found
+     * @param remainingArgs any arguments that are not JML options
+     * @return the index of the next argument to be processed
+     */
+    int processJmlArg(/*@ non_null */String[] args, int i, /*@ non_null */ Options options, java.util.List<String> remainingArgs ) {
+        String res = "";
+        String s = args[i++];
+        OptionInterface o = JmlOptionName.find(s);
+        if (o == null) {
+            int k = s.indexOf('=');
+            if (k != -1) {
+                o = JmlOptionName.find(s.substring(0,k));
+                if (o != null) {
+                    res = s.substring(k+1,s.length());
+                    if ("false".equals(res)) res = null;
+                    else if ("true".equals(res)) res = "";
+                    else if (!o.hasArg()) {
+                        // FIXME - problem -  ignoring argument
+                    }
+                }
+            }
+            if (s.equals(helpOption)) options.put(s,"");
+        } else if (o.hasArg()) {
+            res = args[i++];
+        }
+        if (o == null) {
+            remainingArgs.add(s);
+        } else {
+            // An empty string is the value of the option if it takes no arguments
+            // That is, for boolean options, "" is true, null is false
+            options.put(s,res);
+        }
+        return i;
+    }
+
     /* We override this method in order to process the JML command-line 
      * arguments and to do any tool-specific initialization
      * after the command-line arguments are processed.  

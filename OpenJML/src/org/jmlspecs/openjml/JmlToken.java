@@ -50,6 +50,7 @@ public enum JmlToken {
     QUERY("query",org.jmlspecs.annotations.Query.class),  // FIXME - this is an extension - comment
     READONLY("readonly",org.jmlspecs.annotations.Readonly.class),
     REP("rep",org.jmlspecs.annotations.Rep.class),
+    SECRET("secret",org.jmlspecs.annotations.Secret.class),  // FIXME - this is an extension - comment
     SPEC_BIGINT_MATH("spec_bigint_math"),
     SPEC_JAVA_MATH("spec_java_math"),
     SPEC_SAFE_MATH("spec_safe_math"),

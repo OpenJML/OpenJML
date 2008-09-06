@@ -103,7 +103,7 @@ public class JmlEsc extends JmlTreeScanner {
     @NonNull Log log;
     
     /** Whether to check that key assumptions are feasible */
-    public boolean checkAssumptions = true;
+    public boolean checkAssumptions = false;
 
 
     @NonNull final static public String arraysRoot = "$$arrays";  // Reference in masicblocker?
@@ -195,24 +195,30 @@ public class JmlEsc extends JmlTreeScanner {
                 if (avoid.matcher(name).matches()) {System.out.println("skipping " + name); return; }
             }
             // FIXME - turn off in quiet mode? 
-            Log.printLines(log.noticeWriter,"["+(++ord)+"] "+ "ESC: Checking method "+ name);
+            //Log.printLines(log.noticeWriter,"["+(++ord)+"] "+ "ESC: Checking method "+ name);
             if (escdebug) System.out.println(node.toString()); // print the method
             
-            boolean showTimes = true;
+            boolean showTimes = false;
             Utils.Timer t = null;
             if (showTimes) t = new Utils.Timer();
             BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
             if (JmlOptionName.isOption(context,"-showbb") || escdebug) program.write(); // print the basic block program // FIXME - the option
             //if (showTimes) System.out.println("    ... prep           " +  t.elapsed()/1000.);
-            System.out.println("\t\t" + program.blocks().size() + " blocks, " + program.definitions().size() + " definitions, " + program.background().size() + " axioms, " + BasicBlocker.Counter.count(program) + " nodes");
+            //System.out.println("\t\t" + program.blocks().size() + " blocks, " + program.definitions().size() + " definitions, " + program.background().size() + " axioms, " + BasicBlocker.Counter.count(program) + " nodes");
             prove(node,program);
             if (showTimes) System.out.println("    ... prep and prove " +  t.elapsed()/1000.);
+            if (showTimes) {
+                Runtime rt = Runtime.getRuntime();
+                System.out.println("    ....... Memory free=" + rt.freeMemory() + "  max="+rt.maxMemory() + "  total="+rt.totalMemory());
+            }
         } catch (RuntimeException e) {
-            System.out.println("PROOF FAILED - EXCEPTION");
+            System.out.println("PROOF FAILED - EXCEPTION " + e);
             // go on with next 
+        } catch (Throwable e) {
+            System.out.println("PROOF FAILED - EXCEPTION " + e);
+            System.gc();
         } finally {
             log.useSource(prev);
-            //System.gc();
         }
     }
     
@@ -381,18 +387,27 @@ public class JmlEsc extends JmlTreeScanner {
                     String terminationValue = s.get(BasicBlocker.TERMINATION_VAR);
                     int terminationPosition = terminationValue == null ? 0 :
                                         Integer.valueOf(terminationValue);
-                    // Look for "assert$<number>$<Label>$<number> false"
-                    Pattern pat1 = Pattern.compile("(assert\\$(\\d+)\\$(\\d+))\\$(\\w+)");
+                    // Look for "assert$<number>$<number>(@<number>)?$<Label> false"
+                    Pattern pat1 = Pattern.compile("assert\\$(\\d+)\\$(\\d+)(@(\\d+))?\\$(\\w+)");
                     for (Map.Entry<String,String> var: s.sortedEntries()) {
                         Matcher m = pat1.matcher(var.getKey());
                         if (var.getValue().equals("false") && m.find()) {
-                            String sname = m.group(1); // full name of the assertion
-                            String label = m.group(4); // the label part 
-                            int usepos = Integer.parseInt(m.group(2)); // the textual location of the assert statement
-                            int declpos = Integer.parseInt(m.group(3)); // the textual location of associated information (or same as usepos if no associated information)
+                            String sname = m.group(0); // full name of the assertion
+                            String label = m.group(5); // the label part 
+                            int usepos = Integer.parseInt(m.group(1)); // the textual location of the assert statement
+                            int declpos = Integer.parseInt(m.group(2)); // the textual location of associated information (or same as usepos if no associated information)
+                            JavaFileObject jfo = null;
+                            String fintstr = m.group(4);
+                            if (fintstr != null) {
+                                Integer i = Integer.valueOf(fintstr);
+                                jfo = BasicBlocker.jfoArray.get(i);
+                            }
                             int termpos = usepos;
                             if (terminationValue != null &&
                                     (Label.POSTCONDITION.toString().equals(label) ||
+                                            Label.INVARIANT.toString().equals(label) ||
+                                            Label.CONSTRAINT.toString().equals(label) ||
+                                            Label.INITIALLY.toString().equals(label) ||
                                             Label.SIGNALS.toString().equals(label) ||
                                             Label.SIGNALS_ONLY.toString().equals(label))) {
                                 // terminationPosition is, 
@@ -420,7 +435,12 @@ public class JmlEsc extends JmlTreeScanner {
                             if (bl == null || hasFeasibleChain(bl,s) ) {
                                 if (escdebug) System.out.println("Assertion " + sname + " cannot be verified");
                                 log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName());
-                                if (declpos != usepos) log.warning(declpos,"esc.associated.decl");
+                                if (declpos != termpos || jfo != null) {
+                                    JavaFileObject prev = log.currentSource();
+                                    if (jfo != null) log.useSource(jfo);
+                                    log.warning(declpos,"esc.associated.decl");
+                                    log.useSource(prev);
+                                }
                                 //if (declpos != usepos) Log.printLines(log.noticeWriter,"Associated information");
                                 noinfo = false;
                             }

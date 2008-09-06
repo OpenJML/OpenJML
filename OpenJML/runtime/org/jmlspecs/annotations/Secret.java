@@ -4,10 +4,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Documented;
 
-/** Defines the 'query' JML annotation */
+/** Defines the 'secret' JML annotation */
 
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface Query {
+public @interface Secret {
     String value() default "";
 }

@@ -129,6 +129,44 @@ public class modifiers extends TCBase {
                 "/A.java:2: This JML modifier is not allowed for a type declaration", 9);
     }
     
+    @Test public void testClassMods15() {
+        specs.setSpecsPath(new String[]{"$A","$B","$SY","./runtime"});
+        helpTCF("A.java","import org.jmlspecs.annotations.*;  \n public @NullableByDefault class A{}"
+                );
+    }
+    
+    @Test public void testClassMods15a() {
+        specs.setSpecsPath(new String[]{"$A","$B","$SY","./runtime"});
+        helpTCF("A.java","import org.jmlspecs.annotations.*;  \n public @NonNullByDefault class A{}"
+                );
+    }
+    
+    @Test public void testClassMods15b() {
+        specs.setSpecsPath(new String[]{"$A","$B","$SY","./runtime"});
+        helpTCF("A.java","public /*@nullable_by_default*/ class A{}"
+                );
+    }
+    
+    @Test public void testClassMods15c() {
+        specs.setSpecsPath(new String[]{"$A","$B","$SY","./runtime"});
+        helpTCF("A.java","public /*@non_null_by_default*/ class A{}"
+                );
+    }
+    
+    @Test public void testClassMods15d() {
+        specs.setSpecsPath(new String[]{"$A","$B","$SY","./runtime"});
+        helpTCF("A.java","public /*@nullable_by_default non_null_by_default*/ class A{}"
+                ,"/A.java:1: A declaration may not be both non_null_by_default and nullable_by_default",11
+                );
+    }
+    
+    @Test public void testClassMods15e() {
+        specs.setSpecsPath(new String[]{"$A","$B","$SY","./runtime"});
+        helpTCF("A.java","import org.jmlspecs.annotations.*;  \n public @NonNullByDefault @NullableByDefault class A{}"
+                ,"/A.java:2: A declaration may not be both non_null_by_default and nullable_by_default",27
+                );
+    }
+    
     
     @Test public void testCUMods() {
         helpTCF("t/A.java","@Pure package t; import org.jmlspecs.annotations.*;  \n public /*@ pure */ @Pure class A{}",
@@ -579,11 +617,11 @@ public class modifiers extends TCBase {
                 );
     }
      
-    @Test public void testMethod3() {
-        helpTCF("A.java","public class A{ /*@ query */ void m(){} }"
-                ,"/A.java:1: This JML modifier is not allowed for a method declaration",21
-                );
-    }
+//    @Test public void testMethod3() {
+//        helpTCF("A.java","public class A{ /*@ query */ void m(){} }"
+//                ,"/A.java:1: This JML modifier is not allowed for a method declaration",21
+//                );
+//    }
      
     @Test public void testMethod4() {
         helpTCF("A.java","public class A{ /*@ spec_public spec_protected */ void m(){} }"
@@ -986,6 +1024,24 @@ public class modifiers extends TCBase {
                 ,"/$A/java/lang/Object.spec:2: A declaration may not be both spec_public and spec_protected",17
                 ,"/$A/java/lang/Object.spec:1: This JML modifier is not allowed for a type declaration",5
                 );
+    }
+    
+    @Test public void testQuery() {
+        helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public class A{ @Query int m() { return 0; } }"
+                );
+//        checkMessages();
+    }
+     
+    @Test public void testSecret() {
+        helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public class A{ @Secret int m() { return 0; } }"
+                );
+//        checkMessages();
+    }
+     
+    @Test public void testSecret2() {
+        helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public class A{ @Secret(\"x\") int m() { return 0; } }"
+                );
+//        checkMessages();
     }
      
 }
