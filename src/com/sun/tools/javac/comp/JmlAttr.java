@@ -39,6 +39,7 @@ import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.jvm.ClassReader;
@@ -484,16 +485,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     
     public JmlToken[] allowedTypeModifiers = new JmlToken[]{
-        PURE, MODEL, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT};
+        PURE, MODEL, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, QUERY};
 
     public JmlToken[] allowedNestedTypeModifiers = new JmlToken[]{
-        PURE, MODEL, SPEC_PUBLIC, SPEC_PROTECTED, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT}; // FIXME - is NULLABLE_BY_DEFAULT supppsoed to be allowed?
+        PURE, MODEL, SPEC_PUBLIC, SPEC_PROTECTED, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, QUERY}; // FIXME - is NULLABLE_BY_DEFAULT supppsoed to be allowed?
 
     public JmlToken[] allowedNestedModelTypeModifiers = new JmlToken[]{
-        PURE, MODEL};
+        PURE, MODEL, QUERY};
 
     public JmlToken[] allowedLocalTypeModifiers = new JmlToken[]{
-        PURE, MODEL};
+        PURE, MODEL, QUERY};
 
     /** Checks the JML modifiers so that only permitted combinations are present. */
     public void checkClassMods(Symbol owner, JmlClassDecl tree, JCModifiers mods) {
@@ -520,6 +521,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } 
 
         if (!isModel) checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
+        checkForConflict(mods,NON_NULL_BY_DEFAULT,NULLABLE_BY_DEFAULT);
     }
     
     /** This is overridden in order to do correct checking of whether a method body is
@@ -582,25 +584,25 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on non-model non-constructor methods */
     public final JmlToken[] allowedMethodAnnotations =
         new JmlToken[] {
-        MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT 
+        MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET 
     };
     
     /** The annotations allowed on non-model non-constructor methods */
     public final JmlToken[] allowedInterfaceMethodAnnotations =
         new JmlToken[] {
-        MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER,  
+        MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY 
     };
     
     /** The annotations allowed on model non-constructor methods */
     public final JmlToken[] allowedModelMethodAnnotations =
         new JmlToken[] {
-        MODEL, PURE, NONNULL, NULLABLE, HELPER, EXTRACT 
+        MODEL, PURE, NONNULL, NULLABLE, HELPER, EXTRACT, QUERY, SECRET 
     };
     
     /** The annotations allowed on model non-constructor methods */
     public final JmlToken[] allowedInterfaceModelMethodAnnotations =
         new JmlToken[] {
-        MODEL, PURE, NONNULL, NULLABLE, HELPER 
+        MODEL, PURE, NONNULL, NULLABLE, HELPER, QUERY, SECRET
     };
     
     /** The annotations allowed on non-model constructors */
@@ -718,8 +720,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (optag == JCTree.OR && lhs == falseLit) return rhs;
         if (optag == JCTree.AND && lhs == trueLit) return rhs;
         JCBinary tree = make.at(pos).Binary(optag, lhs, rhs);
-        tree.operator = rs.resolveBinaryOperator(
-            null, optag, env, lhs.type, rhs.type);
+        tree.operator = predefBinOp(optag, lhs.type);
+//        tree.operator = rs.resolveBinaryOperator(
+//                null, optag, env, lhs.type, rhs.type);
         tree.type = tree.operator.type.getReturnType();
         return tree;
     }
@@ -730,6 +733,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         id.type = decl.type;
         // id.pos = ??? FIXME
         return id;
+    }
+    
+    // FIXME - is there a faster way to do this?
+    protected Symbol predefBinOp(int op, Type type) {
+//        for (Symbol sym : syms.predefClass.members().getElements()) {
+//            if ((sym instanceof OperatorSymbol) && ((OperatorSymbol)sym).opcode == op
+//                    && ((OperatorSymbol)sym).getParameters().head.type == type) return sym;
+//        }
+//        return null;
+        Name n = TreeInfo.instance(context).operatorName(op);
+        Scope.Entry e = syms.predefClass.members().lookup(n);
+        while (e.sym != null) {
+            if (e.sym instanceof MethodSymbol) {
+                MethodSymbol msym = (MethodSymbol)e.sym;
+                Type t = msym.getParameters().head.type;
+                if (t == type || (!type.isPrimitive() && t == syms.objectType)) return e.sym;
+            }
+            e = e.next();
+        }
+        return null;
     }
 
     
@@ -743,14 +766,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * combining of requires or other clauses and no insertion of preconditions
      * into the other clauses.
      * @param msym
-     * @param specs
+     * @param methodSpecs
      */
     // FIXME - base this on symbol rather than decl, but first check when all
     // the modifiers are added into the symbol
     // FIXME - check everything for position information
-    public void deSugarMethodSpecs(JmlMethodDecl decl, JmlMethodSpecs specs) {
+    public void deSugarMethodSpecs(JmlMethodDecl decl, JmlMethodSpecs methodSpecs) {
         //System.out.println("DESUGARING " + decl.sym.owner + " " + decl.sym);
-        if (specs == null || specs.decl == null) return;
+        if (methodSpecs == null || methodSpecs.decl == null) return;
         Env<AttrContext> prevEnv = env;
         env = enter.getEnv((ClassSymbol)decl.sym.owner);
         JCMethodDecl prevEnclMethod = env == null ? null : env.enclMethod;
@@ -760,39 +783,38 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // calling deSugarMethodSpecs during AST attribution, then we would not need to set env or adjust
                 // env.enclMethod.
         // FIXME if (specs.decl != decl) System.out.println("UNEXPECTED MISMATCH " + decl.sym + " " + specs.decl.sym);
-        JavaFileObject prevSource = log.useSource(specs.decl.sourcefile);
+        JavaFileObject prevSource = log.useSource(methodSpecs.decl.sourcefile);
         try {
             JmlTree.Maker jmlF = (JmlTree.Maker)make;
             JCLiteral nulllit = make.Literal(TypeTags.BOT, null).setType(syms.objectType.constType(null));
-            boolean defaultNonnull = determineDefaultNullability();
+            //boolean defaultNonnull = determineDefaultNullability();
             ListBuffer<JmlMethodClause> clauses = new ListBuffer<JmlMethodClause>();
             for (JCVariableDecl p : decl.params) {
-                boolean isNonnull = (findMod(p.mods,JmlToken.NONNULL) != null);
-                boolean isNullable = (findMod(p.mods,JmlToken.NULLABLE) != null);
-                if (!isNonnull && !isNullable) isNonnull = defaultNonnull;
-                else if (isNullable) isNonnull = false;
-                if (isNonnull) {
-                    JCIdent id = makeIdent(p);
-                    JCExpression e = makeBinary(JCTree.NE,id,nulllit,p.pos);
-                    clauses.append(jmlF.JmlMethodClauseExpr(JmlToken.REQUIRES,e));
+                if (!p.type.isPrimitive()) {
+                    boolean isNonnull = specs.isNonNull(p.sym,decl.sym.enclClass());
+                    if (isNonnull) {
+                        JCIdent id = makeIdent(p);
+                        JCExpression e = makeBinary(JCTree.NE,id,nulllit,p.pos);
+                        clauses.append(jmlF.JmlMethodClauseExpr(JmlToken.REQUIRES,e));
+                    }
                 }
             }
             JCAnnotation nonnullAnnotation = findMod(decl.mods,JmlToken.NONNULL);
-            boolean isNonnull = (nonnullAnnotation != null);
-            boolean isNullable = (findMod(decl.mods,JmlToken.NULLABLE) != null);
-            if (!isNonnull && !isNullable) isNonnull = defaultNonnull;
-            else if (isNullable) isNonnull = false;
-            if (isNonnull) {
-                JCExpression id = jmlF.JmlSingleton(JmlToken.BSRESULT);
-                id.type = decl.restype.type;
-                JCExpression e = makeBinary(JCTree.NE,id,nulllit,0);
+            // restype is null for constructors, possibly void for methods
+            if (decl.restype != null && decl.restype.type.tag != TypeTags.VOID && !decl.restype.type.isPrimitive()) {
+                boolean isNonnull = specs.isNonNull(decl.sym,decl.sym.enclClass());
+                if (isNonnull) {
+                    JCExpression id = jmlF.JmlSingleton(JmlToken.BSRESULT);
+                    id.type = decl.restype.type;
+                    JCExpression e = makeBinary(JCTree.NE,id,nulllit,0);
                 if (nonnullAnnotation != null) e.pos = nonnullAnnotation.getPreferredPosition();
-                else e.pos = decl.getPreferredPosition();
+                else e.pos = decl.getPreferredPosition();   // FIXME - fix the position of the non-null if using default
                 id.pos = e.pos; // FIXME - start and end as well?
                 currentClauseType = JmlToken.ENSURES;
                 attribExpr(e,env);
                 currentClauseType = null;
                 clauses.append(jmlF.at(decl.pos).JmlMethodClauseExpr(JmlToken.ENSURES,e));
+                }
             }
             if (desugaringPure = (findMod(decl.mods,JmlToken.PURE) != null)) {
                 JmlMethodClause c = jmlF.JmlMethodClauseAssignable(JmlToken.ASSIGNABLE,
@@ -800,22 +822,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //attribStat(c,env);
                 clauses.append(c);
             }
-            if (specs == null) return;
+            if (methodSpecs == null) return;
             JmlMethodSpecs newspecs;
-            if (specs != null && !specs.cases.isEmpty()) {
-                ListBuffer<JmlSpecificationCase> newcases = deNest(clauses,specs.cases,null,decl);
-                newspecs = jmlF.at(specs.pos).JmlMethodSpecs(newcases.toList());
-                if (!specs.impliesThatCases.isEmpty()) newspecs.impliesThatCases = deNest(clauses,specs.impliesThatCases,null,decl).toList();
-                if (!specs.forExampleCases.isEmpty()) newspecs.forExampleCases = deNest(clauses,specs.forExampleCases,null,decl).toList();
+            if (methodSpecs != null && !methodSpecs.cases.isEmpty()) {
+                ListBuffer<JmlSpecificationCase> newcases = deNest(clauses,methodSpecs.cases,null,decl);
+                newspecs = jmlF.at(methodSpecs.pos).JmlMethodSpecs(newcases.toList());
+                if (!methodSpecs.impliesThatCases.isEmpty()) newspecs.impliesThatCases = deNest(clauses,methodSpecs.impliesThatCases,null,decl).toList();
+                if (!methodSpecs.forExampleCases.isEmpty()) newspecs.forExampleCases = deNest(clauses,methodSpecs.forExampleCases,null,decl).toList();
             } else if (!clauses.isEmpty()) {
                 JCModifiers mods = jmlF.at(decl.pos).Modifiers(decl.mods.flags & Flags.AccessFlags);
                 JmlSpecificationCase c = jmlF.JmlSpecificationCase(mods,false,null,null,clauses.toList());
                 newspecs = jmlF.JmlMethodSpecs(List.<JmlSpecificationCase>of(c));
             } else {
-                newspecs = specs;
+                newspecs = methodSpecs;
             }
-            newspecs.decl = specs.decl;
-            specs.deSugared = newspecs;
+            newspecs.decl = methodSpecs.decl;
+            methodSpecs.deSugared = newspecs;
         } finally {
             if (env != null) env.enclMethod = prevEnclMethod;
             env = prevEnv;
@@ -924,12 +946,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return newlist;
     }
     
-    /** Determines the default nullability for the compilation unit
-     * @return true if the default is non_null, false if the default is nullable
-     */
-    public boolean determineDefaultNullability() {
-        return false;  // FIXME
-    }
+//    /** Determines the default nullability for the compilation unit
+//     * @return true if the default is non_null, false if the default is nullable
+//     */
+//    public boolean determineDefaultNullability() {
+//        return false;  // FIXME
+//    }
     
     protected void adjustVarDef(JCVariableDecl tree, Env<AttrContext> localEnv) {
         if (!forallOldEnv) return;
@@ -1002,23 +1024,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public JmlToken[] allowedFieldModifiers = new JmlToken[] {
             SPEC_PUBLIC, SPEC_PROTECTED, MODEL, GHOST,
-            NONNULL, NULLABLE, INSTANCE, MONITORED
+            NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET
        };
        
     public JmlToken[] allowedGhostFieldModifiers = new JmlToken[] {
-            GHOST, NONNULL, NULLABLE, INSTANCE, MONITORED
+            GHOST, NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET
        };
        
     public JmlToken[] allowedModelFieldModifiers = new JmlToken[] {
-            MODEL, NONNULL, NULLABLE, INSTANCE
+            MODEL, NONNULL, NULLABLE, INSTANCE, SECRET
        };
        
     public JmlToken[] allowedFormalParameterModifiers = new JmlToken[] {
-            NONNULL, NULLABLE, READONLY, REP, PEER
+            NONNULL, NULLABLE, READONLY, REP, PEER, SECRET
        };
        
     public JmlToken[] allowedLocalVarModifiers = new JmlToken[] {
-            NONNULL, NULLABLE, GHOST, UNINITIALIZED, READONLY, REP, PEER
+            NONNULL, NULLABLE, GHOST, UNINITIALIZED, READONLY, REP, PEER, SECRET
        };
        
     public void checkVarMods(JmlVariableDecl tree) {

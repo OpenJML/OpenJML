@@ -1,8 +1,5 @@
 package tests;
 
-import org.jmlspecs.openjml.JmlOptionName;
-import org.jmlspecs.openjml.esc.JmlEsc;
-
 import com.sun.tools.javac.util.Options;
 
 public class esc extends EscBase {
@@ -11,13 +8,13 @@ public class esc extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-noPurityCheck","");
+        options.put("-nullableByDefault",""); // Because the tests were written this wasy
         //options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //JmlEsc.escdebug = true;
-    }
-    
-    
+    }    
+
     // Test well-definedness within the implicit old
     public void testNonNullElements() {
         helpTCX("tt.TestJava","package tt; \n"
@@ -979,7 +976,7 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",8,
                 "/tt/TestJava.java:10: warning: Associated declaration",16,
                 "/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method i(int)",21,
-                "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Invariant) in method inst",17,
+                "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Invariant) in method inst",84,
                 "/tt/TestJava.java:9: warning: Associated declaration",16
         );
     }
@@ -1153,6 +1150,62 @@ public class esc extends EscBase {
         );
     }
 
+    public void testNonNull2() {
+        options.put("-nullableByDefault",null);
+        options.put("-nonnullByDefault","");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+                +"public class TestJava { \n"
+                +"  //@ requires ii == 10;\n"
+                +"  //@ ensures true;\n"
+                +"  public                Object inst(int ii) { return null; }\n"
+                +"  //@ requires ii == 10;\n"
+                +"  //@ ensures true;\n"
+                +"  public          Object inst2(int ii) {  return null; }\n"
+                +"}",
+                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method inst",47,
+                "/tt/TestJava.java:5: warning: Associated declaration",32,
+                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method inst2",43,
+                "/tt/TestJava.java:8: warning: Associated declaration",26
+        );
+    }
+
+    public void testNonNull3() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  //@ requires ii == 10;\n"
+                +"  //@ ensures true;\n"
+                +"  public                Object inst(int ii) { return null; }\n"
+                +"  //@ requires ii == 10;\n"
+                +"  //@ ensures true;\n"
+                +"  public          Object inst2(int ii) {  return null; }\n"
+                +"}",
+                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method inst",47,
+                "/tt/TestJava.java:5: warning: Associated declaration",32,
+                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method inst2",43,
+                "/tt/TestJava.java:8: warning: Associated declaration",26
+        );
+    }
+    
+    // FIXME - the non-null return postcondition error message is not very clear
+
+    public void testNonNull4() {
+        options.put("-nullableByDefault",null);
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+                +"public class TestJava { \n"
+                +"  //@ requires ii == 10;\n"
+                +"  //@ ensures true;\n"
+                +"  public                Object inst(int ii) { return null; }\n"
+                +"  //@ requires ii == 10;\n"
+                +"  //@ ensures true;\n"
+                +"  public          Object inst2(int ii) {  return null; }\n"
+                +"}",
+                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method inst",47,
+                "/tt/TestJava.java:5: warning: Associated declaration",32,
+                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method inst2",43,
+                "/tt/TestJava.java:8: warning: Associated declaration",26
+        );
+    }
+
     public void testNonNullParam() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
                 +"public class TestJava { \n"
@@ -1168,6 +1221,67 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",74,
                 "/tt/TestJava.java:5: warning: Associated declaration",15,
                 "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 69,
+                "/tt/TestJava.java:9: warning: Associated declaration",15
+        );
+    }
+
+    public void testNonNullParam2() {
+        options.put("-nullableByDefault",null);
+        options.put("-nonnullByDefault","");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+                +"public class TestJava { \n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object inst(boolean b,                Object i, /*@ nullable*/Object ii) { return i; }\n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object instbad(boolean b,                Object i, /*@ nullable*/Object ii) { return ii; }\n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object inst2(boolean b,          Object i, /*@ nullable*/Object ii) { return i; }\n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object inst2bad(boolean b,          Object i, /*@ nullable*/Object ii) { return ii; }\n"
+                +"}",
+                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",102,
+                "/tt/TestJava.java:5: warning: Associated declaration",15,
+                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 97,
+                "/tt/TestJava.java:9: warning: Associated declaration",15
+        );
+    }
+
+    public void testNonNullParam3() {
+        options.put("-nullableByDefault",null);
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object inst(boolean b,                Object i, /*@ nullable*/Object ii) { return i; }\n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object instbad(boolean b,                Object i, /*@ nullable*/Object ii) { return ii; }\n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object inst2(boolean b,          Object i, /*@ nullable*/Object ii) { return i; }\n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object inst2bad(boolean b,          Object i, /*@ nullable*/Object ii) { return ii; }\n"
+                +"}",
+                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",102,
+                "/tt/TestJava.java:5: warning: Associated declaration",15,
+                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 97,
+                "/tt/TestJava.java:9: warning: Associated declaration",15
+        );
+    }
+
+    public void testNonNullParam4() {
+        options.put("-nullableByDefault",null);
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+                +"public class TestJava { \n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object inst(boolean b,                Object i, /*@ nullable*/Object ii) { return i; }\n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object instbad(boolean b,                Object i, /*@ nullable*/Object ii) { return ii; }\n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object inst2(boolean b,          Object i, /*@ nullable*/Object ii) { return i; }\n"
+                +"  //@ ensures \\result != null;\n"
+                +"  public /*@ nullable*/Object inst2bad(boolean b,          Object i, /*@ nullable*/Object ii) { return ii; }\n"
+                +"}",
+                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",102,
+                "/tt/TestJava.java:5: warning: Associated declaration",15,
+                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 97,
                 "/tt/TestJava.java:9: warning: Associated declaration",15
         );
     }

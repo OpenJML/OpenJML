@@ -467,7 +467,13 @@ public class JmlCompiler extends JavaCompiler {
     public void compile(List<JavaFileObject> sourceFileObjects,
             List<String> classnames,
             Iterable<? extends Processor> processors) throws IOException {
+        Runtime rt = Runtime.getRuntime();
+        //System.out.println("    ....... Memory free=" + rt.freeMemory() + "  max="+rt.maxMemory() + "  total="+rt.totalMemory());
         JmlResolve.instance(context).loadClass(null,Symtab.instance(context).objectType.tsym.flatName());
         super.compile(sourceFileObjects,classnames,processors);
+    }
+    
+    protected void compile2(CompilePolicy compPolicy) {
+        super.compile2(CompilePolicy.SIMPLE);
     }
 }

@@ -17,16 +17,20 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 
+import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.file.ZipArchive;
+import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Options;
 
 /** This class manages the specifications during a compilation.  There should be
@@ -915,13 +919,18 @@ public class JmlSpecs {
     }
     
     /** Returns the default nullity for the given class - don't call this until
-     * classes have been entered and annotations have been attributed.
-     * @param csymbol the class whose default nullity is to be determined
+     * classes have been entered and annotations have been attributed.  If the
+     * argument is null, then the default nullity as set on the command-line is returned.
+     * @param csymbol the class whose default nullity is to be determined; if
+     *   null the default system nullity setting (pre the command-line) is returned
      * @return JmlToken.NULLABLE or JmlToken.NONNULL
      */
-    //@ requires csymbol != null;
-    public JmlToken defaultNullity(ClassSymbol csymbol) {
+    //@ ensures \\result != null;
+    public /*@non_null*/ JmlToken defaultNullity(/*@ nullable*/ ClassSymbol csymbol) {
         if (csymbol == null) {
+            // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
+            // If neither one is present, then the logic here will give the
+            // default as NONNULL.
             if (JmlOptionName.isOption(context,JmlOptionName.NULLABLEBYDEFAULT)) {
                 return JmlToken.NULLABLE;
             } else {
@@ -947,6 +956,22 @@ public class JmlSpecs {
         return spec.defaultNullity;
     }
 
+    ClassSymbol nonnullAnnotationSymbol = null;
+    ClassSymbol nullableAnnotationSymbol = null;
+    public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
+        if (nonnullAnnotationSymbol == null) {
+            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Name.Table.instance(context).fromString("org.jmlspecs.annotations.NonNull"));
+        }
+        Attribute.Compound attr = symbol.attribute(nonnullAnnotationSymbol);
+        if (attr!=null) return true;
+        if (nullableAnnotationSymbol == null) {
+            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Name.Table.instance(context).fromString("org.jmlspecs.annotations.Nullable"));
+        }
+        attr = symbol.attribute(nullableAnnotationSymbol);
+        if (attr!=null) return false;
+        return defaultNullity(csymbol) == JmlToken.NONNULL;
+
+    }
     
 // For method specifications, use the JmlTree.JmlMethodSpecs class
 //    public static class MethodSpecs {

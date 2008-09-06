@@ -55,6 +55,7 @@ public class Utils {
      * @return true if all elements are not null, false if at least one is
      */
     public static boolean nonnullElementCheck(Object[] array) {
+        if (array == null) return false;
         for (Object o: array) {
             if (o == null) return false;
         }

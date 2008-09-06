@@ -110,7 +110,7 @@ public class rac extends RacBase {
     
     public void testNonnullPostcondition() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(null,1); System.out.println(\"END\"); }\n" +
-                " static /*@non_null*/Object m( Object o, int i) { return null; } " +
+                " static /*@non_null*/Object m( /*@nullable*/Object o, int i) { return null; } " +
                 "}"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
                 ,"END"
@@ -377,7 +377,7 @@ public class rac extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new Object()); m(new String()); m(Boolean.TRUE); System.out.println(\"END\"); } \n" +
                 " //@ requires (\\lblpos CLS \\typeof(i)) == Object.class; \n" +
-                " static void m(Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
+                " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
                 ,"CLASS class java.lang.Object"
                 ,"LABEL CLS = class java.lang.Object"
@@ -396,7 +396,7 @@ public class rac extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new Object[1]); m(new String[2]); System.out.println(\"END\"); } \n" +
                 " //@ requires (\\lblpos CLS \\typeof(i)) == Object.class; \n" +
-                " static void m(Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
+                " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class [Ljava.lang.Object;"
@@ -483,19 +483,20 @@ public class rac extends RacBase {
         
     }
     
+    // TODO: Resolve: this used to throw an exception.  But now nonnullelements is 
+    // defined to be false on a null input.  Is that what JML says?  What about
+    // on a nonnull non-array input?
     public void testNonnullelement2() {
-        expectedRACExit = 1;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } \n" +
-                " static void m(Object[] o) { \n" +
+                " static void m(/*@nullable*/Object[] o) { \n" +
                 "//@ assert (\\lblpos ELEM \\nonnullelements(o)); \n" +
                 "} " +
                 "}"
-                ,"Exception in thread \"main\" java.lang.NullPointerException"
-                ,"\tat org.jmlspecs.utils.Utils.nonnullElementCheck(Utils.java:58)"
-                ,"\tat tt.TestJava.m(TestJava.java from TestJavaFileObject:5)"
-                ,"\tat tt.TestJava.main(TestJava.java from TestJavaFileObject:2)"
+                ,"/tt/TestJava.java:5: JML assertion is false"
+                ,"LABEL ELEM = false"
+                ,"END"
                 );
         
     }
