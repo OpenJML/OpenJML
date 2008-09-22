@@ -119,7 +119,7 @@ public class JmlEsc extends JmlTreeScanner {
         this.verbose = JmlOptionName.isOption(context,"-verbose") ||
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
             Utils.jmldebug;
-        this.showCounterexample = JmlOptionName.isOption(context,"-ce") || JmlOptionName.isOption(context,JmlOptionName.COUNTEREXAMPLE) || escdebug ; // FIXME - options
+        this.showCounterexample = JmlOptionName.isOption(context,"-ce") || JmlOptionName.isOption(context,JmlOptionName.COUNTEREXAMPLE) || JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ; // FIXME - options
         this.showSubexpressions = JmlOptionName.isOption(context,JmlOptionName.SUBEXPRESSIONS);
         this.showTrace = showCounterexample || JmlOptionName.isOption(context,JmlOptionName.TRACE) || showSubexpressions;
         this.checkAssumptions = !JmlOptionName.isOption(context,"-noCheckAssumptions");
@@ -129,6 +129,9 @@ public class JmlEsc extends JmlTreeScanner {
     @Nullable JCClassDecl currentClassDecl = null;
     
     public void visitClassDef(JCClassDecl node) {
+        if (node.sym.isInterface()) return;  // Nothing to verify in an interface
+        System.out.println("DOING CLASS " + node.sym);
+        
         // Save the information in case classes are nested
         JCClassDecl prev = currentClassDecl;
         try {
@@ -188,12 +191,12 @@ public class JmlEsc extends JmlTreeScanner {
                     Pattern.compile("escjava[.]AnnotationHandler[.]NestedPragmaParser[.]parseSeq[(].*"), // out of resources
             
             };
-            if (doPattern != null) {
-                if (!doPattern.matcher(name).matches()) return;//{System.out.println("skipping " + name); return; }
-            }
-            for (Pattern avoid: avoids) {
-                if (avoid.matcher(name).matches()) {System.out.println("skipping " + name); return; }
-            }
+//            if (doPattern != null) {
+//                if (!doPattern.matcher(name).matches()) return;//{System.out.println("skipping " + name); return; }
+//            }
+//            for (Pattern avoid: avoids) {
+//                if (avoid.matcher(name).matches()) {System.out.println("skipping " + name); return; }
+//            }
             // FIXME - turn off in quiet mode? 
             //Log.printLines(log.noticeWriter,"["+(++ord)+"] "+ "ESC: Checking method "+ name);
             if (escdebug) System.out.println(node.toString()); // print the method
@@ -202,27 +205,26 @@ public class JmlEsc extends JmlTreeScanner {
             Utils.Timer t = null;
             if (showTimes) t = new Utils.Timer();
             BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
-            if (JmlOptionName.isOption(context,"-showbb") || escdebug) program.write(); // print the basic block program // FIXME - the option
-            //if (showTimes) System.out.println("    ... prep           " +  t.elapsed()/1000.);
-            //System.out.println("\t\t" + program.blocks().size() + " blocks, " + program.definitions().size() + " definitions, " + program.background().size() + " axioms, " + BasicBlocker.Counter.count(program) + " nodes");
-            prove(node,program);
-            if (showTimes) System.out.println("    ... prep and prove " +  t.elapsed()/1000.);
-            if (showTimes) {
-                Runtime rt = Runtime.getRuntime();
-                System.out.println("    ....... Memory free=" + rt.freeMemory() + "  max="+rt.maxMemory() + "  total="+rt.totalMemory());
-            }
+            metrics(node,program,name);
+//            if (JmlOptionName.isOption(context,"-showbb") || escdebug) program.write(); // print the basic block program // FIXME - the option
+//            //if (showTimes) System.out.println("    ... prep           " +  t.elapsed()/1000.);
+//            //System.out.println("\t\t" + program.blocks().size() + " blocks, " + program.definitions().size() + " definitions, " + program.background().size() + " axioms, " + BasicBlocker.Counter.count(program) + " nodes");
+//            prove(node,program);
+//            if (showTimes) System.out.println("    ... prep and prove " +  t.elapsed()/1000.);
+//            if (showTimes) {
+//                Runtime rt = Runtime.getRuntime();
+//                System.out.println("    ....... Memory free=" + rt.freeMemory() + "  max="+rt.maxMemory() + "  total="+rt.totalMemory());
+//            }
         } catch (RuntimeException e) {
-            System.out.println("PROOF FAILED - EXCEPTION " + e);
+            log.warning("esc.prover.failure",e);
             // go on with next 
         } catch (Throwable e) {
-            System.out.println("PROOF FAILED - EXCEPTION " + e);
+            log.warning("esc.prover.failure",e);
             System.gc();
         } finally {
             log.useSource(prev);
         }
     }
-    
-    static int ord = 0;
     
     /** Returns the VC expression for a basic block
      * 
@@ -233,6 +235,50 @@ public class JmlEsc extends JmlTreeScanner {
         java.util.List<JCStatement> statements = block.statements();
         Iterator<JCStatement> iterator = statements.iterator();
         return blockExpr(block,iterator);
+    }
+    
+    public void metrics(JCMethodDecl node, BasicProgram program, String name) {
+        VCmode = 0;
+        int ast = BasicBlocker.Counter.countAST(node.body);
+        BasicBlocker.Counter c = BasicBlocker.Counter.count(program);
+        VCmode = 1;
+        JCTree f = blockExpr(program.startBlock());
+        int fan = BasicBlocker.Counter.countAST(f) + BasicBlocker.Counter.countx(program);
+
+        BasicProgram newbp = new BasicProgram();
+        newbp.definitions = program.definitions;
+        newbp.background = program.background;
+        java.util.List<JCStatement> list = new java.util.ArrayList<JCStatement>();
+        newblocks(list,program.startBlock(),program,newbp);
+        int lin = BasicBlocker.Counter.countx(newbp);
+        for (BasicBlock b: newbp.blocks) {
+            lin += BasicBlocker.Counter.countAST(blockExpr(b));
+        }
+        
+        System.out.println(ast + " AST; " + c + "  " + fan + " tree; " + lin + " linear; " + program.definitions.size() + " defs :: " + name);
+
+    }
+    
+    public void newblocks(java.util.List<JCStatement> prefix, BasicBlock block, BasicProgram program, BasicProgram newp) {
+        for (JCStatement s: block.statements) {
+            if ((s instanceof JmlTree.JmlStatementExpr) && ((JmlTree.JmlStatementExpr)s).token == JmlToken.ASSERT) {
+                BasicBlock bb = new BasicBlock(null);
+                bb.statements.addAll(prefix);
+                bb.statements.add(s);
+                newp.blocks.add(bb);
+            } else {
+                prefix.add(s);
+            }
+        }
+        if (block.succeeding.size() == 0) {
+            BasicBlock bb = new BasicBlock(null);
+            bb.statements.addAll(prefix);
+            newp.blocks.add(bb);
+        } else {
+            for (BasicBlock bb: block.succeeding) {
+                newblocks(prefix,bb,program,newp);
+            }
+        }
     }
     
     /** Helper method to determine the VC expression for a basic block.
@@ -253,6 +299,7 @@ public class JmlEsc extends JmlTreeScanner {
                     e.pos = as.expression.pos;
                     return e;
                 } else if (as.token == JmlToken.ASSERT) {
+                    //JCExpression e = factory.JmlBinary(JmlToken.IMPLIES,as.expression,rest);
                     JCExpression e = factory.Binary(JCTree.AND,as.expression,rest);
                     e.type = syms.booleanType;
                     e.pos = as.expression.pos;
@@ -267,15 +314,27 @@ public class JmlEsc extends JmlTreeScanner {
         } else {
             JCExpression expr = factory.Literal(TypeTags.BOOLEAN,1);
             expr.type = syms.booleanType;
-            for (BasicBlock follower: block.succeeding()) {
-                JCExpression e = factory.Binary(JCTree.AND,expr,follower.id);
-                e.pos = follower.id.pos;
-                e.type = syms.booleanType;
-                expr = e;
+            if (VCmode == 0) {
+                for (BasicBlock follower: block.succeeding()) {
+                    JCExpression e = factory.Binary(JCTree.AND,expr,follower.id);
+                    e.pos = follower.id.pos;
+                    e.type = syms.booleanType;
+                    expr = e;
+                }
+            } else if (VCmode == 1) {
+                for (BasicBlock follower: block.succeeding()) {
+                    JCExpression fexpr = blockExpr(follower);
+                    JCExpression e = factory.Binary(JCTree.AND,expr,fexpr);
+                    e.pos = follower.id.pos;
+                    e.type = syms.booleanType;
+                    expr = e;
+                }
             }
             return expr;
         }
     }
+    
+    int VCmode = 0;  // 0 - basic blocks; 1 - tree; 2 - parallel
 
     /** Creates an AST node for a new identifier, meant as an auxiliary logical
      * variable in the eventual VC; the identifier has the given type and node
@@ -324,7 +383,7 @@ public class JmlEsc extends JmlTreeScanner {
                 e = factory.Unary(JCTree.NOT,e);
                 e.type = syms.booleanType;
                 p.assume(e);
-                IProverResult b = p.check();
+                IProverResult b = p.check(false);
                 if (b.result() == ProverResult.UNSAT) {
                     log.warning(methodDecl.pos(),"esc.unsat.preconditions",methodDecl.getName());
                     if (escdebug) System.out.println("Invariants+Preconditions are NOT satisfiable in " + methodDecl.getName());
@@ -374,130 +433,10 @@ public class JmlEsc extends JmlTreeScanner {
                 p.assume(e);
             }
 
-            IProverResult r = p.check();
+            IProverResult r = p.check(true);
             if (r.isSat()) {
                 if (escdebug) System.out.println("Method does NOT satisfy its specifications, it appears");
-                ICounterexample s = r.counterexample();
-                boolean noinfo = true;
-                if (s != null) {
-                    // Find out the termination position; null means that the information
-                    // was not available from the counterexample - either because the
-                    // prover did not return it, or because of some bug in the
-                    // program
-                    String terminationValue = s.get(BasicBlocker.TERMINATION_VAR);
-                    int terminationPosition = terminationValue == null ? 0 :
-                                        Integer.valueOf(terminationValue);
-                    // Look for "assert$<number>$<number>(@<number>)?$<Label> false"
-                    Pattern pat1 = Pattern.compile("assert\\$(\\d+)\\$(\\d+)(@(\\d+))?\\$(\\w+)");
-                    for (Map.Entry<String,String> var: s.sortedEntries()) {
-                        Matcher m = pat1.matcher(var.getKey());
-                        if (var.getValue().equals("false") && m.find()) {
-                            String sname = m.group(0); // full name of the assertion
-                            String label = m.group(5); // the label part 
-                            int usepos = Integer.parseInt(m.group(1)); // the textual location of the assert statement
-                            int declpos = Integer.parseInt(m.group(2)); // the textual location of associated information (or same as usepos if no associated information)
-                            JavaFileObject jfo = null;
-                            String fintstr = m.group(4);
-                            if (fintstr != null) {
-                                Integer i = Integer.valueOf(fintstr);
-                                jfo = BasicBlocker.jfoArray.get(i);
-                            }
-                            int termpos = usepos;
-                            if (terminationValue != null &&
-                                    (Label.POSTCONDITION.toString().equals(label) ||
-                                            Label.INVARIANT.toString().equals(label) ||
-                                            Label.CONSTRAINT.toString().equals(label) ||
-                                            Label.INITIALLY.toString().equals(label) ||
-                                            Label.SIGNALS.toString().equals(label) ||
-                                            Label.SIGNALS_ONLY.toString().equals(label))) {
-                                // terminationPosition is, 
-                                // if positive, the source code location of the return statement,
-                                // if negative, the negative of the source code location of
-                                //          the throw statement or method call of an exception exit
-                                // if 0, the method exits out the end of the block.  
-                                // In this last case, one would like to point the
-                                // error message to the end of the block, but since
-                                // we do not at the moment have support for 
-                                // end positions, we use the position of the 
-                                // method declaration. (TODO)
-                                if (terminationPosition == 0) termpos = usepos; 
-                                else if (terminationPosition > 0) termpos = terminationPosition;
-                                else                             termpos = -terminationPosition;
-                            }
-                            Name v = names.fromString(var.getKey());
-                            BasicBlock bl = findContainingBlock(v,program);
-                            // A 'false' assertion is spurious if it happens in a block 
-                            // which is not executed (its block variable is 'true')
-                            // So we list the assertion if
-                            //      - we cannot find a block containing the assertion (just to be safe)
-                            //      - we find a block but find no value for the block variable (just to be safe)
-                            //      - the block variable is 'false' (not 'true') and there is a chain of false blocks back to the beginning
-                            if (bl == null || hasFeasibleChain(bl,s) ) {
-                                if (escdebug) System.out.println("Assertion " + sname + " cannot be verified");
-                                log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName());
-                                if (declpos != termpos || jfo != null) {
-                                    JavaFileObject prev = log.currentSource();
-                                    if (jfo != null) log.useSource(jfo);
-                                    log.warning(declpos,"esc.associated.decl");
-                                    log.useSource(prev);
-                                }
-                                //if (declpos != usepos) Log.printLines(log.noticeWriter,"Associated information");
-                                noinfo = false;
-                            }
-                        }
-                    }
-                }
-
-                if (noinfo) {
-                    log.warning("esc.method.invalid",methodDecl.getName());
-                } else {
-                    Pattern pat2 = Pattern.compile("\\$\\$LBLPOS\\$(\\d+)\\$([^ ]+)");
-                    for (Map.Entry<String,String> var: s.sortedEntries()) {
-                        Matcher m = pat2.matcher(var.getKey());
-                        if (var.getValue().equals("true") && m.find()) {
-                            int pos = Integer.parseInt(m.group(1));
-                            String label = m.group(2);
-                            log.warning(pos,"esc.label",label);
-                            if (escdebug) System.out.println("Label " + label + " has value " + var.getValue());
-                        }
-                    }
-                    Pattern pat3 = Pattern.compile("\\$\\$LBLNEG\\$(\\d+)\\$([^ ]+)");
-                    for (Map.Entry<String,String> var: s.sortedEntries()) {
-                        Matcher m = pat3.matcher(var.getKey());
-                        if (var.getValue().equals("false") && m.find()) {
-                            int pos = Integer.parseInt(m.group(1));
-                            String label = m.group(2);
-                            log.warning(pos,"esc.label",label);
-                            if (escdebug) System.out.println("Label " + label + " has value " + var.getValue());
-                        }
-                    }
-                    Pattern pat4 = Pattern.compile("\\$\\$LBLANY\\$(\\d+)\\$([^ ]+)");
-                    for (Map.Entry<String,String> var: s.sortedEntries()) {
-                        Matcher m = pat4.matcher(var.getKey());
-                        if (m.find()) {
-                            int pos = Integer.parseInt(m.group(1));
-                            String label = m.group(2);
-                            log.warning(pos,"esc.label.value",label,var.getValue());
-                            if (escdebug) System.out.println("Label " + label + " has value " + var.getValue());
-                        }
-                    }
-                }
-                
-                if (showTrace) {
-                    System.out.println("Trace");
-                    //BasicBlocker.Tracer.trace(context,methodDecl,s);
-                    BasicBlocker.TracerBB.trace(context,program,s,p);
-                }
-                if (showCounterexample) {
-                    System.out.println("Counterexample:");
-                    // Just some arbitrary number of spaces used to format lines
-                    String spaces = "                                ";
-                    for (Map.Entry<String,String> var: s.sortedEntries()) {
-                        int k = var.getKey().length();
-                        if (k >= spaces.length()) k = spaces.length()-1;
-                        System.out.println("    " + var.getKey() + spaces.substring(k) + var.getValue());
-                    }
-                }
+                displayCounterexampleInfo(methodDecl, program, p, r);
             } else if (r.result() == IProverResult.UNSAT) {
                 if (escdebug) System.out.println("Method satisfies its specifications (as far as I can tell)");
                 if (!checkAssumptions) return;
@@ -530,7 +469,7 @@ public class JmlEsc extends JmlTreeScanner {
                         }
                         p.push(); k++;
                         p.retract(n--);
-                        r = p.check();
+                        r = p.check(false);
                         if (r.isSat()) {
                             if (escdebug) System.out.println("NOW SAT - ASSUMPTION WAS OK: " + name);
                             p.pop(); k--;
@@ -562,7 +501,7 @@ public class JmlEsc extends JmlTreeScanner {
                         JCExpression ex = factory.Binary(JCTree.EQ, program.assumeCheckVar, factory.Literal(TypeTags.INT,pos));
                         ex.type = syms.booleanType;
                         p.assume(ex);
-                        r = p.check();
+                        r = p.check(false);
                         if (!r.isSat()) {
                             String label = parts[2];
                             reportAssumptionProblem(label,pos,methodDecl.sym.toString());
@@ -582,6 +521,7 @@ public class JmlEsc extends JmlTreeScanner {
             if (escdebug) {
                 System.out.println("PROVER FAILURE: " + e);
                 if (e.mostRecentInput != null) System.out.println("INPUT: " + e.mostRecentInput);
+                e.printStackTrace(System.out);
             }
             try {
                 if (p != null) p.kill();
@@ -591,7 +531,158 @@ public class JmlEsc extends JmlTreeScanner {
             }
         } catch (Throwable e) {
             log.warning("esc.prover.failure",methodDecl.sym.toString() + ": " + e.getLocalizedMessage());
-            System.out.println("PROVER FAILURE: " + e.getClass() + " " + e);
+            if (escdebug) System.out.println("PROVER FAILURE: " + e.getClass() + " " + e);
+            e.printStackTrace(System.out);
+        }
+    }
+
+
+    /** For a SAT result, this prints out counterexample information in a human
+     * usable form
+     * @param methodDecl The declaration of the method being verified
+     * @param program The Basic program for that method
+     * @param p The prover being used
+     * @param r The result from that prover
+     */
+    protected void displayCounterexampleInfo(JCMethodDecl methodDecl,
+            BasicProgram program, IProver p, IProverResult r) {
+        ICounterexample s = r.counterexample();
+        boolean noinfo = true;
+        if (s != null) {
+            // Find out the termination position; null means that the information
+            // was not available from the counterexample - either because the
+            // prover did not return it, or because of some bug in the
+            // program
+            String terminationValue = s.get(BasicBlocker.TERMINATION_VAR);
+            int terminationPosition = terminationValue == null ? 0 :
+                                Integer.valueOf(terminationValue);
+            // Find the assert with the smallest uniqueness number, that is in a feasible block
+            //    FIXME - we're presuming that the one with the smallest uniqueness number comes
+            //     earliest in the block; subsequent assertions may also be reportable, but if
+            //     they come after assumptions, they are suspect
+            // Look for "assert$<number>$<number>(@<number>)?$<Label>$<number>"
+            Pattern pat1 = Pattern.compile("\\Aassert\\$(\\d+)\\$(\\d+)(@(\\d+))?\\$(\\w+)\\$(\\d+)\\z");
+            Matcher found = null;
+            int foundNum = Integer.MAX_VALUE;
+            for (Map.Entry<String,String> var: s.sortedEntries()) {
+                Matcher m = pat1.matcher(var.getKey());
+                if (var.getValue().equals("false") && m.find()) {
+                    String sname = m.group(0);
+                    Name v = names.fromString(sname);
+                    BasicBlock bl = findContainingBlock(v,program);
+                    if (bl == null || hasFeasibleChain(bl,s) ) {
+                        int nn = Integer.parseInt(m.group(6));
+                        if (nn < foundNum) { foundNum = nn; found = m; }
+                        if (escdebug) System.out.println("Assertion " + sname + " is false");
+                    }
+                }
+            }
+            if (found != null) {
+                Matcher m = found;
+                    String sname = m.group(0); // full name of the assertion
+                    String label = m.group(5); // the label part 
+                    int usepos = Integer.parseInt(m.group(1)); // the textual location of the assert statement
+                    int declpos = Integer.parseInt(m.group(2)); // the textual location of associated information (or same as usepos if no associated information)
+                    JavaFileObject jfo = null;
+                    String fintstr = m.group(4);
+                    if (fintstr != null) {
+                        Integer i = Integer.valueOf(fintstr);
+                        jfo = BasicBlocker.jfoArray.get(i);
+                    }
+                    int termpos = usepos;
+                    if (terminationValue != null &&
+                            (Label.POSTCONDITION.toString().equals(label) ||
+                                    Label.INVARIANT.toString().equals(label) ||
+                                    Label.CONSTRAINT.toString().equals(label) ||
+                                    Label.INITIALLY.toString().equals(label) ||
+                                    Label.SIGNALS.toString().equals(label) ||
+                                    Label.SIGNALS_ONLY.toString().equals(label))) {
+                        // terminationPosition is, 
+                        // if positive, the source code location of the return statement,
+                        // if negative, the negative of the source code location of
+                        //          the throw statement or method call of an exception exit
+                        // if 0, the method exits out the end of the block.  
+                        // In this last case, one would like to point the
+                        // error message to the end of the block, but since
+                        // we do not at the moment have support for 
+                        // end positions, we use the position of the 
+                        // method declaration. (TODO)
+                        if (terminationPosition == 0) termpos = usepos; 
+                        else if (terminationPosition > 0) termpos = terminationPosition;
+                        else                             termpos = -terminationPosition;
+                    }
+                    Name v = names.fromString(sname);
+                    BasicBlock bl = findContainingBlock(v,program);
+                    // A 'false' assertion is spurious if it happens in a block 
+                    // which is not executed (its block variable is 'true')
+                    // So we list the assertion if
+                    //      - we cannot find a block containing the assertion (just to be safe)
+                    //      - we find a block but find no value for the block variable (just to be safe)
+                    //      - the block variable is 'false' (not 'true') and there is a chain of false blocks back to the beginning
+                    if (bl == null || hasFeasibleChain(bl,s) ) {
+                        log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName());
+                        if (declpos != termpos || jfo != null) {
+                            JavaFileObject prev = log.currentSource();
+                            if (jfo != null) log.useSource(jfo);
+                            log.warning(declpos,"esc.associated.decl");
+                            log.useSource(prev);
+                        }
+                        //if (declpos != usepos) Log.printLines(log.noticeWriter,"Associated information");
+                        noinfo = false;
+                    }
+                }
+            
+        }
+
+        if (noinfo) {
+            log.warning("esc.method.invalid",methodDecl.getName());
+        } else {
+            Pattern pat2 = Pattern.compile("\\$\\$LBLPOS\\$(\\d+)\\$([^ ]+)");
+            for (Map.Entry<String,String> var: s.sortedEntries()) {
+                Matcher m = pat2.matcher(var.getKey());
+                if (var.getValue().equals("true") && m.find()) {
+                    int pos = Integer.parseInt(m.group(1));
+                    String label = m.group(2);
+                    log.warning(pos,"esc.label",label);
+                    if (escdebug) System.out.println("Label " + label + " has value " + var.getValue());
+                }
+            }
+            Pattern pat3 = Pattern.compile("\\$\\$LBLNEG\\$(\\d+)\\$([^ ]+)");
+            for (Map.Entry<String,String> var: s.sortedEntries()) {
+                Matcher m = pat3.matcher(var.getKey());
+                if (var.getValue().equals("false") && m.find()) {
+                    int pos = Integer.parseInt(m.group(1));
+                    String label = m.group(2);
+                    log.warning(pos,"esc.label",label);
+                    if (escdebug) System.out.println("Label " + label + " has value " + var.getValue());
+                }
+            }
+            Pattern pat4 = Pattern.compile("\\$\\$LBLANY\\$(\\d+)\\$([^ ]+)");
+            for (Map.Entry<String,String> var: s.sortedEntries()) {
+                Matcher m = pat4.matcher(var.getKey());
+                if (m.find()) {
+                    int pos = Integer.parseInt(m.group(1));
+                    String label = m.group(2);
+                    log.warning(pos,"esc.label.value",label,var.getValue());
+                    if (escdebug) System.out.println("Label " + label + " has value " + var.getValue());
+                }
+            }
+        }
+        
+        if (showTrace) {
+            System.out.println("Trace " + methodDecl.getName());
+            //BasicBlocker.Tracer.trace(context,methodDecl,s);
+            BasicBlocker.TracerBB.trace(context,program,s,p);
+        }
+        if (showCounterexample) {
+            System.out.println("Counterexample:");
+            // Just some arbitrary number of spaces used to format lines
+            String spaces = "                                ";
+            for (Map.Entry<String,String> var: s.sortedEntries()) {
+                int k = var.getKey().length();
+                if (k >= spaces.length()) k = spaces.length()-1;
+                System.out.println("    " + var.getKey() + spaces.substring(k) + var.getValue());
+            }
         }
     }
     

@@ -109,14 +109,14 @@ public /*@ pure @*/ strictfp class JMLFloat implements JMLComparable {
       @     assignable theFloat,owner;
       @     ensures (* s is a parseable string that has the format
       @                of a floating point literal *)
-      @         && theFloat == new Float(s).floatValue();
+      @         && theFloat == Float.valueOf(s).floatValue();
       @     signals_only NumberFormatException;
       @     signals (NumberFormatException)
       @             !(* s is a parseable string that has the format
       @                 of a floating point literal *);
       @*/
     public JMLFloat (/*@ non_null @*/ String s) throws NumberFormatException {
-        floatValue = new Float(s).floatValue();
+        floatValue = Float.valueOf(s).floatValue();
         //@ set owner = null;
     }
 
@@ -162,8 +162,8 @@ public /*@ pure @*/ strictfp class JMLFloat implements JMLComparable {
      *  @exception ClassCastException when o is not a JMLFloat.
      */
     public int compareTo(/*@ non_null @*/ Object op2) throws ClassCastException {
-        return new Float(floatValue)
-            .compareTo(new Float(((JMLFloat)op2)  //@ nowarn Cast;
+        return Float.valueOf(floatValue)
+            .compareTo(Float.valueOf(((JMLFloat)op2)  //@ nowarn Cast;
                                   .floatValue));
     }
 
@@ -206,7 +206,7 @@ public /*@ pure @*/ strictfp class JMLFloat implements JMLComparable {
       @     ensures \result <==> false;
       @*/
     public boolean equals(/*@ nullable @*/ Object op2) {
-        if (!(op2 instanceof JMLFloat) || op2 == null) {
+        if (op2 == null || !(op2 instanceof JMLFloat)) {
             return false;
         }
         JMLFloat jmlf2 = (JMLFloat)op2;
@@ -223,7 +223,7 @@ public /*@ pure @*/ strictfp class JMLFloat implements JMLComparable {
     /** Return a hash code for this object.
      */
     public int hashCode() {
-        return new Float(floatValue).hashCode();
+        return Float.valueOf(floatValue).hashCode();
     }
 
     /** Return the float contained in this object.
@@ -247,7 +247,7 @@ public /*@ pure @*/ strictfp class JMLFloat implements JMLComparable {
       @   ensures isNaN() ==> \result.isNaN();
       @*/
     public /*@ non_null @*/ Float getFloat() {
-        return new Float(floatValue);
+        return Float.valueOf(floatValue);
     }
 
     /** Return the negation of this.

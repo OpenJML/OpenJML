@@ -1,5 +1,3 @@
-// @(#)$Id: JMLSetType.java,v 1.2 2005/12/23 17:02:06 chalin Exp $
-
 // Copyright (C) 2005 Iowa State University
 //
 // This file is part of the runtime library of the Java Modeling Language.
@@ -21,8 +19,7 @@
 
 package org.jmlspecs.lang;
 
-// FIXME - this needs to be generic
-// import java.util.Iterator;
+import org.jmlspecs.annotations.*;
 
 /** Common protocol for the JML set model types.  This is put in
  * org.jmlspecs.lang because the language creates sets using set
@@ -31,14 +28,14 @@ package org.jmlspecs.lang;
  * set types.
  *
  * @version $Revision: 1.2 $
- * @author Gary T. Leavens
+ * @author Gary T. Leavens, David R. Cok
  * @see org.jmlspecs.models.JMLCollection
  * @see org.jmlspecs.models.JMLEqualsSet
  * @see org.jmlspecs.models.JMLValueSet
  * @see org.jmlspecs.models.JMLObjectSet
  */
 //-@ immutable
-public /*@ pure @*/ interface JMLSetType
+public @Pure interface JMLSetType<E> extends JMLIterable<E>
 {
     //**************************** Observers **********************************
 
@@ -47,13 +44,19 @@ public /*@ pure @*/ interface JMLSetType
      * appropriate for the collection.
      */
     /*@ public normal_behavior
-      @     requires isEmpty();
-      @     ensures ! \result ;
+      @     ensures isEmpty() ==> !\result;
       @*/    
-    boolean has(Object elem );
+    boolean has(@Nullable Object elem );
 
-    // the equals method should be pure
-    boolean equals(/*@ nullable @*/ Object s2);
+    //@ public normal_behavior
+    //@    ensures s2 == null ==> !\result;
+    //@    ensures !(s2 instanceof JMLType) ==> !\result;
+    boolean equals(@Nullable Object s2);
+    
+    //@ public normal_behavior
+    //@   ensures (item == o) ==> (\result == true);
+    //@   ensures ((item == null) != (o == null)) ==> (\result == false);
+    boolean elem_equals(@Nullable E item, @Nullable Object o);
 
     /** Is the set empty.
      * @see #int_size()
@@ -80,7 +83,7 @@ public /*@ pure @*/ interface JMLSetType
       @      requires !isEmpty();
       @      ensures this.has(\result);
       @*/
-    Object choose();
+    @Nullable E choose();
 
     // ****************** building new JMLSetTypes **************************
 
@@ -97,8 +100,8 @@ public /*@ pure @*/ interface JMLSetType
       @        \result.has(e) ==> this.has(e)
       @                            || (e == null && elem == null)
       @                            || (e != null && e.equals(elem)));
-      @*/  
-    /*@ non_null @*/ JMLSetType insert(Object elem);
+      @*/  // FIXME - cannot presume element equality is equals ???
+    @NonNull JMLSetType<E> insert(@Nullable E elem);
 
     /** Return a new array containing all the elements of this.
      */
@@ -109,16 +112,14 @@ public /*@ pure @*/ interface JMLSetType
       @                   (o == null && \result[i] == null)
       @                || (o != null && o.equals(\result[i]))));
       @*/
-    /*@ non_null @*/ Object[] toArray();
+    @NonNull E[] toArray();
 
-// we could include the following if we were willing to put the type
-// JMLIterator into org.jmlspecs.lang also
-//    /** Returns an Iterator over this set.
-//     */
-//    /*@  public normal_behavior
-//      @      ensures \fresh(\result)
-//      @          && \result.equals(new JMLEnumerationToIterator(elements()));
-//      @*/  
-//    JMLIterator iterator();
+    /** Returns an Iterator over this set.
+     */
+    /*@  public normal_behavior
+      @      ensures \fresh(\result)
+      @          && \result.equals(new JMLEnumerationToIterator(elements()));
+      @*/  
+    @NonNull JMLIterator<E> iterator();
 
 }

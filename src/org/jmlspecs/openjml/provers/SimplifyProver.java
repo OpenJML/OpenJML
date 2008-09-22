@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverException;
+import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -203,7 +204,7 @@ public class SimplifyProver implements IProver {
     return false;
 }
 
-  public IProverResult check() throws ProverException {
+  public IProverResult check(boolean details) throws ProverException {
     // FIXME
     return null;
 }
@@ -298,4 +299,9 @@ public class SimplifyProver implements IProver {
 //    ));
 //    System.out.println("false = " + p.isSat(q));
   }
+
+public void reassertCounterexample(ICounterexample ce) {
+    // TODO Auto-generated method stub
+    
+}
 }

@@ -125,6 +125,8 @@ public enum JmlToken {
     BSRESULT("\\result"), // Keep this one the first of the backslash tokens
     BSEVERYTHING("\\everything"),
     BSLOCKSET("\\lockset"),
+    BSINDEX("\\index"),
+    BSVALUES("\\values"),
     BSNOTHING("\\nothing"),
     BSSAME("\\same"),
     BSNOTSPECIFIED("\\not_specified"),

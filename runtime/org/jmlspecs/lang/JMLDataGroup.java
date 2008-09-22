@@ -1,5 +1,3 @@
-// @(#)$Id: JMLDataGroup.java,v 1.4 2005/12/06 19:54:59 chalin Exp $
-
 // Copyright (C) 2005 Iowa State University
 //
 // This file is part of the runtime library of the Java Modeling Language.
@@ -21,6 +19,7 @@
 
 
 package org.jmlspecs.lang;
+import org.jmlspecs.annotations.*;
 
 /** A type with one element, for use in declaring "data groups".
  *  Note that there is only one equivalence class of objects of this type;
@@ -29,7 +28,7 @@ package org.jmlspecs.lang;
  * @version $Revision: 1.4 $
  * @author Gary T. Leavens, based on an idea of Rustan Leino
  */
-public /*@ pure @*/ final class JMLDataGroup implements Cloneable {
+public @Pure final class JMLDataGroup implements Cloneable {
 
     /** Initialize this object.
      * @see #IT
@@ -44,10 +43,11 @@ public /*@ pure @*/ final class JMLDataGroup implements Cloneable {
 
     /** The only object of this type.
      */
-    public static final /*@ non_null @*/ JMLDataGroup IT = new JMLDataGroup();
+    public static final @NonNull JMLDataGroup IT = new JMLDataGroup();
 
     /** Return this object.
      */
+    @NonNull
     public Object clone() {
         return this;
     }
@@ -59,13 +59,13 @@ public /*@ pure @*/ final class JMLDataGroup implements Cloneable {
       @   public normal_behavior
       @     ensures \result <==> oth != null && oth instanceof JMLDataGroup;
       @*/
-    public boolean equals(/*@ nullable @*/ Object oth) {
+    public boolean equals(@Nullable Object oth) {
         return oth != null && oth instanceof JMLDataGroup;
     } 
     
     /** Return a hash code for this object.
      */
-    public /*@ pure @*/ int hashCode() {
+    public int hashCode() {
         return 0;
     }
 
@@ -76,6 +76,7 @@ public /*@ pure @*/ final class JMLDataGroup implements Cloneable {
       @     ensures \result != null
       @          && (* result is a string representation of this *);
       @*/
+    @NonNull
     public String toString() {
         return "JMLDataGroup.IT";
     }

@@ -18,6 +18,7 @@ import java.util.Iterator;
 import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.annotations.NonNull;
 import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlCompiler;
 import org.jmlspecs.openjml.JmlInternalError;
@@ -25,6 +26,7 @@ import org.jmlspecs.openjml.JmlOptionName;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTreeTranslator;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
@@ -36,12 +38,15 @@ import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.OperatorSymbol;
+import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ArrayType;
+import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
@@ -108,9 +113,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     ClassSymbol utilsClass;
     JCIdent utilsClassIdent;
     protected JmlSpecs specs;
+
+    /** The Names table from the compilation context, initialized in the constructor */
+    @NonNull protected Name.Table names;
+    
+    /** The factory used to create AST nodes, initialized in the constructor */
+    @NonNull protected JmlTree.Maker factory;
+
     //DiagnosticPosition make_pos;
     protected JCLiteral trueLit;
     protected JCLiteral falseLit;
+    protected JCLiteral nullLit;
+    protected JCLiteral zeroLit;
     public ClassSymbol modelAnnotationSymbol = null;
     public ClassSymbol pureAnnotationSymbol = null;
     public ClassSymbol nonnullbydefaultAnnotationSymbol = null;
@@ -126,6 +140,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected Type BIGINT;// = new Type(1002,null);
     protected Type Lock;// = new Type(1003,null);
     protected Type LockSet;// = new Type(1004,null);
+    protected Type JMLUtilsType;
+    protected Type JMLValuesType;
+    protected Type JMLIterType;
     protected Type JMLSetType;
     
     /** When true, we are visiting subtrees that allow only pure methods and
@@ -165,6 +182,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         Utils.jmldebug;
         initNames(context);
         this.specs = JmlSpecs.instance(context);
+        this.factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
+        this.names = Name.Table.instance(context);
 
         // Caution, because of circular dependencies among constructors of the
         // various tools, it can happen that syms is not fully constructed at this
@@ -175,7 +194,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             new Exception().printStackTrace(System.err);
             throw new JmlInternalError();
         }
+
+        utilsClass = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.utils.Utils"));
+        utilsClassIdent = make.Ident(names.fromString("org.jmlspecs.utils.Utils"));
+        utilsClassIdent.type = utilsClass.type;
+        utilsClassIdent.sym = utilsClassIdent.type.tsym;
+
         JMLSetType = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.JMLSetType")).type;
+        JMLValuesType = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.JMLList")).type;
+        JMLUtilsType = utilsClass.type;
+        JMLIterType = ClassReader.instance(context).enterClass(names.fromString("java.util.Iterator")).type;
         REAL = syms.doubleType;
         BIGINT = syms.longType;
         Lock = syms.objectType;
@@ -197,13 +225,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         this.postCheckName = Name.Table.instance(context).fromString("postCheck");
         this.signalsCheckName = Name.Table.instance(context).fromString("signalsCheck");
         
-        utilsClass = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.utils.Utils"));
-        utilsClassIdent = make.Ident(names.fromString("org.jmlspecs.utils.Utils"));
-        utilsClassIdent.type = utilsClass.type;
-        utilsClassIdent.sym = utilsClassIdent.type.tsym;
-
         trueLit = makeLit(syms.booleanType,1);
         falseLit = makeLit(syms.booleanType,0);
+        nullLit = makeLit(syms.botType,null);
+        zeroLit = makeLit(syms.intType,0);
 
     }
  
@@ -294,6 +319,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // attributed and entered into the JmlSpecs database.  Hence we remove
             // the entry.
             if (e != null) {  // SHould be non-null the first time, but subsequent calls will have e null and so we won't do duplicate checking
+                // FIXME - RAC should take advantage of the same stuff as ESC
+                if (!JmlOptionName.isOption(context,JmlOptionName.RAC)) new JmlTreeTranslator(context).translate(e.tree);
                 if (!JmlCompilationUnit.isJava(((JmlCompilationUnit)e.toplevel).mode)) {
                     //attribClassBodySpecs(e,c,false,true);// Binary class - we still need to do all the body stuff
                     enter.typeEnvs.remove(c); // FIXME - do we need this?
@@ -824,7 +851,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             if (methodSpecs == null) return;
             JmlMethodSpecs newspecs;
-            if (methodSpecs != null && !methodSpecs.cases.isEmpty()) {
+            if (!methodSpecs.cases.isEmpty()) {
                 ListBuffer<JmlSpecificationCase> newcases = deNest(clauses,methodSpecs.cases,null,decl);
                 newspecs = jmlF.at(methodSpecs.pos).JmlMethodSpecs(newcases.toList());
                 if (!methodSpecs.impliesThatCases.isEmpty()) newspecs.impliesThatCases = deNest(clauses,methodSpecs.impliesThatCases,null,decl).toList();
@@ -913,16 +940,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     // So if there is an assignable clause the elements of the clause
                     // may only be members of the class
                     for (JCTree tt: asg.list) {
-                        if (tt instanceof JmlSingleton) {
-                            if (((JmlSingleton)tt).token == JmlToken.BSNOTHING) {
+                        if (tt instanceof JmlStoreRefKeyword) {
+                            if (((JmlStoreRefKeyword)tt).token == JmlToken.BSNOTHING) {
                                 // OK
-                            } else if (tt instanceof JCIdent) {
-                                // Simple identifier - OK
                             } else {
                                 // FIXME - also allow this.*  or super.* or super.<ident> ?
                                 log.error(m.pos,"jml.misplaced.clause","Assignable","pure");
                                 break;
                             }
+//                        } else if (tt instanceof JmlSingleton) { // FIXME - don't think this is needed
+//                                if (((JmlSingleton)tt).token == JmlToken.BSNOTHING) {
+//                                    // OK
+//                                } else {
+//                                    // FIXME - also allow this.*  or super.* or super.<ident> ?
+//                                    log.error(m.pos,"jml.misplaced.clause","Assignable","pure");
+//                                    break;
+//                                }
+                        } else if (tt instanceof JCIdent) {
+                            // Simple identifier - OK
+                        } else {
+                            // FIXME - also allow this.*  or super.* or super.<ident> ?
+                            log.error(m.pos,"jml.misplaced.clause","Assignable","pure");
+                            break;
                         }
                     }
                 } else {
@@ -2052,6 +2091,29 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 t = JMLSetType;
                 break;
                 
+            case BSINDEX:
+                t = syms.intType;
+                if (foreachLoopStack.isEmpty()) {
+                    log.error(that.pos,"jml.outofscope",jt.internedName());
+                } else {
+                    that.info = foreachLoopStack.get(0).indexDecl.sym;
+                }
+                break;
+                
+            case BSVALUES:
+                t = JMLValuesType;
+                if (foreachLoopStack.isEmpty()) {
+                    log.error(that.pos,"jml.outofscope",jt.internedName());
+                } else {
+                    JCVariableDecl d = foreachLoopStack.get(0).valuesDecl;
+                    if (d == null) {
+                        log.error(that.pos,"jml.notforthisloop",jt.internedName());
+                    } else {
+                        that.info = d.sym;
+                    }
+                }
+                break;
+                
             case BSRESULT:
                 if (!resultClauses.contains(currentClauseType)) {
                     // The +1 is to fool the error reporting mechanism into 
@@ -2529,8 +2591,27 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         attribLoopSpecs(that.loopSpecs,env);
         super.visitDoLoop(that);
     }
+    
+    java.util.List<JmlEnhancedForLoop> foreachLoopStack = new java.util.LinkedList<JmlEnhancedForLoop>();
 
+    protected JCVariableDecl makeVariableDecl(Name name, Type type, JCExpression init, int pos) {
+        JmlTree.Maker factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
+        VarSymbol vsym = new VarSymbol(0, name, type, null);
+        vsym.pos = pos;
+        JCVariableDecl decl = factory.at(pos).VarDef(vsym,init);
+        return decl;
+    }
+
+    protected JCLiteral makeIntLiteral(int value, int pos) {
+        JmlTree.Maker factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
+        JCLiteral lit = factory.at(pos).Literal(TypeTags.INT,value);
+        lit.type = syms.intType;
+        return lit;
+    }
+    
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop tree) {
+        foreachLoopStack.add(0,tree);
+        try {
         // MAINTENANCE ISSUE: code duplicated mostly from the superclass
             Env<AttrContext> loopEnv =
                 env.dup(env.tree, env.info.dup(env.info.scope.dup()));
@@ -2555,12 +2636,174 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             chk.checkType(tree.expr.pos(), elemtype, tree.var.sym.type);
             loopEnv.tree = tree; // before, we were not in loop!
 
+            trForeachLoop(tree,elemtype);
+            
             attribLoopSpecs(tree.loopSpecs,loopEnv);
             // FIXME - should this be before or after the preceding statement
             
-            attribStat(tree.body, loopEnv);
+            PackageSymbol p = enclosingMethodEnv.enclClass.sym.packge();
+            if (tree.implementation != null && !p.flatName().toString().equals("org.jmlspecs.utils")) {
+                attribStat(tree.implementation, loopEnv);
+            } else {
+                tree.implementation = null;
+                attribStat(tree.body, loopEnv);
+            }
             loopEnv.info.scope.leave();
             result = null;
+        } finally {
+            foreachLoopStack.remove(0);
+        }
+    }
+    
+    public JCExpression autobox(JCExpression e, Type elemtype) {
+        factory.at(e.pos);
+        Type boxed = Types.instance(context).boxedClass(elemtype).type;
+        Name valueof = names.fromString("valueOf");
+        JCExpression s = factory.Select(factory.Type(boxed),valueof);
+        s = factory.Apply(null,s,List.<JCExpression>of(e));
+        return s;
+    }
+    
+    public void trForeachLoop(JmlEnhancedForLoop tree, Type elemtype) {
+        // Desugar the foreach loops in order to put in the JML auxiliary loop indices
+        factory.at(tree.pos); // Sets the position until reset
+        
+        ListBuffer<JCStatement> stats = new ListBuffer<JCStatement>();
+        ListBuffer<JCExpressionStatement> step = new ListBuffer<JCExpressionStatement>();
+
+        Name name = names.fromString("$$index$"+tree.pos);
+        tree.indexDecl = makeVariableDecl(name,syms.intType,zeroLit,tree.pos);
+        tree.indexDecl.sym.owner = tree.var.sym.owner;
+
+        factory.at(tree.pos+1);
+        JCIdent ident = factory.Ident(tree.indexDecl.sym);        
+        JCExpressionStatement st = factory.Exec(factory.Unary(JCTree.PREINC,ident));  // ++ $$index;
+        st.type = syms.intType;
+        stats.append(tree.indexDecl);
+        step.append(st);
+        factory.at(tree.pos);
+
+        Type boxedElemType = elemtype;
+        if (elemtype.isPrimitive()) {
+            boxedElemType = Types.instance(context).boxedClass(elemtype).type;
+        }
+        {
+            Name defempty = names.fromString("defaultEmpty");
+            JCFieldAccess sel = factory.Select(factory.Type(JMLUtilsType),defempty);
+            JCExpression e = factory.Apply(List.<JCExpression>of(factory.Type(boxedElemType)),sel,List.<JCExpression>nil()); // Utils.<boxedElemType>defaultEmpty()
+
+            int p = tree.pos;
+            name = names.fromString("$$values$"+p);
+            ClassType ct = new ClassType(JMLValuesType.getEnclosingType(),List.<Type>of(boxedElemType),JMLValuesType.tsym);
+            tree.valuesDecl = makeVariableDecl(name,ct,e,p);
+            tree.valuesDecl.sym.owner = tree.var.sym.owner;
+            stats.append(tree.valuesDecl);
+
+            factory.at(tree.pos+2);
+            Name add = names.fromString("add");
+            sel = factory.Select(factory.Ident(tree.valuesDecl),add);
+            JCExpression ev = factory.Ident(tree.var);
+            if (tree.var.type.isPrimitive() && !boxedElemType.isPrimitive()) ev = autobox(ev,tree.var.type);
+            JCMethodInvocation app = factory.Apply(null,sel,List.<JCExpression>of(ev));
+            
+            factory.at(tree.pos+3);
+            JCAssign asgn = factory.Assign(factory.Ident(tree.valuesDecl),app);
+            step.append(factory.Exec(asgn));
+            
+            factory.at(tree.pos);
+
+        }
+        
+        stats.append(tree.var);
+        
+        JCExpression cond = null;
+        
+        ListBuffer<JCStatement> bodystats = new ListBuffer<JCStatement>();
+
+        JCExpression newvalue;
+        JmlStatementLoop inv = null;
+        if (tree.expr.type.tag == TypeTags.ARRAY) {
+            // Replace the foreach loop for (T t: a) body;
+            // by
+            // int $$index = 0;
+            // JMLList $$values = Utils.<T'>defaultEmpty();
+            // T t;
+            // for (; $$index < a.length; $$index++, $$values.add(t') ) {
+            //       check loop invariant
+            //    t = a[$$index];
+            //    body
+            // }
+            
+            JCExpression arraylen = factory.Select(tree.expr,syms.lengthVar);
+            cond = factory.Binary(JCTree.LT,ident,arraylen);
+
+            newvalue = factory.Indexed(tree.expr,ident); // newvalue :: expr[$$index]
+            if (elemtype.isPrimitive() && !tree.var.type.isPrimitive()) newvalue = autobox(newvalue,elemtype);
+            
+            JCExpression invexpr = factory.Binary(JCTree.AND,factory.Binary(JCTree.LE,zeroLit,ident),factory.Binary(JCTree.LE,ident,arraylen));
+            inv = factory.JmlStatementLoop(JmlToken.LOOP_INVARIANT,invexpr);
+
+            
+        } else {
+            // Replace the foreach loop for (T t: c) body;
+            // by
+            // int $$index = 0;
+            // JMLList $$values = Utils.<T>defaultEmpty();
+            // Iterator<T> it = c.iterator();
+            // T t = null;
+            // for (; it.hasNext(); $$index++, $$values.add(t)) {
+            //    t = it.next();
+            //    body
+            // }
+            
+            name = names.fromString("$$iter$"+tree.pos);
+            ClassType ct = new ClassType(JMLIterType.getEnclosingType(),List.<Type>of(elemtype),JMLIterType.tsym);
+            tree.iterDecl = makeVariableDecl(name,ct,nullLit,tree.pos);
+            tree.iterDecl.sym.owner = tree.var.sym.owner;
+            stats.append(tree.iterDecl);
+            
+            Name hasNext = names.fromString("hasNext");
+            JCFieldAccess sel = factory.Select(factory.Ident(tree.iterDecl),hasNext);
+            cond = factory.Apply(null,sel,List.<JCExpression>nil()); // cond :: $$iter . hasNext()
+
+            Name next = names.fromString("next");
+            sel = factory.Select(factory.Ident(tree.iterDecl),next);
+            newvalue = factory.Apply(null,sel,List.<JCExpression>nil());  // newvalue ::  $$iter . next()
+        }
+        
+        bodystats.append(factory.Exec(factory.Assign(factory.Ident(tree.var),newvalue))); // t = newvalue;
+        bodystats.append(tree.body);
+        
+        factory.at(tree.pos+1);
+        Name sz = names.fromString("size");
+        JCFieldAccess sel = factory.Select(factory.Ident(tree.valuesDecl),sz);
+        JCExpression invexpr2 = factory.Apply(null,sel,List.<JCExpression>nil());  // invexpr2 ::  $$values . size()
+        invexpr2 = factory.Binary(JCTree.AND,factory.Binary(JCTree.NE,nullLit,factory.Ident(tree.valuesDecl)),factory.Binary(JCTree.EQ,ident,invexpr2));
+        JmlStatementLoop inv2 = factory.JmlStatementLoop(JmlToken.LOOP_INVARIANT,invexpr2);
+        factory.at(tree.pos);
+        
+        JCBlock block = factory.Block(0,bodystats.toList());
+        block.endpos = (tree.body instanceof JCBlock) ? ((JCBlock)tree.body).endpos : tree.body.pos;
+        
+        JCForLoop forstatement = factory.ForLoop(List.<JCStatement>nil(),cond,step.toList(),block);
+        JmlForLoop jmlforstatement = factory.JmlForLoop(forstatement,tree.loopSpecs);
+        {
+            ListBuffer<JmlStatementLoop> list = new ListBuffer<JmlStatementLoop>();
+            list.appendList(tree.loopSpecs);
+            if (inv != null) list.append(inv);
+            list.append(inv2);
+            jmlforstatement.loopSpecs = list.toList();
+        }
+        stats.append(jmlforstatement);
+
+        JCBlock blockk = factory.Block(0,stats.toList());
+        blockk.endpos = block.endpos;
+        tree.implementation = blockk;
+        
+//        tree.var = translate(tree.var);
+//        tree.expr = translate(tree.expr);
+//        tree.body = translate(tree.body);
+//        result = tree;
     }
 
     // MAINTENANCE ISSUE: code duplicated mostly from the superclass

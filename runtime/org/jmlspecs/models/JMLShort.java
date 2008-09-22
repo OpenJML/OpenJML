@@ -193,7 +193,7 @@ public /*@ pure @*/ class JMLShort implements JMLComparable {
       @    ensures \result != null && \result.equals(new Short(theShort));
       @*/
     public /*@ non_null @*/ Short getShort() {
-        return new Short(shortValue);
+        return Short.valueOf(shortValue);
     }
 
     /** Return a new object containing the negation of this object's

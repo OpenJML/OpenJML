@@ -26,8 +26,8 @@ public class Jml2Code  extends TestCase {
         boolean capture = false;
         
         protected void setUp() throws Exception {
-            //capture = false;
-            //print = true;
+            capture = false;
+            print = true;
             super.setUp();
             savederr = System.err;
             savedout = System.out;
@@ -82,13 +82,35 @@ public class Jml2Code  extends TestCase {
             }
         }
 
-        public void testJML2() throws Exception {
+        public void testESCTest() throws Exception {
+            String sp = "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java";
+            String cp = "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Utils/junit.jar;C:/home/projects/JML4/ESCTools/Utils/ant.jar;C:/home/projects/JML4/ESCTools/Utils/BCEL/bcel-5.2/bcel-5.2.jar;C:/home/projects/JML4/ESCTools/Escjava/xmlrpc-1.2-b1-modified.jar;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java";
             String[] args = {
                    "-noPurityCheck",
-                   "-specs","$SY",
+                   "-specs","$SY"+";"+sp,
                    //"-specs","C:/home/projects/JMLspecs/trunk/java6;C:/home/projects/JMLspecs/trunk/java5;C:/home/projects/JMLspecs/trunk/java4;C:/home/projects/OpenJML/trunk/OpenJML/runtime",
-                   "-classpath", "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Utils/junit.jar;C:/home/projects/JML4/ESCTools/Utils/ant.jar;C:/home/projects/JML4/ESCTools/Utils/BCEL/bcel-5.2/bcel-5.2.jar;C:/home/projects/JML4/ESCTools/Escjava/xmlrpc-1.2-b1-modified.jar;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java",
+                   "-classpath", cp,
                    "-jmlverbose",
+                   "-esc"};
+            String[] files = {
+                    //"C:/home/projects/JML4/ESCTools/Escjava/java/escjava/ast/CondExprModifierPragmaVec.java",
+                    "C:/home/projects/JML4/ESCTools/Escjava/java/escjava/ant/ESCJavaTask.java",
+                   };
+            List<String> f = expand(files);
+            for (int i=0; i< args.length; i++) f.add(i,args[i]);
+            args = f.toArray(new String[f.size()]);
+            helper(args,0,1,"");
+        }
+        
+        public void testESCTOOLS() throws Exception {
+            String sp = "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java";
+            String cp = "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Utils/junit.jar;C:/home/projects/JML4/ESCTools/Utils/ant.jar;C:/home/projects/JML4/ESCTools/Utils/BCEL/bcel-5.2/bcel-5.2.jar;C:/home/projects/JML4/ESCTools/Escjava/xmlrpc-1.2-b1-modified.jar;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java";
+            String[] args = {
+                   "-noPurityCheck",
+                   "-specs","$SY"+";"+sp,
+                   //"-specs","C:/home/projects/JMLspecs/trunk/java6;C:/home/projects/JMLspecs/trunk/java5;C:/home/projects/JMLspecs/trunk/java4;C:/home/projects/OpenJML/trunk/OpenJML/runtime",
+                   "-classpath", cp,
+                   //"-jmlverbose",
                    "-esc"};
             String[] files = {
                     "C:/home/projects/JML4/ESCTools/Escjava/java/escjava/*.java",
@@ -102,6 +124,41 @@ public class Jml2Code  extends TestCase {
             args = f.toArray(new String[f.size()]);
             helper(args,0,1,"");
         }
+        
+        public void testESCTOOLSindividually() throws Exception {
+            String sp = "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java";
+            String[] args = {
+                    "-Xmaxerrs","10000",
+                    "-Xmaxwarns","10000",
+                   "-noPurityCheck",
+                   "-specs","$SY"+";"+sp,
+                   //"-specs","C:/home/projects/JMLspecs/trunk/java6;C:/home/projects/JMLspecs/trunk/java5;C:/home/projects/JMLspecs/trunk/java4;C:/home/projects/OpenJML/trunk/OpenJML/runtime",
+                   "-classpath", "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Utils/junit.jar;C:/home/projects/JML4/ESCTools/Utils/ant.jar;C:/home/projects/JML4/ESCTools/Utils/BCEL/bcel-5.2/bcel-5.2.jar;C:/home/projects/JML4/ESCTools/Escjava/xmlrpc-1.2-b1-modified.jar;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java",
+                   //"-jmlverbose",//"-jmldebug",
+                   "-esc",
+                   ""};
+            String[] files = {
+                    "C:/home/projects/JML4/ESCTools/Escjava/java/escjava/*.java",
+                    "C:/home/projects/JML4/ESCTools/Escjava/java/escjava/*/*.java",
+                   "C:/home/projects/JML4/ESCTools/Utils/junitutils/*.java",
+                   "C:/home/projects/JML4/ESCTools/Javafe/java/javafe/*.java",
+                   "C:/home/projects/JML4/ESCTools/Javafe/java/javafe/*/*.java",
+                   };
+            List<String> f = expand(files);
+            
+            loop: for (String fn : f) {
+                for (String o: omit) {
+                    if (fn.endsWith(o)) continue loop;
+                }
+                System.out.println("DOING " + fn);
+                args[args.length-1] = fn;
+                helper(args,0,1,"");
+            }
+        }
+        
+        String[] omit = {
+                "ModifierPragmaVec.java"
+        };
         
         public List<String> expand(String[] args) {
             List<String> list = new LinkedList<String>();

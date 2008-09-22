@@ -361,7 +361,7 @@ public class JmlParser extends EndPosParser {
                 } else if (jtoken == JmlToken.SET || jtoken == JmlToken.DEBUG) {
                     S.setJmlKeyword(false);
                     S.nextToken();
-                    JCStatement t = statement();
+                    JCStatement t = super.statement();
                     st = toP(jmlF.at(pos).JmlStatement(jtoken,t));
                     S.setJmlKeyword(true); // This comes a token too late.
                         // So we need to do the following conversion.
@@ -1661,6 +1661,8 @@ public class JmlParser extends EndPosParser {
                     return t;
                     
                 case BSRESULT :
+                case BSINDEX :
+                case BSVALUES :
                 case BSLOCKSET : // FIXME - what can follow this?
                     t = to(jmlF.at(p).JmlSingleton(jt));
                     S.nextToken();

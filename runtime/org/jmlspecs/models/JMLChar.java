@@ -127,7 +127,7 @@ public /*@ pure @*/ class JMLChar implements JMLComparable {
       @    ensures \result != null && \result.equals(new Character(theChar));
       @*/
     public Character getChar() {
-        return new Character(value);
+        return Character.valueOf(value);
     }
 
     /** Return a hash code for this object.

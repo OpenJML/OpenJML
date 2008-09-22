@@ -124,6 +124,12 @@ public class Label {
     /** Used for the loop invariant assertion or assumption. */
     /*@ non_null*/ public final static Label LOOP_INVARIANT = new Label("LoopInvariant");
     
+    /** Used for the loop invariant assertion or assumption. */
+    /*@ non_null*/ public final static Label LOOP_INVARIANT_PRELOOP = new Label("LoopInvariantBeforeLoop");
+    
+    /** Used for the loop invariant assertion or assumption. */
+    /*@ non_null*/ public final static Label LOOP_INVARIANT_ENDLOOP = new Label("LoopInvariantAfterLoop");
+    
     /** Used for the assertion that the loop variant is decreasing. */
     /*@ non_null*/ public final static Label LOOP_DECREASES = new Label("LoopDecreases");
     

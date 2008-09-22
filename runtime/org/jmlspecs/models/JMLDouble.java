@@ -109,14 +109,14 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
       @     assignable theDouble,owner;
       @     ensures (* s is a parseable string that has the format
       @                of a double precision floating point literal *)
-      @         && theDouble == new Double(s).doubleValue();
+      @         && theDouble == Double.valueOf(s).doubleValue();
       @     signals_only NumberFormatException;
       @     signals (NumberFormatException)
       @             !(* s is a parseable string that has the format
       @                of a double precision floating point literal *);
       @*/
     public JMLDouble (/*@ non_null @*/ String s) throws NumberFormatException {
-        doubleValue = new Double(s).doubleValue();
+        doubleValue = Double.valueOf(s).doubleValue();
         //@ set owner = null;
     }
 
@@ -162,8 +162,8 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
      *  @exception ClassCastException when o is not a JMLDouble.
      */
     public int compareTo(/*@ non_null @*/ Object op2) throws ClassCastException {
-        return new Double(doubleValue)
-            .compareTo(new Double(((JMLDouble)op2)  //@ nowarn Cast;
+        return Double.valueOf(doubleValue)
+            .compareTo(Double.valueOf(((JMLDouble)op2)  //@ nowarn Cast;
                                   .doubleValue));
     }
 
@@ -206,7 +206,7 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
       @     ensures \result <==> false;
       @*/
     public boolean equals(/*@ nullable @*/ Object op2) {
-        if (!(op2 instanceof JMLDouble) || op2 == null) {
+        if (op2 == null || !(op2 instanceof JMLDouble)) {
             return false;
         }
         JMLDouble jmld2 = (JMLDouble)op2;
@@ -223,7 +223,7 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
     /** Return a hash code for this object.
      */
     public int hashCode() {
-        return new Double(doubleValue).hashCode();
+        return Double.valueOf(doubleValue).hashCode();
     }
 
     /** Return the double contained in this object.
@@ -247,7 +247,7 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
       @   ensures isNaN() ==> \result.isNaN();
       @*/
     public /*@ non_null @*/ Double getDouble() {
-        return new Double(doubleValue);
+        return Double.valueOf(doubleValue);
     }
 
     /** Return the negation of this.

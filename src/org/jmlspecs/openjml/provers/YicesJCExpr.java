@@ -1,5 +1,8 @@
 package org.jmlspecs.openjml.provers;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
@@ -106,7 +109,8 @@ public class YicesJCExpr extends JmlTreeScanner {
         // Make sure the id is defined.
         // Emit it simply as its string
         try { 
-            p.rawdefine(that.toString(),convertIdentType(that));
+            String id = that.toString();
+            p.rawdefine(id,convertIdentType(that));  // rawdefine does not repeat a definition
         } catch (ProverException e) { System.out.println("PROVER ERROR");   }
         result.append(that.toString());
     }
@@ -222,13 +226,16 @@ public class YicesJCExpr extends JmlTreeScanner {
                 that.args.get(0).accept(this);
             else {
                 // check for definition
-                if (!p.checkAndDefine(that.meth.toString())) {
+                String nm = that.meth.toString();
+                if (!p.isDefined(nm)) {
                     // Was not already defined
-                    String s = "(define " + that.meth + "::(->";
+                    String s = "(define " + nm + "::(->";
                     for (JCExpression e: that.args) {
                         s = s + " " + p.defineType(e.type);
                     }
-                    s = s + " " + p.defineType(that.type) + "))\n";
+                    String t = p.defineType(that.type);
+                    p.checkAndDefine(nm,t);
+                    s = s + " " + t + "))\n";
                     try {
                         p.send(s);
                         p.eatPrompt();
@@ -287,12 +294,13 @@ public class YicesJCExpr extends JmlTreeScanner {
             Type t = rhs.type;
             String s = BasicBlocker.encodeType(t);
             try {
-                if (!p.checkAndDefine(newfield.toString())) {
+                String type = "(-> REF " + s + ")";
+                if (!p.checkAndDefine(newfield.toString(),type)) {
                     // Was not already defined
-                    p.send("(define " + newfield + "::(-> REF " + s + "))\n");
+                    p.send("(define " + newfield + "::" + type + ")\n");
                     p.eatPrompt();
                 } 
-                if (!p.checkAndDefine(oldfield.toString())) {
+                if (!p.checkAndDefine(oldfield.toString(),type)) {
                     // Was not already defined
                     p.send("(define " + oldfield + "::(-> REF " + s + "))\n");
                     p.eatPrompt();
@@ -561,16 +569,12 @@ public class YicesJCExpr extends JmlTreeScanner {
 //                p.eatPrompt();
 //            }
             String ty = "refA$" + comptype;
-            if (!p.checkAndDefine(ty)) {
-                // Was not already defined
-                p.send("(define-type " + ty + " (subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))\n");
-                p.eatPrompt();
-            }
+            p.rawdefinetype(ty,"(subtype (a::ARRAYorNULL) (or (= a NULL) (subtype$ (typeof$ a) T$java.lang.Object$$A))))",YicesProver.ARRAY);
             for (String arr: ids) {
-                if (!p.checkAndDefine(arr)) {
+                if (!p.isDefined(arr)) {
+                    String arrty = "(-> " + ty + " (-> int "+comptype+"))";
                     // Was not already defined
-                    p.send("(define " + arr + "::(-> " + ty + " (-> int "+comptype+")))\n");
-                    p.eatPrompt();
+                    p.rawdefine(arr,arrty);
                 }
             }
         } catch (ProverException e) {
@@ -589,11 +593,8 @@ public class YicesJCExpr extends JmlTreeScanner {
         Type t = that.type;
         try {
             String s = p.defineType(t);
-            if (!p.checkAndDefine(fieldId.toString())) {
-                // Was not already defined
-                p.send("(define " + fieldId + "::(-> REF " + s + "))\n");
-                p.eatPrompt();
-            }
+            String nm = fieldId.toString();
+            p.rawdefine(nm,"(-> REF " + s + ")");
         } catch (ProverException e) {
             throw new RuntimeException(e);
         }
@@ -611,15 +612,21 @@ public class YicesJCExpr extends JmlTreeScanner {
         // translates to (forall (name::type ... name::type) expr)
         result.append("(forall (");
         
+        List<String> oldTypes = new LinkedList<String>();
         do {
 
             for (JCVariableDecl decl: that.decls) {
                 String ytype = p.defineType(decl.type);
 
-                result.append(decl.name.toString());
+                String id = decl.name.toString();
+                result.append(id);
                 result.append("::");
                 result.append(ytype);
                 result.append(" ");
+                
+                String oldType = p.getTypeString(id);
+                oldTypes.add(oldType);
+                p.declare(id,ytype);
             }
 
             if (that.predicate instanceof JmlQuantifiedExpr) {
@@ -638,6 +645,16 @@ public class YicesJCExpr extends JmlTreeScanner {
             result.append(")");
         }
         result.append(")");
+        
+        for (JCVariableDecl decl: that.decls) {
+            String id = decl.name.toString();
+            String ot = oldTypes.remove(0);
+            if (ot == null) {
+                p.removeDeclaration(id);
+            } else {
+                p.declare(id,ot);
+            }
+        }
     }
     
     @Override

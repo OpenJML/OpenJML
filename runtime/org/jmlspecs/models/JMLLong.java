@@ -199,7 +199,7 @@ public /*@ pure @*/ class JMLLong implements JMLComparable {
       @    ensures \result != null && \result.equals(new Long(theLong));
       @*/
     public /*@ non_null @*/ Long getLong() {
-        return new Long(longValue);
+        return Long.valueOf(longValue);
     }
 
     /** Return a new object containing the negation of this object's

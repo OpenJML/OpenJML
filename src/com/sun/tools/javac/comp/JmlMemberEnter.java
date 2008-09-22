@@ -7,6 +7,7 @@ import static com.sun.tools.javac.code.Kinds.PCK;
 import static com.sun.tools.javac.code.Kinds.TYP;
 
 import java.util.HashSet;
+import java.util.Iterator;
 
 import javax.tools.JavaFileObject;
 
@@ -459,12 +460,15 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                     // skip this - classes were already handled in Enter/JmlEnter
                     newdefs.append(t);
                 } else if (t instanceof JCTree.JCBlock){
+                    // Simple semicolons turn up as empty blocks - ignore them if they do not have specs
                     mostRecentFieldSpecs = null;
                     if (savedMethodSpecs != null) JmlSpecs.instance(context).putSpecs((ClassSymbol)specsDecl.sym, (JCTree.JCBlock)t, savedMethodSpecs);
-                    savedMethodSpecs = null;
                     // Initializer blocks are not allowed in specs (but are in model classes)
-                    log.error(t.pos(),"jml.initializer.block.allowed");
-                    newdefs.append(t);
+                    if (savedMethodSpecs != null || !((JCTree.JCBlock)t).stats.isEmpty()) {
+                        log.error(t.pos(),"jml.initializer.block.allowed");
+                        newdefs.append(t);
+                    }
+                    savedMethodSpecs = null;
                 } else {
                     mostRecentFieldSpecs = null;
                     System.out.println("  FOUND & NOT SUPPORTED " + t.getClass());  // FIXME
@@ -676,11 +680,14 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
     public JmlMethodDecl matchMethod(JmlMethodDecl specMethod, JmlClassDecl javaClassDecl, Env<AttrContext> env) {
         //attribAnnotations(javaClass,method.mods); // FIXME
 
+        List<Type> tvars = enter.classEnter(specMethod.typarams, env);
         Attr.instance(context).attribTypeVariables(specMethod.typarams, env);
+
         ListBuffer<Type> tatypes = ListBuffer.<Type>lb();  // FIXME - use TreeInfo method
         for (JCTypeParameter tp: specMethod.typarams) {
             tatypes.append(tp.type);
         }
+        
         //Attr.instance(context).attribBounds(specMethod.typarams); //, Enter.instance(context).getEnv(javaClassDecl.sym));
         int n = specMethod.getParameters().size();
         ListBuffer<Type> ptypes = ListBuffer.<Type>lb();
@@ -703,6 +710,22 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                     if (javaMethod.getTypeParameters().size() != specMethod.getTypeParameters().size()) continue;
                     for (int i=0; i<n; i++) {
                         if (!Types.instance(context).isSameType(javaMethod.getParameters().get(i).vartype.type,specMethod.getParameters().get(i).vartype.type)) continue loop;
+                    }
+                    
+                    if (javaMethod.getTypeParameters().size() != 0) {
+                        Iterator<JCTypeParameter> jtpi = javaMethod.getTypeParameters().iterator();
+                        Iterator<JCTypeParameter> stpi = specMethod.getTypeParameters().iterator();
+                        while (jtpi.hasNext()) {
+                            JCTypeParameter jtp = jtpi.next();
+                            JCTypeParameter stp = stpi.next();
+                            if (!jtp.getName().equals(stp.getName())) {
+                                System.out.println("NAMES NOT SAME " + jtp + " " + stp);  // FIXME _ test this
+                            }
+                            // FIXME check bounds as well
+                            
+                            stp.type = jtp.type;  // Make sure they have precisely the same type
+                        }
+                        
                     }
                     // FIXME - compare type parameters
                     match = javaMethod;
@@ -811,16 +834,14 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             JmlResolve rs = (JmlResolve)Resolve.instance(context);
             try {
                 rs.noSuper = true;
-                //Symbol sym = rs.resolveMethod(specMethod.pos(), env, specMethod.name, ptypes.toList(), tatypes.toList());
                 Symbol sym = rs.findMatchingMethod(specMethod.pos(), env, specMethod.name, ptypes.toList(), tatypes.toList());
                 if (sym instanceof MethodSymbol) {
                     match = (MethodSymbol)sym;
                 } else if (sym == null) {
                     match = null;
                 } else {
-                    System.out.println("IGNORING GENERIC METHOD " + sym);
+                    log.warning("jml.internal","Match found was not a method: " + sym + " " + sym.getClass());
                     return  null;
-                    //System.out.println("GOT A " + sym + " " + sym.getClass());
                 }
             } finally {
                 rs.noSuper = false;
@@ -953,7 +974,14 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             // Check that the return types are the same
             if (specMethodDecl.restype != null) { // not a constructor
                 if (specMethodDecl.restype.type == null) Attr.instance(context).attribType(specMethodDecl.restype, match.sym.enclClass());
+//                if (match.name.toString().equals("defaultEmpty")) {
+//                    System.out.println(match.name);
+//                }
                 if (!Types.instance(context).isSameType(match.restype.type,specMethodDecl.restype.type)) {
+                    // FIXME - when the result type is parameterized in a static method, the java and spec declarations
+                    // end up with different types for the parameter.  Is this also true for the regular parameters?  
+                    // FIXME - avoud the probloem for now.
+                    if (!(specMethodDecl.restype.type.getTypeArguments().head instanceof Type.TypeVar))
                     Log.instance(context).error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
                             match.sym.enclClass().fullname + "." + match.sym.toString(),
                             specMethodDecl.restype.type,match.restype.type);

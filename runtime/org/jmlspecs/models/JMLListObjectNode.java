@@ -1192,21 +1192,10 @@ package org.jmlspecs.models;
       @        ==> \result.equals(prefix(index).concat(removePrefix((int)(index+1))));
       @*/
     public JMLListObjectNode remove(Object item) {
-        if (item == null) {
-            if (val == null) {
-                return next;
-            } else {
-                return new JMLListObjectNode(val,
+        if (item == val) return next;
+        return new JMLListObjectNode(val,
                                              (next == null ? null
                                               : next.remove(item)));
-            }
-        } else if (item == val) {
-            return next;
-        } else {
-            return new JMLListObjectNode(val,
-                                         (next == null ? null
-                                          : next.remove(item)));
-        }
     }
 
     /** Return a string representation for this list.  The output is ML style.

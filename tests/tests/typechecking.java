@@ -101,7 +101,7 @@ public class typechecking extends TCBase {
 
     public void testMax3() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\max(k);\n}}",
-                "/A.java:2: A \\max function expects an argument of type org.jmlspecs.lang.JMLSetType rather than int",17,
+                "/A.java:2: A \\max function expects an argument of type org.jmlspecs.lang.JMLSetType<E> rather than int",17,
                 "/A.java:2: incompatible types\nfound   : java.lang.Object\nrequired: boolean",16
                 );
     }
@@ -109,7 +109,7 @@ public class typechecking extends TCBase {
     public void testMax5() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\max(b,k);\n}}",
                 "/A.java:2: A \\max expression expects just 1 argument, not 2",16,
-                "/A.java:2: A \\max function expects an argument of type org.jmlspecs.lang.JMLSetType rather than boolean",17,
+                "/A.java:2: A \\max function expects an argument of type org.jmlspecs.lang.JMLSetType<E> rather than boolean",17,
                 "/A.java:2: incompatible types\nfound   : java.lang.Object\nrequired: boolean",16);
     }
 

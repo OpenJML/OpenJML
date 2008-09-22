@@ -962,7 +962,7 @@ public /*@ pure @*/ class JMLValueSet
       @     ensures (* \result is a string representation of this *);
       @*/    
     public /*@ non_null @*/ String toString() {
-        String newStr = new String("{");
+        String newStr = "{";
         JMLListValueNode setWalker = the_list;
         if (setWalker != null) {
             newStr = newStr + setWalker.val;

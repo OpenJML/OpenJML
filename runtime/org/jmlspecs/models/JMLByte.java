@@ -188,7 +188,7 @@ public /*@ pure @*/ class JMLByte implements JMLComparable {
       @    ensures \result != null && \result.equals(new Byte(theByte));
       @*/
     public /*@ non_null @*/ Byte getByte() {
-        return new Byte(byteValue);
+        return Byte.valueOf(byteValue);
     }
 
     /** Return a new object containing the negation of this object's

@@ -53,6 +53,8 @@ public abstract /*@ pure @*/ class JMLInfiniteIntegerClass
             return false;
         }
     }
+    
+    public abstract int hashCode();
 
     /** Compare this to n, returning a comparison code.
      *  @param n the object this is compared to.
