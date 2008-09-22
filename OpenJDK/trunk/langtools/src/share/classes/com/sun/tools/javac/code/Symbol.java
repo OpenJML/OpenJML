@@ -962,6 +962,13 @@ public abstract class Symbol implements Element {
                 Callable<?> eval = (Callable<?>)data;
                 data = null; // to make sure we don't evaluate this twice.
                 try {
+                    // NOTE: In some code, very long chains of constant initializers
+                    // can cause stack overflow, even though it is not actually an
+                    // infinite loop.  For example, if constant tag values are 
+                    // initialized by adding one to the previous tag, then asking
+                    // for the value of the last one in the chain causes recursive
+                    // calls all the way to the beginning, if none have yet been
+                    // cached.  - DRCok
                     data = eval.call();
                 } catch (Exception ex) {
                     throw new AssertionError(ex);

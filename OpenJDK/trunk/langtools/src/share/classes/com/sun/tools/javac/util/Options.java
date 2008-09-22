@@ -104,4 +104,19 @@ public class Options {
             (get(LINT)!=null || get(LINT + ":all")!=null) &&
                 get(LINT+":-"+s)==null;
     }
+    
+    public String toString() {  // DRC - added for debugging and to view the content in the debugger
+        StringBuilder s = new StringBuilder();
+        s.append("[");
+        java.util.Iterator<Map.Entry<String,String>> pairs = values.entrySet().iterator();
+        while (pairs.hasNext()) {
+            Map.Entry<String,String> pair = pairs.next();
+            s.append(pair.getKey());
+            s.append("=");
+            s.append(pair.getValue());
+            s.append(",");
+        }
+        s.append("]");
+        return s.toString();
+    }
 }
