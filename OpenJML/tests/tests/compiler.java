@@ -2,6 +2,8 @@ package tests;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
+import com.sun.tools.javac.util.Options;
+
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 

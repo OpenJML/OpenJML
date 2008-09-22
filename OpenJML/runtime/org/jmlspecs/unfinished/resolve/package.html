@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- $Id: package.html,v 1.9 2005/07/07 21:03:09 leavens Exp $ -->
+<title>RESOLVE Modeling Types</title>
+</head>
+<body bgcolor="white">
+
+<p>
+This package is a collection of types with immutable objects based on
+the RESOLVE specification language's mathematical models.
+An object is <em>immutable</em> if it has no
+time-varying state.  The methods defined for objects of such types
+thus return other objects instead of making changes in place, as would
+occur for a mutable object.
+This package also contains enumerators (which are mutable) for the
+types of immutable collections in the package.
+</p>
+
+<p>
+The types of the immutable objects in this package are all
+<em>pure</em>, meaning that none of their specified methods have any
+user-visible side-effects (although a few inherited from
+{@link java.lang.Object} do have side effects).  Their pure methods,
+are designed for use in JML specifications.
+When using such methods you have to do something with the result
+returned by the method, as in functional programming.
+The original object's state is never changed by a pure method.
+</p>
+
+<p>
+For example, to insert an element, <em>e</em>, into a set, <em>s</em>,
+one might execute <em>s</em><kbd>.insert(</kbd><em>e</em><kbd>)</kbd>,
+but this does not change the object <em>s</em> in any way;
+instead, it returns a set that contains all the old elements of
+<em>s</em> as well as <em>e</em>.  Don't worry about the time and
+space used to do make such a set --
+remember that specifications are not mainly designed to be executed.
+If you're worried about efficiency, you aren't using the right frame
+of mind.
+</p>
+
+<p>
+The enumerator types
+are mutable objects and some of their methods are not pure.
+These impure methods can't be used in specifications in JML.
+</p>
+
+<h2>Overview</h2>
+
+<p>
+There are several kinds of types in this package.  These are described below.
+</p>
+
+<h3>Kinds of CompareTo</h3>
+
+The interface 
+<a href="CompareTo.html"><kbd>CompareTo</kbd></a>
+and its subtypes
+(such as 
+<a href="AntisymmetricCompareTo.html"><kbd>AntisymmetricCompareTo</kbd></a>,
+<a href="PreorderedCompareTo.html"><kbd>PreorderedCompareTo</kbd></a>, etc.)
+represent different assumptions about a type's compareTo operator.
+</p>
+
+<p>
+Unlike the {@link java.lang.Comparable} interface, these interfaces
+have a compareTo operation that can throw an
+<a href="UndefinedException.html"><kbd>UndefinedException</kbd></a>
+when the comparison between objects (of appropriate types) is undefined.
+This allows the specification of partial orders.
+On the other hand, the <kbd>compareTo</kbd> operation of the type
+<a href="TotalCompareTo.html"><kbd>TotalCompareTo</kbd></a>
+ and its subtypes cannot throw this exception.
+</p>
+
+<p>
+The type 
+<a href="TotallyOrderedCompareTo.html"><kbd>TotallyOrderedCompareTo</kbd></a>
+is essentially equivalent
+to {@link java.lang.Comparable}.
+
+<p>
+See the <a href="package-tree.html">package tree</a> diagram
+(in the generated javadocs) for the details of the relationships among
+these interfaces.
+</p>
+
+<h3>Collections</h3>
+
+<p>
+Perhaps the most useful model types are the various kinds of
+collections. (We use the term ``collection'' in a generic way,
+since these types do not implement the {@link java.util.Collection}
+interface, because that assumes collections are mutable objects.)
+</P>
+
+<h3>Primitive types</h3>
+
+<p>
+The type 
+<a href="NaturalNumber.html"><kbd>NaturalNumber</kbd></a>
+models infinite precision natural numbers.
+</p>
+
+<h4>Object collections</h4>
+
+<p>
+The type 
+<a href="StringOfObject.html"><kbd>StringOfObject</kbd></a>
+models finite mathematical strings (i.e., sequences) of objects.
+The elements of a string are object
+references. When an object is inserted into such a string, it is not
+cloned.  The equality test used by the has method uses Java's <kbd>==</kbd>
+operator to compare addresses of these objects.
+</p>
+
+<h2>Coding</h2>
+
+<p>
+The code relies heavily on the org.jmlspecs.models package, whenever
+possible.
+</p>
+
+<p>
+In the test data classes (the <kbd>_JML_TestData.java</kbd> files), we take
+advantage of the fact that the types are pure to speed up the
+JUnit-based testing.  We also sometimes take advantage of the fact
+that other test data, particularly of type Object and JMLType are
+either not mutated by the tests or are actually immutable objects.  (Note
+that <kbd>new Object()</kbd> produces a new immutable object!)
+Typically, the tests don't call any methods on the objects in the
+collections that would mutate them, so this is okay.
+</p>
+
+<p>
+The source code for this package uses the GNU Lesser General Public
+License, since it is part of the JML runtime libraries.
+</p>
+
+<h2>Acknowledgments</h2>
+
+<p>
+These types were designed by Gary T. Leavens in collaboration with
+Stephen Edwards, Murali Sitaraman, and their students.
+The specifications are primarily based on the work of William Ogden,
+in particular his notes for CIS 680 at the Ohio State University.
+</p>
+
+<p>
+This work was supported in part by the (US)
+<A HREF="http://www.nsf.gov">National Science Foundation</A>
+under grants CCR-0097907, and CCR-0113181.
+</p>
+
+<!-- Put @see and @since tags down here. -->
+
+</body>
+</html>

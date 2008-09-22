@@ -11,6 +11,12 @@ import java.util.Map;
  */
 public class Utils {
     
+    //@ public normal_behavior
+    //@    ensures \result.size() == 0;
+    static public /*@non_null*/ <E> org.jmlspecs.lang.JMLList<E> defaultEmpty() {
+        return null;
+    }
+    
     /** Determines whether to report assertion failures as exceptions (true)
      * or error messages (false).
      */
@@ -91,7 +97,7 @@ public class Utils {
      * @author David Cok
      */
     public static class JmlAssertionFailure extends java.lang.Error {
-        private static final long serialVersionUID = 1L;
+        //private static final long serialVersionUID = 1L;
         /** The constructor with an informational message string
          * @param s the reason for the failure
          */
@@ -143,10 +149,18 @@ public class Utils {
     
     /** Prints all values in the database and then deletes them */
     public static void printValues() {
-        for (Map.Entry<String,Object> e : map.entrySet()) {
+        java.util.Iterator<Map.Entry<String,Object>> i = map.entrySet().iterator();
+        for ( ; i.hasNext(); ) {
+            Map.Entry<String,Object> e = i.next();
             System.out.println("LABEL " + e.getKey() + " = " + e.getValue());
         }
         clearValues();
     }
+//    public static void printValues() {
+//        for (Map.Entry<String,Object> e : map.entrySet()) {
+//            System.out.println("LABEL " + e.getKey() + " = " + e.getValue());
+//        }
+//        clearValues();
+//    }
     
 }

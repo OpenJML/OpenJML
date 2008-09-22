@@ -950,7 +950,7 @@ public /*@ pure @*/ class JMLEqualsSet
       @     ensures (* \result is a string representation of this *);
       @*/    
     public /*@ non_null @*/ String toString() {
-        String newStr = new String("{");
+        String newStr = "{";
         JMLListEqualsNode setWalker = the_list;
         if (setWalker != null) {
             newStr = newStr + setWalker.val;

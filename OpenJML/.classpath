@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry including="org/jmlspecs/**" kind="src" path="runtime"/>
+	<classpathentry excluding="org/jmlspecs/genericmodels/**|org/jmlspecs/unfinished/**" including="org/jmlspecs/**" kind="src" path="runtime"/>
 	<classpathentry kind="src" path="tests"/>
 	<classpathentry kind="src" path="tests-external"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OpenJDK"/>

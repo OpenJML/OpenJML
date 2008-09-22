@@ -86,7 +86,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     final public static String interactiveOption = "-i";
 
     public static int compiler(String[] args) {
-        return compiler(args,true);
+        return compiler(args,false);  // The boolean: true - errors to stdErr, false - errors to stdOut
     }
 
     /** A programmatic interface to the compiler that returns the exit code, but
@@ -113,7 +113,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 // the compiler (which does the normal option processing).
                 // Since this is rare, we'll require that it be the first
                 // option.
-                boolean useJavaCompiler = args != null && args.length > 0 &&
+                boolean useJavaCompiler = args.length > 0 &&
                         args[0].equals(JmlOptionName.USEJAVACOMPILER.optionName());
                 if (useJavaCompiler) {
                     errorcode = com.sun.tools.javac.Main.compile(args);
@@ -205,7 +205,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         while (i<args.length) {
             i = processJmlArg(args,i,options,newargs);
         }
-        return newargs.toArray(new String[]{});
+        return newargs.toArray(new String[newargs.size()]);
     }
     
     /** Processes a single JML command-line option and any arguments.

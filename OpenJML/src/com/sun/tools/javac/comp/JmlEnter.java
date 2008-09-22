@@ -332,6 +332,12 @@ public class JmlEnter extends Enter {
     
     public java.util.List<Env<AttrContext>> binaryMemberTodo = new LinkedList<Env<AttrContext>>();
 
+    public void recordEmptySpecs(JmlSpecs specs, ClassSymbol csymbol) {
+        specs.putSpecs(csymbol,new JmlSpecs.TypeSpecs(null,JmlTree.Maker.instance(context).Modifiers(csymbol.flags(),List.<JCTree.JCAnnotation>nil()),null));
+        for (Symbol s: csymbol.getEnclosedElements()) {
+            if (s instanceof ClassSymbol) recordEmptySpecs(specs,(ClassSymbol)s);
+        }
+    }
     /** Is called after parsing the specs for a binary type, to do what we do for
      * source type via enter.main().  However, for binary types we do not need to
      * enter all the classes in the database; we simply need to match up the
@@ -357,8 +363,8 @@ public class JmlEnter extends Enter {
             // Caution though.  If this is actually used, there have been 
             // problems because of the null declaration.
                     // FIXME - what about annotations stored in the binary file?  What about the source file?
-            specs.putSpecs(csymbol,new JmlSpecs.TypeSpecs(null,JmlTree.Maker.instance(context).Modifiers(csymbol.flags(),List.<JCTree.JCAnnotation>nil()),null));
-
+            recordEmptySpecs(specs,csymbol);
+            
             // FIXME - do we need to read in all the classes in the package?
             //reader.enterPackage(TreeInfo.fullName(specCompilationUnit.pid));
             //specCompilationUnit.packge.complete(); // Find all classes in package.  // FIXME - it seems this is generally null; maybe ok since we really don't want to read in every class in the package

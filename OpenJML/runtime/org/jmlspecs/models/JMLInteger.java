@@ -192,7 +192,7 @@ public /*@ pure @*/ class JMLInteger implements JMLComparable {
       @    ensures \result != null && \result.equals(new Integer(theInt));
       @*/
     public /*@ non_null @*/ Integer getInteger() {
-        return new Integer(intValue);
+        return Integer.valueOf(intValue);
     }
 
     /** Return a new object containing the negation of this object's

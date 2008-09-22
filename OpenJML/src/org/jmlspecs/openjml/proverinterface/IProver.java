@@ -1,6 +1,8 @@
 package org.jmlspecs.openjml.proverinterface;
 
 
+import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
+
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
@@ -94,8 +96,10 @@ public interface IProver {
      * @return an object containing the details of the prover answer
      * @throws ProverException if something goes wrong
      */
+//    /*@ non_null*/
+//    public IProverResult check() throws ProverException;
     /*@ non_null*/
-    public IProverResult check() throws ProverException;
+    public IProverResult check(boolean details) throws ProverException;
 
     /**
      * Kills and restarts the prover process. Then it resends
@@ -108,4 +112,8 @@ public interface IProver {
      * @throws ProverException if something goes wrong
      */
     public void kill() throws ProverException;
+    
+    
+    public void reassertCounterexample(ICounterexample ce);
+
 }

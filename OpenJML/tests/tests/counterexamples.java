@@ -14,8 +14,9 @@ public class counterexamples extends EscBase {
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         options.put("-trace",""); // show traces
-        options.put("-ce",""); // show counterexamples
+        //options.put("-ce",""); // show counterexamples
         //JmlEsc.escdebug = true;
+        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 2;
     }
     
     /** Tests an explicit assertion */

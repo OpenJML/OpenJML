@@ -53,16 +53,15 @@ public class JmlTree {
      * this is not inherited by anyone, it is here as a utility method and needs
      * to be called by nodes of JmlTree. */
     static public String toString(JCTree node) {
-        StringWriter s = new StringWriter();
-        try {
-            new JmlPretty(s, false).printExpr(node);
-        }
-        catch (IOException e) {
-            // should never happen, because StringWriter is defined
-            // never to throw any IOExceptions
-            throw new AssertionError(e);
-        }
-        return s.toString();
+//        StringWriter s = new StringWriter();
+//        new JmlPretty(s, false).write(node);
+//        return s.toString();
+
+        StringWriter sw = new StringWriter();
+        JmlPretty p = new JmlPretty(sw,true);
+        p.width = 2;
+        node.accept(p);
+        return sw.toString();
     }
 
 
@@ -1008,6 +1007,7 @@ public class JmlTree {
     public static class JmlSingleton extends JmlExpression {
         public JmlToken token;
         public Symbol symbol;  // Convenience for some node types
+        public Object info = null;
         
         protected JmlSingleton(int pos, JmlToken token) {
             this.pos = pos;
@@ -1499,6 +1499,12 @@ public class JmlTree {
             this.loopSpecs = loopSpecs;
         }
         public List<JmlStatementLoop> loopSpecs;
+        
+        // These are used for rewriting the loop in JmlAttr
+        public JCVariableDecl indexDecl;
+        public JCVariableDecl valuesDecl;
+        public JCVariableDecl iterDecl;
+        public JCBlock implementation;
 
         @Override
         public void accept(Visitor v) {
@@ -1677,7 +1683,7 @@ public class JmlTree {
         public JmlMethodClauseDecl(int pos, JmlToken token, JCTree.JCExpression type, ListBuffer<JCTree.JCStatement> stats) {
             this.pos = pos;
             this.token = token;
-            this.type = type;
+            this.type = type;  // FIXME - this hidcs super type decl
             this.stats = stats;
         }
         public JCTree.JCExpression type;

@@ -25,6 +25,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Pair;
 
 /**
@@ -91,15 +92,15 @@ public class JmlCompiler extends JavaCompiler {
     // TODO - when called from JavaCompiler.complete it seems that the end position information is not recorded
     // in the way that happens when called from JavaCompiler.parse.  Is this a problem in the Javac compiler?
     @Override
-    public JCCompilationUnit parse(JavaFileObject filename, CharSequence content) {
-        if (verbose) System.out.println("parsing " + filename.toUri().getPath());
-        JCCompilationUnit cu = super.parse(filename,content);
+    public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
+        if (verbose) System.out.println("parsing " + fileobject.toUri().getPath());
+        JCCompilationUnit cu = super.parse(fileobject,content);
         if (inSequence) {
             return cu;
         }
         if (cu instanceof JmlCompilationUnit) {
             JmlCompilationUnit jmlcu = (JmlCompilationUnit)cu;
-            jmlcu.mode = JmlCompilationUnit.JAVA_SOURCE_FULL;
+            jmlcu.mode = JmlCompilationUnit.JAVA_SOURCE_PARTIAL;
             JCTree.JCExpression e = jmlcu.getPackageName();
             // In the following, we need a name as the prefix to look for the specs.
             // That is supposed to be the same as the name of the public class within
@@ -131,7 +132,13 @@ public class JmlCompiler extends JavaCompiler {
                     "JmlCompiler.parse expects to receive objects of type JmlCompilationUnit, but it found a " 
                     + cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
         }
+        if (cu.endPositions != null) {
+            JavaFileObject prev = log.useSource(fileobject);
+            log.setEndPosTable(fileobject,cu.endPositions);
+            log.useSource(prev);
+        }
         return cu;
+        
     }
     
     /** Parses the entire refinement chain of  specification files
@@ -199,6 +206,14 @@ public class JmlCompiler extends JavaCompiler {
         return list;
     }
     
+    public List<JCCompilationUnit> parseFiles(List<JavaFileObject> fileObjects) throws IOException {
+        List<JCCompilationUnit> list = super.parseFiles(fileObjects);
+        for (JCCompilationUnit cu: list) {
+            ((JmlCompilationUnit)cu).mode = JmlCompilationUnit.JAVA_SOURCE_FULL;
+        }
+        return list;
+    }
+    
     private int nestingLevel = 0;
 
     /** Parses and enters specs for binary classes, given a ClassSymbol.  This is 
@@ -228,7 +243,9 @@ public class JmlCompiler extends JavaCompiler {
         nestingLevel++;
         loadSuperSpecs(env,csymbol);
         java.util.List<JmlCompilationUnit> specSequence = parseSpecs(csymbol);
-        if (verbose && specSequence.isEmpty()) System.out.println("No specs for " + csymbol);
+        if (verbose && specSequence.isEmpty()) {
+            System.out.println("No specs for " + csymbol);
+        }
         for (JmlCompilationUnit cu: specSequence) {
             if (cu.sourcefile.toString().endsWith(".java")) cu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
             else cu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
@@ -427,7 +444,8 @@ public class JmlCompiler extends JavaCompiler {
      */ // FIXME - check that we always get classes, not CUs and adjust the logic accordingly
     protected void esc(Env<AttrContext> env) {
         JCTree tree = env.tree;
-        if (!JmlCompilationUnit.isJava(((JmlCompilationUnit)env.toplevel).mode)) {
+        int mode = ((JmlCompilationUnit)env.toplevel).mode;
+        if (!JmlCompilationUnit.isJava(mode)) {
             if (env.tree instanceof JCClassDecl) {
                 Symbol c = ((JCClassDecl)tree).sym;
                 ((JmlEnter)enter).remove(c);
@@ -441,6 +459,7 @@ public class JmlCompiler extends JavaCompiler {
             }
             return;
         }
+        if (mode != JmlCompilationUnit.JAVA_SOURCE_FULL) return;
         
         JmlEsc esc = JmlEsc.instance(context);
         env.tree.accept(esc);
@@ -470,10 +489,17 @@ public class JmlCompiler extends JavaCompiler {
         Runtime rt = Runtime.getRuntime();
         //System.out.println("    ....... Memory free=" + rt.freeMemory() + "  max="+rt.maxMemory() + "  total="+rt.totalMemory());
         JmlResolve.instance(context).loadClass(null,Symtab.instance(context).objectType.tsym.flatName());
+//        JmlResolve.instance(context).loadClass(null,Name.Table.instance(context).fromString("org.jmlspecs.utils.Utils"));
+//        JmlResolve.instance(context).loadClass(null,Name.Table.instance(context).fromString("org.jmlspecs.lang.JMLList"));
         super.compile(sourceFileObjects,classnames,processors);
     }
     
     protected void compile2(CompilePolicy compPolicy) {
+        //super.compile2(CompilePolicy.BY_TODO);
         super.compile2(CompilePolicy.SIMPLE);
+    }
+    
+    protected void flow(Env<AttrContext> env, ListBuffer<Env<AttrContext>> results) {
+        results.append(env);
     }
 }

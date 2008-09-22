@@ -1430,6 +1430,8 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
                 break;
                 
             case BSLOCKSET:
+            case BSINDEX:
+            case BSVALUES:
             case BSSAME:
             case BSNOTSPECIFIED:
             case BSNOTHING:

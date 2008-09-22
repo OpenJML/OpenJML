@@ -165,7 +165,7 @@ public class SpecsBase extends TCBase {
     /** The test to run - finds all system specs and runs tests on them that
      * at least are sure that the specifications parse and typecheck.
      */
-    public void testFindFiles() {
+    public void _testFindFiles() {
         if (!dotests) {
             System.out.println("System spec tests (test.SpecBase) are being skipped " + System.getProperty("java.version"));
             return;
@@ -186,6 +186,8 @@ public class SpecsBase extends TCBase {
         //Main m = new Main();
         if (specs == null) {
             Context context = new Context();
+            Main main = new Main();
+            main.register(context);
             JavacFileManager.preRegister(context); // can't create it until Log has been set up
             specs = JmlSpecs.instance(context);
             specs.setSpecsPath("$SY");
@@ -265,9 +267,9 @@ public class SpecsBase extends TCBase {
     // FIXME - the above test template does not seem to trigger all the
     // modifier checking in attribute testing.
 
-//    public void testFileTemp() {
-//        helpTCF("A.java","public class A { java.util.GregorianCalendar f; }"
-//                );
-//    }
+    public void testFileTemp() {
+        helpTCF("A.java","public class A { java.util.Collection<Integer> f; }"
+                );
+    }
 
 }

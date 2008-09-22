@@ -161,8 +161,7 @@ public /*@ pure @*/ class JMLObjectValuePair implements JMLType {
       @*/
     public /*@ non_null @*/ String toString()
     {
-        return(new String("(") + key + new String(", ") 
-               + value + new String(")") );
+        return("(" + key + ", " + value + ")" );
     }
 };
 

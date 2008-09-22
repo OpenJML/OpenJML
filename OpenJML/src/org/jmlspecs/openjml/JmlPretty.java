@@ -499,14 +499,14 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlForLoop(JmlForLoop that) {
-        for (JmlStatementLoop s: that.loopSpecs) {
+        if (that.loopSpecs != null) for (JmlStatementLoop s: that.loopSpecs) {
             s.accept(this);
         }
         super.visitForLoop(that);
     }
 
     public void visitJmlWhileLoop(JmlWhileLoop that) {
-        for (JmlStatementLoop s: that.loopSpecs) {
+        if (that.loopSpecs != null) for (JmlStatementLoop s: that.loopSpecs) {
             s.accept(this);
         }
         super.visitWhileLoop(that);

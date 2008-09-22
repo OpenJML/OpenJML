@@ -1073,7 +1073,7 @@ public /*@ pure @*/ class JMLObjectBag
       @     ensures (* \result is a string representation of this *);
       @*/
     public /*@ non_null @*/ String toString() {
-        String newStr = new String("{");
+        String newStr = "{";
         JMLListValueNode bagWalker = the_list;
 
         if (bagWalker != null) {
