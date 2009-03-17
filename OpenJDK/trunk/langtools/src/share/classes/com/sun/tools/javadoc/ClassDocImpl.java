@@ -84,8 +84,9 @@ import java.lang.reflect.Modifier;
 public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
 
     public final ClassType type;        // protected->public for debugging
-    protected final ClassSymbol tsym;
-
+    public final ClassSymbol tsym;      // DRC changed from protected to public
+    public DocEnv docenv() { return env; } // DRC added
+    
     boolean isIncluded = false;         // Set in RootDocImpl
 
     private SerializedForm serializedForm;

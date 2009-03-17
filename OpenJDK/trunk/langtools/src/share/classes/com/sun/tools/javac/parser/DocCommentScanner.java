@@ -92,22 +92,22 @@ public class DocCommentScanner extends Scanner {
 
     /** Starting position of the comment in original source
      */
-    private int pos;
+    private int pos; // DRC - commented out because inherited from Scanner
 
     /** The comment input buffer, index of next chacter to be read,
      *  index of one past last character in buffer.
      */
-    private char[] buf;
-    private int bp;
-    private int buflen;
+    private char[] _buf; // DRC - renamed so as not to interfere with similar names in super and derived classes
+    private int __bp; // DRC - renamed so as not to interfere with similar names in super and derived classes
+    private int _buflen; // DRC - renamed so as not to interfere with similar names in super and derived classes
 
     /** The current character.
      */
-    private char ch;
+    private char _ch; // DRC - renamed so as not to interfere with similar names in super and derived classes
 
     /** The column number position of the current character.
      */
-    private int col;
+    private int _col; // DRC - renamed so as not to interfere with similar names in super and derived classes
 
     /** The buffer index of the last converted Unicode character
      */
@@ -142,10 +142,10 @@ public class DocCommentScanner extends Scanner {
      *  to its value.
      */
     private int digit(int base) {
-        char c = ch;
+        char c = _ch;
         int result = Character.digit(c, base);
         if (result >= 0 && c > 0x7f) {
-            ch = "0123456789abcdef".charAt(result);
+            _ch = "0123456789abcdef".charAt(result);
         }
         return result;
     }
@@ -154,32 +154,32 @@ public class DocCommentScanner extends Scanner {
      *  (Spec 3.3).
      */
     private void convertUnicode() {
-        if (ch == '\\' && unicodeConversionBp != bp) {
-            bp++; ch = buf[bp]; col++;
-            if (ch == 'u') {
+        if (_ch == '\\' && unicodeConversionBp != __bp) {
+            __bp++; _ch = _buf[__bp]; _col++;
+            if (_ch == 'u') {
                 do {
-                    bp++; ch = buf[bp]; col++;
-                } while (ch == 'u');
-                int limit = bp + 3;
-                if (limit < buflen) {
+                    __bp++; _ch = _buf[__bp]; _col++;
+                } while (_ch == 'u');
+                int limit = __bp + 3;
+                if (limit < _buflen) {
                     int d = digit(16);
                     int code = d;
-                    while (bp < limit && d >= 0) {
-                        bp++; ch = buf[bp]; col++;
+                    while (__bp < limit && d >= 0) {
+                        __bp++; _ch = _buf[__bp]; _col++;
                         d = digit(16);
                         code = (code << 4) + d;
                     }
                     if (d >= 0) {
-                        ch = (char)code;
-                        unicodeConversionBp = bp;
+                        _ch = (char)code;
+                        unicodeConversionBp = __bp;
                         return;
                     }
                 }
                 // "illegal.Unicode.esc", reported by base scanner
             } else {
-                bp--;
-                ch = '\\';
-                col--;
+                __bp--;
+                _ch = '\\';
+                _col--;
             }
         }
     }
@@ -187,27 +187,27 @@ public class DocCommentScanner extends Scanner {
 
     /** Read next character.
      */
-    protected void scanChar() { // DRC - changed to protected
-        bp++;
-        ch = buf[bp];
-        switch (ch) {
+    private void _scanChar() { // DRC - changed to protected; back to private; changed name
+        __bp++;
+        _ch = _buf[__bp];
+        switch (_ch) {
         case '\r': // return
-            col = 0;
+            _col = 0;
             break;
         case '\n': // newline
-            if (bp == 0 || buf[bp-1] != '\r') {
-                col = 0;
+            if (__bp == 0 || _buf[__bp-1] != '\r') {
+                _col = 0;
             }
             break;
         case '\t': // tab
-            col = (col / TabInc * TabInc) + TabInc;
+            _col = (_col / TabInc * TabInc) + TabInc;
             break;
         case '\\': // possible Unicode
-            col++;
+            _col++;
             convertUnicode();
             break;
         default:
-            col++;
+            _col++;
             break;
         }
     }
@@ -217,13 +217,13 @@ public class DocCommentScanner extends Scanner {
      * If a double '\' is skipped, put in the buffer and update buffer count.
      */
     private void scanDocCommentChar() {
-        scanChar();
-        if (ch == '\\') {
-            if (buf[bp+1] == '\\' && unicodeConversionBp != bp) {
+        _scanChar();
+        if (_ch == '\\') {
+            if (_buf[__bp+1] == '\\' && unicodeConversionBp != __bp) {
                 if (docCommentCount == docCommentBuffer.length)
                     expandCommentBuffer();
-                docCommentBuffer[docCommentCount++] = ch;
-                bp++; col++;
+                docCommentBuffer[docCommentCount++] = _ch;
+                __bp++; _col++;
             } else {
                 convertUnicode();
             }
@@ -254,11 +254,11 @@ public class DocCommentScanner extends Scanner {
             return;
         }
 
-        pos = pos();
-        buf = getRawCharacters(pos, endPos());
-        buflen = buf.length;
-        bp = 0;
-        col = 0;
+        _pos = pos();
+        _buf = getRawCharacters(_pos, endPos());
+        _buflen = _buf.length;
+        __bp = 0;
+        _col = 0;
 
         docCommentCount = 0;
 
@@ -270,23 +270,23 @@ public class DocCommentScanner extends Scanner {
         scanDocCommentChar();
 
         // consume any number of stars
-        while (bp < buflen && ch == '*') {
+        while (__bp < _buflen && _ch == '*') {
             scanDocCommentChar();
         }
         // is the comment in the form /**/, /***/, /****/, etc. ?
-        if (bp < buflen && ch == '/') {
+        if (__bp < _buflen && _ch == '/') {
             docComment = "";
             return;
         }
 
         // skip a newline on the first line of the comment.
-        if (bp < buflen) {
-            if (ch == LF) {
+        if (__bp < _buflen) {
+            if (_ch == LF) {
                 scanDocCommentChar();
                 firstLine = false;
-            } else if (ch == CR) {
+            } else if (_ch == CR) {
                 scanDocCommentChar();
-                if (ch == LF) {
+                if (_ch == LF) {
                     scanDocCommentChar();
                     firstLine = false;
                 }
@@ -299,23 +299,23 @@ public class DocCommentScanner extends Scanner {
         // for each line.  For each line, it first strips off
         // whitespace, then it consumes any stars, then it
         // puts the rest of the line into our buffer.
-        while (bp < buflen) {
+        while (__bp < _buflen) {
 
             // The wsLoop consumes whitespace from the beginning
             // of each line.
         wsLoop:
 
-            while (bp < buflen) {
-                switch(ch) {
+            while (__bp < _buflen) {
+                switch(_ch) {
                 case ' ':
                     scanDocCommentChar();
                     break;
                 case '\t':
-                    col = ((col - 1) / TabInc * TabInc) + TabInc;
+                    _col = ((_col - 1) / TabInc * TabInc) + TabInc;
                     scanDocCommentChar();
                     break;
                 case FF:
-                    col = 0;
+                    _col = 0;
                     scanDocCommentChar();
                     break;
 // Treat newline at beginning of line (blank line, no star)
@@ -341,21 +341,21 @@ public class DocCommentScanner extends Scanner {
 
             // Are there stars here?  If so, consume them all
             // and check for the end of comment.
-            if (ch == '*') {
+            if (_ch == '*') {
                 // skip all of the stars
                 do {
                     scanDocCommentChar();
-                } while (ch == '*');
+                } while (_ch == '*');
 
                 // check for the closing slash.
-                if (ch == '/') {
+                if (_ch == '/') {
                     // We're done with the doc comment
-                    // scanChar() and breakout.
+                    // _scanChar() and breakout.
                     break outerLoop;
                 }
             } else if (! firstLine) {
                 //The current line does not begin with a '*' so we will indent it.
-                for (int i = 1; i < col; i++) {
+                for (int i = 1; i < _col; i++) {
                     if (docCommentCount == docCommentBuffer.length)
                         expandCommentBuffer();
                     docCommentBuffer[docCommentCount++] = ' ';
@@ -365,13 +365,13 @@ public class DocCommentScanner extends Scanner {
             // The textLoop processes the rest of the characters
             // on the line, adding them to our buffer.
         textLoop:
-            while (bp < buflen) {
-                switch (ch) {
+            while (__bp < _buflen) {
+                switch (_ch) {
                 case '*':
                     // Is this just a star?  Or is this the
                     // end of a comment?
                     scanDocCommentChar();
-                    if (ch == '/') {
+                    if (_ch == '/') {
                         // This is the end of the comment,
                         // set ch and return our buffer.
                         break outerLoop;
@@ -386,7 +386,7 @@ public class DocCommentScanner extends Scanner {
                 case '\t':
                     if (docCommentCount == docCommentBuffer.length)
                         expandCommentBuffer();
-                    docCommentBuffer[docCommentCount++] = ch;
+                    docCommentBuffer[docCommentCount++] = _ch;
                     scanDocCommentChar();
                     break;
                 case FF:
@@ -394,7 +394,7 @@ public class DocCommentScanner extends Scanner {
                     break textLoop; // treat as end of line
                 case CR: // (Spec 3.4)
                     scanDocCommentChar();
-                    if (ch != LF) {
+                    if (_ch != LF) {
                         // Canonicalize CR-only line terminator to LF
                         if (docCommentCount == docCommentBuffer.length)
                             expandCommentBuffer();
@@ -408,14 +408,14 @@ public class DocCommentScanner extends Scanner {
                     // starting fresh on a new line.
                     if (docCommentCount == docCommentBuffer.length)
                         expandCommentBuffer();
-                    docCommentBuffer[docCommentCount++] = ch;
+                    docCommentBuffer[docCommentCount++] = _ch;
                     scanDocCommentChar();
                     break textLoop;
                 default:
                     // Add the character to our buffer.
                     if (docCommentCount == docCommentBuffer.length)
                         expandCommentBuffer();
-                    docCommentBuffer[docCommentCount++] = ch;
+                    docCommentBuffer[docCommentCount++] = _ch;
                     scanDocCommentChar();
                 }
             } // end textLoop

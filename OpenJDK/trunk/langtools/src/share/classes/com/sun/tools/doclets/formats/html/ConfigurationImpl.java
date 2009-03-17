@@ -51,8 +51,8 @@ import java.io.*;
  */
 public class ConfigurationImpl extends Configuration {
 
-    private static final ConfigurationImpl instance = new ConfigurationImpl();
-
+    protected static ConfigurationImpl instance = new ConfigurationImpl();  // DRC - changed to protected from private, removed final
+    
     /**
      * The build date.  Note: For now, we will use
      * a version number instead of a date.
@@ -184,7 +184,7 @@ public class ConfigurationImpl extends Configuration {
      * Constructor. Initialises resource for the
      * {@link com.sun.tools.doclets.MessageRetriever}.
      */
-    private ConfigurationImpl() {
+    protected ConfigurationImpl() {   // DRC: Changed to protected from private
         standardmessage = new MessageRetriever(this,
             "com.sun.tools.doclets.formats.html.resources.standard");
     }

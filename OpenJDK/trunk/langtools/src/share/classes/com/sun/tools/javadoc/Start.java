@@ -56,9 +56,11 @@ import static com.sun.tools.javac.code.Flags.*;
  * @author Robert Field
  * @author Neal Gafter (rewrite)
  */
-class Start {
+public class Start {  // DRC - changed to public from package-default
     /** Context for this invocation. */
     private final Context context;
+    
+    public Context context() { return context; } // DRC - added access method
 
     /**
      * Name of the program
@@ -92,7 +94,7 @@ class Start {
     /* Treat warnings as errors. */
     private boolean rejectWarnings = false;
 
-    Start(String programName,
+    public Start(String programName,  // DRC - changed to public
           PrintWriter errWriter,
           PrintWriter warnWriter,
           PrintWriter noticeWriter,
@@ -102,17 +104,17 @@ class Start {
         this.defaultDocletClassName = defaultDocletClassName;
     }
 
-    Start(String programName, String defaultDocletClassName) {
+    public Start(String programName, String defaultDocletClassName) { // DRC - changed to public from default
         context = new Context();
         messager = new Messager(context, programName);
         this.defaultDocletClassName = defaultDocletClassName;
     }
 
-    Start(String programName) {
+    public Start(String programName) { // DRC - changed to public from default
         this(programName, standardDocletClassName);
     }
 
-    Start() {
+    public Start() {  // DRC - changed to public
         this(javadocName);
     }
 
@@ -139,7 +141,7 @@ class Start {
     /**
      * Main program - external wrapper
      */
-    int begin(String argv[]) {
+    public int begin(String argv[]) { // DRC - changed to public from default
         boolean failed = false;
 
         try {
@@ -339,6 +341,7 @@ class Start {
 
         JavadocTool comp = JavadocTool.make0(context);
         if (comp == null) return false;
+        //moreRegister(context);
 
         if (showAccess == null) {
             setFilter(defaultFilter);
@@ -466,5 +469,7 @@ class Start {
         }
         options = options.append(args);
     }
+    
+    protected void moreRegister(Context context) {}
 
 }

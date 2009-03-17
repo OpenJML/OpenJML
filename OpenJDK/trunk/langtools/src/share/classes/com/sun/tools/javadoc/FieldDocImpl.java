@@ -53,7 +53,7 @@ import java.lang.reflect.Modifier;
  */
 public class FieldDocImpl extends MemberDocImpl implements FieldDoc {
 
-    protected final VarSymbol sym;
+    public final VarSymbol sym; // DRC - changed protected to public
 
     /**
      * Constructor.

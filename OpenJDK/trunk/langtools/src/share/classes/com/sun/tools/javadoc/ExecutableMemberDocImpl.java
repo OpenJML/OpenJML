@@ -52,7 +52,7 @@ import java.lang.reflect.Modifier;
 public abstract class ExecutableMemberDocImpl
         extends MemberDocImpl implements ExecutableMemberDoc {
 
-    protected final MethodSymbol sym;
+    public final MethodSymbol sym; // DRC - changed to public
 
     /**
      * Constructor.

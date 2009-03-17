@@ -808,7 +808,7 @@ public class Parser {
         ListBuffer<JCExpression[]> odStackSupply = new ListBuffer<JCExpression[]>();
         ListBuffer<Token[]> opStackSupply = new ListBuffer<Token[]>();
 
-        private JCExpression[] newOdStack() {
+        protected JCExpression[] newOdStack() { // DRC - changed from private to protected
             if (odStackSupply.elems == odStackSupply.last)
                 odStackSupply.append(new JCExpression[infixPrecedenceLevels + 1]);
             JCExpression[] odStack = odStackSupply.elems.head;
@@ -816,7 +816,7 @@ public class Parser {
             return odStack;
         }
 
-        private Token[] newOpStack() {
+        protected Token[] newOpStack() { // DRC - changed from private to protected
             if (opStackSupply.elems == opStackSupply.last)
                 opStackSupply.append(new Token[infixPrecedenceLevels + 1]);
             Token[] opStack = opStackSupply.elems.head;

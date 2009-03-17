@@ -241,7 +241,7 @@ public class Resolve {
          *  @param c       The class where the access takes place
          *  @site          The type of the qualifier
          */
-        private
+        protected    // DRC - changed to protected from private
         boolean isProtectedAccessible(Symbol sym, ClassSymbol c, Type site) {
             while (c != null &&
                    !(c.isSubClass(sym.owner, types) &&

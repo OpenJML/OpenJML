@@ -102,7 +102,7 @@ public class Scanner implements Lexer {
 
     /** The token's position, 0-based offset from beginning of text.
      */
-    protected int pos; // DRC - changed from private to protected
+    protected int _pos; // DRC - changed from private to protected
 
     /** Character position just after the last character of the token.
      */
@@ -212,7 +212,12 @@ public class Scanner implements Lexer {
         buflen = inputLength;
         buf[buflen] = EOI;
         bp = -1;
-        scanChar();
+        //scanChar(); // DRC - replaced this by the following because scanChar is now inherited
+        ch = buf[++bp];
+        if (ch == '\\') {
+            convertUnicode();
+        }
+
     }
 
     /** Report an error at the given position using the provided arguments.
@@ -227,7 +232,7 @@ public class Scanner implements Lexer {
      *  arguments.
      */
     protected void lexError(String key, Object... args) { // DRC - changed from private to protected
-        lexError(pos, key, args);
+        lexError(_pos, key, args);
     }
 
     /** Convert an ASCII digit from its base (8, 10, or 16)
@@ -237,7 +242,7 @@ public class Scanner implements Lexer {
         char c = ch;
         int result = Character.digit(c, base);
         if (result >= 0 && c > 0x7f) {
-            lexError(pos+1, "illegal.nonascii.digit");
+            lexError(_pos+1, "illegal.nonascii.digit");
             ch = "0123456789abcdef".charAt(result);
         }
         return result;
@@ -748,7 +753,7 @@ public class Scanner implements Lexer {
             sp = 0;
 
             while (true) {
-                pos = bp;
+                _pos = bp;
                 switch (ch) {
                 case ' ': // (Spec 3.6)
                 case '\t': // (Spec 3.6)
@@ -894,13 +899,13 @@ public class Scanner implements Lexer {
                         lexError("empty.char.lit");
                     } else {
                         if (ch == CR || ch == LF)
-                            lexError(pos, "illegal.line.end.in.char.lit");
+                            lexError(_pos, "illegal.line.end.in.char.lit");
                         scanLitChar();
                         if (ch == '\'') {
                             scanChar();
                             token = CHARLITERAL;
                         } else {
-                            lexError(pos, "unclosed.char.lit");
+                            lexError(_pos, "unclosed.char.lit");
                         }
                     }
                     return;
@@ -912,7 +917,7 @@ public class Scanner implements Lexer {
                         token = STRINGLITERAL;
                         scanChar();
                     } else {
-                        lexError(pos, "unclosed.str.lit");
+                        lexError(_pos, "unclosed.str.lit");
                     }
                     return;
                 default:
@@ -942,7 +947,7 @@ public class Scanner implements Lexer {
                             scanIdent();
                         } else if (bp == buflen || ch == EOI && bp+1 == buflen) { // JLS 3.5
                             token = EOF;
-                            pos = bp = eofPos;
+                            _pos = bp = eofPos;
                         } else {
                             lexError("illegal.char", String.valueOf((int)ch));
                             scanChar();
@@ -954,9 +959,9 @@ public class Scanner implements Lexer {
         } finally {
             endPos = bp;
             if (scannerDebug)
-                System.out.println("nextToken(" + pos
+                System.out.println("nextToken(" + _pos
                                    + "," + endPos + ")=|" +
-                                   new String(getRawCharacters(pos, endPos))
+                                   new String(getRawCharacters(_pos, endPos))
                                    + "|");
         }
     }
@@ -978,7 +983,7 @@ public class Scanner implements Lexer {
      *  (before unicode translation)
      */
     public int pos() {
-        return pos;
+        return _pos;
     }
 
     /** Return the last character position of the current token.
@@ -1078,9 +1083,9 @@ public class Scanner implements Lexer {
      */
     protected void processComment(CommentStyle style) {
         if (scannerDebug)
-            System.out.println("processComment(" + pos
+            System.out.println("processComment(" + _pos
                                + "," + endPos + "," + style + ")=|"
-                               + new String(getRawCharacters(pos, endPos))
+                               + new String(getRawCharacters(_pos, endPos))
                                + "|");
     }
 
@@ -1090,9 +1095,9 @@ public class Scanner implements Lexer {
      */
     protected void processWhiteSpace() {
         if (scannerDebug)
-            System.out.println("processWhitespace(" + pos
+            System.out.println("processWhitespace(" + _pos
                                + "," + endPos + ")=|" +
-                               new String(getRawCharacters(pos, endPos))
+                               new String(getRawCharacters(_pos, endPos))
                                + "|");
     }
 
@@ -1101,9 +1106,9 @@ public class Scanner implements Lexer {
      */
     protected void processLineTerminator() {
         if (scannerDebug)
-            System.out.println("processTerminator(" + pos
+            System.out.println("processTerminator(" + _pos
                                + "," + endPos + ")=|" +
-                               new String(getRawCharacters(pos, endPos))
+                               new String(getRawCharacters(_pos, endPos))
                                + "|");
     }
 

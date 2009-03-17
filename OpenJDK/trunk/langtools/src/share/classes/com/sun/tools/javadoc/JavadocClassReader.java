@@ -40,7 +40,7 @@ import javax.tools.JavaFileObject;
 /** Javadoc uses an extended class reader that records package.html entries
  *  @author Neal Gafter
  */
-class JavadocClassReader extends ClassReader {
+public class JavadocClassReader extends ClassReader { // DRC - changed from package to public
 
     public static JavadocClassReader instance0(Context context) {
         ClassReader instance = context.get(classReaderKey);

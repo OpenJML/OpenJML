@@ -46,28 +46,28 @@ public class FieldBuilder extends AbstractMemberBuilder {
         /**
          * The class whose fields are being documented.
          */
-        private ClassDoc classDoc;
+        protected ClassDoc classDoc; // DRC - changed from private to protected
 
         /**
          * The visible fields for the given class.
          */
-        private VisibleMemberMap visibleMemberMap;
+        protected VisibleMemberMap visibleMemberMap; // DRC - changed from private to protected
 
         /**
          * The writer to output the field documentation.
          */
-        private FieldWriter writer;
+        protected FieldWriter writer; // DRC - changed from private to protected
 
         /**
          * The list of fields being documented.
          */
-        private List fields;
+        public List fields; // DRC - changed from private to public
 
         /**
          * The index of the current field that is being documented at this point
          * in time.
          */
-        private int currentFieldIndex;
+        protected int currentFieldIndex; // DRC - changed from private to protected
 
         /**
          * Construct a new FieldBuilder.
@@ -75,7 +75,7 @@ public class FieldBuilder extends AbstractMemberBuilder {
          * @param configuration the current configuration of the
          *                      doclet.
          */
-        private FieldBuilder(Configuration configuration) {
+        protected FieldBuilder(Configuration configuration) { // DRC - changed from private to protected
                 super(configuration);
         }
 

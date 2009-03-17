@@ -55,7 +55,7 @@ import java.text.CollationKey;
 public abstract class ProgramElementDocImpl
         extends DocImpl implements ProgramElementDoc {
 
-    private final Symbol sym;
+    public final Symbol sym;  // DRC - changed from private to public
 
     // For source position information.
     JCTree tree = null;
