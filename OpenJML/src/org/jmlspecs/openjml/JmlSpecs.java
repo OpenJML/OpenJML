@@ -368,7 +368,7 @@ public class JmlSpecs {
     
     /** Appends the internal runtime directory to the -classpath option.
      */
-    protected void appendRuntime() {
+    public void appendRuntime() {
         boolean verbose = Utils.jmldebug ||
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
             Options.instance(context).get("-verbose") != null;

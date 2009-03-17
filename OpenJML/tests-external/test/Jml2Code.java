@@ -90,11 +90,13 @@ public class Jml2Code  extends TestCase {
                    "-specs","$SY"+";"+sp,
                    //"-specs","C:/home/projects/JMLspecs/trunk/java6;C:/home/projects/JMLspecs/trunk/java5;C:/home/projects/JMLspecs/trunk/java4;C:/home/projects/OpenJML/trunk/OpenJML/runtime",
                    "-classpath", cp,
-                   "-jmlverbose",
+                   //"-jmlverbose",
+                   "-nullableByDefault",
                    "-esc"};
             String[] files = {
-                    //"C:/home/projects/JML4/ESCTools/Escjava/java/escjava/ast/CondExprModifierPragmaVec.java",
                     "C:/home/projects/JML4/ESCTools/Escjava/java/escjava/ant/ESCJavaTask.java",
+                    //"C:/home/projects/JML4/ESCTools/Escjava/java/escjava/sortedProver/Lifter.java",
+                    //"C:/home/projects/JML4/ESCTools/Javafe/java/javafe/filespace/TreeWalker.java",
                    };
             List<String> f = expand(files);
             for (int i=0; i< args.length; i++) f.add(i,args[i]);
@@ -110,6 +112,7 @@ public class Jml2Code  extends TestCase {
                    "-specs","$SY"+";"+sp,
                    //"-specs","C:/home/projects/JMLspecs/trunk/java6;C:/home/projects/JMLspecs/trunk/java5;C:/home/projects/JMLspecs/trunk/java4;C:/home/projects/OpenJML/trunk/OpenJML/runtime",
                    "-classpath", cp,
+                   "-nullableByDefault",
                    //"-jmlverbose",
                    "-esc"};
             String[] files = {
@@ -131,6 +134,7 @@ public class Jml2Code  extends TestCase {
                     "-Xmaxerrs","10000",
                     "-Xmaxwarns","10000",
                    "-noPurityCheck",
+                   "-nullableByDefault",
                    "-specs","$SY"+";"+sp,
                    //"-specs","C:/home/projects/JMLspecs/trunk/java6;C:/home/projects/JMLspecs/trunk/java5;C:/home/projects/JMLspecs/trunk/java4;C:/home/projects/OpenJML/trunk/OpenJML/runtime",
                    "-classpath", "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Utils/junit.jar;C:/home/projects/JML4/ESCTools/Utils/ant.jar;C:/home/projects/JML4/ESCTools/Utils/BCEL/bcel-5.2/bcel-5.2.jar;C:/home/projects/JML4/ESCTools/Escjava/xmlrpc-1.2-b1-modified.jar;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java",

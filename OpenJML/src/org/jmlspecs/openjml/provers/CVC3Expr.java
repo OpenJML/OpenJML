@@ -17,6 +17,7 @@ import org.jmlspecs.openjml.esc.BasicBlocker;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Type.ArrayType;
@@ -27,19 +28,19 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
 /** This class converts OpenJDK ASTs (i.e., JCTree) into Strings appropriate
- * to send to Yices; in the process, requests to define various variables may
- * be sent back to the invoking YicesProver.  It is implemented as a tree 
+ * to send to CVC3; in the process, requests to define various variables may
+ * be sent back to the invoking CVC3Prover.  It is implemented as a tree 
  * walker.
  * @author David Cok
  */
-public class YicesJCExpr extends JmlTreeScanner {
+public class CVC3Expr extends JmlTreeScanner {
 
     /** The tool used to report errors and warnings */
 //    protected Log log;
     
     /** The prover that invoked this translator; we need this because we have to
      * tell it to define variables as they are encountered. */
-    /*@ non_null */protected YicesProver p;
+    /*@ non_null */protected CVC3Prover p;
     
     /** Does the translation.  
      * 
@@ -47,7 +48,7 @@ public class YicesJCExpr extends JmlTreeScanner {
      * @param p the prover invoking this translation
      * @return the translated string
      */
-    public String toYices(JCTree t) 
+    public String toCVC3(JCTree t) 
             throws ProverException {
         try {
             result.setLength(0);
@@ -70,7 +71,7 @@ public class YicesJCExpr extends JmlTreeScanner {
      * 
      * @param p the prover to connect with
      */
-    protected YicesJCExpr(/*@ non_null */YicesProver p) {
+    protected CVC3Expr(/*@ non_null */CVC3Prover p) {
         this.p = p;
     }
 
@@ -90,10 +91,10 @@ public class YicesJCExpr extends JmlTreeScanner {
     int distinctCount = 100;
     protected boolean define(String name, String type) {
         try {
-            if (YicesProver.TYPE.equals(type)) {
+            if (CVC3Prover.TYPE.equals(type)) {
                 boolean n = p.rawdefine(name,type);
                 if (n) return n;
-                String s = "(= ("+"distinct$"+" "+name+") " + (++distinctCount) +")";
+                String s = "( " + "distinct$("+name+") = " + (++distinctCount) +" )";
                 p.rawassume(s);
                 return false;
             } else {
@@ -110,9 +111,11 @@ public class YicesJCExpr extends JmlTreeScanner {
         // Emit it simply as its string
         try { 
             String id = that.toString();
+            id = id.replace('$','_');
+            id = id.replace('.','_');
             p.rawdefine(id,convertIdentType(that));  // rawdefine does not repeat a definition
+            result.append(id);
         } catch (ProverException e) { System.out.println("PROVER ERROR");   }
-        result.append(that.toString());
     }
     
     public String convertIdentType(JCIdent that) {
@@ -128,8 +131,8 @@ public class YicesJCExpr extends JmlTreeScanner {
         }
         if (that.sym != null && that.sym.owner instanceof Symbol.ClassSymbol && !that.sym.isStatic() ) { // FIXME - isStatis is not correct for JML fields in interfaces
             // If at this point s is a new type, it won't get defined  FIXME
-            // FIXME - the translating of types is a MESS - some here some in YicesProver some in BasicBlocker
-            s = "(-> REF " + s + ")";
+            // FIXME - the translating of types is a MESS - some here some in CVC3Prover some in BasicBlocker
+            s = " REF -> " + s;
         }
         return s;
     }
@@ -146,13 +149,13 @@ public class YicesJCExpr extends JmlTreeScanner {
                 s = "REF";
             }
         } else if (t.tag == TypeTags.BOOLEAN) {
-            s = "bool";
+            s = "BOOLEAN";//"BITVECTOR(1)";
         } else if (t.tag == TypeTags.INT){
-            s = "int";
+            s = "INT";
         } else if (t.tag == TypeTags.CHAR){
-            s = "int";
+            s = "INT";
         } else {
-            s = "int";
+            s = "INT";
         }
         return s;
 
@@ -160,8 +163,6 @@ public class YicesJCExpr extends JmlTreeScanner {
         
     @Override
     public void visitParens(JCParens that) {
-        // Ignore parenthesized expression - all the output for Yices
-        // is parenthesized in prefix form anyway
         that.expr.accept(this);
     }
     
@@ -175,9 +176,10 @@ public class YicesJCExpr extends JmlTreeScanner {
                     String s = "T$" + ((Type)that.value).toString();
                     s = s.replace("[]","$$A");
                     s = s.replace("<","$_");
-                    s = s.replace(",","..");
+                    s = s.replace(",","__");
                     s = s.replace(">","_$");
-                    define(s,YicesProver.TYPE);
+                    s = s.replace(".","_");
+                    define(s,CVC3Prover.TYPE);
                     result.append(s);
                 } else {
                     result.append(that.toString());
@@ -192,6 +194,9 @@ public class YicesJCExpr extends JmlTreeScanner {
                 // We want to use it simply as an int
                 result.append(that.value.toString());
                 break;
+            case TypeTags.BOOLEAN:
+                result.append(that.value.equals(1) ? "TRUE" : "FALSE");
+                break;
             default:
                 result.append(that.toString());
         }
@@ -203,9 +208,8 @@ public class YicesJCExpr extends JmlTreeScanner {
         //System.out.println("visit Apply: " + that.meth.getClass() + " " + that.meth);
         switch (that.token) {
             case BSTYPEOF:
+                result.append(CVC3Prover.TYPEOF);
                 result.append("(");
-                result.append(YicesProver.TYPEOF);
-                result.append(" ");
                 that.args.get(0).accept(this);
                 result.append(")");
                 break;
@@ -244,12 +248,12 @@ public class YicesJCExpr extends JmlTreeScanner {
                     }
                 } 
                 // regular method application
-                result.append("(");
                 that.meth.accept(this);
-                result.append(" ");
+                result.append("(");
+                boolean first = true;
                 for (JCExpression e: that.args) {
+                    if (!first) { result.append(","); first = true; }
                     e.accept(this);
-                    result.append(" ");
                 }
                 result.append(")");
                 
@@ -294,19 +298,19 @@ public class YicesJCExpr extends JmlTreeScanner {
             Type t = rhs.type;
             String s = BasicBlocker.encodeType(t);
             try {
-                String type = "(-> REF " + s + ")";
+                String type = " REF -> " + s;
                 if (!p.checkAndDefine(newfield.toString(),type)) {
                     // Was not already defined
-                    p.send("(define " + newfield + "::" + type + ")\n");
+                    p.send(newfield + " : " + type + ";\n");
                     p.eatPrompt();
                 } 
                 if (!p.checkAndDefine(oldfield.toString(),type)) {
                     // Was not already defined
-                    p.send("(define " + oldfield + "::(-> REF " + s + "))\n");
+                    p.send(oldfield + " : REF -> " + s + ";\n");
                     p.eatPrompt();
                 } 
-                result.append("(= " + newfield);
-                result.append(" (update ");
+                result.append("( " + newfield);
+                result.append(" = update( ");
                 result.append(oldfield);
                 result.append(" (");
                 selected.accept(this);
@@ -387,10 +391,10 @@ public class YicesJCExpr extends JmlTreeScanner {
         // arithmetic negation (-) as: (- 0 arg)   [there is no unary negation]
         switch (that.getTag()) {
             case JCTree.NOT:
-                result.append("(not ");
+                result.append("(NOT ");
                 break;
             case JCTree.NEG:
-                result.append("(- 0 ");
+                result.append("(- ");
                 break;
             case JCTree.POS:
                 // Nothing special needed
@@ -398,7 +402,7 @@ public class YicesJCExpr extends JmlTreeScanner {
                 return;
             case JCTree.COMPL:
             default:
-                throw new RuntimeException(new ProverException("Unary operator not implemented for Yices: " + that.getTag()));
+                throw new RuntimeException(new ProverException("Unary operator not implemented for CVC3: " + that.getTag()));
         }
         that.arg.accept(this);
         result.append(")");
@@ -406,80 +410,52 @@ public class YicesJCExpr extends JmlTreeScanner {
     
     @Override
     public void visitBinary(JCBinary that) {
-        // encoded as: (op lhs rhs)
         result.append("(");
-        int typetag = that.type.tag;
+        that.lhs.accept(this);
+        //int typetag = that.type.tag;
         switch (that.getTag()) {
             case JCTree.EQ:
-                result.append("= ");
+                if (that.lhs.type.tag == TypeTags.BOOLEAN) {
+                    result.append(" <=> ");
+                } else {
+                    result.append(" = ");
+                }
                 break;
             case JCTree.AND:
-                result.append("and ");
+                result.append(" AND ");
                 break;
             case JCTree.OR:
-                result.append("or ");
+                result.append(" OR ");
                 break;
             case JCTree.PLUS:
-                result.append("+ ");
+                result.append(" + ");
                 break;
             case JCTree.MINUS:
-                result.append("- ");
+                result.append(" - ");
                 break;
             case JCTree.MUL:
-                if (typetag == TypeTags.INT || typetag == TypeTags.SHORT || typetag == TypeTags.LONG || typetag == TypeTags.BYTE)
-                    result.append("imul ");
-                else // float, double
-                    result.append("rmul ");
-                if (that.lhs instanceof JCLiteral) {
-                    String s = that.lhs.toString();
-                    String ss = "(assert (forall (x::int) (= (imul " + s + " x) (* " + s + " x))))\n";
-                    send(ss);
-                } else if (that.rhs instanceof JCLiteral) {
-                    String s = that.rhs.toString();
-                    String ss = "(assert (forall (x::int) (= (imul x " + s + ") (* x " + s + "))))\n";
-                    send(ss);
-                }
+                result.append(" * ");
                 break;
-                //result.append("* ");
-                //break;
             case JCTree.DIV:
-                if (typetag == TypeTags.INT || typetag == TypeTags.SHORT || typetag == TypeTags.LONG || typetag == TypeTags.BYTE)
-                    result.append("idiv ");
-                else // float, double
-                    result.append("rdiv ");
-                if (that.rhs instanceof JCLiteral) {
-                    String s = that.rhs.toString();
-                    String ss = "(assert (forall (x::int) (= (idiv x " + s + ") (div x " + s + "))))\n";
-                    send(ss);
-                }
+                result.append(" / ");
                 break;
-            case JCTree.MOD:
-                if (typetag == TypeTags.INT || typetag == TypeTags.SHORT || typetag == TypeTags.LONG || typetag == TypeTags.BYTE)
-                    result.append("imod ");
-                else // float, double
-                    result.append("rmod ");
-                if (that.rhs instanceof JCLiteral) {
-                    String s = that.rhs.toString();
-                    String ss = "(assert (forall (x::int) (= (imod x " + s + ") (mod x " + s + "))))\n";
-                    send(ss);
-                }
+            case JCTree.MOD:  // FIXME - need mod
+                result.append(" / ");
                 break;
-                //result.append("mod ");
-                //break;
             case JCTree.NE:
-                result.append("/= ");
+                result.append(" /= ");
                 break;
             case JCTree.LE:
-                result.append("<= ");
+                result.append(" <= ");
                 break;
             case JCTree.LT:
-                result.append("< ");
+                result.append(" < ");
                 break;
             case JCTree.GE:
-                result.append(">= ");
+                result.append(" >= ");
                 break;
             case JCTree.GT:
-                result.append("> ");
+                result.append(" > ");
                 break;
             case JCTree.BITAND:
             case JCTree.BITXOR:
@@ -488,10 +464,8 @@ public class YicesJCExpr extends JmlTreeScanner {
             case JCTree.SR:
             case JCTree.USR:
             default:  // FIXME - others: shift, mod, bit operations
-                throw new RuntimeException(new ProverException("Binary operator not implemented for Yices: " + that.getTag()));
+                throw new RuntimeException(new ProverException("Binary operator not implemented for CVC3: " + that.getTag()));
         }
-        that.lhs.accept(this);
-        result.append(" ");
         that.rhs.accept(this);
         result.append(")");
     }
@@ -499,27 +473,33 @@ public class YicesJCExpr extends JmlTreeScanner {
     @Override
     public void visitJmlBinary(JmlBinary that) {
         // encoded as: (op lhs rhs)
-        result.append("(");
-        if (that.op == JmlToken.IMPLIES) {
-            result.append("=> ");
-        } else if (that.op == JmlToken.EQUIVALENCE) {
-            result.append("= ");
-        } else if (that.op == JmlToken.INEQUIVALENCE) {
-            result.append("/= ");
-        } else if (that.op == JmlToken.REVERSE_IMPLIES) {
-            result.append("=> ");
-            that.rhs.accept(this);
-            result.append(" ");
+        if (that.op == JmlToken.SUBTYPE_OF) {
+            result.append(CVC3Prover.SUBTYPE);  // FIXME
+            result.append("(");
             that.lhs.accept(this);
+            result.append(",");
+            that.rhs.accept(this);
             result.append(")");
             return;
-        } else if (that.op == JmlToken.SUBTYPE_OF) {
-            result.append(YicesProver.SUBTYPE);
-            result.append(" ");
-        } else {
-           throw new RuntimeException(new ProverException("Binary operator not implemented for Yices: " + that.getTag()));
         }
+        
+        result.append("(");
         that.lhs.accept(this);
+        if (that.op == JmlToken.IMPLIES) {
+            result.append(" => ");
+        } else if (that.op == JmlToken.EQUIVALENCE) {
+            result.append(" <=> ");
+        } else if (that.op == JmlToken.INEQUIVALENCE) {
+            result.append(" XOR ");
+        } else if (that.op == JmlToken.REVERSE_IMPLIES) {
+            result.append(" | ");
+            result.append("(! ");
+            that.rhs.accept(this);
+            result.append("))");
+            return;
+        } else {
+           throw new RuntimeException(new ProverException("Binary operator not implemented for CVC3: " + that.getTag()));
+        }
         result.append(" ");
         that.rhs.accept(this);
         result.append(")");
@@ -527,14 +507,13 @@ public class YicesJCExpr extends JmlTreeScanner {
     
     @Override
     public void visitConditional(JCConditional that) {
-        // encoded as:  (ite cond lhs rhs)
-        result.append("(ite ");
+        result.append("(IF ");
         that.cond.accept(this);
-        result.append(" ");
+        result.append(" THEN ");
         that.truepart.accept(this);
-        result.append(" ");
+        result.append(" ELSE ");
         that.falsepart.accept(this);
-        result.append(")");
+        result.append("ENDIF)");
     }
     
     @Override
@@ -569,7 +548,7 @@ public class YicesJCExpr extends JmlTreeScanner {
 //                p.eatPrompt();
 //            }
             String ty = "refA$" + comptype;
-            p.rawdefinetype(ty,"(subtype (a::ARRAYorNULL) (or (= a NULL) (subtype$ (typeof$ a) T$java.lang.Object$$A)))",YicesProver.ARRAY);
+            p.rawdefinetype(ty,"(subtype (a::ARRAYorNULL) (or (= a NULL) (subtype$ (typeof$ a) T$java.lang.Object$$A)))",CVC3Prover.ARRAY);
             for (String arr: ids) {
                 if (!p.isDefined(arr)) {
                     String arrty = "(-> " + ty + " (-> int "+comptype+"))";
@@ -594,14 +573,13 @@ public class YicesJCExpr extends JmlTreeScanner {
         try {
             String s = p.defineType(t);
             String nm = fieldId.toString();
-            p.rawdefine(nm,"(-> REF " + s + ")");
+            p.rawdefine(nm," REF -> " + s);
         } catch (ProverException e) {
             throw new RuntimeException(e);
         }
 
-        result.append("(");
         result.append(fieldId);
-        result.append(" ");
+        result.append("(");
         that.selected.accept(this);
         result.append(")");
     }
@@ -660,7 +638,7 @@ public class YicesJCExpr extends JmlTreeScanner {
     @Override
     public void visitTypeCast(JCTypeCast that) {
         result.append("(");
-        result.append(YicesProver.CAST);
+        result.append(CVC3Prover.CAST);
         result.append(" ");
         that.expr.accept(this);
         result.append(" ");
@@ -670,7 +648,7 @@ public class YicesJCExpr extends JmlTreeScanner {
     
     @Override
     public void visitTree(JCTree tree) {
-        Exception e = new ProverException("Did not expect to call a visit method in YicesJCExpr: " + tree.getClass());
+        Exception e = new ProverException("Did not expect to call a visit method in CVC3Expr: " + tree.getClass());
         throw new RuntimeException(e);
     }
     

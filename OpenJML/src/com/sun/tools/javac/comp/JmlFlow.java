@@ -51,7 +51,7 @@ public class JmlFlow extends Flow {
         Flow instance = context.get(flowKey); 
         if (instance == null)
             instance = new JmlFlow(context); // Registers itself in the super constructor
-        return (JmlFlow)instance; // If the registered instance is only an Flow, something is catastrophically wrong
+        return (JmlFlow)instance; // If the registered instance is only a Flow, something is catastrophically wrong
     }
     
     /** The compilation context of this instance */
@@ -95,6 +95,8 @@ public class JmlFlow extends Flow {
         }
     }
     
+    // FIXME - document better why this is here
+    // is tree.meth null for some JML constructs?
     @Override
     public void visitApply(JCMethodInvocation tree) {
         if (tree.meth != null) super.visitApply(tree);

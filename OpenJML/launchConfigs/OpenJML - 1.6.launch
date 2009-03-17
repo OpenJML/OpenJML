@@ -23,5 +23,5 @@
 <booleanAttribute key="org.eclipse.jdt.launching.DEFAULT_CLASSPATH" value="false"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value=""/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="OpenJML"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseProjectLocation=${project_loc:OpenJML} -Dopenjml.eclipseSpecsProjectLocation=${project_loc:JMLspecs} -Dopenjml.prover.yices=C:/home/apps/yices-cygwin/yices-1.0.12/bin/yices.exe"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseProjectLocation=${project_loc:OpenJML} -Dopenjml.eclipseSpecsProjectLocation=${project_loc:JMLspecs} -Dopenjml.prover.yices=C:/home/mybin/yices.exe"/>
 </launchConfiguration>

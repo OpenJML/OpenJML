@@ -14,6 +14,7 @@ import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.esc.BasicBlocker;
+import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 
 import com.sun.tools.javac.code.Symbol;
@@ -32,14 +33,14 @@ import com.sun.tools.javac.util.Name;
  * walker.
  * @author David Cok
  */
-public class YicesJCExpr extends JmlTreeScanner {
+public class SimplifyTranslator extends JmlTreeScanner {
 
     /** The tool used to report errors and warnings */
 //    protected Log log;
     
     /** The prover that invoked this translator; we need this because we have to
      * tell it to define variables as they are encountered. */
-    /*@ non_null */protected YicesProver p;
+    /*@ non_null */protected AbstractProver p;
     
     /** Does the translation.  
      * 
@@ -47,7 +48,7 @@ public class YicesJCExpr extends JmlTreeScanner {
      * @param p the prover invoking this translation
      * @return the translated string
      */
-    public String toYices(JCTree t) 
+    public String translate(JCTree t) 
             throws ProverException {
         try {
             result.setLength(0);
@@ -70,7 +71,7 @@ public class YicesJCExpr extends JmlTreeScanner {
      * 
      * @param p the prover to connect with
      */
-    protected YicesJCExpr(/*@ non_null */YicesProver p) {
+    protected SimplifyTranslator(/*@ non_null */AbstractProver p) {
         this.p = p;
     }
 
@@ -91,13 +92,13 @@ public class YicesJCExpr extends JmlTreeScanner {
     protected boolean define(String name, String type) {
         try {
             if (YicesProver.TYPE.equals(type)) {
-                boolean n = p.rawdefine(name,type);
+                boolean n = ((SimplifyProver)p).rawdefine(name,type);
                 if (n) return n;
-                String s = "(= ("+"distinct$"+" "+name+") " + (++distinctCount) +")";
+                String s = "(EQ ("+"distinct$"+" "+name+") " + (++distinctCount) +")";
                 p.rawassume(s);
                 return false;
             } else {
-                return p.rawdefine(name,type);
+                return ((SimplifyProver)p).rawdefine(name,type);
             }
         } catch (ProverException e) {
             throw new RuntimeException(e);
@@ -108,11 +109,15 @@ public class YicesJCExpr extends JmlTreeScanner {
     public void visitIdent(JCIdent that) {
         // Make sure the id is defined.
         // Emit it simply as its string
-        try { 
+//        try { 
             String id = that.toString();
-            p.rawdefine(id,convertIdentType(that));  // rawdefine does not repeat a definition
-        } catch (ProverException e) { System.out.println("PROVER ERROR");   }
-        result.append(that.toString());
+//            p.rawdefine(id,convertIdentType(that));  // rawdefine does not repeat a definition
+//        } catch (ProverException e) { System.out.println("PROVER ERROR");   }
+        String s = that.toString();
+        if (s.startsWith("_$")) s = s.substring(2);
+        s = s.replace('$','Z');
+        s = s.replace('_','Y');
+        result.append(s);
     }
     
     public String convertIdentType(JCIdent that) {
@@ -177,6 +182,9 @@ public class YicesJCExpr extends JmlTreeScanner {
                     s = s.replace("<","$_");
                     s = s.replace(",","..");
                     s = s.replace(">","_$");
+                    s = s.replace("$","Z");
+                    s = s.replace("_","Y");
+                    s = "|" + s + "|";
                     define(s,YicesProver.TYPE);
                     result.append(s);
                 } else {
@@ -192,6 +200,10 @@ public class YicesJCExpr extends JmlTreeScanner {
                 // We want to use it simply as an int
                 result.append(that.value.toString());
                 break;
+            case TypeTags.BOOLEAN:
+                result.append(that.getValue().equals(Boolean.TRUE) ? "TRUE" : "FALSE");
+                break;
+                
             default:
                 result.append(that.toString());
         }
@@ -204,7 +216,7 @@ public class YicesJCExpr extends JmlTreeScanner {
         switch (that.token) {
             case BSTYPEOF:
                 result.append("(");
-                result.append(YicesProver.TYPEOF);
+                result.append(SimplifyProver.TYPEOF);
                 result.append(" ");
                 that.args.get(0).accept(this);
                 result.append(")");
@@ -227,22 +239,22 @@ public class YicesJCExpr extends JmlTreeScanner {
             else {
                 // check for definition
                 String nm = that.meth.toString();
-                if (!p.isDefined(nm)) {
-                    // Was not already defined
-                    String s = "(define " + nm + "::(->";
-                    for (JCExpression e: that.args) {
-                        s = s + " " + p.defineType(e.type);
-                    }
-                    String t = p.defineType(that.type);
-                    p.checkAndDefine(nm,t);
-                    s = s + " " + t + "))\n";
-                    try {
-                        p.send(s);
-                        p.eatPrompt();
-                    } catch (ProverException e) {
-                        throw new RuntimeException(e);
-                    }
-                } 
+//                if (!p.isDefined(nm)) {
+//                    // Was not already defined
+//                    String s = "(define " + nm + "::(->";
+//                    for (JCExpression e: that.args) {
+//                        s = s + " " + p.defineType(e.type);
+//                    }
+//                    String t = p.defineType(that.type);
+//                    p.checkAndDefine(nm,t);
+//                    s = s + " " + t + "))\n";
+//                    try {
+//                        p.send(s);
+//                        p.eatPrompt();
+//                    } catch (ProverException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                } 
                 // regular method application
                 result.append("(");
                 that.meth.accept(this);
@@ -293,18 +305,18 @@ public class YicesJCExpr extends JmlTreeScanner {
             JCExpression rhs = that.args.get(3);
             Type t = rhs.type;
             String s = BasicBlocker.encodeType(t);
-            try {
+//            try {
                 String type = "(-> REF " + s + ")";
-                if (!p.checkAndDefine(newfield.toString(),type)) {
-                    // Was not already defined
-                    p.send("(define " + newfield + "::" + type + ")\n");
-                    p.eatPrompt();
-                } 
-                if (!p.checkAndDefine(oldfield.toString(),type)) {
-                    // Was not already defined
-                    p.send("(define " + oldfield + "::(-> REF " + s + "))\n");
-                    p.eatPrompt();
-                } 
+//                if (!p.checkAndDefine(newfield.toString(),type)) {
+//                    // Was not already defined
+//                    p.send("(define " + newfield + "::" + type + ")\n");
+//                    p.eatPrompt();
+//                } 
+//                if (!p.(oldfield.toString(),type)) {
+//                    // Was not already defined
+//                    p.sendcheckAndDefine("(define " + oldfield + "::(-> REF " + s + "))\n");
+//                    p.eatPrompt();
+//                } 
                 result.append("(= " + newfield);
                 result.append(" (update ");
                 result.append(oldfield);
@@ -313,9 +325,9 @@ public class YicesJCExpr extends JmlTreeScanner {
                 result.append(") ");
                 rhs.accept(this);
                 result.append("))");
-            } catch (ProverException e) {
-                throw new RuntimeException(e);
-            }
+//            } catch (ProverException e) {
+//                throw new RuntimeException(e);
+//            }
         } else if (that instanceof JmlBBArrayHavoc) {
             JCIdent newarrs = (JCIdent)that.args.get(0);
             JCIdent oldarrs = (JCIdent)that.args.get(1);
@@ -338,7 +350,7 @@ public class YicesJCExpr extends JmlTreeScanner {
                 //      (/= (newarrs a) (oldarrs a))
                 //      (forall (i::int) (=> (not <precondition && i in range>) (= ((newarrs a) i) ((oldarrs a) i)))))
                 result.append("(and (forall (b::");
-                result.append(p.defineType(arr.type));
+                //result.append(p.defineType(arr.type));
                 result.append(") (=> (/= b ");
                 arr.accept(this);
                 result.append(") (= (");
@@ -387,7 +399,7 @@ public class YicesJCExpr extends JmlTreeScanner {
         // arithmetic negation (-) as: (- 0 arg)   [there is no unary negation]
         switch (that.getTag()) {
             case JCTree.NOT:
-                result.append("(not ");
+                result.append("(NOT ");
                 break;
             case JCTree.NEG:
                 result.append("(- 0 ");
@@ -411,13 +423,17 @@ public class YicesJCExpr extends JmlTreeScanner {
         int typetag = that.type.tag;
         switch (that.getTag()) {
             case JCTree.EQ:
-                result.append("= ");
+                if (that.lhs.type.tag == TypeTags.BOOLEAN) {
+                    result.append("IFF ");
+                } else {
+                    result.append("EQ ");
+                }
                 break;
             case JCTree.AND:
-                result.append("and ");
+                result.append("AND ");
                 break;
             case JCTree.OR:
-                result.append("or ");
+                result.append("OR ");
                 break;
             case JCTree.PLUS:
                 result.append("+ ");
@@ -467,7 +483,7 @@ public class YicesJCExpr extends JmlTreeScanner {
                 //result.append("mod ");
                 //break;
             case JCTree.NE:
-                result.append("/= ");
+                result.append("NEQ ");
                 break;
             case JCTree.LE:
                 result.append("<= ");
@@ -501,20 +517,25 @@ public class YicesJCExpr extends JmlTreeScanner {
         // encoded as: (op lhs rhs)
         result.append("(");
         if (that.op == JmlToken.IMPLIES) {
-            result.append("=> ");
+            result.append("IMPLIES ");
         } else if (that.op == JmlToken.EQUIVALENCE) {
-            result.append("= ");
+            result.append("IFF ");
         } else if (that.op == JmlToken.INEQUIVALENCE) {
-            result.append("/= ");
+            result.append("(NOT (IFF ");
+            that.lhs.accept(this);
+            result.append(" ");
+            that.rhs.accept(this);
+            result.append("))");
+            return;
         } else if (that.op == JmlToken.REVERSE_IMPLIES) {
-            result.append("=> ");
+            result.append("IMPLIES ");
             that.rhs.accept(this);
             result.append(" ");
             that.lhs.accept(this);
             result.append(")");
             return;
         } else if (that.op == JmlToken.SUBTYPE_OF) {
-            result.append(YicesProver.SUBTYPE);
+            result.append(SimplifyProver.SUBTYPE);
             result.append(" ");
         } else {
            throw new RuntimeException(new ProverException("Binary operator not implemented for Yices: " + that.getTag()));
@@ -569,15 +590,15 @@ public class YicesJCExpr extends JmlTreeScanner {
 //                p.eatPrompt();
 //            }
             String ty = "refA$" + comptype;
-            p.rawdefinetype(ty,"(subtype (a::ARRAYorNULL) (or (= a NULL) (subtype$ (typeof$ a) T$java.lang.Object$$A)))",YicesProver.ARRAY);
-            for (String arr: ids) {
-                if (!p.isDefined(arr)) {
-                    String arrty = "(-> " + ty + " (-> int "+comptype+"))";
-                    // Was not already defined
-                    p.rawdefine(arr,arrty);
-                }
-            }
-        } catch (ProverException e) {
+//            p.rawdefinetype(ty,"(subtype (a::ARRAYorNULL) (or (= a NULL) (subtype$ (typeof$ a) T$java.lang.Object$$A)))",YicesProver.ARRAY);
+//            for (String arr: ids) {
+//                if (!p.isDefined(arr)) {
+//                    String arrty = "(-> " + ty + " (-> int "+comptype+"))";
+//                    // Was not already defined
+//                    p.rawdefine(arr,arrty);
+//                }
+//            }
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -591,16 +612,19 @@ public class YicesJCExpr extends JmlTreeScanner {
         // FIXME - document
         JCIdent fieldId = ((JmlBBFieldAccess)that).fieldId;
         Type t = that.type;
-        try {
-            String s = p.defineType(t);
-            String nm = fieldId.toString();
-            p.rawdefine(nm,"(-> REF " + s + ")");
-        } catch (ProverException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            String s = p.defineType(t);
+//            String nm = fieldId.toString();
+//            p.rawdefine(nm,"(-> REF " + s + ")");
+//        } catch (ProverException e) {
+//            throw new RuntimeException(e);
+//        }
 
         result.append("(");
-        result.append(fieldId);
+        String s = fieldId.toString();
+        s = s.replace('$','Z');
+        s = s.replace('_','Y');
+        result.append(s);
         result.append(" ");
         that.selected.accept(this);
         result.append(")");
@@ -616,17 +640,17 @@ public class YicesJCExpr extends JmlTreeScanner {
         do {
 
             for (JCVariableDecl decl: that.decls) {
-                String ytype = p.defineType(decl.type);
+//                String ytype = p.defineType(decl.type);
 
                 String id = decl.name.toString();
                 result.append(id);
-                result.append("::");
-                result.append(ytype);
+//                result.append("::");
+//                result.append(ytype);
                 result.append(" ");
                 
-                String oldType = p.getTypeString(id);
-                oldTypes.add(oldType);
-                p.declare(id,ytype);
+//                String oldType = p.getTypeString(id);
+//                oldTypes.add(oldType);
+//                p.declare(id,ytype);
             }
 
             if (that.predicate instanceof JmlQuantifiedExpr) {
@@ -646,15 +670,15 @@ public class YicesJCExpr extends JmlTreeScanner {
         }
         result.append(")");
         
-        for (JCVariableDecl decl: that.decls) {
-            String id = decl.name.toString();
-            String ot = oldTypes.remove(0);
-            if (ot == null) {
-                p.removeDeclaration(id);
-            } else {
-                p.declare(id,ot);
-            }
-        }
+//        for (JCVariableDecl decl: that.decls) {
+//            String id = decl.name.toString();
+//            String ot = oldTypes.remove(0);
+//            if (ot == null) {
+//                p.removeDeclaration(id);
+//            } else {
+//                p.declare(id,ot);
+//            }
+//        }
     }
     
     @Override

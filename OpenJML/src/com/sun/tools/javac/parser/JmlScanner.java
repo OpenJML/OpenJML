@@ -7,6 +7,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlOptionName;
 import org.jmlspecs.openjml.JmlToken;
 
+import com.sun.tools.javac.parser.Scanner.CommentStyle;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.LayoutCharacters;
@@ -42,7 +43,7 @@ import com.sun.tools.javac.util.Name;
  *
  * @author David Cok
  */
-public class JmlScanner extends Scanner {
+public class JmlScanner extends DocCommentScanner {
 
     /**
      * This factory is used to generate instances of JmlScanner. There is
@@ -50,7 +51,7 @@ public class JmlScanner extends Scanner {
      * have a consistent set of information across all files parsed within a
      * compilation task.
      */
-    public static class JmlFactory extends Scanner.Factory {
+    public static class JmlFactory extends DocCommentScanner.Factory {
 
         /**
          * Not yet used - we'd like to use a different message factory for JML
@@ -62,7 +63,7 @@ public class JmlScanner extends Scanner {
         public Context                 context;
 
         /**
-         * Creates as new factory that creates instances of JmlScanner
+         * Creates a new factory that creates instances of JmlScanner
          * 
          * @param context
          *            The common context used for this whole compilation
@@ -121,7 +122,7 @@ public class JmlScanner extends Scanner {
     }
 
     /**
-     * A flag which, when true, causes all JML constructs to be ignored; it is
+     * A flag that, when true, causes all JML constructs to be ignored; it is
      * set on construction according to a command-line option.
      */
     public boolean         noJML         = false;
@@ -149,7 +150,7 @@ public class JmlScanner extends Scanner {
     protected JmlToken     jmlToken;
 
     /**
-     * Creates a new scanner, but you should use JmlScanner.instance()
+     * Creates a new scanner, but you should use JmlFactory.newScanner()
      * to get one, not this constructor.
      * 
      * @param fac
@@ -166,7 +167,7 @@ public class JmlScanner extends Scanner {
     }
 
     /**
-     * Creates a new scanner, but you should use JmlScanner.instance()
+     * Creates a new scanner, but you should use JmlFactory.newScanner()
      * to get one, not this constructor.
      * 
      * @param fac
@@ -209,7 +210,7 @@ public class JmlScanner extends Scanner {
     }
 
     // This is called whenever the Java (superclass) scanner has scanned a whole
-    // comment. We override it in order to handle JML comments specially. This
+    // comment. We override it in order to handle JML comments specially. The overridden
     // method returns and proceeds immediately to scan for the next token. Thus
     // we have to trick it into seeing a token that is mapped into the
     // STARTJMLCOMMENT token - we use an @ token along with jml=true to signal
@@ -220,9 +221,12 @@ public class JmlScanner extends Scanner {
         // comment characters.
         // It does not include line ending for line comments, so
         // an empty line comment can be just two characters.
-        if (noJML)
+        if (noJML || style == CommentStyle.JAVADOC) {
+            super.processComment(style);
             return;
+        }
 
+        // Save the buffer positions in the super class
         int end = endPos();
         int bpend = bp;
         char chend = ch;
@@ -240,8 +244,9 @@ public class JmlScanner extends Scanner {
                             // annotation
             scanChar();
         }
-        if (ch != '@') { // Since jml==false, we don't need to worry that
-                            // this @ represents a backslash
+        
+        // If there is not an '@' next, there is no JML comment
+        if (ch != '@') {
             // Restart at the end
             bp = bpend;
             ch = chend;
@@ -280,8 +285,8 @@ public class JmlScanner extends Scanner {
      * endPos() gives (one past) the end character position of the scanned
      * token.
      * <P>
-     * Note that one of the following holds at return from this method a)
-     * token() != CUSTOM && jmlToken() == null (a Java token)<BR>
+     * Note that one of the following holds at return from this method:<BR>
+     * a) token() != CUSTOM && jmlToken() == null (a Java token)<BR>
      * b) token() == CUSTOM && jmlToken() != null (a JML token)<BR>
      * c) token() == IMPORT && jmlToken() == MODEL (the beginning of a model
      * import)<BR>
@@ -303,7 +308,7 @@ public class JmlScanner extends Scanner {
             // Possible situations at this point
             // a) token != CUSTOM, token != null, jmlToken == null, jml == false
             // (a Java token)
-            // b) token == MONKEYS_AT, jml == true (STARTJMLTOKEN)
+            // b) token == MONKEYS_AT, jml == true (STARTJMLTOKEN) - from processComment
             // In case (b) there are a number of special things to check
             // 1) the next token is REFINES - then set token=IMPORT,
             // jmlToken=REFINES (and read the token)
@@ -317,19 +322,20 @@ public class JmlScanner extends Scanner {
                 jmlToken = JmlToken.STARTJMLCOMMENT;
                 char prevch = ch;
                 int prevbp = bp;
-                int prevpos = pos;
+                int prevpos = _pos;
                 int prevendpos = endPos();
                 super.nextToken();
                 while (jmlToken == JmlToken.NOWARN) {
                     scanNowarn();
                         // The scanner is just past the terminating semicolon
-                     prevch = ch;
-                     prevbp = bp;
-                     prevpos = pos;
-                     prevendpos = endPos();
-                     jmlToken = null;
+                    prevch = ch;
+                    prevbp = bp;
+                    prevpos = _pos;
+                    prevendpos = endPos();
+                    jmlToken = null;
                     super.nextToken();
                 }
+                // TODO - do we need to check the commentstyle here?
                 if (token() == Token.STAR && ch == '/') {
                     // We just saw a JML comment start, and now we
                     // are seeing a comment end.  We will just ignore
@@ -346,9 +352,10 @@ public class JmlScanner extends Scanner {
                 } else if (jmlToken == JmlToken.MODEL) {
                     super.nextToken();
                     if (!jml) {
+                        // TODO - what if it is a model variable or method or class that is not in a JML comment
                         // error - the entire model import statement must be in
                         // the JML comment
-                        jmlError(pos, "jml.illformed.model.import");
+                        jmlError(_pos, "jml.illformed.model.import");
                         skipThroughChar(';');
                     } else if (token() == Token.IMPORT) {
                         jmlToken = JmlToken.MODEL;
@@ -356,7 +363,7 @@ public class JmlScanner extends Scanner {
                         // Need to backtrack
                         ch = prevch;
                         bp = prevbp;
-                        pos = prevpos;
+                        _pos = prevpos;
                         endPos = prevendpos;
                         token(Token.CUSTOM);
                         jmlToken = JmlToken.STARTJMLCOMMENT;
@@ -405,14 +412,15 @@ public class JmlScanner extends Scanner {
                     }
                 } else if (token() == Token.ERROR) {
                     // Don't backtrack over the error token
-                    pos = prevpos;
+                    // so leave ch and bp unchanged - they are the error
+                    _pos = prevpos;
                     endPos = prevendpos;
                     jmlToken = JmlToken.STARTJMLCOMMENT;
                     token(Token.CUSTOM);
                 } else {
                     ch = prevch;
                     bp = prevbp;
-                    pos = prevpos;
+                    _pos = prevpos;
                     endPos = prevendpos;
                     jmlToken = JmlToken.STARTJMLCOMMENT;
                     token(Token.CUSTOM);
@@ -521,11 +529,11 @@ public class JmlScanner extends Scanner {
             } else if (jmlToken == JmlToken.MODEL) {
                 char prevch = ch;
                 int prevbp = bp;
-                int prevpos = pos;
+                int prevpos = _pos;
                 int prevendpos = endPos();
                 super.nextToken();
                 if (!jml) {
-                    jmlError(pos, "jml.illformed.model.import");
+                    jmlError(_pos, "jml.illformed.model.import");
                     skipThroughChar(';');
                     // FIXME - is this only true for model import statements?
                     // error - the entire model import statement must be in the
@@ -536,13 +544,13 @@ public class JmlScanner extends Scanner {
                     // Need to backtrack
                     ch = prevch;
                     bp = prevbp;
-                    pos = prevpos;
+                    _pos = prevpos;
                     endPos = prevendpos;
                     token(Token.CUSTOM);
                     jmlToken = JmlToken.MODEL;
                 }
             } else if (token() == Token.DOT && jmlToken == JmlToken.DOT_DOT) {
-                pos = pos - 1; // NOT OK FOR UNICODE
+                _pos = _pos - 1; // NOT OK FOR UNICODE
                 token(Token.CUSTOM);
             } else if (token() == Token.LBRACE && ch == '|') {
                 endPos = bp + 1; // OK for unicode
@@ -607,11 +615,16 @@ public class JmlScanner extends Scanner {
     
 
     /*
-     * Scans the next character, doing any unicode conversion; if jml is true,
-     * then any backslash is converted to @ with backslashSeen set true. The
+     * Scans the next character, doing any unicode conversion. The
      * buffer pointer is incremented BEFORE fetching the character. So except
      * for unicode and backslash issues, after this call, buf[bp] == ch; This
-     * does not set pos() or endPos().
+     * does not set pos() or endPos().  If the character scanned is unicode,
+     * then upon return, bp points to the last character of the unicode 
+     * sequence within the character buffer (buf).  Also, if the character
+     * just scanned is unicode, then unicodeConversionBp == bp.  This enables
+     * a check (via the test unicodeConversionBp == bp) of whether the character
+     * just scanned is unicode and hence not allowed to be the backslash that
+     * starts a new unicode sequence.
      */
     @Override
     protected void scanChar() {
@@ -641,7 +654,7 @@ public class JmlScanner extends Scanner {
         if (jml) {
             if (jmlcommentstyle == CommentStyle.LINE) {
                 jml = false;
-                ch = '@';
+                ch = '@'; // Signals the end of comment to nextToken()
                 bp--; // FIXME - not right for unicode
             } else {
                 // skip any whitespace followed by @ symbols
@@ -672,7 +685,7 @@ public class JmlScanner extends Scanner {
             // FIXME - what if we are at the end of the input buffer
             // We have to do this before scanning a token, because the Java
             // scanner issues an error about ..
-            pos = bp;
+            _pos = bp;
             scanChar();
             jmlToken = JmlToken.DOT_DOT;
         }
@@ -693,6 +706,7 @@ public class JmlScanner extends Scanner {
         if (t == Token.IDENTIFIER) {
             Name n = name();
             String s = n.toString().intern();
+            // TODO - we are just ignoring the redundantly suffixes
             if (s.endsWith("_redundantly")) {
                 s = s.substring(0, s.length() - "_redundantly".length());
             }
@@ -717,7 +731,7 @@ public class JmlScanner extends Scanner {
     protected void scanOperator() {
         if (jml && ch == '\\') { 
             // backslash identifiers get redirected here since a \ itself is an
-            // error
+            // error in pure Java
             int ep = pos();
             scanChar();
             if (Character.isLetter(ch)) {
@@ -797,6 +811,17 @@ public class JmlScanner extends Scanner {
                 token(Token.CUSTOM);
                 jmlToken = JmlToken.LEFT_ARROW; // <-
                 scanChar();
+            } else if (ch == '#') {
+                endPos = bp + 1;
+                token(Token.CUSTOM);
+                jmlToken = JmlToken.LOCK_LT; // <#
+                scanChar();
+                if (ch == '=') {
+                    endPos = bp + 1;
+                    token(Token.CUSTOM);
+                    jmlToken = JmlToken.LOCK_LE; // <#=
+                    scanChar();
+                }
             }
         } else if (t == Token.SUB) {
             if (ch == '>') {
@@ -819,19 +844,14 @@ public class JmlScanner extends Scanner {
             scanChar();
     }
 
-    // FIXME - would like to open up visibility so that we can have errors
-    // tagged as jml errors, as well as those tagged as compiler errors
-    protected void jmlError(int pos, String key, Object... args) {// DRC -
-                                                                    // changed
-                                                                    // from
-                                                                    // private
-                                                                    // to
-                                                                    // protected
+    // FIXME - would like to have errors
+    // tagged as jml errors
+    protected void jmlError(int pos, String key, Object... args) {
         lexError(pos, key, args);
-        // log.report(fac.jmlMessageFactory.error(log.source, log.wrap(pos),
-        // key, args));
-        // token(ERROR);
-        // errPos(pos);
+//         log.report(fac.jmlMessageFactory.error(log.source, log.wrap(pos),
+//         key, args));
+//         token(ERROR);
+//         errPos(pos);
     }
 
 }

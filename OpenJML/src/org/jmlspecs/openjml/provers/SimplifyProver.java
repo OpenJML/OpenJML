@@ -4,17 +4,28 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
+import org.jmlspecs.openjml.proverinterface.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverException;
+import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.util.Context;
 
 // FIXME - needs implementation
 
@@ -27,281 +38,628 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
  * @author rgrig 
  * @author reviewed by TODO
  */
-public class SimplifyProver implements IProver {
+public class SimplifyProver extends AbstractProver implements IProver {
   
-  private static final Logger log = Logger.getLogger("freeboogie.backend");
-  
-  private Process prover;
-  private List<String> cmd;
-  
-  private BufferedReader in;
-  private PrintStream out;
-  
-  // a |marker| is used to mark the beginning of an assumption frame
-//  private Deque<Term> assumptions;
-//  private Term marker; 
-  
-  private int assumeCounter = 0;
-//  private SmtTermBuilder builder;
-  
-  /**
-   * Creates a new {@code SimplifyProver}. It also tries to start the prover. 
-   * @param cmd the command to use to start the prover
-   * @throws ProverException if the prover cannot be started
-   */
-  public SimplifyProver(String[] cmd) throws ProverException {
-    this.cmd = Arrays.asList(cmd);
-//    assumptions = new ArrayDeque<Term>();
-//    marker = new Term(null);
-//    assumptions.add(marker);
-    restartProver();
-    
-//    // TODO some of this stuff is probably common to multiple provers
-//    //      so move it into the builder
-//    builder = new SmtTermBuilder();
-//    builder.def("not", new Sort[]{Sort.PRED}, Sort.PRED);
-//    builder.def("and", Sort.PRED, Sort.PRED);
-//    builder.def("or", Sort.PRED, Sort.PRED);
-//    builder.def("implies", new Sort[]{Sort.PRED, Sort.PRED}, Sort.PRED);
-//    builder.def("iff", new Sort[]{Sort.PRED, Sort.PRED}, Sort.PRED);
-//    builder.def("var_int", String.class, Sort.VARINT);
-//    builder.def("var_bool", String.class, Sort.VARBOOL);
-//    builder.def("var_pred", String.class, Sort.PRED);
-//    builder.def("const_int", BigInteger.class, Sort.INT);
-//    builder.def("const_bool", Boolean.class, Sort.BOOL);
-//    builder.def("forall_int", new Sort[]{Sort.VARINT, Sort.PRED}, Sort.PRED);
-//    builder.def("<", new Sort[]{Sort.INT, Sort.INT}, Sort.PRED);
-//    builder.def("<=", new Sort[]{Sort.INT, Sort.INT}, Sort.PRED);
-//    builder.def(">", new Sort[]{Sort.INT, Sort.INT}, Sort.PRED);
-//    builder.def(">=", new Sort[]{Sort.INT, Sort.INT}, Sort.PRED);
-//    builder.def("eq_int", new Sort[]{Sort.INT, Sort.INT}, Sort.PRED);
-//    builder.def("eq_bool", new Sort[]{Sort.BOOL, Sort.BOOL}, Sort.PRED);
-//    // TODO register all stuff with the builder
-//    // TODO should I leave the user (vcgen) responsible for adding the
-//    //      excluded middle for boolean variables? i think that's in the
-//    //      escjava background predicate anyway
-//    builder.pushDef(); // mark the end of the prover builtin definitions
-  }
-  
-  // TODO This is quite incomplete now
-//  private void printTerm(Term t, StringBuilder sb) {
-//    SmtTerm st = (SmtTerm)t;
-//    if (st.id.startsWith("var")) { 
-//      sb.append((String)st.data);
-//    } else if (st.id.startsWith("forall")) {
-//      sb.append("(FORALL (");
-//      printTerm(st.children[0], sb);
-//      sb.append(") ");
-//      printTerm(st.children[1], sb);
-//      sb.append(")");
-//    } else if (st.id.equals("const_int")) {
-//      sb.append(st.data);
-//    } else if (st.id.equals("const_bool")) {
-//      if ((Boolean)st.data)
-//        sb.append("|true|");
-//      else
-//        sb.append("|false|");
-//    } else if (st.id.startsWith("eq")) {
-//      sb.append("(EQ ");
-//      printTerm(st.children[0], sb);
-//      sb.append(" ");
-//      printTerm(st.children[1], sb);
-//      sb.append(")");
-//    } else {
-//      sb.append("(");
-//      sb.append(st.id.toUpperCase());
-//      for (Term c : st.children) {
-//        sb.append(" ");
-//        printTerm(c, sb);
-//      }
-//      sb.append(")");
-//    }
-//  }
-//  
-//  private void sendTerm(Term t) {
-//    StringBuilder sb = new StringBuilder();
-//    printTerm(t, sb);
-//    log.info("backend> " + sb);
-//    out.print(sb);
-//  }
-//  
-//  private void sendAssume(Term t) {
-//    out.print("(BG_PUSH ");
-//    sendTerm(t);
-//    out.print(")\n");
-//    out.flush();
-//  }
-  
-  private void checkIfDead() throws ProverException {
-    try {
-      int ev = prover.exitValue();
-      throw new ProverException("Prover exit code: " + ev);
-    } catch (IllegalThreadStateException e) {
-      // the prover is still alive
-    }
-  }
-  
-  private void waitPrompt() throws ProverException {
-    try {
-      int c;
-      boolean firstonline = true;
-      while ((c = in.read()) != -1) {
-        if (firstonline && c == '>') return;
-        firstonline = c == '\n' || c == '\r';
-      }
-    } catch (IOException e) {
-      throw new ProverException("Can't read what Simplify says.");
-    }
-  }
-  
-//  /* @see freeboogie.backend.Prover#assume(freeboogie.backend.Term) */
-//  public int assume(Term t) throws ProverException {
-//      sendAssume(t);
-//      assumptions.add(t);
-//      checkIfDead();
-//      return ++assumeCounter;
-//    }
-//    
-//  public int assume(Term t, int weight) throws ProverException {
-//      sendAssume(t);
-//      assumptions.add(t);
-//      checkIfDead();
-//      return ++assumeCounter;
-//    }
-    
-  public int assume(JCExpression t) throws ProverException {
-//      sendAssume(t);
-//      assumptions.add(t);
-//      checkIfDead();
-      return ++assumeCounter;
-    }
-    
-  public int assume(JCExpression t, int weight) throws ProverException {
-//      sendAssume(t);
-//      assumptions.add(t);
-//      checkIfDead();
-      return ++assumeCounter;
-    }
-    
-  public void define(String id, Type t) throws ProverException {
-      // FIXME
-  }
-
-
-//  /* @see freeboogie.backend.Prover#getBuilder() */
-//  public TermBuilder getBuilder() {
-//    return builder;
-//  }
-
-  /* @see freeboogie.backend.Prover#getDetailedAnswer() */
-  public IProverResult getDetailedAnswer() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  public boolean isSat() throws ProverException {
-    // FIXME
-    return false;
-}
-
-  public IProverResult check(boolean details) throws ProverException {
-    // FIXME
-    return null;
-}
-
-//  /* @see freeboogie.backend.Prover#isSat(freeboogie.backend.Term) */
-//  public boolean isSat(Term t) throws ProverException {
-//    waitPrompt();
-//    log.fine("Got prompt, sending query.");
-////    sendTerm(builder.mk("not", t));
-//    out.println();
-//    out.flush();
-//    
-//    // wait for prompt or for Valid, Invalid, Unknown
-//    try {
-//      StringBuilder sb = new StringBuilder();
-//      while (true) {
-//        int c = in.read();
-//        if (c == '\n' || c == '\r') {
-//          String line = sb.toString();
-//          log.info("simplify> " + line);
-//          if (line.contains("Valid")) return false;
-//          if (line.contains("Invalid") || line.contains("Unknown"))
-//            return true;
-//          sb.setLength(0);
-//          continue;
+        public final static String NULL = "NULL";
+        public final static String REF = "REF";
+        public final static String ARRAY = "ARRAY";
+        public final static String ARRAYorNULL = "ARRAYorNULL";
+        public static final String TYPE = "TYPEZ";
+        public static final String TYPEOF = "typeofZ";
+        public static final String SUBTYPE = "subtypeZ";
+        public static final String CAST = "castZ";
+        
+        /** A handy StringBuilder to build strings internally */
+        /*@ non_null */
+        protected StringBuilder builder = new StringBuilder();
+        
+//        /** The accumulated list of input sent to the prover process */
+//        /*@ non_null */
+//        protected List<String> sent = new LinkedList<String>();
+    //    
+        /** The String by which to invoke the prover */
+        /*@ nullable */
+        protected String app = "C:/home/mybin/Simplify.exe"; // System.getProperty("openjml.prover.cvc3");
+        
+        /** The one instance of the associated translator */
+        /*@ non_null */
+        protected SimplifyTranslator translator;
+        
+        protected boolean interactive = true;
+        
+        protected String prompt() {
+            return ">\t";
+        }
+        // FIXME - will need to separate start from construction so there is an opportunity to set parameters (e.g. timeout)
+        /** Creates and starts the prover process, sending any startup information */
+        public SimplifyProver(Context context) throws ProverException {
+            translator = new SimplifyTranslator(this);
+            if (org.jmlspecs.openjml.esc.JmlEsc.escdebug && showCommunication <= 1) showCommunication = 2;
+            start();
+        }
+        
+        private final static String[][] predefined = { 
+            { REF, "TYPE"},
+            { TYPE, "TYPE"},
+            { NULL, REF },
+//            { "isType", "(-> REF bool)"},
+//            { TYPE, "(subtype (r::REF) (isType r))" },
+//            { "isArray", "(-> REF bool)"},
+//            { ARRAY, "(subtype (r::REF) (isArray r))"},
+//            { ARRAYorNULL, "(subtype (r::REF) (or (= r NULL) (isArray r)))"},
+//            { "T$java.lang.Object$$A", TYPE},
+//            { TYPEOF, "(-> REF "+TYPE+")"},
+//            { SUBTYPE, "(-> "+TYPE+" "+TYPE+" bool)"},
+//            { CAST, "(-> REF "+TYPE+" REF)"},
+//            { "length", "(-> REF int)"},
+//            { "length$0", "(-> REF int)"},
+//            { "idiv", "(-> int int int)"},
+//            { "rdiv", "(-> real real real)"},
+//            { "imod", "(-> int int int)"},
+//            { "rmod", "(-> real real real)"},
+//            { "imul", "(-> int int int)"},
+//            { "rmul", "(-> real real real)"},
+            { "distinct$", TYPE+" -> INT"},
+            { "subtype$", "("+TYPE+","+TYPE+") -> BOOLEAN"},
+            { "_alloc$$", REF+" -> INT"},
+            { "typeof$", REF+" -> "+TYPE},
+//            { "loc$", "(-> "+REF+" int)"},
+            };
+        
+        // This lists names builtin to CVC3
+        private final static String[][] otherpredefined = {
+          { "BOOLEAN", TYPE},
+          { "INT", TYPE},
+          { "REAL", TYPE},
+          { "BITVECTOR(1)", TYPE},
+//          { "div", "(-> int int int)"},
+//          { "mod", "(-> real real real)"},
+//          { "and", "(-> bool bool bool)"},
+//          { "or", "(-> bool bool bool)"},
+//          { "=>", "(-> bool bool bool)"},
+//          { "not", "(-> bool bool)"},
+//          { "+", "(-> int int int)"},   // Real?
+//          { "-", "(-> int int int)"},  // Real
+//          { "*", "(-> int int int)"},  // Real
+//          { "/", "(-> real real real)"},
+          // Also bit vector functions
+        };
+        
+        
+        /**The background predicate that is sent prior to anything else.  Do not include any newline characters. */
+        /*@ non_null */
+        private static String backgroundPredicate() {
+            //String BASSERT = "ASSERT ";
+            return 
+                "(DEFPRED (subtypeZ t1 t2))"
+                +"\n";
+//              "ASSERT (not (isType NULL)));"
+//            + "("+BASSERT+" (not (isArray NULL)))"
+//            + "("+BASSERT+" (forall (a::REF) (>= (length a) 0)))"
+//            + "("+BASSERT+" (= length length$0))"
+//            + "("+BASSERT+" (forall (r::REF t::"+TYPE+") (=> (and (/= r NULL) ("+SUBTYPE+" ("+TYPEOF+" r) t))  (= ("+CAST+" r t) r) ) ))"
+//            + "("+BASSERT+" (forall (t::"+TYPE+") (= ("+CAST+" NULL t) NULL) ))"
+//            + "("+BASSERT+" (forall (t::" + TYPE + ") ("+SUBTYPE + " t t)))"
+//            + "("+BASSERT+" (forall (t1::" + TYPE + " t2::" + TYPE + ") (= (and ("+SUBTYPE + " t1 t2) ("+SUBTYPE + " t2 t1)) (=  t1 t2)) ))"
+//            + "("+BASSERT+" (forall (t1::" + TYPE + " t2::" + TYPE + " t3::" + TYPE + ") (=> (and ("+SUBTYPE + " t1 t2)("+SUBTYPE + " t2 t3)) ("+SUBTYPE + " t1 t3)) ))"
+//            + "("+BASSERT+" (forall (i::int j::int) (= (imul i j) (imul j i)) ))"
+//            + "("+BASSERT+" (forall (i::int) (and (= (imul i 0) 0) (= (imul 0 i) 0) (= (imul 1 i) i) (= (imul i 1) i) (= (imul -1 i) (- 0 i)) (= (imul i -1) (- 0 i)) )))"
+////            + "("+BASSERT+" (forall (i::int j::int) (= (imul i (+ j 1)) (+ (imul i j) i) ) ))"
+////            + "("+BASSERT+" (forall (i::int j::int) (= (imul i (- j 1)) (- (imul i j) i) ) ))"
+//            + "("+BASSERT+" (forall (i::int j::int) (=> (/= j 0) (= (imod (imul i j) j) 0)) ))"
+//            + "("+BASSERT+" (forall (i::int) (and (= (imod i 1) 0) (= (imod i -1) 0) )))"
+//            + "("+BASSERT+" (= (distinct$ T$java.lang.Object$$A) 99))"
+//            + "\n";
+        }
+        
+        @Override
+        protected String[] app() {
+            return new String[]{app,"-noprune"};
+        }
+        
+        /** Does the startup work */
+        @Override
+        protected void start() throws ProverException {
+            super.start();
+            background();
+        }
+        
+        private void background() throws ProverException {
+            for (String[] pairs: otherpredefined) {
+                defined.put(pairs[0],pairs[1]);
+            }
+            // Send predefined values
+            StringBuilder s = new StringBuilder();;
+//            for (String[] pairs: predefined) {
+//                if (pairs[1] == null) {
+//                    s.append("(define-type ");
+//                    s.append(pairs[0]);
+//                    s.append(")");
+//                } else if (pairs[1].startsWith("(subtype")) {
+//                    s.append("(define-type ");
+//                    s.append(pairs[0]);
+//                    s.append(" ");
+//                    s.append(pairs[1]);
+//                    s.append(")");
+//                } else {
+//                    s.append(pairs[0]);
+//                    s.append(" : ");
+//                    s.append(pairs[1]);
+//                    s.append(";  ");
+//                }
+//                defined.put(pairs[0],pairs[1]);
+//            }
+            s.append(backgroundPredicate());
+            send(s.toString());
+            eatPrompt(interactive);
+        }
+        
+        public int assume(JCExpression tree) throws ProverException {
+            try {
+                String t = translator.translate(tree);
+                builder.setLength(0);
+                builder.append("(BG_PUSH ");
+                builder.append(t);
+                builder.append(")\n");
+                send(builder.toString());
+                eatPrompt(interactive);
+            } catch (ProverException e) {
+                e.mostRecentInput = builder.toString();
+                throw e;
+            }
+            // We use this assume counter, but the more robust method is to
+            // look at the output returned from eatPrompt (FIXME)
+            return 0;
+        }
+        
+//        public int assumePlus(JCExpression tree) throws ProverException {
+//            try {
+//                String t = translator.toCVC3(tree);
+//                builder.setLength(0);
+//                builder.append("ASSERT ");
+//                builder.append(t);
+//                builder.append(";\n");
+//                send(builder.toString());
+//                eatPrompt(interactive);
+//            } catch (ProverException e) {
+//                e.mostRecentInput = builder.toString();
+//                throw e;
+//            }
+//            // We use this assume counter, but the more robust method is to
+//            // look at the output returned from eatPrompt (FIXME)
+//            return 0;
 //        }
-//        if (c == '>' && sb.length() == 0)
-//          throw new ProverException("The prover seems a bit confused.");
-//        if (c == -1)
-//          throw new ProverException("Prover died.");
-//        sb.append((char)c);
-//      }
-//    } catch (IOException e) {
-//      throw new ProverException("Failed to read prover answer.");
-//    }
-//  }
+        
+        public int assume(JCExpression tree, int weight) throws ProverException {
+            return assume(tree);
+        }
+        
+        public int rawassume(String t) throws ProverException {
+            try {
+                builder.setLength(0);
+                builder.append("(BG_PUSH ");
+                builder.append(t);
+                builder.append(")\n");
+                send(builder.toString());
+                eatPrompt(interactive);
+            } catch (ProverException e) {
+                e.mostRecentInput = builder.toString();
+                throw e;
+            }
+            return 0;
+        }
+        
+        
+        
+        public void reassertCounterexample(ICounterexample ce) {
+            // CVC3 reasserts its own counterexamples when a QUERY is requested
+        }
 
-  public void pop() throws ProverException {
-//    while (assumptions.getLast() != marker) retract();
-//    assumptions.removeLast();
-  }
 
-  public void push() {
-//    assumptions.push(marker);
-  }
+        
+        protected String pretty(String s) {
+            return s;
+//            if (s.length() <= 50) return s;
+//            StringBuilder sb = new StringBuilder();
+//            //System.out.println("CONVERTING " + s);
+//            char[] cc = s.toCharArray();
+//            int nparens = 0;
+//            int nind = 2;
+//            for (int i=0; i<cc.length; ++i) {
+//                char c = cc[i];
+//                if (c == ')') { nparens--; sb.append(c); continue; }
+//                if (c == '(') { 
+//                    if (cc[i+1]=='=' && cc[i+2]=='>' && nind == nparens) {
+//                        nind++;
+//                        nparens++;
+//                        sb.append("\n                    ");
+//                        int k = nparens;
+//                        while (--k >= 0) sb.append(' ');
+//                        sb.append("(=>");
+//                        i += 2;
+//                        continue;
+//                    } else if (cc[i+1] == 'a' && cc[i+2] == 'n' && nind == nparens) {
+//                        nind++;
+//                        nparens++;
+//                        sb.append("\n                    ");
+//                        int k = nparens;
+//                        while (--k >= 0) sb.append(' ');
+//                        sb.append("(an");
+//                        i += 2;
+//                        continue;
+//                    }
+//                    if (i != 0 && nparens == 0) sb.append("\n               ");
+//                    nparens++; 
+//                    sb.append(c);
+//                    continue; 
+//                }
+//                sb.append(c);
+//            }
+//            return sb.toString();
+        }
+        
+        /** Converts an AST type to a type that CVC3 knows
+         * 
+         * @param t the AST type
+         * @return the CVC3 equivalent
+         */
+        public String convertType(Type t) {
+            String s;
+            if (!t.isPrimitive()) {
+                if (t instanceof ArrayType) {
+                    t = ((ArrayType)t).getComponentType();
+                    s = "refA$" + convertType(t);
+                } else {
+                    s = REF;
+                }
+            } else if (t.tag == TypeTags.BOOLEAN) {
+                s = "BOOLEAN";
+            } else {
+                s = "INT";
+            }
+            return s;
+        }
+        
+        /** The set of variables already defined in CVC3 (since CVC3 objects if
+         * a variable is defined more than once).
+         */
+        private Map<String,String> defined = new HashMap<String,String>();
+        
+        /** A stack holding lists of defined variables between various push() calls,
+         * since a pop removes the definitions as well.
+         */
+        private List<List<String>> stack = new LinkedList<List<String>>();
+        
+        /** The list of definitions since the last push (duplicates some of those
+         * in 'defined'.
+         */
+        private List<String> top = new LinkedList<String>();
+        
+        /** Checks if the argument is already defined, recording it as defined
+         *  if it is not.
+         * @param id the variable to define
+         * @return true if it was already recorded as defined, false if it was not
+         */
+        public boolean checkAndDefine(String id, String typeString) {
+            if (isDefined(id)) return true;
+            defined.put(id,typeString);
+            top.add(id);
+            return false;
+        }
+        
+        public void declare(String id, String typeString) {
+            defined.put(id,typeString);
+            top.add(id);
+        }
+        
+        public boolean removeDeclaration(String id) {
+            defined.remove(id);
+            top.remove(id);
+            return false;
+        }
+        
+        public boolean isDefined(String id) {
+            return defined.containsKey(id); 
+        }
+        
+        public String getTypeString(String id) {
+            return defined.get(id);
+        }
+        
+        public String defineType(Type t) {
+//            String s = convertType(t);
+//            if (isDefined(s)) return s; // DO nothing if already defined
+//            builder.setLength(0);
+//            if (t.tag == TypeTags.ARRAY) {
+//                Type ct = ((ArrayType)t).elemtype;
+//                if (ct instanceof ArrayType) defineType(ct);
+//                String ss = "(subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A))";
+//                builder.append("(define-type " + s + " " + ss + ")\n");
+//                declare(s,ss);
+//            } else {
+//                builder.append(s);
+//                builder.append(" : TYPE;\n");
+//                declare(s,null);
+//            }
+//            try {
+//                send(builder.toString());
+//                eatPrompt(interactive);
+//            } catch (ProverException e) {
+//                e.mostRecentInput = builder.toString();
+//                throw new RuntimeException(e);
+//            }
+//            return s;
+            return "";
+        }
 
-  /* @see freeboogie.backend.Prover#restartProver() */
-  public void restartProver() throws ProverException {
-    log.fine("exec: " + cmd);
-    ProcessBuilder pb = new ProcessBuilder(cmd);
-    try {
-      prover = pb.start();
-      in = new BufferedReader(new InputStreamReader(prover.getInputStream()));
-      out = new PrintStream(prover.getOutputStream());
-      out.println("(PROMPT_ON)"); // make sure prompt is ON
-//      for (Term t : assumptions) if (t != marker) sendAssume(t);
-      out.flush();
-    } catch (Exception e) {
-      throw new ProverException("Cannot start prover." + cmd);
+        public String defineType(String s, boolean array) throws ProverException {
+//            if (checkAndDefine(s,"TYPE")) return s; // DO nothing if already defined
+//            builder.setLength(0);
+//            if (array) {
+//                String cs = s.substring("refA$".length());
+//                defineType(cs,cs.startsWith("refA"));
+//                builder.append("(define-type " + s + " (subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))\n");
+//            } else {
+//                builder.append(s);
+//                builder.append(" : TYPE;\n");
+//            }
+//            try {
+//                send(builder.toString());
+//                eatPrompt(interactive);
+//            } catch (ProverException e) {
+//                e.mostRecentInput = builder.toString();
+//                throw e;
+//            }
+            return s;
+        }
+        
+        public void define(String id, Type t) throws ProverException {
+            if (isDefined(id)) return; // DO nothing if already defined
+            builder.setLength(0);
+            String s = defineType(t);
+            declare(id,s);
+            builder.append(id);
+            builder.append(" : ");
+            builder.append(s);
+            builder.append(";\n");
+            try {
+                send(builder.toString());
+                eatPrompt(interactive);
+            } catch (ProverException e) {
+                e.mostRecentInput = builder.toString();
+                throw e;
+            }
+        }
+
+        /** Defines an id as a given (raw) type; returns true and does nothing if the
+         * id was already defined.
+         * @param id the identifier to be defined
+         * @param typeString the string denoting the already converted type
+         * @return true if already defined, false if now newly defined
+         * @throws ProverException
+         */
+        public boolean rawdefine(String id, String typeString) throws ProverException {
+            if (checkAndDefine(id,typeString)) return true; // DO nothing if already defined
+//            if (typeString.indexOf("->")<0) defineType(typeString,typeString.startsWith("refA"));
+//            builder.setLength(0);
+//            builder.append(" ");
+//            builder.append(id);
+//            builder.append(":");
+//            builder.append(typeString);
+//            builder.append(";\n");
+//            try {
+//                send(builder.toString());
+//                eatPrompt(interactive);
+//            } catch (ProverException e) {
+//                e.mostRecentInput = builder.toString();
+//                throw e;
+//            }
+//            return false;
+            return true;
+        }
+
+        public boolean rawdefinetype(String id, String typeString, String recordedtype) throws ProverException {
+//            if (isDefined(id)) return true; // DO nothing if already defined
+//            declare(id,recordedtype);
+//            builder.setLength(0);
+//            builder.append("(define-type ");
+//            builder.append(id);
+//            builder.append(" ");
+//            builder.append(typeString);
+//            builder.append(")\n");
+//            try {
+//                send(builder.toString());
+//                eatPrompt(interactive);
+//            } catch (ProverException e) {
+//                e.mostRecentInput = builder.toString();
+//                throw e;
+//            }
+//            return false;
+            return true;
+        }
+
+
+        /** A pattern to interpret CVC3 counterexample information */
+        static private Pattern pattern = Pattern.compile("\\(=[ ]+(.+)[ ]+([^)]+)\\)");
+
+        //Utils.Timer timer = new Utils.Timer();
+
+        public IProverResult check(boolean details) throws ProverException {
+            //timer.reset();
+            //send("FALSE\n");
+            send("BLZStart\n");
+            String output = eatPrompt(true);
+            //System.out.println("CHECK TIME " + timer.elapsed()/1000.);
+            boolean sat = output.startsWith("Invalid.") || output.startsWith("Counterexample");
+            boolean unknown = output.startsWith("Unknown.");
+            boolean unsat = output.indexOf("Valid.") != -1;
+            if (sat == unsat && !unknown) {
+                throw new ProverException("Improper response to (check) query: \"" + output + "\"");
+            }
+            ProverResult r = new ProverResult();
+            if (sat || unknown) {
+                if (unknown) r.result(ProverResult.POSSIBLYSAT);
+                else r.result(ProverResult.SAT);
+                if (details) {
+                    Counterexample ce = createCounterexample(output);
+                    r.add(ce);
+                }
+            } else if (unsat) {
+                r.result(ProverResult.UNSAT);
+                if (interactive) output = output.substring(0,output.length()-prompt().length());
+                if (showCommunication >= 2) System.out.println("UNSAT INFO:" + output);
+
+            } else {
+                r.result(ProverResult.UNKNOWN);
+            }
+            return r;
+        }
+        
+
+        /**
+         * @param output text returned by prover
+         * @return a Counterexample object with locations translated
+         * @throws ProverException
+         */
+        protected Counterexample createCounterexample(String output)
+                throws ProverException {
+            //System.out.println("OUTPUT: " + output);
+            Counterexample newce = new Counterexample();
+            int k = output.indexOf("YYassumeCheckCount");
+            k += "YYassumeCheckCount".length()+1;
+            int kk = output.indexOf(')',k);
+            String ps = output.substring(k,kk);
+            newce.put("YYassumeCheckCount",ps);
+            newce.put("__assumeCheckCount",ps);
+            newce.put("$$assumeCheckCount",ps);
+            
+//            Map<String,String> canonical = new HashMap<String,String>();
+//            //StringBuilder sb = new StringBuilder();
+//            //Matcher m = pattern.matcher(output);
+//            int pos = 0;
+//            while (true) {
+//                pos = findStart(output,pos);
+//                if (pos < 0) break;
+//                pos = skipWS(output,pos);
+//                int ipos = pos;
+//                pos = getArg(output,pos);
+//                String name = output.substring(ipos,pos);
+//                pos = skipWS(output,pos);
+//                ipos = pos;
+//                pos = getArg(output,pos);
+//                String res = output.substring(ipos,pos);
+//                String typeString = defined.get(name);
+//                ce.put(name,res);
+//                if (res.charAt(0) != '(' && typeString != null && isARefType(typeString)) {
+//                    if (Character.isDigit(res.charAt(0))) {
+//                        // The result is a CVC3 number  - need to be able to translate that 
+//                        // back to logical variable
+//                        String s1 = canonical.get(res);
+//                        if (s1 == null) {
+//                            canonical.put(res,canonical(name));
+//                            //System.out.println("IMAP: " + res + " -> " + name);
+//                        } else {
+//                            String s2 = canonical(name);
+//                            if (s2.equals(NULL)) epairs.put(s1,s2);
+//                            else epairs.put(s2,s1);
+//                            newce.put(name,s1);
+//                            //System.out.println("IMAP: " + res + "   SO " + name + " -> " + s1);
+//                        }
+//                    } else {
+//                        String s1 = canonical(name);
+//                        String s2 = canonical(res);
+//                        if (!s1.equals(s2)) { 
+//                            if (s1.equals(NULL)) epairs.put(s2,s1);
+//                            else epairs.put(s1,s2);
+//                            newce.put(name,s2); 
+//                        }
+//                        //if (!s1.equals(s2)) System.out.println("EMAP: " + name + "=" + res + "   SO " + s1 + " -> " + s2);
+//                    }
+//                }
+//            }
+//                
+//            for (Map.Entry<String,String> entry : ce.sortedEntries()) {
+//                String nm = entry.getKey();
+//                String res = entry.getValue();
+//                if (nm.charAt(0) == '(') {
+//                    YTree t = parse(nm);
+//                    t.attachType(this);
+//                    String tr = t.toString(canonical);
+//                    String trr = res;
+//                    if (isARefType(t.type)) {
+//                        trr = canonical.get(res);
+//                        if (trr == null) trr = res;
+//                    }
+//                    //System.out.println("CHANGED: " + nm + " ::> " + res + "  TO  " + tr + " ::> " + trr);
+//                    newce.put(tr,res);
+//                } else {
+//                    String typeString = defined.get(nm);
+//                    if (isARefType(typeString)) {
+//                        String c = epairs.get(res);
+//                        if (c == null) {
+//                            c = canonical.get(res);
+//                            if (c == null) c = res; // FIXME - should not need this
+//                        }
+//                        c = canonical(c);
+//                        if (!nm.equals(c)) {
+//                            rawassume("(= " + nm + " " + c +")");
+//                            newce.put(nm,c);
+//                        }
+//                    } else {
+//                        newce.put(nm,res);
+//                    }
+//                }
+//            }
+//            for (String n : canonical.values()) {
+//                if (locs.get(n) == null) {
+//                    Integer u = (locs.size()) + 50000;
+//                    rawassume("(= (loc$ " + n +") " + u + ")");
+//                    locs.put(n,u);
+//                }
+//            }
+            //System.out.println("CE STATUS " + check(false).result());
+            return newce;
+        }
+        
+        Map<String,Integer> locs = new HashMap<String,Integer>();
+        {
+            locs.put(NULL,0);
+        }
+        
+        static protected boolean isARefType(String typeString) {
+            return !("int".equals(typeString) || "bool".equals(typeString) || "real".equals(typeString) || (typeString != null && typeString.indexOf("->")>0));
+        }
+
+        
+        public void maxsat() throws ProverException {
+            throw new ProverException("maxsat() not suppported by CVC3Prover"); // FIXME
+//            send("(max-sat)\n");
+//            String output = eatPrompt(true);
+//            if (showCommunication >= 2) System.out.println("MAXSAT INFO:" + output);
+        }
+        
+        public void pop() throws ProverException {
+            send("(BG_POP)\n");
+            eatPrompt(interactive);
+//            for (String t: top) defined.remove(t);
+//            top = stack.remove(0);
+        }
+
+        public void push() throws ProverException {
+            send("(BG_PUSH TRUE)\n");
+            eatPrompt(interactive);
+//            stack.add(0,top);
+//            top = new LinkedList<String>();
+        }
+
+
+        public void retract() throws ProverException {
+            send("(BG_POP)\n");
+            eatPrompt(interactive);
+        }
+        
+        public void retract(int n) throws ProverException {
+            throw new ProverException("retract(int) not suppported by SimplifyProver"); // FIXME
+        }
+        
     }
-  }
-
-  /* @see freeboogie.backend.Prover#retract() */
-  public void retract() {
-//    Term last;
-//    do last = assumptions.getLast(); while (last == marker);
-    out.print("(BG_POP)");
-    out.flush();
-  }
-  
-  public void retract(int n) {
-      // FIXME
-  }
-  
-  public void kill() throws ProverException {
-      
-  }
-  
-  /**
-   * Runs some basic tests.
-   * @param args the command line arguments
-   * @throws Exception thrown if something goes wrong
-   */
-  public static void main(String[] args) throws Exception {
-//    IProver p = new SimplifyProver(args);
-//    TermBuilder b = p.getBuilder();
-//    Term x = b.mk("var_pred", "x");
-//    Term y = b.mk("var_pred", "y");
-//    Term q = b.mk("not", b.mk("iff", 
-//      b.mk("iff", b.mk("and", x, y), b.mk("or", x, y)),
-//      b.mk("iff", x, y)
-//    ));
-//    System.out.println("false = " + p.isSat(q));
-  }
-
-public void reassertCounterexample(ICounterexample ce) {
-    // TODO Auto-generated method stub
-    
-}
-}

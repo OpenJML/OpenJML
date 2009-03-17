@@ -121,6 +121,25 @@ public class expressions extends ParseBase {
                 JCIdent.class ,3);
     }
 
+    /** Test scanning Java binary expression to check node positions */
+    public void testJCBinary() {
+        jml = false;
+        helpExpr("a+b*c",
+                JCBinary.class, 3,// 1, // TODO - fix positions in binary trees
+                  JCIdent.class ,0,
+                  JCBinary.class, 3,
+                    JCIdent.class ,2,
+                    JCIdent.class ,4
+                );
+        helpExpr("a*b+c",
+                JCBinary.class, 3,
+                  JCBinary.class, 1,
+                    JCIdent.class ,0,
+                    JCIdent.class ,2,
+                  JCIdent.class ,4
+                );
+    }
+
     /** Test scanning JML equivalence expression */
     public void testJMLBinary1() {
         helpExpr("a <==> b",
@@ -254,6 +273,58 @@ public class expressions extends ParseBase {
                     JCIdent.class ,30);
     }
 
+    /** Test precedence between lock and other operators */
+    public void testJMLprecedence6() {
+        helpExpr("a << b <# c == d",
+                JCBinary.class, 12,
+                  JmlBinary.class, 7,
+                    JCBinary.class, 2,
+                      JCIdent.class ,0,
+                      JCIdent.class ,5,
+                    JCIdent.class ,10,
+                  JCIdent.class ,15
+                  );
+    }
+
+    /** Test precedence between lock and other operators */
+    public void testJMLprecedence7() {
+        helpExpr("a == b <#=c << d",
+                JCBinary.class, 12,//2,  // TODO - fix positions in binary expression trees
+                  JCIdent.class ,0,
+                  JmlBinary.class, 12,//7,
+                    JCIdent.class ,5,
+                    JCBinary.class, 12,
+                      JCIdent.class ,10,
+                      JCIdent.class ,15
+                  );
+    }
+
+    /** Test associativity of lock operators */
+    public void testJMLprecedence8() {
+        helpExpr("a <# b <#=c <# d",
+                JmlBinary.class, 12,
+                JmlBinary.class, 7,
+                  JmlBinary.class, 2,
+                    JCIdent.class ,0,
+                    JCIdent.class ,5,
+                  JCIdent.class ,10,
+                JCIdent.class ,15
+                  );
+    }
+
+    /** Test precedence between lock and equivalence */
+    public void testJMLprecedence9() {
+        helpExpr("a <==> b <#=c <==> d",
+                JmlBinary.class, 14,
+                  JmlBinary.class, 2,
+                    JCIdent.class ,0,
+                    JmlBinary.class, 9,
+                      JCIdent.class ,7,
+                      JCIdent.class ,12,
+                  JCIdent.class ,19
+                  );
+    }
+
     /** Test scanning \result expression */
     public void testResult() {
         helpExpr(" \\result + \\result",
@@ -290,7 +361,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning \typeof expression */
-    public void testTypeof() {
+    public void testTypeofA() {
         helpExpr(" \\typeof(a+b)",
                 JmlMethodInvocation.class, 8,
                 JCBinary.class, 10,
@@ -322,21 +393,21 @@ public class expressions extends ParseBase {
 
     /** Test precedence of <: operator */
     public void testCompare2() {
-        helpExpr(" a <= b == c",
+        helpExpr(" a <: b == c",
                 JCBinary.class, 8,
-                JCBinary.class, 3,
-                JCIdent.class, 1,
-                JCIdent.class ,6,
-                JCIdent.class ,11);
+                  JmlBinary.class, 3,
+                    JCIdent.class, 1,
+                    JCIdent.class ,6,
+                  JCIdent.class ,11);
     }
     /** Test precedence of <: operator */
     public void testSubTypeof() {
         helpExpr(" a == b <: c",
                 JCBinary.class, 8, // FIXME - Bug in Parser, should be 3
-                JCIdent.class, 1,
-                JmlBinary.class, 8,
-                JCIdent.class ,6,
-                JCIdent.class ,11);
+                  JCIdent.class, 1,
+                  JmlBinary.class, 8,
+                    JCIdent.class ,6,
+                    JCIdent.class ,11);
     }
 
     /** Test precedence of <: operator */
