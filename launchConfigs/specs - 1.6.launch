@@ -18,5 +18,5 @@
 <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Java 1.6"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="tests.SpecsBase"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="OpenJML"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseProjectLocation=${project_loc:OpenJML} -Dopenjml.eclipseSpecsProjectLocation=${project_loc:JMLspecs} -Dopenjml.prover.yices=C:/home/apps/yices-cygwin/yices-1.0.12/bin/yices.exe"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseProjectLocation=${project_loc:OpenJML} -Dopenjml.eclipseSpecsProjectLocation=${project_loc:JMLspecs} -Dopenjml.prover.yices=C:/home/mybin/yices.exe"/>
 </launchConfiguration>

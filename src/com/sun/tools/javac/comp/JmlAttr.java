@@ -540,7 +540,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             allAllowed(mods.annotations,allowedNestedModelTypeModifiers,"nested model type declaration");
         }
         if (isInJmlDeclaration && isModel) {
-            log.error(tree.pos,"jml.no.nested.mode.type");
+            log.error(tree.pos,"jml.no.nested.model.type");
         } else if (inJML && !isModel && !isInJmlDeclaration) {
             log.error(tree.pos,"jml.missing.model");
         } else if (!inJML && isModel) {
@@ -549,6 +549,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         if (!isModel) checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
         checkForConflict(mods,NON_NULL_BY_DEFAULT,NULLABLE_BY_DEFAULT);
+        checkForConflict(mods,PURE,QUERY);
     }
     
     /** This is overridden in order to do correct checking of whether a method body is
@@ -626,7 +627,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         MODEL, PURE, NONNULL, NULLABLE, HELPER, EXTRACT, QUERY, SECRET 
     };
     
-    /** The annotations allowed on model non-constructor methods */
+    /** The annotations allowed on model non-constructor interface methods */
     public final JmlToken[] allowedInterfaceModelMethodAnnotations =
         new JmlToken[] {
         MODEL, PURE, NONNULL, NULLABLE, HELPER, QUERY, SECRET
@@ -650,7 +651,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean model = isModel(tree.mods);
         boolean syn = (tree.mods.flags & Flags.SYNTHETIC) != 0;
         if (isInJmlDeclaration && model && !syn) {
-            log.error(tree.pos,"jml.no.nested.mode.type");
+            log.error(tree.pos,"jml.no.nested.model.type");
         } else if (inJML && !model  && !isInJmlDeclaration) {
             log.error(tree.pos,"jml.missing.model");
         } else if (!inJML && model) {
@@ -671,6 +672,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
             }
             checkForConflict(tree.mods,NONNULL,NULLABLE);
+            checkForConflict(tree.mods,PURE,QUERY);
         } else { // Constructor
             if (model) {
                 allAllowed(tree.mods.annotations,allowedModelConstructorAnnotations,"model constructor declaration");
@@ -880,7 +882,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public ListBuffer<JmlSpecificationCase> deNest(ListBuffer<JmlMethodClause> prefix, List<JmlSpecificationCase> cases, /*@ nullable */JmlSpecificationCase parent, JmlMethodDecl decl) {
         ListBuffer<JmlSpecificationCase> newlist = new ListBuffer<JmlSpecificationCase>();
         if (cases.isEmpty()) {
-            newlist.append(((JmlTree.Maker)make).at(parent.pos).JmlSpecificationCase(parent.modifiers,parent.code,parent.token,parent.also,prefix.toList()));
+            if (parent != null) newlist.append(((JmlTree.Maker)make).at(parent.pos).JmlSpecificationCase(parent.modifiers,parent.code,parent.token,parent.also,prefix.toList()));
+            else {
+                // ERROR
+                System.out.println("INTERNAL ERROR!");
+            }
         } else {
             for (JmlSpecificationCase c: cases) {
                 if (parent == null) {
@@ -1097,7 +1103,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             if (isInJmlDeclaration && modelOrGhost) {
                 if (ghost) log.error(tree.pos,"jml.no.nested.ghost.type");
-                else       log.error(tree.pos,"jml.no.nested.mode.type");
+                else       log.error(tree.pos,"jml.no.nested.model.type");
             } else if (inJML && !modelOrGhost  && !isInJmlDeclaration) {
                 log.error(tree.pos,"jml.missing.ghost.model");
             } else if (!inJML && modelOrGhost) {
@@ -2186,6 +2192,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 attribExpr(that.rhs,env,syms.booleanType);
                 result = syms.booleanType;
                 break;
+                
+            case LOCK_LT:
+            case LOCK_LE:
+                attribExpr(that.lhs,env,syms.objectType);
+                attribExpr(that.rhs,env,syms.objectType);
+                result = syms.booleanType;
+                break;
+                
                 
             case SUBTYPE_OF:
                 // Note: the method of comparing types here ignores any type

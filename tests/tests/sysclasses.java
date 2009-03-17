@@ -2,7 +2,7 @@ package tests;
 
 public class sysclasses extends TCBase {
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_SHOULD_BE_FINAL")
+    // @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_SHOULD_BE_FINAL")
     public static String testspecpath2 =  "$A"+z+"$B";
 
     @Override

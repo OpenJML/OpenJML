@@ -178,7 +178,7 @@ public /*@ pure @*/ class JMLNegativeInfinity extends JMLInfiniteIntegerClass {
 
     /** Return this integer raised to the argument's power.
      */
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("IM_BAD_CHECK_FOR_ODD")
+    // @edu.umd.cs.findbugs.annotations.SuppressWarnings("IM_BAD_CHECK_FOR_ODD")
     public JMLInfiniteInteger pow(int n) throws ArithmeticException {
         if (n < 0) {
             throw new ArithmeticException();

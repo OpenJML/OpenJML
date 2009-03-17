@@ -425,18 +425,43 @@ public class typechecking extends TCBase {
     }
     
     public void testLockCompare() {
+        expectedExit = 0;
         helpTCF("A.java","public class A { Object o,oo; //@ invariant o < oo; \n }"
+                ,"/A.java:1: warning: Operators < and <= are deprecated as lock comparisons - use <# and <#= instead",47
+                );
+    }
+    
+    public void testLockCompareX() {
+        helpTCF("A.java","public class A { Integer o,oo; //@ invariant o < oo; \n }"
                 );
     }
     
     public void testLockCompare1() {
+        expectedExit = 0;
         helpTCF("A.java","public class A { Object o,oo; //@ invariant o <= oo; \n }"
+                ,"/A.java:1: warning: Operators < and <= are deprecated as lock comparisons - use <# and <#= instead",47
+                );
+    }
+    
+    public void testLockCompare1X() {
+        helpTCF("A.java","public class A { Integer o,oo; //@ invariant o <= oo; \n }"
                 );
     }
     
     public void testLockCompare2() {
         helpTCF("A.java","public class A { Object o,oo; int i; //@ invariant o < true; \n }"
                 ,"/A.java:1: operator < cannot be applied to java.lang.Object,boolean",54
+                );
+    }
+    
+    public void testLockCompare2X() {
+        helpTCF("A.java","public class A { Integer o,oo; int i; //@ invariant o < 5; \n }"
+                );
+    }
+    
+    public void testLockCompare2Y() {
+        helpTCF("A.java","public class A { Object o,oo; int i; //@ invariant o < 5; \n }"
+                ,"/A.java:1: operator < cannot be applied to java.lang.Object,int",54
                 );
     }
     
@@ -449,6 +474,16 @@ public class typechecking extends TCBase {
     public void testLockCompare4() {
         helpTCF("A.java","public class A { Object o,oo; boolean b = o <= oo;  \n }"
                 ,"/A.java:1: operator <= cannot be applied to java.lang.Object,java.lang.Object",45
+                );
+    }
+    
+    public void testLockCompareA() {
+        helpTCF("A.java","public class A { Object o,oo; //@ invariant o <# oo; \n }"
+                );
+    }
+    
+    public void testLockCompare1A() {
+        helpTCF("A.java","public class A { Object o,oo; //@ invariant o <#= oo; \n }"
                 );
     }
     

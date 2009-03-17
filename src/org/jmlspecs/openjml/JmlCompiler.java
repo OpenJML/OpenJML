@@ -71,7 +71,7 @@ public class JmlCompiler extends JavaCompiler {
      * then do, if true then do not).  This should be left in a false state
      * after being used to preclude parsing specs.
      */
-    boolean inSequence = false;
+    public boolean inSequence = false;
     
     /** This method is overridden in order to parse specification files along with parsing a Java file.  Note
      * that it is called directly from JavaCompiler.complete and JavaCompiler.parse to do the actual parsing.
@@ -499,7 +499,7 @@ public class JmlCompiler extends JavaCompiler {
         super.compile2(CompilePolicy.SIMPLE);
     }
     
-    protected void flow(Env<AttrContext> env, ListBuffer<Env<AttrContext>> results) {
-        results.append(env);
-    }
+//    protected void flow(Env<AttrContext> env, ListBuffer<Env<AttrContext>> results) {
+//        results.append(env);
+//    }
 }

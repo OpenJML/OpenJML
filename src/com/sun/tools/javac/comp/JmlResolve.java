@@ -24,7 +24,9 @@ import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Type.MethodType;
@@ -77,6 +79,8 @@ public class JmlResolve extends Resolve {
      */
     public OperatorSymbol lockLE;
     
+    private Type integerType;
+    
     /** Returns the unique instance of this class for the given compilation context
      * @param context the compilation context whose instance of Resolve is desired
      * @return
@@ -113,14 +117,15 @@ public class JmlResolve extends Resolve {
         this.context = context;
         
         Symtab syms = Symtab.instance(context);
+        integerType = reader.enterClass(names.fromString("java.lang.Integer")).type;
         lockLT = new OperatorSymbol(
-                names.fromString("<"),
+                names.fromString("<#"),
                 new MethodType(List.of(syms.objectType, syms.objectType), syms.booleanType,
                         List.<Type>nil(), syms.methodClass),
                         1000,
                         syms.predefClass);
         lockLE = new OperatorSymbol(
-                names.fromString("<"),
+                names.fromString("<#="),
                 new MethodType(List.of(syms.objectType, syms.objectType), syms.booleanType,
                         List.<Type>nil(), syms.methodClass),
                         1001,
@@ -153,9 +158,12 @@ public class JmlResolve extends Resolve {
     
     /** This method overrides the super class method in order to check for
      * resolutions against JML operators: in particular, the < and <= operators
-     * on Objects that implement lock ordering comparisons.  The method
+     * on Objects that used to implement lock ordering comparisons.  The method
      * returns an error symbol (Symtab.instance(context).errSymbol) if there
      * is no matching operator.
+     * 
+     * Once < and <= are no longer used for lock ordering, this method can be
+     * removed.
      */
     @Override
     protected Symbol resolveBinaryOperator(DiagnosticPosition pos,
@@ -163,9 +171,19 @@ public class JmlResolve extends Resolve {
             Env<AttrContext> env,
             Type left,
             Type right) {
+        // TODO: Eventually disallow using < and <= for lock operations
+        // Then this whole method can be removed
         if (allowJML && !left.isPrimitive() && !right.isPrimitive()) {
-            if (optag == JCTree.LT) return lockLT;
-            if (optag == JCTree.LE) return lockLE;
+            if (!types.isSameType(left,integerType) && !types.isSameType(right,integerType)) {
+                if (optag == JCTree.LT) {
+                    log.warning(pos,"lock.ops");
+                    return lockLT;
+                }
+                if (optag == JCTree.LE) {
+                    log.warning(pos,"lock.ops");
+                    return lockLE;
+                }
+            }
         }
         return super.resolveBinaryOperator(pos, optag, env, left, right);
     }
@@ -303,7 +321,7 @@ public class JmlResolve extends Resolve {
     }
 
     /** Find a global type in given scope and load corresponding class.
-     * This overrides the superclass metehod in order to disntguish JML
+     * This overrides the superclass method in order to distinguish JML
      * and Java name lookup.
      *  @param env       The current environment.
      *  @param scope     The scope in which to look for the type.
@@ -326,7 +344,7 @@ public class JmlResolve extends Resolve {
         return bestSoFar;
     }
 
-    /** This overrides the superclass metehod in order to disntguish JML
+    /** This overrides the superclass method in order to distinguish JML
     * and Java name lookup.
     */
     // MAINTENANCE ISSUE: This is copied verbatim from Resolve, 
@@ -471,7 +489,6 @@ public class JmlResolve extends Resolve {
             for (Scope.Entry e = c.members().lookup(name);
                         e.scope != null;
                         e = e.next()) {
-//              - System.out.println(" e " + e.sym);
                 if (e.sym.kind == MTH &&
                         (e.sym.flags_field & SYNTHETIC) == 0 &&
                         !(!allowJML && Utils.isJML(e.sym.flags_field))) {
@@ -482,7 +499,6 @@ public class JmlResolve extends Resolve {
                             operator);
                 }
             }
-//          - System.out.println(" - " + bestSoFar);
             if (abstractok) {
                 Symbol concrete = methodNotFound;
                 if ((bestSoFar.flags() & ABSTRACT) == 0)
@@ -605,15 +621,35 @@ public class JmlResolve extends Resolve {
              specProtectedSym = ClassReader.instance(context).enterClass(JmlAttr.instance(context).tokenToAnnotationName.get(JmlToken.SPEC_PROTECTED));
          }
          // FIXME - sort out what is really happening here - the second part seems at least needed when a java file is referencing a binary file with a spec
+         // (Is this because the binary file will not have the attributes in it - they are add ad hoc when the spec file is parsed???)
          boolean isSpecPublic = sym.attributes_field == null ? false : (sym.attribute(specPublicSym) != null || JmlAttr.instance(context).findMod(mods,JmlToken.SPEC_PUBLIC)!=null);
          if (isSpecPublic) return true;
          boolean isSpecProtected = sym.attributes_field == null ? false : (sym.attribute(specProtectedSym) != null || JmlAttr.instance(context).findMod(mods,JmlToken.SPEC_PROTECTED)!=null);
-         int flag = (int)((sym.flags() & AccessFlags));
-         if (isSpecProtected && flag != Flags.PUBLIC) return true;
-//         if (sym.name.toString().equals("elementCount")) {
-//             System.out.println("ACCESS " + sym.name + " " + (sym.flags() & AccessFlags) + " " + allowJML + " " + flag + " " + isSpecPublic + " " + isSpecProtected);
-//             System.out.println("ANNOTATIONS " + sym.getAnnotationMirrors());
-//         }
+         //int flag = (int)((sym.flags() & AccessFlags));
+         //if (isSpecProtected && flag != Flags.PUBLIC) return true;
+         if (isSpecProtected) { // The symbol being accessed should be treated as if it were protected.
+                         // Copy code from overridden method
+             return
+             (env.toplevel.packge == sym.owner.owner // fast special case
+              ||
+              env.toplevel.packge == sym.packge()
+              ||
+              isProtectedAccessible(sym, env.enclClass.sym, site)
+              ||
+              // OK to select instance method or field from 'super' or type name
+              // (but type names should be disallowed elsewhere!)
+              env.info.selectSuper && (sym.flags() & STATIC) == 0 && sym.kind != TYP)
+             &&
+             isAccessible(env, site)
+             &&
+             // `sym' is accessible only if not overridden by
+             // another symbol which is a member of `site'
+             // (because, if it is overridden, `sym' is not strictly
+             // speaking a member of `site'.)
+             (sym.kind != MTH || sym.isConstructor() || sym.isStatic() ||
+              ((MethodSymbol)sym).implementation(site.tsym, types, true) == sym);
+             
+         }
          return false;
      }
 }

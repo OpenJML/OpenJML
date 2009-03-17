@@ -2,6 +2,8 @@ package tests;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
+import org.junit.Test;
+
 import com.sun.tools.javac.util.Options;
 
 import junit.framework.AssertionFailedError;
@@ -51,21 +53,28 @@ public class compiler extends TestCase {
         System.setOut(savedout);
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualOutput = berr.toString();
-        if (print && !capture) System.out.println("EXPECTING: " + output[0]);
+        if (output.length <= 1 && actualOutput.length() == 0) actualOutput = bout.toString();
+        if (print) System.out.println("EXPECTING: " + output[0]);
         if (capture) try {
+            String tail = e == 0 ? "" : "ENDING with exit code " + e + eol;
             if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + actualOutput);
-            if (all==0) assertEquals("The error message is wrong",output[0],actualOutput);
-            else if (all == 1 && !actualOutput.startsWith(output[0])) {
-                fail("Output does not begin with: " + output[0] + eol + "Instead is: " + actualOutput);
-            } else if (all == 2 && actualOutput.indexOf(output[0]) == -1 ) {
-                fail("Output does not end with: " + output[0] + eol + "Instead is: " + actualOutput);
+            String expected = output[0];
+            if (all==0) assertEquals("The error message is wrong",expected+tail,actualOutput);
+            else if (all == -1) assertEquals("The error message is wrong",expected,actualOutput);
+            else if (all == 1 && !actualOutput.startsWith(expected)) {
+                fail("Output does not begin with: " + expected + eol + "Instead is: " + actualOutput);
+            } else if (all == 2 && actualOutput.indexOf(expected) == -1 ) {
+                fail("Output does not end with: " + expected + eol + "Instead is: " + actualOutput);
             }
             if (output.length > 1) {
+                expected = output[1];
                 if (print) System.out.println("TEST: " + getName() + " STANDARD OUT: " + eol + bout.toString());
                 if (all == 0) {
-                    assertEquals("The standard out is wrong",output[1],bout.toString());
-                } else if (all == 2 && bout.toString().indexOf(output[1]) == -1) {
-                    fail("Output does not end with: " + output[1] + eol + "Instead is: " + bout.toString());
+                    assertEquals("The standard out is wrong",expected+tail,bout.toString());
+                } else if (all == -1) {
+                    assertEquals("The standard out is wrong",expected,bout.toString());
+                } else if (all == 2 && bout.toString().indexOf(expected) == -1) {
+                    fail("Output does not end with: " + expected + eol + "Instead is: " + bout.toString());
                 }
             }
             assertEquals("The exit code is wrong",exitcode,e);
@@ -75,17 +84,20 @@ public class compiler extends TestCase {
         }
     }
 
+    @Test
     public void testTopLevelCompiler() throws Exception {
         String failureMessage = "error: The main entry point org.jmlspecs.openjml.Main.main was called with a null argument" + eol;
-        helper(null,2,0,failureMessage);
+        helper(null,2,-1,failureMessage);
     }
     
+    @Test
     public void testNoArgs() throws Exception {
         String failureMessage = "Usage: jml <options> <source files>" + eol +
                                 "where possible options include:" + eol;
-        helper(new String[]{},2,1,failureMessage);
+        helper(new String[]{},2,1,"",failureMessage);
     }
     
+    @Test
     public void testBadOption() throws Exception {
         String failureMessage = "jml: invalid flag: -ZZZ" + eol +
                                 "Usage: jml <options> <source files>" + eol + 
@@ -97,6 +109,7 @@ public class compiler extends TestCase {
      * directories that then get complaints
      * @throws Exception
      */
+    @Test
     public void testSpecPath() throws Exception {
         helper(new String[]
                   {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specs","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","A.java"},
@@ -113,6 +126,7 @@ public class compiler extends TestCase {
                   );
     }
     
+    @Test
     public void testRecursiveCP() throws Exception {
         helper(new String[]
                           { "-classpath","testfiles/testNoErrors"+z+"bin"+z+"$CP",
@@ -123,6 +137,7 @@ public class compiler extends TestCase {
     }
 
     // TODO: Environment specific - backslashes
+    @Test
     public void testNoRuntime() throws Exception {
         helper(new String[]
                           { "-noInternalRuntime","-noInternalSpecs",
@@ -136,6 +151,7 @@ public class compiler extends TestCase {
                           "");
     }
 
+    @Test
     public void testDuplicateParse() throws Exception {
         helper(new String[]
                           { "-classpath","testfiles/testNoErrors"+z+"bin",
@@ -149,6 +165,7 @@ public class compiler extends TestCase {
                           "");
     }
 
+    @Test
     public void testIgnoreJava() throws Exception {
         helper(new String[]
                           { "-classpath","testfiles/testJavaErrors"+z+"bin",
@@ -162,6 +179,7 @@ public class compiler extends TestCase {
                           "");
     }
 
+    @Test
     public void testSourcePath() throws Exception {
         helper(new String[]
                           { "-classpath","",
@@ -177,6 +195,7 @@ public class compiler extends TestCase {
      * compilation warnings in the spec files as they evolve.
      * @throws Exception
      */
+    @Test
     public void testSourcePathX() throws Exception {
         helper(new String[]
                           { "-classpath","bin",
@@ -189,6 +208,7 @@ public class compiler extends TestCase {
                           "Note: Recompile with -Xlint:unchecked for details."+eol);
     }
 
+    @Test
     public void testSourcePath3() throws Exception {
         helper(new String[]
                           { "-classpath","",
@@ -202,6 +222,7 @@ public class compiler extends TestCase {
 
     // This test requires jmlruntime.jar to have been created - run the Makefile
     // in the OpenJML project
+    @Test
     public void testSourcePath4() throws Exception {
         helper(new String[]
                           { "-classpath","jmlruntime.jar",
@@ -213,6 +234,7 @@ public class compiler extends TestCase {
                           "");
     }
 
+    @Test
     public void testSourcePath5() throws Exception {
         helper(new String[]
                           { "-classpath","bin",
@@ -224,6 +246,7 @@ public class compiler extends TestCase {
                           "");
     }
 
+    @Test
     public void testSourcePath2() throws Exception {
         helper(new String[]
                           { "-classpath","bin",
@@ -235,6 +258,7 @@ public class compiler extends TestCase {
                           "");
     }
 
+    @Test
     public void testSuperRead() { // TODO - file name is environment dependent
         helper(new String[]
                           { "-classpath","bin", 
@@ -245,5 +269,36 @@ public class compiler extends TestCase {
                           ,""
                           ,"testfiles\\testSuperRead\\B.refines-java:3: This JML modifier is not allowed for a type declaration"
                           );
+    }
+    
+    // FIXME - need to chjeck that the output of these two is correct
+    
+    @Test
+    public void testAPI() {
+        System.setErr(savederr);
+        System.setOut(savedout);
+        try {
+            java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
+            org.jmlspecs.openjml.Main m = new org.jmlspecs.openjml.Main(new String[]{});
+            String s = m.prettyPrint(m.parseFiles(f).get(0),true);
+            System.out.println(s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+        }
+    }
+    @Test
+    public void testAPI2() {
+        System.setErr(savederr);
+        System.setOut(savedout);
+        try {
+            java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
+            org.jmlspecs.openjml.Main m = new org.jmlspecs.openjml.Main(new String[]{"-v"});
+            String s = m.prettyPrint(m.parseFiles(f).get(0),true);
+            System.out.println(s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+        }
     }
 }

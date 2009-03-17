@@ -16,7 +16,7 @@ public class esc extends EscBase {
         //options.put("-noInternalSpecs",   "");
         //options.put("-trace",   "");
         //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 1;
+        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
     }
     
     // Just testing a binary method
@@ -32,7 +32,7 @@ public class esc extends EscBase {
                 +"}"
                 );
     }
-
+    
 
     public void testForEach() {
         helpTCX("tt.TestJava","package tt; \n"
@@ -929,9 +929,10 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m1a",9
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m2a",9
                 ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m3a",-17
-                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",17
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",-17
                 ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m4a",-18
                 ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",-18
+                ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (Assert) in method m4a",-9
                 ,"/tt/TestJava.java:69: warning: The prover cannot establish an assertion (Assert) in method m5a",9
                 ,"/tt/TestJava.java:81: warning: The prover cannot establish an assertion (Assert) in method m6a",9
                 ,"/tt/TestJava.java:86: warning: The prover cannot establish an assertion (Assert) in method m7",9
@@ -1232,7 +1233,7 @@ public class esc extends EscBase {
                 +"  public boolean m(String sss) {\n"
                 +"    return sss == (\"abcde\");\n"
                 +"  }\n"
-                +"  public boolean m1(String sss) {\n"
+                +"  public boolean m1(/*@ non_null*/ String sss) {\n"
                 +"    return sss.equals(\"abcde\");\n"
                 +"  }\n"
                 +"}"
@@ -1343,10 +1344,9 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:13: warning: An assumption appears to be infeasible in method bassumeCHAIN1(boolean,boolean)",-87,
                 "/tt/TestJava.java:14: warning: An assumption appears to be infeasible in method bassumeCHAIN2(boolean,boolean)",85,
                 // The following error is required, but can occur before or after the error on the same line
-                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",-142,
-                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",153,
-                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",-142,
-                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",83
+                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",83,
+                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",142,
+                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",153
         );
     }
 
@@ -2029,7 +2029,8 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method inst5a",144
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method inst6a",118
                 ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method inst7a",242
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method inst3c",192
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3c",-203
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method inst3c",-203
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method inst3d",216
         );
     }
@@ -2341,7 +2342,8 @@ public class esc extends EscBase {
         );
     }
 
-    public void testForwardInit() {
+    // FIXME -flow checks turned off
+    public void _testForwardInit() {
         expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

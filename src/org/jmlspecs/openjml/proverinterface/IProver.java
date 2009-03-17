@@ -115,5 +115,17 @@ public interface IProver {
     
     
     public void reassertCounterexample(ICounterexample ce);
+    
+    public Supports supports();
+
+    static public class Supports {
+        public Supports() {
+            retract = false;
+            unsatcore = false;
+        }
+        public boolean retract;
+        public boolean unsatcore;
+    }
+        
 
 }

@@ -1,5 +1,7 @@
 package org.jmlspecs.openjml.provers;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -18,11 +20,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.proverinterface.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
+import org.jmlspecs.openjml.proverinterface.IProver.Supports;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 
 import com.sun.tools.javac.code.Type;
@@ -32,7 +36,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
 
 
-public class YicesProver implements IProver {
+public class YicesProver extends AbstractProver implements IProver {
     public final static String NULL = "NULL";
     public final static String REF = "REF";
     public final static String ARRAY = "ARRAY";
@@ -42,28 +46,28 @@ public class YicesProver implements IProver {
     public static final String SUBTYPE = "subtype$";
     public static final String CAST = "cast$";
     
-    /** A debugging flag - 0 = show nothing; 1 = show errors; 2 = show something; 3 = show everything */
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_SHOULD_BE_FINAL")
-    static public int showCommunication = 1;
+//    /** The process that is the actual prover */
+//    protected Process process = null;
     
-    /** The process that is the actual prover */
-    protected Process process = null;
-    
-    /** The stream connection to send information to the prover process. */
-    //@ invariant process != null ==> toProver != null;
-    protected Writer toProver;
-    
-    /** The stream connection to read information from the prover process. */
-    //@ invariant process != null ==> fromProver != null;
-    protected Reader fromProver;
-    
-    /** The error stream connection to read information from the prover process. */
-    //@ invariant process != null ==> errors != null;
-    protected Reader errors;
+//    /** The stream connection to send information to the prover process. */
+//    //@ invariant process != null ==> toProver != null;
+//    protected Writer toProver;
+//    
+//    /** The stream connection to read information from the prover process. */
+//    //@ invariant process != null ==> fromProver != null;
+//    protected Reader fromProver;
+//    
+//    /** The error stream connection to read information from the prover process. */
+//    //@ invariant process != null ==> errors != null;
+//    protected Reader errors;
     
     /** A buffer to hold input */
     /*@ non_null */
-    protected CharBuffer buf = CharBuffer.allocate(100000);
+    //protected CharBuffer buf = CharBuffer.allocate(100000);
+    
+//    /** A buffer to hold input */
+//    /*@ non_null */
+//    char[] cbuf = new char[100000];
 
     /** A handy StringBuilder to build strings internally */
     /*@ non_null */
@@ -81,17 +85,20 @@ public class YicesProver implements IProver {
     /*@ non_null */
     protected YicesJCExpr translator;
     
+    protected boolean interactive = true;
+    
     // FIXME - will need to separate start from construction so there is an opportunity to set parameters (e.g. timeout)
     /** Creates and starts the prover process, sending any startup information */
     public YicesProver(Context context) throws ProverException {
-        assumeCounter = 0;
+        assumeCounter = -1;
         int k = 1;
+        String bp = backgroundPredicate();
         while (k>0) {
-            assumeCounter++;
-            k = backgroundPredicate.indexOf("assert+",k)+1;
+            ++assumeCounter;
+            k = bp.indexOf(BASSERTPLUS,k)+1;
         }
         translator = new YicesJCExpr(this);
-//        if (org.jmlspecs.openjml.esc.JmlEsc.escdebug && showCommunication <= 1) showCommunication = 2;
+        if (org.jmlspecs.openjml.esc.JmlEsc.escdebug && showCommunication <= 1) showCommunication = 2;
         start();
     }
     
@@ -137,11 +144,17 @@ public class YicesProver implements IProver {
       // Also bit vector functions
     };
     
-    public static final String BASSERT = "assert+";
+    public static boolean evidence = true;
+    public static boolean assertPlus = true;
+    public static final String BASSERTPLUS = "assert+";
+    public static final String BASSERTNOPLUS = "assert";
+    public static String BASSERT;
     
     /**The background predicate that is sent prior to anything else.  Do not include any newline characters. */
     /*@ non_null */
-    private final static String backgroundPredicate =
+    private static String backgroundPredicate() {
+        BASSERT = assertPlus ? BASSERTPLUS : BASSERTNOPLUS;
+        return
           "("+BASSERT+" (not (isType NULL)))"
         + "("+BASSERT+" (not (isArray NULL)))"
         + "("+BASSERT+" (forall (a::REF) (>= (length a) 0)))"
@@ -159,9 +172,28 @@ public class YicesProver implements IProver {
         + "("+BASSERT+" (forall (i::int) (and (= (imod i 1) 0) (= (imod i -1) 0) )))"
         + "("+BASSERT+" (= (distinct$ T$java.lang.Object$$A) 99))"
         + "\n";
+    }
     
     /** A counter of assumptions sent to the prover */
     int assumeCounter;
+    
+    public String[] app() {
+        if (!evidence) {
+            if (interactive)
+                return (new String[]{app,"-i","-tc","--timeout=120","-v","2"});
+            else
+                return (new String[]{app,"-tc","--timeout=120","-v","2"});
+        } else {
+            if (interactive)
+                return (new String[]{app,"-i","-tc","--timeout=120","-e","-v","2"});
+            else
+                return (new String[]{app,"-tc","--timeout=120","-e","-v","2"});
+        }
+    }
+    
+    public String prompt() {
+        return "yices> ";
+    }
     
     /** Does the startup work */
     public void start() throws ProverException {
@@ -173,15 +205,16 @@ public class YicesProver implements IProver {
         try {
             // The interactive mode is used so that we get a prompt back, thereby
             // knowing when we have received the prover's response
-            process = Runtime.getRuntime().exec(new String[]{app,"-i","-tc","--timeout=300","-e","-v","2"});
+            process = Runtime.getRuntime().exec(app());
         } catch (IOException e) {
             process = null;
             throw new ProverException("Failed to launch prover process: " + app + " " + e);
         }
-        toProver = new OutputStreamWriter(process.getOutputStream());
-        fromProver = new InputStreamReader(process.getInputStream()); // FIXME should we use buffered readers/writers
+        // TODO: assess performance of using buffered readers/writers
+        toProver = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+        fromProver = new BufferedReader(new InputStreamReader(process.getInputStream()));
         errors = new InputStreamReader(process.getErrorStream());
-        eatPrompt();
+        eatPrompt(false);  // Whether there is output to eat depends on the level of -v
         background();
     }
     
@@ -211,119 +244,268 @@ public class YicesProver implements IProver {
             }
             defined.put(pairs[0],pairs[1]);
         }
-        s.append(backgroundPredicate);
+        s.append(backgroundPredicate());
         send(s.toString());
-        eatPrompt();
+        eatPrompt(interactive);
     }
     
     public String eatPrompt() throws ProverException {
+        return eatPrompt(interactive);
+    }
+    
+    public String eatPrompt(boolean wait) throws ProverException {
         // We read characters until we get to the sequence "> ", which is the
         // end of the Yices prover's prompt (which is "yices> ").  Be careful 
         // that sequence is not elsewhere in the input as well.
         // FIXME - need a better way to read both inputs
         // FIXME - this probably can be made a lot more efficient
         try {
-            buf.position(0);
-            outer: while (true) {
-                int n = fromProver.read();
-                if (n < 0) {
-                    throw new ProverException("Prover died");
-                }
-                char c = (char)n;
-                buf.append(c);
-                if (c != '>') continue;
-                while (true) {
-                    n = fromProver.read();
+//            if (interactive && false) {
+//                buf.position(0);
+//                outer: while (true) {
+//                    int n = fromProver.read();
+//                    if (n < 0) {
+//                        throw new ProverException("Prover died");
+//                    }
+//                    char c = (char)n;
+//                    buf.append(c);
+//                    if (c != '>') continue;
+//                    while (true) {
+//                        n = fromProver.read();
+//                        if (n < 0) {
+//                            throw new ProverException("Prover died");
+//                        }
+//                        c = (char)n;
+//                        buf.append(c);
+//                        if (c == ' ') break outer;
+//                        if (c != '>') break;
+//                    }
+//                }
+//                buf.limit(buf.position());
+//                buf.rewind();
+//                String s = buf.toString();
+//                buf.clear();
+//                if (errors.ready()) {
+//                    while (errors.ready()) {
+//                        int n = errors.read(buf);
+//                        if (n < 0) throw new ProverException("Prover died");
+//                        if (n == 0) break;
+//                    }
+//                    if (buf.position() > 0) {
+//                        buf.limit(buf.position());
+//                        buf.rewind();
+//                        String errorString = buf.toString();
+//                        if (!errorString.startsWith("\nWARNING") &&
+//                                !errorString.startsWith("Yices (version") &&
+//                                !errorString.startsWith("searching")) {
+//                            if (showCommunication >= 1) System.out.println("HEARD ERROR: " + errorString);
+//                            throw new ProverException("Prover error message: " + errorString);
+//                        } else {
+//                            if (showCommunication >= 3) System.out.println("HEARD ERROR: " + errorString);
+//                        }
+//                    }
+//                    buf.clear();
+//                }
+//                if (showCommunication >= 3) System.out.println("HEARD: " + s);
+//                return s;
+//            } else 
+            if (interactive) {
+                int offset = 0;
+                String s = "";
+                int truncated = 0;
+                while (true) { // There is always a prompt to read, so it is OK to block
+                        // until it is read.  That gives the prover process time to
+                        // do its processing.
+                    int n = fromProver.read(cbuf,offset,cbuf.length-offset);
                     if (n < 0) {
+                        int off = 0;
+                        while (errors.ready()) {
+                            int nn = errors.read(cbuf,off,cbuf.length-off);
+                            if (nn < 0) throw new ProverException("Prover died-eStream");
+                            if (nn == 0) break;
+                            off += nn;
+                        }
+                        String serr = String.valueOf(cbuf,0,off);
+                        if (!serr.startsWith("searching")) System.out.println("ERROR STREAM ON DEATH: " + serr);
                         throw new ProverException("Prover died");
                     }
-                    c = (char)n;
-                    buf.append(c);
-                    if (c == ' ') break outer;
-                    if (c != '>') break;
-                }
-            }
-            buf.limit(buf.position());
-            buf.rewind();
-            String s = buf.toString();
-            buf.clear();
-            if (errors.ready()) {
-                while (errors.ready()) {
-                    int n = errors.read(buf);
-                    if (n < 0) throw new ProverException("Prover died");
-                    if (n == 0) break;
-                }
-                if (buf.position() > 0) {
-                    buf.limit(buf.position());
-                    buf.rewind();
-                    String errorString = buf.toString();
-                    if (!errorString.startsWith("\nWARNING") &&
-                            !errorString.startsWith("Yices (version") &&
-                            !errorString.startsWith("searching")) {
-                        if (showCommunication >= 1) System.out.println("HEARD ERROR: " + errorString);
-                        throw new ProverException("Prover error message: " + errorString);
-                    } else {
-                        if (showCommunication >= 3) System.out.println("HEARD ERROR: " + errorString);
+                    offset += n;
+                    if (offset > 1 && cbuf[offset-2] == '>' && cbuf[offset-1] ==' ') break;
+                    if (offset > cbuf.length-1000) {
+                        if (s.length() > 180000) {
+                            // excessive length
+                            String sss = String.valueOf(cbuf,0,200);
+                            truncated += offset;
+                            System.out.println("TRUNCATING " + s.length() + " " + truncated );//+ " " + sss);
+                        } else {
+                            String sss = String.valueOf(cbuf,0,200);
+                            s = s + String.valueOf(cbuf,0,offset);
+                            System.out.println("BUFFER FULL " + s.length() );//+ " " + sss);
+                        }
+                        offset = 0;
                     }
                 }
-                buf.clear();
+                if (truncated == 0) s = s + String.valueOf(cbuf,0,offset);
+//                if (truncated > 0) {
+//                    System.out.println("OUTPUT LENGTH " + s.length() + " " + truncated);
+//                    throw new ProverException("Excessive output: " + s.length() + " " + truncated);
+//                }
+
+                offset = 0;
+                if (errors.ready()) {
+                    while (errors.ready()) {
+                        int n = errors.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) throw new ProverException("Prover died");
+                        if (n == 0) break;
+                        offset += n;
+                    }
+                    if (offset > 0) {
+                        String errorString = new String(cbuf,0,offset);
+                        //if (errorString.startsWith("searching")) System.out.println("SEARCHING " + errorString.length());
+                        if (!errorString.startsWith("\nWARNING") &&
+                                !errorString.startsWith("Yices (version") &&
+                                !errorString.startsWith("searching")) {
+                            if (showCommunication >= 1) System.out.println("HEARD ERROR: " + errorString);
+                            throw new ProverException("Prover error message: " + errorString);
+                        } else {
+                            if (showCommunication >= 3) System.out.println("HEARD ERROR: " + errorString);
+                        }
+                    }
+                }
+                if (showCommunication >= 3) System.out.println("HEARD: " + s);
+                return s;
+            } else {
+                // In non-interactive mode, there may be no input at all
+                // We sleep briefly, hoping that the target process will have time to put out any output
+                try { Thread.sleep(1); } catch (Exception e) { /* No action needed */ }
+                int offset = 0;
+                if (wait) {
+                    // TODO: Problem: When the prover produces a counterexample, it does not always do so promptly.
+                    // So the loop below tends to exit before all (or any) counterexample information is retrieved.
+                    do {
+                        int n = fromProver.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) {
+                            throw new ProverException("Prover died");
+                        }
+                        offset += n;
+                    } while (fromProver.ready());
+                } else {
+                    while (fromProver.ready()) {
+                        int n = fromProver.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) {
+                            throw new ProverException("Prover died");
+                        }
+                        offset += n;
+                    }
+                }
+                String s = new String(cbuf,0,offset);
+                offset = 0;
+                if (errors.ready()) {
+                    while (errors.ready()) {
+                        int n = errors.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) throw new ProverException("Prover died");
+                        if (n == 0) break;
+                        offset += n;
+                    }
+                    if (offset > 0) {
+                        String errorString = new String(cbuf,0,offset);
+                        if (!errorString.startsWith("\nWARNING") &&
+                                !errorString.startsWith("Yices (version") &&
+                                !errorString.startsWith("searching")) {
+                            if (showCommunication >= 1) System.out.println("HEARD ERROR: " + errorString);
+                            throw new ProverException("Prover error message: " + errorString);
+                        } else {
+                            if (showCommunication >= 3) System.out.println("HEARD ERROR: " + errorString);
+                        }
+                    }
+                }
+                if (showCommunication >= 3) System.out.println("HEARD: " + s);
+                return s;
             }
-            if (showCommunication >= 3) System.out.println("HEARD: " + s);
-            return s;
         } catch (IOException e) {
             throw new ProverException("IO Error on reading from prover: " + e);
         }
     }
     
     public int assume(JCExpression tree) throws ProverException {
+        if (assertPlus) ++assumeCounter;
         try {
             String t = translator.toYices(tree);
             builder.setLength(0);
-            builder.append("(assert+ ");
+            builder.append("(");
+            builder.append(assertPlus ? BASSERTPLUS : BASSERTNOPLUS);
+            builder.append(" ");
             builder.append(t);
             builder.append(")\n");
             send(builder.toString());
-            eatPrompt();
+            eatPrompt(interactive);
         } catch (ProverException e) {
             e.mostRecentInput = builder.toString();
             throw e;
         }
         // We use this assume counter, but the more robust method is to
         // look at the output returned from eatPrompt (FIXME)
-        return assumeCounter++;
+        return assumeCounter;
     }
     
-    public int assume(JCExpression tree, int weight) throws ProverException {
+    public int assumePlus(JCExpression tree) throws ProverException {
+        ++assumeCounter;
         try {
             String t = translator.toYices(tree);
             builder.setLength(0);
-            builder.append("(assert+ ");
+            builder.append("(");
+            builder.append(BASSERTPLUS);
+            builder.append(" ");
+            builder.append(t);
+            builder.append(")\n");
+            send(builder.toString());
+            eatPrompt(interactive);
+        } catch (ProverException e) {
+            e.mostRecentInput = builder.toString();
+            throw e;
+        }
+        // We use this assume counter, but the more robust method is to
+        // look at the output returned from eatPrompt (FIXME)
+        return assumeCounter;
+    }
+    
+    public int assume(JCExpression tree, int weight) throws ProverException {
+        if (assertPlus) ++assumeCounter;
+        try {
+            String t = translator.toYices(tree);
+            builder.setLength(0);
+            builder.append("(");
+            builder.append(assertPlus ? BASSERTPLUS : BASSERTNOPLUS);
+            builder.append(" ");
             builder.append(t);
             builder.append(" ");
             builder.append(weight);
             builder.append(")\n");
             send(builder.toString());
-            eatPrompt();
+            eatPrompt(interactive);
         } catch (ProverException e) {
             e.mostRecentInput = builder.toString();
             throw e;
         }
-        return assumeCounter++;
+        return assumeCounter;
     }
     
     public int rawassume(String t) throws ProverException {
+        if (assertPlus) ++assumeCounter;
         try {
             builder.setLength(0);
-            builder.append("(assert+ ");
+            builder.append("(");
+            builder.append(BASSERT);
+            builder.append(" ");
             builder.append(t);
             builder.append(")\n");
             send(builder.toString());
-            eatPrompt();
+            eatPrompt(interactive);
         } catch (ProverException e) {
             e.mostRecentInput = builder.toString();
             throw e;
         }
-        return assumeCounter++;
+        return assumeCounter;
     }
     
     /** Does the actual work of sending information to the prover process.  You 
@@ -340,13 +522,25 @@ public class YicesProver implements IProver {
 //                ss = ss.trim();
 //            }
             //System.out.print("SENDING " + ss);
-            System.out.print("SENDING ["+assumeCounter+"]" + ss);
+            System.out.print("SENDING ["+assumeCounter+":" + s.length()+ "]" + ss);
         }
+        //System.out.println("SENDING ["+assumeCounter+":" + s.length()+ "]");
         try {
-            toProver.append(s);
+            if (s.length() > 2000) {
+                int i = 0;
+                for (; i< s.length()-2000; i+= 2000) {
+                    toProver.append(s.substring(i,i+2000));
+                    try { Thread.sleep(1); } catch (Exception e) {}
+                }
+                toProver.append(s.substring(i));
+            } else {
+                toProver.append(s);
+            }
             toProver.flush();
         } catch (IOException e) {
-            throw new ProverException("Failed to write to prover: " + e);
+            String se = e.toString();
+            if (se.length() > 100) se = se.substring(0,100) + " .....";
+            throw new ProverException("Failed to write to prover: (" + s.length() + " chars) " + se);
         }
     }
     
@@ -502,7 +696,7 @@ public class YicesProver implements IProver {
         }
         try {
             send(builder.toString());
-            eatPrompt();
+            eatPrompt(interactive);
         } catch (ProverException e) {
             e.mostRecentInput = builder.toString();
             throw new RuntimeException(e);
@@ -524,7 +718,7 @@ public class YicesProver implements IProver {
         }
         try {
             send(builder.toString());
-            eatPrompt();
+            eatPrompt(interactive);
         } catch (ProverException e) {
             e.mostRecentInput = builder.toString();
             throw e;
@@ -544,7 +738,7 @@ public class YicesProver implements IProver {
         builder.append(")\n");
         try {
             send(builder.toString());
-            eatPrompt();
+            eatPrompt(interactive);
         } catch (ProverException e) {
             e.mostRecentInput = builder.toString();
             throw e;
@@ -560,8 +754,8 @@ public class YicesProver implements IProver {
      */
     public boolean rawdefine(String id, String typeString) throws ProverException {
         if (checkAndDefine(id,typeString)) return true; // DO nothing if already defined
-        builder.setLength(0);
         if (!typeString.startsWith("(")) defineType(typeString,typeString.startsWith("refA"));
+        builder.setLength(0);
         builder.append("(define ");
         builder.append(id);
         builder.append("::");
@@ -569,7 +763,7 @@ public class YicesProver implements IProver {
         builder.append(")\n");
         try {
             send(builder.toString());
-            eatPrompt();
+            eatPrompt(interactive);
         } catch (ProverException e) {
             e.mostRecentInput = builder.toString();
             throw e;
@@ -588,7 +782,7 @@ public class YicesProver implements IProver {
         builder.append(")\n");
         try {
             send(builder.toString());
-            eatPrompt();
+            eatPrompt(interactive);
         } catch (ProverException e) {
             e.mostRecentInput = builder.toString();
             throw e;
@@ -619,12 +813,13 @@ public class YicesProver implements IProver {
     public IProverResult check(boolean details) throws ProverException {
         //timer.reset();
         send("(check)\n");
-        String output = eatPrompt();
+        String output = eatPrompt(true);
         //System.out.println("CHECK TIME " + timer.elapsed()/1000.);
         boolean sat = output.startsWith("sat");
         boolean unknown = output.startsWith("unknown");
-        boolean unsat = output.startsWith("unsat");
+        boolean unsat = output.startsWith("unsat") || output.startsWith("Logical context is inconsistent");
         if (sat == unsat && !unknown) throw new ProverException("Improper response to (check) query: \"" + output + "\"");
+        details  &= evidence;
         ProverResult r = new ProverResult();
         if (sat || unknown) {
             if (unknown) r.result(ProverResult.POSSIBLYSAT);
@@ -635,7 +830,7 @@ public class YicesProver implements IProver {
             }
         } else if (unsat) {
             r.result(ProverResult.UNSAT);
-            output = output.substring(0,output.length()-8);
+            if (interactive) output = output.substring(0,output.length()-8);
             if (showCommunication >= 2) System.out.println("UNSAT INFO:" + output);
 
             if (details) {
@@ -773,7 +968,7 @@ public class YicesProver implements IProver {
                     }
                     c = canonical(c);
                     if (!nm.equals(c)) {
-                        rawassume("(= " + nm + " " + c +")");
+                        //rawassume("(= " + nm + " " + c +")");
                         newce.put(nm,c);
                     }
                 } else {
@@ -784,7 +979,7 @@ public class YicesProver implements IProver {
         for (String n : canonical.values()) {
             if (locs.get(n) == null) {
                 Integer u = (locs.size()) + 50000;
-                rawassume("(= (loc$ " + n +") " + u + ")");
+                //rawassume("(= (loc$ " + n +") " + u + ")");
                 locs.put(n,u);
             }
         }
@@ -955,20 +1150,20 @@ public class YicesProver implements IProver {
     
     public void maxsat() throws ProverException {
         send("(max-sat)\n");
-        String output = eatPrompt();
+        String output = eatPrompt(true);
         if (showCommunication >= 2) System.out.println("MAXSAT INFO:" + output);
     }
     
     public void pop() throws ProverException {
         send("(pop)\n");
-        eatPrompt();
+        eatPrompt(interactive);
         for (String t: top) defined.remove(t);
         top = stack.remove(0);
     }
 
     public void push() throws ProverException {
         send("(push)\n");
-        eatPrompt();
+        eatPrompt(interactive);
         stack.add(0,top);
         top = new LinkedList<String>();
     }
@@ -985,13 +1180,22 @@ public class YicesProver implements IProver {
     
     public void retract(int n) throws ProverException {
         send("(retract " + n + ")\n");
-        eatPrompt();
+        eatPrompt(interactive);
     }
     
     public void kill() throws ProverException {
         if (process != null) process.destroy();
         process = null;
     }
+    
+    public Supports supports() {
+        Supports s = super.supports();
+        s.retract = true;
+        s.unsatcore = true;
+        return s;
+    }
+
+
     
     static public class CoreIds implements IProverResult.ICoreIds {
         Collection<Integer> coreIds = new ArrayList<Integer>();

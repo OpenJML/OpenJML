@@ -336,7 +336,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         JavaFileObject prevSource = null;
         Env<AttrContext> prevEnv = this.env;
         this.env = env;
-        boolean prevAllowJML = resolve.allowJML;
+        boolean prevAllowJML = JmlResolve.setJML(context,true);// This allows JML identifiers to be matched when lookup occurs
         try {
             if (Utils.jmldebug) System.out.println("FINISHING SPEC CLASS - JML PHASE " + specsDecl.sym.fullname);
             JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(specsDecl.sym);
@@ -350,10 +350,8 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             
             ClassSymbol csym = specsDecl.sym;
 
-
             prevSource = Log.instance(context).useSource(specsDecl.sourcefile);
             checkTypeMatch(csym,specsDecl);
-            resolve.allowJML = true; // This allows JML identifiers to be matched when lookup occurs
             JmlMethodSpecs savedMethodSpecs = null;
             JmlSpecs.FieldSpecs mostRecentFieldSpecs = null;
             JmlVariableDecl mostRecentVarDecl = null;
@@ -489,7 +487,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             // FIXME - unify this method with the near duplicate above
         } finally {
             addRacMethods(specsDecl.sym,env);
-            resolve.allowJML = prevAllowJML;
+            JmlResolve.setJML(context,prevAllowJML);
             Log.instance(context).useSource(prevSource);
             if (Utils.jmldebug) {
                 System.out.println("FINISHING SPEC CLASS - COMPLETE " + specsDecl.sym.fullname);
@@ -1059,6 +1057,18 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
     }
 
     public void completeBinaryTodo() {
+        java.util.List<Env<AttrContext>> todo = ((JmlEnter)JmlEnter.instance(context)).binaryMemberTodo;
+        Env<AttrContext> env;
+        while (!todo.isEmpty()) {
+            env = todo.remove(0);
+            if (Utils.jmldebug) System.out.println("DOING BINARY TODO " + 
+                    (env.toplevel.sourcefile));
+            
+            completeSpecCUForBinary(env); // Might add more to to todo list
+        }
+    }
+    
+    public void completeBinaryTodo(Context context) {
         java.util.List<Env<AttrContext>> todo = ((JmlEnter)JmlEnter.instance(context)).binaryMemberTodo;
         Env<AttrContext> env;
         while (!todo.isEmpty()) {

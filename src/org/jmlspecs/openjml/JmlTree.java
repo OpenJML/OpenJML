@@ -2352,7 +2352,7 @@ public class JmlTree {
             this.suchThat = suchThat;
         }
         
-        public JCTree.JCExpression ident; // a store-ref expression
+        public JCTree.JCExpression ident; // a store-ref expression  // FIXME - doesn't this need to be a simple name?
         public boolean suchThat;
         public JCTree.JCExpression expression;
         

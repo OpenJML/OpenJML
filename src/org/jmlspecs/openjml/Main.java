@@ -2,21 +2,42 @@ package org.jmlspecs.openjml;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
+import javax.tools.JavaFileManager;
+import javax.tools.JavaFileObject;
+
+import org.jmlspecs.annotations.*;
+import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
+import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+
+import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.PackageSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.comp.JmlFlow;
 import com.sun.tools.javac.comp.JmlMemberEnter;
 import com.sun.tools.javac.comp.JmlResolve;
+import com.sun.tools.javac.file.JavacFileManager;
+import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Messages;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Options;
 
 /**
@@ -24,24 +45,26 @@ import com.sun.tools.javac.util.Options;
  * compiler, but overrides some of the functionality here in order to register
  * tools for the compiler to use that are extensions with JML functionality of
  * the usual tools. Also the handling of JML-specific options is initialized
- * here.
+ * here.  This class also contains the programmatic API for calling the compiler
+ * or for obtaining ASTs.
  */
 public class Main extends com.sun.tools.javac.main.Main {
 
-    /** The compilation unit context most recently registered
-     * (this can change if there are multiple contexts; it is really here
-     * for convenience for testing. */
+    /** The compilation unit context associated with this instance of Main
+     * (for the programmatic API); for the command-line API it is simply 
+     * the most recent value of the context, and is used that way in testing. */
     protected Context context;
     
     /** This is a cached copy of the output writer, for use when
      * direct writing is needed (such as printing out help information) before
      * the Log facility is registered.
      */
-    //@ non_null
+    //@edu.umd.cs.findbugs.annotations.NonNull
+    @NonNull
     protected PrintWriter out;
     
     /**
-     * Construct a compiler instance.
+     * Construct a compiler instance.  Errors go to stderr.
      */
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_SAME_SIMPLE_NAME_AS_SUPERCLASS")
     public Main() {
@@ -50,13 +73,15 @@ public class Main extends com.sun.tools.javac.main.Main {
 
     /**
      * Construct a compiler instance.
+     * @param name the name to use for the application
+     * @param out  the PrintWriter to which to send information and error messages
      */
     public Main(/*@ non_null */String name, /*@ non_null */PrintWriter out) {
         super(name,out);
-        this.out = out;
+        this.out = out;  // FIXME - would not need this if the super class declared out protected
     }
 
-    /** The external entry point - simply calls helper(args) and exits with the
+    /** The external entry point - simply calls compiler(args) and exits with the
      * exit code returned.
      * @param args the command-line arguments
      */
@@ -78,13 +103,27 @@ public class Main extends com.sun.tools.javac.main.Main {
           }
     }
     
+    /** The default application name */
+    //@edu.umd.cs.findbugs.annotations.NonNull
+    @NonNull
     final public static String applicationName = "jml";
     
     /** The option string for requesting help information */
+    //@edu.umd.cs.findbugs.annotations.NonNull
+    @NonNull
     final public static String helpOption = "-help";
+    
     /** The option string for requesting interactive mode */
+    //@edu.umd.cs.findbugs.annotations.NonNull
+    @NonNull
     final public static String interactiveOption = "-i";
 
+    /** Invokes the compiler on the given command-line arguments; errors go to
+     * stdout.
+     * @param args the command-line arguments
+     * @return     the exit code, as returned to the shell - 0 is success
+     */
+    //@ requires args != null && \nonnullelements(args);
     public static int compiler(String[] args) {
         return compiler(args,false);  // The boolean: true - errors to stdErr, false - errors to stdOut
     }
@@ -94,7 +133,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      * compile as in com.sun.tools.javac.Main because we also have to override
      * com.sun.tools.javac.main.Main.compile ]
      * @param args the command-line arguments
-     * @return the exit code
+     * @param useStdErr if true, errors go to stderr; if false they go to stdout
+     * @return the exit code as sent to the shell (0 is success)
      */ 
     //@ requires args != null && \nonnullelements(args);
     public static int compiler(String[] args, boolean useStdErr) {
@@ -170,11 +210,9 @@ public class Main extends com.sun.tools.javac.main.Main {
             // Note that the Java option processing happens in compile below.
             // Those options are not read at the time of the register call,
             // but the register call has to happen before compile is called.
+            exit = super.compile(args,context);
             if (Options.instance(context).get(helpOption) != null) {
-                exit = super.compile(args,context);
                 helpJML();
-            } else {
-                exit = super.compile(args,context);
             }
         }
 //        JmlSpecs specs = JmlSpecs.instance(context); // This is just for debugging
@@ -182,7 +220,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         return exit;
     }
         
-    /** This is a utility method to print out all of the help information */
+    /** This is a utility method to print out all of the JML help information */
     protected void helpJML() {
         out.print(JmlOptionName.helpInfo());
         out.flush();
@@ -199,7 +237,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     //@ requires \nonnullelements(args);
     //@ ensures \result != null && \nonnullelements(\result);
-    String[] processJmlArgs(/*@ non_null */String [] args,/*@ non_null */ Options options) {
+    String[] processJmlArgs(@NonNull String [] args, @NonNull Options options) {
         ArrayList<String> newargs = new ArrayList<String>();
         int i = 0;
         while (i<args.length) {
@@ -216,7 +254,11 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param remainingArgs any arguments that are not JML options
      * @return the index of the next argument to be processed
      */
-    int processJmlArg(/*@ non_null */String[] args, int i, /*@ non_null */ Options options, java.util.List<String> remainingArgs ) {
+    //@ requires \nonnullelement(args);
+    //@ requires (* elements of remainingArgs are non-null *);
+    //@ requires 0<= i && i< args.length;
+    //@ ensures \result > i;
+    int processJmlArg(@NonNull String[] args, int i, @NonNull Options options, @NonNull java.util.List<String> remainingArgs ) {
         String res = "";
         String s = args[i++];
         OptionInterface o = JmlOptionName.find(s);
@@ -250,8 +292,9 @@ public class Main extends com.sun.tools.javac.main.Main {
     /* We override this method in order to process the JML command-line 
      * arguments and to do any tool-specific initialization
      * after the command-line arguments are processed.  
-     */   // FIXME - we are hacking the availability of 'context' here in a non-thread-safe way
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
+     */   // FIXME - we are hacking the availability of 'context' here in a non-thread-safe way;
+        // but note that Main treats options in a non-thread safe way
+    // @edu.umd.cs.findbugs.annotations.SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     @Override
     public List<File> processArgs(String[] args) {
         Context context = this.context; // At least cache it here at the beginning
@@ -264,17 +307,26 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         return files;
     }
-    
+        
     /** This registers the JML versions of many of the tools (e.g. scanner, parser,
      * specifications database,...) used by the compiler.  They must be registered
      * before the Java versions are invoked, since in most cases singleton
      * values are lazily created.  Note also that since tools can only be registered
      * into the context once, circular dependencies can arise from pairs of tools
-     * that use each other, if you can not careful.
+     * that use each other, if you are not careful.
      * @param context the compilation context into which to register the tools
      */
     public void register(/*@ non_null @*/ Context context) {
         this.context = context;// A hack so that context is available in processArgs()
+        registerTools(context,out);
+    }
+    
+    /** Called to register the JML internal tools that replace the tools used
+     * in the Java compiler.
+     * @param context the compiler context in which the tools are to be used
+     * @param out the PrintWriter used for error and informational messages
+     */
+    static public void registerTools(/*@ non_null */ Context context, PrintWriter out) {
 
         // This is done later, but we do it here so that the Log is
         // available if tool registration (or argument processing) needs the
@@ -315,5 +367,207 @@ public class Main extends com.sun.tools.javac.main.Main {
     protected void bugMessage(Throwable ex) {
         System.err.println("Internal JML bug - please report.  Build" + JavaCompiler.version());
         ex.printStackTrace(System.out);
+    }
+    
+    
+    // EXTERNAL API FOR PROGRAMATIC ACCESS TO JML COMPILER INTERNALS
+    // FIXME - pretty printing needs lots of work
+    // FIXME - internal classes for holding specs are not yet finalized
+    
+    /** Creates and initializes a compiler instance for programmatic use
+     * @param args the command line arguments that setup options such as 
+     * the class path and the location of specification files; any class file
+     * names are ignored; annotation processors should be listed here.
+     */
+    public Main(@NonNull String[] args) throws Exception {
+        this();
+        initialize(args);
+    }
+    
+    /** The argument is the array of command-line arguments without files - options only.
+     * This should not be called by a client, but only internally.
+     * 
+     * @param args the array of command-line arguments used to setup options
+     * 
+     */
+    protected Main initialize(@NonNull String[] args) throws Exception {
+        context = new Context();
+        JavacFileManager.preRegister(context); // can't create it until Log has been set up
+        setOptions(Options.instance(context));
+        filenames = new ListBuffer<File>();
+        classnames = new ListBuffer<String>();
+        register(context);
+        processArgs(CommandLine.parse(args));
+        // FIXME - warn about ignored files? or process them?
+        return this;
+    }
+    
+    /** Parses each java file and its specs returning a list of the ASTs corresponding
+     * java files; the spec files are automatically found according to JML rules 
+     * (do not list them on the command line);  the ASTs of the spec files are contained in the 
+     * JmlCompilationUnit.specsSequence.  Error messages are reported separately;
+     * if there are errors, a parse tree may be incomplete.  The trees are not
+     * type-checked and do not have any name resolution applied.
+     * @param files the java.io.File objects of the input .java files
+     * @return a list of corresponding ASTs
+     */
+    //@ requires \nonnullelements(files);
+    //@ ensures files.size() == \result.size();
+    //@ ensures (* output elements are non-null *); // FIXME - what about parse errors?
+    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull File... files) {
+        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        c.inSequence = false;
+        Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(files);
+        ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
+        for (JavaFileObject fileObject : fobjects)
+            trees.add((JmlCompilationUnit)c.parse(fileObject));
+        return trees;
+    }
+    
+    /** Produces a parse tree for a single file wihtout any specifications; the
+     * file may be either a .java or a specification file.  The trees are not
+     * type-checked and do not have any name resolution applied.
+     * @param file the file to be parsed
+     * @return the parse tree for the file
+     */
+    public JmlCompilationUnit parseFile(File file) {
+        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        c.inSequence = true;
+        Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(file);
+        return ((JmlCompilationUnit)c.parse(fobjects.iterator().next()));
+    }
+    
+    /** Parses, creates symbol table symbols and typechecks the given set of files.
+     *  This method may be called multiple times to add new classes to the symbol
+     *  table entries.  Other files may be parsed and entered if they are dependencies
+     *  of the files given as arguments.
+     * @param files the set of files to parse and check
+     * @throws java.io.IOException
+     */
+    public void parseAndCheck(File... files) throws java.io.IOException {
+        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        c.inSequence = false;
+        Iterable<? extends JavaFileObject> sourceFileObjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(files);
+        ListBuffer<JavaFileObject> list = ListBuffer.<JavaFileObject>lb();
+        for (JavaFileObject jfo : sourceFileObjects) list.append(jfo);
+        c.processAnnotations(c.enterTrees(c.stopIfError(c.parseFiles(list.toList()))),
+                classnames.toList());
+    }
+    
+    /** Retrieves the symbol table entry for a given name, based on files already
+     * parsed and present in the symbol table.
+     * @param qualifiedName the dot and dollar (for nested classes) separated 
+     * class name
+     * @return the class symbol or null if it is not found
+     */
+    public @Nullable ClassSymbol getClassSymbol(@NonNull String qualifiedName) {
+        Name n = Name.Table.instance(context).fromString(qualifiedName);
+        return Symtab.instance(context).classes.get(n);
+    }
+    
+    /** Retrieves the symbol table entry for a given package name, based on files already
+     * parsed and present in the symbol table.
+     * @param qualifiedName the dot separated package name
+     * @return the package symbol or null if it is not found
+     */
+    public @Nullable PackageSymbol getPackageSymbol(@NonNull String qualifiedName) {
+        Name n = Name.Table.instance(context).fromString(qualifiedName);
+        return Symtab.instance(context).packages.get(n);
+    }
+    
+    /** Returns the type specs for the given class symbol
+     * 
+     * @param sym the class symbol whose specs are wanted
+     * @return the specs for that class
+     */
+    public @NonNull TypeSpecs getSpecs(@NonNull ClassSymbol sym) {
+        return JmlSpecs.instance(context).get(sym);
+    }
+    
+    /** Returns the specs for a given method
+     * 
+     * @param sym the method symbol whose specs are wanted
+     * @return the specs for that method
+     */
+    public @NonNull JmlMethodSpecs getSpecs(@NonNull MethodSymbol sym) {
+        return JmlSpecs.instance(context).getSpecs(sym);
+    }
+    
+    /** Returns the specs for a given method in denested form
+     * 
+     * @param sym the method symbol whose specs are wanted
+     * @return the specs for that method
+     */
+    public @NonNull JmlMethodSpecs getDenestedSpecs(@NonNull MethodSymbol sym) {
+        return JmlSpecs.instance(context).getDenestedSpecs(sym);
+    }
+    
+    /** Returns the specs for a given field
+     * 
+     * @param sym the field symbol whose specs are wanted
+     * @return the specs for that field
+     */
+    public @NonNull FieldSpecs getSpecs(@NonNull VarSymbol sym) {
+        return JmlSpecs.instance(context).getSpecs(sym);
+    }
+    
+    /** Returns the AST for a given class (not compilation unit)
+     * 
+     * @param sym the class symbol whose AST is wanted
+     * @return the AST for that class
+     */
+    public @NonNull JmlClassDecl getClassAST(@NonNull String qualifiedName) {
+        ClassSymbol sym = getClassSymbol(qualifiedName);
+        TypeSpecs t = getSpecs(sym);
+        return t.decl;
+    }
+    
+    
+    /** Prints out a given parse tree (or subtree).  If likeSource is true,
+     * then the output is valid Java source, if the tree is a Java construct
+     * (e.g. JML constructs are in inside JML comments).  If likeSource is
+     * false, no JML comment symbols are used and other internal information
+     * may also be output.
+     * 
+     * @param ast the ast to print
+     * @param likeSource if true, prints out as valid source code
+     * @return a string containing the output
+     * @throws Exception
+     */
+    public @NonNull String prettyPrint(@NonNull JCTree ast, boolean likeSource) throws Exception {
+        StringWriter s = new StringWriter();
+        JmlPretty.instance(s,likeSource).print(ast);
+        return s.toString();
+    }
+    
+    /** Prints out a list of parse trees.  If likeSource is true,
+     * then the output is valid Java source, if the tree is a Java construct
+     * (e.g. JML constructs are in inside JML comments).  If likeSource is
+     * false, no JML comment symbols are used and other internal information
+     * may also be output.
+     * 
+     * @param ast the ast to print
+     * @param likeSource if true, prints out as valid source code
+     * @param sep  a String that is written out as a separator
+     * @return a string containing the output
+     * @throws Exception
+     */
+    public @NonNull String prettyPrint(@NonNull java.util.List<? extends JCTree> astlist, boolean likeSource, @NonNull String sep) throws Exception {
+        StringWriter s = new StringWriter();
+        boolean isFirst = true;
+        for (JCTree ast: astlist) {
+            if (!isFirst) { s.append(sep); isFirst = false; }
+            JmlPretty.instance(s,likeSource).print(ast);
+        }
+        return s.toString();
+    }
+    
+    /** Closes this instance of the compiler, releasing internal memory;
+     * no further use of the instance is permitted (and will likely result in
+     * exceptions thrown).
+     */
+    public void close() {
+        JmlCompiler.instance(context).close();
+        context = null;
     }
 }

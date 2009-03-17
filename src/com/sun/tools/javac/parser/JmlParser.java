@@ -117,7 +117,7 @@ public class JmlParser extends EndPosParser {
         //@ ensures this.names != null && this.jmlF != null;
         @Override
         public Parser newParser(Lexer S, boolean keepDocComments, boolean genEndPos) {
-            JmlParser p = new JmlParser(this,S,keepDocComments);
+            JmlParser p = new JmlParser(this,S,keepDocComments || true);  // FIXME - really just want the doc comments when doing jmldoc
             p.names = Name.Table.instance(context);
             p.context = context;
             return p;
@@ -234,8 +234,8 @@ public class JmlParser extends EndPosParser {
         int pos = -1;
         JCModifiers mods = null;
         while (S.token() != Token.RBRACE && S.token() != EOF) {
-            if (S.pos == pos) break;
-            pos = S.pos;
+            if (S._pos == pos) break;
+            pos = S._pos;
             if (S.token() == CUSTOM) {
                 mods = modifiersOpt();
             }
@@ -1512,7 +1512,7 @@ public class JmlParser extends EndPosParser {
         while (S.token() == Token.CUSTOM) {
             JmlToken j = S.jmlToken();
             if (JmlToken.modifiers.contains(j)) {
-                JCAnnotation a = tokenToAnnotationAST(j,S.pos);
+                JCAnnotation a = tokenToAnnotationAST(j,S._pos);
                 if (a != null) annotations.append(a);
                 // a is null if no annotation is defined for the modifier;
                 // we just silently ignore that situation
@@ -1722,7 +1722,7 @@ public class JmlParser extends EndPosParser {
                         return syntaxError(p,null,"jml.args.required",jt.internedName());
                     } else {
                         // FIXME - check no typeargs
-                        int pp = S.pos;
+                        int pp = S._pos;
                         List<JCExpression> args = arguments();
                         return toP(jmlF.at(pp).JmlMethodInvocation(jt,args));
                     }
@@ -1746,7 +1746,7 @@ public class JmlParser extends EndPosParser {
                         return syntaxError(p,null,"jml.args.required",jt.internedName());
                     } else {
                         // FIXME - check no typeargs
-                        int pp = S.pos;
+                        int pp = S._pos;
                         List<JCExpression> args = arguments();
                         t = toP(jmlF.at(pp).JmlMethodInvocation(jt,args));
                         return primarySuffix(t,typeArgs);
@@ -1755,7 +1755,7 @@ public class JmlParser extends EndPosParser {
                 case BSNOTMODIFIED:
                     S.nextToken();
                     // FIXME - check no typeargs
-                    int pp = S.pos;
+                    int pp = S._pos;
                     List<JCExpression> args = arguments();
                     return toP(jmlF.at(pp).JmlMethodInvocation(jt,args));
 
@@ -2009,24 +2009,66 @@ public class JmlParser extends EndPosParser {
         return super.variableDeclaratorsRest(pos,mods,type,name,reqInit,dc,vdefs);
     }
 
-    /** This is overridden to try to get <: with the right precedence */
+    /** This is overridden to try to get <:, <# and <=# with the right precedence */
     // FIXME - not sure this is really robust
     protected int prec(Token token) {
         if (token == CUSTOM) {
             // Caution: S may not be on the same token anymore
-            if (S.jmlToken() != null && S.jmlToken() != JmlToken.SUBTYPE_OF) return -1; // For in/equivalence and reverse/implies
-            return TreeInfo.ordPrec;  // Since there is only one JML operator to worry about, this works
+            if (S.jmlToken() != null && S.jmlToken() != JmlToken.SUBTYPE_OF && S.jmlToken() != JmlToken.LOCK_LT && S.jmlToken() != JmlToken.LOCK_LE) return -1; // For in/equivalence and reverse/implies
+            return TreeInfo.ordPrec;  // All the JML operators are comparisons
         }
         else return super.prec(token);
     }
     
+    JmlToken topOpJmlToken;
+    
+    // MAINTENANCE ISSUE - Duplicated from Parser.java in order to track Jml tokens
+    JCExpression term2Rest(JCExpression t, int minprec) {
+        List<JCExpression[]> savedOd = odStackSupply.elems;
+        JCExpression[] odStack = newOdStack();
+        List<Token[]> savedOp = opStackSupply.elems;
+        Token[] opStack = newOpStack();
+        // optimization, was odStack = new Tree[...]; opStack = new Tree[...];
+        int top = 0;
+        odStack[0] = t;
+        int startPos = S.pos();
+        Token topOp = ERROR;
+        while (prec(S.token()) >= minprec) {
+            opStack[top] = topOp;
+            top++;
+            topOp = S.token();
+            topOpJmlToken = S.jmlToken();
+            int pos = S.pos();
+            S.nextToken();  // S.jmlToken() changes
+            odStack[top] = topOp == INSTANCEOF ? type() : term3();
+            while (top > 0 && prec(topOp) >= prec(S.token())) {
+                odStack[top-1] = makeOp(pos, topOp, odStack[top-1],
+                                        odStack[top]);
+                top--;
+                topOp = opStack[top];
+            }
+        }
+        assert top == 0;
+        t = odStack[0];
+
+        if (t.getTag() == JCTree.PLUS) {
+            StringBuffer buf = foldStrings(t);
+            if (buf != null) {
+                t = toP(F.at(startPos).Literal(TypeTags.CLASS, buf.toString()));
+            }
+        }
+
+        odStackSupply.elems = savedOd; // optimization
+        opStackSupply.elems = savedOp; // optimization
+        return t;
+    }
     protected JCExpression makeOp(int pos,  // DRC - changed from private to protected
             Token topOp,
             JCExpression od1,
             JCExpression od2)
     {
         if (topOp == CUSTOM) { // <:
-            JCExpression e = jmlF.at(pos).JmlBinary(JmlToken.SUBTYPE_OF, od1, od2);
+            JCExpression e = jmlF.at(pos).JmlBinary(topOpJmlToken, od1, od2);
             storeEnd(e,getEndPos(od2));
             return e;
         }

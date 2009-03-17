@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.jmlspecs.annotations.*;
 import org.jmlspecs.openjml.JmlPretty;
@@ -60,8 +63,12 @@ public class BasicProgram {
     /** A list of logical assertions (e.g. equalities that are definitions)
      *  used in the block equations but are not block equations themselves.
      */
-    protected List<JCExpression> definitions = new ArrayList<JCExpression>();;
+    protected List<JCExpression> definitions = new ArrayList<JCExpression>();
 
+    /** A map of expressions and ids that are the assumptions to be checked for vacuity. */
+    //@ non_null
+    public List<Map.Entry<JCExpression,String>> assumptionsToCheck = new LinkedList<Map.Entry<JCExpression,String>>();
+    
     /** Returns the (mutable) list of definitions that are part of this program
      * @return the program's definitions
      */
@@ -104,7 +111,12 @@ public class BasicProgram {
     /** The starting block */
     @Pure @NonNull
     public BasicBlock startBlock() {
-        return blocks.get(0); // FIXME - is it always the first one?
+        // Almost always the first one, but just in case, we
+        // start with the first but check them all
+        for (BasicBlock b: blocks) {
+            if (b.id == startId) return b;
+        }
+        throw new RuntimeException("INTERNAL ERROR - A BasicProgram does not contain its own start block"); // FIXME - what exception to use
     }
     
     /** Writes out the BasicProgram to System.out for diagnostics */

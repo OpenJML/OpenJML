@@ -23,9 +23,9 @@ jars jmlspecs.jar openjml.jar:
 	rm -rf temp temp2
 	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/JML-${VERSION}/ > version.properties )
 	mkdir temp
+	(cd temp; for j in ${ROOT}/../OpenJML/otherlibs/* ; do jar xf $$j; echo $$j; done )
 	cp -r ${ROOT}/OpenJML/bin/* temp
 	cp -r ${ROOT}/OpenJDK/bin/* temp
-	##cp -r ${ROOT}/FreeBoogie/bin/* temp
 	mkdir temp/specs14 temp/specs15 temp/specs16
 	cp -r ${SPECS}/java4/* temp/specs14
 	find temp/specs14 -name .svn -exec rm -rf \{\} +
