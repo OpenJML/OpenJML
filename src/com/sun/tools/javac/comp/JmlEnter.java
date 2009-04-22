@@ -255,10 +255,12 @@ public class JmlEnter extends Enter {
         // Make a map of the types nested within this java type.
         java.util.Map<Name,JmlClassDecl> decls = new java.util.HashMap<Name,JmlClassDecl>();
         for (JCTree t: javaTypeDeclaration.defs) {
+            if (t instanceof JmlTypeClauseDecl) t = ((JmlTypeClauseDecl)t).decl;
             if (t instanceof JmlClassDecl) decls.put(((JmlClassDecl)t).name,(JmlClassDecl)t);
         }
         
         for (JCTree specNestedDeclaration: specTypeDeclaration.defs) {
+            if (specNestedDeclaration instanceof JmlTypeClauseDecl) specNestedDeclaration = ((JmlTypeClauseDecl)specNestedDeclaration).decl;
             if (specNestedDeclaration instanceof JmlClassDecl) {
                 JmlClassDecl specNestedTypeDeclaration = (JmlClassDecl)specNestedDeclaration;
                 JmlClassDecl matchingJavaTypeDeclaration = decls.get(specNestedTypeDeclaration.name);
@@ -318,7 +320,7 @@ public class JmlEnter extends Enter {
                 JmlTypeClauseDecl specsNestedDecl = (JmlTypeClauseDecl)specsNestedDeclaration;
                 JCTree specsNestedJmlDecl = specsNestedDecl.decl;
                 if (specsNestedJmlDecl instanceof JmlClassDecl) {
-                    if (Utils.jmldebug) System.out.println("ADDING(JmlEnter) DECL FOR NESTED CLASS " + ((JmlClassDecl)specsNestedJmlDecl).name + " TO "  + javaClassDeclaration.name);
+                    if (Utils.jmldebug ) System.out.println("ADDING(JmlEnter) DECL FOR NESTED CLASS " + ((JmlClassDecl)specsNestedJmlDecl).name + " TO "  + javaClassDeclaration.name);
                     classEnter(specsNestedJmlDecl,typeEnvs.get(javaClassDeclaration.sym));
                     // the call above sets the sourcefile of the sym to that of the enclosing class, but a model
                     // class can be declared in a specification file, so we fix that

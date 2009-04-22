@@ -75,7 +75,7 @@ public interface IProverResult {
       
       /** All of the variable-value pairs, returned as a Set of Map.Entry 
        * pairs, sorted alphabetically by variable name.
-       * @return
+       * @return a sorted list of the variable-value pairs
        */
       public Set<Map.Entry<String,String>> sortedEntries();
   }

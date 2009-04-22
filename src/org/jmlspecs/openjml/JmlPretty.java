@@ -42,6 +42,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     protected boolean sourceOutput;
     
     public boolean useJMLComments;
+    
+    public String indent = "";
+    
+    public String indentx = "  ";
         
     /** Instantiates a pretty-printer for Jml nodes with default indentation
      * @param out the Write to which output is to be put
@@ -64,6 +68,15 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     static public @NonNull String write(@NonNull JCTree tree) {
         StringWriter sw = new StringWriter();
         JmlPretty p = new JmlPretty(sw,true);
+        p.width = 2;
+        tree.accept(p);
+        return sw.toString();
+        //return write("","  ",tree);
+    }
+    
+    static public @NonNull String write(@NonNull JCTree tree, boolean source) {
+        StringWriter sw = new StringWriter();
+        JmlPretty p = new JmlPretty(sw,source);
         p.width = 2;
         tree.accept(p);
         return sw.toString();
@@ -127,7 +140,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     
     public void visitJmlRefines(JmlRefines that) {
         try { 
-            out.write("//@ refines \"");
+            if (useJMLComments) out.write("//@ ");
+            out.write("refines \"");
             out.write(that.filename);
             out.write("\";");
             println();
@@ -136,7 +150,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     
     public void visitJmlImport(JmlImport that) {
         try {
-            if (that.isModel) out.write("//@ model ");
+            if (useJMLComments && that.isModel) out.write("//@ ");
+            if (that.isModel) out.write("model ");
             print("import ");
             if (that.staticImport) print("static ");
             printExpr(that.qualid);
@@ -167,7 +182,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
         try { 
             for (JCTree.JCStatement s: that.stats) {
-                out.write("         ");
+                out.write(indent);
                 out.write(that.token.internedName());
                 out.write(" ");
                 s.accept(this);
@@ -179,18 +194,15 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
         try { 
-            out.write("         ");
             out.write(that.token.internedName());
             out.write(" ");
             that.expression.accept(this);
-            out.write(";");
-            println();
+            out.write("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
         try { 
-            out.write("         ");
             out.write(that.token.internedName());
             out.write(" ");
             that.expression.accept(this);
@@ -198,36 +210,30 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 out.write(" if ");
                 that.predicate.accept(this);
             }
-            out.write(";");
-            println();
+            out.write("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) {
         try { 
-            out.write("         ");
             out.write(that.token.internedName());
             out.write(" ");
             for (JCExpression item: that.list) item.accept(this);
-            out.write(";");
-            println();
+            out.write("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlMethodClauseAssignable(JmlMethodClauseAssignable that) {
         try { 
-            out.write("         ");
             out.write(that.token.internedName());
             out.write(" ");
             for (JCTree item: that.list) item.accept(this);
-            out.write(";");
-            println();
+            out.write("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
         try { 
-            out.write("         ");
             out.write(that.token.internedName());
             out.write(" (");
             if (that.vardef != null) {
@@ -237,20 +243,24 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             }
             out.write(") ");
             that.expression.accept(this);
-            out.write(";");
-            println();
+            out.write("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlMethodSpecs(JmlMethodSpecs that) {
+        String oldindent = indent;
         try { 
-            if (useJMLComments) out.write("    /*@"); println();
+            indent = oldindent + indentx;
+            if (useJMLComments) out.write(oldindent + "/*@"); println();
             for (JmlSpecificationCase c: that.cases) {
                 c.accept(this);
             }
-            if (useJMLComments) out.write("    */"); println();
-        } catch (Exception e) { perr(that,e); }
-        
+            if (useJMLComments) out.write(oldindent + " */"); println();
+        } catch (Exception e) { 
+            perr(that,e);
+        } finally { 
+            indent = oldindent; 
+        }
     }
 
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
@@ -286,13 +296,21 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (that.token == null) {
                 // lightweight
             } else {
-                out.write("      ");
+                out.write(indent);
                 out.write(that.token.internedName());
                 println();
             }
-            for (JmlMethodClause c: that.clauses) {
-                c.accept(this);
-                //s.append(c.toString(indent2));
+            String oldindent = indent;
+            try {
+                indent = indent + indentx;
+                for (JmlMethodClause c: that.clauses) {
+                    out.write(indent);
+                    c.accept(this);
+                    println();
+                    //s.append(c.toString(indent2));
+                }
+            } finally {
+                indent = oldindent;
             }
         } catch (IOException e) { perr(that,e); }
     }
@@ -342,13 +360,12 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
         try { 
-            if (useJMLComments) print("  //@ ");
+            if (useJMLComments) print("//@ ");
             printFlags(that.modifiers.flags);
             print(that.token.internedName());
             print(" ");
             printExpr(that.expression);
-            print(";");
-            println();
+            print("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -365,7 +382,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print(" ");
                 print(g.selection);
             }
-            println();
+            print("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -379,7 +396,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print(" ");
                 print(g.selection);
             }
-            println();
+            print("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -399,7 +416,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
         try {
-            if (useJMLComments) print("  //@ ");
+            if (useJMLComments) print("//@ ");
             printFlags(that.modifiers.flags);
             print(that.token.internedName());
             print(" ");
@@ -407,22 +424,20 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (that.sigs != null && !that.sigs.isEmpty()) {
                 print(" for SIGNATURES"); // FIXME
             }
-            out.write(";");
-            println();
+            out.write("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
         try { 
-            if (useJMLComments) print("  //@ ");
+            if (useJMLComments) out.write("//@ ");
             printFlags(that.modifiers.flags);
             out.write(that.token.internedName());
             out.write(" ");
             that.ident.accept(this);
             out.write(" = ");
             that.expression.accept(this);
-            out.write(";");
-            println();
+            out.write("; ");
         } catch (IOException e) { perr(that,e); }
     }
 

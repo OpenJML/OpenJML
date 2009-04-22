@@ -172,7 +172,7 @@ public class QueryPure extends TCBase {
         helpTCF("A.java",
                 "import org.jmlspecs.annotations.*;\n" +
                 "public class A { \n" +
-                "  @Query //@ query\n" +  // BAD
+                "  @Pure //@ pure\n" +  // BAD
                 "  public void v() {}" +
                 "} \n"
                 ,"/A.java:3: duplicate annotation",14

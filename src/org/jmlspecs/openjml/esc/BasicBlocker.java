@@ -728,7 +728,7 @@ public class BasicBlocker extends JmlTreeScanner {
      * @param type the type of the variable
      * @param pos the position to assign as its pseudo-location of use
      * @return
-     */
+     */ 
     protected JCIdent newAuxIdent(@NonNull String name, @NonNull Type type, int pos, boolean incarnations) {
         return newAuxIdent(names.fromString(name),type,pos,incarnations);
     }
@@ -3918,6 +3918,10 @@ public class BasicBlocker extends JmlTreeScanner {
     
     static public boolean insertAssumptionChecks = true;
     
+    static boolean useCountedAssumeCheck = true;
+    static JCExpression booleanAssumeCheck;
+    JCExpression assumeCheck = null;
+
     // We introduce the name 'assumeCheck$<int>$<label>' in order to make
     // it easy to identify the places where assumptions are being checked.
     /** Adds (translated) assertions/assumptions that do assumption feasibility checking 
@@ -3927,9 +3931,6 @@ public class BasicBlocker extends JmlTreeScanner {
      * @param label a Label givin gthe kind of assumption being tested (in order to
      *    better interpret the implications of the assumptino not being feasible)
      */
-    static boolean useCountedAssumeCheck = true;
-    static JCExpression booleanAssumeCheck;
-    JCExpression assumeCheck = null;
     
     protected void checkAssumption(int pos, /*@ non_null*/ Label label, List<JCStatement> statements) {
         if (!insertAssumptionChecks) return;
@@ -5445,8 +5446,9 @@ public class BasicBlocker extends JmlTreeScanner {
         
         /** Outputs the counterexample information in more readable form
          * @param context the compilation context
-         * @param decl the method declaration 
+         * @param program the program whose counterexample information is to be printed 
          * @param ce the counterexample information to translate
+         * @param prover the prover from which the counterexample information came
          */
         public static void trace(@NonNull Context context, @NonNull BasicProgram program, @NonNull ICounterexample ce, IProver prover) {
             try {
@@ -5472,7 +5474,6 @@ public class BasicBlocker extends JmlTreeScanner {
         
         /** The constructor for this class
          * @param context the compilation context
-         * @param s the counterexample information
          */
         protected TracerBB(@NonNull Context context) {
             this.context = context;

@@ -574,6 +574,11 @@ public class JmlResolve extends Resolve {
      public Symbol loadClass(Env<AttrContext> env, Name name) {
          if (Utils.jmldebug) System.out.println("LOADING REQUESTED " + name + " " + ClassReader.isClassAlreadyRead(context,name));
          Symbol s = super.loadClass(env, name);
+//         if (!s.exists()) {
+//             // FIXME - does not distinguish between bad symbols and packages
+//             System.out.println("Error resolving " + name + ": " + s);
+//             return s;
+//         }
          if (!(s instanceof ClassSymbol)) return s; // loadClass can be called for a package
          JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get((ClassSymbol)s);
          if (tsp == null) {

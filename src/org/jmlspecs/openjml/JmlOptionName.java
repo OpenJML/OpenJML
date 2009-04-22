@@ -143,7 +143,7 @@ public enum JmlOptionName implements OptionInterface {
      */
     //@ ensures \result == null || \result.optionName().equals(s);
     //@ nullable
-    static JmlOptionName find(/*@ non_null */ String s) {
+    static public JmlOptionName find(/*@ non_null */ String s) {
         return map.get(s);
     }
     

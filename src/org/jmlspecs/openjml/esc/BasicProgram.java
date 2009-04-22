@@ -156,7 +156,7 @@ public class BasicProgram {
         
         /** A constructor creating an empty block with a name 
          * 
-         * @param name the name of the block
+         * @param id the name of the block
          */
         BasicBlock(/*@ non_null*/JCIdent id) { 
             this.id = id;

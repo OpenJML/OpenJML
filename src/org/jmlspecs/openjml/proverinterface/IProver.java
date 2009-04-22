@@ -49,7 +49,6 @@ public interface IProver {
     /**
      * Adds {@code tree} as an assumption; the concrete IProver is
      * responsible to translate the AST into prover-dependent form.
-     * @param context the compilation context, used to obtain tools
      * @param tree the assumption
      * @param weight a weight to be associated with the assertion (may be
      *      ignored if the prover does not support weights)

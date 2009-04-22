@@ -225,6 +225,9 @@ public class JmlParser extends EndPosParser {
         }
         JCStatement s = super.classOrInterfaceOrEnumDeclaration(mods, dc);
         inJmlDeclaration = prevInJmlDeclaration;
+        if (S.jmlToken == JmlToken.ENDJMLCOMMENT) {
+            S.nextToken();
+        }
         return s;
     }
 
@@ -412,23 +415,33 @@ public class JmlParser extends EndPosParser {
         new TreePrinter(out,this).scan(t);
     }
     
+    public String docComment(JCTree tree) {
+        return docComments.get(tree);
+    }
+    
     protected boolean inJmlDeclaration = false; // when true we are parsing declarations within a model method or class, 
                                     // so the individual declarations are not themselves model even though they are in JML
     
     @Override
     protected List<JCTree> classOrInterfaceBodyDeclaration(Name className, boolean isInterface) {
-
-        if (S.jmlToken() == STARTJMLCOMMENT) S.nextToken();
+        String dcc = S.docComment();
+        if (S.jmlToken() == STARTJMLCOMMENT) {
+            S.nextToken();
+            S.docComment = dcc;
+        }
        
         ListBuffer<JCTree> list = new ListBuffer<JCTree>();
         loop: while (true) {
+            String dc = S.docComment();
             while (S.jmlToken() == ENDJMLCOMMENT) {
                 S.nextToken(); // swallows the ENDJMLCOMMENT
                 if (S.jmlToken() != STARTJMLCOMMENT) {
                     break loop;
                 }
+                if (S.docComment != null) dc = S.docComment;
                 S.nextToken(); // swallow the STARTJMLTOKEN
             }
+            S.docComment = dc;
             if (S.jml) S.setJmlKeyword(true);
             JCModifiers mods = modifiersOpt(); // Gets anything in that is in pushBackModifiers
             int pos = S.pos();
@@ -450,17 +463,21 @@ public class JmlParser extends EndPosParser {
                                 Utils.setJML(d.mods);
                                 d.sourcefile = log.currentSource();
                                 ttr = toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                                attach(d, dc); d.docComment = dc;
                             } else if (tr instanceof JmlMethodDecl) {
                                 JmlMethodDecl d = (JmlMethodDecl)tr;
                                 Utils.setJML(d.mods);
                                 d.sourcefile = log.currentSource();
                                 ttr = toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                                attach(d, dc); d.docComment = dc;
                             } else if (tr instanceof JmlVariableDecl) {
                                 JmlVariableDecl d = (JmlVariableDecl)tr;
                                 Utils.setJML(d.mods);
                                 d.sourcefile = log.currentSource();
                                 ttr = toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                                attach(d, dc); d.docComment = dc;
                             }
+                            dc = null;
                             list.append(ttr);
                         }
                     } else {
@@ -468,6 +485,7 @@ public class JmlParser extends EndPosParser {
                     }
                 } else {
                     // no longer in JML
+                    S.docComment = dc;
                     List<JCTree> t = super.classOrInterfaceBodyDeclaration(className,isInterface);
                     list.appendList(t);
                 }
@@ -480,6 +498,7 @@ public class JmlParser extends EndPosParser {
                 parseRepresents(mods,list);
             } else if (methodClauseTokens.contains(jt) || specCaseTokens.contains(jt)) {
                 list.append(parseMethodSpecs(mods));
+                S.docComment = dc;
                 // getMethodSpecs may have already parsed some modifiers.
                 // They will be in pushBackModifiers
             } else if (jt == IN) {
@@ -1351,7 +1370,7 @@ public class JmlParser extends EndPosParser {
     /** Parses the initial part of a store-ref: (<informal-comment>|<identifier>|"this"|"super")
      * @param strictId when true, only store-refs that start with identifiers,
      *  this, or super are allowed
-     * @return
+     * @return an AST for the parsed code
      */
     //@ ensures \result == null || \result instanceof JmlStoreRefKeyword || \result instanceof JCIdent;
     protected JCTree parseStoreRefInit(boolean strictId) {
@@ -1382,7 +1401,7 @@ public class JmlParser extends EndPosParser {
     /** Parses [ "[" ( "*" | <expression> | <expression> ".." "*" | <expression> ".." | <expression> ".." <expression> ) "]" ]*
      * @param t the leading expression for which the array index or range is a suffix
      * @param strictId if true, no wildcards or ranges are allowed
-     * @return
+     * @return an AST for the parsed code
      */
     protected JCExpression parseArrayRangeExpr(JCExpression t, boolean strictId) {
         while (S.token() == Token.LBRACKET) {

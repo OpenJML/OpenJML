@@ -1,64 +1,76 @@
 package org.jmlspecs.openjml.jmldoc;
 
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.io.IOException;
 
+import org.jmlspecs.annotations.*;
 import org.jmlspecs.openjml.JmlCompiler;
+import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 
 import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.MethodDoc;
-import com.sun.javadoc.ProgramElementDoc;
-import com.sun.javadoc.Tag;
-import com.sun.javadoc.Type;
 import com.sun.tools.doclets.formats.html.ClassWriterImpl;
 import com.sun.tools.doclets.internal.toolkit.util.ClassTree;
-import com.sun.tools.doclets.internal.toolkit.util.DocFinder;
-import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.Symbol.TypeSymbol;
+import com.sun.tools.javac.comp.Attr;
+import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Enter;
-import com.sun.tools.javac.comp.JmlMemberEnter;
+import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javadoc.ClassDocImpl;
-import com.sun.tools.javadoc.MethodDocImpl;
 
+/** This class extends ClassWriterImpl in order to include in the HTML output
+ * information about the JML specifications of the class whose javadoc page
+ * is being written.
+ * @author David R. Cok
+ *
+ */
 public class ClassWriterJml extends ClassWriterImpl {
+    
+    /** Constructs an instance of the class.
+     * 
+     * @param classDoc the Doc element being printed
+     * @param prevClass the Doc element of the class before this in the javadoc order
+     * @param nextClass the Doc element of the class after this in the javadoc order
+     * @param classTree the class tree for the given class
+     * @throws Exception
+     */
     public ClassWriterJml (ClassDoc classDoc,
             ClassDoc prevClass, ClassDoc nextClass, ClassTree classTree)
     throws Exception {
         super(classDoc,prevClass,nextClass,classTree);
     }
-
-    public void writeClassDescription() {
-        super.writeClassDescription();
-        ClassSymbol newsym = null;
-        if (classDoc instanceof ClassDocImpl) {
-            ClassSymbol oldsym = ((ClassDocImpl)classDoc).tsym;
-            Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
-            ClassReader.instance(context); // Instantiates the class reader, which needs to happen before the Symbol table
-            Symtab syms = Symtab.instance(context);
-            Name newname = Name.Table.instance(context).fromString(oldsym.flatname);
-            JmlSpecs.instance(context).initializeSpecsPath(); // FIXME - should do this just once, and needs the command-line options
-            newsym = syms.classes.get(newname);
+    
+    /** This makes sure that the JML specifications are instantiated for the
+     * given class, by re-parsing the class in a different context.
+     * @param newname the (fully-qualified) Name of the class in the new context
+     * @param oldsym the Symbol of the class in the old context
+     * @return the Symbol of the class in the new context
+     */
+    public @NonNull ClassSymbol instantiateClass(@NonNull Name newname, @NonNull ClassSymbol oldsym) {
+        Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
+        ClassReader.instance(context); // Instantiates the class reader, which needs to happen before the Symbol table
+        Symtab syms = Symtab.instance(context);
+        ClassSymbol newsym = syms.classes.get(newname);
+        if (newsym == null) {
+            if (oldsym.sourcefile != null) {
+                try {
+                    JmlCompiler.instance(context).compile(List.of(oldsym.sourcefile));
+                    newsym = syms.classes.get(newname);
+                } catch (Throwable e) {
+                    // FIXME - ???
+                }
+            }
             if (newsym == null) {
-                JmlResolve.instance(context).loadClass(null,newname);
+                Env<AttrContext> env = Enter.instance(context).getEnv(newsym);
+                JmlResolve.instance(context).loadClass(env,newname);
                 newsym = syms.classes.get(newname);
                 if (newsym == null) {
                     JCTree.JCCompilationUnit jcu = ((JmlCompiler)JmlCompiler.instance(context)).parse(oldsym.sourcefile);
@@ -67,38 +79,66 @@ public class ClassWriterJml extends ClassWriterImpl {
                     newsym.complete();
                 }
             }
+        }
+        instantiateSpecs(context, newsym);
+        return newsym;
+    }
+    
+    /** This method makes sure that the specs for a given class are parsed
+     * and read and loaded into the JmlSpecs database.
+     * @param context the compilation context to use
+     * @param newsym the class in that compilation context whose specs are wanted
+     */
+    public void instantiateSpecs(@NonNull Context context, @NonNull ClassSymbol newsym) {
+        // Make sure that superclasses are instantiated
+        com.sun.tools.javac.code.Type t = newsym.getSuperclass();
+        if (t.tsym != null) instantiateSpecs(context,(ClassSymbol)t.tsym);
+        // Make sure that superinterfaces are instantiated
+        List<com.sun.tools.javac.code.Type> interfaces = newsym.getInterfaces();
+        while (interfaces.tail != null) {
+            instantiateSpecs(context,(ClassSymbol)interfaces.head.tsym);
+            interfaces = interfaces.tail;
+        }
+        
+        TypeSpecs tspecs = JmlSpecs.instance(context).get(newsym);
+        if (tspecs == null) {
+            ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(null,newsym);
+        }
+    }
+
+    /** This overrides the parent class method in order to append the JML specs
+     * of a class (e.g. invariants) after the class description near the beginning
+     * of the javadoc output.
+     */
+    @Override
+    public void writeClassDescription() {
+        super.writeClassDescription();
+        ClassSymbol newsym = null;
+        if (classDoc instanceof ClassDocImpl) {
+            ClassSymbol oldsym = ((ClassDocImpl)classDoc).tsym;
+            Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
+            Name newname = Name.Table.instance(context).fromString(oldsym.flatname);
+            newsym = Symtab.instance(context).classes.get(newname);
+            //newsym = instantiateClass(newname,oldsym);
             TypeSpecs tspecs = JmlSpecs.instance(context).get(newsym);
-            if (tspecs == null) {
-                ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(null,newsym);
-                tspecs = JmlSpecs.instance(context).get(newsym);
-            }
+            String ss = Utils.jmlAnnotations(newsym);
             headerPrinted = false;
-            if (hasSpecsToPrint(tspecs)){
+            boolean hsp = hasSpecsToPrint(tspecs);
+            if (hsp || !ss.isEmpty()){
                 printSpecHeader("JML Specifications");
-                printSpecs(newsym,tspecs);
+//                bold("Specification sequence:");
+//                JmlClassDecl list = tspecs.decl;
+//                br();
+                if (!ss.isEmpty()) {
+                    bold("Annotations:");
+                    print(ss);
+                    br();
+                }
+                if (hsp) printSpecs(tspecs);
             }
             
-            java.util.List<TypeSymbol> interfaces = new LinkedList<TypeSymbol>();
-            printInheritedSpecs(context,newsym,interfaces);
-
-            // Add anything that the interfaces extend
-            TypeSymbol t;
-            Iterator<TypeSymbol> iter = interfaces.iterator();
-            while (iter.hasNext()) { // Adding to the end while iterating
-                ClassSymbol csym = (ClassSymbol)iter.next();
-                addInterfaces(csym,interfaces);
-            }
-
-            // Add the specs of interfaces
-            for (TypeSymbol tinterface: interfaces) {
-                ClassSymbol csym = (ClassSymbol)tinterface;
-                TypeSpecs ttspecs = JmlSpecs.instance(context).get(csym);
-                if (hasSpecsToPrint(tspecs)){
-                    printSpecHeader("JML Specifications");
-                    bold("JML Specifications inherited from interface " + csym + ": ");
-                    printSpecs(csym,ttspecs);
-                }
-
+            for (ClassSymbol ssym: Utils.getSupers(newsym)) {
+                printInheritedSpecs(context,ssym);
             }
 
             if (headerPrinted) printSpecEnd();
@@ -107,36 +147,41 @@ public class ClassWriterJml extends ClassWriterImpl {
         p();
     }
     
-    public void printSpecs(ClassSymbol newsym, TypeSpecs tspecs) {
-        String s = org.jmlspecs.openjml.jmldoc.Main.jmlAnnotations(this,newsym);
-        print(s);
+    /** Prints the given specs (any clauses that are not declarations, e.g.
+     * not field or method declarations).
+     * 
+     * @param tspecs the specs to print
+     */
+    public void printSpecs(TypeSpecs tspecs) {
         preNoNewLine();
         for (JmlTree.JmlTypeClause clause: tspecs.clauses) {
-            if (!(clause instanceof JmlTree.JmlTypeClauseDecl)) print(clause);
+            if (clause instanceof JmlTree.JmlTypeClauseDecl) continue;
+            if (clause instanceof JmlTree.JmlTypeClauseRepresents) continue;
+            print("    ");
+            print(JmlPretty.write(clause,false));
+            println();
         }
         preEnd();
     }
     
-    public void printInheritedSpecs(Context context, ClassSymbol newsym, java.util.List<TypeSymbol> interfaces) {
-        ClassSymbol csym = (ClassSymbol)newsym.getSuperclass().tsym;
-        if (csym == null) return;
+    /** Prints specs with a header that these are inherited from a super class
+     * 
+     * @param context the compilation context in use
+     * @param csym the super class or interface whose specs are to be printed
+     */
+    public void printInheritedSpecs(Context context, ClassSymbol csym) {
         TypeSpecs tspecs = JmlSpecs.instance(context).get(csym);
         if (hasSpecsToPrint(tspecs)){
-            printSpecHeader("JML Specifications");
+//            printSpecHeader("JML Specifications");
             bold("JML Specifications inherited from " + csym + ": ");
-            printSpecs(csym,tspecs);
-        }
-        addInterfaces(csym,interfaces);
-        printInheritedSpecs(context,csym,interfaces);
-    }
-    
-    public void addInterfaces(ClassSymbol c, java.util.List<TypeSymbol> interfaces) {
-        for (com.sun.tools.javac.code.Type t: c.getInterfaces()) {
-            // Could use a set,but want to keep them in a sort of order
-            if (!interfaces.contains(t.tsym)) interfaces.add(t.tsym);
+            printSpecs(tspecs);
         }
     }
     
+    /** Returns true if the argument contains specs worth printing.
+     * @param tspecs the specs of a class or interface
+     * @return true if the argument contains stuff to print
+     */
     public boolean hasSpecsToPrint(TypeSpecs tspecs) {
         if (!tspecs.modifiers.annotations.isEmpty()) return true;
         for (JmlTree.JmlTypeClause clause: tspecs.clauses) {
@@ -145,26 +190,31 @@ public class ClassWriterJml extends ClassWriterImpl {
         return false;
     }
     
+    /** Set to true once the 'JML Specifications' header has been printed; this
+     * happens the first time a class or superclass is found with something
+     * to print. */
     private boolean headerPrinted = false;
     
-    public void printSpecHeader(String text) {
+    /** Prints a header containing the given text.  This is written to match
+     * the other header blocks produced in various places in the javadoc code
+     * (e.g. SubHolderWriterHolder.printTableHeadingBackground).
+     * 
+     * @param text the title to put in the header block
+     */
+    public void printSpecHeader(@NonNull String text) {
         if (headerPrinted) return;
-        print("<TABLE BORDER=\"1\" WIDTH=\"100%\" CELLPADDING=\"3\" CELLSPACING=\"0\" SUMMARY=\"\">");  println();
-        print("<TR BGCOLOR=\"#CCCCFF\" CLASS=\"TableHeadingColor\">"); println();
-        print("<TH ALIGN=\"left\" COLSPAN=\"1\"><FONT SIZE=\"+2\">"); println();
-        print("<B>" + text + "</B></FONT></TH>"); println();
-        print("</TR>"); println();
-        print("<TR BGCOLOR=\"white\" CLASS=\"TableRowColor\">"); println();
-        print("<TD ALIGN=\"left\" VALIGN=\"top\" WIDTH=\"1%\">"); println();
+        Utils.writeHeader(this,text,1);
         headerPrinted = true;
+        // Write the beginning of a row
+        println("<TR BGCOLOR=\"white\" CLASS=\"TableRowColor\">");
+        println("<TD ALIGN=\"left\" VALIGN=\"top\" WIDTH=\"1%\">");
     }
     
+    /** Prints the HTML that ends a table begun by printSpecHeader */
     public void printSpecEnd() {
-        //print("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>"); println();
-        print("</TR>"); println();
-        print("</TABLE>"); println();
-        print("&nbsp;"); println();
-
+        println("</TD></TR>");
+        tableEnd();
+        space();
     }
-    
+
 }

@@ -503,7 +503,7 @@ public /*@ pure @*/ class JMLValueSequence
      *  @see #get(int)
      *  @see #has(JMLType)
      *  @see #count(JMLType)
-     *  @see #itemAt(\bigint)
+     *  @see #itemAt(\\bigint)
      */
     /*@ also
       @  public normal_behavior
