@@ -126,7 +126,7 @@ public class DocCommentScanner extends Scanner {
     /**
      * Translated and stripped contents of doc comment
      */
-    private String docComment = null;
+    protected String docComment = null; // DRC _ changed from private to protected
 
 
     /** Unconditionally expand the comment buffer.
