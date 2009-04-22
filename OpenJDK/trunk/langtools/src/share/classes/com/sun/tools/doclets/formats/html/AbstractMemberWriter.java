@@ -215,7 +215,7 @@ public abstract class AbstractMemberWriter {
         writer.printTypeSummaryFooter();
     }
 
-    private void printModifier(ProgramElementDoc member) {
+    protected void printModifier(ProgramElementDoc member) { // DRC - changed from private to protected
         if (member.isProtected()) {
             print("protected ");
         } else if (member.isPrivate()) {
