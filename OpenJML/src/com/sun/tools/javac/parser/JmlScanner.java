@@ -223,6 +223,7 @@ public class JmlScanner extends DocCommentScanner {
         // an empty line comment can be just two characters.
         if (noJML || style == CommentStyle.JAVADOC) {
             super.processComment(style);
+            //System.out.println("Processed " + docComment);
             return;
         }
 
@@ -305,6 +306,7 @@ public class JmlScanner extends DocCommentScanner {
         if (!jml) {
             // We're starting in Java land
             super.nextToken();
+            String dc = docComment;
             // Possible situations at this point
             // a) token != CUSTOM, token != null, jmlToken == null, jml == false
             // (a Java token)
@@ -335,6 +337,7 @@ public class JmlScanner extends DocCommentScanner {
                     jmlToken = null;
                     super.nextToken();
                 }
+                docComment = dc;
                 // TODO - do we need to check the commentstyle here?
                 if (token() == Token.STAR && ch == '/') {
                     // We just saw a JML comment start, and now we
@@ -351,6 +354,7 @@ public class JmlScanner extends DocCommentScanner {
                                             // this
                 } else if (jmlToken == JmlToken.MODEL) {
                     super.nextToken();
+                    docComment = dc;
                     if (!jml) {
                         // TODO - what if it is a model variable or method or class that is not in a JML comment
                         // error - the entire model import statement must be in
@@ -429,6 +433,7 @@ public class JmlScanner extends DocCommentScanner {
         } else {
             // We're starting in JML land
             super.nextToken();
+            String dc = docComment;
             // We scanned a Java token. Here are the possible situations:
             // 1) jml==true, token!=null,CUSTOM, jmlToken==null -- a Java token
             // but the Java token might be the initial part of a Jml token
@@ -473,6 +478,7 @@ public class JmlScanner extends DocCommentScanner {
                 jml = false;
                 token(Token.CUSTOM);
                 jmlToken = JmlToken.ENDJMLCOMMENT;
+                docComment = dc;
             } else if (token() == Token.MONKEYS_AT) {
                 if (!jml && jmlcommentstyle == CommentStyle.LINE) {
                     // This is the end of a LINE comment
@@ -483,6 +489,7 @@ public class JmlScanner extends DocCommentScanner {
                     token(Token.CUSTOM);
                     jmlToken = JmlToken.ENDJMLCOMMENT;
                     jml = false;
+                    docComment = dc;
                 } else if (jmlcommentstyle == CommentStyle.BLOCK
                         && (ch == '*' || ch == '@')) {
                     // This is the end of a BLOCK comment. We have seen a real
@@ -512,6 +519,7 @@ public class JmlScanner extends DocCommentScanner {
                     token(Token.CUSTOM);
                     jmlToken = JmlToken.ENDJMLCOMMENT;
                     jml = false;
+                    docComment = dc;
                 }
             } else if (token() == Token.LPAREN && ch == '*') {
                 // FIXME - improve this to handle unclosed comments before an
@@ -532,6 +540,7 @@ public class JmlScanner extends DocCommentScanner {
                 int prevpos = _pos;
                 int prevendpos = endPos();
                 super.nextToken();
+                docComment = dc;
                 if (!jml) {
                     jmlError(_pos, "jml.illformed.model.import");
                     skipThroughChar(';');

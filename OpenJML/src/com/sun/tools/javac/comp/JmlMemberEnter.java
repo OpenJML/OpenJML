@@ -1205,16 +1205,16 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
     }
 
     
-    // duplicated from MemberEnter because it is private
-    private boolean hasDeprecatedAnnotation(List<JCAnnotation> annotations) {
-        Type dt = Symtab.instance(context).deprecatedType;
-        for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
-            JCAnnotation a = al.head;
-            if (a.annotationType.type == dt && a.args.isEmpty())
-                return true;
-        }
-        return false;
-    }
+//    // duplicated from MemberEnter because it is private
+//    private boolean hasDeprecatedAnnotation(List<JCAnnotation> annotations) {
+//        Type dt = Symtab.instance(context).deprecatedType;
+//        for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
+//            JCAnnotation a = al.head;
+//            if (a.annotationType.type == dt && a.args.isEmpty())
+//                return true;
+//        }
+//        return false;
+//    }
     
     @Override
     public void visitTopLevel(JCTree.JCCompilationUnit tree) {

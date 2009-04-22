@@ -1217,7 +1217,7 @@ public class JmlEsc extends JmlTreeScanner {
      * 
      * @param label the label given to the assumption
      * @param pos   the textual position of the associated statement
-     * @param method the name of the method being tested
+     * @param methodSignature the name or signature of the method being tested
      */
     public void reportAssumptionProblem(String label, int pos, String methodSignature) {
         if (label.equals(Label.BRANCHT.toString())) {

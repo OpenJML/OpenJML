@@ -4,57 +4,78 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 
+import org.jmlspecs.annotations.*;
+import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.ConstructorDoc;
-import com.sun.javadoc.MethodDoc;
+import com.sun.javadoc.ExecutableMemberDoc;
+import com.sun.javadoc.ProgramElementDoc;
 import com.sun.javadoc.Tag;
 import com.sun.tools.doclets.formats.html.ConstructorWriterImpl;
 import com.sun.tools.doclets.formats.html.SubWriterHolderWriter;
-import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javadoc.ClassDocImpl;
 import com.sun.tools.javadoc.ConstructorDocImpl;
-import com.sun.tools.javadoc.MethodDocImpl;
+import com.sun.tools.javadoc.DocEnv;
 
+/** This class extends its parent in order to write out documentation about
+ * (a) model constructors and (b) the JML specifications of constructors and
+ * model constructors.
+ * @author David Cok
+ *
+ */
 public class ConstructorWriterJml extends ConstructorWriterImpl {
 
-    protected ClassSymbol currentClassSym;
+    /** The Symbol of the class (in the JML compilation context) that owns
+     * these constructors.
+     */
+    protected @NonNull ClassSymbol currentClassSym;
 
-    public ConstructorWriterJml(SubWriterHolderWriter writer,
-            ClassDoc classdoc) {
+    /** Constructs a writer for constructors, given a delegating writer and an owning class.
+     * 
+     * @param writer the delegating writer (typically the corresponding ClassWriter)
+     * @param classdoc the Doc of the class whose constructors are being documented
+     */
+    public ConstructorWriterJml(@NonNull SubWriterHolderWriter writer,
+            @NonNull ClassDoc classdoc) {
         super(writer, classdoc);
-        currentClassSym = org.jmlspecs.openjml.jmldoc.Main.findNewClassSymbol(classdoc);
+        currentClassSym = Utils.findNewClassSymbol(classdoc);
     }
 
-    /** Overrides the super class method in order to write out any specs after the tags */
-    public void writeTags(ConstructorDoc method) {
+    /** Overrides the super class method in order to write out any specs after the tags.
+     * @param method the constructor begin documented
+     */
+    public void writeTags(@NonNull ConstructorDoc method) {
         super.writeTags(method);
         writeJmlSpecs(method);
     }
     
-    public void writeJmlSpecs(ConstructorDoc method) {
+    /** Writes out the JML specifications for the constructor.
+     * 
+     * @param method the Doc element of the constructor being documented
+     */
+    public void writeJmlSpecs(@NonNull ConstructorDoc method) {
         if (method instanceof ConstructorDocImpl) {
             MethodSymbol oldMethodSym = ((ConstructorDocImpl)method).sym;
             Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
             Name newMethodName = Name.Table.instance(context).fromString(oldMethodSym.name.toString());
+            // FIXME - improve this method of finding matches
             Scope.Entry e = currentClassSym.members().lookup(newMethodName);
             while (!(e.sym instanceof MethodSymbol) || !match((MethodSymbol)e.sym,oldMethodSym)) {
                 e = e.sibling;
@@ -64,62 +85,51 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
             if (mspecs != null) {
                 writer.ddEnd(); // Only needed if there were actually inline comments
                 writer.br(); // Need this if there is tag info, otherwise not // FIXME
-                String s = Main.jmlAnnotations(writer,newMethodSym);
-                if (Main.hasSpecs(mspecs) || !s.isEmpty()) {
+                String s = Utils.jmlAnnotations(newMethodSym);
+                if (Utils.hasSpecs(mspecs) || !s.isEmpty()) {
                     bold("JML Constructor Specifications: "); 
                     writer.print(s);
                     writer.preNoNewLine();
-                    for (JmlTree.JmlSpecificationCase cs: mspecs.cases) {
-                        writer.print(cs);
-                    }
+                    writer.print(JmlPretty.write(mspecs,false));
                     writer.preEnd();
                 }
             }
         }
     }
     
-    // CAUTION: The symbols are in different contexts
+    /** Returns true if the two method symbols refer to the same constructor - 
+     * same name, same parameter names, same parameter types, same type arguments.
+     * The first argument is a method symbol in the JML compilation context;
+     * the second argument is a method symbol in the Javadoc compilation context.
+     * @param m constructor symbol in JML compilation context
+     * @param mm method symbol in the Javadoc compilation context
+     * @return true if the two symbols refer to the same method
+     */ // FIXME
     public boolean match(MethodSymbol m, MethodSymbol mm) {
-        if (!m.name.toString().equals(mm.name.toString())) return false;
+        if (!mm.isConstructor()) return false;
         List<VarSymbol> mp = m.params();
         List<VarSymbol> mmp = mm.params();
         if (mp.size() != mmp.size()) return false;
-        // Types are in different contexts FIXME
-//        while (mp.tail != null) {
-//            if (!mp.head.type.equals(mmp.head.type)) return false; // FIXME - is this how to compare types?
-//            mp = mp.tail;
-//            mmp = mmp.tail;
-//        }
+        while (mp.tail != null) {
+            if (!mp.head.name.toString().equals(mmp.head.name.toString())) return false;
+            if (!mp.head.type.toString().equals(mmp.head.type.toString())) return false; // FIXME - is this how to compare types?
+            mp = mp.tail;
+            mmp = mmp.tail;
+        }
         return true;
     }
     
-    public MethodSymbol findSameContext(MethodSymbol m, ClassSymbol c) {
-        Scope.Entry e = c.members().lookup(m.name);
-        while (e.sym != null) {
-            Symbol s = e.sym;
-            e = e.sibling;
-            if (!(s instanceof MethodSymbol)) continue;
-            MethodSymbol mm = (MethodSymbol)s;
-            if (m.name != mm.name) continue;
-            List<VarSymbol> mp = m.params();
-            List<VarSymbol> mmp = mm.params();
-            if (mp.size() != mmp.size()) continue;
-            while (mp.tail != null) {
-                if (!mp.head.type.equals(mmp.head.type)) continue; // FIXME - how to compare types?
-                mp = mp.tail;
-                mmp = mmp.tail;
-            }
-            return mm;
-        }
-        return null;
-    }
-    
-    public void writeFooter(ClassDoc classDoc) {
+    /** Overrides the parent method in order to write out details about
+     * JML model constructors after the footer for the Java constructors
+     * is written.
+     * @param classDoc the class whose constructors are being documented
+     */
+    public void writeFooter(@NonNull ClassDoc classDoc) {
         super.writeFooter(classDoc);
         writeJmlModelConstructors(classDoc);
     }
     
-    public void writeJmlModelConstructors(ClassDoc classDoc) {
+    public void writeJmlModelConstructors(@NonNull ClassDoc classDoc) {
      // Hard coding this
 //        <ConstructorDetails>
 //        <Header/>
@@ -134,6 +144,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
 //        <Footer/>
 //    </ConstructorDetails>
 //      
+      DocEnv denv = ((ClassDocImpl)classDoc).docenv();
       // Find model methods to see if we need to do anything at all
       LinkedList<JmlMethodDecl> list = new LinkedList<JmlMethodDecl>();
       TypeSpecs tspecs = JmlSpecs.instance(org.jmlspecs.openjml.jmldoc.Main.jmlContext).get(currentClassSym);
@@ -141,7 +152,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
           if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JmlMethodDecl) {
               JmlMethodDecl d = (JmlMethodDecl)((JmlTypeClauseDecl)tc).decl;
               //boolean use = JmlAttr.instance(org.jmlspecs.openjml.jmldoc.Main.jmlContext).findMod(d.mods,JmlToken.MODEL) != null;
-              if (d.sym.isConstructor()) {
+              if (d.sym.isConstructor() && denv.shouldDocument(d.sym)) {
                   list.add(d);
               }
           }
@@ -154,7 +165,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
       
       boolean isFirst = true;
       for (JmlMethodDecl tc: list) {
-          ConstructorDoc md = new ConstructorDocImpl(((ClassDocImpl)classDoc).docenv(),tc.sym,"RAWDOCS",tc,null);
+          ConstructorDoc md = new ConstructorDocImpl(((ClassDocImpl)classDoc).docenv(),tc.sym,tc.docComment,tc,null);
           // Method header
           writeConstructorHeader(md,isFirst); isFirst = false;
           
@@ -222,13 +233,15 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
     
     public void writeJmlConstructorSummary(ClassDoc classDoc) {
         ArrayList<ConstructorDoc> list = new ArrayList<ConstructorDoc>();
+        DocEnv denv = ((ClassDocImpl)classDoc).docenv();
         TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(currentClassSym);
         for (JmlTypeClause tc : tspecs.clauses) {
             // FIXME - control visibility
             if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JCTree.JCMethodDecl) {
-                MethodSymbol msym = ((JCTree.JCMethodDecl)((JmlTypeClauseDecl)tc).decl).sym;
-                if (msym.isConstructor()) {
-                    ConstructorDoc constructor = new ConstructorDocImpl(((ClassDocImpl)classDoc).docenv(),msym,"DOCCOMMENT",(JCTree.JCMethodDecl)((JmlTypeClauseDecl)tc).decl,null);
+                JmlMethodDecl mdecl = ((JmlMethodDecl)((JmlTypeClauseDecl)tc).decl);
+                MethodSymbol msym = mdecl.sym;
+                if (msym.isConstructor() && denv.shouldDocument(msym)) {
+                    ConstructorDoc constructor = new ConstructorDocImpl(((ClassDocImpl)classDoc).docenv(),msym,mdecl.docComment,mdecl,null);
                     list.add(constructor);
                 }
             }
@@ -264,5 +277,26 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
         writer.tableHeaderEnd();
     }
 
+    /** This is overridden in order to include annotation information in the
+     * method summary entry.  Immediately after this, the modifiers are written.
+     * @param member the (method) Doc element whose annotation is to be printed
+     */
+    @Override
+    protected void printModifier(ProgramElementDoc member) {
+        writer.writeAnnotationInfo(member);
+        super.printModifier(member);
+    }
+
+    /** This override has the effect of always printing out annotation information
+     * when a method signature is written; in particular, in javadoc it is not
+     * written out in the parameters within the constructor summary section.
+     * @param member the Doc element whose information is being printed
+     * @param includeAnnotations boolean switch now being ignored
+     */
+    @Override
+    protected void writeParameters(ExecutableMemberDoc member,
+            boolean includeAnnotations) {
+        super.writeParameters(member,true);
+    }
 
 }

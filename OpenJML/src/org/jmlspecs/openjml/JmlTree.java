@@ -759,6 +759,8 @@ public class JmlTree {
             sourcefile = null;
         }
         
+        public String docComment = null;
+        
         public JavaFileObject source() { return sourcefile; }
 
         @Override
@@ -791,7 +793,8 @@ public class JmlTree {
         public JmlMethodDecl specsDecl;
         public JmlMethodSpecs methodSpecs;
         public JavaFileObject sourcefile;
-
+        public String docComment = null;
+        
         public JmlMethodDecl(JCModifiers mods, Name name, JCExpression restype,
                 List<JCTypeParameter> typarams, List<JCVariableDecl> params,
                 List<JCExpression> thrown, JCBlock body,
@@ -874,6 +877,7 @@ public class JmlTree {
         public JmlVariableDecl specsDecl;
         public JmlSpecs.FieldSpecs fieldSpecs;
         public JavaFileObject sourcefile;
+        public String docComment = null;
         
         public JmlVariableDecl(JCModifiers mods, Name name,
                 JCExpression vartype, JCExpression init, VarSymbol sym) {

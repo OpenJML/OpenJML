@@ -402,6 +402,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         return this;
     }
     
+    public Context context() {
+        return context;
+    }
+    
     /** Parses each java file and its specs returning a list of the ASTs corresponding
      * java files; the spec files are automatically found according to JML rules 
      * (do not list them on the command line);  the ASTs of the spec files are contained in the 
@@ -510,10 +514,10 @@ public class Main extends com.sun.tools.javac.main.Main {
     public @NonNull FieldSpecs getSpecs(@NonNull VarSymbol sym) {
         return JmlSpecs.instance(context).getSpecs(sym);
     }
-    
+    // FIXME - what about nested classes?  what separator?
     /** Returns the AST for a given class (not compilation unit)
      * 
-     * @param sym the class symbol whose AST is wanted
+     * @param qualifiedName the fully-qualified name of the class whose AST is wanted
      * @return the AST for that class
      */
     public @NonNull JmlClassDecl getClassAST(@NonNull String qualifiedName) {
@@ -546,7 +550,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * false, no JML comment symbols are used and other internal information
      * may also be output.
      * 
-     * @param ast the ast to print
+     * @param astlist a list of asts to print
      * @param likeSource if true, prints out as valid source code
      * @param sep  a String that is written out as a separator
      * @return a string containing the output

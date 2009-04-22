@@ -57,7 +57,7 @@ public interface JMLIterator<E> {
     
     /** Returns an iterator for the tail of the sequence (since JMLIterators
      * are immutable).
-     * @return
+     * @return an iterator for the tail of the sequence
      */
     //@ public normal_behavior
     //@ requires hasNext();

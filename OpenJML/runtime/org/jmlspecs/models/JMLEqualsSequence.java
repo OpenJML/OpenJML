@@ -497,7 +497,7 @@ public /*@ pure @*/ class JMLEqualsSequence
      *  @see #get(int)
      *  @see #has(Object)
      *  @see #count(Object)
-     *  @see #itemAt(\bigint)
+     *  @see #itemAt(\\bigint)
      */
     /*@ 
       @  public normal_behavior

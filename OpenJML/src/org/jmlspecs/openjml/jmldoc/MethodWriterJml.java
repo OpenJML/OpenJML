@@ -1,53 +1,53 @@
 package org.jmlspecs.openjml.jmldoc;
 
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 
-import org.jmlspecs.openjml.JmlCompiler;
+import org.jmlspecs.annotations.*;
+import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 
 import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.FieldDoc;
+import com.sun.javadoc.ExecutableMemberDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.ProgramElementDoc;
 import com.sun.javadoc.Tag;
-import com.sun.javadoc.Type;
 import com.sun.tools.doclets.formats.html.MethodWriterImpl;
 import com.sun.tools.doclets.formats.html.SubWriterHolderWriter;
 import com.sun.tools.doclets.internal.toolkit.util.DocFinder;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.comp.JmlMemberEnter;
-import com.sun.tools.javac.comp.JmlResolve;
-import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javadoc.ClassDocImpl;
-import com.sun.tools.javadoc.FieldDocImpl;
+import com.sun.tools.javadoc.DocEnv;
 import com.sun.tools.javadoc.MethodDocImpl;
 
+/** This class extends its parent in order (a) to add JML specification 
+ * information to the documentation of Java methods and (b) to document
+ * model methods.
+ * 
+ * @author David Cok
+ */
 public class MethodWriterJml extends MethodWriterImpl {
 
-    protected ClassSymbol currentClassSym = null;
+    /** The class symbol of the class owning the method being documented,
+     * in the JML compilation context.
+     */
+    protected @NonNull ClassSymbol currentClassSym;
 
     /**
      * Construct a new MethodWriterImpl.
@@ -55,86 +55,105 @@ public class MethodWriterJml extends MethodWriterImpl {
      * @param writer the writer for the class that the methods belong to.
      * @param classDoc the class being documented.
      */
-    public MethodWriterJml(SubWriterHolderWriter writer, ClassDoc classDoc) {
+    public MethodWriterJml(@NonNull SubWriterHolderWriter writer, @NonNull ClassDoc classDoc) {
         super(writer, classDoc);
-        currentClassSym = org.jmlspecs.openjml.jmldoc.Main.findNewClassSymbol(classdoc);
+        currentClassSym = Utils.findNewClassSymbol(classdoc);
     }
     
     /**
-     * Write the comments for the given method.
+     * Write the javadoc tags (e.g. param and return tags) for the given method
+     * and then write any JML specifications.
      *
      * @param method the method being documented.
      */
-
-    public void writeTags(MethodDoc method) {
+    @Override
+    public void writeTags(@NonNull MethodDoc method) {
         super.writeTags(method);
         writeJmlSpecs(method);
     }
     
+    /** Write the JML specifications for the given method.
+     * 
+     * @param method the method whose specs are to be written
+     */
     public void writeJmlSpecs(MethodDoc method) {
         if (method instanceof MethodDocImpl) {
             MethodSymbol oldMethodSym = ((MethodDocImpl)method).sym;
             Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
             Name newMethodName = Name.Table.instance(context).fromString(oldMethodSym.name.toString());
             Scope.Entry e = currentClassSym.members().lookup(newMethodName);
+            Scope.Entry ee = e;
             while (!(e.sym instanceof MethodSymbol) || !match((MethodSymbol)e.sym,oldMethodSym)) {
                 e = e.sibling;
+                if (e == null) {
+                    System.out.println("NOT FOUND " + newMethodName + " IN " + currentClassSym);
+                    return;   // FIXME - not found?
+                }
             }
             MethodSymbol newMethodSym = (MethodSymbol)e.sym;
             JmlMethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(newMethodSym);
             if (mspecs != null) {
                 writer.ddEnd(); // Only needed if there were actually inline comments // FIXME?
                 writer.br(); // Need this if there is tag info, otherwise not // FIXME
-                String s = Main.jmlAnnotations(writer,newMethodSym);
-                if (Main.hasSpecs(mspecs) || !s.isEmpty()) {
+                String s = Utils.jmlAnnotations(newMethodSym);
+                if (Utils.hasSpecs(mspecs) || !s.isEmpty()) {
                     bold("JML Method Specifications: "); 
                     writer.print(s);
                     writer.preNoNewLine();
-                    for (JmlTree.JmlSpecificationCase cs: mspecs.cases) {
-                        writer.print(cs);
-                    }
+                    writer.print(JmlPretty.write(mspecs,false));
                     writer.preEnd();
                 }
                 
-                ClassSymbol c = currentClassSym;
-                while (true) {
-                    c = (ClassSymbol)c.getSuperclass().tsym;
-                    if (c == null) break;
+                for (ClassSymbol c: Utils.getSupers(currentClassSym)) {
                     MethodSymbol m = findSameContext(newMethodSym,c);
                     if (m != null) {
                         mspecs = JmlSpecs.instance(context).getSpecs(m);
-                        String ss = Main.jmlAnnotations(writer,newMethodSym);
-                        if (Main.hasSpecs(mspecs) || !ss.isEmpty()) {
+                        String ss = Utils.jmlAnnotations(m);
+                        if (Utils.hasSpecs(mspecs) || !ss.isEmpty()) {
                             bold("JML Specifications inherited from " + c + ": "); 
                             writer.print(ss);
                             writer.preNoNewLine();
-                            for (JmlTree.JmlSpecificationCase cs: mspecs.cases) {
-                                writer.print(cs);
-                            }
+                            writer.print(JmlPretty.write(mspecs,false));
                             writer.preEnd();
                         }
                     }
                 }
-                // FIXME - find any inherited specs from interfaces
             }
         }
     }
     
-    // CAUTION: The symbols are in different contexts
+    /** Returns true if the two method symbols refer to the same method - 
+     * same name, same parameter names, same parameter types, same type arguments.
+     * The first argument is a method symbol in the JML compilation context;
+     * the second argument is a method symbol in the Javadoc compilation context.
+     * @param m method symbol in JML compilation context
+     * @param mm method symbol in the Javadoc compilation context
+     * @return true if the two symbols refer to the same method
+     */
     public boolean match(MethodSymbol m, MethodSymbol mm) {
         if (!m.name.toString().equals(mm.name.toString())) return false;
         List<VarSymbol> mp = m.params();
         List<VarSymbol> mmp = mm.params();
         if (mp.size() != mmp.size()) return false;
-        // Types are in different contexts FIXME
-//        while (mp.tail != null) {
-//            if (!mp.head.type.equals(mmp.head.type)) return false; // FIXME - is this how to compare types?
-//            mp = mp.tail;
-//            mmp = mmp.tail;
-//        }
+        while (mp.tail != null) {
+            if (!mp.head.name.toString().equals(mmp.head.name.toString())) return false;
+            if (!mp.head.type.toString().equals(mmp.head.type.toString())) return false; // FIXME - is this how to compare types?
+            mp = mp.tail;
+            mmp = mmp.tail;
+        }
         return true;
     }
     
+    /** This mehtod finds a method, if any, in the given class with the same
+     * signature as the given method - same name, same parameter types, same
+     * type arguments (the parameter names mahy be different).  
+     * The class and method are both in the JML compilation 
+     * context, but the class may be a superclass or superinterface of the
+     * method's owner.
+     * @param m a method
+     * @param c a super-class or interface of m's owner in which to find an overridden method
+     * @return the overridden method, or null if none present
+     */  // FIXME - need a better way to find overridden methods - can't be doing signature matching by hand - complications if there are type arguments with different names
     public MethodSymbol findSameContext(MethodSymbol m, ClassSymbol c) {
         Scope.Entry e = c.members().lookup(m.name);
         while (e.sym != null) {
@@ -147,7 +166,7 @@ public class MethodWriterJml extends MethodWriterImpl {
             List<VarSymbol> mmp = mm.params();
             if (mp.size() != mmp.size()) continue;
             while (mp.tail != null) {
-                if (!mp.head.type.equals(mmp.head.type)) continue; // FIXME - how to compare types?
+                if (!mp.head.type.equals(mmp.head.type)) continue;
                 mp = mp.tail;
                 mmp = mmp.tail;
             }
@@ -156,12 +175,21 @@ public class MethodWriterJml extends MethodWriterImpl {
         return null;
     }
     
-    public void writeFooter(ClassDoc classDoc) {
+    /** Overrides the parent class method in order to follow writing the
+     * footer with writing out the detail information on all the JML model 
+     * methods.
+     * @param classDoc the class whose model methods are to be documented
+     */
+    public void writeFooter(@NonNull ClassDoc classDoc) {
         super.writeFooter(classDoc);
         writeJmlModelMethods(classDoc);
     }
     
-    public void writeJmlModelMethods(ClassDoc classDoc) {
+    /** Write out HTML documentation on JML model methods.
+     * 
+     * @param classDoc the class whose model methods are to be documented
+     */
+    public void writeJmlModelMethods(@NonNull ClassDoc classDoc) {
      // Hard coding this
 //        <Header/>
 //        <MethodDoc>
@@ -175,13 +203,14 @@ public class MethodWriterJml extends MethodWriterImpl {
 //        <Footer/>
       
       // Find model methods to see if we need to do anything at all
+      DocEnv denv = ((ClassDocImpl)classDoc).docenv();
       LinkedList<JmlMethodDecl> list = new LinkedList<JmlMethodDecl>();
       TypeSpecs tspecs = JmlSpecs.instance(org.jmlspecs.openjml.jmldoc.Main.jmlContext).get(currentClassSym);
       for (JmlTypeClause tc: tspecs.clauses) {
           if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JmlMethodDecl) {
               JmlMethodDecl d = (JmlMethodDecl)((JmlTypeClauseDecl)tc).decl;
               //boolean use = JmlAttr.instance(org.jmlspecs.openjml.jmldoc.Main.jmlContext).findMod(d.mods,JmlToken.MODEL) != null;
-              if (!d.sym.isConstructor()) {
+              if (!d.sym.isConstructor() && denv.shouldDocument(d.sym)) {
                   list.add(d);
               }
           }
@@ -192,10 +221,9 @@ public class MethodWriterJml extends MethodWriterImpl {
       writer.printTableHeadingBackground("JML Model Method Detail");
       writer.println();
       
-      //Field Header
       boolean isFirst = true;
       for (JmlMethodDecl tc: list) {
-          MethodDoc md = new MethodDocImpl(((ClassDocImpl)classDoc).docenv(),tc.sym,"RAWDOCS",tc,null);
+          MethodDoc md = new MethodDocImpl(((ClassDocImpl)classDoc).docenv(),tc.sym,tc.docComment,tc,null);
           // Method header
           writeMethodHeader(md,isFirst); isFirst = false;
           
@@ -224,26 +252,42 @@ public class MethodWriterJml extends MethodWriterImpl {
         
     }
 
-    public void writeMemberSummaryFooter(ClassDoc classDoc) {
+    /** Overridden to follow the member summary footer with the summary of
+     * JML model methods.
+     * @param classDoc the class that owns the methods and model methods
+     */
+    public void writeMemberSummaryFooter(@NonNull ClassDoc classDoc) {
         super.writeMemberSummaryFooter(classDoc);
         writeJmlMethodSummary(classDoc);
     }
 
+    /** Overridden to follow the summary footer for inherited methods
+     * with the summary of inherited
+     * JML model methods.
+     * @param classDoc the class whose inherited methods are being documented
+     */
     public void writeInheritedMemberSummaryFooter(ClassDoc classDoc) {
         writeJmlInheritedMemberSummaryFooter(classDoc);
         super.writeInheritedMemberSummaryFooter(classDoc);
     }
     
+    /** Writes out information about the inherited model methods for the given
+     * class.
+     * @param classDoc the class whose inherited model methods are begin listed
+     */
     public void writeJmlInheritedMemberSummaryFooter(ClassDoc classDoc) {
-        ClassSymbol csym = Main.findNewClassSymbol(classDoc);
+        ClassSymbol csym = Utils.findNewClassSymbol(classDoc);
         TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(csym);
         ArrayList<MethodDoc> list = new ArrayList<MethodDoc>();
+        DocEnv denv = ((ClassDocImpl)classDoc).docenv();
         for (JmlTypeClause tc : tspecs.clauses) {
-            // FIXME - check package and not in the same package
             if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JCTree.JCMethodDecl) {
-                MethodSymbol msym = ((JCTree.JCMethodDecl)((JmlTypeClauseDecl)tc).decl).sym;
-                if (msym.isConstructor() || (msym.flags() & Flags.PRIVATE) != 0) continue;
-                MethodDoc modelMethod = new MethodDocImpl(((ClassDocImpl)classDoc).docenv(),msym,"DOCCOMMENT",(JCTree.JCMethodDecl)((JmlTypeClauseDecl)tc).decl,null);
+                JmlMethodDecl mdecl = (JmlMethodDecl)((JmlTypeClauseDecl)tc).decl;
+                MethodSymbol msym = mdecl.sym;
+                if (msym.isConstructor()) continue;
+                if (!denv.shouldDocument(msym)) continue;
+                if (!Utils.isInherited(msym,currentClassSym)) continue;
+                MethodDoc modelMethod = new MethodDocImpl(((ClassDocImpl)classDoc).docenv(),msym,mdecl.docComment,mdecl,null);
                 list.add(modelMethod);
             }
         }
@@ -260,15 +304,20 @@ public class MethodWriterJml extends MethodWriterImpl {
         }
     }
     
-    public void writeJmlMethodSummary(ClassDoc classDoc) {
+    /** Writes out documentation for JML model methods.
+     * 
+     * @param classDoc the class whose model methods are being documented
+     */
+    public void writeJmlMethodSummary(@NonNull ClassDoc classDoc) {
         ArrayList<MethodDoc> list = new ArrayList<MethodDoc>();
+        DocEnv denv = ((ClassDocImpl)classDoc).docenv();
         TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(currentClassSym);
         for (JmlTypeClause tc : tspecs.clauses) {
-            // FIXME - control visibility
             if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JCTree.JCMethodDecl) {
-                MethodSymbol msym = ((JCTree.JCMethodDecl)((JmlTypeClauseDecl)tc).decl).sym;
-                if (!msym.isConstructor()) {
-                    MethodDoc modelMethod = new MethodDocImpl(((ClassDocImpl)classDoc).docenv(),msym,"DOCCOMMENT",(JCTree.JCMethodDecl)((JmlTypeClauseDecl)tc).decl,null);
+                JmlMethodDecl mdecl = ((JmlMethodDecl)((JmlTypeClauseDecl)tc).decl);
+                MethodSymbol msym = mdecl.sym;
+                if (!msym.isConstructor() && denv.shouldDocument(msym)) {
+                    MethodDoc modelMethod = new MethodDocImpl(((ClassDocImpl)classDoc).docenv(),msym,mdecl.docComment,mdecl,null);
                     list.add(modelMethod);
                 }
             }
@@ -296,11 +345,38 @@ public class MethodWriterJml extends MethodWriterImpl {
         super.writeMemberSummaryFooter(classDoc);
     }
     
-    public void writeJmlMethodSummaryHeader(ClassDoc classDoc) {
+    /** Writes the beginning of the HTML for a (model) method summary.
+     * 
+     * @param classDoc
+     */
+    public void writeJmlMethodSummaryHeader(@NonNull ClassDoc classDoc) {
         //printSummaryAnchor(cd);
-        writer.tableIndexSummary();
-        writer.tableHeaderStart("#CCCCFF");
-        writer.bold("JML Model Method Summary");
-        writer.tableHeaderEnd();
+        Utils.writeHeader(writer,"JML Model Method Summary",2);
+//        writer.tableIndexSummary();
+//        writer.tableHeaderStart("#CCCCFF");
+//        writer.bold("JML Model Method Summary");
+//        writer.tableHeaderEnd();
+    }
+    
+    /** This is overridden in order to include annotation information in the
+     * method summary entry.  Immediately after this, the modifiers are written.
+     * @param member the (method) Doc element whose annotation is to be printed
+     */
+    @Override
+    protected void printModifier(@NonNull ProgramElementDoc member) {
+        writer.writeAnnotationInfo(member);
+        super.printModifier(member);
+    }
+
+    /** This override has the effect of always printing out annotation information
+     * when a method signature is written; in particular, in javadoc it is not
+     * written out in the parameters within the member summary section.
+     * @param member the Doc element whose information is being printed
+     * @param includeAnnotations boolean switch now being ignored
+     */
+    @Override
+    protected void writeParameters(ExecutableMemberDoc member,
+            boolean includeAnnotations) {
+        super.writeParameters(member,true);
     }
 }

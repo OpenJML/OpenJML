@@ -14,13 +14,25 @@ import com.sun.tools.doclets.internal.toolkit.util.VisibleMemberMap;
 // even though much of it is unchanged.  We would like to extend that class, but it is not written
 // in an extensible way.
 
+/** This class extends WriterFactory in order to override factory methods so that 
+ * they create JML-enabled writer, that then write HTML content that includes
+ * JML information.
+ */
 public class WriterFactoryJml implements WriterFactory 
 {
 
+    /** A lazily-initialized singleton instance of the factory */
     private static WriterFactoryJml instance;
 
+    // FIXME - the configuration object should be a ConfigurationJml
+    
+    /** A cached value of the Configuration object */
     private ConfigurationImpl configuration;
 
+    /** Constructs a new factory object 
+     * 
+     * @param configuration the configuration object to use
+     */
     private WriterFactoryJml(ConfigurationImpl configuration) {
         this.configuration = configuration;
     }
@@ -37,16 +49,18 @@ public class WriterFactoryJml implements WriterFactory
         return instance;
     }
 
+    // FIXME - any JML information about constants to write?
     /**
      * {@inheritDoc}
-     */
+     */ // Unchanged
     public ConstantsSummaryWriter getConstantsSummaryWriter() throws Exception {
         return new ConstantsSummaryWriterImpl(configuration);
     }
 
+    // FIXME - any JML information about packages to write?
     /**
      * {@inheritDoc}
-     */
+     */ // Unchanged
     public PackageSummaryWriter getPackageSummaryWriter(PackageDoc packageDoc,
         PackageDoc prevPkg, PackageDoc nextPkg) throws Exception {
         return new PackageWriterImpl(ConfigurationImpl.getInstance(), packageDoc,
@@ -56,24 +70,27 @@ public class WriterFactoryJml implements WriterFactory
     /**
      * {@inheritDoc}
      */
+    // Overridden to return a JML ClassWriter
     public ClassWriter getClassWriter(ClassDoc classDoc, ClassDoc prevClass,
             ClassDoc nextClass, ClassTree classTree)
             throws Exception {
         return new ClassWriterJml(classDoc, prevClass, nextClass, classTree);
     }
 
+    // FIXME - any JML information about annotation types ?
     /**
      * {@inheritDoc}
-     */
+     */ // Unchanged
     public AnnotationTypeWriter getAnnotationTypeWriter(
         AnnotationTypeDoc annotationType, Type prevType, Type nextType)
     throws Exception {
         return new AnnotationTypeWriterImpl(annotationType, prevType, nextType);
     }
 
+    // FIXME - any JML information about annotation types to write?
     /**
      * {@inheritDoc}
-     */
+     */ // Unchanged
     public AnnotationTypeOptionalMemberWriter
             getAnnotationTypeOptionalMemberWriter(
         AnnotationTypeWriter annotationTypeWriter) throws Exception {
@@ -82,9 +99,10 @@ public class WriterFactoryJml implements WriterFactory
             annotationTypeWriter.getAnnotationTypeDoc());
     }
 
+    // FIXME - any JML information about annotation types to write?
     /**
      * {@inheritDoc}
-     */
+     */ // Unchanged
     public AnnotationTypeRequiredMemberWriter
             getAnnotationTypeRequiredMemberWriter(AnnotationTypeWriter annotationTypeWriter) throws Exception {
         return new AnnotationTypeRequiredMemberWriterImpl(
@@ -92,9 +110,10 @@ public class WriterFactoryJml implements WriterFactory
             annotationTypeWriter.getAnnotationTypeDoc());
     }
 
+    // FIXME - any JML information about enums to write?
     /**
      * {@inheritDoc}
-     */
+     */ // Unchanged
     public EnumConstantWriter getEnumConstantWriter(ClassWriter classWriter)
             throws Exception {
         return new EnumConstantWriterImpl((SubWriterHolderWriter) classWriter,
@@ -104,6 +123,7 @@ public class WriterFactoryJml implements WriterFactory
     /**
      * {@inheritDoc}
      */
+    // Overridden to return a JML FieldWriter
     public FieldWriter getFieldWriter(ClassWriter classWriter)
             throws Exception {
         return new FieldWriterJml((SubWriterHolderWriter) classWriter,
@@ -113,6 +133,7 @@ public class WriterFactoryJml implements WriterFactory
     /**
      * {@inheritDoc}
      */
+    // Overridden to return a JML MethodWriter
     public  MethodWriter getMethodWriter(ClassWriter classWriter)
             throws Exception {
         return new MethodWriterJml((SubWriterHolderWriter) classWriter,
@@ -122,6 +143,7 @@ public class WriterFactoryJml implements WriterFactory
     /**
      * {@inheritDoc}
      */
+    // Overridden to return a JML ConstructorWriter
     public ConstructorWriter getConstructorWriter(ClassWriter classWriter)
             throws Exception {
         return new ConstructorWriterJml((SubWriterHolderWriter) classWriter,
@@ -130,7 +152,7 @@ public class WriterFactoryJml implements WriterFactory
 
     /**
      * {@inheritDoc}
-     */
+     */ // Unchanged
     public MemberSummaryWriter getMemberSummaryWriter(
         ClassWriter classWriter, int memberType)
     throws Exception {
@@ -153,7 +175,7 @@ public class WriterFactoryJml implements WriterFactory
 
     /**
      * {@inheritDoc}
-     */
+     */ // Unchanged
     public MemberSummaryWriter getMemberSummaryWriter(
         AnnotationTypeWriter annotationTypeWriter, int memberType)
     throws Exception {
@@ -171,7 +193,7 @@ public class WriterFactoryJml implements WriterFactory
 
     /**
      * {@inheritDoc}
-     */
+     */ // Unchanged
     public SerializedFormWriter getSerializedFormWriter() throws Exception {
         return new SerializedFormWriterImpl();
     }
