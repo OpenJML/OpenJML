@@ -57,7 +57,7 @@ public abstract class AbstractDoclet {
      * Verify that the only doclet that is using this toolkit is
      * {@value #TOOLKIT_DOCLET_NAME}.
      */
-    private boolean isValidDoclet(AbstractDoclet doclet) {
+    protected boolean isValidDoclet(AbstractDoclet doclet) { // DRC - changed from private to protected
         if (! doclet.getClass().getName().equals(TOOLKIT_DOCLET_NAME)) {
             configuration.message.error("doclet.Toolkit_Usage_Violation",
                 TOOLKIT_DOCLET_NAME);
