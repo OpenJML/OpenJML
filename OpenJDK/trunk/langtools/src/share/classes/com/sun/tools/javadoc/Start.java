@@ -121,7 +121,7 @@ public class Start {  // DRC - changed to public from package-default
     /**
      * Usage
      */
-    private void usage() {
+    protected void usage() { // Changed from private to protected
         messager.notice("main.usage");
 
         // let doclet print usage information (does nothing on error)
