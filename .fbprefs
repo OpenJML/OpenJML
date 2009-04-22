@@ -1,5 +1,5 @@
 #FindBugs User Preferences
-#Mon Jul 28 09:06:02 EDT 2008
+#Thu Mar 26 12:48:32 EDT 2009
 detectorAppendingToAnObjectOutputStream=AppendingToAnObjectOutputStream|true
 detectorBCPMethodReturnCheck=BCPMethodReturnCheck|false
 detectorBadAppletConstructor=BadAppletConstructor|false
@@ -9,6 +9,7 @@ detectorBadUseOfReturnValue=BadUseOfReturnValue|true
 detectorBadlyOverriddenAdapter=BadlyOverriddenAdapter|true
 detectorBooleanReturnNull=BooleanReturnNull|true
 detectorBuildInterproceduralCallGraph=BuildInterproceduralCallGraph|true
+detectorCallToUnsupportedMethod=CallToUnsupportedMethod|true
 detectorCalledMethods=CalledMethods|true
 detectorCheckCalls=CheckCalls|false
 detectorCheckExpectedWarnings=CheckExpectedWarnings|false
@@ -28,6 +29,7 @@ detectorDumbMethods=DumbMethods|true
 detectorDuplicateBranches=DuplicateBranches|true
 detectorEmptyZipFileEntry=EmptyZipFileEntry|true
 detectorEqStringTest=EqStringTest|false
+detectorEqualsOperandShouldHaveClassCompatibleWithThis=EqualsOperandShouldHaveClassCompatibleWithThis|true
 detectorFieldItemSummary=FieldItemSummary|true
 detectorFinalizerNullsFields=FinalizerNullsFields|true
 detectorFindBadCast=FindBadCast|false
@@ -74,6 +76,7 @@ detectorFindUnreleasedLock=FindUnreleasedLock|true
 detectorFindUnsatisfiedObligation=FindUnsatisfiedObligation|false
 detectorFindUnsyncGet=FindUnsyncGet|true
 detectorFindUselessControlFlow=FindUselessControlFlow|true
+detectorFormatStringChecker=FormatStringChecker|true
 detectorHugeSharedStringConstants=HugeSharedStringConstants|true
 detectorIDivResultCastToDouble=IDivResultCastToDouble|true
 detectorIncompatMask=IncompatMask|true
@@ -148,5 +151,6 @@ detectorXMLFactoryBypass=XMLFactoryBypass|true
 detector_threshold=3
 effort=max
 excludefilter0=FB-NoNotABug.xml
-filter_settings=Low|BAD_PRACTICE,CORRECTNESS,I18N,MALICIOUS_CODE,MT_CORRECTNESS,PERFORMANCE,SECURITY,STYLE|false
-filter_settings_neg=|
+filter_settings=Low|BAD_PRACTICE,CORRECTNESS,EXPERIMENTAL,I18N,MALICIOUS_CODE,MT_CORRECTNESS,PERFORMANCE,SECURITY,STYLE|false
+filter_settings_neg=NOISE|
+run_at_full_build=false
