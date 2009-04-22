@@ -51,19 +51,19 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
         /**
          * The visible members for the given class.
          */
-        private VisibleMemberMap[] visibleMemberMaps;
+        protected VisibleMemberMap[] visibleMemberMaps; // DRC - changed from private
 
         /**
          * The member summary writers for the given class.
          */
-        private MemberSummaryWriter[] memberSummaryWriters;
+        protected MemberSummaryWriter[] memberSummaryWriters; // DRC - changed from private
 
         /**
          * The type being documented.
          */
-        private ClassDoc classDoc;
+        protected ClassDoc classDoc; // DRC - changed from private
 
-        private MemberSummaryBuilder(Configuration configuration) {
+        public MemberSummaryBuilder(Configuration configuration) { // DRC - changed to public from private
                 super(configuration);
         }
 
