@@ -178,6 +178,7 @@ public class DocEnv {
         //### instead a dummy created for error recovery.
         //### Should investigate this.
         PackageSymbol p = syms.packages.get(names.fromString(name));
+        if (p == null && name.contains("nnamed")) p = syms.packages.get(names.fromString("")); // DRC - added to avoid a NPE with unnamed packages
         ClassSymbol c = getClassSymbol(name);
         if (p != null && c == null) {
             return getPackageDoc(p);
@@ -261,7 +262,7 @@ public class DocEnv {
      * not reach upto this method itself, but if compiler
      * allows it, then that will go through.
      */
-    protected boolean isVisible(ClassSymbol sym) {
+    public boolean isVisible(ClassSymbol sym) {  // DRC - changed from protected to public
         long mod = sym.flags_field;
         if (!showAccess.checkModifier(translateModifiers(mod))) {
             return false;
