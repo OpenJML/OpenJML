@@ -457,6 +457,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
                 (tsym == env.syms.objectType.tsym))
             return null;
         Type sup = env.types.supertype(type);
+        if (sup == Type.noType) return null; // DRC - added - for some reason needed in jmldoc - probably should not be necessary
         return TypeMaker.getType(env,
                                  (sup != type) ? sup : env.syms.objectType);
     }
