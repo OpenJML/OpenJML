@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -66,7 +66,7 @@ public class MethodBuilder extends AbstractMemberBuilder {
         /**
          * The methods being documented.
          */
-        private List methods;
+        private List<ProgramElementDoc> methods;
 
         private MethodBuilder(Configuration configuration) {
                 super(configuration);
@@ -94,7 +94,7 @@ public class MethodBuilder extends AbstractMemberBuilder {
                                 VisibleMemberMap.METHODS,
                                 configuration.nodeprecated);
                 builder.methods =
-                        new ArrayList(builder.visibleMemberMap.getLeafClassMembers(
+                        new ArrayList<ProgramElementDoc>(builder.visibleMemberMap.getLeafClassMembers(
                 configuration));
                 if (configuration.getMemberComparator() != null) {
                         Collections.sort(
@@ -116,7 +116,7 @@ public class MethodBuilder extends AbstractMemberBuilder {
          */
         public void invokeMethod(
                 String methodName,
-                Class[] paramClasses,
+                Class<?>[] paramClasses,
                 Object[] params)
                 throws Exception {
                 if (DEBUG) {
@@ -135,7 +135,7 @@ public class MethodBuilder extends AbstractMemberBuilder {
          * @param classDoc the {@link ClassDoc} we want to check.
          * @return a list of methods that will be documented.
          */
-        public List members(ClassDoc classDoc) {
+        public List<ProgramElementDoc> members(ClassDoc classDoc) {
                 return visibleMemberMap.getMembersFor(classDoc);
         }
 
@@ -158,7 +158,7 @@ public class MethodBuilder extends AbstractMemberBuilder {
         /**
          * Build the method documentation.
          */
-        public void buildMethodDoc(List elements) {
+        public void buildMethodDoc(List<?> elements) {
                 if (writer == null) {
                         return;
                 }

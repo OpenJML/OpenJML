@@ -1,5 +1,5 @@
 /*
- * Copyright 1998-2003 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 1998-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -53,7 +53,7 @@ public class Extern {
      * Map package names onto Extern Item objects.
      * Lazily initialized.
      */
-    private Map packageToItemMap;
+    private Map<String,Item> packageToItemMap;
 
     /**
      * The global configuration information for this run.
@@ -101,7 +101,7 @@ public class Extern {
             this.path = path;
             this.relative = relative;
             if (packageToItemMap == null) {
-                packageToItemMap = new HashMap();
+                packageToItemMap = new HashMap<String,Item>();
             }
             if (!packageToItemMap.containsKey(packageName)) { // save the previous
                 packageToItemMap.put(packageName, this);        // mapped location
@@ -185,7 +185,7 @@ public class Extern {
         if (packageToItemMap == null) {
             return null;
         }
-        return (Item)packageToItemMap.get(pkgName);
+        return packageToItemMap.get(pkgName);
     }
 
     /**

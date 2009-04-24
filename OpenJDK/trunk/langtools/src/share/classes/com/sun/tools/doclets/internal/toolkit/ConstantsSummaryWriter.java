@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -79,7 +79,7 @@ public interface ConstantsSummaryWriter {
      *                              something more than once.
      */
     public abstract void writeLinkToPackageContent(PackageDoc pkg, String parsedPackageName,
-        Set WriteedPackageHeaders);
+        Set<String> WriteedPackageHeaders);
 
     /**
      * Write the given package name.
@@ -103,7 +103,7 @@ public interface ConstantsSummaryWriter {
      * @param cd the class whose constants are being documented.
      * @param fields the constants being documented.
      */
-    public abstract void writeConstantMembers(ClassDoc cd, List fields);
+    public abstract void writeConstantMembers(ClassDoc cd, List<FieldDoc> fields);
 
     /**
      * Document the given constants.

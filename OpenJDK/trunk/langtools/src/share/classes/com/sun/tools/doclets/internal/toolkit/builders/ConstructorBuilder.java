@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -72,7 +72,7 @@ public class ConstructorBuilder extends AbstractMemberBuilder {
         /**
          * The constructors being documented.
          */
-        private List constructors;
+        private List<ProgramElementDoc> constructors;
 
         /**
          * Construct a new ConstructorBuilder.
@@ -104,12 +104,10 @@ public class ConstructorBuilder extends AbstractMemberBuilder {
                                 VisibleMemberMap.CONSTRUCTORS,
                                 configuration.nodeprecated);
                 builder.constructors =
-                        new ArrayList(builder.visibleMemberMap.getMembersFor(classDoc));
+                        new ArrayList<ProgramElementDoc>(builder.visibleMemberMap.getMembersFor(classDoc));
                 for (int i = 0; i < builder.constructors.size(); i++) {
-                        if (((ProgramElementDoc) (builder.constructors.get(i)))
-                                .isProtected()
-                                || ((ProgramElementDoc) (builder.constructors.get(i)))
-                                        .isPrivate()) {
+                        if (builder.constructors.get(i).isProtected()
+                                || builder.constructors.get(i).isPrivate()) {
                                 writer.setFoundNonPubConstructor(true);
                         }
                 }
@@ -140,7 +138,7 @@ public class ConstructorBuilder extends AbstractMemberBuilder {
          */
         public void invokeMethod(
                 String methodName,
-                Class[] paramClasses,
+                Class<?>[] paramClasses,
                 Object[] params)
                 throws Exception {
                 if (DEBUG) {
@@ -158,7 +156,7 @@ public class ConstructorBuilder extends AbstractMemberBuilder {
          *
          * @return a list of constructors that will be documented.
          */
-        public List members(ClassDoc classDoc) {
+        public List<ProgramElementDoc> members(ClassDoc classDoc) {
                 return visibleMemberMap.getMembersFor(classDoc);
         }
 
@@ -177,7 +175,7 @@ public class ConstructorBuilder extends AbstractMemberBuilder {
          * @param elements the XML elements that specify how to construct this
          *                documentation.
          */
-        public void buildConstructorDoc(List elements) {
+        public void buildConstructorDoc(List<?> elements) {
                 if (writer == null) {
                         return;
                 }

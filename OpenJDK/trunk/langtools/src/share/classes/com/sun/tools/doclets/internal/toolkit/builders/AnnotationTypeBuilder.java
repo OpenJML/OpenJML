@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -84,7 +84,7 @@ public class AnnotationTypeBuilder extends AbstractBuilder {
         builder.annotationTypeDoc = annotationTypeDoc;
         builder.writer = writer;
         if(containingPackagesSeen == null) {
-            containingPackagesSeen = new HashSet();
+            containingPackagesSeen = new HashSet<String>();
         }
         return builder;
     }
@@ -92,7 +92,7 @@ public class AnnotationTypeBuilder extends AbstractBuilder {
     /**
      * {@inheritDoc}
      */
-    public void invokeMethod(String methodName, Class[] paramClasses,
+    public void invokeMethod(String methodName, Class<?>[] paramClasses,
             Object[] params)
     throws Exception {
         if (DEBUG) {
@@ -122,7 +122,7 @@ public class AnnotationTypeBuilder extends AbstractBuilder {
       *
       * @param elements the XML elements that specify how to document a class.
       */
-     public void buildAnnotationTypeDoc(List elements) throws Exception {
+     public void buildAnnotationTypeDoc(List<?> elements) throws Exception {
         build(elements);
         writer.close();
         copyDocFiles();
@@ -197,7 +197,7 @@ public class AnnotationTypeBuilder extends AbstractBuilder {
      * @param elements the XML elements that specify how a member summary is
      *                 documented.
      */
-    public void buildMemberSummary(List elements) throws Exception {
+    public void buildMemberSummary(List<?> elements) throws Exception {
         configuration.getBuilderFactory().
             getMemberSummaryBuilder(writer).build(elements);
         writer.completeMemberSummaryBuild();
@@ -209,7 +209,7 @@ public class AnnotationTypeBuilder extends AbstractBuilder {
      * @param elements the XML elements that specify how a annotation type
      *                 members are documented.
      */
-    public void buildAnnotationTypeOptionalMemberDetails(List elements)
+    public void buildAnnotationTypeOptionalMemberDetails(List<?> elements)
     throws Exception {
         configuration.getBuilderFactory().
             getAnnotationTypeOptionalMemberBuilder(writer).build(elements);
@@ -221,7 +221,7 @@ public class AnnotationTypeBuilder extends AbstractBuilder {
      * @param elements the XML elements that specify how a annotation type
      *                 members are documented.
      */
-    public void buildAnnotationTypeRequiredMemberDetails(List elements)
+    public void buildAnnotationTypeRequiredMemberDetails(List<?> elements)
     throws Exception {
         configuration.getBuilderFactory().
             getAnnotationTypeRequiredMemberBuilder(writer).build(elements);

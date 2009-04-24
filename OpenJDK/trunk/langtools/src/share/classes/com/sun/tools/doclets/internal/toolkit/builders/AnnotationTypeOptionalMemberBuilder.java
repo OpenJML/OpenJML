@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -73,7 +73,7 @@ public class AnnotationTypeOptionalMemberBuilder extends
         builder.writer = writer;
         builder.visibleMemberMap = new VisibleMemberMap(classDoc,
             VisibleMemberMap.ANNOTATION_TYPE_MEMBER_OPTIONAL, configuration.nodeprecated);
-        builder.members = new ArrayList(
+        builder.members = new ArrayList<ProgramElementDoc>(
             builder.visibleMemberMap.getMembersFor(classDoc));
         if (configuration.getMemberComparator() != null) {
             Collections.sort(builder.members,
@@ -95,7 +95,7 @@ public class AnnotationTypeOptionalMemberBuilder extends
      * @param elements the XML elements that specify how to construct this
      *                documentation.
      */
-    public void buildAnnotationTypeOptionalMember(List elements) {
+    public void buildAnnotationTypeOptionalMember(List<?> elements) {
         if (writer == null) {
             return;
         }
@@ -108,7 +108,7 @@ public class AnnotationTypeOptionalMemberBuilder extends
     /**
      * {@inheritDoc}
      */
-    public void invokeMethod(String methodName, Class[] paramClasses,
+    public void invokeMethod(String methodName, Class<?>[] paramClasses,
             Object[] params)
     throws Exception {
         if (DEBUG) {

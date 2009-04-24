@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -62,7 +62,7 @@ public class AnnotationTypeRequiredMemberBuilder extends AbstractMemberBuilder {
     /**
      * The list of members being documented.
      */
-    protected List members;
+    protected List<ProgramElementDoc> members;
 
     /**
      * The index of the current member that is being documented at this point
@@ -97,7 +97,7 @@ public class AnnotationTypeRequiredMemberBuilder extends AbstractMemberBuilder {
         builder.writer = writer;
         builder.visibleMemberMap = new VisibleMemberMap(classDoc,
             VisibleMemberMap.ANNOTATION_TYPE_MEMBER_REQUIRED, configuration.nodeprecated);
-        builder.members = new ArrayList(
+        builder.members = new ArrayList<ProgramElementDoc>(
             builder.visibleMemberMap.getMembersFor(classDoc));
         if (configuration.getMemberComparator() != null) {
             Collections.sort(builder.members,
@@ -116,7 +116,7 @@ public class AnnotationTypeRequiredMemberBuilder extends AbstractMemberBuilder {
     /**
      * {@inheritDoc}
      */
-    public void invokeMethod(String methodName, Class[] paramClasses,
+    public void invokeMethod(String methodName, Class<?>[] paramClasses,
             Object[] params)
     throws Exception {
         if (DEBUG) {
@@ -135,7 +135,7 @@ public class AnnotationTypeRequiredMemberBuilder extends AbstractMemberBuilder {
      * @param classDoc the {@link ClassDoc} we want to check.
      * @return a list of members that will be documented.
      */
-    public List members(ClassDoc classDoc) {
+    public List<ProgramElementDoc> members(ClassDoc classDoc) {
         return visibleMemberMap.getMembersFor(classDoc);
     }
 
@@ -161,7 +161,7 @@ public class AnnotationTypeRequiredMemberBuilder extends AbstractMemberBuilder {
      * @param elements the XML elements that specify how to construct this
      *                documentation.
      */
-    public void buildAnnotationTypeRequiredMember(List elements) {
+    public void buildAnnotationTypeRequiredMember(List<?> elements) {
         if (writer == null) {
             return;
         }

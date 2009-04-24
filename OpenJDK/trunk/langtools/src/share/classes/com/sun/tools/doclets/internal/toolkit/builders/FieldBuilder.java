@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -61,7 +61,7 @@ public class FieldBuilder extends AbstractMemberBuilder {
         /**
          * The list of fields being documented.
          */
-        public List fields; // DRC - changed from private to public
+        public List<ProgramElementDoc> fields;// DRC - changed from private to public
 
         /**
          * The index of the current field that is being documented at this point
@@ -99,8 +99,8 @@ public class FieldBuilder extends AbstractMemberBuilder {
                                 VisibleMemberMap.FIELDS,
                                 configuration.nodeprecated);
                 builder.fields =
-                        new ArrayList(builder.visibleMemberMap.getLeafClassMembers(
-                configuration));
+                        new ArrayList<ProgramElementDoc>(builder.visibleMemberMap.getLeafClassMembers(
+                            configuration));
                 if (configuration.getMemberComparator() != null) {
                         Collections.sort(
                                 builder.fields,
@@ -121,7 +121,7 @@ public class FieldBuilder extends AbstractMemberBuilder {
          */
         public void invokeMethod(
                 String methodName,
-                Class[] paramClasses,
+                Class<?>[] paramClasses,
                 Object[] params)
                 throws Exception {
                 if (DEBUG) {
@@ -140,7 +140,7 @@ public class FieldBuilder extends AbstractMemberBuilder {
          * @param classDoc the {@link ClassDoc} we want to check.
          * @return a list of fields that will be documented.
          */
-        public List members(ClassDoc classDoc) {
+        public List<ProgramElementDoc> members(ClassDoc classDoc) {
                 return visibleMemberMap.getMembersFor(classDoc);
         }
 
@@ -166,7 +166,7 @@ public class FieldBuilder extends AbstractMemberBuilder {
          * @param elements the XML elements that specify how to construct this
          *                documentation.
          */
-        public void buildFieldDoc(List elements) {
+        public void buildFieldDoc(List<?> elements) {
                 if (writer == null) {
                         return;
                 }

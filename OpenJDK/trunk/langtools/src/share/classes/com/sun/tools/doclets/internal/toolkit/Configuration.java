@@ -1,5 +1,5 @@
 /*
- * Copyright 1997-2004 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 1997-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -113,19 +113,19 @@ public abstract class Configuration {
     public boolean keywords = false;
 
     /**
-     * The meta tag keywords sole-instance.
+     * The meta tag keywords instance.
      */
-    public final MetaKeywords metakeywords = MetaKeywords.getInstance(this);
+    public final MetaKeywords metakeywords = new MetaKeywords(this);
 
     /**
      * The list of doc-file subdirectories to exclude
      */
-    protected Set excludedDocFileDirs;
+    protected Set<String> excludedDocFileDirs;
 
     /**
      * The list of qualifiers to exclude
      */
-    protected Set excludedQualifiers;
+    protected Set<String> excludedQualifiers;
 
     /**
      * The Root of the generated Program Structure from the Doclet API.
@@ -211,12 +211,12 @@ public abstract class Configuration {
     public boolean notimestamp= false;
 
     /**
-     * The package grouping sole-instance.
+     * The package grouping instance.
      */
-    public final Group group = Group.getInstance(this);
+    public final Group group = new Group(this);
 
     /**
-     * The tracker of external package links (sole-instance).
+     * The tracker of external package links.
      */
     public final Extern extern = new Extern(this);
 
@@ -255,8 +255,8 @@ public abstract class Configuration {
         message =
             new MessageRetriever(this,
             "com.sun.tools.doclets.internal.toolkit.resources.doclets");
-        excludedDocFileDirs = new HashSet();
-        excludedQualifiers = new HashSet();
+        excludedDocFileDirs = new HashSet<String>();
+        excludedQualifiers = new HashSet<String>();
     }
 
     /**
@@ -329,14 +329,14 @@ public abstract class Configuration {
         DocErrorReporter reporter);
 
     private void initPackageArray() {
-        Set set = new HashSet(Arrays.asList(root.specifiedPackages()));
+        Set<PackageDoc> set = new HashSet<PackageDoc>(Arrays.asList(root.specifiedPackages()));
         ClassDoc[] classes = root.specifiedClasses();
         for (int i = 0; i < classes.length; i++) {
             set.add(classes[i].containingPackage());
         }
-        ArrayList results = new ArrayList(set);
+        ArrayList<PackageDoc> results = new ArrayList<PackageDoc>(set);
         Collections.sort(results);
-        packages = (PackageDoc[]) results.toArray(new PackageDoc[] {});
+        packages = results.toArray(new PackageDoc[] {});
     }
 
     /**
@@ -345,7 +345,7 @@ public abstract class Configuration {
      * @param options the two dimensional array of options.
      */
     public void setOptions(String[][] options) {
-        LinkedHashSet customTagStrs = new LinkedHashSet();
+        LinkedHashSet<String[]> customTagStrs = new LinkedHashSet<String[]>();
         for (int oi = 0; oi < options.length; ++oi) {
             String[] os = options[oi];
             String opt = os[0].toLowerCase();
@@ -441,13 +441,13 @@ public abstract class Configuration {
      * @param customTagStrs the set two dimentional arrays of strings.  These arrays contain
      * either -tag or -taglet arguments.
      */
-    private void initTagletManager(Set customTagStrs) {
+    private void initTagletManager(Set<String[]> customTagStrs) {
         tagletManager = tagletManager == null ?
             new TagletManager(nosince, showversion, showauthor, message) :
             tagletManager;
         String[] args;
-        for (Iterator it = customTagStrs.iterator(); it.hasNext(); ) {
-            args = (String[]) it.next();
+        for (Iterator<String[]> it = customTagStrs.iterator(); it.hasNext(); ) {
+            args = it.next();
             if (args[0].equals("-taglet")) {
                 tagletManager.addCustomTag(args[1], tagletpath);
                 continue;
@@ -476,7 +476,7 @@ public abstract class Configuration {
         }
     }
 
-    private void addToSet(Set s, String str){
+    private void addToSet(Set<String> s, String str){
         StringTokenizer st = new StringTokenizer(str, ":");
         String current;
         while(st.hasMoreTokens()){
@@ -707,10 +707,15 @@ public abstract class Configuration {
     }
 
     /**
+     * Return the Locale for this document.
+     */
+    public abstract Locale getLocale();
+
+    /**
      * Return the comparator that will be used to sort member documentation.
      * To no do any sorting, return null.
      *
      * @return the {@link java.util.Comparator} used to sort members.
      */
-    public abstract Comparator getMemberComparator();
+    public abstract Comparator<ProgramElementDoc> getMemberComparator();
 }
