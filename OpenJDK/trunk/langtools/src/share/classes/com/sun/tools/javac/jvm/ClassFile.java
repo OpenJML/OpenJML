@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2005 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,8 +25,9 @@
 
 package com.sun.tools.javac.jvm;
 
-import com.sun.tools.javac.code.*;
-import com.sun.tools.javac.util.*;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.util.Name;
+
 
 /** A JVM class file.
  *
@@ -86,6 +87,18 @@ public class ClassFile {
     public final static int MAX_LOCALS = 0xffff;
     public final static int MAX_STACK = 0xffff;
 
+    public enum Version {
+        V45_3(45, 3), // base level for all attributes
+        V49(49, 0),   // JDK 1.5: enum, generics, annotations
+        V50(50, 0),   // JDK 1.6: stackmaps
+        V51(51, 0);   // JDK 1.7
+        Version(int major, int minor) {
+            this.major = major;
+            this.minor = minor;
+        }
+        public final int major, minor;
+    }
+
 
 /************************************************************************
  * String Translation Routines
@@ -108,7 +121,7 @@ public class ClassFile {
      *  converting '/' to '.'.
      */
     public static byte[] internalize(Name name) {
-        return internalize(name.table.names, name.index, name.len);
+        return internalize(name.getByteArray(), name.getByteOffset(), name.getByteLength());
     }
 
     /** Return external representation of buf[offset..offset+len-1],
@@ -128,7 +141,7 @@ public class ClassFile {
      *  converting '/' to '.'.
      */
     public static byte[] externalize(Name name) {
-        return externalize(name.table.names, name.index, name.len);
+        return externalize(name.getByteArray(), name.getByteOffset(), name.getByteLength());
     }
 
 /************************************************************************

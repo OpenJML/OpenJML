@@ -69,7 +69,9 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 
 import static javax.tools.StandardLocation.*;
@@ -132,9 +134,14 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
      */
     Source source;
 
+    /**
+     * JavacMessages object used for localization
+     */
+    private JavacMessages messages;
+
     private Context context;
 
-   public JavacProcessingEnvironment(Context context, Iterable<? extends Processor> processors) {
+    public JavacProcessingEnvironment(Context context, Iterable<? extends Processor> processors) {
         options = Options.instance(context);
         this.context = context;
         log = Log.instance(context);
@@ -156,6 +163,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         typeUtils = new JavacTypes(context);
         processorOptions = initProcessorOptions(context);
         unmatchedProcessorOptions = initUnmatchedProcessorOptions();
+        messages = JavacMessages.instance(context);
         initProcessorIterator(context, processors);
     }
 
@@ -831,7 +839,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                     topLevelClasses  = List.nil();
                     packageInfoFiles = List.nil();
 
-                    compiler.close();
+                    compiler.close(false);
                     currentContext = contextForNextRound(currentContext, true);
 
                     JavaFileManager fileManager = currentContext.get(JavaFileManager.class);
@@ -879,7 +887,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         }
         runLastRound(xout, roundNumber, errorStatus, taskListener);
 
-        compiler.close();
+        compiler.close(false);
         currentContext = contextForNextRound(currentContext, true);
         compiler = JavaCompiler.instance(currentContext);
         filer.newRound(currentContext, true);
@@ -913,7 +921,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         } else if (procOnly) {
             compiler.todo.clear();
         } else { // Final compilation
-            compiler.close();
+            compiler.close(false);
             currentContext = contextForNextRound(currentContext, true);
             compiler = JavaCompiler.instance(currentContext);
 
@@ -987,7 +995,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
 
     private ListBuffer<ClassSymbol> enterNewClassFiles(Context currentContext) {
         ClassReader reader = ClassReader.instance(currentContext);
-        Name.Table names = Name.Table.instance(currentContext);
+        Names names = Names.instance(currentContext);
         ListBuffer<ClassSymbol> list = new ListBuffer<ClassSymbol>();
 
         for (Map.Entry<String,JavaFileObject> entry : filer.getGeneratedClasses().entrySet()) {
@@ -1047,12 +1055,12 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         next.put(Log.outKey, out);
 
         if (shareNames) {
-            Name.Table names = Name.Table.instance(context);
+            Names names = Names.instance(context);
             assert names != null;
-            next.put(Name.Table.namesKey, names);
+            next.put(Names.namesKey, names);
         }
 
-        DiagnosticListener dl = context.get(DiagnosticListener.class);
+        DiagnosticListener<?> dl = context.get(DiagnosticListener.class);
         if (dl != null)
             next.put(DiagnosticListener.class, dl);
 
@@ -1067,9 +1075,9 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             ((JavacFileManager)jfm).setContext(next);
         }
 
-        Name.Table names = Name.Table.instance(context);
+        Names names = Names.instance(context);
         assert names != null;
-        next.put(Name.Table.namesKey, names);
+        next.put(Names.namesKey, names);
 
         Keywords keywords = Keywords.instance(context);
         assert(keywords != null);
@@ -1245,7 +1253,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
     }
 
     public Locale getLocale() {
-        return Locale.getDefault();
+        return messages.getCurrentLocale();
     }
 
     public Set<Symbol.PackageSymbol> getSpecifiedPackages() {

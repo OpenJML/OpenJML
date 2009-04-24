@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2006 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2001-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,6 @@
 
 package com.sun.tools.javac.util;
 
-import com.sun.tools.javac.Main;
 import java.util.*;
 
 /**
@@ -117,7 +116,7 @@ public class Context {
      * We maintain the invariant that this table contains only
      * mappings of the form
      * Key<T> -> T or Key<T> -> Factory<T> */
-    private Map<Key,Object> ht = new HashMap<Key,Object>();
+    private Map<Key<?>,Object> ht = new HashMap<Key<?>,Object>();
 
     /** Set the factory for the key in this context. */
     public <T> void put(Key<T> key, Factory<T> fac) {
@@ -129,11 +128,11 @@ public class Context {
 
     /** Set the value for the key in this context. */
     public <T> void put(Key<T> key, T data) {
-        if (data instanceof Factory)
+        if (data instanceof Factory<?>)
             throw new AssertionError("T extends Context.Factory");
         checkState(ht);
         Object old = ht.put(key, data);
-        if (old != null && !(old instanceof Factory) && old != data && data != null)
+        if (old != null && !(old instanceof Factory<?>) && old != data && data != null)
             throw new AssertionError("duplicate context value");
     }
 
@@ -141,10 +140,10 @@ public class Context {
     public <T> T get(Key<T> key) {
         checkState(ht);
         Object o = ht.get(key);
-        if (o instanceof Factory) {
-            Factory fac = (Factory)o;
+        if (o instanceof Factory<?>) {
+            Factory<?> fac = (Factory<?>)o;
             o = fac.make();
-            if (o instanceof Factory)
+            if (o instanceof Factory<?>)
                 throw new AssertionError("T extends Context.Factory");
             assert ht.get(key) == o;
         }

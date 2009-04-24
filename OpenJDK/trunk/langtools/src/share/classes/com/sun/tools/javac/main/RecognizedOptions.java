@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2006-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -38,12 +38,10 @@ import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.StringTokenizer;
 import javax.lang.model.SourceVersion;
 
 import static com.sun.tools.javac.main.OptionName.*;
@@ -147,6 +145,7 @@ public class RecognizedOptions {
         TARGET,
         VERSION,
         FULLVERSION,
+        DIAGS,
         HELP,
         A,
         X,
@@ -374,6 +373,21 @@ public class RecognizedOptions {
                 return super.process(options, option);
             }
         },
+        new HiddenOption(DIAGS) {
+            @Override
+            public boolean process(Options options, String option) {
+                Option xd = getOptions(helper, EnumSet.of(XD))[0];
+                option = option.substring(option.indexOf('=') + 1);
+                String diagsOption = option.contains("%") ?
+                    "-XDdiagsFormat=" :
+                    "-XDdiags=";
+                diagsOption += option;
+                if (xd.matches(diagsOption))
+                    return xd.process(options, diagsOption);
+                else
+                    return false;
+            }
+        },
         new Option(HELP,                                        "opt.help") {
             @Override
             public boolean process(Options options, String option) {
@@ -451,7 +465,7 @@ public class RecognizedOptions {
         },
 
         // treat warnings as errors
-        new HiddenOption(WERROR),
+        new Option(WERROR,                                      "opt.Werror"),
 
         // use complex inference from context in the position of a method call argument
         new HiddenOption(COMPLEXINFERENCE),

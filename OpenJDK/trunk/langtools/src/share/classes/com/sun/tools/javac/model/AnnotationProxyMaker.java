@@ -1,5 +1,5 @@
 /*
- * Copyright 2005-2006 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2005-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -181,7 +181,7 @@ public class AnnotationProxyMaker {
         public void visitArray(Attribute.Array a) {
             Name elemName = ((ArrayType) a.type).elemtype.tsym.name;
 
-            if (elemName == elemName.table.java_lang_Class) {   // Class[]
+            if (elemName == elemName.table.names.java_lang_Class) {   // Class[]
                 // Construct a proxy for a MirroredTypesException
                 List<TypeMirror> elems = List.nil();
                 for (Attribute value : a.values) {
@@ -215,15 +215,15 @@ public class AnnotationProxyMaker {
             }
         }
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "rawtypes"})
         public void visitEnum(Attribute.Enum e) {
             if (returnClass.isEnum()) {
                 String constName = e.value.toString();
                 try {
-                    value = Enum.valueOf((Class) returnClass, constName);
+                    value = Enum.valueOf((Class)returnClass, constName);
                 } catch (IllegalArgumentException ex) {
                     value = new EnumConstantNotPresentExceptionProxy(
-                                        (Class) returnClass, constName);
+                                        (Class<Enum<?>>) returnClass, constName);
                 }
             } else {
                 value = null;   // indicates a type mismatch
