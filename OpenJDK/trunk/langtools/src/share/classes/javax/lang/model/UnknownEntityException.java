@@ -1,5 +1,5 @@
 /*
- * Copyright 2005-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,20 +23,35 @@
  * have any questions.
  */
 
-package javax.lang.model.type;
+package javax.lang.model;
 
 /**
- * Represents a class or interface type that cannot be properly modeled.
- * This may be the result of a processing error,
- * such as a missing class file or erroneous source code.
- * Most queries for
- * information derived from such a type (such as its members or its
- * supertype) will not, in general, return meaningful results.
+ * Superclass of exceptions which indicate that an unknown kind of
+ * entity was encountered.  This situation can occur if the language
+ * evolves and new kinds of constructs are introduced.  Subclasses of
+ * this exception may be thrown by visitors to indicate that the
+ * visitor was created for a prior version of the language.
+ *
+ * <p>A common superclass for those exceptions allows a single catch
+ * block to have code handling them uniformly.
  *
  * @author Joseph D. Darcy
- * @author Scott Seligman
- * @author Peter von der Ah&eacute;
- * @since 1.6
+ * @see javax.lang.model.element.UnknownElementException
+ * @see javax.lang.model.element.UnknownAnnotationValueException
+ * @see javax.lang.model.type.UnknownTypeException
+ * @since 1.7
  */
-public interface ErrorType extends DeclaredType {
+public class UnknownEntityException extends RuntimeException {
+
+    private static final long serialVersionUID = 269L;
+
+    /**
+     * Creates a new {@code UnknownEntityException} with the specified
+     * detail message.
+     *
+     * @param message the detail message
+     */
+    protected UnknownEntityException(String message) {
+        super(message);
+    }
 }

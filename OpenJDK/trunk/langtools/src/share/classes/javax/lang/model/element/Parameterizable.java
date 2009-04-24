@@ -1,5 +1,5 @@
 /*
- * Copyright 2005-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,20 +23,23 @@
  * have any questions.
  */
 
-package javax.lang.model.type;
+package javax.lang.model.element;
+
+import java.util.List;
 
 /**
- * Represents a class or interface type that cannot be properly modeled.
- * This may be the result of a processing error,
- * such as a missing class file or erroneous source code.
- * Most queries for
- * information derived from such a type (such as its members or its
- * supertype) will not, in general, return meaningful results.
+ * A mixin interface for an element that has type parameters.
  *
  * @author Joseph D. Darcy
- * @author Scott Seligman
- * @author Peter von der Ah&eacute;
- * @since 1.6
+ * @since 1.7
  */
-public interface ErrorType extends DeclaredType {
+public interface Parameterizable extends Element {
+    /**
+     * Returns the formal type parameters of the type element in
+     * declaration order.
+     *
+     * @return the formal type parameters, or an empty list
+     * if there are none
+     */
+    List<? extends TypeParameterElement> getTypeParameters();
 }
