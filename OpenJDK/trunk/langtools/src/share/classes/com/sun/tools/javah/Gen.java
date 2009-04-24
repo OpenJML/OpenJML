@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2005 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2002-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -324,9 +324,9 @@ public abstract class Gen {
 
     FieldDoc[] getAllFields(ClassDoc subclazz)
                 throws ClassNotFoundException {
-        Vector fields = new Vector();
+        Vector<FieldDoc> fields = new Vector<FieldDoc>();
         ClassDoc cd = null;
-        Stack s = new Stack();
+        Stack<Object> s = new Stack<Object>();
 
         cd = subclazz;
         while (true) {
@@ -342,6 +342,6 @@ public abstract class Gen {
             fields.addAll(Arrays.asList(cd.fields()));
         }
 
-        return (FieldDoc[]) fields.toArray(new FieldDoc[fields.size()]);
+        return fields.toArray(new FieldDoc[fields.size()]);
     }
 }
