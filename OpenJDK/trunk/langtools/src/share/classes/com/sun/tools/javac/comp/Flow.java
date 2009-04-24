@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2006 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 1999-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -177,7 +177,7 @@ public class Flow extends TreeScanner {
     protected static final Context.Key<Flow> flowKey =
         new Context.Key<Flow>();
 
-    private final Name.Table names;
+    private final Names names;
     private final Log log;
     private final Symtab syms;
     private final Types types;
@@ -195,7 +195,7 @@ public class Flow extends TreeScanner {
     protected Flow(Context context) {
         context.put(flowKey, this);
 
-        names = Name.Table.instance(context);
+        names = Names.instance(context);
         log = Log.instance(context);
         syms = Symtab.instance(context);
         types = Types.instance(context);
@@ -1140,11 +1140,32 @@ public class Flow extends TreeScanner {
         scanExpr(tree.encl);
         scanExprs(tree.args);
        // scan(tree.def);
-        for (List<Type> l = tree.constructor.type.getThrownTypes();
+        for (List<Type> l = tree.constructorType.getThrownTypes();
              l.nonEmpty();
-             l = l.tail)
+             l = l.tail) {
             markThrown(tree, l.head);
-        scan(tree.def);
+        }
+        List<Type> caughtPrev = caught;
+        try {
+            // If the new class expression defines an anonymous class,
+            // analysis of the anonymous constructor may encounter thrown
+            // types which are unsubstituted type variables.
+            // However, since the constructor's actual thrown types have
+            // already been marked as thrown, it is safe to simply include
+            // each of the constructor's formal thrown types in the set of
+            // 'caught/declared to be thrown' types, for the duration of
+            // the class def analysis.
+            if (tree.def != null)
+                for (List<Type> l = tree.constructor.type.getThrownTypes();
+                     l.nonEmpty();
+                     l = l.tail) {
+                    caught = chk.incl(l.head, caught);
+                }
+            scan(tree.def);
+        }
+        finally {
+            caught = caughtPrev;
+        }
     }
 
     public void visitNewArray(JCNewArray tree) {

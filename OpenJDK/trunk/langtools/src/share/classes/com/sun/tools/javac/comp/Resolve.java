@@ -30,6 +30,8 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.jvm.*;
 import com.sun.tools.javac.tree.*;
+import com.sun.tools.javac.api.Formattable.LocalizedString;
+import static com.sun.tools.javac.comp.Resolve.MethodResolutionPhase.*;
 
 import com.sun.tools.javac.code.Type.*;
 import com.sun.tools.javac.code.Symbol.*;
@@ -39,6 +41,9 @@ import static com.sun.tools.javac.code.Flags.*;
 import static com.sun.tools.javac.code.Kinds.*;
 import static com.sun.tools.javac.code.TypeTags.*;
 import javax.lang.model.element.ElementVisitor;
+
+import java.util.Map;
+import java.util.HashMap;
 
 /** Helper class for name resolution, used mostly by the attribution phase.
  *
@@ -51,7 +56,7 @@ public class Resolve {
     protected static final Context.Key<Resolve> resolveKey =
         new Context.Key<Resolve>();
 
-    Name.Table names;
+    Names names;
     Log log;
     Symtab syms;
     Check chk;
@@ -59,6 +64,7 @@ public class Resolve {
     ClassReader reader;
     TreeInfo treeinfo;
     Types types;
+    JCDiagnostic.Factory diags;
     public final boolean boxingEnabled; // = source.allowBoxing();
     public final boolean varargsEnabled; // = source.allowVarargs();
     private final boolean debugResolve;
@@ -85,13 +91,14 @@ public class Resolve {
         typeNotFound = new
             ResolveError(ABSENT_TYP, syms.errSymbol, "type not found");
 
-        names = Name.Table.instance(context);
+        names = Names.instance(context);
         log = Log.instance(context);
         chk = Check.instance(context);
         infer = Infer.instance(context);
         reader = ClassReader.instance(context);
         treeinfo = TreeInfo.instance(context);
         types = Types.instance(context);
+        diags = JCDiagnostic.Factory.instance(context);
         Source source = Source.instance(context);
         boxingEnabled = source.allowBoxing();
         varargsEnabled = source.allowVarargs();
@@ -209,7 +216,9 @@ public class Resolve {
                 &&
                 isAccessible(env, site)
                 &&
-                sym.isInheritedIn(site.tsym, types);
+                sym.isInheritedIn(site.tsym, types)
+                &&
+                notOverriddenIn(site, sym);
         case PROTECTED:
             return
                 (env.toplevel.packge == sym.owner.owner // fast special case
@@ -224,14 +233,23 @@ public class Resolve {
                 &&
                 isAccessible(env, site)
                 &&
-                // `sym' is accessible only if not overridden by
-                // another symbol which is a member of `site'
-                // (because, if it is overridden, `sym' is not strictly
-                // speaking a member of `site'.)
-                (sym.kind != MTH || sym.isConstructor() || sym.isStatic() ||
-                 ((MethodSymbol)sym).implementation(site.tsym, types, true) == sym);
+                notOverriddenIn(site, sym);
         default: // this case includes erroneous combinations as well
-            return isAccessible(env, site);
+            return isAccessible(env, site) && notOverriddenIn(site, sym);
+        }
+    }
+    //where
+    /* `sym' is accessible only if not overridden by
+     * another symbol which is a member of `site'
+     * (because, if it is overridden, `sym' is not strictly
+     * speaking a member of `site'.)
+     */
+    private boolean notOverriddenIn(Type site, Symbol sym) {
+        if (sym.kind != MTH || sym.isConstructor() || sym.isStatic())
+            return true;
+        else {
+            Symbol s2 = ((MethodSymbol)sym).implementation(site.tsym, types, true);
+            return (s2 == null || s2 == sym);
         }
     }
     //where
@@ -449,7 +467,7 @@ public class Resolve {
         Symbol sym = findField(env, site, name, site.tsym);
         if (sym.kind == VAR) return (VarSymbol)sym;
         else throw new FatalError(
-                 JCDiagnostic.fragment("fatal.err.cant.locate.field",
+                 diags.fragment("fatal.err.cant.locate.field",
                                 name));
     }
 
@@ -598,7 +616,7 @@ public class Resolve {
     Symbol mostSpecific(Symbol m1,
                         Symbol m2,
                         Env<AttrContext> env,
-                        Type site,
+                        final Type site,
                         boolean allowBoxing,
                         boolean useVarargs) {
         switch (m2.kind) {
@@ -649,25 +667,38 @@ public class Resolve {
                 // both abstract or both concrete
                 if (!m1Abstract && !m2Abstract)
                     return new AmbiguityError(m1, m2);
-                // check for same erasure
-                if (!types.isSameType(m1.erasure(types), m2.erasure(types)))
+                // check that both signatures have the same erasure
+                if (!types.isSameTypes(m1.erasure(types).getParameterTypes(),
+                                       m2.erasure(types).getParameterTypes()))
                     return new AmbiguityError(m1, m2);
                 // both abstract, neither overridden; merge throws clause and result type
-                Symbol result;
-                Type result2 = mt2.getReturnType();;
+                Symbol mostSpecific;
+                Type result2 = mt2.getReturnType();
                 if (mt2.tag == FORALL)
                     result2 = types.subst(result2, ((ForAll)mt2).tvars, ((ForAll)mt1).tvars);
                 if (types.isSubtype(mt1.getReturnType(), result2)) {
-                    result = m1;
+                    mostSpecific = m1;
                 } else if (types.isSubtype(result2, mt1.getReturnType())) {
-                    result = m2;
+                    mostSpecific = m2;
                 } else {
                     // Theoretically, this can't happen, but it is possible
                     // due to error recovery or mixing incompatible class files
                     return new AmbiguityError(m1, m2);
                 }
-                result = result.clone(result.owner);
-                result.type = (Type)result.type.clone();
+                MethodSymbol result = new MethodSymbol(
+                        mostSpecific.flags(),
+                        mostSpecific.name,
+                        null,
+                        mostSpecific.owner) {
+                    @Override
+                    public MethodSymbol implementation(TypeSymbol origin, Types types, boolean checkResult) {
+                        if (origin == site.tsym)
+                            return this;
+                        else
+                            return super.implementation(origin, types, checkResult);
+                    }
+                };
+                result.type = (Type)mostSpecific.type.clone();
                 result.type.setThrown(chk.intersect(mt1.getThrownTypes(),
                                                     mt2.getThrownTypes()));
                 return result;
@@ -739,7 +770,7 @@ public class Resolve {
             while (ct.tag == TYPEVAR)
                 ct = ct.getUpperBound();
             ClassSymbol c = (ClassSymbol)ct.tsym;
-            if ((c.flags() & (ABSTRACT | INTERFACE)) == 0)
+            if ((c.flags() & (ABSTRACT | INTERFACE | ENUM)) == 0)
                 abstractok = false;
             for (Scope.Entry e = c.members().lookup(name);
                  e.scope != null;
@@ -1097,7 +1128,7 @@ public class Resolve {
             if (sym == syms.errSymbol // preserve the symbol name through errors
                 || ((sym.kind & ERRONEOUS) == 0 // make sure an error symbol is returned
                     && (sym.kind & TYP) != 0))
-                sym = new ErrorType(name, qualified?site.tsym:syms.noSymbol).tsym;
+                sym = types.createErrorType(name, qualified ? site.tsym : syms.noSymbol, sym.type).tsym;
         }
         return sym;
     }
@@ -1190,15 +1221,23 @@ public class Resolve {
                          Name name,
                          List<Type> argtypes,
                          List<Type> typeargtypes) {
-        Symbol sym = findFun(env, name, argtypes, typeargtypes, false, env.info.varArgs=false);
-        if (varargsEnabled && sym.kind >= WRONG_MTHS) {
-            sym = findFun(env, name, argtypes, typeargtypes, true, false);
-            if (sym.kind >= WRONG_MTHS)
-                sym = findFun(env, name, argtypes, typeargtypes, true, env.info.varArgs=true);
+        Symbol sym = methodNotFound;
+        List<MethodResolutionPhase> steps = methodResolutionSteps;
+        while (steps.nonEmpty() &&
+               steps.head.isApplicable(boxingEnabled, varargsEnabled) &&
+               sym.kind >= ERRONEOUS) {
+            sym = findFun(env, name, argtypes, typeargtypes,
+                    steps.head.isBoxingRequired,
+                    env.info.varArgs = steps.head.isVarargsRequired);
+            methodResolutionCache.put(steps.head, sym);
+            steps = steps.tail;
         }
-        if (sym.kind >= AMBIGUOUS) {
-            sym = access(
-                sym, pos, env.enclClass.sym.type, name, false, argtypes, typeargtypes);
+        if (sym.kind >= AMBIGUOUS) {//if nothing is found return the 'first' error
+            MethodResolutionPhase errPhase =
+                    firstErroneousResolutionPhase();
+            sym = access(methodResolutionCache.get(errPhase),
+                    pos, env.enclClass.sym.type, name, false, argtypes, typeargtypes);
+            env.info.varArgs = errPhase.isVarargsRequired;
         }
         return sym;
     }
@@ -1215,17 +1254,23 @@ public class Resolve {
     Symbol resolveQualifiedMethod(DiagnosticPosition pos, Env<AttrContext> env,
                                   Type site, Name name, List<Type> argtypes,
                                   List<Type> typeargtypes) {
-        Symbol sym = findMethod(env, site, name, argtypes, typeargtypes, false,
-                                env.info.varArgs=false, false);
-        if (varargsEnabled && sym.kind >= WRONG_MTHS) {
-            sym = findMethod(env, site, name, argtypes, typeargtypes, true,
-                             false, false);
-            if (sym.kind >= WRONG_MTHS)
-                sym = findMethod(env, site, name, argtypes, typeargtypes, true,
-                                 env.info.varArgs=true, false);
+        Symbol sym = methodNotFound;
+        List<MethodResolutionPhase> steps = methodResolutionSteps;
+        while (steps.nonEmpty() &&
+               steps.head.isApplicable(boxingEnabled, varargsEnabled) &&
+               sym.kind >= ERRONEOUS) {
+            sym = findMethod(env, site, name, argtypes, typeargtypes,
+                    steps.head.isBoxingRequired(),
+                    env.info.varArgs = steps.head.isVarargsRequired(), false);
+            methodResolutionCache.put(steps.head, sym);
+            steps = steps.tail;
         }
-        if (sym.kind >= AMBIGUOUS) {
-            sym = access(sym, pos, site, name, true, argtypes, typeargtypes);
+        if (sym.kind >= AMBIGUOUS) {//if nothing is found return the 'first' error
+            MethodResolutionPhase errPhase =
+                    firstErroneousResolutionPhase();
+            sym = access(methodResolutionCache.get(errPhase),
+                    pos, site, name, true, argtypes, typeargtypes);
+            env.info.varArgs = errPhase.isVarargsRequired;
         }
         return sym;
     }
@@ -1248,7 +1293,7 @@ public class Resolve {
             pos, env, site, name, argtypes, typeargtypes);
         if (sym.kind == MTH) return (MethodSymbol)sym;
         else throw new FatalError(
-                 JCDiagnostic.fragment("fatal.err.cant.locate.meth",
+                 diags.fragment("fatal.err.cant.locate.meth",
                                 name));
     }
 
@@ -1266,14 +1311,22 @@ public class Resolve {
                               Type site,
                               List<Type> argtypes,
                               List<Type> typeargtypes) {
-        Symbol sym = resolveConstructor(pos, env, site, argtypes, typeargtypes, false, env.info.varArgs=false);
-        if (varargsEnabled && sym.kind >= WRONG_MTHS) {
-            sym = resolveConstructor(pos, env, site, argtypes, typeargtypes, true, false);
-            if (sym.kind >= WRONG_MTHS)
-                sym = resolveConstructor(pos, env, site, argtypes, typeargtypes, true, env.info.varArgs=true);
+        Symbol sym = methodNotFound;
+        List<MethodResolutionPhase> steps = methodResolutionSteps;
+        while (steps.nonEmpty() &&
+               steps.head.isApplicable(boxingEnabled, varargsEnabled) &&
+               sym.kind >= ERRONEOUS) {
+            sym = resolveConstructor(pos, env, site, argtypes, typeargtypes,
+                    steps.head.isBoxingRequired(),
+                    env.info.varArgs = steps.head.isVarargsRequired());
+            methodResolutionCache.put(steps.head, sym);
+            steps = steps.tail;
         }
-        if (sym.kind >= AMBIGUOUS) {
-            sym = access(sym, pos, site, names.init, true, argtypes, typeargtypes);
+        if (sym.kind >= AMBIGUOUS) {//if nothing is found return the 'first' error
+            MethodResolutionPhase errPhase = firstErroneousResolutionPhase();
+            sym = access(methodResolutionCache.get(errPhase),
+                    pos, site, names.init, true, argtypes, typeargtypes);
+            env.info.varArgs = errPhase.isVarargsRequired();
         }
         return sym;
     }
@@ -1320,7 +1373,7 @@ public class Resolve {
             pos, env, site, argtypes, typeargtypes);
         if (sym.kind == MTH) return (MethodSymbol)sym;
         else throw new FatalError(
-                 JCDiagnostic.fragment("fatal.err.cant.locate.ctor", site));
+                 diags.fragment("fatal.err.cant.locate.ctor", site));
     }
 
     /** Resolve operator.
@@ -1442,113 +1495,18 @@ public class Resolve {
     }
 
 /* ***************************************************************************
- *  Methods related to kinds
- ****************************************************************************/
-
-    /** A localized string describing a given kind.
-     */
-    static JCDiagnostic kindName(int kind) {
-        switch (kind) {
-        case PCK: return JCDiagnostic.fragment("kindname.package");
-        case TYP: return JCDiagnostic.fragment("kindname.class");
-        case VAR: return JCDiagnostic.fragment("kindname.variable");
-        case VAL: return JCDiagnostic.fragment("kindname.value");
-        case MTH: return JCDiagnostic.fragment("kindname.method");
-        default : return JCDiagnostic.fragment("kindname",
-                                               Integer.toString(kind)); //debug
-        }
-    }
-
-    static JCDiagnostic kindName(Symbol sym) {
-        switch (sym.getKind()) {
-        case PACKAGE:
-            return JCDiagnostic.fragment("kindname.package");
-
-        case ENUM:
-        case ANNOTATION_TYPE:
-        case INTERFACE:
-        case CLASS:
-            return JCDiagnostic.fragment("kindname.class");
-
-        case TYPE_PARAMETER:
-            return JCDiagnostic.fragment("kindname.type.variable");
-
-        case ENUM_CONSTANT:
-        case FIELD:
-        case PARAMETER:
-        case LOCAL_VARIABLE:
-        case EXCEPTION_PARAMETER:
-            return JCDiagnostic.fragment("kindname.variable");
-
-        case METHOD:
-        case CONSTRUCTOR:
-        case STATIC_INIT:
-        case INSTANCE_INIT:
-            return JCDiagnostic.fragment("kindname.method");
-
-        default:
-            if (sym.kind == VAL)
-                // I don't think this can happen but it can't harm
-                // playing it safe --ahe
-                return JCDiagnostic.fragment("kindname.value");
-            else
-                return JCDiagnostic.fragment("kindname", sym.getKind()); // debug
-        }
-    }
-
-    /** A localized string describing a given set of kinds.
-     */
-    static JCDiagnostic kindNames(int kind) {
-        StringBuffer key = new StringBuffer();
-        key.append("kindname");
-        if ((kind & VAL) != 0)
-            key.append(((kind & VAL) == VAR) ? ".variable" : ".value");
-        if ((kind & MTH) != 0) key.append(".method");
-        if ((kind & TYP) != 0) key.append(".class");
-        if ((kind & PCK) != 0) key.append(".package");
-        return JCDiagnostic.fragment(key.toString(), kind);
-    }
-
-    /** A localized string describing the kind -- either class or interface --
-     *  of a given type.
-     */
-    static JCDiagnostic typeKindName(Type t) {
-        if (t.tag == TYPEVAR ||
-            t.tag == CLASS && (t.tsym.flags() & COMPOUND) != 0)
-            return JCDiagnostic.fragment("kindname.type.variable.bound");
-        else if (t.tag == PACKAGE)
-            return JCDiagnostic.fragment("kindname.package");
-        else if ((t.tsym.flags_field & ANNOTATION) != 0)
-            return JCDiagnostic.fragment("kindname.annotation");
-        else if ((t.tsym.flags_field & INTERFACE) != 0)
-            return JCDiagnostic.fragment("kindname.interface");
-        else
-            return JCDiagnostic.fragment("kindname.class");
-    }
-
-    /** A localized string describing the kind of a missing symbol, given an
-     *  error kind.
-     */
-    static JCDiagnostic absentKindName(int kind) {
-        switch (kind) {
-        case ABSENT_VAR:
-            return JCDiagnostic.fragment("kindname.variable");
-        case WRONG_MTHS: case WRONG_MTH: case ABSENT_MTH:
-            return JCDiagnostic.fragment("kindname.method");
-        case ABSENT_TYP:
-            return JCDiagnostic.fragment("kindname.class");
-        default:
-            return JCDiagnostic.fragment("kindname", kind);
-        }
-    }
-
-/* ***************************************************************************
  *  ResolveError classes, indicating error situations when accessing symbols
  ****************************************************************************/
 
     public void logAccessError(Env<AttrContext> env, JCTree tree, Type type) {
         AccessError error = new AccessError(env, type.getEnclosingType(), type.tsym);
         error.report(log, tree.pos(), type.getEnclosingType(), null, null, null);
+    }
+
+    private final LocalizedString noArgs = new LocalizedString("compiler.misc.no.args");
+
+    public Object methodArguments(List<Type> argtypes) {
+        return argtypes.isEmpty() ? noArgs : argtypes;
     }
 
     /** Root class for resolve errors.
@@ -1633,55 +1591,77 @@ public class Resolve {
          */
         void report(Log log, DiagnosticPosition pos, Type site, Name name,
                     List<Type> argtypes, List<Type> typeargtypes) {
-            if (name != name.table.error) {
-                JCDiagnostic kindname = absentKindName(kind);
-                String idname = name.toString();
-                String args = "";
-                String typeargs = "";
+            if (argtypes == null)
+                argtypes = List.nil();
+            if (typeargtypes == null)
+                typeargtypes = List.nil();
+            if (name != names.error) {
+                KindName kindname = absentKind(kind);
+                Name idname = name;
                 if (kind >= WRONG_MTHS && kind <= ABSENT_MTH) {
                     if (isOperator(name)) {
                         log.error(pos, "operator.cant.be.applied",
-                                  name, Type.toString(argtypes));
+                                  name, argtypes);
                         return;
                     }
-                    if (name == name.table.init) {
-                        kindname = JCDiagnostic.fragment("kindname.constructor");
-                        idname = site.tsym.name.toString();
+                    if (name == names.init) {
+                        kindname = KindName.CONSTRUCTOR;
+                        idname = site.tsym.name;
                     }
-                    args = "(" + Type.toString(argtypes) + ")";
-                    if (typeargtypes != null && typeargtypes.nonEmpty())
-                        typeargs = "<" + Type.toString(typeargtypes) + ">";
                 }
                 if (kind == WRONG_MTH) {
+                    Symbol ws = wrongSym.asMemberOf(site, types);
                     log.error(pos,
                               "cant.apply.symbol" + (explanation != null ? ".1" : ""),
-                              wrongSym.asMemberOf(site, types),
-                              wrongSym.location(site, types),
-                              typeargs,
-                              Type.toString(argtypes),
+                              kindname,
+                              ws.name == names.init ? ws.owner.name : ws.name,
+                              methodArguments(ws.type.getParameterTypes()),
+                              methodArguments(argtypes),
+                              kindName(ws.owner),
+                              ws.owner.type,
                               explanation);
-                } else if (site.tsym.name.len != 0) {
+                } else if (!site.tsym.name.isEmpty()) {
                     if (site.tsym.kind == PCK && !site.tsym.exists())
                         log.error(pos, "doesnt.exist", site.tsym);
-                    else
-                        log.error(pos, "cant.resolve.location",
-                                  kindname, idname, args, typeargs,
-                                  typeKindName(site), site);
+                    else {
+                        String errKey = getErrorKey("cant.resolve.location",
+                                                    argtypes, typeargtypes,
+                                                    kindname);
+                        log.error(pos, errKey, kindname, idname, //symbol kindname, name
+                                  typeargtypes, argtypes, //type parameters and arguments (if any)
+                                  typeKindName(site), site); //location kindname, type
+                    }
                 } else {
-                    log.error(pos, "cant.resolve", kindname, idname, args, typeargs);
+                    String errKey = getErrorKey("cant.resolve",
+                                                argtypes, typeargtypes,
+                                                kindname);
+                    log.error(pos, errKey, kindname, idname, //symbol kindname, name
+                              typeargtypes, argtypes); //type parameters and arguments (if any)
                 }
             }
         }
-//where
-            /** A name designates an operator if it consists
-             *  of a non-empty sequence of operator symbols +-~!/*%&|^<>=
-             */
-            boolean isOperator(Name name) {
-                int i = 0;
-                while (i < name.len &&
-                       "+-~!*/%&|^<>=".indexOf(name.byteAt(i)) >= 0) i++;
-                return i > 0 && i == name.len;
+        //where
+        String getErrorKey(String key, List<Type> argtypes, List<Type> typeargtypes, KindName kindname) {
+            String suffix = "";
+            switch (kindname) {
+                case METHOD:
+                case CONSTRUCTOR: {
+                    suffix += ".args";
+                    suffix += typeargtypes.nonEmpty() ? ".params" : "";
+                }
             }
+            return key + suffix;
+        }
+
+        /** A name designates an operator if it consists
+         *  of a non-empty sequence of operator symbols +-~!/*%&|^<>=
+         */
+        boolean isOperator(Name name) {
+            int i = 0;
+            while (i < name.getByteLength() &&
+                   "+-~!*/%&|^<>=".indexOf(name.getByteAt(i)) >= 0) i++;
+            return i > 0 && i == name.getByteLength();
+        }
     }
 
     /** Resolve error class indicating that a symbol is not accessible.
@@ -1716,7 +1696,7 @@ public class Resolve {
         void report(Log log, DiagnosticPosition pos, Type site, Name name,
                     List<Type> argtypes, List<Type> typeargtypes) {
             if (sym.owner.type.tag != ERROR) {
-                if (sym.name == sym.name.table.init && sym.owner != site.tsym)
+                if (sym.name == names.init && sym.owner != site.tsym)
                     new ResolveError(ABSENT_MTH, sym.owner, "absent method " + sym).report(
                         log, pos, site, name, argtypes, typeargtypes);
                 if ((sym.flags() & PUBLIC) != 0
@@ -1726,7 +1706,7 @@ public class Resolve {
                         sym, sym.location());
                 else if ((sym.flags() & (PRIVATE | PROTECTED)) != 0)
                     log.error(pos, "report.access", sym,
-                              TreeInfo.flagNames(sym.flags() & (PRIVATE | PROTECTED)),
+                              asFlagSet(sym.flags() & (PRIVATE | PROTECTED)),
                               sym.location());
                 else
                     log.error(pos, "not.def.public.cant.access",
@@ -1759,11 +1739,11 @@ public class Resolve {
                     Name name,
                     List<Type> argtypes,
                     List<Type> typeargtypes) {
-            String symstr = ((sym.kind == TYP && sym.type.tag == CLASS)
-                ? types.erasure(sym.type)
-                : sym).toString();
+            Symbol errSym = ((sym.kind == TYP && sym.type.tag == CLASS)
+                ? types.erasure(sym.type).tsym
+                : sym);
             log.error(pos, "non-static.cant.be.ref",
-                      kindName(sym), symstr);
+                      kindName(sym), errSym);
         }
     }
 
@@ -1800,7 +1780,7 @@ public class Resolve {
                 else break;
             }
             Name sname = pair.sym1.name;
-            if (sname == sname.table.init) sname = pair.sym1.owner.name;
+            if (sname == names.init) sname = pair.sym1.owner.name;
             log.error(pos, "ref.ambiguous", sname,
                       kindName(pair.sym1),
                       pair.sym1,
@@ -1809,5 +1789,51 @@ public class Resolve {
                       pair.sym2,
                       pair.sym2.location(site, types));
         }
+    }
+
+    enum MethodResolutionPhase {
+        BASIC(false, false),
+        BOX(true, false),
+        VARARITY(true, true);
+
+        boolean isBoxingRequired;
+        boolean isVarargsRequired;
+
+        MethodResolutionPhase(boolean isBoxingRequired, boolean isVarargsRequired) {
+           this.isBoxingRequired = isBoxingRequired;
+           this.isVarargsRequired = isVarargsRequired;
+        }
+
+        public boolean isBoxingRequired() {
+            return isBoxingRequired;
+        }
+
+        public boolean isVarargsRequired() {
+            return isVarargsRequired;
+        }
+
+        public boolean isApplicable(boolean boxingEnabled, boolean varargsEnabled) {
+            return (varargsEnabled || !isVarargsRequired) &&
+                   (boxingEnabled || !isBoxingRequired);
+        }
+    }
+
+    private Map<MethodResolutionPhase, Symbol> methodResolutionCache =
+        new HashMap<MethodResolutionPhase, Symbol>(MethodResolutionPhase.values().length);
+
+    final List<MethodResolutionPhase> methodResolutionSteps = List.of(BASIC, BOX, VARARITY);
+
+    private MethodResolutionPhase firstErroneousResolutionPhase() {
+        MethodResolutionPhase bestSoFar = BASIC;
+        Symbol sym = methodNotFound;
+        List<MethodResolutionPhase> steps = methodResolutionSteps;
+        while (steps.nonEmpty() &&
+               steps.head.isApplicable(boxingEnabled, varargsEnabled) &&
+               sym.kind >= WRONG_MTHS) {
+            sym = methodResolutionCache.get(steps.head);
+            bestSoFar = steps.head;
+            steps = steps.tail;
+        }
+        return bestSoFar;
     }
 }

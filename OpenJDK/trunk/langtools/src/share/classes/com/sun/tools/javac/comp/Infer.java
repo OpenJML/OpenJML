@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 1999-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,9 +29,8 @@ import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Type.*;
+import com.sun.tools.javac.util.JCDiagnostic;
 
-import static com.sun.tools.javac.code.Flags.*;
-import static com.sun.tools.javac.code.Kinds.*;
 import static com.sun.tools.javac.code.TypeTags.*;
 
 /** Helper class for type parameter inference, used by the attribution phase.
@@ -50,6 +49,7 @@ public class Infer {
 
     Symtab syms;
     Types types;
+    JCDiagnostic.Factory diags;
 
     public static Infer instance(Context context) {
         Infer instance = context.get(inferKey);
@@ -62,6 +62,11 @@ public class Infer {
         context.put(inferKey, this);
         syms = Symtab.instance(context);
         types = Types.instance(context);
+        diags = JCDiagnostic.Factory.instance(context);
+        ambiguousNoInstanceException =
+            new NoInstanceException(true, diags);
+        unambiguousNoInstanceException =
+            new NoInstanceException(false, diags);
     }
 
     public static class NoInstanceException extends RuntimeException {
@@ -70,35 +75,35 @@ public class Infer {
         boolean isAmbiguous; // exist several incomparable best instances?
 
         JCDiagnostic diagnostic;
+        JCDiagnostic.Factory diags;
 
-        NoInstanceException(boolean isAmbiguous) {
+        NoInstanceException(boolean isAmbiguous, JCDiagnostic.Factory diags) {
             this.diagnostic = null;
             this.isAmbiguous = isAmbiguous;
+            this.diags = diags;
         }
         NoInstanceException setMessage(String key) {
-            this.diagnostic = JCDiagnostic.fragment(key);
+            this.diagnostic = diags.fragment(key);
             return this;
         }
         NoInstanceException setMessage(String key, Object arg1) {
-            this.diagnostic = JCDiagnostic.fragment(key, arg1);
+            this.diagnostic = diags.fragment(key, arg1);
             return this;
         }
         NoInstanceException setMessage(String key, Object arg1, Object arg2) {
-            this.diagnostic = JCDiagnostic.fragment(key, arg1, arg2);
+            this.diagnostic = diags.fragment(key, arg1, arg2);
             return this;
         }
         NoInstanceException setMessage(String key, Object arg1, Object arg2, Object arg3) {
-            this.diagnostic = JCDiagnostic.fragment(key, arg1, arg2, arg3);
+            this.diagnostic = diags.fragment(key, arg1, arg2, arg3);
             return this;
         }
         public JCDiagnostic getDiagnostic() {
             return diagnostic;
         }
     }
-    private final NoInstanceException ambiguousNoInstanceException =
-        new NoInstanceException(true);
-    private final NoInstanceException unambiguousNoInstanceException =
-        new NoInstanceException(false);
+    private final NoInstanceException ambiguousNoInstanceException;
+    private final NoInstanceException unambiguousNoInstanceException;
 
 /***************************************************************************
  * Auxiliary type values and classes
@@ -149,33 +154,15 @@ public class Infer {
                 that.inst = syms.objectType;
             else if (that.hibounds.tail.isEmpty())
                 that.inst = that.hibounds.head;
-            else {
-                for (List<Type> bs = that.hibounds;
-                     bs.nonEmpty() && that.inst == null;
-                     bs = bs.tail) {
-                    // System.out.println("hibounds = " + that.hibounds);//DEBUG
-                    if (isSubClass(bs.head, that.hibounds))
-                        that.inst = types.fromUnknownFun.apply(bs.head);
-                }
-                if (that.inst == null) {
-                    int classCount = 0, interfaceCount = 0;
-                    for (Type t : that.hibounds) {
-                        if (t.tag == CLASS) {
-                            if (t.isInterface())
-                                interfaceCount++;
-                            else
-                                classCount++;
-                        }
-                    }
-                    if ((that.hibounds.size() == classCount + interfaceCount) && classCount == 1)
-                        that.inst = types.makeCompoundType(that.hibounds);
-                }
-                if (that.inst == null || !types.isSubtypeUnchecked(that.inst, that.hibounds, warn))
-                    throw ambiguousNoInstanceException
-                        .setMessage("no.unique.maximal.instance.exists",
-                                    that.qtype, that.hibounds);
-            }
+            else
+                that.inst = types.glb(that.hibounds);
         }
+        if (that.inst == null ||
+            that.inst.isErroneous() ||
+            !types.isSubtypeUnchecked(that.inst, that.hibounds, warn))
+            throw ambiguousNoInstanceException
+                .setMessage("no.unique.maximal.instance.exists",
+                            that.qtype, that.hibounds);
     }
     //where
         private boolean isSubClass(Type t, final List<Type> ts) {
@@ -199,7 +186,7 @@ public class Infer {
             return true;
         }
 
-    /** Instaniate undetermined type variable to the lub of all its lower bounds.
+    /** Instantiate undetermined type variable to the lub of all its lower bounds.
      *  Throw a NoInstanceException if this not possible.
      */
     void minimizeInst(UndetVar that, Warner warn) throws NoInstanceException {
@@ -211,7 +198,7 @@ public class Infer {
             else {
                 that.inst = types.lub(that.lobounds);
             }
-            if (that.inst == null || that.inst == syms.errType)
+            if (that.inst == null || that.inst.tag == ERROR)
                     throw ambiguousNoInstanceException
                         .setMessage("no.unique.minimal.instance.exists",
                                     that.qtype, that.lobounds);
