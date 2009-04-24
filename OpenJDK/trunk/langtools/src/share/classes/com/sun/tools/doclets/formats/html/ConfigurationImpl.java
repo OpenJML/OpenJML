@@ -1,5 +1,5 @@
 /*
- * Copyright 1998-2005 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 1998-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -51,8 +51,8 @@ import java.io.*;
  */
 public class ConfigurationImpl extends Configuration {
 
-    protected static ConfigurationImpl instance = new ConfigurationImpl();  // DRC - changed to protected from private, removed final
-    
+    protected static ConfigurationImpl instance = new ConfigurationImpl();   // DRC - changed to protected from private, removed final
+
     /**
      * The build date.  Note: For now, we will use
      * a version number instead of a date.
@@ -189,6 +189,15 @@ public class ConfigurationImpl extends Configuration {
             "com.sun.tools.doclets.formats.html.resources.standard");
     }
 
+    /**
+     * Reset to a fresh new ConfigurationImpl, to allow multiple invocations
+     * of javadoc within a single VM. It would be better not to be using
+     * static fields at all, but .... (sigh).
+     */
+    public static void reset() {
+        instance = new ConfigurationImpl();
+    }
+
     public static ConfigurationImpl getInstance() {
         return instance;
     }
@@ -253,7 +262,7 @@ public class ConfigurationImpl extends Configuration {
             }
         }
         if (root.specifiedClasses().length > 0) {
-            Map map = new HashMap();
+            Map<String,PackageDoc> map = new HashMap<String,PackageDoc>();
             PackageDoc pd;
             ClassDoc[] classes = root.classes();
             for (int i = 0; i < classes.length; i++) {
@@ -475,13 +484,23 @@ public class ConfigurationImpl extends Configuration {
      * {@inheritDoc}
      */
     public WriterFactory getWriterFactory() {
-        return WriterFactoryImpl.getInstance();
+        return new WriterFactoryImpl(this);
     }
 
     /**
      * {@inheritDoc}
      */
-    public Comparator getMemberComparator() {
+    public Comparator<ProgramElementDoc> getMemberComparator() {
         return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Locale getLocale() {
+        if (root instanceof com.sun.tools.javadoc.RootDocImpl)
+            return ((com.sun.tools.javadoc.RootDocImpl)root).getLocale();
+        else
+            return Locale.getDefault();
     }
 }

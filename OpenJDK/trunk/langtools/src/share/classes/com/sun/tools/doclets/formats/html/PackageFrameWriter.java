@@ -1,5 +1,5 @@
 /*
- * Copyright 1998-2005 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 1998-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -49,7 +49,7 @@ public class PackageFrameWriter extends HtmlDocletWriter {
      * The classes to be documented.  Use this to filter out classes
      * that will not be documented.
      */
-    private Set documentedClasses;
+    private Set<ClassDoc> documentedClasses;
 
     /**
      * The name of the output file.
@@ -73,7 +73,7 @@ public class PackageFrameWriter extends HtmlDocletWriter {
         super(configuration, DirectoryManager.getDirectoryPath(packageDoc), OUTPUT_FILE_NAME, DirectoryManager.getRelativePath(packageDoc));
         this.packageDoc = packageDoc;
         if (configuration.root.specifiedPackages().length == 0) {
-            documentedClasses = new HashSet(Arrays.asList(configuration.root.classes()));
+            documentedClasses = new HashSet<ClassDoc>(Arrays.asList(configuration.root.classes()));
         }
     }
 
