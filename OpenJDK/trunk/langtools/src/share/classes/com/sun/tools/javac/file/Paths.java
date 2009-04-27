@@ -31,23 +31,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
-import java.util.jar.Attributes;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.Iterator;
-import java.util.StringTokenizer;
 import java.util.zip.ZipFile;
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import javax.tools.JavaFileManager.Location;
 
 import com.sun.tools.javac.code.Lint;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
 
@@ -90,21 +82,8 @@ public class Paths {
     /** Handler for -Xlint options */
     private Lint lint;
 
-    private static boolean NON_BATCH_MODE = System.getProperty("nonBatchMode") != null;// TODO: Use -XD compiler switch for this.
-    private static Map<File, PathEntry> pathExistanceCache = new ConcurrentHashMap<File, PathEntry>();
-    private static Map<File, java.util.List<File>> manifestEntries = new ConcurrentHashMap<File, java.util.List<File>>();
-    private static Map<File, Boolean> isDirectory = new ConcurrentHashMap<File, Boolean>();
-    private static Lock lock = new ReentrantLock();
-
-    public static void clearPathExistanceCache() {
-            pathExistanceCache.clear();
-    }
-
-    static class PathEntry {
-        boolean exists = false;
-        boolean isFile = false;
-        File cannonicalPath = null;
-    }
+    /** Access to (possibly cached) file info */
+    private FSInfo fsInfo;
 
     protected Paths(Context context) {
         context.put(pathsKey, this);
@@ -116,6 +95,7 @@ public class Paths {
         log = Log.instance(context);
         options = Options.instance(context);
         lint = Lint.instance(context);
+        fsInfo = FSInfo.instance(context);
     }
 
     /** Whether to warn about non-existent path elements */
@@ -194,38 +174,38 @@ public class Paths {
         return file.equals(bootClassPathRtJar);
     }
 
-    private static class PathIterator implements Iterable<String> {
-        private int pos = 0;
-        private final String path;
-        private final String emptyPathDefault;
+    /**
+     * Split a path into its elements. Empty path elements will be ignored.
+     * @param path The path to be split
+     * @return The elements of the path
+     */
+    private static Iterable<File> getPathEntries(String path) {
+        return getPathEntries(path, null);
+    }
 
-        public PathIterator(String path, String emptyPathDefault) {
-            this.path = path;
-            this.emptyPathDefault = emptyPathDefault;
+    /**
+     * Split a path into its elements. If emptyPathDefault is not null, all
+     * empty elements in the path, including empty elements at either end of
+     * the path, will be replaced with the value of emptyPathDefault.
+     * @param path The path to be split
+     * @param emptyPathDefault The value to substitute for empty path elements,
+     *  or null, to ignore empty path elements
+     * @return The elements of the path
+     */
+    private static Iterable<File> getPathEntries(String path, File emptyPathDefault) {
+        ListBuffer<File> entries = new ListBuffer<File>();
+        int start = 0;
+        while (start <= path.length()) {
+            int sep = path.indexOf(File.pathSeparatorChar, start);
+            if (sep == -1)
+                sep = path.length();
+            if (start < sep)
+                entries.add(new File(path.substring(start, sep)));
+            else if (emptyPathDefault != null)
+                entries.add(emptyPathDefault);
+            start = sep + 1;
         }
-        public PathIterator(String path) { this(path, null); }
-        public Iterator<String> iterator() {
-            return new Iterator<String>() {
-                public boolean hasNext() {
-                    return pos <= path.length();
-                }
-                public String next() {
-                    int beg = pos;
-                    int end = path.indexOf(File.pathSeparator, beg);
-                    if (end == -1)
-                        end = path.length();
-                    pos = end + 1;
-
-                    if (beg == end && emptyPathDefault != null)
-                        return emptyPathDefault;
-                    else
-                        return path.substring(beg, end);
-                }
-                public void remove() {
-                    throw new UnsupportedOperationException();
-                }
-            };
-        }
+        return entries;
     }
 
     private class Path extends LinkedHashSet<File> {
@@ -240,9 +220,9 @@ public class Paths {
         }
 
         /** What to use when path element is the empty string */
-        private String emptyPathDefault = null;
+        private File emptyPathDefault = null;
 
-        public Path emptyPathDefault(String x) {
+        public Path emptyPathDefault(File x) {
             emptyPathDefault = x;
             return this;
         }
@@ -251,7 +231,7 @@ public class Paths {
 
         public Path addDirectories(String dirs, boolean warn) {
             if (dirs != null)
-                for (String dir : new PathIterator(dirs))
+                for (File dir : getPathEntries(dirs))
                     addDirectory(dir, warn);
             return this;
         }
@@ -260,14 +240,14 @@ public class Paths {
             return addDirectories(dirs, warn);
         }
 
-        private void addDirectory(String dir, boolean warn) {
-            if (! new File(dir).isDirectory()) {
+        private void addDirectory(File dir, boolean warn) {
+            if (!dir.isDirectory()) {
                 if (warn)
                     log.warning("dir.path.element.not.found", dir);
                 return;
             }
 
-            File[] files = new File(dir).listFiles();
+            File[] files = dir.listFiles();
             if (files == null)
                 return;
 
@@ -279,7 +259,7 @@ public class Paths {
 
         public Path addFiles(String files, boolean warn) {
             if (files != null)
-                for (String file : new PathIterator(files, emptyPathDefault))
+                for (File file : getPathEntries(files, emptyPathDefault))
                     addFile(file, warn);
             return this;
         }
@@ -288,57 +268,18 @@ public class Paths {
             return addFiles(files, warn);
         }
 
-        public Path addFile(String file, boolean warn) {
-            addFile(new File(file), warn);
-            return this;
-        }
-
         public void addFile(File file, boolean warn) {
-            boolean foundInCache = false;
-            PathEntry pe = null;
-            if (!NON_BATCH_MODE) {
-                    pe = pathExistanceCache.get(file);
-                    if (pe != null) {
-                        foundInCache = true;
-                    }
-                    else {
-                        pe = new PathEntry();
-                    }
-            }
-            else {
-                pe = new PathEntry();
-            }
-
-            File canonFile;
-            try {
-                if (!foundInCache) {
-                    pe.cannonicalPath = file.getCanonicalFile();
-                }
-                else {
-                   canonFile = pe.cannonicalPath;
-                }
-            } catch (IOException e) {
-                pe.cannonicalPath = canonFile = file;
-            }
-
-            if (contains(file) || canonicalValues.contains(pe.cannonicalPath)) {
+            File canonFile = fsInfo.getCanonicalFile(file);
+            if (contains(file) || canonicalValues.contains(canonFile)) {
                 /* Discard duplicates and avoid infinite recursion */
                 return;
             }
 
-            if (!foundInCache) {
-                pe.exists = file.exists();
-                pe.isFile = file.isFile();
-                if (!NON_BATCH_MODE) {
-                    pathExistanceCache.put(file, pe);
-                }
-            }
-
-            if (! pe.exists) {
+            if (! fsInfo.exists(file)) {
                 /* No such file or directory exists */
                 if (warn)
                     log.warning("path.element.not.found", file);
-            } else if (pe.isFile) {
+            } else if (fsInfo.isFile(file)) {
                 /* File is an ordinary file. */
                 if (!isArchive(file)) {
                     /* Not a recognized extension; open it to see if
@@ -360,9 +301,9 @@ public class Paths {
             /* Now what we have left is either a directory or a file name
                confirming to archive naming convention */
             super.add(file);
-            canonicalValues.add(pe.cannonicalPath);
+            canonicalValues.add(canonFile);
 
-            if (expandJarClassPaths && file.exists() && file.isFile())
+            if (expandJarClassPaths && fsInfo.exists(file) && fsInfo.isFile(file))
                 addJarClassPath(file, warn);
         }
 
@@ -372,58 +313,8 @@ public class Paths {
         // filenames, but if we do, we should redo all path-related code.
         private void addJarClassPath(File jarFile, boolean warn) {
             try {
-                java.util.List<File> manifestsList = manifestEntries.get(jarFile);
-                if (!NON_BATCH_MODE) {
-                    lock.lock();
-                    try {
-                        if (manifestsList != null) {
-                            for (File entr : manifestsList) {
-                                addFile(entr, warn);
-                            }
-                            return;
-                        }
-                    }
-                    finally {
-                        lock.unlock();
-                    }
-                }
-
-                if (!NON_BATCH_MODE) {
-                    manifestsList = new ArrayList<File>();
-                    manifestEntries.put(jarFile, manifestsList);
-                }
-
-                String jarParent = jarFile.getParent();
-                JarFile jar = new JarFile(jarFile);
-
-                try {
-                    Manifest man = jar.getManifest();
-                    if (man == null) return;
-
-                    Attributes attr = man.getMainAttributes();
-                    if (attr == null) return;
-
-                    String path = attr.getValue(Attributes.Name.CLASS_PATH);
-                    if (path == null) return;
-
-                    for (StringTokenizer st = new StringTokenizer(path);
-                         st.hasMoreTokens();) {
-                        String elt = st.nextToken();
-                        File f = (jarParent == null ? new File(elt) : new File(jarParent, elt));
-                        addFile(f, warn);
-
-                        if (!NON_BATCH_MODE) {
-                            lock.lock();
-                            try {
-                                manifestsList.add(f);
-                            }
-                            finally {
-                                lock.unlock();
-                            }
-                        }
-                    }
-                } finally {
-                    jar.close();
+                for (File f: fsInfo.getJarClassPath(jarFile)) {
+                    addFile(f, warn);
                 }
             } catch (IOException e) {
                 log.error("error.reading.file", jarFile, e.getLocalizedMessage());
@@ -450,10 +341,9 @@ public class Paths {
             String files = System.getProperty("sun.boot.class.path");
             path.addFiles(files, false);
             File rt_jar = new File("rt.jar");
-            for (String file : new PathIterator(files, null)) {
-                File f = new File(file);
-                if (new File(f.getName()).equals(rt_jar))
-                    bootClassPathRtJar = f;
+            for (File file : getPathEntries(files)) {
+                if (new File(file.getName()).equals(rt_jar))
+                    bootClassPathRtJar = file;
             }
         }
 
@@ -485,8 +375,8 @@ public class Paths {
         if (cp == null) cp = ".";
 
         return new Path()
-            .expandJarClassPaths(true) // Only search user jars for Class-Paths
-            .emptyPathDefault(".")     // Empty path elt ==> current directory
+            .expandJarClassPaths(true)        // Only search user jars for Class-Paths
+            .emptyPathDefault(new File("."))  // Empty path elt ==> current directory
             .addFiles(cp);
     }
 
@@ -554,24 +444,9 @@ public class Paths {
     }
 
     /** Is this the name of an archive file? */
-    private static boolean isArchive(File file) {
+    private boolean isArchive(File file) {
         String n = file.getName().toLowerCase();
-        boolean isFile = false;
-        if (!NON_BATCH_MODE) {
-            Boolean isf = isDirectory.get(file);
-            if (isf == null) {
-                isFile = file.isFile();
-                isDirectory.put(file, isFile);
-            }
-            else {
-                isFile = isf;
-            }
-        }
-        else {
-            isFile = file.isFile();
-        }
-
-        return isFile
+        return fsInfo.isFile(file)
             && (n.endsWith(".jar") || n.endsWith(".zip"));
     }
 }

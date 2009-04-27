@@ -814,7 +814,7 @@ public interface Parser {
 //            break;
 //        case IDENTIFIER: case ASSERT: case ENUM:
 //            t = toP(F.at(S.pos()).Ident(ident()));
-//            t = primarySuffix(t,typeArgs);
+//            t = primarySuffix(t,typeArgs); // DRC - inserted
 //            break;
 //        case BYTE: case SHORT: case CHAR: case INT: case LONG: case FLOAT:
 //        case DOUBLE: case BOOLEAN:

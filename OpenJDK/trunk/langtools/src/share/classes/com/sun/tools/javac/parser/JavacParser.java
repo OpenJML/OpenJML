@@ -64,7 +64,7 @@ public class JavacParser implements Parser {
 
     /** The log to be used for error diagnostics.
      */
-    private Log log;
+    protected Log log; // DRC - changed from private to protected
 
     /** The keyword table. */
     private Keywords keywords;
@@ -151,7 +151,7 @@ public class JavacParser implements Parser {
 
     /** The current mode.
      */
-    private int mode = 0;
+    protected int mode = 0; // DRC - changed from private to protected
 
     /** The mode of the term that was parsed last.
      */
@@ -236,7 +236,7 @@ public class JavacParser implements Parser {
         return syntaxError(pos, null, key, args);
     }
 
-    private JCErroneous syntaxError(int pos, List<JCTree> errs, String key, Token... args) {
+    protected JCErroneous syntaxError(int pos, List<JCTree> errs, String key, Token... args) { // DRC - changed from private to protected
         setErrorEndPos(pos);
         reportSyntaxError(pos, key, (Object[])args);
         return toP(F.at(pos).Erroneous(errs));
@@ -247,7 +247,7 @@ public class JavacParser implements Parser {
      * Report a syntax error at given position using the given
      * argument unless one was already reported at the same position.
      */
-    private void reportSyntaxError(int pos, String key, Object... args) {
+    protected void reportSyntaxError(int pos, String key, Object... args) { // DRC - changed from private to protected (or just added?)
         if (pos > S.errPos() || pos == Position.NOPOS) {
             if (S.token() == EOF)
                 log.error(pos, "premature.eof");
@@ -337,7 +337,7 @@ public class JavacParser implements Parser {
 
     private int errorEndPos = -1;
 
-    private void setErrorEndPos(int errPos) {
+    protected void setErrorEndPos(int errPos) { // DRC - changed from private to protected
         if (errPos > errorEndPos)
             errorEndPos = errPos;
     }
@@ -719,7 +719,7 @@ public class JavacParser implements Parser {
 //where
         /** Construct a binary or type test node.
          */
-        private JCExpression makeOp(int pos,
+        protected JCExpression makeOp(int pos, // DRC - changed from private to protected
                                     Token topOp,
                                     JCExpression od1,
                                     JCExpression od2)
@@ -768,7 +768,7 @@ public class JavacParser implements Parser {
         ListBuffer<JCExpression[]> odStackSupply = new ListBuffer<JCExpression[]>();
         ListBuffer<Token[]> opStackSupply = new ListBuffer<Token[]>();
 
-        private JCExpression[] newOdStack() {
+        protected JCExpression[] newOdStack() {  // DRC - changed from private to protected
             if (odStackSupply.elems == odStackSupply.last)
                 odStackSupply.append(new JCExpression[infixPrecedenceLevels + 1]);
             JCExpression[] odStack = odStackSupply.elems.head;
@@ -776,7 +776,7 @@ public class JavacParser implements Parser {
             return odStack;
         }
 
-        private Token[] newOpStack() {
+        protected Token[] newOpStack() {  // DRC - changed from private to protected
             if (opStackSupply.elems == opStackSupply.last)
                 opStackSupply.append(new Token[infixPrecedenceLevels + 1]);
             Token[] opStack = opStackSupply.elems.head;
@@ -898,6 +898,7 @@ public class JavacParser implements Parser {
                     case NEW: case IDENTIFIER: case ASSERT: case ENUM:
                     case BYTE: case SHORT: case CHAR: case INT:
                     case LONG: case FLOAT: case DOUBLE: case BOOLEAN: case VOID:
+                    case CUSTOM: // DRC -added to handle casts on JML functions - no easy way to do this by overriding
                         JCExpression t1 = term3();
                         return F.at(pos).TypeCast(t, t1);
                     }
@@ -945,78 +946,7 @@ public class JavacParser implements Parser {
         case IDENTIFIER: case ASSERT: case ENUM:
             if (typeArgs != null) return illegal();
             t = toP(F.at(S.pos()).Ident(ident()));
-            loop: while (true) {
-                pos = S.pos();
-                switch (S.token()) {
-                case LBRACKET:
-                    S.nextToken();
-                    if (S.token() == RBRACKET) {
-                        S.nextToken();
-                        t = bracketsOpt(t);
-                        t = toP(F.at(pos).TypeArray(t));
-                        t = bracketsSuffix(t);
-                    } else {
-                        if ((mode & EXPR) != 0) {
-                            mode = EXPR;
-                            JCExpression t1 = term();
-                            t = to(F.at(pos).Indexed(t, t1));
-                        }
-                        accept(RBRACKET);
-                    }
-                    break loop;
-                case LPAREN:
-                    if ((mode & EXPR) != 0) {
-                        mode = EXPR;
-                        t = arguments(typeArgs, t);
-                        typeArgs = null;
-                    }
-                    break loop;
-                case DOT:
-                    S.nextToken();
-                    int oldmode = mode;
-                    mode &= ~NOPARAMS;
-                    typeArgs = typeArgumentsOpt(EXPR);
-                    mode = oldmode;
-                    if ((mode & EXPR) != 0) {
-                        switch (S.token()) {
-                        case CLASS:
-                            if (typeArgs != null) return illegal();
-                            mode = EXPR;
-                            t = to(F.at(pos).Select(t, names._class));
-                            S.nextToken();
-                            break loop;
-                        case THIS:
-                            if (typeArgs != null) return illegal();
-                            mode = EXPR;
-                            t = to(F.at(pos).Select(t, names._this));
-                            S.nextToken();
-                            break loop;
-                        case SUPER:
-                            mode = EXPR;
-                            t = to(F.at(pos).Select(t, names._super));
-                            t = superSuffix(typeArgs, t);
-                            typeArgs = null;
-                            break loop;
-                        case NEW:
-                            if (typeArgs != null) return illegal();
-                            mode = EXPR;
-                            int pos1 = S.pos();
-                            S.nextToken();
-                            if (S.token() == LT) typeArgs = typeArguments();
-                            t = innerCreator(pos1, typeArgs, t);
-                            typeArgs = null;
-                            break loop;
-                        }
-                    }
-                    // typeArgs saved for next loop iteration.
-                    t = toP(F.at(pos).Select(t, ident()));
-                    break;
-                default:
-                    break loop;
-                }
-            }
-            if (typeArgs != null) illegal();
-            t = typeArgumentsOpt(t);
+            t = primarySuffix(t,typeArgs); // DRC - extracted into method
             break;
         case BYTE: case SHORT: case CHAR: case INT: case LONG: case FLOAT:
         case DOUBLE: case BOOLEAN:
@@ -1097,6 +1027,85 @@ public class JavacParser implements Parser {
         return toP(t);
     }
 
+    // DRC - this method extracted from term3() in order to be used in derived classes
+    protected JCExpression primarySuffix(JCExpression t, List<JCExpression> typeArgs) {
+      if (typeArgs != null) return illegal();
+        loop: while (true) {
+            int pos = S.pos();
+            switch (S.token()) {
+            case LBRACKET:
+                S.nextToken();
+                if (S.token() == RBRACKET) {
+                    S.nextToken();
+                    t = bracketsOpt(t);
+                    t = toP(F.at(pos).TypeArray(t));
+                    t = bracketsSuffix(t);
+                } else {
+                    if ((mode & EXPR) != 0) {
+                        mode = EXPR;
+                        JCExpression t1 = term();
+                        t = to(F.at(pos).Indexed(t, t1));
+                    }
+                    accept(RBRACKET);
+                }
+                continue loop; // DRC - changed - but document why FIXME
+            case LPAREN:
+                if ((mode & EXPR) != 0) {
+                    mode = EXPR;
+                    t = arguments(typeArgs, t);
+                    typeArgs = null;
+                    continue loop; // DRC - changed - but document why FIXME
+                }
+                break loop;
+            case DOT:
+                S.nextToken();
+                int oldmode = mode;
+                mode &= ~NOPARAMS;
+                typeArgs = typeArgumentsOpt(EXPR);
+                mode = oldmode;
+                if ((mode & EXPR) != 0) {
+                    switch (S.token()) {
+                    case CLASS:
+                        if (typeArgs != null) return illegal();
+                        mode = EXPR;
+                        t = to(F.at(pos).Select(t, names._class));
+                        S.nextToken();
+                        continue loop; // DRC - changed - but document why FIXME
+                    case THIS:
+                        if (typeArgs != null) return illegal();
+                        mode = EXPR;
+                        t = to(F.at(pos).Select(t, names._this));
+                        S.nextToken();
+                        continue loop; // DRC - changed - but document why FIXME
+                    case SUPER:
+                        mode = EXPR;
+                        t = to(F.at(pos).Select(t, names._super));
+                        t = superSuffix(typeArgs, t);
+                        typeArgs = null;
+                        continue loop; // DRC - changed - but document why FIXME
+                    case NEW:
+                        if (typeArgs != null) return illegal();
+                        mode = EXPR;
+                        int pos1 = S.pos();
+                        S.nextToken();
+                        if (S.token() == LT) typeArgs = typeArguments();
+                        t = innerCreator(pos1, typeArgs, t);
+                        typeArgs = null;
+                        continue loop; // DRC - changed - but document why FIXME
+                    }
+                }
+                // typeArgs saved for next loop iteration.
+                t = toP(F.at(pos).Select(t, ident()));
+                break;
+            default:
+                break loop;
+            }
+        }
+        if (typeArgs != null) illegal();
+        t = typeArgumentsOpt(t);
+        return t;
+    }
+    
     /** SuperSuffix = Arguments | "." [TypeArguments] Ident [Arguments]
      */
     JCExpression superSuffix(List<JCExpression> typeArgs, JCExpression t) {
@@ -1264,7 +1273,7 @@ public class JavacParser implements Parser {
 
     /** BracketsOpt = {"[" "]"}
      */
-    private JCExpression bracketsOpt(JCExpression t) {
+    protected JCExpression bracketsOpt(JCExpression t) { // DRC - changed from private to protected
         if (S.token() == LBRACKET) {
             int pos = S.pos();
             S.nextToken();
@@ -1494,6 +1503,7 @@ public class JavacParser implements Parser {
             int pos = S.pos();
             switch (S.token()) {
             case RBRACE: case CASE: case DEFAULT: case EOF:
+            case CUSTOM:  // DRC - added this case
                 return stats.toList();
             case LBRACE: case IF: case FOR: case WHILE: case DO: case TRY:
             case SWITCH: case SYNCHRONIZED: case RETURN: case THROW: case BREAK:
@@ -2120,7 +2130,9 @@ public class JavacParser implements Parser {
                     break;
             }
             if (checkForImports && mods == null && S.token() == IMPORT) {
-                defs.append(importDeclaration());
+                // DRC - FIXME - temp fix since now append refuses a null
+                JCTree imp = importDeclaration();
+                if (imp != null) defs.append(imp);
             } else {
                 JCTree def = typeDeclaration(mods);
                 if (def instanceof JCExpressionStatement)
@@ -2668,7 +2680,7 @@ public class JavacParser implements Parser {
     /** Return precedence of operator represented by token,
      *  -1 if token is not a binary operator. @see TreeInfo.opPrec
      */
-    static int prec(Token token) {
+    protected int prec(Token token) {  // DRC - changed from package to protected, removed static
         int oc = optag(token);
         return (oc >= 0) ? TreeInfo.opPrec(oc) : -1;
     }

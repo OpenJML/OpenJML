@@ -108,7 +108,14 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
         return formatDiagnostic(d, locale);
     }
 
+    @Override
+    public String format(JCDiagnostic d, Locale locale, String format) { // DRC -added
+        printer = new FormatterPrinter();
+        return formatDiagnostic(d, locale, format);
+    }
+
     abstract String formatDiagnostic(JCDiagnostic d, Locale locale);
+    public String formatDiagnostic(JCDiagnostic d, Locale locale, String format) { return formatDiagnostic(d,locale); } // DRC - added
 
     public String formatPosition(JCDiagnostic d, PositionKind pk,Locale l) {
         assert (d.getPosition() != Position.NOPOS);
@@ -479,4 +486,6 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
             }
         }
     }
+    
+    String noSource() { return toString(); } // DRC - added
 }

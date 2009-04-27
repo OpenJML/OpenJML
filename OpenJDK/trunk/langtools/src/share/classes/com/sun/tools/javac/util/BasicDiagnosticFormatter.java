@@ -83,23 +83,27 @@ public class BasicDiagnosticFormatter extends AbstractDiagnosticFormatter {
     }
 
     public String formatDiagnostic(JCDiagnostic d, Locale l) {
+        String s = formatDiagnostic(d,l,selectFormat(d));
+        if (depth == 0)
+            return addSourceLineIfNeeded(d, s);
+        else
+            return s;
+    }
+    
+    public String formatDiagnostic(JCDiagnostic d, Locale l, String format) {
         if (l == null)
             l = messages.getCurrentLocale();
-        String format = selectFormat(d);
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < format.length(); i++) {
             char c = format.charAt(i);
             boolean meta = false;
             if (c == '%' && i < format.length() - 1) {
                 meta = true;
-                c = format.charAt(++i);
+               c = format.charAt(++i);
             }
             buf.append(meta ? formatMeta(c, d, l) : String.valueOf(c));
         }
-        if (depth == 0)
-            return addSourceLineIfNeeded(d, buf.toString());
-        else
-            return buf.toString();
+        return buf.toString();
     }
 
     public String formatMessage(JCDiagnostic d, Locale l) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2007-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -37,6 +37,7 @@ import java.io.IOException;
  */
 public class StackMapTable_attribute extends Attribute {
     static class InvalidStackMap extends AttributeException {
+        private static final long serialVersionUID = -5659038410855089780L;
         InvalidStackMap(String msg) {
             super(msg);
         }

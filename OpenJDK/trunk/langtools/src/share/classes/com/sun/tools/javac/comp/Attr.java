@@ -496,6 +496,7 @@ public class Attr extends JCTree.Visitor {
         for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
             JCAnnotation a = al.head;
             attribType(a.annotationType, env);
+            a.type = a.annotationType.type; // DRC - seem to need this, but why
         }
     }
 

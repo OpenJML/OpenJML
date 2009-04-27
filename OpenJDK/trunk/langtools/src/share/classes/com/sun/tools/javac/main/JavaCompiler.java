@@ -481,7 +481,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     public Todo todo;
 
     /** Ordered list of compiler phases for each compilation unit. */
-    protected enum CompileState {
+    static public enum CompileState { // DRC - made static public
         PARSE(1),
         ENTER(2),
         PROCESS(3),

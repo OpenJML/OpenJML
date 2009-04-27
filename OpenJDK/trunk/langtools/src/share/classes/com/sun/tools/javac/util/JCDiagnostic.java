@@ -427,6 +427,10 @@ public class JCDiagnostic implements Diagnostic<JavaFileObject> {
         return defaultFormatter.format(this,Locale.getDefault());
     }
 
+    public String noSource() {  // DRC - added
+        return defaultFormatter.format(this,Locale.getDefault(),"%f:%l:%_%t%m");
+    }
+
     private DiagnosticFormatter<JCDiagnostic> defaultFormatter;
     @Deprecated
     private static DiagnosticFormatter<JCDiagnostic> fragmentFormatter;

@@ -51,6 +51,7 @@ public interface DiagnosticFormatter<D extends Diagnostic<?>> {
      * @return a string representing the diagnostic
      */
     public String format(D diag, Locale l);
+    public String format(D diag, Locale l, String format);
 
     /**
      * Controls the way in which a diagnostic message is displayed.
