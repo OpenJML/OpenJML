@@ -27,6 +27,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 
 /**
  * This class executes the OpenJML tool interactively; call the main routine to
@@ -187,7 +188,7 @@ public class Interactive extends Main {
         JmlSpecs.instance(context).initializeSpecsPath(); // FIXME - should not this happen in setup
         for (String s: args) {
             if (s.length() == 0) continue;
-            Name name = Name.Table.instance(context).fromString(s);
+            Name name = Names.instance(context).fromString(s);
             ClassSymbol csym = ClassReader.instance(context).enterClass(name);
             csym.complete();
             JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(csym);
@@ -204,7 +205,7 @@ public class Interactive extends Main {
         JmlSpecs.instance(context).initializeSpecsPath(); // FIXME - should not this happen in setup
         for (String s: args) {
             if (s.length() == 0) continue;
-            Name name = Name.Table.instance(context).fromString(s);
+            Name name = Names.instance(context).fromString(s);
             ClassSymbol csym = ClassReader.instance(context).enterClass(name);
             csym.complete();
             JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(csym);

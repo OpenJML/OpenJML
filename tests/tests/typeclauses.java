@@ -17,7 +17,7 @@ public class typeclauses extends TCBase {
     /** Tests typechecking an invariant clause - bad type*/
     public void testInvariant2() {
         helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ invariant k;\n}",
-                "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",15);
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    int",15);
     }
 
     /** Tests typechecking an invariant clause - OK from Boolean*/
@@ -45,7 +45,7 @@ public class typeclauses extends TCBase {
     /** Tests typechecking an constraint clause - bad type*/
     public void testConstraint2() {
         helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ constraint k;\n}",
-                "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",16);
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    int",16);
     }
 
     /** Tests typechecking an constraint clause - OK from Boolean*/
@@ -62,7 +62,7 @@ public class typeclauses extends TCBase {
     public void testConstraint5() {
         helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for A(), m, m(int), m(Object);\n}"
                 ,"/TEST.java:2: Constructors are not allowed as methods in constraint clauses",23
-                ,"/TEST.java:2: m(int) in A cannot be applied to (java.lang.Object)",39
+                ,"/TEST.java:2: method m in class A cannot be applied to given types\n  required: int\n  found: java.lang.Object",39
                 );
     }
 
@@ -101,7 +101,7 @@ public class typeclauses extends TCBase {
 
     public void testConstraintMA1() {
         helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for mm(int);\n}"
-                ,"/TEST.java:2: cannot find symbol\nsymbol  : method mm(int)\nlocation: class A",23
+                ,"/TEST.java:2: cannot find symbol\n  symbol:   method mm(int)\n  location: class A",23
                 );
     }
 
@@ -147,7 +147,7 @@ public class typeclauses extends TCBase {
     /** Tests typechecking an axiom clause - bad type*/
     public void testAxiom2() {
         helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ axiom k;\n}",
-                "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",11);
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    int",11);
     }
 
     /** Tests typechecking an axiom clause - OK from Boolean*/
@@ -163,7 +163,7 @@ public class typeclauses extends TCBase {
     /** Tests typechecking an initially clause - bad type*/
     public void testInitially2() {
         helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ initially k;\n}",
-                "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",15);
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    int",15);
     }
 
     /** Tests typechecking an initially clause - OK from Boolean*/
@@ -174,7 +174,7 @@ public class typeclauses extends TCBase {
     /** Tests typechecking an initially clause - OK from Boolean*/
     public void testInitially4() {
         helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ initially x;\n}",
-                "/A.java:2: cannot find symbol\nsymbol  : variable x\nlocation: class A",15);
+                "/A.java:2: cannot find symbol\n  symbol:   variable x\n  location: class A",15);
     }
 
     /** Tests initially may be static */
@@ -186,25 +186,25 @@ public class typeclauses extends TCBase {
 
     public void testRepresents() {
         helpTCF("A.java","public class A {\n //@ model int i; represents i = true;\n}"
-                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",34
+                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",34
                 );
     }
 
     public void testRepresents1() {
         helpTCF("A.java","public class A {\n //@ model int i; represents i <- true;\n}"
-                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",35
+                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",35
                 );
     }
 
     public void testRepresents2() {
         helpTCF("A.java","public class A {\n //@ model int i; represents i \\such_that 0;\n}"
-                ,"/A.java:2: incompatible types\nfound   : int\nrequired: boolean",43
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    int",43
                 );
     }
 
     public void testRepresents3() {
         helpTCF("A.java","public class A {\n //@ model int i; represents j = 0;\n}"
-                ,"/A.java:2: cannot find symbol\nsymbol  : variable j\nlocation: class A",30
+                ,"/A.java:2: cannot find symbol\n  symbol:   variable j\n  location: class A",30
                 );
     }
     
@@ -249,7 +249,7 @@ public class typeclauses extends TCBase {
     
     public void testRepresents10() {
         helpTCF("A.java","public class A {\n //@ model int i; represents x[3] = 0;\n}"
-                ,"/A.java:2: cannot find symbol\nsymbol  : variable x\nlocation: class A",30
+                ,"/A.java:2: cannot find symbol\n  symbol:   variable x\n  location: class A",30
                 );
     }
     
@@ -314,7 +314,7 @@ public class typeclauses extends TCBase {
 
     public void testMisc() {
         helpTCF("A.java","public class A {\n //@ ensures ((boolean)\\result);\n int m() { return 0; }}"
-                ,"/A.java:2: inconvertible types\nfound   : int\nrequired: boolean",24
+                ,"/A.java:2: inconvertible types\n  required: boolean\n  found:    int",24
         );
     }
     
@@ -342,8 +342,8 @@ public class typeclauses extends TCBase {
     
     public void testForall3() {
         helpTCF("A.java","public class A {\n //@ old int i=true; old boolean m=0; requires i == 0; \n public void m() {}}"
-                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",16
-                ,"/A.java:2: incompatible types\nfound   : int\nrequired: boolean",36
+                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",16
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    int",36
                 );
     }
     
@@ -378,14 +378,14 @@ public class typeclauses extends TCBase {
     
     public void testForall9() { // FIXME - this is not the clearest error message - it should refer to the specifications
         helpTCF("A.java","public class A { \n //@ forall int j; old int k=0   ; requires i<k; \n//@{| forall int m; ensures k<m; also ensures k<m; |} \n public void m(int i) {}}"
-                ,"/A.java:3: cannot find symbol\nsymbol  : variable m\nlocation: class A",49
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable m\n  location: class A",49
                 );        
     }
     
     public void testForall10() { // FIXME - this is not the clearest error message - it should refer to the specifications
         helpTCF("A.java","public class A { \n //@ forall int j; old int k=0   ; requires i<k; \n//@{| forall int k; ensures k<m; also ensures i==0; |} \n public void m(int i) {}}"
                 ,"/A.java:3: k is already defined in m(int)",18
-                ,"/A.java:3: cannot find symbol\nsymbol  : variable m\nlocation: class A",31
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable m\n  location: class A",31
                 );        
     }
 
@@ -402,7 +402,7 @@ public class typeclauses extends TCBase {
 
     public void testSignals2() { //Bad type
         helpTCF("A.java","public class A {\n//@signals(Object e) true; \n void m(){}}",
-                "/A.java:2: incompatible types\nfound   : java.lang.Object\nrequired: java.lang.Exception",12);
+                "/A.java:2: incompatible types\n  required: java.lang.Exception\n  found:    java.lang.Object",12);
     }
 
 
@@ -420,12 +420,12 @@ public class typeclauses extends TCBase {
 
     public void testSignals5() { //Bad type
         helpTCF("A.java","public class A {\n//@signals(java.io.IOException e) 2; \n void m(){}}",
-                "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",35);
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    int",35);
     }
 
     public void testSignals6() { //Bad type
         helpTCF("A.java","public class A {\n//@signals(int e) true; \n void m(){}}",
-                "/A.java:2: incompatible types\nfound   : int\nrequired: java.lang.Exception",12);
+                "/A.java:2: incompatible types\n  required: java.lang.Exception\n  found:    int",12);
     }
 
     public void testSignals7() { //OK - scoping
@@ -471,17 +471,17 @@ public class typeclauses extends TCBase {
 
     public void testSignalsOnly8() {
         helpTCF("A.java","public class A {\n//@signals_only RuntimeException[];\nvoid m() {}}",
-                "/A.java:2: incompatible types\nfound   : java.lang.RuntimeException[]\nrequired: java.lang.Exception",33);
+                "/A.java:2: incompatible types\n  required: java.lang.Exception\n  found:    java.lang.RuntimeException[]",33);
     }
 
     public void testSignalsOnly9() {
         helpTCF("A.java","public class A {\n//@signals_only int;\nvoid m() {}}",
-                "/A.java:2: incompatible types\nfound   : int\nrequired: java.lang.Exception",17);
+                "/A.java:2: incompatible types\n  required: java.lang.Exception\n  found:    int",17);
     }
 
     public void testSignalsOnly10() {
         helpTCF("A.java","public class A {\n//@signals_only Q;\nvoid m() {}}",
-                "/A.java:2: cannot find symbol\nsymbol  : class Q\nlocation: class A",17);
+                "/A.java:2: cannot find symbol\n  symbol:   class Q\n  location: class A",17);
     }
     
     public void testIn() {
@@ -498,7 +498,7 @@ public class typeclauses extends TCBase {
     
     public void testIn3() {
         helpTCF("A.java","public class A {\n /*@ spec_public */ protected int k; \n int n; //@ in m; \n}"
-                ,"/A.java:3: cannot find symbol\nsymbol  : variable m\nlocation: class A",16
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable m\n  location: class A",16
                 );
     }
     

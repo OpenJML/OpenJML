@@ -30,6 +30,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javadoc.ClassDocImpl;
 import com.sun.tools.javadoc.ConstructorDocImpl;
 import com.sun.tools.javadoc.DocEnv;
@@ -74,7 +75,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
         if (method instanceof ConstructorDocImpl) {
             MethodSymbol oldMethodSym = ((ConstructorDocImpl)method).sym;
             Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
-            Name newMethodName = Name.Table.instance(context).fromString(oldMethodSym.name.toString());
+            Name newMethodName = Names.instance(context).fromString(oldMethodSym.name.toString());
             // FIXME - improve this method of finding matches
             Scope.Entry e = currentClassSym.members().lookup(newMethodName);
             while (!(e.sym instanceof MethodSymbol) || !match((MethodSymbol)e.sym,oldMethodSym)) {
@@ -87,7 +88,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
                 writer.br(); // Need this if there is tag info, otherwise not // FIXME
                 String s = Utils.jmlAnnotations(newMethodSym);
                 if (Utils.hasSpecs(mspecs) || !s.isEmpty()) {
-                    bold("JML Constructor Specifications: "); 
+                    strong("JML Constructor Specifications: "); 
                     writer.print(s);
                     writer.preNoNewLine();
                     writer.print(JmlPretty.write(mspecs,false));
@@ -273,7 +274,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
         //printSummaryAnchor(cd);
         writer.tableIndexSummary();
         writer.tableHeaderStart("#CCCCFF");
-        bold("JML Model Constructor Summary");
+        strong("JML Model Constructor Summary");
         writer.tableHeaderEnd();
     }
 

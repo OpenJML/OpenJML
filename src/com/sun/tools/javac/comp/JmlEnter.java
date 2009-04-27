@@ -1,11 +1,14 @@
 package com.sun.tools.javac.comp;
 
+import static org.jmlspecs.openjml.JmlToken.INSTANCE;
+
 import java.util.LinkedList;
 
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlInternalError;
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -266,7 +269,8 @@ public class JmlEnter extends Enter {
                 JmlClassDecl matchingJavaTypeDeclaration = decls.get(specNestedTypeDeclaration.name);
                 if (matchingJavaTypeDeclaration == null) {
                     // There is no Java declaration to match this specification declaration
-                    Log.instance(context).error(specNestedTypeDeclaration.pos(),"jml.orphan.jml.class.decl",specNestedTypeDeclaration.name,javaTypeDeclaration.name);
+                    if (Utils.findMod(specNestedTypeDeclaration.mods,JmlAttr.instance(context).tokenToAnnotationName.get(JmlToken.MODEL)) == null) 
+                        Log.instance(context).error(specNestedTypeDeclaration.pos(),"jml.orphan.jml.class.decl",specNestedTypeDeclaration.name,javaTypeDeclaration.name);
                 } else {
                     if (matchingJavaTypeDeclaration.specsDecl != null) {
                         // There has already been a match made to the Java type of the same name

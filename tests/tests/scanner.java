@@ -56,7 +56,7 @@ public class scanner extends JmlTestCase {
                 Enum<?> e = ((JmlScanner)sc).jmlToken();
                 if (e == null) e = sc.token();
                 if (e != list[i]) {
-                    fail("Unexpected token at position " + i + " expected: " + list[i] + " actual: " + e);
+                    fail("Unexpected token at position " + i + " expected: " + list[i] + " actual: " + e );
                 }
                 if (positions != null) {
                     assertEquals("pos for token " + i, positions[2*i], sc.pos());
@@ -107,25 +107,25 @@ public class scanner extends JmlTestCase {
     
     /** This tests that the test harness fails if not enough tokens are listed */
     public void testHarness1() {
-        helpFailure("Scanner not at EOF: IDENTIFIER",
+        helpFailure("Scanner not at EOF: token.identifier",
                 "A A",new Enum<?>[]{IDENTIFIER},null,0);
     }
     
     /** This tests that the test harness fails if too many tokens are listed */
     public void testHarness2() {
-        helpFailure("Unexpected token at position 1 expected: IDENTIFIER actual: EOF",
+        helpFailure("Unexpected token at position 1 expected: token.identifier actual: token.end-of-input",
                 "A",new Enum<?>[]{IDENTIFIER,IDENTIFIER},null,0);
     }
     
     /** This tests that the test harness fails if a wrong token is listed */
     public void testHarness3() {
-        helpFailure("Unexpected token at position 0 expected: PUBLIC actual: IDENTIFIER",
+        helpFailure("Unexpected token at position 0 expected: public actual: token.identifier",
                 "A",new Enum<?>[]{PUBLIC},null,0);
     }
 
     /** This tests that the test harness fails if too many tokens are listed */
     public void testHarness4() {
-        helpFailure("Unexpected token at position 2 expected: IDENTIFIER actual: EOF",
+        helpFailure("Unexpected token at position 2 expected: token.identifier actual: token.end-of-input",
                 "A",new Enum<?>[]{IDENTIFIER,EOF,IDENTIFIER},null,0);
     }
     

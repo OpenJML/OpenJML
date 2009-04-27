@@ -8,6 +8,7 @@ import junit.framework.AssertionFailedError;
 
 import org.jmlspecs.openjml.JmlSpecs;
 
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
@@ -77,7 +78,7 @@ public abstract class EscBase extends JmlTestCase {
                     // allowed to be optional
                     if (j >= collector.getDiagnostics().size()) {
                         // OK - just skip
-                    } else if (list[2*i].toString().equals(collector.getDiagnostics().get(j).toString()) &&
+                    } else if (list[2*i].toString().equals(noSource(collector.getDiagnostics().get(j))) &&
                             -col == collector.getDiagnostics().get(j).getColumnNumber()) {
                         j++;
                     } else {
@@ -87,7 +88,7 @@ public abstract class EscBase extends JmlTestCase {
                     if (j >= collector.getDiagnostics().size()) {
                         assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
                     } else {
-                        assertEquals("Error " + i, list[2*i].toString(), collector.getDiagnostics().get(j).toString());
+                        assertEquals("Error " + i, list[2*i].toString(), noSource(collector.getDiagnostics().get(j)));
                         assertEquals("Error " + i, col, collector.getDiagnostics().get(j).getColumnNumber());
                         j++;
                     }

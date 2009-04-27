@@ -175,7 +175,7 @@ public class QueryPure extends TCBase {
                 "  @Pure //@ pure\n" +  // BAD
                 "  public void v() {}" +
                 "} \n"
-                ,"/A.java:3: duplicate annotation",14
+                ,"/A.java:3: duplicate annotation",13
         );
     }
 

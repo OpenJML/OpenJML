@@ -56,6 +56,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 
 /**
  * This class is an extension of the Attr class; it adds visitors methods so
@@ -115,7 +116,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected JmlSpecs specs;
 
     /** The Names table from the compilation context, initialized in the constructor */
-    @NonNull protected Name.Table names;
+    @NonNull protected Names names;
     
     /** The factory used to create AST nodes, initialized in the constructor */
     @NonNull protected JmlTree.Maker factory;
@@ -183,7 +184,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         initNames(context);
         this.specs = JmlSpecs.instance(context);
         this.factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
-        this.names = Name.Table.instance(context);
+        this.names = Names.instance(context);
 
         // Caution, because of circular dependencies among constructors of the
         // various tools, it can happen that syms is not fully constructed at this
@@ -219,11 +220,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            LockSet.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("LockSet"), LockSet, syms.rootPackage);
         }
         
-        this.resultName = Name.Table.instance(context).fromString("_JML$$$result");
-        this.exceptionName = Name.Table.instance(context).fromString("_JML$$$exception");
-        this.exceptionCatchName = Name.Table.instance(context).fromString("_JML$$$exceptionCatch");
-        this.postCheckName = Name.Table.instance(context).fromString("postCheck");
-        this.signalsCheckName = Name.Table.instance(context).fromString("signalsCheck");
+        this.resultName = Names.instance(context).fromString("_JML$$$result");
+        this.exceptionName = Names.instance(context).fromString("_JML$$$exception");
+        this.exceptionCatchName = Names.instance(context).fromString("_JML$$$exceptionCatch");
+        this.postCheckName = Names.instance(context).fromString("postCheck");
+        this.signalsCheckName = Names.instance(context).fromString("signalsCheck");
         
         trueLit = makeLit(syms.booleanType,1);
         falseLit = makeLit(syms.booleanType,0);
@@ -376,7 +377,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public void attribClassBodySpecs(Env<AttrContext> env, ClassSymbol c, boolean prevIsInJmlDeclaration, boolean doJava) {
         JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(c);
-        JavaFileObject prev = log.currentSource();
+        JavaFileObject prev = log.currentSourceFile();
         JmlToken prevClauseType = currentClauseType;
         if (tspecs != null && tspecs.decl != null) {
             Env<AttrContext> prevEnv = this.env;
@@ -2394,8 +2395,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param context the compilation context in which to do this initialization
      */
     public void initNames(Context context) {
-        Name.Table names = Name.Table.instance(context);
-        packageName = (Name.Table.instance(context).fromString(Utils.jmlAnnotationPackage));
+        Names names = Names.instance(context);
+        packageName = (Names.instance(context).fromString(Utils.jmlAnnotationPackage));
         for (JmlToken t: JmlToken.modifiers) {
             if (t.annotationType == null) {
                 // No class for this token, but we won't complain
@@ -2594,9 +2595,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    }
     
     public String position(JavaFileObject source, int pos) {
-        JavaFileObject pr = log.currentSource();
+        JavaFileObject pr = log.currentSourceFile();
         log.useSource(source);
-        String s = source.getName() + ":" + log.getLineNumber(pos) + ": JML ";
+        String s = source.getName() + ":" + log.currentSource().getLineNumber(pos) + ": JML ";
         log.useSource(pr);
         return s;
     }

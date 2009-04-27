@@ -23,7 +23,7 @@ public class assignable extends TCBase {
 
     public void testAssignableBadIdent() {
         helpTC(" class A { int k; boolean b; \n//@ assignable m;\n void m(){} }",
-                "/TEST.java:2: cannot find symbol\nsymbol  : variable m\nlocation: class A",16);
+                "/TEST.java:2: cannot find symbol\n  symbol:   variable m\n  location: class A",16);
     }
 
     public void testAssignableField() {
@@ -75,17 +75,17 @@ public class assignable extends TCBase {
 
     public void testAssignableArray4() {
         helpTCF("A.java","public class A { int[] k; boolean b; Object[] o; \n//@ assignable k[true],k[true .. false], k[false ..], k[false .. *];\n void m() {} }"
-                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",18
-                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",26
-                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",34
-                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",44
-                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",57
+                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",18
+                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",26
+                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",34
+                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",44
+                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",57
                 );
     }
 
     public void testAssignableArray5() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable k[b];\n void m(boolean b) {} }"
-                ,"/A.java:2: incompatible types\nfound   : boolean\nrequired: int",18
+                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",18
                 );
     }
 
@@ -96,7 +96,7 @@ public class assignable extends TCBase {
 
     public void testAssignableThis2() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable this.x;\n void m(boolean b) {} }"
-                ,"/A.java:2: cannot find symbol\nsymbol  : variable x\nlocation: class A",20
+                ,"/A.java:2: cannot find symbol\n  symbol:   variable x\n  location: class A",20
 		);
     }
 
@@ -107,8 +107,8 @@ public class assignable extends TCBase {
 
     public void testAssignableSuper2() {
         helpTCF("A.java","public class A extends B { int[] k; Object b; Object[] o; \n//@ assignable super.b, super.x;\n void m(boolean b) {} }  class B{ int kk; }"
-                ,"/A.java:2: cannot find symbol\nsymbol  : variable b\nlocation: class B",21
-                ,"/A.java:2: cannot find symbol\nsymbol  : variable x\nlocation: class B",30
+                ,"/A.java:2: cannot find symbol\n  symbol:   variable b\n  location: class B",21
+                ,"/A.java:2: cannot find symbol\n  symbol:   variable x\n  location: class B",30
                 );
     }
 

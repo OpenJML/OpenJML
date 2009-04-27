@@ -2,6 +2,7 @@ package tests;
 
 import org.jmlspecs.openjml.JmlPretty;
 
+import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Parser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Log;
@@ -23,9 +24,9 @@ public class prettyprinting extends ParseBase {
     public void helpPP(String code) {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(code));
-            sc = sfac.newScanner(code);
-            Parser p = fac.newParser(sc,false,true);
-            JCTree tree = p.compilationUnit();
+            Parser p = fac.newParser(code,false,true,true);
+            //sc = ((JmlParser)p).getScanner();
+            JCTree tree = p.parseCompilationUnit();
             String out = JmlPretty.write(tree);
             if (collector.getDiagnostics().size() != 0) printErrors();
             assertEquals("Found parsing errors",0,collector.getDiagnostics().size());

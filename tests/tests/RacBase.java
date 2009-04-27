@@ -101,7 +101,7 @@ public abstract class RacBase extends JmlTestCase {
             if (print || collector.getDiagnostics().size()!=expectedErrors) printErrors();
             assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
             for (int i=0; i<expectedErrors; i++) {
-                assertEquals("Error " + i, list[2*i].toString(), collector.getDiagnostics().get(i).toString());
+                assertEquals("Error " + i, list[2*i].toString(), noSource(collector.getDiagnostics().get(i)));
                 assertEquals("Error " + i, ((Integer)list[2*i+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);

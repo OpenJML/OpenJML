@@ -17,7 +17,7 @@ public class lblexpression extends TCBase {
                 "   //@ invariant (\\lblpos A k);\n" +
                 "   void m(double k) {}\n" +
                 "}",
-        "/A.java:3: incompatible types\nfound   : int\nrequired: boolean",19
+        "/A.java:3: incompatible types\n  required: boolean\n  found:    int",19
         );
     }
 

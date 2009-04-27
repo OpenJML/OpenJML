@@ -17,13 +17,13 @@ public class typechecking extends TCBase {
     /** Test scanning something very simple */
     public void testSomeJava2() {
         helpTC(" class A { int k = true; }",
-                "/TEST.java:1: incompatible types\nfound   : boolean\nrequired: int",20);
+                "/TEST.java:1: incompatible types\n  required: int\n  found:    boolean",20);
     }
 
     /** Test scanning something very simple */
     public void testSomeJML() {
         helpTC(" class A { int k; boolean b; void m() { \n//@ assert k;\n}}",
-                "/TEST.java:2: incompatible types\nfound   : int\nrequired: boolean",12);
+                "/TEST.java:2: incompatible types\n  required: boolean\n  found:    int",12);
     }
 
 //    public void testTypeArgs() {  // FIXME - could wish for a better error message and recovery
@@ -48,7 +48,7 @@ public class typechecking extends TCBase {
 
     public void testOld3() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\old(k);\n}}",
-                "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",16);
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    int",16);
     }
 
     public void testOld4() {
@@ -86,7 +86,7 @@ public class typechecking extends TCBase {
 
     public void testMax() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\max(\\lockset);\n}}",
-                "/A.java:2: incompatible types\nfound   : java.lang.Object\nrequired: boolean",16);
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Object",16);
     }
 
     public void testMax1() {
@@ -102,7 +102,7 @@ public class typechecking extends TCBase {
     public void testMax3() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\max(k);\n}}",
                 "/A.java:2: A \\max function expects an argument of type org.jmlspecs.lang.JMLSetType<E> rather than int",17,
-                "/A.java:2: incompatible types\nfound   : java.lang.Object\nrequired: boolean",16
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Object",16
                 );
     }
 
@@ -110,88 +110,88 @@ public class typechecking extends TCBase {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\max(b,k);\n}}",
                 "/A.java:2: A \\max expression expects just 1 argument, not 2",16,
                 "/A.java:2: A \\max function expects an argument of type org.jmlspecs.lang.JMLSetType<E> rather than boolean",17,
-                "/A.java:2: incompatible types\nfound   : java.lang.Object\nrequired: boolean",16);
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Object",16);
     }
 
     public void testType() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(A,k);\n}}"
                 ,"/A.java:2: More than one argument or otherwise ill-formed type expression as argument of \\type",19
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                 );
     }
 
     public void testType2() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type();\n}}"
                 ,"/A.java:2: illegal start of type",18
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                 );
     }
 
     public void testType3() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(b);\n}}"
-                ,"/A.java:2: cannot find symbol\nsymbol  : class b\nlocation: class A",18
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: cannot find symbol\n  symbol:   class b\n  location: class A",18
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                 );
     }
 
     public void testType4() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(true);\n}}"
                 ,"/A.java:2: illegal start of type",18
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                 );
     }
 
     public void testType5() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(int);\n}}"
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                                 );
     }
 
     public void testType6() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(int[][]);\n}}"
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                                 );
     }
 
     public void testType7() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(Object);\n}}"
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                                 );
     }
 
     public void testType8() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(java.lang.Object);\n}}"
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                                 );
     }
 
     public void testType9() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(java.lang.Object[][]);\n}}"
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                             );
     }
 
     public void testType10() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(A);\n}}"
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                 );
     }
 
     public void testType11() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(void);\n}}"
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                 );
     }
 
     public void testType12() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(Void);\n}}"
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
                 );
     }
 
     public void testTypeof() {
         helpTCF("A.java"," class A { int k; Boolean b; void m() { \n//@ assert \\typeof(b);\n}}",
-                "/A.java:2: incompatible types\nfound   : java.lang.Class<T>\nrequired: boolean",19);
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",19);
     }
 
     public void testResult() {
@@ -303,44 +303,44 @@ public class typechecking extends TCBase {
     
     public void testSetComp() {
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ invariant new JMLSetType { Integer i | c.contains(i) && i<10}; \n \n }"
-                ,"/A.java:2: incompatible types\nfound   : org.jmlspecs.lang.JMLSetType\nrequired: boolean",55
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.lang.JMLSetType",55
 		);
     }
     
     // Testing scopes in method specs
     public void testSetCompA() {
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ requires new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
-                ,"/A.java:2: incompatible types\nfound   : org.jmlspecs.lang.JMLSetType\nrequired: boolean",54
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.lang.JMLSetType",54
                 );
     }
 
     public void testQuantifierA() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n //@ requires m( (\\exists int i; 0 < i && i <10; m(i)) ); \n/*@pure*/boolean m(int k) { return false; }\n }",
-                "/A.java:3: m(int) in A cannot be applied to (boolean)",15);
+                "/A.java:3: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",15);
     }
   
     // FIXME - a problem with scopes in field initializers
 //    public void testSetCompB() {
 //        helpTCF("A.java","public class A {  \n java.util.Collection c; //@ ghost int k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
-//                ,"/A.java:2: incompatible types\nfound   : org.jmlspecs.lang.JMLSetType\nrequired: boolean",66
+//                ,"/A.java:2: incompatible types\nfound:    org.jmlspecs.lang.JMLSetType\nrequired: boolean",66
 //        );
 //    }
 //
 //    public void testQuantifierB() {
 //        helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(int k) { return false; }\n }",
-//                "/A.java:3: m(int) in A cannot be applied to (boolean)",15);
+//                "/A.java:3: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",15);
 //    }
   
     // testing scopes in local initializers
     public void testSetCompC() {
         helpTCF("A.java","public class A {  \n java.util.Collection c;  void m() { //@ ghost int k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n} \n }"
-                ,"/A.java:2: incompatible types\nfound   : org.jmlspecs.lang.JMLSetType\nrequired: int",71
+                ,"/A.java:2: incompatible types\n  required: int\n  found:    org.jmlspecs.lang.JMLSetType",71
                 );
     }
 
     public void testQuantifierC() {
         helpTCF("A.java","public class A {  \n  boolean m(int k) { //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }",
-                "/A.java:2: m(int) in A cannot be applied to (boolean)",43
+                "/A.java:2: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",43
                 );
     }
     
@@ -352,50 +352,50 @@ public class typechecking extends TCBase {
 
     public void testQuantifierD() {
         helpTCF("A.java","public class A { //@ ghost int j;\n  \n  boolean m(int k) { //@ set j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }",
-                "/A.java:3: m(int) in A cannot be applied to (boolean)",34);
+                "/A.java:3: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",34);
     }
     
     public void testQuantifier() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@pure*/ boolean m(int i) { return false; }\n//@ invariant m( (\\exists int i; 0 < i && i <10; m(i)) ); \n }",
-                "/A.java:4: m(int) in A cannot be applied to (boolean)",15);
+                "/A.java:4: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",15);
     }
     
     
     public void testQuantifier1() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@pure*/ boolean m(int i) { return false; }\n//@ invariant m( (\\forall int i; 0 < i && i <10; m(i)) ); \n }",
-                "/A.java:4: m(int) in A cannot be applied to (boolean)",15);
+                "/A.java:4: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",15);
     }
     
     public void testQuantifier2() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@pure*/ boolean m(int i) { return false; }\n//@ invariant (\\num_of int i; 0 < i && i <10; m(i)) ; \n }",
-                "/A.java:4: incompatible types\nfound   : int\nrequired: boolean",16);
+                "/A.java:4: incompatible types\n  required: boolean\n  found:    int",16);
     }
     
     public void testQuantifier3() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n boolean m(int i) { return false; }\n//@ invariant (\\max long i; 0 < i && i <10; i) ; \n }",
-                "/A.java:4: incompatible types\nfound   : long\nrequired: boolean",16);
+                "/A.java:4: incompatible types\n  required: boolean\n  found:    long",16);
     }
     
     public void testQuantifier4() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n boolean m(float i) { return false; }\n//@ invariant (\\sum long i; 0 < i && i <10; i) ; \n }",
-                "/A.java:4: incompatible types\nfound   : long\nrequired: boolean",16);
+                "/A.java:4: incompatible types\n  required: boolean\n  found:    long",16);
     }
     
     public void testQuantifier5() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n boolean m(double i) { return false; }\n//@ invariant (\\product long i,k; 0 < i && k <10; i) ; \n }",
-                "/A.java:4: incompatible types\nfound   : long\nrequired: boolean",16);
+                "/A.java:4: incompatible types\n  required: boolean\n  found:    long",16);
     }
     
     public void testQuantifier6() {
         helpTCF("A.java","public class A {  \n Object i; Object q = i; //@ ghost Object j; \n boolean m(double i) { return false; }\n//@ invariant (\\product long i; j; i) ; \n }",
-                "/A.java:4: incompatible types\nfound   : java.lang.Object\nrequired: boolean",33,
-                "/A.java:4: incompatible types\nfound   : long\nrequired: boolean",16);
+                "/A.java:4: incompatible types\n  required: boolean\n  found:    java.lang.Object",33,
+                "/A.java:4: incompatible types\n  required: boolean\n  found:    long",16);
     }
     
     public void testQuantifier7() {
         helpTCF("A.java","public class A {  \n Object i; Object j; \n boolean m(double i) { return false; }\n//@ invariant (\\product long i; 0 < j && i <10; i) ; \n }",
                 "/A.java:4: operator < cannot be applied to int,java.lang.Object",35,
-                "/A.java:4: incompatible types\nfound   : long\nrequired: boolean",16);
+                "/A.java:4: incompatible types\n  required: boolean\n  found:    long",16);
     }
     
     public void testSame() {
@@ -510,13 +510,13 @@ public class typechecking extends TCBase {
     
     public void testFresh5() {
         helpTCF("A.java","public class A { int i; Object o,oo; //@ ghost int k = \\fresh(o);  \n }"
-                ,"/A.java:1: incompatible types\nfound   : boolean\nrequired: int",62
+                ,"/A.java:1: incompatible types\n  required: int\n  found:    boolean",62
         );
     }
     
     public void testInformalComment() {
         helpTCF("A.java","public class A {\n //@ invariant (* stuff *);\n //@ ghost int k = (* stuff *);  \n }"
-                ,"/A.java:3: incompatible types\nfound   : boolean\nrequired: int",20
+                ,"/A.java:3: incompatible types\n  required: int\n  found:    boolean",20
         );
     }
 

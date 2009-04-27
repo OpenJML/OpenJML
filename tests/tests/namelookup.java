@@ -16,8 +16,8 @@ public class namelookup extends TCBase {
                 "   //@ requires k;\n" +
                 "   void m(double k) {}\n" +
                 "}",
-        "/A.java:3: incompatible types\nfound   : double\nrequired: boolean",17,
-        "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",18
+        "/A.java:3: incompatible types\n  required: boolean\n  found:    double",17,
+        "/A.java:2: incompatible types\n  required: boolean\n  found:    int",18
         );
     }
 
@@ -33,12 +33,12 @@ public class namelookup extends TCBase {
                 "        //@ assert \\old(d);\n" + 
                 "   }\n" +
                 "}",
-        "/A.java:4: incompatible types\nfound   : int\nrequired: boolean",20,
-        "/A.java:6: incompatible types\nfound   : double\nrequired: boolean",20,
-        "/A.java:7: incompatible types\nfound   : int\nrequired: boolean",24,
-        "/A.java:8: incompatible types\nfound   : double\nrequired: boolean",24,
-        "/A.java:2: incompatible types\nfound   : int\nrequired: boolean",23,
-        "/A.java:2: incompatible types\nfound   : float\nrequired: boolean",43
+        "/A.java:4: incompatible types\n  required: boolean\n  found:    int",20,
+        "/A.java:6: incompatible types\n  required: boolean\n  found:    double",20,
+        "/A.java:7: incompatible types\n  required: boolean\n  found:    int",24,
+        "/A.java:8: incompatible types\n  required: boolean\n  found:    double",24,
+        "/A.java:2: incompatible types\n  required: boolean\n  found:    int",23,
+        "/A.java:2: incompatible types\n  required: boolean\n  found:    float",43
         );
     }
 
@@ -133,8 +133,8 @@ public class namelookup extends TCBase {
                 "      //@ assert k;\n" +
                 "   }\n" +
                 "}",
-        "/A.java:4: cannot find symbol\nsymbol  : variable k\nlocation: class A", 20,
-        "/A.java:5: incompatible types\nfound   : double\nrequired: boolean",18);
+        "/A.java:4: cannot find symbol\n  symbol:   variable k\n  location: class A", 20,
+        "/A.java:5: incompatible types\n  required: boolean\n  found:    double",18);
     }
 
     public void testModelField() {
@@ -146,8 +146,8 @@ public class namelookup extends TCBase {
                 "      //@ assert k;\n" +
                 "   }\n" +
                 "}",
-        "/A.java:4: cannot find symbol\nsymbol  : variable k\nlocation: class A", 20,
-        "/A.java:5: incompatible types\nfound   : double\nrequired: boolean",18);
+        "/A.java:4: cannot find symbol\n  symbol:   variable k\n  location: class A", 20,
+        "/A.java:5: incompatible types\n  required: boolean\n  found:    double",18);
     }
 
     public void testModelMethod() {
@@ -159,8 +159,8 @@ public class namelookup extends TCBase {
                 "      //@ assert k();\n" +
                 "   }\n" +
                 "}",
-        "/A.java:4: cannot find symbol\nsymbol  : method k()\nlocation: class A", 20,
-        "/A.java:5: incompatible types\nfound   : double\nrequired: boolean",19);
+        "/A.java:4: cannot find symbol\n  symbol:   method k()\n  location: class A", 20,
+        "/A.java:5: incompatible types\n  required: boolean\n  found:    double",19);
     }
 
     public void testModelMethod2() {
@@ -172,7 +172,7 @@ public class namelookup extends TCBase {
                 "   }\n" +
                 "}"
         ,"/A.java:2: k() is already defined in A",21
-        ,"/A.java:4: incompatible types\nfound   : int\nrequired: boolean", 21
+        ,"/A.java:4: incompatible types\n  required: boolean\n  found:    int", 21
         );
     }
 
@@ -185,8 +185,8 @@ public class namelookup extends TCBase {
                 "   void m() {\n" +
                 "   }\n" +
                 "}",
-        "/A.java:3: incompatible types\nfound   : double\nrequired: boolean", 18,
-        "/A.java:4: incompatible types\nfound   : int\nrequired: boolean",18);
+        "/A.java:3: incompatible types\n  required: boolean\n  found:    double", 18,
+        "/A.java:4: incompatible types\n  required: boolean\n  found:    int",18);
     }
 
     public void testModelMethod4() {
@@ -202,10 +202,10 @@ public class namelookup extends TCBase {
                 "      }\n" +
                 "   }\n" +
                 "}"
-        ,"/A.java:4: incompatible types\nfound   : int\nrequired: boolean", 20
-        ,"/A.java:7: incompatible types\nfound   : int\nrequired: boolean", 24
-        ,"/A.java:8: incompatible types\nfound   : double\nrequired: boolean", 22
-        ,"/A.java:5: incompatible types\nfound   : double\nrequired: boolean", 21
+        ,"/A.java:4: incompatible types\n  required: boolean\n  found:    int", 20
+        ,"/A.java:7: incompatible types\n  required: boolean\n  found:    int", 24
+        ,"/A.java:8: incompatible types\n  required: boolean\n  found:    double", 22
+        ,"/A.java:5: incompatible types\n  required: boolean\n  found:    double", 21
         );
     }
 
@@ -219,8 +219,8 @@ public class namelookup extends TCBase {
                 "         //@ assume k(0);\n" +
                 "      }\n" +
                 "}"
-        ,"/A.java:5: incompatible types\nfound   : double\nrequired: boolean", 22
-        ,"/A.java:3: incompatible types\nfound   : double\nrequired: boolean", 21
+        ,"/A.java:5: incompatible types\n  required: boolean\n  found:    double", 22
+        ,"/A.java:3: incompatible types\n  required: boolean\n  found:    double", 21
         );
     }
 
@@ -239,8 +239,8 @@ public class namelookup extends TCBase {
                 "}\n" +
                 " class B { static int i; }  \n" +
                 ""
-        ,"/A.java:7: incompatible types\nfound   : int\nrequired: boolean",24 
-        ,"/A.java:8: incompatible types\nfound   : double\nrequired: boolean",22
+        ,"/A.java:7: incompatible types\n  required: boolean\n  found:    int",24 
+        ,"/A.java:8: incompatible types\n  required: boolean\n  found:    double",22
         );
     }
  
@@ -258,9 +258,9 @@ public class namelookup extends TCBase {
                 "   }\n" +
                 "}\n" +
                 ""
-        ,"/A.java:4: cannot find symbol\nsymbol  : class B\nlocation: class A.AA",7
-        ,"/A.java:7: cannot find symbol\nsymbol  : variable B\nlocation: class A.AA",23
-        ,"/A.java:8: incompatible types\nfound   : double\nrequired: boolean",22
+        ,"/A.java:4: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
+        ,"/A.java:7: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
+        ,"/A.java:8: incompatible types\n  required: boolean\n  found:    double",22
             );
     }
 
@@ -300,9 +300,9 @@ public class namelookup extends TCBase {
        ,"/$A/A.spec:13: This specification declaration of type BB does not match any Java type declaration within type A",11
        ,"/$A/A.spec:16: This specification declaration of type A has the same name as a previous JML type declaration",1
        ,"/$A/A.spec:17: This specification declaration of type B does not match any Java type declaration within compilation unit /A.java",1
-        ,"/A.java:3: cannot find symbol\nsymbol  : class B\nlocation: class A.AA",7
-        ,"/A.java:5: cannot find symbol\nsymbol  : variable B\nlocation: class A.AA",23
-        ,"/A.java:6: incompatible types\nfound   : double\nrequired: boolean",22
+        ,"/A.java:3: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
+        ,"/A.java:5: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
+        ,"/A.java:6: incompatible types\n  required: boolean\n  found:    double",22
         );
     }
  

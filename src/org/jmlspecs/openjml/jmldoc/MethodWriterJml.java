@@ -32,6 +32,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javadoc.ClassDocImpl;
 import com.sun.tools.javadoc.DocEnv;
 import com.sun.tools.javadoc.MethodDocImpl;
@@ -80,7 +81,7 @@ public class MethodWriterJml extends MethodWriterImpl {
         if (method instanceof MethodDocImpl) {
             MethodSymbol oldMethodSym = ((MethodDocImpl)method).sym;
             Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
-            Name newMethodName = Name.Table.instance(context).fromString(oldMethodSym.name.toString());
+            Name newMethodName = Names.instance(context).fromString(oldMethodSym.name.toString());
             Scope.Entry e = currentClassSym.members().lookup(newMethodName);
             Scope.Entry ee = e;
             while (!(e.sym instanceof MethodSymbol) || !match((MethodSymbol)e.sym,oldMethodSym)) {
@@ -97,7 +98,7 @@ public class MethodWriterJml extends MethodWriterImpl {
                 writer.br(); // Need this if there is tag info, otherwise not // FIXME
                 String s = Utils.jmlAnnotations(newMethodSym);
                 if (Utils.hasSpecs(mspecs) || !s.isEmpty()) {
-                    bold("JML Method Specifications: "); 
+                    strong("JML Method Specifications: "); 
                     writer.print(s);
                     writer.preNoNewLine();
                     writer.print(JmlPretty.write(mspecs,false));
@@ -110,7 +111,7 @@ public class MethodWriterJml extends MethodWriterImpl {
                         mspecs = JmlSpecs.instance(context).getSpecs(m);
                         String ss = Utils.jmlAnnotations(m);
                         if (Utils.hasSpecs(mspecs) || !ss.isEmpty()) {
-                            bold("JML Specifications inherited from " + c + ": "); 
+                            strong("JML Specifications inherited from " + c + ": "); 
                             writer.print(ss);
                             writer.preNoNewLine();
                             writer.print(JmlPretty.write(mspecs,false));
@@ -294,7 +295,7 @@ public class MethodWriterJml extends MethodWriterImpl {
         
         if (!list.isEmpty()) {
             writer.br();
-            writer.bold("Inherited JML model methods: ");
+            writer.strong("Inherited JML model methods: ");
             Collections.sort(list);
             boolean isFirst = true;
             for (MethodDoc method: list) {

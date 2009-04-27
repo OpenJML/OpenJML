@@ -68,7 +68,7 @@ public class modifiers extends TCBase {
     /** Testing annotations without the import */
     @Test public void testClassMods10() {
         helpTCF("t/A.java","package t;  \n public /*@ pure */ @Pure class A{}",
-                "/t/A.java:2: cannot find symbol\nsymbol: class Pure", 22
+                "/t/A.java:2: cannot find symbol\n  symbol: class Pure", 22
 		);
 //        checkMessages();
     }
@@ -175,22 +175,22 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testCUMods2() {
-        helpTCF("t/A.java","/*@ pure */ package t; import org.jmlspecs.annotations.*;  \n public /*@ pure */ @Pure class A{}",
-                "/t/A.java:1: class, interface, or enum expected", 13
+        helpTCF("t/A.java","/*@ pure */ package t; import org.jmlspecs.annotations.*;  \n public /*@ pure */ @Pure class A{}"
+                ,"/t/A.java:1: class, interface, or enum expected", 13
                 ,"/t/A.java:2: duplicate annotation",21
                 );
     }
     
     @Test public void testCUMods3() {
-        helpTCF("t/A.java","package t; /*@ pure */ import org.jmlspecs.annotations.*; \n public /*@ pure */ @Pure class A{}",
-                "/t/A.java:1: class, interface, or enum expected", 24
+        helpTCF("t/A.java","package t; /*@ pure */ import org.jmlspecs.annotations.*; \n public /*@ pure */ @Pure class A{}"
+                ,"/t/A.java:1: class, interface, or enum expected", 24
                 ,"/t/A.java:2: duplicate annotation",21
                 );
     }
     
     @Test public void testCUMods4() {
-        helpTCF("t/A.java","package t; @Pure import org.jmlspecs.annotations.*; \n public /*@ pure */ @Pure class A{}",
-                "/t/A.java:1: class, interface, or enum expected", 18
+        helpTCF("t/A.java","package t; @Pure import org.jmlspecs.annotations.*; \n public /*@ pure */ @Pure class A{}"
+                ,"/t/A.java:1: class, interface, or enum expected", 18
                 ,"/t/A.java:2: duplicate annotation",21
                 );
     }
@@ -243,7 +243,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchClass() {
         addMockFile("$A/A.spec"," class A {}");
         helpTCF("A.java","public class A{}",
-                "/$A/A.spec:1: The type A in the specification matches a Java type A with different modifiers: public ", 2);
+                "/$A/A.spec:1: The type A in the specification matches a Java type A with different modifiers: public", 2);
     }
     
     @Test public void testMatchClass2() {
@@ -295,7 +295,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchField5() {
         addMockFile("$A/A.spec","public class A { public int k; }");
         helpTCF("A.java","public class A{ protected int k; }",
-                "/$A/A.spec:1: The field k in the specification matches a Java field A.k with different modifiers: public protected ", 29);
+                "/$A/A.spec:1: The field k in the specification matches a Java field A.k with different modifiers: public protected", 29);
     }
 
     @Test public void testMatchField6() { 
@@ -329,7 +329,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod1() { 
         addMockFile("$A/A.spec","public class A { void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(Object i) {} }",
-                "/$A/A.spec:1: The method A.m is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class. \n    Signatures found:\n\t\t\tm(boolean)\n\t\t\tm(java.lang.Object)", 23); 
+                "/$A/A.spec:1: The method A.m is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class. \n      Signatures found:\n  \t\t\tm(boolean)\n  \t\t\tm(java.lang.Object)", 23); 
     }
     
     @Test public void testMatchMethod2() { // Should be OK
@@ -340,20 +340,20 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod3() { 
         addMockFile("$A/A.spec","public class A { void m(int i, boolean j); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(int i) {} }",
-                "/$A/A.spec:1: The method A.m is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class. \n    Signatures found:\n\t\t\tm(boolean)\n\t\t\tm(int)", 23); 
+                "/$A/A.spec:1: The method A.m is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class. \n      Signatures found:\n  \t\t\tm(boolean)\n  \t\t\tm(int)", 23); 
     }
     
     @Test public void testMatchMethod4() { 
         addMockFile("$A/A.spec","public class A { public void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(int i) { } }",
-                "/$A/A.spec:1: The method m in the specification matches a Java method m(int) with different modifiers: public ", 30
+                "/$A/A.spec:1: The method m in the specification matches a Java method m(int) with different modifiers: public", 30
                 ); 
     }
     
     @Test public void testMatchMethod5() { 
         addMockFile("$A/A.spec","public class A { public Object m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {}  private java.lang.Object m(int i) { return null; } }",
-                "/$A/A.spec:1: The method m in the specification matches a Java method m(int) with different modifiers: public private ", 32); 
+                "/$A/A.spec:1: The method m in the specification matches a Java method m(int) with different modifiers: public private", 32); 
     }
     
     @Test public void testMatchMethod6() {
@@ -979,10 +979,10 @@ public class modifiers extends TCBase {
                 "  //@ non_null axiom true; \n" +
                 "  //@ spec_public axiom true; \n" +
                 "  void m() {} }"
-                ,"/A.java:3: These modifiers are not allowed here: public ", 14
+                ,"/A.java:3: These modifiers are not allowed here: public", 14
                 ,"/A.java:4: This JML modifier is not allowed for a axiom clause", 7
-                ,"/A.java:5: These modifiers are not allowed here: private ", 15
-                ,"/A.java:6: These modifiers are not allowed here: public private ", 22
+                ,"/A.java:5: These modifiers are not allowed here: private", 15
+                ,"/A.java:6: These modifiers are not allowed here: public private", 22
                 ,"/A.java:7: This JML modifier is not allowed for a axiom clause", 7
                 ,"/A.java:8: This JML modifier is not allowed for a axiom clause", 7
                 );
