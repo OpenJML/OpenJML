@@ -25,6 +25,8 @@
 
 package com.sun.tools.javap;
 
+import java.util.HashSet;
+import java.util.Set;
 import com.sun.tools.classfile.AccessFlags;
 
 /*
@@ -74,9 +76,12 @@ public class Options {
     public boolean showFlags;
     public boolean showLineAndLocalVariableTables;
     public int showAccess;
+    public Set<String> accessOptions = new HashSet<String>();
     public boolean showDisassembled;
     public boolean showInternalSignatures;
     public boolean showAllAttrs;
+    public boolean showConstants;
+    public boolean sysInfo;
 
     public boolean compat;             // bug-for-bug compatibility mode with old javap
     public boolean jsr277;

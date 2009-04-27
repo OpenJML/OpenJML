@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License version
  * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-15301 USA.
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
  * CA 95054 USA or visit www.sun.com if you need additional information or
@@ -27,11 +27,15 @@ package com.sun.tools.javap;
 
 import java.io.EOFException;
 import java.io.FileNotFoundException;
+import java.io.FilterInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -140,24 +144,31 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
 
         new Option(false, "-public") {
             void process(JavapTask task, String opt, String arg) {
+                task.options.accessOptions.add(opt);
                 task.options.showAccess = AccessFlags.ACC_PUBLIC;
             }
         },
 
         new Option(false, "-protected") {
             void process(JavapTask task, String opt, String arg) {
+                task.options.accessOptions.add(opt);
                 task.options.showAccess = AccessFlags.ACC_PROTECTED;
             }
         },
 
         new Option(false, "-package") {
             void process(JavapTask task, String opt, String arg) {
+                task.options.accessOptions.add(opt);
                 task.options.showAccess = 0;
             }
         },
 
         new Option(false, "-p", "-private") {
             void process(JavapTask task, String opt, String arg) {
+                if (!task.options.accessOptions.contains("-p") &&
+                        !task.options.accessOptions.contains("-private")) {
+                    task.options.accessOptions.add(opt);
+                }
                 task.options.showAccess = AccessFlags.ACC_PRIVATE;
             }
         },
@@ -192,6 +203,12 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
             }
         },
 
+        new Option(false, "-sysinfo") {
+            void process(JavapTask task, String opt, String arg) {
+                task.options.sysInfo = true;
+            }
+        },
+
         new Option(false, "-Xold") {
             void process(JavapTask task, String opt, String arg) throws BadArgs {
                 // -Xold is only supported as first arg when invoked from
@@ -221,6 +238,12 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
         new Option(false, "-XDignore.symbol.file") {
             void process(JavapTask task, String opt, String arg) {
                 task.options.ignoreSymbolFile = true;
+            }
+        },
+
+        new Option(false, "-constants") {
+            void process(JavapTask task, String opt, String arg) {
+                task.options.showConstants = true;
             }
         }
 
@@ -298,7 +321,7 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
         return new DiagnosticListener<JavaFileObject> () {
             public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
                 if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
-                    pw.print(getMessage("err.prefix"));
+                        pw.print(getMessage("err.prefix"));
                     pw.print(" ");
                 }
                 pw.println(diagnostic.getMessage(null));
@@ -306,14 +329,35 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
         };
     }
 
+    /** Result codes.
+     */
+    static final int
+        EXIT_OK = 0,        // Compilation completed with no errors.
+        EXIT_ERROR = 1,     // Completed but reported errors.
+        EXIT_CMDERR = 2,    // Bad command-line arguments
+        EXIT_SYSERR = 3,    // System error or resource exhaustion.
+        EXIT_ABNORMAL = 4;  // Compiler terminated abnormally
+
     int run(String[] args) {
         try {
             handleOptions(args);
+
+            // the following gives consistent behavior with javac
+            if (classes == null || classes.size() == 0) {
+                if (options.help || options.version || options.fullVersion)
+                    return EXIT_OK;
+                else
+                    return EXIT_CMDERR;
+            }
+
             boolean ok = run();
-            return ok ? 0 : 1;
+            return ok ? EXIT_OK : EXIT_ERROR;
         } catch (BadArgs e) {
             diagnosticListener.report(createDiagnostic(e.key, e.args));
-            return 1;
+            if (e.showUsage) {
+                log.println(getMessage("main.usage.summary", progname));
+            }
+            return EXIT_CMDERR;
         } catch (InternalError e) {
             Object[] e_args;
             if (e.getCause() == null)
@@ -324,7 +368,7 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
                 System.arraycopy(e.args, 0, e_args, 1, e.args.length);
             }
             diagnosticListener.report(createDiagnostic("err.internal.error", e_args));
-            return 1;
+            return EXIT_ABNORMAL;
         } finally {
             log.flush();
         }
@@ -349,8 +393,7 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
             fileManager = getDefaultFileManager(diagnosticListener, log);
 
         Iterator<String> iter = args.iterator();
-        if (!iter.hasNext())
-            options.help = true;
+        boolean noArgs = !iter.hasNext();
 
         while (iter.hasNext()) {
             String arg = iter.next();
@@ -366,13 +409,29 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
                 throw new BadArgs("err.unknown.option", arg).showUsage(true);
         }
 
+        if (!options.compat && options.accessOptions.size() > 1) {
+            StringBuilder sb = new StringBuilder();
+            for (String opt: options.accessOptions) {
+                if (sb.length() > 0)
+                    sb.append(" ");
+                sb.append(opt);
+            }
+            throw new BadArgs("err.incompatible.options", sb);
+        }
+
         if (options.ignoreSymbolFile && fileManager instanceof JavapFileManager)
             ((JavapFileManager) fileManager).setIgnoreSymbolFile(true);
 
         if ((classes == null || classes.size() == 0) &&
-                !(options.help || options.version || options.fullVersion)) {
+                !(noArgs || options.help || options.version || options.fullVersion)) {
             throw new BadArgs("err.no.classes.specified");
         }
+
+        if (noArgs || options.help)
+            showHelp();
+
+        if (options.version || options.fullVersion)
+            showVersion(options.fullVersion);
     }
 
     private void handleOption(String name, Iterator<String> rest) throws BadArgs {
@@ -405,14 +464,8 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
     }
 
     public boolean run() {
-        if (options.help)
-            showHelp();
-
-        if (options.version || options.fullVersion)
-            showVersion(options.fullVersion);
-
         if (classes == null || classes.size() == 0)
-            return true;
+            return false;
 
         context.put(PrintWriter.class, log);
         ClassWriter classWriter = ClassWriter.instance(context);
@@ -451,8 +504,27 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
                 Attribute.Factory attributeFactory = new Attribute.Factory();
                 attributeFactory.setCompat(options.compat);
                 attributeFactory.setJSR277(options.jsr277);
-                ClassFile cf = ClassFile.read(fo.openInputStream(), attributeFactory);
+
+                InputStream in = fo.openInputStream();
+                SizeInputStream sizeIn = null;
+                MessageDigest md  = null;
+                if (options.sysInfo || options.verbose) {
+                    md = MessageDigest.getInstance("MD5");
+                    in = new DigestInputStream(in, md);
+                    in = sizeIn = new SizeInputStream(in);
+                }
+
+                ClassFile cf = ClassFile.read(in, attributeFactory);
+
+                if (options.sysInfo || options.verbose) {
+                    classWriter.setFile(fo.toUri());
+                    classWriter.setLastModified(fo.getLastModified());
+                    classWriter.setDigest("MD5", md.digest());
+                    classWriter.setFileSize(sizeIn.size());
+                }
+
                 classWriter.write(cf);
+
             } catch (ConstantPoolException e) {
                 diagnosticListener.report(createDiagnostic("err.bad.constant.pool", className, e.getLocalizedMessage()));
                 ok = false;
@@ -574,6 +646,8 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
             public String getMessage(Locale locale) {
                 return JavapTask.this.getMessage(locale, key, args);
             }
+            
+            public String noSource() { return toString(); } // DRC -added
 
         };
 
@@ -622,4 +696,31 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask {
     Map<Locale, ResourceBundle> bundles;
 
     private static final String progname = "javap";
+
+    private static class SizeInputStream extends FilterInputStream {
+        SizeInputStream(InputStream in) {
+            super(in);
+        }
+
+        int size() {
+            return size;
+        }
+
+        @Override
+        public int read(byte[] buf, int offset, int length) throws IOException {
+            int n = super.read(buf, offset, length);
+            if (n > 0)
+                size += n;
+            return n;
+        }
+
+        @Override
+        public int read() throws IOException {
+            int b = super.read();
+            size += 1;
+            return b;
+        }
+
+        private int size;
+    }
 }
