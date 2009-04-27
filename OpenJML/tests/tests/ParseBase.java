@@ -9,7 +9,11 @@ import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlTreeScanner;
 
 import com.sun.tools.javac.comp.JmlEnter;
+import com.sun.tools.javac.parser.JavacParser;
+import com.sun.tools.javac.parser.JmlParser;
+import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.Parser;
+import com.sun.tools.javac.parser.ParserFactory;
 import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.tree.JCTree;
@@ -26,10 +30,15 @@ abstract public class ParseBase extends JmlTestCase {
     static String z = java.io.File.pathSeparator;
     static String testspecpath = "$A"+z+"$B";
 
-    Parser.Factory fac;
+    ParserFactory fac;
     Scanner.Factory sfac;
-    Scanner sc;
-    
+    JmlParser parser;
+
+    /** Set this to true in tests which start out the scanner in jml mode
+     * (avoiding the need to begin the test string with a JML comment annotation)
+     */
+    boolean jml;
+
     protected void setUp() throws Exception {
         super.setUp();
         options.put("compilePolicy","check");  // Don't do code generation
@@ -38,15 +47,15 @@ abstract public class ParseBase extends JmlTestCase {
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         Log.instance(context).multipleErrors = true;
         sfac = Scanner.Factory.instance(context);
-        fac = Parser.Factory.instance(context);
+        fac = ParserFactory.instance(context);
         print = false;
+        jml = false;
     }
 
     protected void tearDown() throws Exception {
         super.tearDown();
         fac = null;
         sfac = null;
-        sc = null;
     }
 
     /** Compiles the given string as the content of a compilation unit,
@@ -82,9 +91,8 @@ abstract public class ParseBase extends JmlTestCase {
      */
     public List<JCTree> parseCompilationUnit(String s) {
         Log.instance(context).useSource(new TestJavaFileObject(s));
-        sc = sfac.newScanner(s);
-        Parser p = fac.newParser(sc,false,true);
-        JCTree e = p.compilationUnit();
+        parser = ((JmlParser.JmlFactory)fac).newParser(s,false,true,true,jml);
+        JCTree e = parser.parseCompilationUnit();
         return ParseTreeScanner.walk(e);
     }
 
@@ -117,7 +125,7 @@ abstract public class ParseBase extends JmlTestCase {
                 assertEquals("Preferred position for token " + k, expected[i++], t.getPreferredPosition());
                 ++k;
             }
-            if (sc.token() != Token.EOF) fail("Not at end of input");
+            if (parser.getScanner().token() != Token.EOF) fail("Not at end of input");
         } catch (AssertionFailedError e) {
             if (!print) printTree(actual);
             if (!print) printErrors();

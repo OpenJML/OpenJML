@@ -5,6 +5,7 @@ import static com.sun.tools.javac.code.Flags.HASINIT;
 import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.Kinds.PCK;
 import static com.sun.tools.javac.code.Kinds.TYP;
+import static com.sun.tools.javac.code.Kinds.kindName;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -50,6 +51,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
 
 /**
@@ -91,7 +93,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
     
     protected JmlEnter enter;
     protected JmlResolve resolve;
-    protected Name.Table names;
+    protected Names names;
     protected JmlTree.Maker jmlF;
     protected Symtab syms;
     
@@ -102,8 +104,8 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         this.context = context;
         this.resolve = (JmlResolve)JmlResolve.instance(context);
         this.enter = (JmlEnter)JmlEnter.instance(context);
-        this.org_jmlspecs_lang = Name.Table.instance(context).fromString("org.jmlspecs.lang");
-        this.names = Name.Table.instance(context);
+        this.org_jmlspecs_lang = Names.instance(context).fromString("org.jmlspecs.lang");
+        this.names = Names.instance(context);
         this.jmlF = (JmlTree.Maker)JmlTree.Maker.instance(context);
         this.syms = Symtab.instance(context);
     }
@@ -751,7 +753,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                         sb.toString());
             } else {
                 checkMethodMatch(match,specMethod);
-                addAnnotations(match.sym,env,specMethod.mods);
+                addAnnotations(match.sym,env,specMethod.mods);  // Might repeat annotations, so we use the conditional call
             }
         } catch (Exception e) {
             System.out.println("METHOD EXCEOPTION " + e);
@@ -1184,13 +1186,13 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                 assert s.kind == PCK || s.attributes_field == null;
                 JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
                 try {
-//                    if (s.attributes_field != null &&
-//                            s.attributes_field.nonEmpty() &&
-//                            annotations.nonEmpty())
-//                        log.error(annotations.head.pos,
-//                                "already.annotated",
-//                                Resolve.kindName(s), s);
-                    enterAnnotations(annotations, localEnv, s);
+                    if (s.attributes_field != null &&
+                            s.attributes_field.nonEmpty() &&
+                            annotations.nonEmpty()) {
+//                            log.error(annotations.head.pos,
+//                                      "already.annotated",
+//                                      kindName(s), s);
+                    } else enterAnnotations(annotations, localEnv, s);
                 } finally {
                     log.useSource(prev);
                 }
@@ -1266,7 +1268,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
 //      Check that packages imported from exist (JLS ???).
         if (tsym.kind == PCK && tsym.members().elems == null && !tsym.exists()) {
 //          If we can't find java.lang, exit immediately.
-            if (((PackageSymbol)tsym).fullname.equals(Name.Table.instance(context).java_lang)) {
+            if (((PackageSymbol)tsym).fullname.equals(Names.instance(context).java_lang)) {
                 JCDiagnostic msg = JCDiagnostic.fragment("fatal.err.no.java.lang");
                 throw new FatalError(msg);
             } else {
@@ -1296,7 +1298,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         Env<AttrContext> env = enter.typeEnvs.get(c);
         if ((c.flags_field & INTERFACE) == INTERFACE) {
             VarSymbol thisSym =
-                new VarSymbol(FINAL | HASINIT, Name.Table.instance(context)._this, c.type, c);
+                new VarSymbol(FINAL | HASINIT, Names.instance(context)._this, c.type, c);
             thisSym.pos = Position.FIRSTPOS;
             env.info.scope.enter(thisSym);
         }

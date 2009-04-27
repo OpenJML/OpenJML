@@ -24,6 +24,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javadoc.ClassDocImpl;
 
 /** This class extends ClassWriterImpl in order to include in the HTML output
@@ -117,7 +118,7 @@ public class ClassWriterJml extends ClassWriterImpl {
         if (classDoc instanceof ClassDocImpl) {
             ClassSymbol oldsym = ((ClassDocImpl)classDoc).tsym;
             Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
-            Name newname = Name.Table.instance(context).fromString(oldsym.flatname);
+            Name newname = Names.instance(context).fromString(oldsym.flatname.toString());
             newsym = Symtab.instance(context).classes.get(newname);
             //newsym = instantiateClass(newname,oldsym);
             TypeSpecs tspecs = JmlSpecs.instance(context).get(newsym);
@@ -130,7 +131,7 @@ public class ClassWriterJml extends ClassWriterImpl {
 //                JmlClassDecl list = tspecs.decl;
 //                br();
                 if (!ss.isEmpty()) {
-                    bold("Annotations:");
+                    strong("Annotations:");
                     print(ss);
                     br();
                 }
@@ -173,7 +174,7 @@ public class ClassWriterJml extends ClassWriterImpl {
         TypeSpecs tspecs = JmlSpecs.instance(context).get(csym);
         if (hasSpecsToPrint(tspecs)){
 //            printSpecHeader("JML Specifications");
-            bold("JML Specifications inherited from " + csym + ": ");
+            strong("JML Specifications inherited from " + csym + ": ");
             printSpecs(tspecs);
         }
     }

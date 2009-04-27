@@ -6,12 +6,14 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlTree.*;
 
+import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.Parser;
 import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 
 import junit.framework.AssertionFailedError;
@@ -19,10 +21,6 @@ import junit.framework.AssertionFailedError;
 
 public class expressions extends ParseBase {
 
-    /** Set this to true in tests which start out the scanner in jml mode
-     * (avoiding the need to begin the test string with a JML comment annotation)
-     */
-    boolean jml;
     
 
     protected void setUp() throws Exception {
@@ -47,12 +45,13 @@ public class expressions extends ParseBase {
     public void helpExpr(String s, Object... list) {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s));
-            Scanner sc = sfac.newScanner(s);
-            if (jml && sc instanceof JmlScanner) {
-                ((JmlScanner)sc).setJml(jml);
+            //Scanner sc = sfac.newScanner(s);
+            JmlParser p = ((JmlParser.JmlFactory)fac).newParser(s,false,true,true,true);
+            if (jml && p instanceof JmlParser) {
+                p.getScanner().setJml(jml);
             }
-            Parser p = fac.newParser(sc,false,true);
-            JCTree.JCExpression e = p.expression();
+            //p.getScanner().nextToken(); // FIXME - why do we have to put this in - we did not have to before updating to b55
+            JCTree.JCExpression e = p.parseExpression();
             List<JCTree> out = ParseTreeScanner.walk(e);
             int i = 0;
             int k = 0;
@@ -74,7 +73,7 @@ public class expressions extends ParseBase {
                 assertEquals("Preferred position for token " + k, list[i++], t.getPreferredPosition());
                 ++k;
             }
-            if (sc.token() != Token.EOF) fail("Not at end of input");
+            if (p.getScanner().token() != Token.EOF) fail("Not at end of input");
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
@@ -84,17 +83,15 @@ public class expressions extends ParseBase {
     public void helpExprErrors(String s, Object... list) {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s));
-            Scanner sc = sfac.newScanner(s);
-            if (jml && sc instanceof JmlScanner) {
-                ((JmlScanner)sc).setJml(jml);
-            }
-            Parser p = fac.newParser(sc,false,true);
-            p.expression();
+            Parser p = ((JmlParser.JmlFactory)fac).newParser(s,false,true,true,jml);
+            //JmlScanner sc = ((JmlParser)p).getScanner();
+            //if (jml) sc.setJml(jml);
+            p.parseExpression();
             int i = 0;
             if (print || collector.getDiagnostics().size() != list.length) printErrors();
             assertEquals("Saw wrong number of errors ",list.length,collector.getDiagnostics().size());
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
-                assertEquals("Error message " + i,list[i++],dd.toString());
+                assertEquals("Error message " + i,list[i++],((JCDiagnostic)dd).noSource());
             }
         } catch (Exception e) {
             e.printStackTrace(System.out);

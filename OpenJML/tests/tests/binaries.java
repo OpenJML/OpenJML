@@ -32,7 +32,7 @@ public class binaries extends TCBase {
                 " class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
-                ,"/$A/java/io/File.spec:3: The method java.io.File.m is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class. \n    Signatures found:   <none>",14
+                ,"/$A/java/io/File.spec:3: The method java.io.File.m is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class. \n      Signatures found:   <none>",14
         );
     }
     
@@ -66,10 +66,10 @@ public class binaries extends TCBase {
                 "    java.io.File file; \n" +
                 " public void m() { /*@ assert java.io.VVV.i; assume java.io.File.TTT.j; */ }\n" +
                 "}"
-                ,"/java/io/A.java:3: incompatible types\nfound   : int\nrequired: boolean",42
-                ,"/java/io/A.java:3: incompatible types\nfound   : int\nrequired: boolean",69
-                ,"/$A/java/io/File.spec:3: incompatible types\nfound   : int\nrequired: boolean",18
-                ,"/$A/java/io/File.spec:3: incompatible types\nfound   : int\nrequired: boolean",35
+                ,"/java/io/A.java:3: incompatible types\n  required: boolean\n  found:    int",42
+                ,"/java/io/A.java:3: incompatible types\n  required: boolean\n  found:    int",69
+                ,"/$A/java/io/File.spec:3: incompatible types\n  required: boolean\n  found:    int",18
+                ,"/$A/java/io/File.spec:3: incompatible types\n  required: boolean\n  found:    int",35
         );
     }
 
@@ -89,11 +89,11 @@ public class binaries extends TCBase {
                 "     /*@ assert java.io.File.j; assume java.io.File.k; */ }\n" +
                 "}"
                 ,"/$A/java/io/File.spec:3: The field j is a Java field (neither ghost nor model) but does not match any fields in the corresponding Java class.",21
-                ,"/java/io/A.java:3: cannot find symbol\nsymbol  : variable j\nlocation: class java.io.File",36
-                ,"/java/io/A.java:3: cannot find symbol\nsymbol  : variable k\nlocation: class java.io.File",53
-                ,"/java/io/A.java:4: incompatible types\nfound   : char\nrequired: boolean",22
-                ,"/java/io/A.java:5: cannot find symbol\nsymbol  : variable j\nlocation: class java.io.File",29
-                ,"/java/io/A.java:5: incompatible types\nfound   : int\nrequired: boolean",52
+                ,"/java/io/A.java:3: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",36
+                ,"/java/io/A.java:3: cannot find symbol\n  symbol:   variable k\n  location: class java.io.File",53
+                ,"/java/io/A.java:4: incompatible types\n  required: boolean\n  found:    char",22
+                ,"/java/io/A.java:5: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",29
+                ,"/java/io/A.java:5: incompatible types\n  required: boolean\n  found:    int",52
         );
     }
 

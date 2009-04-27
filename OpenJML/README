@@ -250,6 +250,19 @@ identified with the original revision number.  Then modifications to those
 sources were made and committed within the trunk.  When new versions of 
 OpenJDK are available they will be copied and committed into the
 vendor branch; then the changes that have occurred in the vendor branch will be
-merged into the trunk.  When the details of this merging procedure are worked out,
-they will be described here. 
+merged into the trunk.  The procedure in detail:
+a) obtain a copy of the current build (or which ever one you want to update to)
+from http://download.java.net/openjdk/jdk7/ as a zip file on your machine
+b) open the OpenJDK-vendor project
+c) in a shell:
+        - find the 'langtools' directory within the OpenJDK-vendor project 
+        - create a new directory and unzip the jdk distribution into it
+        - copy the new files on top of the old
+        - remove any old files that are not in the new build
+        - commit the changes
+        - merge the difference from the last vendor update into the OpenJDK project
+        - resolve conflicts
+        - fix whatever has broken in OpenJML
+        - commit
+        (TODO: should provide a script for most of this)
 

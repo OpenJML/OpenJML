@@ -325,10 +325,10 @@ public class esc extends EscBase {
                 
                 ,"/tt/TestJava.java:7: A \\index token is used outside the scope of a foreach loop",23
                 ,"/tt/TestJava.java:11: A \\index token is used outside the scope of a foreach loop",23
-                ,"/tt/TestJava.java:16: unexpected type\nrequired: variable\nfound   : value",15
+                ,"/tt/TestJava.java:16: unexpected type\n  required: variable\n  found:    value",15
                 ,"/tt/TestJava.java:23: A \\values token is used outside the scope of a foreach loop",45
                 ,"/tt/TestJava.java:27: A \\values token is used outside the scope of a foreach loop",45
-                ,"/tt/TestJava.java:32: unexpected type\nrequired: variable\nfound   : value",15
+                ,"/tt/TestJava.java:32: unexpected type\n  required: variable\n  found:    value",15
                 );
     }
 

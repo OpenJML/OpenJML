@@ -45,6 +45,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 
 import java.util.List;
 
@@ -103,7 +104,7 @@ public class BasicBlocker extends JmlTreeScanner {
         this.context = context;
         this.log = Log.instance(context);
         this.factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
-        this.names = Name.Table.instance(context);
+        this.names = Names.instance(context);
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
         
@@ -149,7 +150,7 @@ public class BasicBlocker extends JmlTreeScanner {
     @NonNull protected Symtab syms;
     
     /** The Names table from the compilation context, initialized in the constructor */
-    @NonNull protected Name.Table names;
+    @NonNull protected Names names;
     
     /** The factory used to create AST nodes, initialized in the constructor */
     @NonNull protected JmlTree.Maker factory;
@@ -884,7 +885,7 @@ public class BasicBlocker extends JmlTreeScanner {
             specMethodCalls.clear();
             boolean prevInSpecExpression = inSpecExpression;
             inSpecExpression = true;
-            JavaFileObject prev = log.currentSource();
+            JavaFileObject prev = log.currentSourceFile();
             try {
                 log.useSource(source);
                 JCExpression result = trExpr(expr);
@@ -1291,7 +1292,7 @@ public class BasicBlocker extends JmlTreeScanner {
         if (useAssertDefinitions && label != Label.ASSUME_CHECK) {
             //if (extraEnv) { usepos++; declpos++; }
             String n;
-            if (source == log.currentSource()) {
+            if (source == log.currentSourceFile()) {
                 n = "assert$" + usepos + "$" + declpos + "$" + label + "$" + (unique++);
             } else {
                 Integer i = jfoMap.get(source);
@@ -1813,7 +1814,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 else pre = makeBinary(JCTree.OR,pre,spre,pre.pos);
             }{
                 JmlMethodClauseExpr p = factory.at(pre.pos).JmlMethodClauseExpr(JmlToken.SIGNALS,pre);
-                p.sourcefile = log.currentSource();
+                p.sourcefile = log.currentSourceFile();
                 mi.requiresPredicates.add(p);  // Just one composite precondition for all of the spec cases
             }
             
@@ -2056,7 +2057,7 @@ public class BasicBlocker extends JmlTreeScanner {
         if (loopSpecs != null) for (JmlStatementLoop loopspec: loopSpecs) {
             if (loopspec.token == JmlToken.DECREASES) {
                 String dec = "$$decreases" + "$" + loopspec.getStartPosition();
-                addAuxVariable(dec,syms.longType,trSpecExpr(loopspec.expression,log.currentSource()),false);
+                addAuxVariable(dec,syms.longType,trSpecExpr(loopspec.expression,log.currentSourceFile()),false);
             }
         }
         
@@ -2083,7 +2084,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 String dec = "$$decreases" + "$" + p;
                 JCIdent v = newAuxIdent(dec,syms.longType,p,false);
                 JCExpression e = makeBinary(JCTree.GE,v,makeLiteral(0,p),p);
-                addAssert(Label.LOOP_DECREASES_NEGATIVE,trSpecExpr(e,log.currentSource()),p,currentBlock.statements,body.getStartPosition(),log.currentSource());
+                addAssert(Label.LOOP_DECREASES_NEGATIVE,trSpecExpr(e,log.currentSourceFile()),p,currentBlock.statements,body.getStartPosition(),log.currentSourceFile());
             }
         }
         
@@ -2109,7 +2110,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 JCIdent id = newAuxIdent(dec,syms.longType,loopspec.getStartPosition(),false);
                 JCExpression newexpr = loopspec.expression;
                 JCExpression e = makeBinary(JCTree.LT,newexpr,id,newexpr.getStartPosition());
-                addUntranslatedAssert(Label.LOOP_DECREASES,e,loopspec.getStartPosition(),bloopContinue.statements,end,log.currentSource()); // FIXME - track which continue is causing a problem?
+                addUntranslatedAssert(Label.LOOP_DECREASES,e,loopspec.getStartPosition(),bloopContinue.statements,end,log.currentSourceFile()); // FIXME - track which continue is causing a problem?
             }
         }
         
@@ -2147,9 +2148,9 @@ public class BasicBlocker extends JmlTreeScanner {
         if (loopSpecs == null) return;
         for (JmlStatementLoop loopspec: loopSpecs) {
             if (loopspec.token == JmlToken.LOOP_INVARIANT) {
-                JCExpression e = trSpecExpr(loopspec.expression,log.currentSource());
+                JCExpression e = trSpecExpr(loopspec.expression,log.currentSourceFile());
                 if (t == JmlToken.ASSUME) addAssume(label,e,currentBlock.statements,false);
-                else addAssert(label,e,loopspec.getStartPosition(),block.statements,usepos,log.currentSource());
+                else addAssert(label,e,loopspec.getStartPosition(),block.statements,usepos,log.currentSourceFile());
             }
         }
     }
@@ -2160,7 +2161,7 @@ public class BasicBlocker extends JmlTreeScanner {
             if (loopspec.token == JmlToken.LOOP_INVARIANT) {
                 JCExpression e = loopspec.expression;
                 if (t == JmlToken.ASSUME) addAssumeNoDefs(usepos,label,e,currentBlock.statements);
-                else addUntranslatedAssert(label,e,loopspec.getStartPosition(),block.statements,usepos,log.currentSource());
+                else addUntranslatedAssert(label,e,loopspec.getStartPosition(),block.statements,usepos,log.currentSourceFile());
             }
         }
     }
@@ -2313,9 +2314,9 @@ public class BasicBlocker extends JmlTreeScanner {
             if (loopspec.token == JmlToken.DECREASES) {
                 int p = loopspec.getStartPosition();
                 String dec = "$$decreases" + "$" + p;
-                JCIdent v = addAuxVariable(dec,syms.longType,trSpecExpr(loopspec.expression,log.currentSource()),false);
+                JCIdent v = addAuxVariable(dec,syms.longType,trSpecExpr(loopspec.expression,log.currentSourceFile()),false);
                 JCExpression e = makeBinary(JCTree.GE,v,makeLiteral(0,p),p);
-                addAssert(Label.LOOP_DECREASES_NEGATIVE,e,p,currentBlock.statements,body.getStartPosition(),log.currentSource()); // FIXME - track which continue is causing a problem?
+                addAssert(Label.LOOP_DECREASES_NEGATIVE,e,p,currentBlock.statements,body.getStartPosition(),log.currentSourceFile()); // FIXME - track which continue is causing a problem?
             }
         }
         // do the loop body
@@ -2339,9 +2340,9 @@ public class BasicBlocker extends JmlTreeScanner {
             if (loopspec.token == JmlToken.DECREASES) {
                 String dec = "$$decreases$" + loopspec.getStartPosition();
                 JCIdent id = newAuxIdent(dec,syms.longType,loopspec.getStartPosition(),false);
-                JCExpression newexpr = trSpecExpr(loopspec.expression,log.currentSource());
+                JCExpression newexpr = trSpecExpr(loopspec.expression,log.currentSourceFile());
                 JCExpression e = makeBinary(JCTree.LT,newexpr,id,newexpr.getStartPosition());
-                addAssert(Label.LOOP_DECREASES,e,loopspec.getStartPosition(),currentBlock.statements,body.getStartPosition(),log.currentSource()); // FIXME - track which continue is causing a problem?
+                addAssert(Label.LOOP_DECREASES,e,loopspec.getStartPosition(),currentBlock.statements,body.getStartPosition(),log.currentSourceFile()); // FIXME - track which continue is causing a problem?
             }
         }
         follows(bloopContinue,bloopEnd);
@@ -2822,7 +2823,7 @@ public class BasicBlocker extends JmlTreeScanner {
         // FIXME - for now turn cond into a JML assertion
         // FIXME - need a label for the assert statement
         // FIXME - set line and source
-        addAssert(Label.EXPLICIT_ASSERT, cond, that.cond.getStartPosition(), newstatements, that.cond.getStartPosition(),log.currentSource());
+        addAssert(Label.EXPLICIT_ASSERT, cond, that.cond.getStartPosition(), newstatements, that.cond.getStartPosition(),log.currentSourceFile());
     }
     
     public void visitApply(JCMethodInvocation that) { 
@@ -3299,7 +3300,7 @@ public class BasicBlocker extends JmlTreeScanner {
                         }
                     }
                     if (exprr == null) exprr = makeLiteral(true,pos);
-                    addAssert(Label.PRECONDITION,exprr,exprr.getStartPosition(),newstatements,pos,log.currentSource());
+                    addAssert(Label.PRECONDITION,exprr,exprr.getStartPosition(),newstatements,pos,log.currentSourceFile());
 
                     // Grap a copy of the map before we introduce havoced variables
                     oldMap = currentMap.copy();
@@ -3518,7 +3519,7 @@ public class BasicBlocker extends JmlTreeScanner {
 //        *  there may be more than one use of a JmlStoreRefArrayRange, e.g. a[2..3][4..5] or
 //        *  a.f[4..5].g[6..7]
         for (JmlMethodInfo.Entry entry: mi.assignables) {
-            JCExpression preCondition = trSpecExpr(entry.pre,log.currentSource()); // FIXME - fix this
+            JCExpression preCondition = trSpecExpr(entry.pre,log.currentSourceFile()); // FIXME - fix this
             for (JCTree sr: entry.storerefs) {
                 if (sr == null) {
                     Log.instance(context).error(pos,"jml.internal.error","Unexpected null store-ref in BasicBlocker.havocAssignables");
@@ -3529,7 +3530,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 if (sr instanceof JCIdent) {
                     JCIdent id = (JCIdent)sr;
                     if (id.sym.isStatic()) {  // FIXME - not correct for JML fields in interfaces
-                        JCExpression oldid = trSpecExpr(id,log.currentSource()); // FIXME
+                        JCExpression oldid = trSpecExpr(id,log.currentSourceFile()); // FIXME
                         JCIdent newid = newIdentIncarnation(id,npos); // new incarnation
                         // newid == precondition ? newid : oldid
                         JCExpression e = factory.at(pos).Conditional(preCondition,newid,oldid);
@@ -3571,7 +3572,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     } else if ((selected instanceof JCFieldAccess) && ((JCFieldAccess)selected).sym instanceof ClassSymbol) {
                         // do nothing
                     } else {
-                        selected = trSpecExpr(fa.selected,log.currentSource()); // FIXME
+                        selected = trSpecExpr(fa.selected,log.currentSourceFile()); // FIXME
                         isType = false;
                     }
 
@@ -3626,14 +3627,14 @@ public class BasicBlocker extends JmlTreeScanner {
                                 
                                 JCIdent arrayId = getArrayIdent(sr.type);
                                 
-                                array = trSpecExpr(array,log.currentSource()); // FIXME
+                                array = trSpecExpr(array,log.currentSourceFile()); // FIXME
                                 checkForNull(array,sr.pos,trueLiteral);
 
-                                JCExpression indexlo = trSpecExpr(ar.lo,log.currentSource()); // FIXME
+                                JCExpression indexlo = trSpecExpr(ar.lo,log.currentSourceFile()); // FIXME
                                 if (indexlo != null) checkArrayAccess(array,indexlo,sr.pos);
                                 else indexlo = zeroLiteral;
                                 
-                                JCExpression indexhi = trSpecExpr(ar.hi,log.currentSource()); // FIXME
+                                JCExpression indexhi = trSpecExpr(ar.hi,log.currentSourceFile()); // FIXME
                                 boolean above = false;
                                 if (indexhi != null) checkArrayAccess(array,indexhi,sr.pos);
                                 else {
@@ -3684,7 +3685,7 @@ public class BasicBlocker extends JmlTreeScanner {
 //                                JmlQuantifiedExpr quant = factory.at(sr.pos).JmlQuantifiedExpr(JmlToken.BSFORALL,null,factory.Type(syms.intType),ns,fullRange,assign);
 //
 //                                JCIdent nid = newArrayIncarnation(sr.type,npos);                            
-//                                JmlQuantifiedExpr trQuant = (JmlQuantifiedExpr)trSpecExpr(quant,log.currentSource()); // FIXME
+//                                JmlQuantifiedExpr trQuant = (JmlQuantifiedExpr)trSpecExpr(quant,log.currentSourceFile()); // FIXME
 //                                // Now we fix up the expression
 //                                JCExpression predicate = trQuant.predicate;
 //                                JCBinary bin = (JCBinary)predicate;
@@ -3704,10 +3705,10 @@ public class BasicBlocker extends JmlTreeScanner {
                                 // single element
                                 // a'[i] = preCondition ? a'[i] : a[i];
 
-                                array = trSpecExpr(array,log.currentSource()); // FIXME
+                                array = trSpecExpr(array,log.currentSourceFile()); // FIXME
                                 checkForNull(array,sr.pos,trueLiteral);
 
-                                JCExpression index = trSpecExpr(ar.lo,log.currentSource()); // FIXME
+                                JCExpression index = trSpecExpr(ar.lo,log.currentSourceFile()); // FIXME
                                 checkArrayAccess(array,index,sr.pos);
 
                                 JCIdent arrayID = getArrayIdent(sr.type);
@@ -3892,7 +3893,7 @@ public class BasicBlocker extends JmlTreeScanner {
 
         } else if (that.token == JmlToken.UNREACHABLE) {
             JCExpression expr = makeLiteral(false,that.getStartPosition());
-            addAssert(Label.UNREACHABLE,expr,that.getStartPosition(),currentBlock.statements,that.getStartPosition(),log.currentSource());
+            addAssert(Label.UNREACHABLE,expr,that.getStartPosition(),currentBlock.statements,that.getStartPosition(),log.currentSourceFile());
         } else if (that.token == JmlToken.HENCE_BY) {
             log.error("esc.not.implemented","hence_by is in BasicBlocker");
         } else {
@@ -4080,7 +4081,7 @@ public class BasicBlocker extends JmlTreeScanner {
             JCExpression e = makeBinary(JCTree.NE,that.rhs,zeroLiteral,that.rhs.pos);
             e = makeJmlBinary(JmlToken.IMPLIES,condition,e,that.rhs.pos);
             addAssert(inSpecExpression?Label.UNDEFINED_DIV0:Label.POSSIBLY_DIV0,
-                    e,that.pos,currentBlock.statements,that.pos,log.currentSource());
+                    e,that.pos,currentBlock.statements,that.pos,log.currentSourceFile());
         }
     }
     
@@ -4096,7 +4097,7 @@ public class BasicBlocker extends JmlTreeScanner {
             inst = makeBinary(JCTree.OR,nnull,inst,that.pos);
             JCExpression test = makeJmlBinary(JmlToken.IMPLIES,condition,inst,e.getStartPosition());
             addAssert(inSpecExpression?Label.UNDEFINED_BADCAST:Label.POSSIBLY_BADCAST,
-                    test,that.pos,currentBlock.statements,that.pos,log.currentSource());
+                    test,that.pos,currentBlock.statements,that.pos,log.currentSourceFile());
 
             addClassPredicate(type);
             JCLiteral lit = makeTypeLiteral(type,that.getType().getStartPosition());
@@ -4129,7 +4130,7 @@ public class BasicBlocker extends JmlTreeScanner {
         JCExpression e = makeBinary(JCTree.NE,objTrans,nullLiteral,pos);
         e = makeJmlBinary(JmlToken.IMPLIES,c,e,pos);
         addAssert(inSpecExpression?Label.UNDEFINED_NULL:Label.POSSIBLY_NULL,
-                e,pos,currentBlock.statements,pos,log.currentSource());
+                e,pos,currentBlock.statements,pos,log.currentSourceFile());
     }
     
     protected void checkArrayAccess(JCExpression arrayTrans, JCExpression indexTrans, int pos) {
@@ -4140,7 +4141,7 @@ public class BasicBlocker extends JmlTreeScanner {
         JCExpression e = makeBinary(JCTree.GE,index,zeroLiteral,index.pos);
         e = makeJmlBinary(JmlToken.IMPLIES,condition,e,e.pos);
         addAssert(inSpecExpression?Label.UNDEFINED_NEGATIVEINDEX:Label.POSSIBLY_NEGATIVEINDEX,
-                e,pos,currentBlock.statements,pos,log.currentSource());
+                e,pos,currentBlock.statements,pos,log.currentSourceFile());
         
         // Require  that.index is not too large
         e = new JmlBBFieldAccess(lengthIdent,arrayTrans);
@@ -4149,7 +4150,7 @@ public class BasicBlocker extends JmlTreeScanner {
         e = makeBinary(JCTree.LT,index,e,index.pos);
         e = makeJmlBinary(JmlToken.IMPLIES,condition,e,e.pos);
         addAssert(inSpecExpression?Label.UNDEFINED_TOOLARGEINDEX:Label.POSSIBLY_TOOLARGEINDEX,
-                e,pos,currentBlock.statements,pos,log.currentSource());
+                e,pos,currentBlock.statements,pos,log.currentSourceFile());
     }
     
     public void visitSelect(JCFieldAccess that) {
@@ -5325,8 +5326,8 @@ public class BasicBlocker extends JmlTreeScanner {
          * @param pos the position information to translate
          * @return A String containing human-readable source location information
          */
-        public String getPosition(int pos) {
-            return log.currentSource().getName() + ":" + log.getLineNumber(pos) + " (col " + log.getColumnNumber(pos) + "): ";
+        public String getPosition(int pos) { // TODO - check about the second argument of getColumnNumber
+            return log.currentSourceFile().getName() + ":" + log.currentSource().getLineNumber(pos) + " (col " + log.currentSource().getColumnNumber(pos,false) + "): ";
         }
         
         /** The constructor for this class
@@ -5468,8 +5469,8 @@ public class BasicBlocker extends JmlTreeScanner {
          * @param pos the position information to translate
          * @return A String containing human-readable source location information
          */
-        public String getPosition(int pos) {
-            return log.currentSource().getName() + ":" + log.getLineNumber(pos) + " (col " + log.getColumnNumber(pos) + "): \t";
+        public String getPosition(int pos) {  // TODO - check about the second argument of getColumnNumber
+            return log.currentSourceFile().getName() + ":" + log.currentSource().getLineNumber(pos) + " (col " + log.currentSource().getColumnNumber(pos,false) + "): \t";
         }
         
         /** The constructor for this class
@@ -5765,7 +5766,7 @@ public class BasicBlocker extends JmlTreeScanner {
         Context context;
         IProver prover;
         JmlTree.Maker factory;
-        Name.Table names;
+        Names names;
         Symtab syms;
         final String prefix = "X$$$";
         StringBuilder builder;
@@ -5837,7 +5838,7 @@ public class BasicBlocker extends JmlTreeScanner {
         
         public String getType(String eid) {
             try {
-                JCIdent expr = factory.Ident(Name.Table.instance(context).fromString(eid));
+                JCIdent expr = factory.Ident(Names.instance(context).fromString(eid));
                 expr.type = syms.objectType;
                 JCExpression e = factory.at(0).JmlMethodInvocation(JmlToken.BSTYPEOF,expr);
                 e.type = syms.classType;
@@ -5865,7 +5866,7 @@ public class BasicBlocker extends JmlTreeScanner {
             this.context = context;
             this.prover = prover;
             this.factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
-            this.names = Name.Table.instance(context);
+            this.names = Names.instance(context);
             this.syms = Symtab.instance(context);
             builder = new StringBuilder();
             

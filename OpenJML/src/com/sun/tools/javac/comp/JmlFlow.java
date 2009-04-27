@@ -78,7 +78,7 @@ public class JmlFlow extends Flow {
         JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(tree.sym);
         if (tspecs == null) return;
         
-        JavaFileObject prev = Log.instance(context).currentSource();
+        JavaFileObject prev = Log.instance(context).currentSourceFile();
         try {
             for (JmlTypeClause c : tspecs.clauses) {
                 if (c instanceof JmlTypeClauseDecl) {

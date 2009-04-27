@@ -13,6 +13,7 @@ import org.jmlspecs.openjml.JmlSpecs;
 import tests.JmlTestCase.FilteredDiagnosticCollector;
 
 import com.sun.tools.javac.comp.JmlEnter;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
@@ -83,7 +84,7 @@ public abstract class TCBase extends JmlTestCase {
             int k = 0;
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
                 if (k >= list.length) break;
-                assertEquals("Message " + i + " mismatch",list[k++],dd.toString());
+                assertEquals("Message " + i + " mismatch",list[k++],noSource(dd));
                 if (k >= list.length) break;
                 assertEquals("Column for message " + i,((Integer)list[k++]).intValue(),dd.getColumnNumber());
                 i++;

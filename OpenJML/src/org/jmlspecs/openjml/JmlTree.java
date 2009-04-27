@@ -183,7 +183,7 @@ public class JmlTree {
             // where A -> B means A constructs B during A's construction.  This results in TreeMaker.ClassDef
             // begin called with a null context during TreeMaker's construction
             if (context != null) 
-                tree.sourcefile = Log.instance(context).currentSource();
+                tree.sourcefile = Log.instance(context).currentSourceFile();
             else {
                 System.err.println("INTERNAL ERROR: JmlTree.ClassDef called with a null context, indicating a problem with circular dependencies in constructors.");
                 new Exception().printStackTrace(System.err);
@@ -203,7 +203,7 @@ public class JmlTree {
                 JCExpression defaultValue) {
             JmlMethodDecl tree = new JmlMethodDecl(mods,name,restype,typarams,params,thrown,body,defaultValue,null);
             tree.pos = pos;
-            tree.sourcefile = Log.instance(context).currentSource();
+            tree.sourcefile = Log.instance(context).currentSourceFile();
             return tree;
         }
         
@@ -231,7 +231,7 @@ public class JmlTree {
             JmlVariableDecl tree =  new JmlVariableDecl(mods,name,vartype,init,null);
             tree.pos = pos;
             tree.type = vartype.type; // attribute if the type is known
-            tree.sourcefile = Log.instance(context).currentSource();
+            tree.sourcefile = Log.instance(context).currentSourceFile();
             return tree;
         }
 
@@ -383,7 +383,7 @@ public class JmlTree {
 
         public JmlTypeClauseExpr JmlTypeClauseExpr(JCModifiers mods, JmlToken token, JCTree.JCExpression e) {
             JmlTypeClauseExpr t = new JmlTypeClauseExpr(pos,mods,token,e);
-            t.source = Log.instance(context).currentSource();
+            t.source = Log.instance(context).currentSourceFile();
             return t;
         }
         
@@ -396,19 +396,19 @@ public class JmlTree {
         
         public JmlTypeClauseDecl JmlTypeClauseDecl(JCTree tt) {
             JmlTypeClauseDecl t = new JmlTypeClauseDecl(pos,tt);
-            t.source = Log.instance(context).currentSource();
+            t.source = Log.instance(context).currentSourceFile();
             return t;
         }
         
         public JmlTypeClauseInitializer JmlTypeClauseInitializer(JmlToken token) {
             JmlTypeClauseInitializer t = new JmlTypeClauseInitializer(pos, token);
-            t.source = Log.instance(context).currentSource();
+            t.source = Log.instance(context).currentSourceFile();
             return t;
         }
         
         public JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCTree.JCExpression e, List<JmlConstraintMethodSig> sigs) {
             JmlTypeClauseConstraint t = new JmlTypeClauseConstraint(pos,mods,e,sigs);
-            t.source = Log.instance(context).currentSource();
+            t.source = Log.instance(context).currentSourceFile();
             return t;
         }
         
@@ -419,19 +419,19 @@ public class JmlTree {
         
         public JmlTypeClauseRepresents JmlTypeClauseRepresents(JCModifiers mods, JCTree.JCExpression ident, boolean suchThat, JCTree.JCExpression e) {
             JmlTypeClauseRepresents t = new JmlTypeClauseRepresents(pos, mods, ident,suchThat,e);
-            t.source = Log.instance(context).currentSource();
+            t.source = Log.instance(context).currentSourceFile();
             return t;
         }
 
         public JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, JmlToken token, JCTree.JCIdent ident, JCTree.JCExpression p) {
             JmlTypeClauseConditional t = new JmlTypeClauseConditional(pos, mods, token,ident,p);
-            t.source = Log.instance(context).currentSource();
+            t.source = Log.instance(context).currentSourceFile();
             return t;
         }
 
         public JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, ListBuffer<JCTree.JCExpression> list) {
             JmlTypeClauseMonitorsFor t = new JmlTypeClauseMonitorsFor(pos, mods, ident, list);
-            t.source = Log.instance(context).currentSource();
+            t.source = Log.instance(context).currentSourceFile();
             return t;
         }
 
@@ -465,7 +465,7 @@ public class JmlTree {
 
         public JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlToken t, JmlToken also, List<JmlMethodClause> clauses) {
             JmlSpecificationCase jcase = new JmlSpecificationCase(pos,mods,code,t,also,clauses);
-            jcase.sourcefile = Log.instance(context).currentSource();
+            jcase.sourcefile = Log.instance(context).currentSourceFile();
             return jcase;
         }
         
@@ -483,13 +483,13 @@ public class JmlTree {
         
         public JmlTypeClauseIn JmlTypeClauseIn(List<JmlGroupName> list) {
             JmlTypeClauseIn r = new JmlTypeClauseIn(pos,list);
-            r.source = Log.instance(context).currentSource();
+            r.source = Log.instance(context).currentSourceFile();
             return r;
         }
         
         public JmlTypeClauseMaps JmlTypeClauseMaps(JCExpression e, List<JmlGroupName> list) {
             JmlTypeClauseMaps r = new JmlTypeClauseMaps(pos,e,list);
-            r.source = Log.instance(context).currentSource();
+            r.source = Log.instance(context).currentSourceFile();
             return r;
         }
 

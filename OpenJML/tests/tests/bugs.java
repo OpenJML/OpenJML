@@ -31,7 +31,7 @@ public class bugs extends TCBase {
     
     public void testMiscBug3() {
         helpTCF("A.java","public class A { //@ ensures \\result[1].equals(b(c)); \n Object[] m(int j) { return null; } String N; StringBuffer a; int[] q; }"
-        ,"/A.java:1: cannot find symbol\nsymbol  : variable c\nlocation: class A",50);
+        ,"/A.java:1: cannot find symbol\n  symbol:   variable c\n  location: class A",50);
     }
     
     public void testMiscBug4() {

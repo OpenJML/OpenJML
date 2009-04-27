@@ -27,6 +27,7 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javadoc.ClassDocImpl;
 import com.sun.tools.javadoc.DocEnv;
 import com.sun.tools.javadoc.FieldDocImpl;
@@ -79,7 +80,7 @@ public class FieldWriterJml extends FieldWriterImpl {
      */
     public void writeJmlSpecs(@NonNull FieldDoc field) {
         Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
-        Name newFieldName = Name.Table.instance(context).fromString(field.name());
+        Name newFieldName = Names.instance(context).fromString(field.name());
         VarSymbol newField = (VarSymbol)currentClassSym.members().lookup(newFieldName).sym;
         //System.out.println("Sym " + newField + " for " + newFieldName + " in " + currentClassSym);
         if (newField == null) return; // Inherited Java fxields?
@@ -88,7 +89,7 @@ public class FieldWriterJml extends FieldWriterImpl {
         // FIXME - if the only specs are represent clauses, this won't print them
         String s = Utils.jmlAnnotations(newField);
         if (fspecs != null && (!fspecs.list.isEmpty() || !s.isEmpty()) ){  // FIXME - what if there are JML annotations but no clauses
-            bold("JML Specifications: ");
+            strong("JML Specifications: ");
             writer.print(s);
             writer.dl();
             writer.preNoNewLine();
@@ -280,7 +281,7 @@ public class FieldWriterJml extends FieldWriterImpl {
         if (list.isEmpty()) return;
         
         writer.br();
-        writer.bold("<A HREF=\"#JmlRepresentsClauses\">Represents specification of super class fields</A>: ");
+        writer.strong("<A HREF=\"#JmlRepresentsClauses\">Represents specification of super class fields</A>: ");
         //Collections.sort(list);
         boolean isFirst = true;
         for (JmlTypeClauseRepresents tr: list) {
@@ -359,7 +360,7 @@ public class FieldWriterJml extends FieldWriterImpl {
         
         if (!list.isEmpty()) {
             writer.br();
-            writer.bold("Inherited JML ghost and model fields: ");
+            writer.strong("Inherited JML ghost and model fields: ");
             Collections.sort(list);
             boolean isFirst = true;
             for (FieldDoc field: list) {

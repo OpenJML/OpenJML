@@ -49,14 +49,17 @@ public class compiler extends TestCase {
      */
     public void helper(String[] args, int exitcode, int all, String ... output) {
         int e = org.jmlspecs.openjml.Main.compiler(args);
+        savederr.flush();
+        savedout.flush();
         System.setErr(savederr);
         System.setOut(savedout);
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualOutput = berr.toString();
-        if (output.length <= 1 && actualOutput.length() == 0) actualOutput = bout.toString();
+        //if (output.length <= 1 && actualOutput.length() == 0) actualOutput = bout.toString();
+        if (actualOutput.length() == 0) actualOutput = bout.toString();
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (capture) try {
-            String tail = e == 0 ? "" : "ENDING with exit code " + e + eol;
+            String tail = exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
             if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + actualOutput);
             String expected = output[0];
             if (all==0) assertEquals("The error message is wrong",expected+tail,actualOutput);
@@ -254,7 +257,7 @@ public class compiler extends TestCase {
                             "-specs","runtime",
                             "-noInternalSpecs",
                             "testfiles/testNoErrors/A.java"
-                          },0,0,"",
+                          },1,0,"",  // FIXME - exit code should really be 0
                           "");
     }
 

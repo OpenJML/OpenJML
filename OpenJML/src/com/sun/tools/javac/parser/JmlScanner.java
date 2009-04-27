@@ -7,11 +7,13 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlOptionName;
 import org.jmlspecs.openjml.JmlToken;
 
+import sun.misc.resources.Messages;
+
 import com.sun.tools.javac.parser.Scanner.CommentStyle;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.LayoutCharacters;
-import com.sun.tools.javac.util.Messages;
 import com.sun.tools.javac.util.Name;
 
 /* FIXME - oddities in the Scanner class
@@ -40,7 +42,7 @@ import com.sun.tools.javac.util.Name;
  * No other changes to Scanner are made, which does require a few complicating
  * workarounds in this code (and probably ought to be redesigned to be simpler
  * to understand and maintain).
- *
+ * 
  * @author David Cok
  */
 public class JmlScanner extends DocCommentScanner {
@@ -71,7 +73,7 @@ public class JmlScanner extends DocCommentScanner {
         protected JmlFactory(Context context) {
             super(context);
             this.context = context;
-            jmlMessageFactory = new JCDiagnostic.Factory(Messages
+            jmlMessageFactory = new JCDiagnostic.Factory(JavacMessages
                     .instance(context), "jml");
         }
 
@@ -94,7 +96,8 @@ public class JmlScanner extends DocCommentScanner {
         /*
          * (non-Javadoc)
          * 
-         * @see com.sun.tools.javac.parser.Scanner.Factory#newScanner(java.lang.CharSequence)
+         * @seecom.sun.tools.javac.parser.Scanner.Factory#newScanner(java.lang.
+         * CharSequence)
          */
         @Override
         public Scanner newScanner(CharSequence input) {
@@ -110,7 +113,7 @@ public class JmlScanner extends DocCommentScanner {
          * (non-Javadoc)
          * 
          * @see com.sun.tools.javac.parser.Scanner.Factory#newScanner(char[],
-         *      int)
+         * int)
          */
         @Override
         public Scanner newScanner(char[] input, int inputLength) {
@@ -125,19 +128,19 @@ public class JmlScanner extends DocCommentScanner {
      * A flag that, when true, causes all JML constructs to be ignored; it is
      * set on construction according to a command-line option.
      */
-    public boolean         noJML         = false;
+    public boolean         noJML      = false;
 
     /** Set to true internally while the scanner is within a JML comment */
-    protected boolean      jml           = false;
+    protected boolean      jml        = false;
 
     /**
      * When jml is true, then (non-backslash) JML keywords are recognized if
-     * jmlkeyword is true and not if jmlkeyword is false; this is set by the parser
-     * according to whether non-backslash JML tokens should be recognized in the
-     * current parser state (e.g. such tokens are not recognized while within
-     * expressions).
+     * jmlkeyword is true and not if jmlkeyword is false; this is set by the
+     * parser according to whether non-backslash JML tokens should be recognized
+     * in the current parser state (e.g. such tokens are not recognized while
+     * within expressions).
      */
-    protected boolean      jmlkeyword    = true;
+    protected boolean      jmlkeyword = true;
 
     /**
      * Set by the scanner to the style of comment, either CommentStyle.LINE or
@@ -146,12 +149,12 @@ public class JmlScanner extends DocCommentScanner {
     protected CommentStyle jmlcommentstyle;
 
     /** Valid after nextToken() */
-    //@ nullable
+    // @ nullable
     protected JmlToken     jmlToken;
 
     /**
-     * Creates a new scanner, but you should use JmlFactory.newScanner()
-     * to get one, not this constructor.
+     * Creates a new scanner, but you should use JmlFactory.newScanner() to get
+     * one, not this constructor.
      * 
      * @param fac
      *            The factory generating the scanner
@@ -167,8 +170,8 @@ public class JmlScanner extends DocCommentScanner {
     }
 
     /**
-     * Creates a new scanner, but you should use JmlFactory.newScanner()
-     * to get one, not this constructor.
+     * Creates a new scanner, but you should use JmlFactory.newScanner() to get
+     * one, not this constructor.
      * 
      * @param fac
      *            The factory generating the scanner
@@ -191,8 +194,11 @@ public class JmlScanner extends DocCommentScanner {
         jml = j;
     }
 
-    /** Sets the keyword mode
-     * @param j the new value of the keyword mode
+    /**
+     * Sets the keyword mode
+     * 
+     * @param j
+     *            the new value of the keyword mode
      */
     public void setJmlKeyword(boolean j) {
         jmlkeyword = j;
@@ -204,13 +210,14 @@ public class JmlScanner extends DocCommentScanner {
      * @return the JML token for the most recent scan, null if the token is
      *         purely a Java token
      */
-    //@ pure nullable
+    // @ pure nullable
     public JmlToken jmlToken() {
         return jmlToken;
     }
 
     // This is called whenever the Java (superclass) scanner has scanned a whole
-    // comment. We override it in order to handle JML comments specially. The overridden
+    // comment. We override it in order to handle JML comments specially. The
+    // overridden
     // method returns and proceeds immediately to scan for the next token. Thus
     // we have to trick it into seeing a token that is mapped into the
     // STARTJMLCOMMENT token - we use an @ token along with jml=true to signal
@@ -223,7 +230,7 @@ public class JmlScanner extends DocCommentScanner {
         // an empty line comment can be just two characters.
         if (noJML || style == CommentStyle.JAVADOC) {
             super.processComment(style);
-            //System.out.println("Processed " + docComment);
+            // System.out.println("Processed " + docComment);
             return;
         }
 
@@ -238,14 +245,14 @@ public class JmlScanner extends DocCommentScanner {
         scanChar(); // the / or *
         if (bp >= end)
             return; // This can happen if there is a // right at the end of the
-                    // line
+        // line
         int k = bp;
         scanChar();
         if (ch == '+') { // Also accept //+@ as the beginning of a JML
-                            // annotation
+            // annotation
             scanChar();
         }
-        
+
         // If there is not an '@' next, there is no JML comment
         if (ch != '@') {
             // Restart at the end
@@ -267,13 +274,14 @@ public class JmlScanner extends DocCommentScanner {
 
         if (jml) {
             // We are already in a JML comment - so we have an embedded comment.
-            // The action is to just ignore the embedded comment start characters.
+            // The action is to just ignore the embedded comment start
+            // characters.
             return;
         }
 
         jmlcommentstyle = style;
         bp = k; // Backup one character, so we show an @ to signal the beginning
-                // of the JML comment
+        // of the JML comment
         ch = '@';
         jml = true;
         return;
@@ -295,9 +303,11 @@ public class JmlScanner extends DocCommentScanner {
      * declaration)
      */
     // TODO: We do quite a bit of hackery here to avoid changes in the Scanner.
-    // We did however have to change some permissions, so perhaps we should have bitten
+    // We did however have to change some permissions, so perhaps we should have
+    // bitten
     // the bullet and just combined all of this into a revised scanner. It would
-    // have not made possible our goal of keeping changes in the javac code minimal,
+    // have not made possible our goal of keeping changes in the javac code
+    // minimal,
     // for maintenance reasons, but it would have made for a simpler and more
     // understandable and better designed JML scanner.
     @Override
@@ -310,7 +320,8 @@ public class JmlScanner extends DocCommentScanner {
             // Possible situations at this point
             // a) token != CUSTOM, token != null, jmlToken == null, jml == false
             // (a Java token)
-            // b) token == MONKEYS_AT, jml == true (STARTJMLTOKEN) - from processComment
+            // b) token == MONKEYS_AT, jml == true (STARTJMLTOKEN) - from
+            // processComment
             // In case (b) there are a number of special things to check
             // 1) the next token is REFINES - then set token=IMPORT,
             // jmlToken=REFINES (and read the token)
@@ -329,7 +340,7 @@ public class JmlScanner extends DocCommentScanner {
                 super.nextToken();
                 while (jmlToken == JmlToken.NOWARN) {
                     scanNowarn();
-                        // The scanner is just past the terminating semicolon
+                    // The scanner is just past the terminating semicolon
                     prevch = ch;
                     prevbp = bp;
                     prevpos = _pos;
@@ -341,22 +352,23 @@ public class JmlScanner extends DocCommentScanner {
                 // TODO - do we need to check the commentstyle here?
                 if (token() == Token.STAR && ch == '/') {
                     // We just saw a JML comment start, and now we
-                    // are seeing a comment end.  We will just ignore
-                    // both of them.  Note that we may have read a
+                    // are seeing a comment end. We will just ignore
+                    // both of them. Note that we may have read a
                     // nowarn in between.
-                    scanChar(); // read  the slash
+                    scanChar(); // read the slash
                     jml = false;
                     nextToken();
                     return;
                 } else if (jmlToken == JmlToken.REFINES) {
                     token(Token.IMPORT); // A real hack to trick
-                                            // importDeclaration into parsing
-                                            // this
+                    // importDeclaration into parsing
+                    // this
                 } else if (jmlToken == JmlToken.MODEL) {
                     super.nextToken();
                     docComment = dc;
                     if (!jml) {
-                        // TODO - what if it is a model variable or method or class that is not in a JML comment
+                        // TODO - what if it is a model variable or method or
+                        // class that is not in a JML comment
                         // error - the entire model import statement must be in
                         // the JML comment
                         jmlError(_pos, "jml.illformed.model.import");
@@ -373,31 +385,34 @@ public class JmlScanner extends DocCommentScanner {
                         jmlToken = JmlToken.STARTJMLCOMMENT;
                     }
                 } else if (!jml && token() == Token.MONKEYS_AT) {
-                    // We are possibly seeing the end of the comment.  If so,
+                    // We are possibly seeing the end of the comment. If so,
                     // it was an empty comment (except for possible nowarns).
                     // We ignore both the start and end and advance to the
                     // next token.
                     if (!jml && jmlcommentstyle == CommentStyle.LINE) {
                         // This is the end of a LINE comment
                         // jml is already false and we are seeing an @ character
-                        // because processLineTermination did that to signal this
+                        // because processLineTermination did that to signal
+                        // this
                         // code here. The @ symbol is not really in the input
                         // stream.
                         jml = false;
                         nextToken();
                     } else if (jmlcommentstyle == CommentStyle.BLOCK
                             && (ch == '*' || ch == '@')) {
-                        // This is the end of a BLOCK comment. We have seen a real
+                        // This is the end of a BLOCK comment. We have seen a
+                        // real
                         // @;
                         // there may be more @s and then the * and /
                         while (ch == '@')
                             scanChar();
                         if (ch != '*') {
-                            // FIXME - should really report this as a legal series
+                            // FIXME - should really report this as a legal
+                            // series
                             // of AT tokens
                             jmlError(bp - 1, "jml.unexpected.at.symbols");
                             nextToken(); // recursively try to find the next
-                                            // token
+                            // token
                             return;
                         } else {
                             scanChar();
@@ -502,7 +517,7 @@ public class JmlScanner extends DocCommentScanner {
                         // of AT tokens
                         jmlError(bp - 1, "jml.unexpected.at.symbols");
                         nextToken(); // recursively try to find the next
-                                        // token
+                        // token
                         return;
                     } else {
                         scanChar();
@@ -574,80 +589,97 @@ public class JmlScanner extends DocCommentScanner {
             }
         }
 
-//         if (Utils.jmldebug)
-//         System.out.println("NEXT TOKEN " + token() + " " +
-//         (token()!=Token.CUSTOM?"":jmlToken) + " " + pos() + " " + endPos());
+        // if (Utils.jmldebug)
+        // System.out.println("NEXT TOKEN " + token() + " " +
+        // (token()!=Token.CUSTOM?"":jmlToken) + " " + pos() + " " + endPos());
     }
 
     public void scanNowarn() {
-        //int nowarnPos = pos();
-        JavaFileObject file = log.currentSource();
-        while (ch == ' ' || ch == '\t' || ch == LayoutCharacters.FF) scanChar(); // skip spaces
+        // int nowarnPos = pos();
+        JavaFileObject file = log.currentSourceFile();
+        while (ch == ' ' || ch == '\t' || ch == LayoutCharacters.FF)
+            scanChar(); // skip spaces
         while (Character.isLetter(ch)) {
             int p = bp;
-            do { scanChar(); } while (Character.isLetter(ch)) ;
-            String label = String.valueOf(buf,p,bp-p);  // TODO Check this for unicode 
-            handleNowarn(file,p,label);
-            
-            while (ch == ' ' || ch == '\t' || ch == LayoutCharacters.FF || ch == ',') scanChar(); // skip spaces
-                    // The above allows 0, 1, or more commas.  JML technically allows exactly one.
-            if ((jmlcommentstyle == CommentStyle.BLOCK && ch == '*' && buf[bp+1] == '/')
+            do {
+                scanChar();
+            } while (Character.isLetter(ch));
+            String label = String.valueOf(buf, p, bp - p); // TODO Check this
+                                                           // for unicode
+            handleNowarn(file, p, label);
+
+            while (ch == ' ' || ch == '\t' || ch == LayoutCharacters.FF
+                    || ch == ',')
+                scanChar(); // skip spaces
+            // The above allows 0, 1, or more commas. JML technically allows
+            // exactly one.
+            if ((jmlcommentstyle == CommentStyle.BLOCK && ch == '*' && buf[bp + 1] == '/')
                     || (jmlcommentstyle == CommentStyle.LINE && (ch == '\n' || ch == '\r'))) {
-                log.warning(pos(),"jml.nowarn.with.no.semicolon");
-                // End of comment - though not for unicode or for @*/ termination
-                // but there is really supposed to be a semicolon anyway, so this
+                log.warning(pos(), "jml.nowarn.with.no.semicolon");
+                // End of comment - though not for unicode or for @*/
+                // termination
+                // but there is really supposed to be a semicolon anyway, so
+                // this
                 // is just for helpfulness
                 return;
             }
         }
         if (ch != ';') {
             // Bad statement or missing terminating semicolon
-            log.error(bp,"jml.bad.nowarn");
+            log.error(bp, "jml.bad.nowarn");
             // skip through a semicolon
-            while (ch != ';' && ch != LayoutCharacters.EOI && ch != '\n' && ch != '\r') scanChar();
+            while (ch != ';' && ch != LayoutCharacters.EOI && ch != '\n'
+                    && ch != '\r')
+                scanChar();
         } else {
             scanChar();
         }
     }
-    
-    /** This method is called internally when a nowarn lexical pragma is scanned;
-     * it is called once for each label in the pragma.
-     * Implement it to do something useful eventually.  Now it is a noop.
-     * @param file The file being scanned
-     * @param pos The 0-based character position of the label
-     * @param label The label in the pragma
+
+    /**
+     * This method is called internally when a nowarn lexical pragma is scanned;
+     * it is called once for each label in the pragma. Implement it to do
+     * something useful eventually. Now it is a noop.
+     * 
+     * @param file
+     *            The file being scanned
+     * @param pos
+     *            The 0-based character position of the label
+     * @param label
+     *            The label in the pragma
      */
     protected void handleNowarn(JavaFileObject file, int pos, String label) {
-        //System.out.println("NOWARN " + nowarnPos + " " + label);
+        // System.out.println("NOWARN " + nowarnPos + " " + label);
         // TODO - eventually do something here
     }
-    
 
     /*
-     * Scans the next character, doing any unicode conversion. The
-     * buffer pointer is incremented BEFORE fetching the character. So except
-     * for unicode and backslash issues, after this call, buf[bp] == ch; This
-     * does not set pos() or endPos().  If the character scanned is unicode,
-     * then upon return, bp points to the last character of the unicode 
-     * sequence within the character buffer (buf).  Also, if the character
-     * just scanned is unicode, then unicodeConversionBp == bp.  This enables
-     * a check (via the test unicodeConversionBp == bp) of whether the character
-     * just scanned is unicode and hence not allowed to be the backslash that
-     * starts a new unicode sequence.
+     * Scans the next character, doing any unicode conversion. The buffer
+     * pointer is incremented BEFORE fetching the character. So except for
+     * unicode and backslash issues, after this call, buf[bp] == ch; This does
+     * not set pos() or endPos(). If the character scanned is unicode, then upon
+     * return, bp points to the last character of the unicode sequence within
+     * the character buffer (buf). Also, if the character just scanned is
+     * unicode, then unicodeConversionBp == bp. This enables a check (via the
+     * test unicodeConversionBp == bp) of whether the character just scanned is
+     * unicode and hence not allowed to be the backslash that starts a new
+     * unicode sequence.
      */
     @Override
     protected void scanChar() {
         super.scanChar();
     }
 
-    /* Overrides the superclass method in order to denote a backslash as
-     * special.  This lets scanOperator detect the JML backslash keywords.
-     * Otherwise the backslash is reported as an illegal character.  This
-     * does not affect scanning literals or unicode conversion.
+    /*
+     * Overrides the superclass method in order to denote a backslash as
+     * special. This lets scanOperator detect the JML backslash keywords.
+     * Otherwise the backslash is reported as an illegal character. This does
+     * not affect scanning literals or unicode conversion.
      */
     @Override
     protected boolean isSpecial(char ch) {
-        if (ch == '\\') return true;
+        if (ch == '\\')
+            return true;
         return super.isSpecial(ch);
     }
 
@@ -683,11 +715,11 @@ public class JmlScanner extends DocCommentScanner {
             checkForDotDot();
     }
 
-    /** The superclass scanner calls .. illegal.  Ideally it would report
-     * two separate DOT tokens, but since .. cannot occur in a Java program,
-     * we get an error message.  .. is legal JML, in the right context, so
-     * we have to do some special stuff to preclude the super class from
-     * flagging this.
+    /**
+     * The superclass scanner calls .. illegal. Ideally it would report two
+     * separate DOT tokens, but since .. cannot occur in a Java program, we get
+     * an error message. .. is legal JML, in the right context, so we have to do
+     * some special stuff to preclude the super class from flagging this.
      */
     public void checkForDotDot() {
         if (ch == '.' && buf[bp + 1] == '.' && buf[bp + 2] != '.') {
@@ -738,7 +770,7 @@ public class JmlScanner extends DocCommentScanner {
      */
     @Override
     protected void scanOperator() {
-        if (jml && ch == '\\') { 
+        if (jml && ch == '\\') {
             // backslash identifiers get redirected here since a \ itself is an
             // error in pure Java
             int ep = pos();
@@ -842,9 +874,12 @@ public class JmlScanner extends DocCommentScanner {
         }
     }
 
-    /** Reads characters up to an EOI or up to and through
-     * the specified character, which ever is first.
-     * @param c the character to look for
+    /**
+     * Reads characters up to an EOI or up to and through the specified
+     * character, which ever is first.
+     * 
+     * @param c
+     *            the character to look for
      */
     public void skipThroughChar(char c) {
         while (ch != c && ch != LayoutCharacters.EOI)
@@ -857,10 +892,10 @@ public class JmlScanner extends DocCommentScanner {
     // tagged as jml errors
     protected void jmlError(int pos, String key, Object... args) {
         lexError(pos, key, args);
-//         log.report(fac.jmlMessageFactory.error(log.source, log.wrap(pos),
-//         key, args));
-//         token(ERROR);
-//         errPos(pos);
+        // log.report(fac.jmlMessageFactory.error(log.source, log.wrap(pos),
+        // key, args));
+        // token(ERROR);
+        // errPos(pos);
     }
 
 }

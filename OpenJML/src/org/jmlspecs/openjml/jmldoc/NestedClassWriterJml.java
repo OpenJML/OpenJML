@@ -93,7 +93,7 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
         
         if (!list.isEmpty()) {
             writer.br();
-            writer.bold("Inherited JML model classes and interfaces: ");
+            writer.strong("Inherited JML model classes and interfaces: ");
             Collections.sort(list);
             boolean isFirst = true;
             for (ClassDoc method: list) {

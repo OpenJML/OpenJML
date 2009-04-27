@@ -16,6 +16,7 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.util.Options;
 
@@ -112,14 +113,23 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     }
 
 
- 
+    /** Prints a diagnostic as it is in an error or warning message, but without
+     * any source line.  This is how dd.toString() used to behave, but in OpenJDK
+     * build 55, toString also included the source information.  So we need to 
+     * wrap dd in this call (or change all of the tests).
+     * @param dd the diagnostic
+     * @return
+     */
+    protected String noSource(Diagnostic<? extends JavaFileObject> dd) {
+        return dd instanceof JCDiagnostic ? ((JCDiagnostic)dd).noSource() : dd.toString();
+    }
 
     
     /** Prints out the errors collected by the diagnostic listener */
     public void printErrors() {
         System.out.println("ERRORS " + collector.getDiagnostics().size() + " " + getName());
         for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
-            System.out.println(dd + " col=" + dd.getColumnNumber());
+            System.out.println(noSource(dd) + " col=" + dd.getColumnNumber());
         }
     }
 
@@ -134,7 +144,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         assertEquals("Saw wrong number of errors ",errors.length,diags.size());
         assertEquals("Saw wrong number of columns ",cols.length,diags.size());
         for (int i = 0; i<diags.size(); ++i) {
-            assertEquals("Node type for token " + i,errors[i],diags.get(i).toString());
+            assertEquals("Node type for token " + i,errors[i],noSource(diags.get(i)));
             assertEquals("Column number for token " + i,cols[i],diags.get(i).getColumnNumber()); // Column number is 1-based
         }
     }
@@ -150,7 +160,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
             if (print || 2*diags.size() != a.length) printErrors();
             assertEquals("Saw wrong number of errors ",a.length,2*diags.size());
             for (int i = 0; i<diags.size(); ++i) {
-                assertEquals("Node type for token " + i,a[2*i].toString(),diags.get(i).toString());
+                assertEquals("Node type for token " + i,a[2*i].toString(),noSource(diags.get(i)));
                 assertEquals("Column number for token " + i,((Integer)a[2*i+1]).intValue(),diags.get(i).getColumnNumber()); // Column number is 1-based
             }
         } catch (AssertionError ae) {

@@ -12,6 +12,7 @@ import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javadoc.ClassDocImpl;
 
 /** This class contains utility functions used by the rest of the package. */
@@ -35,7 +36,7 @@ public class Utils {
     public static Symbol annotationPackage() {
         Symbol s = annotationPackage;
         if (s == null) {
-            Name pn = Name.Table.instance(Main.jmlContext).fromString(packageString);
+            Name pn = Names.instance(Main.jmlContext).fromString(packageString);
             annotationPackage = Symtab.instance(Main.jmlContext).packages.get(pn);
         }
         return s;
@@ -99,7 +100,7 @@ public class Utils {
         if (classdoc instanceof ClassDocImpl) {
             ClassSymbol oldsym = ((ClassDocImpl)classdoc).tsym;
             Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
-            Name newname = Name.Table.instance(context).fromString(oldsym.flatname);
+            Name newname = Names.instance(context).fromString(oldsym.flatname.toString());
             return Symtab.instance(context).classes.get(newname);
         }
         return null;
@@ -144,7 +145,7 @@ public class Utils {
         //printSummaryAnchor(cd);
         writer.tableIndexSummary();
         writer.tableHeaderStart("#CCCCFF",tableColumns);
-        writer.bold(title);
+        writer.strong(title);
         writer.tableHeaderEnd();
     }
     

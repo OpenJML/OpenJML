@@ -45,6 +45,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 
 /**
  * This class is the main driver for executing ESC on a Java/JML AST. It
@@ -93,7 +94,7 @@ public class JmlEsc extends JmlTreeScanner {
     @NonNull JmlSpecs specs;
     
     /** The names database */
-    @NonNull Name.Table names;
+    @NonNull Names names;
     
     /** The factory for making AST nodes */
     @NonNull JmlTree.JmlFactory factory;
@@ -113,7 +114,7 @@ public class JmlEsc extends JmlTreeScanner {
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
         this.log = Log.instance(context);
-        this.names = Name.Table.instance(context);
+        this.names = Names.instance(context);
         this.factory = (JmlTree.JmlFactory)JmlTree.Maker.instance(context);
         this.verbose = JmlOptionName.isOption(context,"-verbose") ||
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
@@ -1146,7 +1147,7 @@ public class JmlEsc extends JmlTreeScanner {
                     if (bl == null || hasFeasibleChain(bl,s) ) {
                         log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName());
                         if (declpos != termpos || jfo != null) {
-                            JavaFileObject prev = log.currentSource();
+                            JavaFileObject prev = log.currentSourceFile();
                             if (jfo != null) log.useSource(jfo);
                             log.warning(declpos,"esc.associated.decl");
                             log.useSource(prev);

@@ -24,6 +24,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.file.JavacFileManager;
+import com.sun.tools.javac.file.RelativePath;
 import com.sun.tools.javac.file.ZipArchive;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
@@ -31,6 +32,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 
 /** This class manages the specifications during a compilation.  There should be
@@ -589,6 +591,8 @@ public class JmlSpecs {
          */
         String internalDirSlash;
         
+        RelativePath.RelativeDirectory internalDir;
+        
         /** Creates a Dir object representing the content or a subdirectory of
          * a Jar file.
          * @param zip the absolute or relative path to the jar file itself
@@ -601,6 +605,7 @@ public class JmlSpecs {
             } catch (IOException e) {
                 this.zipArchive = null;
             }
+            this.internalDir = new RelativePath.RelativeDirectory(name);
             this.internalDirSlash = name.length() == 0 ? name : (name + "/");
             this.name = zip + (name.length() == 0 ? name : ("!" + name));
         }
@@ -608,18 +613,20 @@ public class JmlSpecs {
         @Override
         public boolean exists() {
             if (zipArchive == null) return false;
-            for (String f: zipArchive.getSubdirectories()) {
+            for (RelativePath.RelativeDirectory f: zipArchive.getSubdirectories()) {
                 if (name.length() == 0) return true;
-                if (f.startsWith(internalDirSlash)) return true;
+                // TODO - check that this works correctly
+                if (f.getPath().startsWith(internalDir.getPath())) return true;
             }
             return false;
         }
         
         @Override
         public JavaFileObject findFile(String filePath) { 
+            RelativePath file = new RelativePath.RelativeFile(internalDir,filePath);
             if (zipArchive == null) return null;
-            if (!zipArchive.contains(internalDirSlash + filePath)) return null;
-            return zipArchive.getFileObject(internalDirSlash,filePath);
+            if (!zipArchive.contains(file)) return null;
+            return zipArchive.getFileObject(internalDir,filePath);
         }
         
         @Override
@@ -627,8 +634,9 @@ public class JmlSpecs {
             if (zipArchive == null) return null;
             for (String suffix : Utils.suffixes) {
                 String ss = filePath + suffix;
-                if (!zipArchive.contains(internalDirSlash + ss)) continue;
-                JavaFileObject j = zipArchive.getFileObject(internalDirSlash,ss);
+                RelativePath file = new RelativePath.RelativeFile(internalDir,ss);
+                if (!zipArchive.contains(file)) continue;
+                JavaFileObject j = zipArchive.getFileObject(internalDir,ss);
                 if (j != null) return j;
             }
             return null; 
@@ -960,12 +968,12 @@ public class JmlSpecs {
     ClassSymbol nullableAnnotationSymbol = null;
     public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
         if (nonnullAnnotationSymbol == null) {
-            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Name.Table.instance(context).fromString("org.jmlspecs.annotations.NonNull"));
+            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.annotations.NonNull"));
         }
         Attribute.Compound attr = symbol.attribute(nonnullAnnotationSymbol);
         if (attr!=null) return true;
         if (nullableAnnotationSymbol == null) {
-            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Name.Table.instance(context).fromString("org.jmlspecs.annotations.Nullable"));
+            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.annotations.Nullable"));
         }
         attr = symbol.attribute(nullableAnnotationSymbol);
         if (attr!=null) return false;

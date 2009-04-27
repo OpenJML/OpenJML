@@ -27,7 +27,7 @@ public class statements extends TCBase {
 
     public void testFor2() {
         helpTCF("A.java"," class A { void m() { \n //@ loop_invariant j;\n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: cannot find symbol\nsymbol  : variable j\nlocation: class A",21
+                ,"/A.java:2: cannot find symbol\n  symbol:   variable j\n  location: class A",21
                 );
     }
 
@@ -55,8 +55,8 @@ public class statements extends TCBase {
 
     public void testAssert2() {
         helpTCF("A.java"," class A { Object o; void m() { \n /*@ assume 0; assert o;*/\n  \n}}"
-                ,"/A.java:2: incompatible types\nfound   : int\nrequired: boolean",13
-                ,"/A.java:2: incompatible types\nfound   : java.lang.Object\nrequired: boolean",23
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    int",13
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Object",23
                 );
     }
 

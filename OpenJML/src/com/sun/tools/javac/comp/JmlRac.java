@@ -32,6 +32,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 public class JmlRac extends TreeTranslator implements IJmlVisitor {
@@ -42,7 +43,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
     Env<AttrContext> attrEnv;
     Resolve rs;
     Symtab syms;
-    Name.Table names;
+    Names names;
     JmlTree.Maker make;
     JmlSpecs specs;
     DiagnosticPosition make_pos;
@@ -74,7 +75,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         this.attrEnv = env;
         this.syms = Symtab.instance(context);
         this.rs = Resolve.instance(context);
-        this.names = Name.Table.instance(context);
+        this.names = Names.instance(context);
         this.make = (JmlTree.Maker)JmlTree.Maker.instance(context);
         this.specs = JmlSpecs.instance(context);
         this.attr = (JmlAttr)JmlAttr.instance(context);
@@ -94,9 +95,9 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         nulllit = makeLit(syms.botType, null);
         maxIntLit = makeLit(syms.intType,Integer.MAX_VALUE);
 
-        this.resultName = Name.Table.instance(context).fromString("_JML$$$result");
-        this.exceptionName = Name.Table.instance(context).fromString("_JML$$$exception");
-        this.exceptionCatchName = Name.Table.instance(context).fromString("_JML$$$exceptionCatch");
+        this.resultName = Names.instance(context).fromString("_JML$$$result");
+        this.exceptionName = Names.instance(context).fromString("_JML$$$exception");
+        this.exceptionCatchName = Names.instance(context).fromString("_JML$$$exceptionCatch");
 
         integerType = reader.enterClass(names.fromString("java.lang.Integer")).type;
         
@@ -865,7 +866,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         m.sym = ms;
         m.type = m.sym.type;
         JCMethodInvocation a = make.Apply(null,m,List.<JCExpression>nil());
-        a.type = Type.noType;
+        a.type = syms.voidType;
         return make.Exec(a);
     }
     
@@ -1111,7 +1112,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         JCExpression lit = makeLit(syms.stringType,sp);
         JCFieldAccess m = findUtilsMethod("assertionFailure");
         JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit));
-        c.setType(Type.noType);
+        c.setType(syms.voidType);
         return make.Exec(c);
     }
     
@@ -1140,7 +1141,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         JCExpression lit = makeLit(syms.stringType,s);
         JCFieldAccess m = findUtilsMethod("assertionFailure");
         JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit));
-        c.setType(Type.noType);
+        c.setType(syms.voidType);
         return make.Exec(c);
     }
     
@@ -1156,9 +1157,9 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
     public JCStatement methodCallUtils(String methodName) {
         JCFieldAccess m = findUtilsMethod(methodName);
         JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
-        c.setType(Type.noType);
+        c.setType(syms.voidType);
         JCStatement p = make.Exec(c);
-        p.setType(Type.noType);
+        p.setType(syms.voidType);
         return p;
     }
     
@@ -1172,9 +1173,9 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 //    public JCStatement methodCallThis(Name methodName) {
 //        JCIdent m = findThisMethod(methodName);
 //        JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
-//        c.setType(Type.noType);
+//        c.setType(syms.voidType);
 //        JCStatement p = make.Exec(c);
-//        p.setType(Type.noType);
+//        p.setType(syms.voidType);
 //        return p;
 //    }
     
@@ -1183,14 +1184,14 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         m.sym = methodDecl.sym;
         m.type = m.sym.type;
         JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
-        c.setType(Type.noType);
+        c.setType(syms.voidType);
         return c;
     }
     
     public JCStatement methodCallThis(JCMethodDecl methodDecl) {
         JCExpression c = methodCallThisExpression(methodDecl);
         JCStatement p = make.Exec(c);
-        p.setType(Type.noType);
+        p.setType(syms.voidType);
         return p;
     }
     
@@ -1240,7 +1241,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         JCExpression lit = makeLit(syms.stringType,s);
         JCFieldAccess m = findUtilsMethod("assertionFailure");
         JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit));
-        c.setType(Type.noType);
+        c.setType(syms.voidType);
         return make.Exec(c);
     }
     
@@ -1253,7 +1254,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         JCExpression lit = makeLit(syms.stringType,s);
         JCFieldAccess m = findUtilsMethod("assertionFailure2");
         JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit,translatedOptionalExpr));
-        c.setType(Type.noType);
+        c.setType(syms.voidType);
         return make.Exec(c);
     }
     
@@ -1556,9 +1557,9 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
     }
     
     public String position(JavaFileObject source, int pos) {
-        JavaFileObject pr = log.currentSource();
+        JavaFileObject pr = log.currentSourceFile();
         log.useSource(source);
-        String s = (source==null?"":source.getName()) + ":" + log.getLineNumber(pos) + ": JML ";
+        String s = (source==null?"":source.getName()) + ":" + log.currentSource().getLineNumber(pos) + ": JML ";
         log.useSource(pr);
         return s;
     }

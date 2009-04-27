@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml;
 
 import java.io.IOException;
+import java.util.Queue;
 
 import javax.annotation.processing.Processor;
 import javax.tools.JavaFileObject;
@@ -206,6 +207,7 @@ public class JmlCompiler extends JavaCompiler {
         return list;
     }
     
+    @Override
     public List<JCCompilationUnit> parseFiles(List<JavaFileObject> fileObjects) throws IOException {
         List<JCCompilationUnit> list = super.parseFiles(fileObjects);
         for (JCCompilationUnit cu: list) {
@@ -276,7 +278,8 @@ public class JmlCompiler extends JavaCompiler {
     }
     
     /** Overridden in order to put out some information about stopping */
-    protected  <T> List<T> stopIfError(List<T> list) {
+    @Override
+    protected  <T> List<T> stopIfError(CompileState cs, List<T> list) {
         if (errorCount() != 0) {
             if (JmlOptionName.isOption(context,JmlOptionName.STOPIFERRORS)) {
                 log.note("jml.stop");
@@ -291,7 +294,8 @@ public class JmlCompiler extends JavaCompiler {
     /** Overridden so that we do either (1) ESC or (2) RAC prep followed 
      * by desugaring and code generation.
      */
-    protected void desugar(Env<AttrContext> env, ListBuffer<Pair<Env<AttrContext>, JCClassDecl>> results) {
+    @Override
+    protected void desugar(Env<AttrContext> env, Queue<Pair<Env<AttrContext>, JCClassDecl>> results) {
         // Note super.desugar() translates generic Java to non-generic Java and perhaps does other stuff.
         if (JmlOptionName.isOption(context,JmlOptionName.ESC)) {
             esc(env);
@@ -314,63 +318,9 @@ public class JmlCompiler extends JavaCompiler {
      */
     public Env<AttrContext> attribute(Env<AttrContext> env) {
         // FIXME - I think this can go away.  Test some time.
-//        int n = todo.size();
-//        while ((--n) >= 0) {
-//            if (compilePolicy != CompilePolicy.BY_TODO) break;
-//            if (!desugarLater(env)) break;
-////            System.out.println("deferring " + Utils.envString(env)
-////                    + " for " + (savedSupers.iterator().next()));
-//            todo.append(env);
-//            env = todo.next();
-//        }
-        
-        
-//        System.out.println("ATTRIBUTE MODE " + ((JmlCompilationUnit)env.toplevel).mode + " " + env.enclClass.sym);
-//        if (env.toplevel instanceof JmlCompilationUnit) {
-//            int m = ((JmlCompilationUnit)env.toplevel).mode;
-//            if ((m&JmlCompilationUnit.SPEC_FOR_BINARY)==JmlCompilationUnit.SPEC_FOR_BINARY) {
-//                // need to attribute the binary
-//            }
-//        }
         return super.attribute(env);
     }
     
-//    public boolean desugarLater(final Env<AttrContext> env) {
-//        if (compilePolicy == CompilePolicy.BY_FILE)
-//            return false;
-////        if (!devVerbose && deferredSugar.contains(env))
-////            // guarantee that compiler terminates
-////            return false;
-//        class ScanNested extends TreeScanner {
-//            Set<Symbol> externalSupers = new HashSet<Symbol>();
-//            public void visitClassDef(JCClassDecl node) {
-//                if (node.sym != null) { // node.sym==null for unattributed anonymous classes
-//                    Type st = types.supertype(node.sym.type);
-//                    if (st.tag == TypeTags.CLASS) {
-//                        ClassSymbol c = st.tsym.outermostClass();
-//                        Env<AttrContext> stEnv = enter.getEnv(c);
-//                        if (stEnv != null && env != stEnv)
-//                            externalSupers.add(st.tsym);
-//                    }
-//                }
-//                super.visitClassDef(node);
-//            }
-//        }
-//        ScanNested scanner = new ScanNested();
-//        scanner.scan(env.tree);
-//        if (scanner.externalSupers.isEmpty())
-//            return false;
-////        if (!deferredSugar.add(env) && devVerbose) {
-////            throw new AssertionError(env.enclClass.sym + " was deferred, " +
-////                                     "second time has these external super types " +
-////                                     scanner.externalSupers);
-////        }
-//        savedSupers = scanner.externalSupers;
-//        return true;
-//    }
-//    
-//    Set<Symbol> savedSupers = null;
-
 
 //    /** Overridden just to put out tracking information in verbose mode */
 //    @Override

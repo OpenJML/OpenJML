@@ -70,7 +70,7 @@ public class generics extends TCBase {
     public void testMethod2() {
         addMockFile("$A/java/util/Vector.spec","public class Vector<E> { \npublic <T> T[] toArray(T[] t); }");
         helpTCF("A.java","public class A<X> { java.util.Vector<X> t; }"
-                ,"/$A/java/util/Vector.spec:2: The method toArray in the specification matches a Java method <T>toArray(T[]) with different modifiers: synchronized ",16
+                ,"/$A/java/util/Vector.spec:2: The method toArray in the specification matches a Java method <T>toArray(T[]) with different modifiers: synchronized",16
                 );
         
     }

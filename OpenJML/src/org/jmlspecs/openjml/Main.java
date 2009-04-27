@@ -16,6 +16,8 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 
+import sun.misc.resources.Messages;
+
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -29,15 +31,17 @@ import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
+import com.sun.tools.javac.main.JavaCompiler.CompileState;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Messages;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 
 /**
@@ -145,7 +149,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 Context context = new Context(); // This is a temporary context just for this error message.
                                     // It is not the one used for the options and compilation
                 Log log = Log.instance(context);
-                Messages.instance(context).add(Utils.messagesJML);
+                JavacMessages.instance(context).add(Utils.messagesJML);
                 log.error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
                 errorcode = 2; // com.sun.tools.javac.main.Main.EXIT_CMDERR;
             } else {
@@ -177,7 +181,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             Context context = new Context(); // This is a temporary context just for this error message.
                                                // It is not the one used for the options and compilation
             Log log = Log.instance(context);
-            Messages.instance(context).add(Utils.messagesJML);
+            JavacMessages.instance(context).add(Utils.messagesJML);
             log.error("jml.toplevel.exception",e);
             e.printStackTrace(System.err);
             errorcode = 3; //com.sun.tools.javac.main.Main.EXIT_SYSERR;
@@ -337,7 +341,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         // These have to be first in case there are error messages during 
         // tool registration.
-        Messages.instance(context).add(Utils.messagesJML); // registering an additional source of JML-specific error messages
+        JavacMessages.instance(context).add(Utils.messagesJML); // registering an additional source of JML-specific error messages
 
         // These register JML versions of the various tools.  ALL OF THESE MUST
         // REGISTER FACTORIES AND NOT CREATE ACTUAL INSTANCES.  Creating instances
@@ -454,7 +458,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         Iterable<? extends JavaFileObject> sourceFileObjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(files);
         ListBuffer<JavaFileObject> list = ListBuffer.<JavaFileObject>lb();
         for (JavaFileObject jfo : sourceFileObjects) list.append(jfo);
-        c.processAnnotations(c.enterTrees(c.stopIfError(c.parseFiles(list.toList()))),
+        c.processAnnotations(c.enterTrees(c.stopIfError(CompileState.PARSE,c.parseFiles(list.toList()))),
                 classnames.toList());
     }
     
@@ -465,7 +469,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return the class symbol or null if it is not found
      */
     public @Nullable ClassSymbol getClassSymbol(@NonNull String qualifiedName) {
-        Name n = Name.Table.instance(context).fromString(qualifiedName);
+        Name n = Names.instance(context).fromString(qualifiedName);
         return Symtab.instance(context).classes.get(n);
     }
     
@@ -475,7 +479,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return the package symbol or null if it is not found
      */
     public @Nullable PackageSymbol getPackageSymbol(@NonNull String qualifiedName) {
-        Name n = Name.Table.instance(context).fromString(qualifiedName);
+        Name n = Names.instance(context).fromString(qualifiedName);
         return Symtab.instance(context).packages.get(n);
     }
     
