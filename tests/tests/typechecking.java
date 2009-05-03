@@ -195,9 +195,9 @@ public class typechecking extends TCBase {
     }
 
     public void testResult() {
-        helpTC(" class A { int k; Boolean b; void m() { \n//@ assert \\result;\n}}",
-                "/TEST.java:2: A \\result expression may not be in a assert clause",13
+        helpTC(" class A { int k; Boolean b; void m() { \n//@ assert \\result;\n}}"
                 ,"/TEST.java:2: A \\result expression may not be used in the specification of a method that returns void",13
+                ,"/TEST.java:2: A \\result expression may not be in a assert clause",13
                 );
     }
 
@@ -487,30 +487,67 @@ public class typechecking extends TCBase {
                 );
     }
     
-    public void testFresh() {
+    public void testFreshBad() {
         helpTCF("A.java","public class A { Object o,oo; //@ invariant \\fresh(o);  \n }"
+                ,"/A.java:1: A \\fresh expression may not be in a invariant clause",52
+                );
+    }
+    
+    public void testFresh() {
+        helpTCF("A.java","public class A { Object o,oo; //@ ensures \\fresh(o); \n void m() {} \n }"
                 );
     }
     
     public void testFresh2() {
-        helpTCF("A.java","public class A { Object o,oo; //@ invariant \\fresh(o,oo);  \n }"
+        helpTCF("A.java","public class A { Object o,oo; //@ ensures \\fresh(o,oo); \n void m() {}  \n }"
                 );
     }
     
     public void testFresh3() {
-        helpTCF("A.java","public class A { Object o,oo; //@ invariant \\fresh();  \n }"
+        helpTCF("A.java","public class A { Object o,oo; //@ ensures \\fresh(); \n void m() {}  \n }"
                 );
     }
     
     public void testFresh4() {
-        helpTCF("A.java","public class A { int i; Object o,oo; //@ invariant \\fresh(i);  \n }"
+        helpTCF("A.java","public class A { int i; Object o,oo; //@ ensures   \\fresh(i); \n void m() {}  \n }"
                 ,"/A.java:1: The argument of \\fresh must be of reference type",59
                 );
     }
     
     public void testFresh5() {
-        helpTCF("A.java","public class A { int i; Object o,oo; //@ ghost int k = \\fresh(o);  \n }"
-                ,"/A.java:1: incompatible types\n  required: int\n  found:    boolean",62
+        helpTCF("A.java","public class A { int i; Object o,oo; //@ ensures   \\fresh(o) + 1 == 0; \n void m() {}  \n }"
+                ,"/A.java:1: operator + cannot be applied to boolean,int",62
+                );
+    }
+    
+    public void testFresh5Bad() {
+        helpTCF("A.java","public class A { int i; Object o,oo; //@ ghost boolean k = \\fresh(o);  \n }"
+                ,"/A.java:1: A \\fresh expression may not be in a jml declaration clause",67
+        );
+    }
+    
+    public void testOnlyAssigned() {
+        helpTCF("A.java","public class A { Object o,oo; //@ invariant \\only_assigned(o) || \\only_accessed(o) || \\only_captured(o) || \\not_assigned(o) || \\not_modified(o);  \n }"
+                ,"/A.java:1: A \\only_assigned expression may not be in a invariant clause",46
+                ,"/A.java:1: A \\only_accessed expression may not be in a invariant clause",67
+                ,"/A.java:1: A \\only_captured expression may not be in a invariant clause",88
+                ,"/A.java:1: A \\not_assigned expression may not be in a invariant clause",109
+                ,"/A.java:1: A \\not_modified expression may not be in a invariant clause",129
+                );
+    }
+    
+    public void testOnlyAssigned1() {
+        helpTCF("A.java","public class A { Object o,oo; //@ ensures \\only_assigned(o) || \\only_accessed(o) || \\only_captured(o) || \\not_assigned(o) || \\not_modified(o); \n void m() {} \n }"
+                );
+    }
+    
+    public void testOnlyAssigned2() {
+        helpTCF("A.java","public class A { int i; Object o,oo; //@ ghost boolean k = \\only_assigned(o) || \\only_accessed(o) || \\only_captured(o) || \\not_assigned(o) || \\not_modified(o);  \n }"
+                ,"/A.java:1: A \\only_assigned expression may not be in a jml declaration clause",61
+                ,"/A.java:1: A \\only_accessed expression may not be in a jml declaration clause",82
+                ,"/A.java:1: A \\only_captured expression may not be in a jml declaration clause",103
+                ,"/A.java:1: A \\not_assigned expression may not be in a jml declaration clause",124
+                ,"/A.java:1: A \\not_modified expression may not be in a jml declaration clause",144
         );
     }
     

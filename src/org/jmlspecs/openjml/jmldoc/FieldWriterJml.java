@@ -189,6 +189,7 @@ public class FieldWriterJml extends FieldWriterImpl {
                 writer.dd();
                 writer.printInlineComment(fd);
                 writeJmlSpecs(fd);
+                writer.ddEnd();
             } finally {
                 isModel = false;
             }
@@ -285,12 +286,11 @@ public class FieldWriterJml extends FieldWriterImpl {
         //Collections.sort(list);
         boolean isFirst = true;
         for (JmlTypeClauseRepresents tr: list) {
-            writer.print(isFirst ? " " : ", ");
-            writer.print(linkedName((JCTree.JCIdent)tr.ident));
+            FieldDoc field = new FieldDocImpl(((ClassDocImpl)classDoc).docenv(),(VarSymbol)((JCTree.JCIdent)tr.ident).sym);
+            writer.printInheritedSummaryMember(this, classDoc, field, isFirst);
             isFirst = false;
         }
         super.writeInheritedMemberSummaryFooter(classDoc);
-       
     }
     
     /** This is overridden in order to include annotation information in the
@@ -406,7 +406,7 @@ public class FieldWriterJml extends FieldWriterImpl {
      */
     public void writeJmlFieldSummaryHeader(@NonNull ClassDoc classDoc) {
         //printSummaryAnchor(cd);
-        Utils.writeHeader(writer,"JML Ghost and Model Field Summary",2);
+        Utils.writeHeader(writer,this,classDoc,"JML Ghost and Model Field Summary",2);
         summaryHeaderWritten = true;
     }
     

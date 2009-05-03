@@ -1751,12 +1751,12 @@ public class BasicBlocker extends JmlTreeScanner {
         java.util.List<JmlMethodClauseExpr> divergesPredicates = new LinkedList<JmlMethodClauseExpr>();
         
         public static class Entry {
-            public Entry(JCExpression pre, java.util.List<JCTree> list) {
+            public Entry(JCExpression pre, java.util.List<JCExpression> list) {
                 this.pre = pre;
                 this.storerefs = list;
             }
             public JCExpression pre;
-            public java.util.List<JCTree> storerefs;
+            public java.util.List<JCExpression> storerefs;
         }
         
         java.util.List<Entry> assignables = new LinkedList<Entry>();
@@ -1838,9 +1838,9 @@ public class BasicBlocker extends JmlTreeScanner {
                         p.sourcefile = c.source();
                         mi.ensuresPredicates.add(p);
                     } else if (c.token == JmlToken.ASSIGNABLE) {
-                        JmlMethodClauseAssignable mod = (JmlMethodClauseAssignable)c;
+                        JmlMethodClauseStoreRef mod = (JmlMethodClauseStoreRef)c;
                         // spre is the precondition under which the store-refs are modified
-                        List<JCTree> list = mod.list; // store-ref expressions
+                        List<JCExpression> list = mod.list; // store-ref expressions
                         mi.assignables.add(new JmlMethodInfo.Entry(spre,list));
                     } else if (c.token == JmlToken.SIGNALS) {
                         // FIXME - what if there is no variable? - is there one already inserted or is it null?
@@ -2977,30 +2977,30 @@ public class BasicBlocker extends JmlTreeScanner {
                 }
                 break;
 
-            case BSNOTMODIFIED:
-                // Allows multiple arguments
-                JCExpression combined = null;
-                for (JCExpression a : that.args){
-                    // FIXME - there is an issue with condition - how do we evaluate if old(e) is well-defined?
-                    //  defined as  arg == \old(arg)
-                    int pos = that.pos;
-                    JCExpression e = trExpr(a);
-                    VarMap prevMap = currentMap;
-                    currentMap = oldMap;
-                    try {
-                        // FIXME - what happens if not_modifieds are nested, or within an old
-                        //extraEnv = true;
-                        JCExpression ee = trExpr(a);
-                        ee = makeBinary(JCTree.EQ,e,ee,pos);
-                        if (combined == null) combined = ee;
-                        else combined = makeBinary(JCTree.AND,combined,ee,pos);
-                    } finally {
-                        currentMap = prevMap;
-                        //extraEnv = false;
-                    }
-                }
-                result = combined;
-                break;
+//            case BSNOTMODIFIED:
+//                // Allows multiple arguments; they may be store-refs with wildcards (FIXME)
+//                JCExpression combined = null;
+//                for (JCExpression a : that.args){
+//                    // FIXME - there is an issue with condition - how do we evaluate if old(e) is well-defined?
+//                    //  defined as  arg == \old(arg)
+//                    int pos = that.pos;
+//                    JCExpression e = trExpr(a);
+//                    VarMap prevMap = currentMap;
+//                    currentMap = oldMap;
+//                    try {
+//                        // FIXME - what happens if not_modifieds are nested, or within an old
+//                        //extraEnv = true;
+//                        JCExpression ee = trExpr(a);
+//                        ee = makeBinary(JCTree.EQ,e,ee,pos);
+//                        if (combined == null) combined = ee;
+//                        else combined = makeBinary(JCTree.AND,combined,ee,pos);
+//                    } finally {
+//                        currentMap = prevMap;
+//                        //extraEnv = false;
+//                    }
+//                }
+//                result = combined;
+//                break;
 
             case BSNONNULLELEMENTS :
                 {
@@ -4863,7 +4863,37 @@ public class BasicBlocker extends JmlTreeScanner {
         result = id;
     }
     
-    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that){ notImpl(that); }
+    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
+        switch (that.token) {
+            case BSNOTMODIFIED:
+                // Allows multiple arguments; they may be store-refs with wildcards (FIXME)
+                JCExpression combined = null;
+                for (JCExpression a : that.list){
+                    // FIXME - there is an issue with condition - how do we evaluate if old(e) is well-defined?
+                    //  defined as  arg == \old(arg)
+                    int pos = that.pos;
+                    JCExpression e = trExpr(a);
+                    VarMap prevMap = currentMap;
+                    currentMap = oldMap;
+                    try {
+                        // FIXME - what happens if not_modifieds are nested, or within an old
+                        //extraEnv = true;
+                        JCExpression ee = trExpr(a);
+                        ee = makeBinary(JCTree.EQ,e,ee,pos);
+                        if (combined == null) combined = ee;
+                        else combined = makeBinary(JCTree.AND,combined,ee,pos);
+                    } finally {
+                        currentMap = prevMap;
+                        //extraEnv = false;
+                    }
+                }
+                result = combined;
+                break;
+
+            default: notImpl(that);
+        }
+    }
+    
     public void visitJmlGroupName(JmlGroupName that)               { notImpl(that); }
     public void visitJmlTypeClauseIn(JmlTypeClauseIn that)         { notImpl(that); }
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that)     { notImpl(that); }
@@ -4880,7 +4910,7 @@ public class BasicBlocker extends JmlTreeScanner {
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) { notImpl(that); }
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) { notImpl(that); }
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) { notImpl(that); }
-    public void visitJmlMethodClauseAssignable(JmlMethodClauseAssignable that) { notImpl(that); }
+    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) { notImpl(that); }
     public void visitJmlSpecificationCase(JmlSpecificationCase that){ notImpl(that); }
     public void visitJmlMethodSpecs(JmlMethodSpecs that)           {  } // FIXME - IGNORE NOT SURE WHY THIS IS ENCOUNTERED IN CLASS.defs
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that){ notImpl(that); }

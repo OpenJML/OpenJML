@@ -194,7 +194,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(tree.list);
     }
     
-    public void visitJmlMethodClauseAssignable(JmlMethodClauseAssignable tree) {
+    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
         scan(tree.list);
     }
     

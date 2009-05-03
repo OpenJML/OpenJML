@@ -79,7 +79,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return r;
     }
 
-    public JCTree visitJmlMethodClauseAssignable(JmlMethodClauseAssignable that, Void p) {
+    public JCTree visitJmlMethodClauseAssignable(JmlMethodClauseStoreRef that, Void p) {
         visitTree(that); // FIXME - implement
         return null;
     }

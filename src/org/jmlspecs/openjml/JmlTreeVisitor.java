@@ -56,7 +56,7 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlMethodClauseConditional(JmlMethodClauseConditional that, P p) ;
     R visitJmlMethodClauseSignals(JmlMethodClauseSignals that, P p) ;
     R visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that, P p) ;
-    R visitJmlMethodClauseAssignable(JmlMethodClauseAssignable that, P p) ;
+    R visitJmlMethodClauseAssignable(JmlMethodClauseStoreRef that, P p) ;
     R visitJmlSpecificationCase(JmlSpecificationCase that, P p);
     R visitJmlMethodSpecs(JmlMethodSpecs that, P p)           ;
     R visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, P p);

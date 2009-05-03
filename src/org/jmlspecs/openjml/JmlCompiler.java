@@ -281,7 +281,7 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     protected  <T> List<T> stopIfError(CompileState cs, List<T> list) {
         if (errorCount() != 0) {
-            if (JmlOptionName.isOption(context,JmlOptionName.STOPIFERRORS)) {
+            if (JmlOptionName.isOption(context,JmlOptionName.STOPIFERRORS)) {  // FIXME - do we want this option?
                 log.note("jml.stop");
                 return List.<T>nil();
             } else {

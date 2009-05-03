@@ -52,7 +52,7 @@ public class Jml2Code  extends TestCase {
          * @param output the expected output as one string
          */
         public void helper(String[] args, int exitcode, int all, String ... output) {
-            int e = org.jmlspecs.openjml.Main.compiler(args,false); // Put to standard out
+            int e = org.jmlspecs.openjml.Main.execute(args,false); // Put to standard out
             System.setErr(savederr);
             System.setOut(savedout);
             if (capture) {

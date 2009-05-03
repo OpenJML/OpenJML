@@ -136,12 +136,10 @@ public class prettyprinting extends ParseBase {
     public void testMethodStatements() {
         precise = true;
         helpPP(
-                eol + eol + 
+                eol + 
                 "public static final class A {" + eol + 
                 "  " + eol + 
-                "  " + eol +
                 "  void m() {" + eol +
-                "    " + eol +
                 "    int a;" + eol +
                 "    a = 5;" + eol +
                 "    ;" + eol + 
@@ -149,6 +147,16 @@ public class prettyprinting extends ParseBase {
                 "    /*@ assume a == 6;*/" + eol +
                 "    /*@ assert a == 6;*/" + eol +
                 "    a += 5;" + eol +
+                "    a -= 5;" + eol +
+                "    a *= 5;" + eol +
+                "    a /= 5;" + eol +
+                "    a %= 5;" + eol +
+                "    a |= 5;" + eol +
+                "    a &= 5;" + eol +
+                "    a ^= 5;" + eol +
+                "    a <<= 5;" + eol +
+                "    a >>= 5;" + eol +
+                "    a >>>= 5;" + eol +
                 "  }" + eol +
                 "}"
         );

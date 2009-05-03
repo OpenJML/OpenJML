@@ -39,8 +39,9 @@ public interface JMLIterator<E> {
      */
     Object clone();
     
-    //@ also public normal_behavior
-    /*@ ensures (o == null || !(o instanceof JMLIterator<E>)) ==> !\result;
+    // @ also public normal_behavior
+    /* FIXME - generic types not allowed in instanceof 
+      @ ensures (o == null || !(o instanceof JMLIterator<E>)) ==> !\result;
       @ ensures (o != null && (o instanceof JMLIterator<E>) &&
              hasNext() != ((JMLIterator<E>)o).hasNext()) ==> !\result;
       @ ensures (o != null && (o instanceof JMLIterator<E>) &&

@@ -20,14 +20,12 @@ public class notspecified extends TCBase {
     public void testNotSpecified1() {
         helpTCF("A.java","public class A { //@ signals \\not_specified; \n public void m(boolean i) {}}"
                 ,"/A.java:1: Expected a left parenthesis after a signals keyword",30
-                ,"/A.java:1: The type or expression near here is invalid (or not implemented): ( token \\not_specified in JmlParser.term3())",30
                 ); 
 
     }
     
     public void testNotSpecified1s() {
         helpTCF("A.java","public class A { //@ signals (Exception) \\not_specified; \n public void m(boolean i) {}}"
-                ,"/A.java:1: The type or expression near here is invalid (or not implemented): ( token \\not_specified in JmlParser.term3())",42
                 ); 
 
     }

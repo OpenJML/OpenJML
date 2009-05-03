@@ -30,6 +30,7 @@ public class JmlStart extends Start {
                 JmlOptionName.NOINTERNALRUNTIME, 
                 JmlOptionName.NOCHECKSPECSPATH 
                 };
+        System.out.println();
         System.out.println("JMLDoc options:");
         String spaces = "                                  ";
         for (JmlOptionName n : addedOptions) {

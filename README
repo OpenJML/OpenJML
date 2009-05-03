@@ -1,6 +1,6 @@
-                                           DATE: 19 July 2008
+                                           DATE: 2 May 2009
                                            AUTHOR: David R. Cok
-                                           COPYRIGHT: (c) 2007-2008 David Cok
+                                           COPYRIGHT: (c) 2007-2009 David Cok
 
 This file describes a completely rewritten JML tool (called OpenJML) based
 on the OpenJDK release of the Java tool set (http://openjdk.java.net).  It is
@@ -9,15 +9,17 @@ OpenJML is kept at sourceforge (see www.jmlspecs.org,
 http://sourceforge.net/projects/jmlspecs/, and
 http://jmlspecs.svn.sourceforge.net/viewvc/jmlspecs/OpenJML/ ).
 
-The OpenJML tool is a JML syntax and semantics checker.  It does not (at
-present) do full runtime assertion checking or static reasoning, nor does it do
-Java code generation.  Also, it is only a command-line tool and has no 
-integration with any IDE.  It does intend to parse and check all aspects of JML 
-as they are defined in the JML reference manual (cf. http://www.jmlspecs.org), 
-though that is an ongoing project.
+The OpenJML tool is a JML syntax and semantics checker.  It also implements
+jmldoc, an extension to javadoc that adds JML information to javadoc pages.
+It does not (at present) do runtime assertion checking or static reasoning, 
+nor does it do Java code generation.  Also, it is only a command-line tool and 
+has no integration with any IDE.  It does intend to parse and check all aspects 
+of JML as they are defined in the JML reference manual 
+(cf. http://www.jmlspecs.org), though that is an ongoing project.
 
 OpenJML has so far been developed and tested under Cygwin (and Java 1.6).
-Comments on your experience on other platforms is welcome.
+Comments on your experience on other platforms is welcome.  Java 1.6 is 
+required because OpenJDK is written for Java 1.6.
 
 Your feedback regarding the value of this tool is welcome; please report any
 difficulties or bugs, to jmlspecs-interest@lists.sourceforge.net or
@@ -41,11 +43,13 @@ The gzipped tar file containing a release of OpenJML contains
 INSTALLATION:
 
 To install OpenJML, simply gunzip and untar the distribution file into a 
-directory of your choice (call it $OPENJML).  Then you can run the tool
+directory of your choice (call it $OPENJML).  Then you can run the syntax checker
 using the command (your java installation must be version 1.6):
 
 	java -jar $OPENJML/openjml.jar
-
+or
+        java -classpath $OPENJML/openjml.jar org.jmlspecs.openjml.Main
+        
 That command alone will show you a list of Java and JML command-line options.
 To run OpenJML on a specific set of files, you need to, in the conventional
 manner, specify
@@ -58,6 +62,8 @@ manner, specify
 A typical simple scenario might be:
 	java -jar $OPENJML/openjml.jar -classpath . *.java
 
+To run jmldoc, use this command-line:
+        java -classpath $OPENJML/openjml.jar org.jmlspecs.openjml.jmldoc.Main [options] files
 
 THE FILES:
 
@@ -135,8 +141,8 @@ STATUS OF THIS RELEASE
 
 This release is alpha quality.  Barring bugs, a valid Java/JML file will be
 parsed without errors, with at least these exceptions: 
-- the .. token in array ranges must sometimes be preceded by whitespace 
-        (e.g. a[0..5] is likely to fail); 
+- whitespace must separate an integer literal from the .. token in array ranges
+        (e.g. a[0..5] will fail); 
 - name lookup and type checking for old constructs with a label; 
 - JML comments may not be terminated by @+*/ ;  
 - JML specs for anonymous classes are not read; 
@@ -145,7 +151,7 @@ parsed without errors, with at least these exceptions:
 
 Some JML constructs are merely skipped over by the parser, including at least: 
 - model programs; 
-- accessible, callable, captures clauses; 
+- callable clauses and \only_callable expressions; 
 - for suffix of constraint clauses; 
 - only the first file of a specification sequence is used; 
 - JML in javadoc comments is ignored, as are method specifications that follow 
@@ -153,13 +159,12 @@ Some JML constructs are merely skipped over by the parser, including at least:
 - access modifiers on JML clauses are parsed but mostly ignored.
 
 Typechecking is in place for most JML constructs.  Omissions include at least:
-- accessible, callable, captures clauses; 
-- in and maps clauses.
+- accessible, callable, captures clauses and expressions; 
+- in and maps clauses
+- model programs.
 
 Although the -rac option is present, the implementation of runtime
-assertion checking is rudimentary.  With -rac enabled, compiled output files
-are produced that include some runtime checks, but no specification 
-inheritance is implemented, nor are there runtime checks for binary files.
+assertion checking is rudimentary and fragile.  
 
 The -esc option is also present, but this is very partial and preliminary.
 

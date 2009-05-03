@@ -64,7 +64,7 @@ public enum JmlToken {
     CONSTRAINT("constraint"),
     AXIOM("axiom"),
     REPRESENTS("represents"),
-    JMLDECL("-jml declaration-"), // not a scannable token
+    JMLDECL("jml declaration"), // not a scannable token
     IN("in"),
     MAPS("maps"),
     INITIALIZER("initializer"),

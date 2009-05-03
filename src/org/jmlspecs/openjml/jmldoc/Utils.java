@@ -4,6 +4,7 @@ import org.jmlspecs.annotations.NonNull;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 
 import com.sun.javadoc.ClassDoc;
+import com.sun.tools.doclets.formats.html.AbstractMemberWriter;
 import com.sun.tools.doclets.formats.html.SubWriterHolderWriter;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
@@ -141,13 +142,29 @@ public class Utils {
      * 
      * @param classDoc the class whose ghost and model fields are to be described
      */
-    public static void writeHeader(@NonNull SubWriterHolderWriter writer, @NonNull String title, int tableColumns) {
+    public static void writeHeader(
+            @NonNull SubWriterHolderWriter writer, 
+            @NonNull AbstractMemberWriter mw, 
+            @NonNull ClassDoc classDoc, 
+            @NonNull String title, 
+            int tableColumns) {
+        
         //printSummaryAnchor(cd);
+        
+        //mw.printTableSummary();
         writer.tableIndexSummary();
         writer.tableHeaderStart("#CCCCFF",tableColumns);
+
+        writer.tableCaptionStart();
+
+        //mw.printSummaryLabel();
         writer.strong(title);
         writer.tableHeaderEnd();
-    }
+
+        writer.tableCaptionEnd();
+        
+        if (mw != null) mw.printSummaryTableHeader(classDoc);
+}
     
     /** Returns true if Symbol msym should be in the inherited list for the given
      * class.  msym must be an element of a super class or interface.
@@ -158,6 +175,7 @@ public class Utils {
     public static boolean isInherited(Symbol msym, ClassSymbol currentClassSym) {
         long m = msym.flags();
         if ((m & Flags.PRIVATE) != 0) return false;
+        if (msym.owner == currentClassSym) return false;
         if ((m & Flags.AccessFlags) == 0 &&
                 (currentClassSym.packge() != msym.packge())) return false;
         return true;
