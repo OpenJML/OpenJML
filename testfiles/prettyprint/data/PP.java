@@ -183,7 +183,9 @@ public class PP extends QQ {
     // TODO - implement choose and choose_if from model program
    // FIXME - breaks and continues model program statements all allowed to have labels.
    // FIXME - pretty printing assert and assume in model programs
-   
+   // FIXME - pretty printing of anonymous class expressions
+   // invariant (new PP() { int m() { return 5; } }) != null;
+
    // TODO: need to test all kinds of statements, including JML statements
    
     // TODO:  .this  .super .new-expr

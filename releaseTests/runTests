@@ -31,6 +31,7 @@ echo Visually check that the version matches the tar file being tested
 java -jar openjml.jar -version
 ${RTH} testJmlVersion "java -jar openjml.jar -version" || RES=$(($RES+1))
 
+
 ## Checks the help message (when there are no arguments)
 ${RTH} testJmlHelp "java -jar openjml.jar" || RES=$(($RES+1))
 
@@ -112,45 +113,39 @@ ${RTH} testPath10 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/da
 ## Checks an invalid file
 ${RTH} testCheck1 "java -jar openjml.jar -noPurityCheck -specs . A.java" || RES=$(($RES+1))
 
+export DIFFJMLDOC="diff -r "
+
+### Note: package-tree.html is excluded because it is non-deterministic
+
 ## checks jmldoc prettyprinting
-rm -rf doc
+rm -rf doc ../testfiles/prettyprint/actual
 ${RTH} testJmldocPP "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck ../testfiles/prettyprint/data/PP.java "
-diff -r doc ../testfiles/prettyprint/expected || { RES=$(($RES+1)); rm -rf ../testfiles/prettyprint/actual; mv doc ../testfiles/prettyprint/actual; }
-
-
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/prettyprint/expected || { RES=$(($RES+1)); rm -rf ../testfiles/prettyprint/actual; mv doc ../testfiles/prettyprint/actual; }
 
 ## jmldoc check
 rm -rf doc ../testfiles/jmldoc1/actual
 ${RTH} testJmldoc "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -notimestamp -noPurityCheck ../testfiles/jmldoc1/data/*.java "
-find doc -name package-tree.html -exec rm \{\} \;
-diff -r doc ../testfiles/jmldoc1/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc1/actual; mv doc ../testfiles/jmldoc1/actual; }
-
-
-### Note: package-tree.html is deleted because it is non-deterministic
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc1/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc1/actual; mv doc ../testfiles/jmldoc1/actual; }
 
 ## jmldoc - checking the -public flag
 rm -rf doc ../testfiles/jmldoc3/actual
 ${RTH} testJmldoc3 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -public -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java"
-find doc -name package-tree.html -exec rm \{\} \;
-diff -r doc ../testfiles/jmldoc3/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc3/actual; mv doc ../testfiles/jmldoc3/actual; }
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc3/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc3/actual; mv doc ../testfiles/jmldoc3/actual; }
 
 ## jmldoc - checking the -protected flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc4/actual
 ${RTH} testJmldoc4 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -protected -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java"
-find doc -name package-tree.html -exec rm \{\} \;
-diff -r doc ../testfiles/jmldoc4/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc4/actual; mv doc ../testfiles/jmldoc4/actual; }
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc4/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc4/actual; mv doc ../testfiles/jmldoc4/actual; }
 
 ## jmldoc - checking the -package flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc5/actual
 ${RTH} testJmldoc5 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -package -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java"
-find doc -name package-tree.html -exec rm \{\} \;
-diff -r doc ../testfiles/jmldoc5/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc5/actual; mv doc ../testfiles/jmldoc5/actual; }
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc5/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc5/actual; mv doc ../testfiles/jmldoc5/actual; }
 
 ## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc6/actual
 ${RTH} testJmldoc6 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java"
-find doc -name package-tree.html -exec rm \{\} \;
-diff -r doc ../testfiles/jmldoc6/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc6/actual; mv doc ../testfiles/jmldoc6/actual; }
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc6/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc6/actual; mv doc ../testfiles/jmldoc6/actual; }
 
 if [[ ${RES} -eq 0 ]]; then echo "No test failed"; else echo ${RES} tests failed  ; fi
 
