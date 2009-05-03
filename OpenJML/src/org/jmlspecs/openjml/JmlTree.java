@@ -92,8 +92,10 @@ public class JmlTree {
         JmlMethodClauseConditional JmlMethodClauseConditional(JmlToken t, JCTree.JCExpression e, JCTree.JCExpression predicate);
         JmlMethodClauseSignals JmlMethodClauseSignals(JmlToken t, JCTree.JCVariableDecl var, JCTree.JCExpression e);
         JmlMethodClauseSigOnly JmlMethodClauseSignalsOnly(JmlToken t, List<JCTree.JCExpression> e);
-        JmlMethodClauseAssignable JmlMethodClauseAssignable(JmlToken t, List<JCTree> list);
+        JmlMethodClause JmlMethodClauseStoreRef(JmlToken t, List<JCExpression> list);
+        JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
         JmlConstraintMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes);
+        JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlToken t, JmlToken also, JCBlock block);
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlToken t, JmlToken also, List<JmlMethodClause> clauses);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
         JmlMethodSpecs JmlMethodSpecs(List<JmlSpecificationCase> cases);
@@ -110,7 +112,7 @@ public class JmlTree {
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
         JmlLblExpression JmlLblExpression(JmlToken token, Name label, JCTree.JCExpression expr);
         JmlGroupName JmlGroupName(JCExpression selection);
-        JmlStoreRefListExpression JmlStoreRefListExpression(JmlToken t, ListBuffer<JCTree> list);
+        JmlStoreRefListExpression JmlStoreRefListExpression(JmlToken t, ListBuffer<JCExpression> list);
         JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
         JmlStoreRefKeyword JmlStoreRefKeyword(JmlToken t);
     }
@@ -369,7 +371,7 @@ public class JmlTree {
             return new JmlStatement(pos,t,e);
         }
 
-        public JmlStoreRefListExpression JmlStoreRefListExpression(JmlToken t, ListBuffer<JCTree> list) {
+        public JmlStoreRefListExpression JmlStoreRefListExpression(JmlToken t, ListBuffer<JCExpression> list) {
             return new JmlStoreRefListExpression(pos,t,list);
         }
 
@@ -459,12 +461,22 @@ public class JmlTree {
             return new JmlMethodClauseSigOnly(pos,t,e);
         }
 
-        public JmlMethodClauseAssignable JmlMethodClauseAssignable(JmlToken t, List<JCTree> list) {
-            return new JmlMethodClauseAssignable(pos, t, list);
+        public JmlMethodClause JmlMethodClauseStoreRef(JmlToken t, List<JCExpression> list) {
+            return new JmlMethodClauseStoreRef(pos, t, list);
+        }
+
+        public JmlModelProgramStatement JmlModelProgramStatement(JCTree item) {
+            return new JmlModelProgramStatement(pos, item);
         }
 
         public JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlToken t, JmlToken also, List<JmlMethodClause> clauses) {
             JmlSpecificationCase jcase = new JmlSpecificationCase(pos,mods,code,t,also,clauses);
+            jcase.sourcefile = Log.instance(context).currentSourceFile();
+            return jcase;
+        }
+        
+        public JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlToken t, JmlToken also, JCBlock block) {
+            JmlSpecificationCase jcase = new JmlSpecificationCase(pos,mods,code,t,also,block);
             jcase.sourcefile = Log.instance(context).currentSourceFile();
             return jcase;
         }
@@ -962,9 +974,9 @@ public class JmlTree {
     /** This class represents JML functions that take a list of store-refs as arguments. */
     public static class JmlStoreRefListExpression extends JmlExpression {
         public JmlToken token;
-        public ListBuffer<JCTree> list;
+        public ListBuffer<JCExpression> list;
         
-        protected JmlStoreRefListExpression(int pos, JmlToken token, ListBuffer<JCTree> list) {
+        protected JmlStoreRefListExpression(int pos, JmlToken token, ListBuffer<JCExpression> list) {
             this.pos = pos;
             this.token = token;
             this.list = list;
@@ -1626,6 +1638,38 @@ public class JmlTree {
         }
     }
     
+    /** This class represents JML statements within the body of a model
+     * program that are not statements themselves, such as 
+     * invariants, specification cases
+     */
+    public static class JmlModelProgramStatement extends JmlAbstractStatement {
+        public JmlModelProgramStatement(int pos, JCTree item) {
+            this.pos = pos;
+            this.item = item;
+        }
+        public JCTree item;
+
+        @Override
+        public int getTag() {
+            return item.getTag();
+        }
+        
+        @Override
+        public Kind getKind() { 
+            return Kind.OTHER; // See note above
+        }
+
+        @Override
+        public void accept(Visitor v) {
+            item.accept(v);
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            return item.accept(v,d);
+        }
+    }
+    
     /** This class represents JML ghost declarations and model local class
      * declarations (FIXME _ local class?)
      */
@@ -1940,13 +1984,13 @@ public class JmlTree {
     }
 
     /** This class represents an assignable clause in a method specification */
-    public static class JmlMethodClauseAssignable extends JmlMethodClause {
-        public JmlMethodClauseAssignable(int pos, JmlToken token, List<JCTree> list) {
+    public static class JmlMethodClauseStoreRef extends JmlMethodClause {
+        public JmlMethodClauseStoreRef(int pos, JmlToken token, List<JCExpression> list) {
             this.pos = pos;
             this.token = token;
             this.list = list;
         }
-        public List<JCTree> list;
+        public List<JCExpression> list;
 
         @Override
         public int getTag() {
@@ -1967,7 +2011,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlMethodClauseAssignable(this); 
+                ((IJmlVisitor)v).visitJmlMethodClauseStoreRef(this); 
             } else {
                 //System.out.println("A JmlMethodClauseAssignable expects an IJmlVisitor, not a " + v.getClass());
                 super.accept(v);
@@ -1986,7 +2030,7 @@ public class JmlTree {
     }
     
     /** Represents a nothing, everything or informal comment token */
-    public static class JmlStoreRefKeyword extends JCTree {
+    public static class JmlStoreRefKeyword extends JCExpression {
         public JmlToken token; // nothing or everything or informal comment
 
         public JmlStoreRefKeyword(int pos, JmlToken token) {
@@ -2476,7 +2520,7 @@ public class JmlTree {
         }
     }
     
-    /** This class represents mpnoitors_for type clauses */
+    /** This class represents monitors_for type clauses */
     public static class JmlTypeClauseMonitorsFor extends JmlTypeClause {
 
         public JmlTypeClauseMonitorsFor(int pos, JCModifiers mods, JCIdent ident, ListBuffer<JCTree.JCExpression> list) {
@@ -2567,7 +2611,8 @@ public class JmlTree {
         public JmlToken token;
         public JmlToken also;
         public boolean code;
-        public List<JmlMethodClause> clauses;
+        public List<JmlMethodClause> clauses; // A behavior spec case has clauses but no block of statements
+        public JCBlock block;  // A model program has a block (of statements) but no clauses
         public JavaFileObject sourcefile;
         
         public JmlSpecificationCase(int pos, JCModifiers mods, boolean code, JmlToken token, JmlToken also, List<JmlMethodClause> clauses) {
@@ -2577,6 +2622,17 @@ public class JmlTree {
             this.token = token;
             this.also = also;
             this.clauses = clauses;
+            this.block = null;
+        }
+        
+        public JmlSpecificationCase(int pos, JCModifiers mods, boolean code, JmlToken token, JmlToken also, JCBlock block) {
+            this.pos = pos;
+            this.modifiers = mods;
+            this.code = code;
+            this.token = token;
+            this.also = also;
+            this.clauses = null;
+            this.block = block;
         }
         
         public JmlSpecificationCase(JmlSpecificationCase old, List<JmlMethodClause> clauses) {

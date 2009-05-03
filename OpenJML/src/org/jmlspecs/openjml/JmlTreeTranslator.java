@@ -120,7 +120,7 @@ public class JmlTreeTranslator extends com.sun.tools.javac.tree.TreeTranslator i
         result = that;
     }
 
-    public void visitJmlMethodClauseAssignable(JmlMethodClauseAssignable that) {
+    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
         result = that;
     }
 

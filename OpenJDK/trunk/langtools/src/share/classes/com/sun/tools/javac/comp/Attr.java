@@ -1767,9 +1767,6 @@ public class Attr extends JCTree.Visitor {
         } else if (tree.sym != null && tree.sym.kind != VAR) {
             sym = tree.sym;
         } else {
-            if (tree.name.toString().equals("TJ")) {
-                System.out.println("TJ");
-            }
             sym = rs.resolveIdent(tree.pos(), env, tree.name, pkind);
         }
         tree.sym = sym;

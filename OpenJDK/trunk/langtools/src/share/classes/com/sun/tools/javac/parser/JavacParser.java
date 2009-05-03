@@ -970,6 +970,13 @@ public class JavacParser implements Parser {
         default:
             return illegal();
         }
+        t = primaryTrailers(t, typeArgs);
+        return toP(t);
+    }
+
+    // DRC - extracted this method from term3() so that it can be used in overriding methods
+    protected JCExpression primaryTrailers(JCExpression t,
+            List<JCExpression> typeArgs) {
         if (typeArgs != null) illegal();
         while (true) {
             int pos1 = S.pos();
@@ -1024,7 +1031,7 @@ public class JavacParser implements Parser {
                   S.token() == PLUSPLUS ? JCTree.POSTINC : JCTree.POSTDEC, t));
             S.nextToken();
         }
-        return toP(t);
+        return t;
     }
 
     // DRC - this method extracted from term3() in order to be used in derived classes

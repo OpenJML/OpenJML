@@ -1,27 +1,51 @@
 ## This makefile builds releases
-
+## The default target builds the release and tests it
+## The release is named according to the current date.  Thus subsequent
+## builds on the same day will overwrite the release (by design).
+##
+## Other targets:
+##	release - just build the release
+##	test - just test the current release
 ROOT=..
 SPECS=../../../JMLspecs/trunk
 VERSION:=$(shell date +%Y%m%d)
 NAME=jml-${VERSION}.tar.gz
 
-## Builds the release components and then tests it
-jar: jars jmlruntime.jar tar
-	@echo Release complete
+## Default - build and test the release
+.PHONY: release-and-test
+release-and-test: release test
+
+## Just build a release named ${NAME}
+.PHONY: release
+release: jar
+
+${NAME}: release
+
+## Test the release named ${NAME}
+.PHONY: test
+test: 
 	@echo Testing
-	./releaseTest  ${NAME}
+	releaseTests/runTests  ${NAME} 
 	@echo Testing Complete
 
+## Builds the release components and then tests it
+.PHONY: jar
+jar: jars jmlruntime.jar tar
+	@echo Release complete
+
 ## Builds a tar file of the release components
+.PHONY: tar
 tar: openjml.jar jmlruntime.jar jmlspecs.jar
 	tar -zcf ${NAME} README openjml.jar jmlruntime.jar jmlspecs.jar 
 
 ## Builds the individual jar files that constitute the release
 ## namely jmlspecs.jar and openjml.jar
+.PHONY: jars
 jars jmlspecs.jar openjml.jar:
 	echo `pwd`
 	rm -rf temp temp2
 	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/JML-${VERSION}/ > version.properties )
+	echo "jml JML-${VERSION}" > releaseTests/testJmlVersion/expected
 	mkdir temp
 	(cd temp; for j in ${ROOT}/../OpenJML/otherlibs/* ; do jar xf $$j; echo $$j; done; rm -rf META-INF )
 	cp -r ${ROOT}/OpenJML/bin/* temp

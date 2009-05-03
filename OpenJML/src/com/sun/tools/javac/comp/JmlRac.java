@@ -1357,7 +1357,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         result = c;
     }
 
-    public void visitJmlMethodClauseAssignable(JmlMethodClauseAssignable that) {
+    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
         // TODO Auto-generated method stub
         
     }

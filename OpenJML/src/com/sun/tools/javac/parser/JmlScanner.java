@@ -541,8 +541,10 @@ public class JmlScanner extends DocCommentScanner {
                 // EOF or ENDJMLCOMMENT or line termination
                 scanChar(); // skip the *
                 do {
-                    while (ch != '*')
+                    while (ch != '*') {
+                        putChar(ch);
                         scanChar();
+                    }
                     scanChar(); // skip the *
                 } while (ch != ')');
                 endPos = bp + 1; // OK for unicode

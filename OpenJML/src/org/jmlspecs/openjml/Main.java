@@ -102,9 +102,9 @@ public class Main extends com.sun.tools.javac.main.Main {
             newargs[1] = "com.sun.jdi.CommandLineLaunch:options=-esa -ea:com.sun.tools...";
             newargs[2] = "org.jmlspecs.openjml.Main";
             method.invoke(null, new Object[] { newargs });
-          } else {
-            System.exit(compiler(args));
-          }
+        } else {
+            System.exit(execute(args));
+        }
     }
     
     /** The default application name */
@@ -128,12 +128,12 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return     the exit code, as returned to the shell - 0 is success
      */
     //@ requires args != null && \nonnullelements(args);
-    public static int compiler(String[] args) {
-        return compiler(args,false);  // The boolean: true - errors to stdErr, false - errors to stdOut
+    public static int execute(String[] args) {
+        return execute(args,false);  // The boolean: true - errors to stdErr, false - errors to stdOut
     }
 
     /** A programmatic interface to the compiler that returns the exit code, but
-     * does not itself call System.exit.  [This is called compiler rather than
+     * does not itself call System.exit.  [This is called execute rather than
      * compile as in com.sun.tools.javac.Main because we also have to override
      * com.sun.tools.javac.main.Main.compile ]
      * @param args the command-line arguments
@@ -141,7 +141,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return the exit code as sent to the shell (0 is success)
      */ 
     //@ requires args != null && \nonnullelements(args);
-    public static int compiler(String[] args, boolean useStdErr) {
+    public static int execute(String[] args, boolean useStdErr) {
         //System.out.println("STARTING");
         int errorcode = 1; //com.sun.tools.javac.main.Main.EXIT_ERROR;
         try {

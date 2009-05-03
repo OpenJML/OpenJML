@@ -82,7 +82,7 @@ public class Messager extends Log implements DocErrorReporter {
         });
     }
 
-    public class ExitJavadoc extends Error {
+    public static class ExitJavadoc extends Error {  // DRC - made static
         private static final long serialVersionUID = 0;
     }
 

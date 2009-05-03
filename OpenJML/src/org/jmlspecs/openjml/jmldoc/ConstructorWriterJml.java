@@ -84,7 +84,6 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
             MethodSymbol newMethodSym = (MethodSymbol)e.sym;
             JmlMethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(newMethodSym);
             if (mspecs != null) {
-                writer.ddEnd(); // Only needed if there were actually inline comments
                 writer.br(); // Need this if there is tag info, otherwise not // FIXME
                 String s = Utils.jmlAnnotations(newMethodSym);
                 if (Utils.hasSpecs(mspecs) || !s.isEmpty()) {
@@ -107,7 +106,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
      * @return true if the two symbols refer to the same method
      */ // FIXME
     public boolean match(MethodSymbol m, MethodSymbol mm) {
-        if (!mm.isConstructor()) return false;
+        if (!m.isConstructor()) return false;
         List<VarSymbol> mp = m.params();
         List<VarSymbol> mmp = mm.params();
         if (mp.size() != mmp.size()) return false;
@@ -272,10 +271,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
     
     public void writeJmlConstructorSummaryHeader(ClassDoc classDoc) {
         //printSummaryAnchor(cd);
-        writer.tableIndexSummary();
-        writer.tableHeaderStart("#CCCCFF");
-        strong("JML Model Constructor Summary");
-        writer.tableHeaderEnd();
+        Utils.writeHeader(writer,this,classDoc,"JML Model Constructor Summary",1);
     }
 
     /** This is overridden in order to include annotation information in the

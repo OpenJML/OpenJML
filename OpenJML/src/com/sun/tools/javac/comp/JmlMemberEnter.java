@@ -118,6 +118,18 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
         });
     }
     
+    /** Overridden simply to catch null first arguments.  The super class will crash
+     * but the first argument may be null if we continue after parsing with
+     * input files that contain parse errors.
+     * @param trees
+     * @param env
+     */
+    @Override
+    void memberEnter(List<? extends JCTree> trees, Env<AttrContext> env) {
+        if (trees != null) super.memberEnter(trees,env);
+    }
+
+    
     int modeOfFileBeingChecked = 0;
     
     void finishClass(JCClassDecl tree, Env<AttrContext> env) {

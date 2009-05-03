@@ -305,7 +305,7 @@ public class Scanner implements Lexer {
 
     /** Append a character to sbuf.
      */
-    private void putChar(char ch) {
+    protected void putChar(char ch) { // DRC - changed from private to protected
         if (sp == sbuf.length) {
             char[] newsbuf = new char[sbuf.length * 2];
             System.arraycopy(sbuf, 0, newsbuf, 0, sbuf.length);

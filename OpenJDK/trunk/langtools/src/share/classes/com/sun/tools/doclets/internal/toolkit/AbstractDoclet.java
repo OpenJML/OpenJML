@@ -81,6 +81,8 @@ public abstract class AbstractDoclet {
         }
         try {
             doclet.startGeneration(root);
+        } catch (com.sun.tools.javadoc.Messager.ExitJavadoc exc) { // DRC - added this to have a quiet exit when intended
+            return false;
         } catch (Exception exc) {
             exc.printStackTrace();
             return false;

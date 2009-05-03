@@ -111,6 +111,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected Name postCheckName;
     protected Name signalsCheckName;
     
+    public final static String syntheticExceptionID = "jml$$syntheticExceptionID";
+    
     ClassSymbol utilsClass;
     JCIdent utilsClassIdent;
     protected JmlSpecs specs;
@@ -847,8 +849,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
             }
             if (desugaringPure = (findMod(decl.mods,JmlToken.PURE) != null)) {
-                JmlMethodClause c = jmlF.JmlMethodClauseAssignable(JmlToken.ASSIGNABLE,
-                        List.<JCTree>of(jmlF.JmlSingleton(JmlToken.BSNOTHING)));
+                JmlMethodClause c = jmlF.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE,
+                        List.<JCExpression>of(jmlF.JmlSingleton(JmlToken.BSNOTHING)));
                 //attribStat(c,env);
                 clauses.append(c);
             }
@@ -890,6 +892,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         } else {
             for (JmlSpecificationCase c: cases) {
+                if (c.token == JmlToken.MODEL_PROGRAM) {
+                    newlist.append(c);  // FIXME - check that model programs are only at the outer level
+                    continue;
+                }
                 if (parent == null) {
                     JmlTree.Maker jmlF = (JmlTree.Maker)make;
                     JmlToken t = c.token;
@@ -941,7 +947,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     log.error(m.pos,"jml.multiple.signalsonly");
                 }
             } else if (desugaringPure && t == JmlToken.ASSIGNABLE) {
-                JmlMethodClauseAssignable asg = (JmlMethodClauseAssignable)m;
+                JmlMethodClauseStoreRef asg = (JmlMethodClauseStoreRef)m;
                 if (decl.sym.isConstructor()) {
                     // A pure constructor allows assigning to class member fields
                     // So if there is an assignable clause the elements of the clause
@@ -1412,6 +1418,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             // FIXME - need to check that ident is in this class
             attribExpr(tree.identifier,env,Type.noType);
+
+            Symbol sym = tree.identifier.sym;
+            if (sym.owner != env.enclClass.sym) {
+                log.error(tree.identifier.pos,"jml.ident.not.in.class",sym,sym.owner,env.enclClass.sym);
+            } else {
+                specs.getSpecs((VarSymbol)sym).list.append(tree);
+            }
+
+            // FIXME - set static environment if ident is static
             for (JCExpression c: tree.list) {
                 attribExpr(c,env,Type.noType);
             }
@@ -1431,9 +1446,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevAllowJML = JmlResolve.setJML(context,true);
         try {
             attribExpr(tree.identifier,env,Type.noType);
+            
+            Symbol sym = tree.identifier.sym;
+            if (sym.owner != env.enclClass.sym) {
+                log.error(tree.identifier.pos,"jml.ident.not.in.class",sym,sym.owner,env.enclClass.sym);
+            } else {
+                specs.getSpecs((VarSymbol)sym).list.append(tree);
+            }
+            // FIXME - set static environment if ident is static
             attribExpr(tree.expression, env, syms.booleanType);
-                // FIXME - need to check that ident is in this class
-            // FIXM E- need to put in static environment, if appropriate
         } finally {
             JmlResolve.setJML(context,prevAllowJML);
             pureEnvironment = prev;
@@ -1484,14 +1505,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case ENSURES:
             case DIVERGES:
             case WHEN:
+            case RETURNS:
                 attribExpr(tree.expression, env, syms.booleanType);
                 break;
                 
-            case ACCESSIBLE:
+            case CONTINUES:
+            case BREAKS:
+                // FIXME - what about the label
+                attribExpr(tree.expression, env, syms.booleanType);
+                break;
+            
             case CALLABLE:
-            case CAPTURES:
-                // FIXME - implement these - they will likely move to another method because they don't take expressions
-                if (JmlOptionName.isOption(context, JmlOptionName.SHOW_NOT_IMPLEMENTED)) log.warning(tree.pos,"jml.unimplemented.construct",tree.token.internedName(),"JmlAttr.visitJmlMethodClauseExpr");
+                // FIXME - should be implemented somewhere else
                 break;
                 
             default:
@@ -1531,7 +1556,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {
         if (tree.vardef.name == null) {
-            tree.vardef.name = names.fromString("jml$$syntheticExceptionID");
+            tree.vardef.name = names.fromString(syntheticExceptionID);
         }
         
 
@@ -1559,21 +1584,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     /** This is an implementation that does the type attribution for 
-     * a assignable method specification clause
+     * assignable/accessible/captures method specification clauses
      * @param tree the method specification clause being attributed
      */
     
-    public void visitJmlMethodClauseAssignable(JmlMethodClauseAssignable tree) {
+    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
         for (JCTree e: tree.list) {
             attribExpr(e, env, Type.noType);
         }
     }
 
-
+    // FIXME - need JmlAttr implementation for CALLABLE clauses
     
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
         for (JCTree t: that.list) {
             attribExpr(t,env,Type.noType);
+        }
+        if (!postClauses.contains(currentClauseType)) {
+            log.error(that.pos+1, "jml.misplaced.token", that.token.internedName(), currentClauseType.internedName());
         }
         result = check(that, syms.booleanType, VAL, pkind, pt);
     }
@@ -1620,9 +1648,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             localEnv = env.dup(tree, env.info.dup(env.info.scope.dup()));
             env = localEnv;
 
-            for (JmlMethodClause c: tree.clauses) {
-                currentClauseType = c.token;
-                c.accept(this);
+            if (tree.clauses == null) {
+                // model program
+                boolean oldPure = pureEnvironment;
+                pureEnvironment = false;
+                try {
+                    tree.block.accept(this);
+                } finally {
+                    pureEnvironment = oldPure;
+                }
+                
+            } else {
+                for (JmlMethodClause c: tree.clauses) {
+                    currentClauseType = c.token;
+                    c.accept(this);
+                }
             }
             
         } finally {
@@ -1767,31 +1807,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = check(tree, t, VAL, pkind, pt);
                 break;
 
-            case BSNOTMODIFIED :
-                // Expect any number of arguments of any type, result type is boolean
-                // Can be used where an \old is used
-                // FIXME - JML wants this to be a store-ref list
-                if (!oldNoLabelTokens.contains(currentClauseType)) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\not_modified token", currentClauseType.internedName());
-                    t = syms.errType;
-                }
-                attribArgs(tree.args, localEnv);
-                attribTypes(tree.typeargs, localEnv);
-                n = tree.args.size();
-                t = syms.booleanType;
-                result = check(tree, t, VAL, pkind, pt);
-                break;
-
-            case BSNOTASSIGNED :
-            case BSONLYASSIGNED :
-            case BSONLYACCESSED :
-            case BSONLYCAPTURED :
-                // Expect any number of arguments of store-refs; result type is boolean
-                attribArgs(tree.args, localEnv);
-                attribTypes(tree.typeargs, localEnv);
-                t = syms.booleanType;
-                result = check(tree, t, VAL, pkind, pt);
-                break;
+//            case BSNOTMODIFIED :
+//                // Expect any number of arguments of any type, result type is boolean
+//                // Can be used where an \old is used
+//                // FIXME - JML wants this to be a store-ref list
+//                if (!oldNoLabelTokens.contains(currentClauseType)) {
+//                    log.error(tree.pos+1, "jml.misplaced.old", "\\not_modified token", currentClauseType.internedName());
+//                    t = syms.errType;
+//                }
+//                attribArgs(tree.args, localEnv);
+//                attribTypes(tree.typeargs, localEnv);
+//                n = tree.args.size();
+//                t = syms.booleanType;
+//                result = check(tree, t, VAL, pkind, pt);
+//                break;
 
             case BSNONNULLELEMENTS :
                 // The argument can be a JML spec-expression
@@ -1875,6 +1904,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
                     }
                 }
+                if (!postClauses.contains(currentClauseType)) {
+                    // The +1 is to fool the error reporting mechanism into 
+                    // allowing other error reports about the same token
+                    log.error(tree.pos+1, "jml.misplaced.token", token.internedName(), currentClauseType.internedName());
+                }
                 result = check(tree, syms.booleanType, VAL, pkind, pt);
                 break;
 
@@ -1892,8 +1926,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
                     }
                 }
-                if (JmlOptionName.isOption(context, JmlOptionName.SHOW_NOT_IMPLEMENTED)) log.warning(tree.pos,"jml.unimplemented.construct",token.internedName(),"JmlAttr.visitApply");
-                result = tree.type = syms.errType;  // FIXME - result type not implemented
+                result = check(tree, JMLSetType, VAL, pkind, pt);  // FXME - needs to be a settype of Object
                 break;
                 
             case BSINVARIANTFOR :
@@ -2085,9 +2118,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         that.type = result;
     }
     
-    /** This set holds method clause types in which the \result token may appear */
+    /** This set holds method clause types in which the \result token may appear 
+     * (and \not_assigned \only_assigned \only_captured \only_accessible \not_modified) */
     public EnumSet<JmlToken> resultClauses = EnumSet.of(ENSURES,DURATION,WORKING_SPACE);
     
+    /** This set holds method clause types in which the these tokens may appear:
+     *  \not_assigned \only_assigned \only_captured \only_accessible \not_modified */
+    public EnumSet<JmlToken> postClauses = EnumSet.of(ENSURES,SIGNALS,DURATION,WORKING_SPACE,ASSERT,ASSUME);
+
     /** This handles expression constructs with no argument list such as \\result */
     public void visitJmlSingleton(JmlSingleton that) {
         JmlToken jt = that.token;
@@ -2122,11 +2160,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
                 
             case BSRESULT:
-                if (!resultClauses.contains(currentClauseType)) {
-                    // The +1 is to fool the error reporting mechanism into 
-                    // allowing other error reports about the same token
-                    log.error(that.pos+1, "jml.misplaced.result", currentClauseType.internedName());
-                }
                 JCTree.JCMethodDecl md = env.enclMethod;
                 JCTree res = md.getReturnType();
                 if (res == null || types.isSameType(res.type,syms.voidType)) {
@@ -2134,6 +2167,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     t = syms.errType;
                 } else {
                     t = res.type;
+                }
+                if (!resultClauses.contains(currentClauseType)) {
+                    // The +1 is to fool the error reporting mechanism into 
+                    // allowing other error reports about the same token
+                    log.error(that.pos+1, "jml.misplaced.result", currentClauseType.internedName());
+                    t = syms.errType;
                 }
                 break;
                 

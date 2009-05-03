@@ -29,7 +29,7 @@ public enum JmlOptionName implements OptionInterface {
     SHOW_NOT_IMPLEMENTED("-showNotImplemented",false,"When on, warnings about unimplemented constructs are issued"),
     JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much"),
     INTERACTIVE("-i",false,"Must be first, starts interactive mode"),
-    STOPIFERRORS("-stopIfParseErrors",false,"When enabled, stops after parsing if any files have parsing errors"),
+    STOPIFERRORS("-stopIfParseErrors",true,"When enabled, stops after parsing if any files have parsing errors"),
     NOINTERNALSPECS("-noInternalSpecs",false,"Disables automatically appending the internal specs directory to the specification path"),
     NOINTERNALRUNTIME("-noInternalRuntime",false,"Disables automatically appending the internal JML runtime library to the classpath"),
     RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks"),

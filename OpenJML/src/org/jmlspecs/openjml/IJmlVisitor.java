@@ -52,7 +52,7 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) ;
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) ;
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) ;
-    public void visitJmlMethodClauseAssignable(JmlMethodClauseAssignable that) ;
+    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) ;
     public void visitJmlSpecificationCase(JmlSpecificationCase that);
     public void visitJmlMethodSpecs(JmlMethodSpecs that)           ;
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that);

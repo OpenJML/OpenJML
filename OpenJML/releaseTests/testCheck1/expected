@@ -1,0 +1,9 @@
+A.java:1: incompatible types
+public class A { /*@ invariant 0; */ }
+                               ^
+  required: boolean
+  found:    int
+Note: java/lang/Comparable.jml uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+1 error
+ENDING with exit code 1

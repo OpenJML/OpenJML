@@ -159,16 +159,16 @@ public class Pretty extends JCTree.Visitor {
      *************************************************************************/
 
     /** Exception to propogate IOException through visitXXX methods */
-    private static class UncheckedIOException extends Error {
+    protected static class UncheckedIOException extends Error { // DRC - changed from private to protected
         static final long serialVersionUID = -4032692679158424751L;
-        UncheckedIOException(IOException e) {
+        public UncheckedIOException(IOException e) { // DRC - changed from package to public
             super(e.getMessage(), e);
         }
     }
 
     /** Visitor argument: the current precedence level.
      */
-    int prec;
+    protected int prec; // DRC - changed from package to protected
 
     /** Visitor method: print expression tree.
      *  @param prec  The current precedence level.

@@ -28,8 +28,10 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javadoc.ClassDocImpl;
+import com.sun.tools.javadoc.Messager;
 
 public class HtmlJmlDoclet extends HtmlDoclet {
 
@@ -37,13 +39,17 @@ public class HtmlJmlDoclet extends HtmlDoclet {
         HtmlDoclet doclet = new HtmlJmlDoclet();
         return doclet.start(doclet, root);
     }
-    
+
     protected boolean isValidDoclet(AbstractDoclet doclet) { 
         return true;
     }
 
     protected void generateClassFiles(RootDoc root, ClassTree classtree) {
         doJmlParsing(root);
+        Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
+//        if (Log.instance(context).nerrors > 0) {
+//            throw new Messager.ExitJavadoc(); // Aborts Javadoc
+//        }
         super.generateClassFiles(root,classtree);
     }
     

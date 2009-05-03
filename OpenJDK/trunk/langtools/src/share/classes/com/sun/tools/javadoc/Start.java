@@ -138,7 +138,9 @@ public class Start {  // DRC - changed to public from package-default
      * Usage
      */
     protected void usage() { // Changed from private to protected
-        messager.notice("main.usage");
+        String message = messager.getText("main.usage");
+        message = message.replace("javadoc","jmldoc");
+        messager.printNotice(message);
 
         // let doclet print usage information (does nothing on error)
         if (docletInvoker != null) {

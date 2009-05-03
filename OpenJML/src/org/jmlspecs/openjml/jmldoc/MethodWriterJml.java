@@ -83,18 +83,21 @@ public class MethodWriterJml extends MethodWriterImpl {
             Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
             Name newMethodName = Names.instance(context).fromString(oldMethodSym.name.toString());
             Scope.Entry e = currentClassSym.members().lookup(newMethodName);
-            Scope.Entry ee = e;
             while (!(e.sym instanceof MethodSymbol) || !match((MethodSymbol)e.sym,oldMethodSym)) {
+                //Scope.Entry ee = e;
                 e = e.sibling;
                 if (e == null) {
-                    System.out.println("NOT FOUND " + newMethodName + " IN " + currentClassSym);
-                    return;   // FIXME - not found?
+                    //if (ee.scope == null) {
+                    // FIXME - this happens when public fields are inherited from package super classes
+                    //    System.out.println("NOT FOUND " + newMethodName + " IN " + currentClassSym);
+                        return;   // FIXME - not found?
+                    //}
+                    //e = ee.scope.lookup(newMethodName);
                 }
             }
             MethodSymbol newMethodSym = (MethodSymbol)e.sym;
             JmlMethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(newMethodSym);
             if (mspecs != null) {
-                writer.ddEnd(); // Only needed if there were actually inline comments // FIXME?
                 writer.br(); // Need this if there is tag info, otherwise not // FIXME
                 String s = Utils.jmlAnnotations(newMethodSym);
                 if (Utils.hasSpecs(mspecs) || !s.isEmpty()) {
@@ -157,7 +160,7 @@ public class MethodWriterJml extends MethodWriterImpl {
      */  // FIXME - need a better way to find overridden methods - can't be doing signature matching by hand - complications if there are type arguments with different names
     public MethodSymbol findSameContext(MethodSymbol m, ClassSymbol c) {
         Scope.Entry e = c.members().lookup(m.name);
-        while (e.sym != null) {
+        while (e != null && e.sym != null) {
             Symbol s = e.sym;
             e = e.sibling;
             if (!(s instanceof MethodSymbol)) continue;
@@ -352,7 +355,7 @@ public class MethodWriterJml extends MethodWriterImpl {
      */
     public void writeJmlMethodSummaryHeader(@NonNull ClassDoc classDoc) {
         //printSummaryAnchor(cd);
-        Utils.writeHeader(writer,"JML Model Method Summary",2);
+        Utils.writeHeader(writer,this,classDoc,"JML Model Method Summary",2);
 //        writer.tableIndexSummary();
 //        writer.tableHeaderStart("#CCCCFF");
 //        writer.bold("JML Model Method Summary");

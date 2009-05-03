@@ -66,9 +66,23 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
      * any information about inherited nested JML classes.
      * @param classDoc the classDoc whose nested members are being described
      */
+    @Override
     public void writeInheritedMemberSummaryFooter(@NonNull ClassDoc classDoc) {
         writeJmlInheritedNestedClassSummaryFooter(classDoc);
         super.writeInheritedMemberSummaryFooter(classDoc);
+    }
+    
+    /** This is used in place of DocEnv.shouldDocument because model methods are
+     * marked as synthetic and thus not allowed by DocEnv.
+     * @param currentDocEnv
+     * @param sym
+     * @return
+     */
+    public boolean shouldDocumentModel(DocEnv currentDocEnv, ClassSymbol sym) {
+        return 
+            // FIXME - do we need the line below - what does it guard against?
+            //(currentDocEnv.docClasses || currentDocEnv.getClassDoc(sym).tree != null) &&
+            currentDocEnv.isVisible(sym);
     }
     
     /** This writes out information about JML inherited nested classes,
@@ -77,14 +91,16 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
      */
     public void writeJmlInheritedNestedClassSummaryFooter(@NonNull ClassDoc classDoc) {
         ClassSymbol csym = currentClassSym;
-        TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(csym);
+        ClassSymbol nsym = Utils.findNewClassSymbol(classDoc);
+        TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(nsym);
         ArrayList<ClassDoc> list = new ArrayList<ClassDoc>();
         // Find all the JML inherited nested classes to describe
         for (JmlTypeClause tc : tspecs.clauses) {
             if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JCTree.JCClassDecl) {
                 JmlClassDecl mdecl = (JmlClassDecl)((JmlTypeClauseDecl)tc).decl;
                 ClassSymbol msym = mdecl.sym;
-                if (!currentDocEnv.shouldDocument(msym)) continue;
+                //if (!currentDocEnv.shouldDocument(msym)) continue;
+                if (!shouldDocumentModel(currentDocEnv,msym)) continue;
                 if (!Utils.isInherited(msym,currentClassSym)) continue;
                 ClassDoc modelClass = new ClassDocImpl(((ClassDocImpl)classDoc).docenv(),msym,mdecl.docComment,mdecl,null);
                 list.add(modelClass);
@@ -96,8 +112,8 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
             writer.strong("Inherited JML model classes and interfaces: ");
             Collections.sort(list);
             boolean isFirst = true;
-            for (ClassDoc method: list) {
-                writer.printInheritedSummaryMember(this, classDoc, method, isFirst);
+            for (ClassDoc nestedClass: list) {
+                writer.printInheritedSummaryMember(this, classDoc, nestedClass, isFirst);
                 isFirst = false;
             }
         }
@@ -158,7 +174,7 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
      */
     public void writeJmlNestedClassSummaryHeader(@NonNull ClassDoc classDoc) {
         //printSummaryAnchor(cd);
-        Utils.writeHeader(writer,"JML Nested Model Class Summary",2);
+        Utils.writeHeader(writer,this,classDoc,"JML Nested Model Class Summary",2);
     }
 
     /** This is overridden in order to include annotation information in the
