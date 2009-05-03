@@ -552,7 +552,7 @@ public class Attr extends JCTree.Visitor {
 
     public void visitClassDef(JCClassDecl tree) {
         // Local classes have not been entered yet, so we need to do it now:
-        if ((env.info.scope.owner.kind & (VAR | MTH)) != 0)
+        if ((env.info.scope.owner.kind & (VAR | MTH)) != 0 || tree.sym == null)  // DRC - added the second test for anonymous classeses
             enter.classEnter(tree, env);
 
         ClassSymbol c = tree.sym;
