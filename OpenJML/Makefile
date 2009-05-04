@@ -45,6 +45,7 @@ jars jmlspecs.jar openjml.jar:
 	echo `pwd`
 	rm -rf temp temp2
 	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/JML-${VERSION}/ > version.properties )
+	cp src/com/sun/tools/javac/resources/version.properties bin/com/sun/tools/javac/resources/version.properties
 	echo "jml JML-${VERSION}" > releaseTests/testJmlVersion/expected
 	mkdir temp
 	(cd temp; for j in ${ROOT}/../OpenJML/otherlibs/* ; do jar xf $$j; echo $$j; done; rm -rf META-INF )

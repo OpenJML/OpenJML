@@ -112,13 +112,13 @@ public class Pretty extends JCTree.Visitor {
 
     /** Increase left margin by indentation width.
      */
-    void indent() {
+    protected void indent() {  // DRC - changed from default to protected
         lmargin = lmargin + width;
     }
 
     /** Decrease left margin by indentation width.
      */
-    void undent() {
+    protected void undent() {  // DRC - changed from default to protected
         lmargin = lmargin - width;
     }
 

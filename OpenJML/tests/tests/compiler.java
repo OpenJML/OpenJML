@@ -274,7 +274,8 @@ public class compiler extends TestCase {
                           );
     }
     
-    // FIXME - need to chjeck that the output of these two is correct
+    
+    // FIXME - need to check that the output of these two is correct
     
     @Test
     public void testAPI() {
@@ -282,7 +283,7 @@ public class compiler extends TestCase {
         System.setOut(savedout);
         try {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
-            org.jmlspecs.openjml.Main m = new org.jmlspecs.openjml.Main(new String[]{});
+            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(new String[]{});
             String s = m.prettyPrint(m.parseFiles(f).get(0),true);
             System.out.println(s);
         } catch (Exception e) {
@@ -290,13 +291,14 @@ public class compiler extends TestCase {
             e.printStackTrace(System.out);
         }
     }
+    
     @Test
     public void testAPI2() {
         System.setErr(savederr);
         System.setOut(savedout);
         try {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
-            org.jmlspecs.openjml.Main m = new org.jmlspecs.openjml.Main(new String[]{"-v"});
+            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(new String[]{"-v"});
             String s = m.prettyPrint(m.parseFiles(f).get(0),true);
             System.out.println(s);
         } catch (Exception e) {

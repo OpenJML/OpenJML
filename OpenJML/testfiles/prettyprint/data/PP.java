@@ -8,7 +8,7 @@ public class PP extends QQ {
    //@ pure
     int m() { return 0; }
     
-    //@ pure
+    @Pure
     int mq(int a, boolean b, Object o) { return 0; }
     
     //@ invariant i + 2 * 3 - 4 / 5 + 6 % i + (i << 5) + (i >> 6) + (i >>> i) == -10;
@@ -44,6 +44,7 @@ public class PP extends QQ {
     //@ invariant (\lbl A true);
     //@ invariant ! \reach(o).isEmpty();
     //@ invariant \reach(o) != null;
+    //@ invariant (new PP() { int m() { return 5; } }) != null;
     //@ invariant new JMLSetType { Integer o | list.contains(o) && o > 0 } != null;
     // NOTE: \old with 2 arguments and \pre is only within a method
     
@@ -53,9 +54,19 @@ public class PP extends QQ {
     //@ readable i if true;
     //@ writable i if true;
     //@ monitors_for i = o;
-    
+
+    //@ public invariant false;
+    //@ public constraint i >= \old(i);
+    //@ public initially true;
+    //@ public readable i if true;
+    //@ public writable i if true;
+    //@ public monitors_for i = o;
+
     //@ model int modelM;
     //@ represents modelM = 20;
+    
+    //@ model int modelMZ;
+    //@ private represents modelMZ = 20;
     
     //@ model int modelM2; in modelM;
     //@ ensures \result > 0 && ! \nonnullelements(a) && \elemtype(\typeof(a)) == \type(int);
@@ -140,9 +151,14 @@ public class PP extends QQ {
     @          ensures true;
     @          diverges true;
     @      |}
-    @  also public exceptional_behavior
+    @  also protected exceptional_behavior
     @      requires false;
     @      signals (Exception) true;
+    @  also code behavior
+    @      requires false;
+    @      signals (Exception) true;
+    @  also private code model_program {
+        }
     @  also model_program {
             int x = 0;
             x++;
@@ -174,25 +190,33 @@ public class PP extends QQ {
             behavior requires true; ensures false;
             abrupt_behavior requires false; continues true; breaks true; returns true;
             invariant false;
+
+            // FIXME - add loop invariants, refining statements, try catch finally blocks,
+            // model programs do not need: set, debug, ghost decls
     @  }
    */
    void z() {} 
-    //FIXME - indenting of method specs, model_programs
     // FIXME - rationalize handling of precedence and () between Pretty and JmlPretty
-    // FIXME - notmodified should take store refs
     // TODO - implement choose and choose_if from model program
    // FIXME - breaks and continues model program statements all allowed to have labels.
    // FIXME - pretty printing assert and assume in model programs
-   // FIXME - pretty printing of anonymous class expressions
-   // invariant (new PP() { int m() { return 5; } }) != null;
 
+   // TODO: forall and old in method specs
+   
    // TODO: need to test all kinds of statements, including JML statements
+   //       labelled, synchronized, throw, local decl, local class,
+   //       annotated loops, break (to label), continue (to label), return (with value)
+   //       java assert
+   //   JML: assert, assume, assert_redundantly, set, debug, unreachable, hence_by
+   //   JML: choice, choice_if
+   //   UNDERSTAND: invariant in model program
+   
+   // TODO: example, implies_that
    
     // TODO:  .this  .super .new-expr
     
     // TODO: callable clause, \only_called
-    // TODO: visibility & 'code' attributes on clauses
-    // TODO: long lines
+    // TODO: long lines, retain user formatting
 }
 
 class QQ {
