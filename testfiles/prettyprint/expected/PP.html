@@ -133,13 +133,29 @@ extends <A HREF="QQ.html" title="class in &lt;Unnamed&gt;">QQ</A></PRE>
     invariant (\lbl A true); 
     invariant !\reach(o).isEmpty(); 
     invariant \reach(o) != null; 
+    invariant (new PP(){
+          
+          () {
+            super();
+          }
+          
+          int m() {
+            return 5;
+          }
+        }) != null; 
     invariant new JMLSetType { Integer o | list.contains(o) && o > 0 } != null; 
     constraint i >= \old(i); 
     axiom true; 
     initially true; 
-     readable i if true; 
-     writable i if true; 
-     monitors_for i = o; 
+    readable i if true; 
+    writable i if true; 
+    monitors_for i = o; 
+    public invariant false; 
+    public constraint i >= \old(i); 
+    public initially true; 
+    public readable i if true; 
+    public writable i if true; 
+    public monitors_for i = o; 
 </PRE>
 </TD></TR>
 </TABLE>
@@ -237,6 +253,15 @@ Field Summary</CAPTION>
 <BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
 </TR>
+<TR BGCOLOR="white" CLASS="TableRowColor">
+<TD ALIGN="right" VALIGN="top" WIDTH="1%"><FONT SIZE="-1">
+<CODE><FONT SIZE="-1">@Model
+</FONT>(package private) &nbsp;int</CODE></FONT></TD>
+<TD><CODE><STRONG><A HREF="PP.html#modelMZ">modelMZ</A></STRONG></CODE>
+
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+</TR>
 </TABLE>
 &nbsp;<A NAME="fields_inherited_from_class_QQ"><!-- --></A>
 <TABLE BORDER="1" WIDTH="100%" CELLPADDING="3" CELLSPACING="0" SUMMARY="">
@@ -293,7 +318,8 @@ Method Summary</CAPTION>
 </TR>
 <TR BGCOLOR="white" CLASS="TableRowColor">
 <TD ALIGN="right" VALIGN="top" WIDTH="1%"><FONT SIZE="-1">
-<CODE>(package private) &nbsp;int</CODE></FONT></TD>
+<CODE><FONT SIZE="-1">@Pure
+</FONT>(package private) &nbsp;int</CODE></FONT></TD>
 <TD><CODE><STRONG><A HREF="PP.html#mq(int, boolean, java.lang.Object)">mq</A></STRONG>(int&nbsp;a,
    boolean&nbsp;b,
    java.lang.Object&nbsp;o)</CODE>
@@ -378,9 +404,12 @@ i</H3>
 <PRE>
 int <STRONG>i</STRONG></PRE>
 <STRONG>JML Specifications: </STRONG><DL>
-<PRE>     readable i if true; 
-     writable i if true; 
-     monitors_for i = o; 
+<PRE>    readable i if true; 
+    writable i if true; 
+    monitors_for i = o; 
+    public readable i if true; 
+    public writable i if true; 
+    public monitors_for i = o; 
 </PRE>
 </DL>
 <HR>
@@ -439,6 +468,20 @@ modelM</H3>
 </DD>
 <HR>
 
+<A NAME="modelMZ"><!-- --></A><H3>
+modelMZ</H3>
+<PRE>
+<FONT SIZE="-1">@Model
+</FONT>int <STRONG>modelMZ</STRONG></PRE>
+<DD>&nbsp;
+<P>
+<STRONG>JML Specifications: </STRONG> @Model<DL>
+<PRE>    private represents modelMZ = 20; 
+</PRE>
+</DL>
+</DD>
+<HR>
+
 <A NAME="modelM2"><!-- --></A><H3>
 modelM2</H3>
 <PRE>
@@ -485,22 +528,19 @@ m</H3>
 int <STRONG>m</STRONG>()</PRE>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG> @Pure<PRE>
-
-</PRE>
+<STRONG>JML Method Specifications: </STRONG> @Pure<PRE></PRE>
 <HR>
 
 <A NAME="mq(int, boolean, java.lang.Object)"><!-- --></A><H3>
 mq</H3>
 <PRE>
-int <STRONG>mq</STRONG>(int&nbsp;a,
-       boolean&nbsp;b,
-       java.lang.Object&nbsp;o)</PRE>
+<FONT SIZE="-1">@Pure
+</FONT>int <STRONG>mq</STRONG>(int&nbsp;a,
+            boolean&nbsp;b,
+            java.lang.Object&nbsp;o)</PRE>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG> @Pure<PRE>
-
-</PRE>
+<STRONG>JML Method Specifications: </STRONG> @Pure<PRE></PRE>
 <HR>
 
 <A NAME="mm()"><!-- --></A><H3>
@@ -509,8 +549,7 @@ mm</H3>
 int <STRONG>mm</STRONG>()</PRE>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG><PRE>
-    ensures \result > 0 && !\nonnullelements(a) && \elemtype(\typeof(a)) == \type(int); 
+<STRONG>JML Method Specifications: </STRONG><PRE>    ensures \result > 0 && !\nonnullelements(a) && \elemtype(\typeof(a)) == \type(int); 
     ensures \duration(m()) > 0 && \space(o) > 0 && \working_space(m()) > 0; 
     ensures \fresh(a) && \fresh(a, o); 
     ensures \max(\lockset) == a; 
@@ -522,7 +561,6 @@ int <STRONG>mm</STRONG>()</PRE>
     ensures \not_assigned(i) || \only_accessed(i) || \only_captured(i) || \only_assigned(i); 
     ensures \not_assigned(i,a[1 .. *]) || \only_accessed(i,a[1 .. *]) || \only_captured(i,a[*]) || \only_assigned(i,o.*); 
     ensures \not_assigned(\not_specified) || \only_accessed(\not_specified) || \only_captured(\not_specified) || \only_assigned(\not_specified); 
-
 </PRE>
 <HR>
 
@@ -532,8 +570,7 @@ qq</H3>
 void <STRONG>qq</STRONG>()</PRE>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG><PRE>
-    requires \same; 
+<STRONG>JML Method Specifications: </STRONG><PRE>    requires \same; 
     requires true; 
     requires true; 
     ensures false; 
@@ -563,7 +600,6 @@ void <STRONG>qq</STRONG>()</PRE>
     working_space 0; 
     working_space 0 if true; 
     when false; 
-
 </PRE>
 <HR>
 
@@ -573,9 +609,7 @@ qq1</H3>
 void <STRONG>qq1</STRONG>()</PRE>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG><PRE>
-    signals_only Exception, java.lang.RuntimeException; 
-
+<STRONG>JML Method Specifications: </STRONG><PRE>    signals_only Exception, java.lang.RuntimeException; 
 </PRE>
 <HR>
 
@@ -585,9 +619,7 @@ qq2</H3>
 void <STRONG>qq2</STRONG>()</PRE>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG><PRE>
-    signals_only \nothing; 
-
+<STRONG>JML Method Specifications: </STRONG><PRE>    signals_only \nothing; 
 </PRE>
 <HR>
 
@@ -597,8 +629,7 @@ sp</H3>
 void <STRONG>sp</STRONG>()</PRE>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG><PRE>
-    requires \not_specified; 
+<STRONG>JML Method Specifications: </STRONG><PRE>    requires \not_specified; 
     ensures \not_specified; 
     diverges \not_specified; 
     signals (Exception) \not_specified; 
@@ -610,7 +641,6 @@ void <STRONG>sp</STRONG>()</PRE>
     duration \not_specified; 
     working_space \not_specified; 
     captures \not_specified; 
-
 </PRE>
 <HR>
 
@@ -620,75 +650,77 @@ z</H3>
 void <STRONG>z</STRONG>()</PRE>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG><PRE>
-  normal_behavior
+<STRONG>JML Method Specifications: </STRONG><PRE>  public normal_behavior
     requires true; 
-         {|
+    {|
       ensures false; 
       diverges true; 
-         also
+    also
       ensures true; 
       diverges true; 
-         |}
-  exceptional_behavior
+    |}
+  protected exceptional_behavior
     requires false; 
     signals (Exception) true; 
-  model_program{
-  int x = 0;
-  x++;
-  ++x;
-  x--;
-  --x;
-  x = 1;
-  x += 1;
-  x -= 1;
-  x *= 1;
-  x /= 1;
-  x %= 1;
-  x <<= 1;
-  x >>= 1;
-  x >>>= 1;
-  x |= 1;
-  x &= 1;
-  x ^= 1;
-  if (true) x = 1;
-  if (true) {
-    x = 1;
-  } else {
-    x = 2;
-  }
-  while (true) {
-    x = 1;
-    if (x == 2) continue;
-    if (x == 3) break;
-  }
-  do x = 1;   while (true);
-  switch (x) {
-  case 1: 
-    x = 2;
-    break;
-  
-  default: 
-    x = 3;
-  
-  }
-  ;
-  assume Assume true;
-  assert Assert true;
-  ;
-  ;
-    behavior
-    requires true; 
-    ensures false; 
-
-    abrupt_behavior
+  code behavior
     requires false; 
-    continues true; 
-    breaks true; 
-    returns true; 
-
-  invariant false; 
-}
+    signals (Exception) true; 
+  private code model_program {
+  }
+  model_program {
+    int x = 0;
+    x++;
+    ++x;
+    x--;
+    --x;
+    x = 1;
+    x += 1;
+    x -= 1;
+    x *= 1;
+    x /= 1;
+    x %= 1;
+    x <<= 1;
+    x >>= 1;
+    x >>>= 1;
+    x |= 1;
+    x &= 1;
+    x ^= 1;
+    if (true) x = 1;
+    if (true) {
+      x = 1;
+    } else {
+      x = 2;
+    }
+    while (true) {
+      x = 1;
+      if (x == 2) continue;
+      if (x == 3) break;
+    }
+    do x = 1;     while (true);
+    switch (x) {
+    case 1: 
+      x = 2;
+      break;
+    
+    default: 
+      x = 3;
+    
+    }
+    ;
+    assume Assume true;
+    assert Assert true;
+    ;
+    ;
+    behavior
+      requires true; 
+      ensures false; 
+    abrupt_behavior
+      requires false; 
+      continues true; 
+      breaks true; 
+      returns true; 
+    invariant false; 
+  }
 </PRE>
 <!-- ========= END OF CLASS DATA ========= -->
 <HR>

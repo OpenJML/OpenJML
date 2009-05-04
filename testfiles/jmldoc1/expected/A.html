@@ -622,9 +622,7 @@ public <STRONG>A</STRONG>()</PRE>
 </DD>
 
 <BR>
-<STRONG>JML Constructor Specifications: </STRONG><PRE>
-    requires true; 
-
+<STRONG>JML Constructor Specifications: </STRONG><PRE>    requires true; 
 </PRE>
 </DL>
 <HR>
@@ -662,9 +660,7 @@ A</H3>
 </DD>
 
 <BR>
-<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE>
-    requires i == 0; 
-
+<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE>    requires i == 0; 
 </PRE>
 </DL>
 <HR>
@@ -676,9 +672,7 @@ A</H3>
 </FONT>public <STRONG>A</STRONG>(float&nbsp;i)</PRE>
 
 <BR>
-<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE>
-    requires i == 0.0; 
-
+<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE>    requires i == 0.0; 
 </PRE>
 <HR>
 
@@ -689,9 +683,7 @@ A</H3>
 </FONT>public <STRONG>A</STRONG>(java.lang.Object&nbsp;i)</PRE>
 
 <BR>
-<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE>
-    requires i == null; 
-
+<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE>    requires i == null; 
 </PRE>
 <HR>
 
@@ -711,9 +703,7 @@ A</H3>
 </DD>
 
 <BR>
-<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE>
-
-</PRE>
+<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE></PRE>
 </DL>
 <HR>
 
@@ -726,9 +716,7 @@ A</H3>
                int&nbsp;k)</PRE>
 
 <BR>
-<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE>
-    requires i >= 0; 
-
+<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE>    requires i >= 0; 
 </PRE>
 
 <!-- ============ METHOD DETAIL ========== -->
@@ -782,12 +770,10 @@ m</H3>
 </DD>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG> @Pure<PRE>
-    requires true; 
+<STRONG>JML Method Specifications: </STRONG> @Pure<PRE>    requires true; 
     ensures \result == 0; 
     signals (java.io.FileNotFoundException e) true; 
     signals_only java.io.FileNotFoundException; 
-
 </PRE>
 </DL>
 <HR>
@@ -803,13 +789,11 @@ public int <STRONG>mmod</STRONG>(<FONT SIZE="-1">@NonNull</FONT>
 </DD>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG><PRE>
-    requires true; 
+<STRONG>JML Method Specifications: </STRONG><PRE>    requires true; 
     ensures \result == 0; 
     assignable i; 
     signals (java.io.FileNotFoundException e) true; 
     signals_only java.io.FileNotFoundException; 
-
 </PRE>
 </DL>
 <HR>
@@ -825,24 +809,16 @@ mm</H3>
 </DD>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG> @Pure<PRE>
-    requires true; 
+<STRONG>JML Method Specifications: </STRONG> @Pure<PRE>    requires true; 
     ensures \result == 0; 
     signals (java.io.FileNotFoundException e) true; 
     signals_only java.io.FileNotFoundException; 
-
 </PRE>
-<STRONG>JML Specifications inherited from BB: </STRONG><PRE>
-    ensures z_public == 10; 
-
+<STRONG>JML Specifications inherited from BB: </STRONG><PRE>    ensures z_public == 10; 
 </PRE>
-<STRONG>JML Specifications inherited from BInterface: </STRONG><PRE>
-    ensures false; 
-
+<STRONG>JML Specifications inherited from BInterface: </STRONG><PRE>    ensures false; 
 </PRE>
-<STRONG>JML Specifications inherited from BEInterface: </STRONG><PRE>
-    ensures false && false; 
-
+<STRONG>JML Specifications inherited from BEInterface: </STRONG><PRE>    ensures false && false; 
 </PRE>
 </DL>
 <HR>
@@ -854,9 +830,7 @@ n</H3>
 </FONT>public java.lang.Object <STRONG>n</STRONG>(java.lang.String&nbsp;s)</PRE>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG> @NonNull<PRE>
-
-</PRE>
+<STRONG>JML Method Specifications: </STRONG> @NonNull<PRE></PRE>
 <HR>
 
 <A NAME="nn(java.lang.String)"><!-- --></A><H3>
@@ -870,9 +844,7 @@ public java.lang.Object <STRONG>nn</STRONG>(java.lang.String&nbsp;s)</PRE>
 </DD>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG> @NonNull<PRE>
-
-</PRE>
+<STRONG>JML Method Specifications: </STRONG> @NonNull<PRE></PRE>
 </DL>
 <HR>
 
@@ -883,14 +855,12 @@ q</H3>
 </FONT>public void <STRONG>q</STRONG>()</PRE>
 
 <BR>
-<STRONG>JML Method Specifications: </STRONG> @Query<PRE>
-  normal_behavior
+<STRONG>JML Method Specifications: </STRONG> @Query<PRE>  public normal_behavior
     requires true; 
     ensures true; 
-  behavior
+  public behavior
     requires false; 
     ensures false; 
-
 </PRE>
 <HR>
 
