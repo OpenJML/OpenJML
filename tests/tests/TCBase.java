@@ -31,7 +31,7 @@ public abstract class TCBase extends JmlTestCase {
         testspecpath = testspecpath1;
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
-        options.put("-specs",   testspecpath);
+        options.put("-specspath",   testspecpath);
         options.put("-sourcepath",   testspecpath);
         if (!useSystemSpecs) options.put("-noInternalSpecs","");
         main.register(context);
@@ -75,7 +75,7 @@ public abstract class TCBase extends JmlTestCase {
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);
             //comp.compile(files,List.<String>nil(),null);
-            int ex = main.compile(new String[]{}, context, files, null);
+            int ex = main.compile(new String[]{ "-Xlint:unchecked" }, context, files, null);
             
             if (print) JmlSpecs.instance(context).printDatabase();
             if (print) printErrors();

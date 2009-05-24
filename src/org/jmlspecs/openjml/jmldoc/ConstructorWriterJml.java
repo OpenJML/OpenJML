@@ -86,7 +86,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
             if (mspecs != null) {
                 writer.br(); // Need this if there is tag info, otherwise not // FIXME
                 String s = Utils.jmlAnnotations(newMethodSym);
-                if (Utils.hasSpecs(mspecs) || !s.isEmpty()) {
+                if (Utils.hasSpecs(mspecs) || s.length()!=0) {
                     strong("JML Constructor Specifications: "); 
                     writer.print(s);
                     writer.preNoNewLine();

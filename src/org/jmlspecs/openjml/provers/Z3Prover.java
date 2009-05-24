@@ -72,6 +72,7 @@ public class Z3Prover extends AbstractProver implements IProver {
         // FIXME - will need to separate start from construction so there is an opportunity to set parameters (e.g. timeout)
         /** Creates and starts the prover process, sending any startup information */
         public Z3Prover(Context context) throws ProverException {
+            super(context);
             translator = new SimplifyTranslator(this);
             if (org.jmlspecs.openjml.esc.JmlEsc.escdebug && showCommunication <= 1) showCommunication = 2;
             start();
@@ -250,7 +251,7 @@ public class Z3Prover extends AbstractProver implements IProver {
         
         
         public void reassertCounterexample(ICounterexample ce) {
-            // CVC3 reasserts its own counterexamples when a QUERY is requested
+            // CVC3 reasserts its own proverResults when a QUERY is requested
         }
 
 
@@ -492,7 +493,7 @@ public class Z3Prover extends AbstractProver implements IProver {
             boolean unknown = output.startsWith("Unknown.");
             boolean unsat = output.indexOf("Valid.") != -1;
             if (sat == unsat && !unknown) throw new ProverException("Improper response to (check) query: \"" + output + "\"");
-            ProverResult r = new ProverResult();
+            ProverResult r = new ProverResult("Z3");
             if (sat || unknown) {
                 if (unknown) r.result(ProverResult.POSSIBLYSAT);
                 else r.result(ProverResult.SAT);

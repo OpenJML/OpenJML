@@ -302,7 +302,5 @@ openjml.jar(specs16/java/lang/Throwable.jml):55: package org.jmlspecs.annotation
 openjml.jar(specs16/java/lang/Throwable.jml):60: package org.jmlspecs.annotations does not exist
         public pure model boolean standardThrowable(non_null String s);
                                                     ^
-Note: java/lang/Comparable.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 100 errors
 ENDING with exit code 1

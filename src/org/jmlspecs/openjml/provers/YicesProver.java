@@ -90,6 +90,7 @@ public class YicesProver extends AbstractProver implements IProver {
     // FIXME - will need to separate start from construction so there is an opportunity to set parameters (e.g. timeout)
     /** Creates and starts the prover process, sending any startup information */
     public YicesProver(Context context) throws ProverException {
+        super(context);
         assumeCounter = -1;
         int k = 1;
         String bp = backgroundPredicate();
@@ -298,15 +299,15 @@ public class YicesProver extends AbstractProver implements IProver {
 //                        if (!errorString.startsWith("\nWARNING") &&
 //                                !errorString.startsWith("Yices (version") &&
 //                                !errorString.startsWith("searching")) {
-//                            if (showCommunication >= 1) System.out.println("HEARD ERROR: " + errorString);
+//                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
 //                            throw new ProverException("Prover error message: " + errorString);
 //                        } else {
-//                            if (showCommunication >= 3) System.out.println("HEARD ERROR: " + errorString);
+//                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
 //                        }
 //                    }
 //                    buf.clear();
 //                }
-//                if (showCommunication >= 3) System.out.println("HEARD: " + s);
+//                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
 //                return s;
 //            } else 
             if (interactive) {
@@ -326,7 +327,7 @@ public class YicesProver extends AbstractProver implements IProver {
                             off += nn;
                         }
                         String serr = String.valueOf(cbuf,0,off);
-                        if (!serr.startsWith("searching")) System.out.println("ERROR STREAM ON DEATH: " + serr);
+                        if (!serr.startsWith("searching")) log.noticeWriter.println("ERROR STREAM ON DEATH: " + serr);
                         throw new ProverException("Prover died");
                     }
                     offset += n;
@@ -336,18 +337,18 @@ public class YicesProver extends AbstractProver implements IProver {
                             // excessive length
                             String sss = String.valueOf(cbuf,0,200);
                             truncated += offset;
-                            System.out.println("TRUNCATING " + s.length() + " " + truncated );//+ " " + sss);
+                            log.noticeWriter.println("TRUNCATING " + s.length() + " " + truncated );//+ " " + sss);
                         } else {
                             String sss = String.valueOf(cbuf,0,200);
                             s = s + String.valueOf(cbuf,0,offset);
-                            System.out.println("BUFFER FULL " + s.length() );//+ " " + sss);
+                            log.noticeWriter.println("BUFFER FULL " + s.length() );//+ " " + sss);
                         }
                         offset = 0;
                     }
                 }
                 if (truncated == 0) s = s + String.valueOf(cbuf,0,offset);
 //                if (truncated > 0) {
-//                    System.out.println("OUTPUT LENGTH " + s.length() + " " + truncated);
+//                    log.noticeWriter.println("OUTPUT LENGTH " + s.length() + " " + truncated);
 //                    throw new ProverException("Excessive output: " + s.length() + " " + truncated);
 //                }
 
@@ -361,18 +362,20 @@ public class YicesProver extends AbstractProver implements IProver {
                     }
                     if (offset > 0) {
                         String errorString = new String(cbuf,0,offset);
-                        //if (errorString.startsWith("searching")) System.out.println("SEARCHING " + errorString.length());
+                        //if (errorString.startsWith("searching")) log.noticeWriter.println("SEARCHING " + errorString.length());
                         if (!errorString.startsWith("\nWARNING") &&
                                 !errorString.startsWith("Yices (version") &&
                                 !errorString.startsWith("searching")) {
-                            if (showCommunication >= 1) System.out.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
                             throw new ProverException("Prover error message: " + errorString);
                         } else {
-                            if (showCommunication >= 3) System.out.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 3) {
+                                log.noticeWriter.println("HEARD ERROR: " + errorString);
+                            }
                         }
                     }
                 }
-                if (showCommunication >= 3) System.out.println("HEARD: " + s);
+                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
                 return s;
             } else {
                 // In non-interactive mode, there may be no input at all
@@ -412,14 +415,14 @@ public class YicesProver extends AbstractProver implements IProver {
                         if (!errorString.startsWith("\nWARNING") &&
                                 !errorString.startsWith("Yices (version") &&
                                 !errorString.startsWith("searching")) {
-                            if (showCommunication >= 1) System.out.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
                             throw new ProverException("Prover error message: " + errorString);
                         } else {
-                            if (showCommunication >= 3) System.out.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
                         }
                     }
                 }
-                if (showCommunication >= 3) System.out.println("HEARD: " + s);
+                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
                 return s;
             }
         } catch (IOException e) {
@@ -521,10 +524,10 @@ public class YicesProver extends AbstractProver implements IProver {
 //            if (ss.startsWith("(define i1::int)")) {
 //                ss = ss.trim();
 //            }
-            //System.out.print("SENDING " + ss);
-            System.out.print("SENDING ["+assumeCounter+":" + s.length()+ "]" + ss);
+            //log.noticeWriter.print("SENDING " + ss);
+            log.noticeWriter.print("SENDING ["+assumeCounter+":" + s.length()+ "]" + ss);
         }
-        //System.out.println("SENDING ["+assumeCounter+":" + s.length()+ "]");
+        //log.noticeWriter.println("SENDING ["+assumeCounter+":" + s.length()+ "]");
         try {
             if (s.length() > 2000) {
                 int i = 0;
@@ -545,25 +548,25 @@ public class YicesProver extends AbstractProver implements IProver {
     }
     
     public void reassertCounterexample(ICounterexample ce) {
-        //System.out.println("REASSERTING");
+        //log.noticeWriter.println("REASSERTING");
         for (Map.Entry<String,String> entry : ce.sortedEntries()) {
             String v = entry.getKey();
             String s = "(= " + v + " " + entry.getValue() +")";
             if (v.charAt(0) == '(') continue;
-            //System.out.println("REASSERTING " + s);
+            //log.noticeWriter.println("REASSERTING " + s);
             try {
                 rawassume(s);
             } catch (ProverException e) {
-                System.out.println("FAILED TO ASSERT " + s);
-                System.out.println(e);
+                log.noticeWriter.println("FAILED TO ASSERT " + s);
+                log.noticeWriter.println(e);
             }
         }
 //        try {
 //            IProverResult r = check(false);
-//            System.out.println("STATUS " + r.result());
+//            log.noticeWriter.println("STATUS " + r.result());
 //        } catch (ProverException e) {
-//            System.out.println("FAILED TO REASSERT " );
-//            System.out.println(e);
+//            log.noticeWriter.println("FAILED TO REASSERT " );
+//            log.noticeWriter.println(e);
 //
 //        }
     }
@@ -573,7 +576,7 @@ public class YicesProver extends AbstractProver implements IProver {
     protected String pretty(String s) {
         if (s.length() <= 50) return s;
         StringBuilder sb = new StringBuilder();
-        //System.out.println("CONVERTING " + s);
+        //log.noticeWriter.println("CONVERTING " + s);
         char[] cc = s.toCharArray();
         int nparens = 0;
         int nind = 2;
@@ -794,7 +797,7 @@ public class YicesProver extends AbstractProver implements IProver {
 //    public boolean isSat() throws ProverException {
 //        send("(check)\n");
 //        String output = eatPrompt();
-//        //System.out.println("HEARD " + output);
+//        //log.noticeWriter.println("HEARD " + output);
 //        boolean sat = output.startsWith("sat") || output.startsWith("unknown");
 //        boolean unsat = output.startsWith("unsat");
 //        if (sat == unsat) throw new ProverException("Improper response to (check) query: \"" + output + "\"");
@@ -814,13 +817,13 @@ public class YicesProver extends AbstractProver implements IProver {
         //timer.reset();
         send("(check)\n");
         String output = eatPrompt(true);
-        //System.out.println("CHECK TIME " + timer.elapsed()/1000.);
+        //log.noticeWriter.println("CHECK TIME " + timer.elapsed()/1000.);
         boolean sat = output.startsWith("sat");
         boolean unknown = output.startsWith("unknown");
         boolean unsat = output.startsWith("unsat") || output.startsWith("Logical context is inconsistent");
         if (sat == unsat && !unknown) throw new ProverException("Improper response to (check) query: \"" + output + "\"");
         details  &= evidence;
-        ProverResult r = new ProverResult();
+        ProverResult r = new ProverResult("yices");
         if (sat || unknown) {
             if (unknown) r.result(ProverResult.POSSIBLYSAT);
             else r.result(ProverResult.SAT);
@@ -831,7 +834,7 @@ public class YicesProver extends AbstractProver implements IProver {
         } else if (unsat) {
             r.result(ProverResult.UNSAT);
             if (interactive) output = output.substring(0,output.length()-8);
-            if (showCommunication >= 2) System.out.println("UNSAT INFO:" + output);
+            if (showCommunication >= 2) log.noticeWriter.println("UNSAT INFO:" + output);
 
             if (details) {
                 int index = output.indexOf("unsat core ids:");
@@ -923,13 +926,13 @@ public class YicesProver extends AbstractProver implements IProver {
                     String s1 = canonical.get(res);
                     if (s1 == null) {
                         canonical.put(res,canonical(name));
-                        //System.out.println("IMAP: " + res + " -> " + name);
+                        //log.noticeWriter.println("IMAP: " + res + " -> " + name);
                     } else {
                         String s2 = canonical(name);
                         if (s2.equals(NULL)) epairs.put(s1,s2);
                         else epairs.put(s2,s1);
                         newce.put(name,s1);
-                        //System.out.println("IMAP: " + res + "   SO " + name + " -> " + s1);
+                        //log.noticeWriter.println("IMAP: " + res + "   SO " + name + " -> " + s1);
                     }
                 } else {
                     String s1 = canonical(name);
@@ -939,7 +942,7 @@ public class YicesProver extends AbstractProver implements IProver {
                         else epairs.put(s1,s2);
                         newce.put(name,s2); 
                     }
-                    //if (!s1.equals(s2)) System.out.println("EMAP: " + name + "=" + res + "   SO " + s1 + " -> " + s2);
+                    //if (!s1.equals(s2)) log.noticeWriter.println("EMAP: " + name + "=" + res + "   SO " + s1 + " -> " + s2);
                 }
             }
         }
@@ -956,7 +959,7 @@ public class YicesProver extends AbstractProver implements IProver {
                     trr = canonical.get(res);
                     if (trr == null) trr = res;
                 }
-                //System.out.println("CHANGED: " + nm + " ::> " + res + "  TO  " + tr + " ::> " + trr);
+                //log.noticeWriter.println("CHANGED: " + nm + " ::> " + res + "  TO  " + tr + " ::> " + trr);
                 newce.put(tr,res);
             } else {
                 String typeString = defined.get(nm);
@@ -983,7 +986,7 @@ public class YicesProver extends AbstractProver implements IProver {
                 locs.put(n,u);
             }
         }
-        //System.out.println("CE STATUS " + check(false).result());
+        //log.noticeWriter.println("CE STATUS " + check(false).result());
         return newce;
     }
     
@@ -1151,7 +1154,7 @@ public class YicesProver extends AbstractProver implements IProver {
     public void maxsat() throws ProverException {
         send("(max-sat)\n");
         String output = eatPrompt(true);
-        if (showCommunication >= 2) System.out.println("MAXSAT INFO:" + output);
+        if (showCommunication >= 2) log.noticeWriter.println("MAXSAT INFO:" + output);
     }
     
     public void pop() throws ProverException {

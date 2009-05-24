@@ -14,8 +14,6 @@ Compiling with JML
 error: cannot find symbol
   symbol:   class mconsts
   location: class AEnum.mconsts
-Note: java/lang/Comparable.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 2 errors
 Generating doc\A.html...
 Generating doc\A.Annot.html...

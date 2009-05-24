@@ -12,23 +12,60 @@ import java.util.List;
 public class ProverResult implements IProverResult {
 
     /** The result obtained on testing a logical assertion */
-    @Nullable
+    @Nullable @SpecPublic
     protected Kind result;
 
+    /** Descriptor of the prover used */
+    @Nullable @SpecPublic
+    protected String prover;
+    
+    /** Other information - user defined */
+    @Nullable
+    protected Object otherInfo;
+    
     /** The details of the result produced by the prover, if any */
     @Nullable
     protected List<IProverResult.Item> details = null;
 
+    /** Creates a mostly empty ProverResult object, with the prover
+     * description initialized.
+     * @param prover A description of the prover used
+     */
+    //@ assignable this.prover;
+    //@ ensures prover == this.prover();
+    public ProverResult(String prover) {
+        this.prover = prover;
+    }
     /** Returns the category of result that the prover obtained
      * @return the category of result from the prover
      */
     @Pure
     public Kind result() { return result; }
 
+    /** Returns a descriptor of the prover used to generate the result
+     * @return a descriptor of the prover
+     */
+    @Pure
+    public @Nullable String prover() { return prover; }
+    
+    /** Returns the associated information object */
+    @Pure @Nullable
+    public Object otherInfo() { return otherInfo; }
+    
+    /** Sets the associated information object. */
+    //@ assignable otherInfo;
+    //@ ensures o == otherInfo();
+    public void setOtherInfo(@Nullable Object o) {
+        otherInfo = o;
+    }
+    
     /** Sets the result category
      * @param r the value of the result category
      */
+    //@ also
+    //@ assignable this.r;
     //@ ensures result() == r;
+    //JAVA16 @Override
     public void result(@NonNull Kind r) { result = r; }
 
     /** Returns true if the prover found a satisfying assignment 

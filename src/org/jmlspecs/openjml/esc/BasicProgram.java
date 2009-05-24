@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.esc;
 
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +19,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.util.Log;
 
 /**
  * A BasicProgram is an equivalent representation of a method:
@@ -119,11 +121,10 @@ public class BasicProgram {
         throw new RuntimeException("INTERNAL ERROR - A BasicProgram does not contain its own start block"); // FIXME - what exception to use
     }
     
-    /** Writes out the BasicProgram to System.out for diagnostics */
-    public void write() {
+    /** Writes out the BasicProgram to the given Writer (e.g. log.noticeWriter) for diagnostics */
+    public void write(Writer w) {
         System.out.println("START = " + startId);
         try {
-            Writer w = new OutputStreamWriter(System.out);
             JmlPretty pw = new JmlPretty(w,true);
             pw.useJMLComments = false;
             for (JCExpression e: background) {
@@ -143,7 +144,15 @@ public class BasicProgram {
             System.out.println("EXCEPTION: " + e);
         }
     }
-    
+
+    public String write(String header) {
+        StringWriter sw = new StringWriter();
+        sw.append(header);
+        sw.append("\n\n");
+        write(sw);
+        return sw.toString();
+    }
+
     /** This class holds a basic block (a sequence of non-branching
      * statements, expressions have no embedded calls or side-effects such
      * as assignments).
@@ -219,7 +228,7 @@ public class BasicProgram {
             return s.toString();
         }
         
-        /** Writes out the block to System.out, for diagnostic purposes */
+        /** Writes out the block to log.noticeWriter, for diagnostic purposes */
         public void write() {
             write(new OutputStreamWriter(System.out));
         }

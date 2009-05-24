@@ -39,7 +39,7 @@ public abstract class RacBase extends JmlTestCase {
         testspecpath = testspecpath1;
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
-        options.put("-specs",   testspecpath);
+        options.put("-specspath",   testspecpath);
         options.put("-d", "testdata");
         options.put("-rac",   "");
         if (jdkrac) {

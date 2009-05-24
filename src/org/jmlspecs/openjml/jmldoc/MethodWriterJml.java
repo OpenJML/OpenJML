@@ -100,7 +100,7 @@ public class MethodWriterJml extends MethodWriterImpl {
             if (mspecs != null) {
                 writer.br(); // Need this if there is tag info, otherwise not // FIXME
                 String s = Utils.jmlAnnotations(newMethodSym);
-                if (Utils.hasSpecs(mspecs) || !s.isEmpty()) {
+                if (Utils.hasSpecs(mspecs) || s.length()!=0) {
                     strong("JML Method Specifications: "); 
                     writer.print(s);
                     writer.preNoNewLine();
@@ -113,7 +113,7 @@ public class MethodWriterJml extends MethodWriterImpl {
                     if (m != null) {
                         mspecs = JmlSpecs.instance(context).getSpecs(m);
                         String ss = Utils.jmlAnnotations(m);
-                        if (Utils.hasSpecs(mspecs) || !ss.isEmpty()) {
+                        if (Utils.hasSpecs(mspecs) || ss.length()!=0) {
                             strong("JML Specifications inherited from " + c + ": "); 
                             writer.print(ss);
                             writer.preNoNewLine();
@@ -160,7 +160,7 @@ public class MethodWriterJml extends MethodWriterImpl {
      */  // FIXME - need a better way to find overridden methods - can't be doing signature matching by hand - complications if there are type arguments with different names
     public MethodSymbol findSameContext(MethodSymbol m, ClassSymbol c) {
         Scope.Entry e = c.members().lookup(m.name);
-        while (e != null && e.sym != null) {
+loop:   while (e != null && e.sym != null) {
             Symbol s = e.sym;
             e = e.sibling;
             if (!(s instanceof MethodSymbol)) continue;
@@ -170,7 +170,7 @@ public class MethodWriterJml extends MethodWriterImpl {
             List<VarSymbol> mmp = mm.params();
             if (mp.size() != mmp.size()) continue;
             while (mp.tail != null) {
-                if (!mp.head.type.equals(mmp.head.type)) continue;
+                if (!mp.head.type.equals(mmp.head.type)) continue loop;
                 mp = mp.tail;
                 mmp = mmp.tail;
             }
@@ -241,9 +241,9 @@ public class MethodWriterJml extends MethodWriterImpl {
           writeComments(classDoc,md);
           
           // tag info
-          // FIXME writeTags(md);
+          writeTags(md); // includes writeJmlSpecs(md);
           // instead for now
-          writer.dl(); writer.dlEnd(); writeJmlSpecs(md);
+          //writer.dl(); writer.dlEnd(); writeJmlSpecs(md);
 
           // Method footer
           writeMethodFooter();

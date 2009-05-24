@@ -2,10 +2,12 @@ package org.jmlspecs.openjml;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.JarEntry;
 import java.util.zip.ZipFile;
 
 import javax.tools.JavaFileManager;
@@ -114,6 +116,8 @@ import com.sun.tools.javac.util.Options;
  *
  */
 public class JmlSpecs {
+    
+    static public String[] externalDefaultSpecs = null;
 
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
@@ -157,6 +161,8 @@ public class JmlSpecs {
     
     protected JmlAttr attr;
     
+    protected Log log;
+    
     /** The map giving the accumulated specifications for a given type */
     protected Map<ClassSymbol,TypeSpecs> specs = new HashMap<ClassSymbol,TypeSpecs>();
     
@@ -177,6 +183,7 @@ public class JmlSpecs {
         this.context = context;
         context.put(specsKey, this);
         attr = JmlAttr.instance(context);
+        log = Log.instance(context);
     }
     
     /** Initializes the specs path given the current settings of options.
@@ -190,54 +197,105 @@ public class JmlSpecs {
         if (s != null) setSpecsPath(s);
     }
     
+    public final static String prefix = "specs1";
+    
     /** This method looks for the internal specification directories and, if
      * found, appends them to the argument. 
      * @param dirs the list to which to append the internal spec directories
      * @return true if found, false if not
      */
     public boolean appendInternalSpecs(boolean verbose, java.util.List<Dir> dirs) {
+        
+        String versionString = System.getProperty("java.version");
+        int version = 6; // the current default
+        if (versionString.startsWith("1.6")) version = 6;
+        else if (versionString.startsWith("1.5")) version = 5;
+        else if (versionString.startsWith("1.4")) version = 4;
+        else if (versionString.startsWith("1.7")) version = 7;
+        else {
+            log.noticeWriter.println("Unrecognized version: " + versionString);
+            version = 6; // default, if the version string is in an unexpected format
+        }
+        if (verbose) log.noticeWriter.println("AIS: version " + version);
+
+        // First use externalDefaultSpecs if it is there.  This is used
+        // when openjml is driven by an Eclipse plugin outside a development
+        // environment (and possibly in it as well).
+        // We could use eclipseSpecsProjectLocation but then we would
+        // have to represent all of these as strings and read them back in.
+        
+        if (verbose) log.noticeWriter.println("AIS EDS: " + (externalDefaultSpecs != null));
+        if (externalDefaultSpecs != null) {
+            for (String d: externalDefaultSpecs) {
+                if (d != null) {
+                    int i = d.indexOf("!");
+                    if (i == -1) {
+                        dirs.add(new FileSystemDir(d));
+                    } else {
+                        String n = d.substring(i+1);
+                        String f = d.substring(0,i);
+                        dirs.add(new JarDir(f,n));
+                    }
+                    log.noticeWriter.println("External: " + d);
+                }
+            }
+            log.noticeWriter.println("Internal specs from plugin");
+            return true;
+        }
+        
+        // Next look for a openjml.jar or jmlspecs.jar file on the classpath
+        // If present, use it (and use the first one found).  
+        // This happens in command-line mode.
+        
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
         Dir d;
+        
+        String libToUse = prefix+version;
+        
         for (String s: ss) {
-            if (s.endsWith("jmlcheck.jar")) {
-                d = new JarDir(s,"specs16");
+            if (s.endsWith("openjml.jar")) {
+                d = new JarDir(s,libToUse);
                 if (d.exists()) {
-                    if (verbose) System.out.println("Using internal specs " + d);
+                    if (verbose) log.noticeWriter.println("Using internal specs " + d);
                     dirs.add(d);
                     return true;
                 }
-                d = new JarDir(s.replace("jmlcheck.jar","jmlspecs.jar"),"");
+                d = new JarDir(s.replace("openjml.jar","jmlspecs.jar"),"");
                 if (d.exists()) {
-                    if (verbose) System.out.println("Using internal specs " + d);
+                    if (verbose) log.noticeWriter.println("Using internal specs " + d);
                     dirs.add(d);
                     return true;
                 }
             }
         }
+        
+        // Next see if there is jar file on the classpath that contains
+        // specs16 or similar directories
+        
         for (String s: ss) {
             if (s.endsWith(".jar")) {
-                d = new JarDir(s,"specs16");
+                d = new JarDir(s,"libToUse");
                 if (d.exists()) {
-                    if (verbose) System.out.println("Using internal specs " + d);
+                    if (verbose) log.noticeWriter.println("Using internal specs " + d);
+                    dirs.add(d);
+                    return true;
+                }
+                d = new JarDir(s,prefix + (version-1));
+                if (d.exists()) {
+                    if (verbose) log.noticeWriter.println("Using internal specs " + d);
                     dirs.add(d);
                     return true;
                 }
             }
         }
+        
+        // Finally, for working in the Eclipse environment, see if there
+        // is an environment variable that is set.
+        
         String sy = System.getProperty(Utils.eclipseSpecsProjectLocation);
         // These are used in testing - sy should be the trunk directory of the JMLspecs project
         if (sy != null) {
-            String versionString = System.getProperty("java.version");
-            int version = 6; // the current default
-            if (versionString.startsWith("1.6")) version = 6;
-            else if (versionString.startsWith("1.5")) version = 5;
-            else if (versionString.startsWith("1.4")) version = 4;
-            else if (versionString.startsWith("1.7")) version = 7;
-            else {
-                System.out.println("Unrecognized version: " + versionString);
-                version = 6; // default, if the version string is in an unexpected format
-            }
             
             boolean found = false;
             Dir dd;
@@ -360,11 +418,11 @@ public class JmlSpecs {
         }
         if (verbose) {
             for (Dir s: specsDirs) {
-                System.out.println("SPECSPATH " + s);
+                log.noticeWriter.println("SPECSPATH " + s);
             }
-            System.out.println("SOURCEPATH -sourcepath = " + Options.instance(context).get("-sourcepath"));
-            System.out.println("CLASSPATH -classpath = " + Options.instance(context).get("-classpath"));
-            System.out.println("CLASSPATH java.class.path = " + System.getProperty("java.class.path"));
+            log.noticeWriter.println("SOURCEPATH -sourcepath = " + Options.instance(context).get("-sourcepath"));
+            log.noticeWriter.println("CLASSPATH -classpath = " + Options.instance(context).get("-classpath"));
+            log.noticeWriter.println("CLASSPATH java.class.path = " + System.getProperty("java.class.path"));
         }
     }
     
@@ -378,7 +436,7 @@ public class JmlSpecs {
         String[] ss = sp.split(java.io.File.pathSeparator);
         String sss = null;
         for (String s: ss) {
-            if (s.endsWith("jmlcheck.jar")) {
+            if (s.endsWith("openjml.jar")) {
                 Dir d = new JarDir(s,"org/jmlspecs/lang");
                 if (d.exists()) {
                     sss = s;
@@ -399,11 +457,19 @@ public class JmlSpecs {
             String sy = System.getProperty(Utils.eclipseProjectLocation);
             // These are used in testing - sy should be the directory of the OpenJML project
             if (sy != null) {
+                sss = sy + "/jmlruntime.jar";
+                if (!(new File(sss)).exists()) sss = null;
+            }
+        }
+        if (sss == null) {
+            String sy = System.getProperty(Utils.eclipseProjectLocation);
+            // These are used in testing - sy should be the directory of the OpenJML project
+            if (sy != null) {
                 sss = sy + "/runtime";
             }
         }
         if (sss != null) {
-            if (verbose) System.out.println("Using internal runtime " + sss);
+            if (verbose) log.noticeWriter.println("Using internal runtime " + sss);
             sp = Options.instance(context).get("-classpath");
             if (sp != null) Options.instance(context).put("-classpath",sp + java.io.File.pathSeparator + sss);
         } else {
@@ -551,6 +617,11 @@ public class JmlSpecs {
             this.dir = new File(dirName);
         }
         
+        public FileSystemDir(File dir) {
+            this.name = dir.getName();
+            this.dir = dir;
+        }
+        
         @Override
         public boolean exists() {
             return dir.exists() && dir.isDirectory();
@@ -575,7 +646,6 @@ public class JmlSpecs {
             }
             return null;
         }
-        
     }
     
     /** This class represents .jar (and .zip) files and subdirectories within them */
@@ -645,40 +715,40 @@ public class JmlSpecs {
     
     /** A debugging method that prints the content of the specs database */
     public void printDatabase() {
-        System.out.println("SPECS DATABASE " + specs.size());
+        log.noticeWriter.println("SPECS DATABASE " + specs.size());
         try {
             for (Map.Entry<ClassSymbol,TypeSpecs> e : specs.entrySet()) {
                 String n = e.getKey().flatname.toString();
                 JavaFileObject f = e.getValue().file;
-                System.out.println(n + " " + (f==null?"<NOFILE>":f.getName()));
+                log.noticeWriter.println(n + " " + (f==null?"<NOFILE>":f.getName()));
                 ListBuffer<JmlTree.JmlTypeClause> clauses = e.getValue().clauses;
-                System.out.println("  " + clauses.size() + " CLAUSES");
+                log.noticeWriter.println("  " + clauses.size() + " CLAUSES");
                 for (JmlTree.JmlTypeClause j: clauses) {
-                    // FIXME               System.out.println("  " + j.token.internedName() + " " + j.expression.toString());
+                    // FIXME               log.noticeWriter.println("  " + j.token.internedName() + " " + j.expression.toString());
                 }
-                System.out.println("  " + e.getValue().methods.size() + " METHODS");
+                log.noticeWriter.println("  " + e.getValue().methods.size() + " METHODS");
                 for (MethodSymbol m: e.getValue().methods.keySet()) {
                     JmlMethodSpecs sp = getSpecs(m);
-                    System.out.println("  " + m.enclClass().toString() + " " + m.flatName());
-                    System.out.print(JmlPretty.write(sp));
-                    //System.out.println(sp.toString("     "));
+                    log.noticeWriter.println("  " + m.enclClass().toString() + " " + m.flatName());
+                    log.noticeWriter.print(JmlPretty.write(sp));
+                    //log.noticeWriter.println(sp.toString("     "));
                 }
-                System.out.println("  " + e.getValue().fields.size() + " FIELDS");
+                log.noticeWriter.println("  " + e.getValue().fields.size() + " FIELDS");
                 for (VarSymbol m: e.getValue().fields.keySet()) {
                     FieldSpecs sp = getSpecs(m);
                     for (JmlTypeClause t: sp.list) {
-                    System.out.println("  " + m.enclClass().toString() + " " + m.flatName());
-                    System.out.print(JmlPretty.write(t));
-                    //System.out.println(sp.toString("     "));
+                    log.noticeWriter.println("  " + m.enclClass().toString() + " " + m.flatName());
+                    log.noticeWriter.print(JmlPretty.write(t));
+                    //log.noticeWriter.println(sp.toString("     "));
                     }
                 }
             }
-            System.out.println("MOCK FILES");
+            log.noticeWriter.println("MOCK FILES");
             for (String s: mockFiles.keySet()) {
-                System.out.println(s + " :: " + mockFiles.get(s));
+                log.noticeWriter.println(s + " :: " + mockFiles.get(s));
             }
         } catch (Exception e) {
-            System.out.println("Exception occurred in printing the database: " + e);
+            log.noticeWriter.println("Exception occurred in printing the database: " + e);
         }
     }
     
@@ -709,7 +779,7 @@ public class JmlSpecs {
     public void putSpecs(ClassSymbol type, /*@ nullable */ TypeSpecs spec) {
         spec.csymbol = type;
         specs.put(type,spec);
-        if (Utils.jmldebug) System.out.println("PUTTING SPECS " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
+        if (Utils.jmldebug) log.noticeWriter.println("PUTTING SPECS " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     /** Adds the specs for a given method to the database, overwriting anything
@@ -718,7 +788,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, JmlMethodSpecs spec) {
-        if (Utils.jmldebug) System.out.println("            PUTTING METHOD SPECS " + m.enclClass() + " " + m);
+        if (Utils.jmldebug) log.noticeWriter.println("            PUTTING METHOD SPECS " + m.enclClass() + " " + m);
         specs.get(m.enclClass()).methods.put(m,spec);   // FIXME - what if the type is not present
     }
     
@@ -728,7 +798,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(ClassSymbol csym, JCTree.JCBlock m, JmlMethodSpecs spec) {
-        if (Utils.jmldebug) System.out.println("            PUTTING BLOCK SPECS " );
+        if (Utils.jmldebug) log.noticeWriter.println("            PUTTING BLOCK SPECS " );
         specs.get(csym).blocks.put(m,spec);   // FIXME - what if the type is not present
     }
     
@@ -738,7 +808,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-        if (Utils.jmldebug) System.out.println("            PUTTING FIELD SPECS " + m.enclClass() + " " + m);
+        if (Utils.jmldebug) log.noticeWriter.println("            PUTTING FIELD SPECS " + m.enclClass() + " " + m);
         specs.get(m.enclClass()).fields.put(m,spec);   // FIXME - what if the type is not present
     }
     
@@ -924,6 +994,15 @@ public class JmlSpecs {
             this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
         }
         
+        public String toString() {
+            StringWriter s = new StringWriter();
+            JmlPretty p = new JmlPretty(s, false);
+            for (JmlTypeClause c: clauses) {
+                c.accept(p);
+                try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
+            }
+            return s.toString();
+        }
     }
     
     /** Returns the default nullity for the given class - don't call this until
@@ -956,8 +1035,12 @@ public class JmlSpecs {
                 }
             } 
             if (t == null) {
-                ClassSymbol s = csymbol.enclClass();
-                t = defaultNullity(s != csymbol? s : null);
+                Symbol sym = csymbol.owner; // The owner might be a package - currently no annotations for packages
+                if (sym instanceof ClassSymbol) {
+                    t = defaultNullity((ClassSymbol)sym);
+                } else {
+                    t = defaultNullity(null);
+                }
             }
             spec.defaultNullity = t;
         }
@@ -994,6 +1077,20 @@ public class JmlSpecs {
         public ListBuffer<JmlTree.JmlTypeClause> list = new ListBuffer<JmlTree.JmlTypeClause>();
         public FieldSpecs(JCTree.JCModifiers mods) { 
             this.mods = mods;
+        }
+        
+        public String toString() {
+            StringWriter s = new StringWriter();
+            JmlPretty p = new JmlPretty(s, false);
+            mods.accept(p);
+            try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
+                                // FIXME - println only if there are mods?
+            for (JmlTypeClause c: list) {
+                c.accept(p);
+                try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
+            }
+            return s.toString();
+            
         }
     }
     

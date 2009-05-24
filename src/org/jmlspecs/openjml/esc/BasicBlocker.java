@@ -2,6 +2,9 @@ package org.jmlspecs.openjml.esc;
 
 import static com.sun.tools.javac.code.TypeTags.CLASS;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.*;
 
 
@@ -388,7 +391,7 @@ public class BasicBlocker extends JmlTreeScanner {
     
     /** Should not need this when everything is implemented */
     protected void notImpl(JCTree that) {
-        System.out.println("NOT IMPLEMENTED: BasicBlocker - " + that.getClass());
+        log.noticeWriter.println("NOT IMPLEMENTED: BasicBlocker - " + that.getClass());
         result = trueLiteral;
     }
     
@@ -623,7 +626,7 @@ public class BasicBlocker extends JmlTreeScanner {
         JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
         n.type = vsym.type;
         n.sym = vsym;
-        //System.out.println("NEW INCARNATION " + vsym + " " + incarnationPosition + " " + n.name);
+        //.println("NEW INCARNATION " + vsym + " " + incarnationPosition + " " + n.name);
         currentMap.put(vsym,incarnationPosition,n.name);
         return n;
     }
@@ -766,7 +769,7 @@ public class BasicBlocker extends JmlTreeScanner {
         loop: while (true) {
             for (BasicBlock pb: b.preceding) {
                 if (!blocksCompleted.contains(pb)) {
-                    System.out.println("PROCESSING A BLOCK OUT OF ORDER");
+                    log.noticeWriter.println("PROCESSING A BLOCK OUT OF ORDER");
                     processBlock(pb);
                     if (blocksCompleted.contains(pb)) return;
                     continue loop; // the list of preceders might have changed - check it over again
@@ -792,7 +795,7 @@ public class BasicBlocker extends JmlTreeScanner {
         } else if (b.id.toString().endsWith("$loopAfter")) {
             loopStack.remove(0);
         }
-        //System.out.println("Starting block " + b.id);
+        //log.noticeWriter.println("Starting block " + b.id);
         currentBlock = b;
         remainingStatements = currentBlock.statements;
         newstatements = currentBlock.statements = new ArrayList<JCStatement>();
@@ -809,7 +812,7 @@ public class BasicBlocker extends JmlTreeScanner {
         blockmaps.put(b,currentMap);
         blockLookup.put(b.id.name.toString(),b);
         currentMap = null; // Defensive - so no inadvertent assignments
-        //System.out.println("Completed block " + b.id);
+        //log.noticeWriter.println("Completed block " + b.id);
     }
     
     /** Updates the data structures to indicate that the after block follows the
@@ -914,7 +917,7 @@ public class BasicBlocker extends JmlTreeScanner {
      * @param classInfo the info about the enclosing class
      * @return the resulting BasicProgram
      */
-    protected static @NonNull BasicProgram convertToBasicBlocks(@NonNull Context context, 
+    public static @NonNull BasicProgram convertToBasicBlocks(@NonNull Context context, 
             @NonNull JCMethodDecl tree, JmlMethodSpecs denestedSpecs, JCClassDecl classDecl) {
         BasicBlocker blocker = instance(context);
         return blocker.convertMethodBody(tree,denestedSpecs,classDecl);
@@ -969,8 +972,14 @@ public class BasicBlocker extends JmlTreeScanner {
         typesAdded = new HashSet<TypeSymbol>();
         int pos = methodDecl.pos;
         inSpecExpression = false;
+        if (classDecl.sym == null) {
+            throw new RuntimeException("UNEXPECTED NULL SYM FOR " + classDecl.name);
+        }
         JmlClassInfo classInfo = getClassInfo(classDecl.sym);
-        this.classInfo = classInfo;
+        if (classInfo == null) {
+            throw new RuntimeException("UNEXPECTED NULL CLASSINFO FOR " + classDecl.name);
+        }
+       this.classInfo = classInfo;
         newdefs = new LinkedList<JCExpression>();
         background = new LinkedList<JCExpression>();
         blocksToDo = new LinkedList<BasicBlock>();
@@ -1613,7 +1622,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 background.add(e);
             }
         } else {
-            System.out.println("adddClassPredicate not implemented for " + type + " " + type.getClass());
+            log.noticeWriter.println("adddClassPredicate not implemented for " + type + " " + type.getClass());
         }
         popTypeArgs(type);
     }
@@ -1790,8 +1799,8 @@ public class BasicBlocker extends JmlTreeScanner {
 
         JmlMethodInfo mi = mspecs.decl == null ? new JmlMethodInfo(msym) : new JmlMethodInfo(mspecs.decl);
         JmlMethodSpecs denestedSpecs = msym == null ? null : specs.getDenestedSpecs(msym);
-        if (JmlEsc.escdebug) System.out.println("SPECS FOR " + msym.owner + " " + msym + " " + (denestedSpecs != null));
-        if (JmlEsc.escdebug) System.out.println(denestedSpecs == null ? "     No denested Specs" : denestedSpecs.toString("   "));
+        if (JmlEsc.escdebug) log.noticeWriter.println("SPECS FOR " + msym.owner + " " + msym + " " + (denestedSpecs != null));
+        if (JmlEsc.escdebug) log.noticeWriter.println(denestedSpecs == null ? "     No denested Specs" : denestedSpecs.toString("   "));
 
         List<JCStatement> prev = newstatements;
         newstatements = new LinkedList<JCStatement>();
@@ -2034,9 +2043,9 @@ public class BasicBlocker extends JmlTreeScanner {
             if (update != null) TargetFinder.findVars(update,targets);
             // synthesize a modifies list
             int wpos = body.pos+1;
-            //System.out.println("HEAP WAS " + currentMap.get((VarSymbol) heapVar.sym));
+            //log.noticeWriter.println("HEAP WAS " + currentMap.get((VarSymbol) heapVar.sym));
             newIdentIncarnation(heapVar,wpos);
-            //System.out.println("HEAP NOW " + currentMap.get((VarSymbol) heapVar.sym) + " " + (wpos+1));
+            //log.noticeWriter.println("HEAP NOW " + currentMap.get((VarSymbol) heapVar.sym) + " " + (wpos+1));
             for (JCExpression e: targets) {
                 if (e instanceof JCIdent) {
                     newIdentIncarnation((JCIdent)e,wpos);
@@ -2045,7 +2054,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     
                 } else {
                     // FIXME - havoc in loops
-                    System.out.println("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
+                    log.noticeWriter.println("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
                 }
             }
         }
@@ -2099,7 +2108,7 @@ public class BasicBlocker extends JmlTreeScanner {
         
         int end = endPos(body);
         if (end <= 0) {
-            System.out.println("BAD EBND");
+            log.noticeWriter.println("BAD EBND");
         }
         // Check that loop invariants are still established
         addUntranslatedLoopInvariants(JmlToken.ASSERT,loopSpecs,end,bloopContinue,Label.LOOP_INVARIANT);
@@ -2139,7 +2148,7 @@ public class BasicBlocker extends JmlTreeScanner {
         } else {
             // FIXME - fix this sometime - we don't know the end position of
             // statements that are not blocks
-            if (JmlEsc.escdebug) System.out.println("UNKNOWN END POS");
+            if (JmlEsc.escdebug) log.noticeWriter.println("UNKNOWN END POS");
             return t.pos;
         }
     }
@@ -2301,7 +2310,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     newIdentIncarnation((JCIdent)e,wpos);
                 } else {
                     // FIXME - havoc in loops
-                    System.out.println("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
+                    log.noticeWriter.println("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
                 }
             }
         }
@@ -2735,7 +2744,7 @@ public class BasicBlocker extends JmlTreeScanner {
             JCTree t = loopStack.get(0);
             String s = blockPrefix + t.pos + "$LoopBreak";
             BasicBlock b = blockLookup.get(s);
-            if (b == null) System.out.println("NO BREAK BLOCK: " + s);
+            if (b == null) log.noticeWriter.println("NO BREAK BLOCK: " + s);
             else replaceFollows(currentBlock,b);
         } else {
             Log.instance(context).error("esc.not.implemented","break statements with labels in BasicBlocker");
@@ -2747,7 +2756,7 @@ public class BasicBlocker extends JmlTreeScanner {
             JCTree t = loopStack.get(0);
             String s = blockPrefix + t.pos + "$LoopContinue";
             BasicBlock b = blockLookup.get(s);
-            if (b == null) System.out.println("NO CONTINUE BLOCK: " + s);
+            if (b == null) log.noticeWriter.println("NO CONTINUE BLOCK: " + s);
             else replaceFollows(currentBlock,b);
         } else {
             Log.instance(context).warning("esc.not.implemented","continue statements with labels in BasicBlocker");
@@ -2876,7 +2885,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     typeargs.put(tv.next().tsym,e.next().type);
                 }
             } else {
-                System.out.println("NOT IMPLEMENTED - parameterized method call with implicit type parameters");
+                log.noticeWriter.println("NOT IMPLEMENTED - parameterized method call with implicit type parameters");
             }
         }
 
@@ -2895,72 +2904,113 @@ public class BasicBlocker extends JmlTreeScanner {
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
             // This is an expression so we just use trExpr
-//        System.out.println("NO CHECK OF APPLY");  FIXME
+//        log.noticeWriter.println("NO CHECK OF APPLY");  FIXME
 //        that.meth.accept(this);
 //        for (JCExpression arg: that.args) {
-//            arg.accept(this);
-//        }
+        //            arg.accept(this);
+        //        }
 
         JmlToken token = that.token;
         JCExpression arg;
-        
-        switch (token) {
-            case BSOLD:
-            case BSPRE:
-                // FIXME - there is a problem if the argument includes an identifier that
-                // is the quantified variable of a quantifier statement
-                VarMap prev = currentMap;
-                JCIdent label = that.args.size() > 1 ? (JCIdent)( that.args.get(1) ) : null ;
-                currentMap = oldMap;
-                try {
-                    if (label != null) {
-                        VarMap lmap = labelmaps.get(label.name);
-                        if (lmap != null) currentMap = lmap;
-                        else {
-                            System.out.println("BAD LABEL: " + label);
-                        }
-                    }
-                    result = trExpr(that.args.get(0));
-                } finally {
-                    currentMap = prev;
+
+        if (token == null) {
+            
+            // Presuming this is the checkfor null method
+            // that.meth.sym == ???
+            JCExpression e = that.meth;
+            if (e instanceof JCFieldAccess) {
+                Name n = ((JCFieldAccess)e).sym.name;
+                if (n.toString().equals("nonNullCheck")) {
+                    arg = trExpr(that.args.get(1));
+                    checkForNull(arg,that.pos,trueLiteral,that.label);
+                    result = arg;
+                } else if (n.toString().equals("zeroIntCheck")) {
+                    arg = trExpr(that.args.get(1));
+                    checkForZero(arg,that.pos,trueLiteral,that.label);
+                    result = arg;
+                } else if (n.toString().equals("trueCheck")) {
+                    JCExpression cond = trExpr(that.args.get(1));
+                    arg = trExpr(that.args.get(2));
+                    checkTrue(that.pos,cond,that.label);
+                    result = arg;
+                } else if (n.toString().equals("eqCheck")) {
+                    JCExpression obj = trExpr(that.args.get(1));
+                    arg = trExpr(that.args.get(2));
+                    JCExpression cond = makeBinary(JCTree.EQ,arg,obj,that.pos);
+                    checkTrue(that.pos,cond,that.label);
+                    result = arg;
+                } else if (n.toString().equals("intRangeCheck")) {
+//                    JCExpression cond = trExpr(that.args.get(1));
+//                    arg = trExpr(that.args.get(2));
+//                    checkTrue(that.pos,cond,that.label);
+//                    result = arg;
+                } else {
+                    System.out.println("NAME " + n);
                 }
-                return;
-                
-            case BSTYPEOF:
-                arg = trExpr(that.args.get(0));
-                checkForNull(arg,that.pos,trueLiteral);
-                ListBuffer<JCExpression> lb = new ListBuffer<JCExpression>();
-                lb.append(arg);
-                result = factory.at(that.pos).JmlMethodInvocation(token,lb.toList());
-                result.type = syms.classType;
-                return;
+            } else {
+                System.out.println("INTENRAL ERROR " );
+                // FIXME 
+            }
 
-            case BSTYPELC:
-                Type type = that.args.get(0).type;
-                type = trType(type);
-                addClassPredicate(type);
-                result = makeTypeLiteral(type,that.pos);
-                return;
+        } else {
 
-            case BSELEMTYPE :
-                // FIXME - shutting up the warning, but not really implementing this
-                // Also need a check that the argument is non-null
-                arg = trExpr(that.args.get(0));
-                checkForNull(arg,that.pos,trueLiteral);
-                result = arg;// FIXME - wrong
-                return;
-                
-            case BSMAX :
-            case BSREACH :
-            case BSSPACE :
-            case BSWORKINGSPACE :
-            case BSDURATION :
-                Log.instance(context).warning("esc.not.implemented","Not yet implemented token in BasicBlocker: " + that.token.internedName());
-                result = trueLiteral; // FIXME - may not even be a boolean typed result
-                break;
+            switch (token) {
+                case BSOLD:
+                case BSPRE:
+                    // FIXME - there is a problem if the argument includes an identifier that
+                    // is the quantified variable of a quantifier statement
+                    VarMap prev = currentMap;
+                    JCIdent label = that.args.size() > 1 ? (JCIdent)( that.args.get(1) ) : null ;
+                    currentMap = oldMap;
+                    try {
+                        if (label != null) {
+                            VarMap lmap = labelmaps.get(label.name);
+                            if (lmap != null) currentMap = lmap;
+                            else {
+                                log.noticeWriter.println("BAD LABEL: " + label);
+                            }
+                        }
+                        result = trExpr(that.args.get(0));
+                    } finally {
+                        currentMap = prev;
+                    }
+                    return;
 
-                
-            case BSFRESH :
+                case BSTYPEOF:
+                    arg = trExpr(that.args.get(0));
+                    checkForNull(arg,that.pos,trueLiteral,null);
+                    ListBuffer<JCExpression> lb = new ListBuffer<JCExpression>();
+                    lb.append(arg);
+                    result = factory.at(that.pos).JmlMethodInvocation(token,lb.toList());
+                    result.type = syms.classType;
+                    return;
+
+                case BSTYPELC:
+                    Type type = that.args.get(0).type;
+                    type = trType(type);
+                    addClassPredicate(type);
+                    result = makeTypeLiteral(type,that.pos);
+                    return;
+
+                case BSELEMTYPE :
+                    // FIXME - shutting up the warning, but not really implementing this
+                    // Also need a check that the argument is non-null
+                    arg = trExpr(that.args.get(0));
+                    checkForNull(arg,that.pos,trueLiteral,null);
+                    result = arg;// FIXME - wrong
+                    return;
+
+                case BSMAX :
+                case BSREACH :
+                case BSSPACE :
+                case BSWORKINGSPACE :
+                case BSDURATION :
+                    Log.instance(context).warning("esc.not.implemented","Not yet implemented token in BasicBlocker: " + that.token.internedName());
+                    result = trueLiteral; // FIXME - may not even be a boolean typed result
+                    break;
+
+
+                case BSFRESH :
                 { // FIXME - define this to include being non-null - is that the JML definition?
                     int pos = that.pos;
                     JCExpression e = trExpr(that.args.get(0));
@@ -2971,38 +3021,38 @@ public class BasicBlocker extends JmlTreeScanner {
                     ee.pos = pos;
                     ee.type = syms.intType;
                     result = makeBinary(JCTree.AND,
-                                makeBinary(JCTree.NE,e,nullLiteral,pos),
-                                makeBinary(JCTree.EQ,ee,alloc,pos),pos);
-                    
+                            makeBinary(JCTree.NE,e,nullLiteral,pos),
+                            makeBinary(JCTree.EQ,ee,alloc,pos),pos);
+
                 }
                 break;
 
-//            case BSNOTMODIFIED:
-//                // Allows multiple arguments; they may be store-refs with wildcards (FIXME)
-//                JCExpression combined = null;
-//                for (JCExpression a : that.args){
-//                    // FIXME - there is an issue with condition - how do we evaluate if old(e) is well-defined?
-//                    //  defined as  arg == \old(arg)
-//                    int pos = that.pos;
-//                    JCExpression e = trExpr(a);
-//                    VarMap prevMap = currentMap;
-//                    currentMap = oldMap;
-//                    try {
-//                        // FIXME - what happens if not_modifieds are nested, or within an old
-//                        //extraEnv = true;
-//                        JCExpression ee = trExpr(a);
-//                        ee = makeBinary(JCTree.EQ,e,ee,pos);
-//                        if (combined == null) combined = ee;
-//                        else combined = makeBinary(JCTree.AND,combined,ee,pos);
-//                    } finally {
-//                        currentMap = prevMap;
-//                        //extraEnv = false;
-//                    }
-//                }
-//                result = combined;
-//                break;
+                //            case BSNOTMODIFIED:
+                //                // Allows multiple arguments; they may be store-refs with wildcards (FIXME)
+                //                JCExpression combined = null;
+                //                for (JCExpression a : that.args){
+                //                    // FIXME - there is an issue with condition - how do we evaluate if old(e) is well-defined?
+                //                    //  defined as  arg == \old(arg)
+                //                    int pos = that.pos;
+                //                    JCExpression e = trExpr(a);
+                //                    VarMap prevMap = currentMap;
+                //                    currentMap = oldMap;
+                //                    try {
+                //                        // FIXME - what happens if not_modifieds are nested, or within an old
+                //                        //extraEnv = true;
+                //                        JCExpression ee = trExpr(a);
+                //                        ee = makeBinary(JCTree.EQ,e,ee,pos);
+                //                        if (combined == null) combined = ee;
+                //                        else combined = makeBinary(JCTree.AND,combined,ee,pos);
+                //                    } finally {
+                //                        currentMap = prevMap;
+                //                        //extraEnv = false;
+                //                    }
+                //                }
+                //                result = combined;
+                //                break;
 
-            case BSNONNULLELEMENTS :
+                case BSNONNULLELEMENTS :
                 {
                     int pos = that.pos;
                     arg = trExpr(that.args.get(0));
@@ -3010,7 +3060,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     Name fcnname = names.fromString("nnelement$" + encodeType(arg.type));
                     MethodSymbol msym = makeFunction(fcnname,syms.booleanType,arg.type);
                     result = makeFunctionApply(pos,msym,arg);
-                    
+
                     // also need an axiom: (\forall a, int i; i in range; a[i] != null)
                     Name index = names.fromString("index$");
                     JCIdent indexId = newAuxIdent(index,syms.intType,pos,false);
@@ -3021,7 +3071,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     len.type = syms.intType;
                     len.pos = pos;
                     JCExpression range = makeBinary(JCTree.AND,makeBinary(JCTree.LE,zeroLiteral,indexId,pos),
-                                                    makeBinary(JCTree.LT,indexId,len,pos),pos);
+                            makeBinary(JCTree.LT,indexId,len,pos),pos);
                     JCExpression acc = new JmlBBArrayAccess(arrays,arg,indexId,pos,elemType);
                     JCExpression predicate = makeBinary(JCTree.NE,acc,nullLiteral,pos);
                     JCExpression intTypeTree = factory.at(pos).TypeIdent(TypeTags.INT);
@@ -3032,37 +3082,38 @@ public class BasicBlocker extends JmlTreeScanner {
                     e.type = syms.booleanType;
                     e = makeBinary(JCTree.AND,makeBinary(JCTree.NE,arg,nullLiteral,pos),e,pos);
                     e = makeBinary(JCTree.EQ,makeFunctionApply(pos,msym,arg),e,pos);
-//                    e = factory.at(pos).JmlQuantifiedExpr(JmlToken.BSFORALL,null,
-//                            new ListBuffer<JCExpression>().append(factory.Type(arg.type)),
-//                            new ListBuffer<Name>().append(array),
-//                            null,e);
+                    //                    e = factory.at(pos).JmlQuantifiedExpr(JmlToken.BSFORALL,null,
+                    //                            new ListBuffer<JCExpression>().append(factory.Type(arg.type)),
+                    //                            new ListBuffer<Name>().append(array),
+                    //                            null,e);
                     background.add(e);        
-//                    Log.instance(context).warning("esc.not.implemented","Not yet implemented token in BasicBlocker: " + that.token.internedName());
-//                    result = trueLiteral; // FIXME 
+                    //                    Log.instance(context).warning("esc.not.implemented","Not yet implemented token in BasicBlocker: " + that.token.internedName());
+                    //                    result = trueLiteral; // FIXME 
                 }
                 break;
 
-            case BSISINITIALIZED :
-            case BSINVARIANTFOR :
-                Log.instance(context).warning("esc.not.implemented","Not yet implemented token in BasicBlocker: " + that.token.internedName());
-                result = trueLiteral; // FIXME 
-                break;
+                case BSISINITIALIZED :
+                case BSINVARIANTFOR :
+                    Log.instance(context).warning("esc.not.implemented","Not yet implemented token in BasicBlocker: " + that.token.internedName());
+                    result = trueLiteral; // FIXME 
+                    break;
 
-            case BSNOWARN:
-            case BSNOWARNOP:
-            case BSWARN:
-            case BSWARNOP:
-            case BSBIGINT_MATH:
-            case BSSAFEMATH:
-            case BSJAVAMATH:
-                Log.instance(context).warning("esc.not.implemented","Not yet implemented token in BasicBlocker: " + that.token.internedName());
-                result = trExpr(that.args.get(0)); // FIXME - just pass through for now
-                break;
+                case BSNOWARN:
+                case BSNOWARNOP:
+                case BSWARN:
+                case BSWARNOP:
+                case BSBIGINT_MATH:
+                case BSSAFEMATH:
+                case BSJAVAMATH:
+                    Log.instance(context).warning("esc.not.implemented","Not yet implemented token in BasicBlocker: " + that.token.internedName());
+                    result = trExpr(that.args.get(0)); // FIXME - just pass through for now
+                    break;
 
-            default:
-                Log.instance(context).error("esc.internal.error","Unknown token in BasicBlocker: " + that.token.internedName());
+                default:
+                    Log.instance(context).error("esc.internal.error","Unknown token in BasicBlocker: " + that.token.internedName());
                 result = trueLiteral; // FIXME - may not even be a boolean typed result
                 break;
+            }
         }
 
     }
@@ -3197,7 +3248,7 @@ public class BasicBlocker extends JmlTreeScanner {
             JmlMethodSpecs mspecs = specs.getDenestedSpecs(methodSym);
             if (mspecs == null) {
                 // This happens for a binary class with no specs for the given method.
-                //System.out.println("NO SPECS FOR METHOD CALL(A) " + sym.owner + "." + sym);
+                //log.noticeWriter.println("NO SPECS FOR METHOD CALL(A) " + sym.owner + "." + sym);
                 mspecs = JmlSpecs.defaultSpecs(pos);
             } //else 
             {
@@ -3540,7 +3591,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     } else {
                         // Same as for JCFieldAccess except that fa.selected is always 'this' (currentThisId)
                         Type type = id.type;
-                        checkForNull(currentThisId,id.pos,preCondition);
+                        checkForNull(currentThisId,id.pos,preCondition,null);
 
                         JCIdent oldid = newIdentUse((VarSymbol)id.sym,id.pos);
                         JCFieldAccess oldaccess = new JmlBBFieldAccess(oldid,currentThisId);
@@ -3577,7 +3628,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     }
 
                     try {
-                        if (!isType) checkForNull(selected,sr.pos,preCondition);
+                        if (!isType) checkForNull(selected,sr.pos,preCondition,null);
 
                         if (fa.sym == null) {
                             Symbol ownerSym = fa.selected.type.tsym;
@@ -3599,7 +3650,7 @@ public class BasicBlocker extends JmlTreeScanner {
                                     }
                                 }
                             } else {
-                                System.out.println("FOUND " + ownerSym.getClass());
+                                log.noticeWriter.println("FOUND " + ownerSym.getClass());
                             }
 
                         } else {
@@ -3628,7 +3679,7 @@ public class BasicBlocker extends JmlTreeScanner {
                                 JCIdent arrayId = getArrayIdent(sr.type);
                                 
                                 array = trSpecExpr(array,log.currentSourceFile()); // FIXME
-                                checkForNull(array,sr.pos,trueLiteral);
+                                checkForNull(array,sr.pos,trueLiteral,null);
 
                                 JCExpression indexlo = trSpecExpr(ar.lo,log.currentSourceFile()); // FIXME
                                 if (indexlo != null) checkArrayAccess(array,indexlo,sr.pos);
@@ -3706,7 +3757,7 @@ public class BasicBlocker extends JmlTreeScanner {
                                 // a'[i] = preCondition ? a'[i] : a[i];
 
                                 array = trSpecExpr(array,log.currentSourceFile()); // FIXME
-                                checkForNull(array,sr.pos,trueLiteral);
+                                checkForNull(array,sr.pos,trueLiteral,null);
 
                                 JCExpression index = trSpecExpr(ar.lo,log.currentSourceFile()); // FIXME
                                 checkArrayAccess(array,index,sr.pos);
@@ -3850,6 +3901,9 @@ public class BasicBlocker extends JmlTreeScanner {
         // These are the set and debug statements
         // Just do all the JML statements as if they were Java statements, 
         // since they are part of specifications
+        
+        // FIXME _ should never reach this anymore
+        log.noticeWriter.println("SHOULD NOT HAVE REACHED HERE - BasicBLocker.visitJmlStatment " + that.token.internedName());
         boolean prevInSpecExpression = inSpecExpression;
         try {
             inSpecExpression = true;
@@ -3953,12 +4007,21 @@ public class BasicBlocker extends JmlTreeScanner {
             if (assumeCheck == null) assumeCheck = e;
             else assumeCheck = makeBinary(JCTree.AND,e,assumeCheck,pos);
         }
-        program.assumptionsToCheck.add(new AbstractMap.SimpleEntry<JCExpression,String>(e,n));
+        program.assumptionsToCheck.add(new Entry(e,n));
         // an assert without tracking
         // assert assumeCheck$<int>$<label>
         addAssertNoTrack(Label.ASSUME_CHECK,id,statements,pos,null); // FIXME - need the position of the assume, I think
     }
     
+    public static class Entry implements Map.Entry<JCExpression,String> {
+        JCExpression key;
+        String value;
+        public Entry(JCExpression e, String s) { key=e; value=s; }
+        public JCExpression getKey() { return key; }
+        public String getValue() { return value; }
+        public String setValue(String value) { String v = value; this.value = value; return v;}
+    }
+
     protected void checkAssumption(int pos, /*@ non_null*/ Label label) {
         checkAssumption(pos,label,currentBlock.statements);
     }
@@ -4115,7 +4178,7 @@ public class BasicBlocker extends JmlTreeScanner {
     
     public void visitIndexed(JCArrayAccess that) { 
         JCExpression array = trExpr(that.getExpression());
-        checkForNull(array,that.pos,trueLiteral);
+//        checkForNull(array,that.pos,trueLiteral,null);
         
         JCExpression index = trExpr(that.getIndex());
         checkArrayAccess(array,index,that.pos);
@@ -4124,13 +4187,28 @@ public class BasicBlocker extends JmlTreeScanner {
         result = new JmlBBArrayAccess(arrayID,array,index,that.pos,that.type);
     }
     
-    protected void checkForNull(JCExpression objTrans, int pos, JCExpression precondition) {
+    protected void checkForNull(JCExpression objTrans, int pos, JCExpression precondition, Label label) {
         //if (objTrans == thisId) return; // 'this' is always non-null
         JCExpression c = precondition == trueLiteral ? condition : makeBinary(JCTree.AND,condition,precondition,condition.pos);
         JCExpression e = makeBinary(JCTree.NE,objTrans,nullLiteral,pos);
         e = makeJmlBinary(JmlToken.IMPLIES,c,e,pos);
-        addAssert(inSpecExpression?Label.UNDEFINED_NULL:Label.POSSIBLY_NULL,
+        addAssert(label != null ? label : inSpecExpression?Label.UNDEFINED_NULL:Label.POSSIBLY_NULL,
                 e,pos,currentBlock.statements,pos,log.currentSourceFile());
+    }
+    
+    protected void checkForZero(JCExpression objTrans, int pos, JCExpression precondition, Label label) {
+        //if (objTrans == thisId) return; // 'this' is always non-null
+        JCExpression c = precondition == trueLiteral ? condition : makeBinary(JCTree.AND,condition,precondition,condition.pos);
+        JCExpression e = makeBinary(JCTree.NE,objTrans,zeroLiteral,pos);
+        e = makeJmlBinary(JmlToken.IMPLIES,c,e,pos);
+        addAssert(label != null ? label : inSpecExpression?Label.UNDEFINED_DIV0:Label.POSSIBLY_DIV0,
+                e,pos,currentBlock.statements,pos,log.currentSourceFile());
+    }
+    
+    protected void checkTrue(int pos, JCExpression assertion, Label label) {
+        //if (objTrans == thisId) return; // 'this' is always non-null
+        JCExpression e = makeJmlBinary(JmlToken.IMPLIES,condition,assertion,pos);
+        addAssert(label,e,pos,currentBlock.statements,pos,log.currentSourceFile());
     }
     
     protected void checkArrayAccess(JCExpression arrayTrans, JCExpression indexTrans, int pos) {
@@ -4156,7 +4234,7 @@ public class BasicBlocker extends JmlTreeScanner {
     public void visitSelect(JCFieldAccess that) {
         Symbol sym = that.sym;
         if (sym == null) {
-            System.out.println("NULL SYM IN SELECT: " + that.name); // FIXME
+            log.noticeWriter.println("NULL SYM IN SELECT: " + that.name); // FIXME
         } else if (sym.isStatic()) {  // FIXME - isStatic is not correct for JML fields in interfaces
             // FIXME - is there something predefined to compare against?
             if (sym.toString().equals("class")) {
@@ -4176,7 +4254,7 @@ public class BasicBlocker extends JmlTreeScanner {
             JCExpression selected = trExpr(that.selected);
 
             // Require  that.selected is not null
-            checkForNull(selected,that.pos,trueLiteral);
+            //checkForNull(selected,that.pos,trueLiteral,null);
 
             JCIdent id = newIdentUse((VarSymbol)sym,that.pos);
             JCFieldAccess now = new JmlBBFieldAccess(id,selected);
@@ -4296,7 +4374,7 @@ public class BasicBlocker extends JmlTreeScanner {
             newIdentIncarnation(heapVar,pos);
             return left;
         } else {
-            System.out.println("INCARNATION NOT IMPLERMENTED - visitAssign");
+            log.noticeWriter.println("INCARNATION NOT IMPLERMENTED - visitAssign");
             return null;
         }
     }
@@ -4396,7 +4474,7 @@ public class BasicBlocker extends JmlTreeScanner {
             } 
             
             if (sym.params == null && sym.erasure_field != null) {
-                System.out.println("BINARY GENERIC NOT IMPLEMENTED - exiting " + sym);
+                log.noticeWriter.println("BINARY GENERIC NOT IMPLEMENTED - exiting " + sym);
                 throw new RuntimeException();
             }
 
@@ -4452,16 +4530,16 @@ public class BasicBlocker extends JmlTreeScanner {
                         if (((JmlSingleton)sr).token == JmlToken.BSNOTHING) {
                             // OK
                         } else {
-                            System.out.println("UNIMPLEMENTED STORE REF " + sr.getClass());
+                            log.noticeWriter.println("UNIMPLEMENTED STORE REF " + sr.getClass());
                         }
                     } else if (sr instanceof JmlStoreRefKeyword) {
                         if (((JmlStoreRefKeyword)sr).token == JmlToken.BSNOTHING) {
                             // OK
                         } else {
-                            System.out.println("UNIMPLEMENTED STORE REF " + sr.getClass());
+                            log.noticeWriter.println("UNIMPLEMENTED STORE REF " + sr.getClass());
                         }
                     } else {
-                        System.out.println("UNIMPLEMENTED STORE REF " + sr.getClass());
+                        log.noticeWriter.println("UNIMPLEMENTED STORE REF " + sr.getClass());
                     }
                 }
             }
@@ -4722,7 +4800,7 @@ public class BasicBlocker extends JmlTreeScanner {
             case BSEXCEPTION:
                 if (exceptionVar == null) {
                     // FIXME -error
-                    System.out.println("EXCEPTION VAR IS NULL");
+                    log.noticeWriter.println("EXCEPTION VAR IS NULL");
                     result = null;
                 } else {
                     result = newIdentUse((VarSymbol)exceptionVar.sym,that.pos);
@@ -4925,7 +5003,7 @@ public class BasicBlocker extends JmlTreeScanner {
     public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
 
     public void visitClassDef(JCClassDecl that) {
-        System.out.println("YES THIS IS CALLED - visitClassDef");
+        log.noticeWriter.println("YES THIS IS CALLED - visitClassDef");
 //        scan(tree.mods);
 //        scan(tree.typarams);
 //        scan(tree.extending);
@@ -4940,7 +5018,7 @@ public class BasicBlocker extends JmlTreeScanner {
  
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-        System.out.println("YES THIS IS CALLED - visitJMLMethodDecl");
+        log.noticeWriter.println("YES THIS IS CALLED - visitJMLMethodDecl");
         //convertMethodBody(that.body); // FIXME - do the proof?? // Is it ever called? in local classes?
     }
     
@@ -5327,9 +5405,12 @@ public class BasicBlocker extends JmlTreeScanner {
         /** The log for output */
         @NonNull Log log;
         
+        @NonNull Writer w;
+        
         /** A runtime exception used to jump up to a finally block in the visitor calling stack */
         private static class ReturnException extends RuntimeException {
             private static final long serialVersionUID = -3475328526478936978L;}
+        
         /** A runtime exception used to jump up to a finally block in the visitor calling stack */
         private static class ExException extends RuntimeException {
             private static final long serialVersionUID = -5610207201211221750L;}
@@ -5339,19 +5420,26 @@ public class BasicBlocker extends JmlTreeScanner {
          * @param decl the method declaration 
          * @param s the counterexample information to translate
          */
-        public static void trace(@NonNull Context context, @NonNull JCMethodDecl decl, @NonNull ICounterexample s) {
+        public String trace(@NonNull Context context, @NonNull JCMethodDecl decl, @NonNull ICounterexample s) {
+            Tracer t = new Tracer(context,s);
             try {
-                decl.accept(new Tracer(context,s));
-            } catch (ReturnException e) {
-                // ignore
-            } catch (ExException e) {
-                // ignore
-            } catch (RuntimeException e) {
-                System.out.println("FAILED : " + e);
+                try {
+                    decl.accept(t);
+                } catch (ReturnException e) {
+                    // ignore
+                } catch (ExException e) {
+                    // ignore
+                } catch (RuntimeException e) {
+                    t.w.append("FAILED : " + e + "\n");
+                }
+                t.w.append("END\n");
+                return t.w.toString();
+            } catch (IOException e) {
+                Log.instance(context).noticeWriter.println("IOException");
+                return "";
             }
-            System.out.println("END");
         }
-        
+
         /** Translates the given position information into source, line and column information 
          * @param pos the position information to translate
          * @return A String containing human-readable source location information
@@ -5368,6 +5456,7 @@ public class BasicBlocker extends JmlTreeScanner {
             this.context = context;
             ce = s;
             log = Log.instance(context);
+            w = new StringWriter();
         }
         
         // CAUTION: The Strings in use in these visit methods correspond to the
@@ -5380,11 +5469,16 @@ public class BasicBlocker extends JmlTreeScanner {
         // FIXME - this implementation needs fleshing out
         
         public void visitMethodDef(JCMethodDecl that) {
-            System.out.println("START METHOD " + that.sym);
-            for (JCVariableDecl param: that.params) {
-                String s = param.name + "$" + param.pos + "$0";
-                String value = ce.get(s);
-                System.out.println("Parameter value: " + param.name + " = " + (value == null ? "<unused>" : value));
+            try {
+                w.append("START METHOD " + that.sym + "\n");
+                for (JCVariableDecl param: that.params) {
+                    String s = param.name + "$" + param.pos + "$0";
+                    String value = ce.get(s);
+                    w.append("Parameter value: " + param.name + " = " + (value == null ? "<unused>" : value) + "\n");
+                }
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
             super.visitMethodDef(that);
         }
@@ -5392,40 +5486,54 @@ public class BasicBlocker extends JmlTreeScanner {
         public void visitIf(JCIf that) {
             String s = "branchCondition$" + that.pos + "$" + 0;
             String value = ce.get(s);
-            if (value == null) System.out.println(getPosition(that.pos) + "!!!  Could not find value for branch ("+s+")");
-            else {
-                System.out.println(getPosition(that.pos) + "Branch condition value: " + value);
-                if (value.equals("true")) {
-                    if (that.thenpart != null) that.thenpart.accept(this);
-                } else if (value.equals("false")) {
-                    if (that.elsepart != null) that.elsepart.accept(this);
-                } else {
-                    System.out.println("!!! Unknown value: " + value);
+            try {
+                if (value == null) w.append(getPosition(that.pos) + "!!!  Could not find value for branch ("+s+")\n");
+                else {
+                    w.append(getPosition(that.pos) + "Branch condition value: " + value + "\n");
+                    if (value.equals("true")) {
+                        if (that.thenpart != null) that.thenpart.accept(this);
+                    } else if (value.equals("false")) {
+                        if (that.elsepart != null) that.elsepart.accept(this);
+                    } else {
+                        w.append("!!! Unknown value: " + value + "\n");
+                    }
                 }
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
         }
         
         public void visitAssign(JCAssign that) {
-            if (that.lhs instanceof JCIdent) {
-                JCIdent id = (JCIdent)that.lhs;
-                String s = id.name + "$" + ((VarSymbol)id.sym).pos + "$" + that.pos;
-                String value = ce.get(s);
-                if (value == null) System.out.println(getPosition(that.pos) + "!!!  Could not find value for variable ("+s+")");
-                else System.out.println(getPosition(that.pos) + "Assignment: " + id.name + " = " + value);
+            try {
+                if (that.lhs instanceof JCIdent) {
+                    JCIdent id = (JCIdent)that.lhs;
+                    String s = id.name + "$" + ((VarSymbol)id.sym).pos + "$" + that.pos;
+                    String value = ce.get(s);
+                    if (value == null) w.append(getPosition(that.pos) + "!!!  Could not find value for variable ("+s+")\n");
+                    else w.append(getPosition(that.pos) + "Assignment: " + id.name + " = " + value + "\n");
+                }
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
         }
         
         public void visitTry(JCTry that) {
             try {
-                that.body.accept(this);
-            } catch (ReturnException e) {
-                // do the finally block
-                if (that.finalizer != null) {
-                    System.out.println(getPosition(that.finalizer.pos) + "Executing finally block");
-                    that.finalizer.accept(this);
+                try {
+                    that.body.accept(this);
+                } catch (ReturnException e) {
+                    // do the finally block
+                    if (that.finalizer != null) {
+                        w.append(getPosition(that.finalizer.pos) + "Executing finally block\n");
+                        that.finalizer.accept(this);
+                    }
+                    throw e;
+                } catch (ExException e) {
+                    // FIXME
                 }
-                throw e;
-            } catch (ExException e) {
+            } catch (IOException e) {
                 // FIXME
             }
         }
@@ -5433,11 +5541,16 @@ public class BasicBlocker extends JmlTreeScanner {
         public void visitReturn(JCReturn that) {
             String s = "$$result";
             String value = ce.get(s);
-            if (that.expr != null) {
-                if (value == null) System.out.println(getPosition(that.pos) + "!!!  Could not find return value ("+s+")");
-                else System.out.println(getPosition(that.pos) + "Executed return: value = " + value);
-            } else {
-                System.out.println(getPosition(that.pos) + "Executed return");
+            try {
+                if (that.expr != null) {
+                    if (value == null) w.append(getPosition(that.pos) + "!!!  Could not find return value ("+s+")\n");
+                    else w.append(getPosition(that.pos) + "Executed return: value = " + value + "\n");
+                } else {
+                    w.append(getPosition(that.pos) + "Executed return\n");
+                }
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
             throw new ReturnException();
         }
@@ -5462,6 +5575,8 @@ public class BasicBlocker extends JmlTreeScanner {
         /** The compilation context */
         @NonNull Context context;
         
+        Writer w;
+        
         /** The prover that was used to create the counterexample */
         IProver prover;
         
@@ -5481,18 +5596,21 @@ public class BasicBlocker extends JmlTreeScanner {
          * @param ce the counterexample information to translate
          * @param prover the prover from which the counterexample information came
          */
-        public static void trace(@NonNull Context context, @NonNull BasicProgram program, @NonNull ICounterexample ce, IProver prover) {
+        public static String trace(@NonNull Context context, @NonNull BasicProgram program, @NonNull ICounterexample ce, IProver prover) {
+            String s = null;
             try {
-                (new TracerBB(context)).trace(program,ce,prover);
+                s = (new TracerBB(context)).trace(program,ce,prover);
             } catch (ReturnException e) {
                 // ignore
             } catch (ExException e) {
                 // ignore
+            } catch (IOException e) {
+                Log.instance(context).noticeWriter.println("ABORTED");
             } catch (RuntimeException e) {
-                System.out.println("ABORTED");
+                Log.instance(context).noticeWriter.println("ABORTED");
                 throw e;
             } 
-            System.out.println("END");
+            return s;
         }
         
         /** Translates the given position information into source, line and column information 
@@ -5510,21 +5628,24 @@ public class BasicBlocker extends JmlTreeScanner {
             this.context = context;
             log = Log.instance(context);
             syms = Symtab.instance(context);
+            w = new StringWriter();
             showSubexpressions = JmlOptionName.isOption(context,JmlOptionName.SUBEXPRESSIONS) || true;
         }
         
         //@ ensures this.program != null && this.ce != null;
         //@ ensures this.program != program && this.ce != ce;
-        public void trace(@NonNull BasicProgram program, ICounterexample ce, IProver prover) {
+        public String trace(@NonNull BasicProgram program, ICounterexample ce, IProver prover) throws IOException {
             this.ce = ce;
             this.program = program;
             this.prover = prover;
-            this.subexp = new Subexpressor(context,prover);
+            w = new StringWriter();
+            w.append("COUNTEREXAMPLE TRACE \n\n");
+            this.subexp = new Subexpressor(context,prover,w);
             
             for (JCVariableDecl vd: program.methodDecl.params) {
                 String n = vd.name + "$" + vd.pos + "$0";
                 String value = ce.get(n);
-                System.out.println(getPosition(vd.pos) + "Parameter \t" + vd.name + " \t= " + (value==null?"?":value));
+                w.append(getPosition(vd.pos) + "Parameter \t" +  n + " \t= " + (value==null?"?":value) + "\n");
             }
             
             if (showSubexpressions) prover.reassertCounterexample(ce);
@@ -5541,6 +5662,8 @@ public class BasicBlocker extends JmlTreeScanner {
                 }
                 break;
             }
+            w.append("END\n");
+            return w.toString();
         }
         
 
@@ -5552,8 +5675,8 @@ public class BasicBlocker extends JmlTreeScanner {
         // information and we need to match that as we interpret the counterexample
         // information in these methods.
         
-        protected boolean traceBlockStatements(BasicBlock b) {
-            if (Utils.jmldebug || true) System.out.println(" [ block " + b.id() + " ]");
+        protected boolean traceBlockStatements(BasicBlock b) throws IOException {
+            if (Utils.jmldebug || true) w.append(" [ block " + b.id() + " ]\n");
             boolean sawFalseAssert = false;
             String pos=null, lastpos;
             for (JCStatement statement: b.statements) {
@@ -5585,8 +5708,8 @@ public class BasicBlocker extends JmlTreeScanner {
                             JCBinary bin = (JCBinary)expr;
                             if (!(bin.lhs instanceof JCIdent)) { failure(label,expr); continue; }
                             Name n = ((JCIdent)bin.lhs).name;
-                            System.out.println(pos + "Assignment " + n + " = " + value((JCIdent)bin.lhs)
-                                    + "  [" + bin.rhs + "]");
+                            w.append(pos + "Assignment " + n + " = " + value((JCIdent)bin.lhs)
+                                    + "  [" + bin.rhs + "]\n");
                             showSubexpressions(bin.rhs);
 
                         } else if (expr instanceof JmlBBArrayAssignment){
@@ -5596,9 +5719,9 @@ public class BasicBlocker extends JmlTreeScanner {
                             JCExpression value = asg.args.get(4);
                             
                             List<String> results = subexp.getValues(array,index,value);
-                            System.out.println(pos + "ArrayAssignment " 
+                            w.append(pos + "ArrayAssignment " 
                                     + results.get(0) + "[" + results.get(1) + "] = " + results.get(2)
-                                    + "  [ (" + array + ")[" + index + "] = " + value + " ]");
+                                    + "  [ (" + array + ")[" + index + "] = " + value + " ]\n");
                             showSubexpressions(array);
                             showSubexpressions(index);
                             showSubexpressions(value);
@@ -5609,9 +5732,9 @@ public class BasicBlocker extends JmlTreeScanner {
                             JCExpression value = asg.args.get(3);
                             
                             List<String> results = subexp.getValues(obj,value);
-                            System.out.println(pos + "FieldAssignment " 
+                            w.append(pos + "FieldAssignment " 
                                     + results.get(0) + "." + field + " = " + results.get(1)
-                                    + "  [ (" + obj + ")." + field + " = " + value + " ]");
+                                    + "  [ (" + obj + ")." + field + " = " + value + " ]\n");
                             showSubexpressions(obj);
                             showSubexpressions(value);
 
@@ -5624,8 +5747,8 @@ public class BasicBlocker extends JmlTreeScanner {
                         JCBinary bin = (JCBinary)expr;
                         if (!(bin.lhs instanceof JCIdent)) { failure(label,expr); continue; }
                         Name n = ((JCIdent)bin.lhs).name;
-                        System.out.println(pos + "ArgumentEvaluation " + n + " = " + value((JCIdent)bin.lhs)
-                                + "  [" + bin.rhs + "]");
+                        w.append(pos + "ArgumentEvaluation " + n + " = " + value((JCIdent)bin.lhs)
+                                + "  [" + bin.rhs + "]\n");
                         showSubexpressions(bin.rhs);
 
                     } else if (label == Label.RECEIVER) {
@@ -5634,16 +5757,16 @@ public class BasicBlocker extends JmlTreeScanner {
                         JCBinary bin = (JCBinary)expr;
                         if (!(bin.lhs instanceof JCIdent)) { failure(label,expr); continue; }
                         Name n = ((JCIdent)bin.lhs).name;
-                        System.out.println(pos + "ReceiverEvaluation " + n + " = " + value((JCIdent)bin.lhs)
-                                + "  [" + bin.rhs + "]");
+                        w.append(pos + "ReceiverEvaluation " + n + " = " + value((JCIdent)bin.lhs)
+                                + "  [" + bin.rhs + "]\n");
                         showSubexpressions(bin.rhs);
                     
                     } else if (label == Label.BRANCHC) {
                         if (!(expr instanceof JCBinary)) { failure(label,expr); continue; }
                         JCBinary bin = (JCBinary)expr;
                         if (!(bin.lhs instanceof JCIdent)) { failure(label,expr); continue; }
-                        System.out.println(pos + label + " = " + value((JCIdent)bin.lhs)
-                                + "  [" + bin.rhs + "]");
+                        w.append(pos + label + " = " + value((JCIdent)bin.lhs)
+                                + "  [" + bin.rhs + "]\n");
                         showSubexpressions(bin.rhs);
                         
                     } else if (label == Label.LBL) {
@@ -5654,16 +5777,16 @@ public class BasicBlocker extends JmlTreeScanner {
                         String lbl = id.toString();
                         int k = lbl.lastIndexOf('$');
                         lbl = lbl.substring(k+1);
-                        System.out.println(pos + label + ": " + lbl + " = " + value(id)
-                                + "  [" + bin.rhs + "]");
+                        w.append(pos + label + ": " + lbl + " = " + value(id)
+                                + "  [" + bin.rhs + "]\n");
                         showSubexpressions(bin.rhs);
                         
                     } else if (label == Label.SWITCH_VALUE) {
                         if (!(expr instanceof JCBinary)) { failure(label,expr); continue; }
                         JCBinary bin = (JCBinary)expr;
                         if (!(bin.lhs instanceof JCIdent)) { failure(label,expr); continue; }
-                        System.out.println(pos + "switch value = " + value((JCIdent)bin.lhs)
-                                + "  [" + bin.rhs + "]");
+                        w.append(pos + "switch value = " + value((JCIdent)bin.lhs)
+                                + "  [" + bin.rhs + "]\n");
                         showSubexpressions(bin.rhs);
                         
                     } else if (label == Label.SYN) {  // FIXME - rename the SYN types that are wanted
@@ -5671,23 +5794,23 @@ public class BasicBlocker extends JmlTreeScanner {
                             JCExpression lhs = ((JCBinary)expr).lhs;
                             if (lhs instanceof JCIdent) {
                                 String value = ce.get(((JCIdent)lhs).name.toString());
-                                System.out.println(pos + "Syn " + lhs + " = " + value);
+                                w.append(pos + "Syn " + lhs + " = " + value + "\n");
                             } else {
-                                System.out.println(pos + "Syn " + expr);
+                                w.append(pos + "Syn " + expr + "\n");
                             }
                         } else {
-                            System.out.println(pos + "Syn " + expr);
+                            w.append(pos + "Syn " + expr + "\n");
                         }
                     } else if (label == Label.EXPLICIT_ASSUME) {
                         if (expr instanceof JCIdent) {
                             // This will happen for tracked assumptions
                             Name n = ((JCIdent)expr).name;
                             String value = ce.get(n.toString());
-                            System.out.println(pos + label + " " + n + " = " + value);
+                            w.append(pos + label + " " + n + " = " + value + "\n");
                             JCExpression e = findDefinition(n);
                             if (e != null) showSubexpressions(e);
                         } else {
-                            System.out.println(pos + label + " " + expr);
+                            w.append(pos + label + " " + expr + "\n");
                             showSubexpressions(expr);
                         }
                     } else if (label == Label.DSA) {
@@ -5695,11 +5818,11 @@ public class BasicBlocker extends JmlTreeScanner {
                         JCBinary bin = (JCBinary)expr;
                         if (!(bin.lhs instanceof JCIdent)) { failure(label,expr); continue; }
                         if (!(bin.rhs instanceof JCIdent)) { failure(label,expr); continue; }
-                        System.out.println(lastpos + label + " = " + value((JCIdent)bin.lhs)
-                                + "  [" + bin.rhs + "]");
+                        w.append(lastpos + label + " = " + value((JCIdent)bin.lhs)
+                                + "  [" + bin.rhs + "]\n");
                         // no subexpressions
                     } else if (label == Label.RETURN) {
-                        System.out.println(pos + "Executing return statement");
+                        w.append(pos + "Executing return statement\n");
                     } else if (label == Label.TERMINATION) {
                         if (!(expr instanceof JCBinary)) { failure(label,expr); continue; }
                         JCBinary bin = (JCBinary)expr;
@@ -5710,23 +5833,23 @@ public class BasicBlocker extends JmlTreeScanner {
                         if (v.equals("0")) {
                             String rv = bin.lhs.toString().replace("terminationVar","result");
                             String vv = valueNull(rv);
-                            System.out.println(pos + "Called method returned normally [" + bin.lhs + "=" + v +"]"+ (vv==null?"":", return value = " + vv + " ["+rv+"]"));
+                            w.append(pos + "Called method returned normally [" + bin.lhs + "=" + v +"]"+ (vv==null?"":", return value = " + vv + " ["+rv+"]\n"));
                         } else {
                             String rv = bin.lhs.toString().replace("terminationVar","exception");
                             String vv = subexp.getType(rv);
-                            System.out.println(pos + "Called method exited with an exception [" + bin.lhs + "=" + v +"]"
-                                    + (vv==null?"":", exception type = "+vv));
+                            w.append(pos + "Called method exited with an exception [" + bin.lhs + "=" + v +"]"
+                                    + (vv==null?"":", exception type = "+vv) + "\n");
                         }
                     } else if (label == Label.METHODAXIOM) {
                         // Just print the axiom - don't try to evaluate it
-                        System.out.println(pos + label + " " + expr);
+                        w.append(pos + label + " " + expr + "\n");
                     } else if (label == Label.ARRAY_INIT) {
                         // Just print the expression - don't try to evaluate it
-                        System.out.println(pos + label + " " + expr);
+                        w.append(pos + label + " " + expr + "\n");
                     } else if (label == Label.BRANCHT || label == Label.BRANCHE) {
                         // skip
                     } else {
-                        System.out.println(pos + label + " " + expr);
+                        w.append(pos + label + " " + expr + "\n");
                         showSubexpressions(expr);
                     }
                 } else if (s.token == JmlToken.ASSERT) {
@@ -5738,13 +5861,13 @@ public class BasicBlocker extends JmlTreeScanner {
                         JCExpression e = findDefinition(((JCIdent)expr).name);
                         if (e != null) expr = e;
                     }
-                    System.out.println(pos + "Assert [" + label + "] "
+                    w.append(pos + "Assert [" + label + "] "
                             + (value == null? "" : value)
-                            + "   [" + expr + "]");
+                            + "   [" + expr + "]\n");
                     showSubexpressions(expr);
                     if ("false".equals(value)) {
                         sawFalseAssert = true;
-                        //return false;
+                        return false;  // FIXME (do we want this?) - abrupt return here if we quit the trace reporting upon the first false assertion
                     }
                 } else {
                     log.error(pos,"esc.internal.error","Incorrect token type in traceBlockStatements: " + s.token.internedName());
@@ -5786,7 +5909,7 @@ public class BasicBlocker extends JmlTreeScanner {
         Subexpressor subexp;
         
         public void showSubexpressions(JCExpression expr) {
-            if (showSubexpressions) subexp.walk(expr);
+            if (showSubexpressions) try { subexp.walk(expr); } catch (IOException e) {}
         }
     }
     
@@ -5802,8 +5925,9 @@ public class BasicBlocker extends JmlTreeScanner {
         StringBuilder builder;
         List<JCBinary> exprs = new LinkedList<JCBinary>();
         Map<String,JCExpression> requests = new HashMap<String,JCExpression>();
+        Writer w;
         
-        public void walk(JCExpression expr) {
+        public void walk(JCExpression expr) throws IOException {
             exprs.clear();
             requests.clear();
             scan(expr);
@@ -5814,7 +5938,8 @@ public class BasicBlocker extends JmlTreeScanner {
                 }
                 res = prover.check(true);
             } catch (ProverException ex) {
-                System.out.println(ex);
+                w.append(ex.toString());
+                w.append("\n");
                 return;
             }
             if (res == null) {
@@ -5827,12 +5952,12 @@ public class BasicBlocker extends JmlTreeScanner {
                     JCIdent id = (JCIdent)bin.lhs;
                     String value = nce.get(id.toString());
                     if (value == null) value = "?";
-                    System.out.println("                                " + value + "\t = " + bin.rhs);
+                    w.append("                                " + value + "\t = " + bin.rhs + "\n");
                 }
             }
         }
         
-        public List<String> getValues(JCExpression... exprlist) {
+        public List<String> getValues(JCExpression... exprlist) throws IOException {
             IProverResult res = null;
             List<JCIdent> ids = new LinkedList<JCIdent>();
             try {
@@ -5845,13 +5970,13 @@ public class BasicBlocker extends JmlTreeScanner {
                 }
                 res = prover.check(true);
             } catch (ProverException ex) {
-                System.out.println(ex);
+                w.append(ex.toString()); w.append("\n");
                 return null;
             }
             if (res == null) {
-                System.out.println("ERROR: no additional information available");
+                w.append("ERROR: no additional information available\n");
             } else if (!res.isSat()) {
-                System.out.println("ERROR: no longer satisfiable");
+                w.append("ERROR: no longer satisfiable\n");
             } else {
                 ICounterexample nce = res.counterexample();
                 List<String> out = new LinkedList<String>();
@@ -5865,7 +5990,7 @@ public class BasicBlocker extends JmlTreeScanner {
             }
             return null;
         }
-        
+
         public String getType(String eid) {
             try {
                 JCIdent expr = factory.Ident(Names.instance(context).fromString(eid));
@@ -5878,27 +6003,31 @@ public class BasicBlocker extends JmlTreeScanner {
                 prover.assume(ex);
                 IProverResult res = prover.check(true);
                 if (res == null) {
-                    System.out.println("ERROR: no additional information available");
+                    w.append("ERROR: no additional information available\n");
                 } else if (!res.isSat()) {
-                    System.out.println("ERROR: no longer satisfiable");
+                    w.append("ERROR: no longer satisfiable\n");
                 } else {
                     ICounterexample nce = res.counterexample();
                     String value = nce.get(id.name.toString());
                     return value;
                 }
-           } catch (ProverException e) {
-                System.out.println(e);
+            } catch (IOException e) {
+                Log.instance(context).noticeWriter.println(e.toString());
+
+            } catch (ProverException e) {
+                Log.instance(context).noticeWriter.println(e.toString());
             }
-           return null;
+            return null;
         }
         
-        public Subexpressor(Context context, IProver prover) {
+        public Subexpressor(Context context, IProver prover, Writer w) {
             this.context = context;
             this.prover = prover;
             this.factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
             this.names = Names.instance(context);
             this.syms = Symtab.instance(context);
-            builder = new StringBuilder();
+            this.w = w;
+            //builder = new StringBuilder();
             
         }
         

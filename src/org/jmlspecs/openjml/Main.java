@@ -1,11 +1,14 @@
 package org.jmlspecs.openjml;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
+import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
@@ -16,14 +19,13 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 
-import sun.misc.resources.Messages;
-
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.comp.JmlCheck;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.comp.JmlFlow;
 import com.sun.tools.javac.comp.JmlMemberEnter;
@@ -49,8 +51,52 @@ import com.sun.tools.javac.util.Options;
  * compiler, but overrides some of the functionality here in order to register
  * tools for the compiler to use that are extensions with JML functionality of
  * the usual tools. Also the handling of JML-specific options is initialized
- * here.  This class also contains the programmatic API for calling the compiler
- * or for obtaining ASTs.
+ * here.  For programmatic access to the facilities of openjml, use the methods
+ * of the API class.
+ * 
+ */
+
+/* NOTE ON OUTPUT:
+ * Output is produced by this program in a variety of ways, through mechanisms
+ * that enable it to be captured for various means of display by the wrapping
+ * UI.
+ * 
+ * Log - there is one Log instance per context, retrieved by Log.instance(context).
+ * It has a number of writers:
+ *  log.noticeWriter - general information, often guarded by if (verbose) or if (jmldebug)
+ *  log.warnWriter - for compiler/JML/ESC warnings
+ *  log.errWriter - for compiler/JML/ESC errors
+ *  
+ * The IProgressReporter - this is used for messages that report progress back
+ * to the UI (textual or graphic).
+ * 
+ * Diagnostic listener - this listens for warnings and errors, as written to
+ * log.warnWriter and log.errWriter.
+ * 
+ * The output of the log goes to the registered instance of Log [ by 
+ * context.put(logKey, new Log(...)) ].  If no log is registered, a default log
+ * is used, which sends all channels of information to the PrintWriter registered
+ * under context.put(outKey,...).  There is a constructor for a Log that allows
+ * the notice, warning and error output to be directed to different PrintWriters.
+ * 
+ * If there is no DiagnosticListener registered, the warning and error outputs
+ * are treated as described above.  If there is a DiagnosticListener, then the
+ * diagnostic output is sent to that listener instead.
+ * 
+ * For OpenJML:
+ * - command-line tool: no diagnostic listener is defined; Log output can be
+ * directed to either System.out or System.err by a command-line option
+ * - Eclipse: a diagnostic listener is defined that converts warnings and errors
+ * into Eclipse markers; Log output is captured by a PrintWriter that directs
+ * the output to the Eclipse console.
+ * 
+ * Progress Reporting: Various tools within OpenJML report progress (e.g. as
+ * individual files are parsed).  The progress messages are tiered: 
+ *  level 1: low volume, appropriate for text and normal output
+ *  level 2: transient progress messages
+ *  level 3: verbose only
+ * A tool can receive these progress reports by
+ * registering as a delegate via 
  */
 public class Main extends com.sun.tools.javac.main.Main {
 
@@ -67,12 +113,74 @@ public class Main extends com.sun.tools.javac.main.Main {
     @NonNull
     protected PrintWriter out;
     
+    @Nullable
+    protected DiagnosticListener<?> diagListener;
+    
+    /** Instances of this class are used to abruptly terminate long-running
+     * JML operations.
+     * @author David R. Cok
+     */
+    public static class JmlCanceledException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        public JmlCanceledException(String message) {
+            super(message);
+        }
+    }
+    
+    public ChangeableProgressReporter progressDelegate = new ChangeableProgressReporter();
+
+    public static interface IProgressReporter {
+        void setContext(Context context);
+        boolean report(int ticks, int level, String message);
+    }
+    
+    static public class ChangeableProgressReporter implements IProgressReporter {
+        private IProgressReporter delegate;
+        public boolean report(int ticks, int level, String message) {
+            if (delegate != null) return delegate.report(ticks,level,message);
+            return false;
+        }
+        @Pure
+        public boolean hasDelegate() { return delegate != null; }
+        public void setDelegate(IProgressReporter d) {
+            delegate = d;
+        }
+        //JAVA16 @Override
+        public void setContext(Context context) { if (delegate!= null) delegate.setContext(context); }
+    }
+    
+    public static class PrintProgressReporter implements IProgressReporter {
+        PrintWriter pw;
+        Context context;
+        
+        public PrintProgressReporter(Context context, OutputStream out) {
+            pw = new PrintWriter(out);
+            this.context = context;
+        }
+        
+        public PrintProgressReporter(Context context, PrintWriter w) {
+            pw = w;
+            this.context = context;
+        }
+        
+        //JAVA16 @Override
+        public boolean report(int ticks, int level, String message) {
+            if (level <= 1 || (context != null && JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE))) pw.println(message);
+            return false;
+        }
+
+        //JAVA16 @Override
+        public void setContext(Context context) { this.context = context; }
+}
+
+    
+    
     /**
      * Construct a compiler instance.  Errors go to stderr.
      */
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_SAME_SIMPLE_NAME_AS_SUPERCLASS")
     public Main() {
-        this(applicationName, new PrintWriter(System.err, true));
+        this(applicationName, new PrintWriter(System.err, true), null);
     }
 
     /**
@@ -80,11 +188,16 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param name the name to use for the application
      * @param out  the PrintWriter to which to send information and error messages
      */
-    public Main(/*@ non_null */String name, /*@ non_null */PrintWriter out) {
+    public Main(/*@ non_null */String name, /*@ non_null */PrintWriter out, DiagnosticListener<? extends JavaFileObject> diagListener) {
         super(name,out);
         this.out = out;  // FIXME - would not need this if the super class declared out protected
+        this.diagListener = diagListener;
     }
 
+    public void registerReporter(Context context) {
+        context.put(IProgressReporter.class,progressDelegate);
+    }
+    
     /** The external entry point - simply calls compiler(args) and exits with the
      * exit code returned.
      * @param args the command-line arguments
@@ -142,6 +255,12 @@ public class Main extends com.sun.tools.javac.main.Main {
      */ 
     //@ requires args != null && \nonnullelements(args);
     public static int execute(String[] args, boolean useStdErr) {
+        return execute(new PrintWriter(useStdErr ? System.err : System.out, true), null, args);
+    }
+    
+    public static Main lastRun = null;
+    
+    public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull String[] args) {
         //System.out.println("STARTING");
         int errorcode = 1; //com.sun.tools.javac.main.Main.EXIT_ERROR;
         try {
@@ -164,13 +283,12 @@ public class Main extends com.sun.tools.javac.main.Main {
                 } else if (args.length > 0 && args[0].equals(interactiveOption)) {
                     // interactive mode
                     errorcode = new org.jmlspecs.openjml.Interactive().run(args);
-                    if (Utils.jmldebug || errorcode != 0) System.out.println("ENDING with exit code " + errorcode); 
+                    if (Utils.jmldebug || errorcode != 0) writer.println("ENDING with exit code " + errorcode); 
                 } else {
-                    com.sun.tools.javac.main.Main compiler = 
-                        new org.jmlspecs.openjml.Main(applicationName, 
-                                new PrintWriter(useStdErr ? System.err : System.out, true));
+                    Main compiler = new Main(applicationName, writer,diagListener);
+                    lastRun = compiler;
                     errorcode = compiler.compile(args);
-                    if (Utils.jmldebug || errorcode != 0) System.out.println("ENDING with exit code " + errorcode);
+                    if (Utils.jmldebug || errorcode != 0) writer.println("ENDING with exit code " + errorcode);
                 }
             }
         } catch (Exception e) {
@@ -285,6 +403,32 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         if (o == null) {
             remainingArgs.add(s);
+        } else if (JmlOptionName.DIR.optionName().equals(s) || JmlOptionName.DIRS.optionName().equals(s)) {
+            java.util.List<File> todo = new LinkedList<File>();
+            todo.add(new File(res));
+            if (JmlOptionName.DIRS.optionName().equals(s)) {
+                while (i<args.length && (res=args[i]).charAt(0) != '-') {
+                    todo.add(new File(res));
+                    i++;
+                }
+            }
+            while (!todo.isEmpty()) {
+                File file = todo.remove(0);
+                if (file.isDirectory()) {
+                    for (File ff: file.listFiles()) {
+                        todo.add(ff);
+                    }
+                } else if (!file.isFile()) {
+                    out.println("Not a file or directory: " + file); // FIXME - make a warning?
+                } else if (file.getName().endsWith(".java")) {
+                    remainingArgs.add(file.toString());
+                } else {
+                    // Just skip it
+                }
+            }
+        } else if (JmlOptionName.JMLVERBOSE.optionName().equals(s)) {
+            if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
+            options.put(s,res);
         } else {
             // An empty string is the value of the option if it takes no arguments
             // That is, for boolean options, "" is true, null is false
@@ -322,7 +466,9 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     public void register(/*@ non_null @*/ Context context) {
         this.context = context;// A hack so that context is available in processArgs()
-        registerTools(context,out);
+        if (progressDelegate != null) progressDelegate.setContext(context);
+        context.put(IProgressReporter.class,progressDelegate);
+        registerTools(context,out,diagListener);
     }
     
     /** Called to register the JML internal tools that replace the tools used
@@ -330,7 +476,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param context the compiler context in which the tools are to be used
      * @param out the PrintWriter used for error and informational messages
      */
-    static public void registerTools(/*@ non_null */ Context context, PrintWriter out) {
+    static public <S> void registerTools(@NonNull Context context, @NonNull PrintWriter out, @Nullable DiagnosticListener<S> diagListener) {
 
         // This is done later, but we do it here so that the Log is
         // available if tool registration (or argument processing) needs the
@@ -338,6 +484,8 @@ public class Main extends com.sun.tools.javac.main.Main {
         // Java arguments are read, then it is not set consistently with those 
         // options.
         context.put(Log.outKey,out);
+        
+        if (diagListener != null) context.put(DiagnosticListener.class, diagListener);
 
         // These have to be first in case there are error messages during 
         // tool registration.
@@ -361,9 +509,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlMemberEnter.preRegister(context);
         JmlFlow.preRegister(context);
         JmlAttr.preRegister(context);  // registering a JML-aware type checker
+        JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);
     }
-
+    
     /** This is overridden so that serious internal bugs are reported as OpenJML
      * rather than Javac bugs.
      */

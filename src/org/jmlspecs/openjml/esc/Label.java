@@ -97,6 +97,9 @@ public class Label {
     /** Used for asserts generated from user-specified unreachable statements */
     /*@ non_null*/ public final static Label UNREACHABLE = new Label("Unreachable");
     
+    /** Used for asserts generated from assignable clauses */
+    /*@ non_null*/ public final static Label ASSIGNABLE = new Label("Assignable");
+    
     /** Used for assume or assert statements generated from non-null designations */
     /*@ non_null*/ public final static Label NULL_CHECK = new Label("NullCheck");
     

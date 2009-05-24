@@ -150,11 +150,11 @@ typechecked java.lang.Exception
 typechecking java.lang.CloneNotSupportedException
 typechecked java.lang.CloneNotSupportedException
 typechecking java.lang.Comparable
-parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ClassCastException.jml
 typechecked java.lang.Comparable
 typechecking java.lang.CharSequence
 typechecked java.lang.CharSequence
 typechecking java.lang.String
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ClassCastException.jml
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Boolean.jml
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Long.jml
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Float.jml
@@ -316,5 +316,3 @@ typechecking java.util.ListIterator
 typechecked java.util.ListIterator
 typechecking java.lang.StrictMath
 typechecked java.lang.StrictMath
-Note: java/lang/Comparable.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.

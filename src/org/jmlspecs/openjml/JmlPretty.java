@@ -117,10 +117,14 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         try {
-            print(that.token.internedName());
-            print("(");
-            printExprs(that.args);
-            print(")");
+            if (that.token == null) {
+                visitApply(that);
+            } else {
+                print(that.token.internedName());
+                print("(");
+                printExprs(that.args);
+                print(")");
+            }
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -588,11 +592,25 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
 
-    static final String prefix = "org.jmlspecs.annotations";
+    /** This is the package name (including a terminating period) of the 
+     * package that contains the JML annotation types (e.g. NonNull).
+     */
+    static final String prefix = "org.jmlspecs.annotations.";
+    
+    /** This is overridden simply to exclude the package name from JML annotations,
+     * in order to conserve space. [FIXME - this will actually create illegal
+     * source if there is no import statement for the annotations. ]
+     */
     @Override
     public void visitAnnotation(JCAnnotation tree) {
         try {
-            String s = tree.annotationType.toString();
+            // We prefer to use tree.type since it will be the fully resolved
+            // type name, including the package, even if the use of the annotation
+            // itself does not use the package name.  However, if types have not
+            // yet been attributed (e.g. this is a pure parse tree), then 
+            // tree.type is null.
+            String s = (tree.type != null) ? tree.type.toString() :
+                tree.annotationType.toString();
             if (s.startsWith(prefix)) {
                 s = s.substring(prefix.length());
                 print("@");

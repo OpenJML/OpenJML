@@ -3,7 +3,5 @@
                  ^
   symbol:   variable q
   location: class TestPath
-Note: java/lang/Comparable.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 1 error
 ENDING with exit code 1

@@ -2,8 +2,6 @@
 import org.jmlspecs.annotations.*;
 
 public class PP extends QQ {
-    
-
 
    //@ pure
     int m() { return 0; }
@@ -152,6 +150,8 @@ public class PP extends QQ {
     @          diverges true;
     @      |}
     @  also protected exceptional_behavior
+    @       forall Object o;
+    @       old int j = k+1;
     @      requires false;
     @      signals (Exception) true;
     @  also code behavior
@@ -195,7 +195,90 @@ public class PP extends QQ {
             // model programs do not need: set, debug, ghost decls
     @  }
    */
-   void z() {} 
+   void z(int k) {} 
+   
+   // Various combinations of javadoc comments, tags, and jml
+   
+   // nothing
+   public void q0(int i) {}
+   
+   /** Javadoc comment only.  Second sentence. */
+   public void q1(int i) {}
+   
+   /** @param i tag only */
+   public void q2(int i) {}
+   
+   /** Javadoc comment and tag.  Second sentence.
+    * @param i tag comment
+    */
+   public void q3(int i) {}
+   
+   //@ requires i > 0;
+   public void q4(int i) {}
+   
+   //@ requires i > 0;
+   /** Javadoc comment and JML.  Second sentence. */
+   public void q5(int i) {}
+   
+   //@ requires i > 0;
+   /** @param i tag and JML*/
+   public void q6(int i) {}
+   
+   //@ requires i > 0;
+   /** Javadoc comment and tag and JML.  Second sentence.
+    * @param i tag comment
+    */
+   public void q7(int i) {}
+   
+   // nothing
+   //@ model public void mq0(int i) {}
+   
+   /** Javadoc comment only.  Second sentence. */
+ //@ model public void mq1(int i) {}
+   
+   /** @param i tag only */
+ //@ model public void mq2(int i) {}
+   
+   /** Javadoc comment and tag.  Second sentence.
+    * @param i tag comment
+    */
+ //@ model public void mq3(int i) {}
+   
+   //@ requires i > 0;
+ //@ model public void mq4(int i) {}
+   
+   //@ requires i > 0;
+   /** Javadoc comment and JML.  Second sentence. */
+ //@ model public void mq5(int i) {}
+   
+   //@ requires i > 0;
+   /** @param i tag and JML*/
+ //@ model public void mq6(int i) {}
+   
+   //@ requires i > 0;
+   /** Javadoc comment and tag and JML.  Second sentence.
+    * @param i tag comment
+    */
+ //@ model public void mq7(int i) {}
+   
+   /** Javadoc comment and JML.  Second sentence. */
+   //@ requires i > 0;
+ //@ model public void mmq5(int i) {}
+   
+   /** @param i tag and JML*/
+   //@ requires i > 0;
+ //@ model public void mmq6(int i) {}
+   
+   /** Javadoc comment and tag and JML.  Second sentence.
+    * @param i tag comment
+    */
+   //@ requires i > 0;
+ //@ model public void mmq7(int i) {}
+   
+   // FIXME - q4 is not indented correctly
+   // FIXME - extra blank line whenever there are no tags
+   // FIXME - model methods have no tags
+   
     // FIXME - rationalize handling of precedence and () between Pretty and JmlPretty
     // TODO - implement choose and choose_if from model program
    // FIXME - breaks and continues model program statements all allowed to have labels.

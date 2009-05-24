@@ -20,13 +20,22 @@ import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Log;
 
 public abstract class AbstractProver implements IProver {
 
     /** A debugging flag - 0 = show nothing; 1 = show errors; 2 = show something; 3 = show everything */
     // Value should be 1 for ordinary operation
     // @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_SHOULD_BE_FINAL")
-    static public int showCommunication = 1;
+    static public int showCommunication = 3;
+    
+    public Context context;
+    public Log log;
+    
+    public AbstractProver(Context context) {
+        this.context = context;
+        this.log = Log.instance(context);
+    }
     
     abstract public int assume(JCExpression tree) throws ProverException;
 
@@ -44,14 +53,15 @@ public abstract class AbstractProver implements IProver {
             } else {
                 c = map.get(prover);
                 if (c == null) {
-                    System.out.println("NO SUCH PROVER: " + prover);
+                    Log.instance(context).noticeWriter.println("NO SUCH PROVER: " + prover);
                     c = org.jmlspecs.openjml.provers.YicesProver.class;
                 }
             }
-            Constructor<?> cn = c.getConstructor(com.sun.tools.javac.util.Context.class);
-            return (IProver)cn.newInstance(context);
+            // FIXME Constructor<?> cn = c.getConstructor(com.sun.tools.javac.util.Context.class);
+            //return (IProver)cn.newInstance(context);
+            return new YicesProver(context);
         } catch (Exception e) {
-            System.out.println("COULD NOT MAKE A PROVER");
+            Log.instance(context).noticeWriter.println("COULD NOT MAKE A PROVER");
             return null;
         }
     }
@@ -121,7 +131,7 @@ public abstract class AbstractProver implements IProver {
             throw new ProverException("No path to the executable found; specify it using -Dopenjml.prover.cvc3");
         } else {
             java.io.File f = new java.io.File(app[0]);
-            if (!f.exists()) System.out.println("Doesnot appear to exist " + app[0]);
+            if (!f.exists()) log.noticeWriter.println("Doesnot appear to exist " + app[0]);
             //if (!f.exists()) throw new ProverException("The specified executable does not appear to exist: " + app[0]);
         }
         try {
@@ -155,8 +165,8 @@ public abstract class AbstractProver implements IProver {
     protected void send(String s) throws ProverException {
         if (showCommunication >= 2) {
             String ss = pretty(s);
-            System.out.print("SENDING ["+s.length()+ "]" + ss); // ss has a newline so we only use print here
-            System.out.flush();
+            log.noticeWriter.print("SENDING ["+s.length()+ "]" + ss); // ss has a newline so we only use print here
+            log.noticeWriter.flush();
         }
         try {
             // The number 2000 here is arbitrary - it is just a significant
@@ -214,13 +224,13 @@ public abstract class AbstractProver implements IProver {
                     offset += n;
                 }
                 if (offset > 0) {
-                    System.out.println("ERROR: " + String.valueOf(cbuf,0,offset));
+                    log.noticeWriter.println("ERROR: " + String.valueOf(cbuf,0,offset));
                 }
                 int truncated = 0;
                 while (true) { // There is always a prompt to read, so it is OK to block
                         // until it is read.  That gives the prover process time to
                         // do its processing.
-                    //System.out.println(" ... LISTENING");
+                    //log.noticeWriter.println(" ... LISTENING");
                     int n = fromProver.read(cbuf,offset,cbuf.length-offset);
                     if (n < 0) {
                         int off = 0;
@@ -231,7 +241,7 @@ public abstract class AbstractProver implements IProver {
                             off += nn;
                         }
                         String serr = String.valueOf(cbuf,0,off);
-                        if (!serr.startsWith("searching")) System.out.println("ERROR STREAM ON DEATH: " + serr);
+                        if (!serr.startsWith("searching")) log.noticeWriter.println("ERROR STREAM ON DEATH: " + serr);
                         throw new ProverException("Prover died");
                     }
                     offset += n;
@@ -243,13 +253,13 @@ public abstract class AbstractProver implements IProver {
                             truncated += offset;
                         } else {
                             s = s + String.valueOf(cbuf,0,offset);
-                            System.out.println("BUFFER FULL " + s.length());
+                            log.noticeWriter.println("BUFFER FULL " + s.length());
                         }
                         offset = 0;
                     }
                 }
                 if (truncated > 0) {
-                    System.out.println("OUTPUT LENGTH " + s.length() + truncated);
+                    log.noticeWriter.println("OUTPUT LENGTH " + s.length() + truncated);
                     throw new ProverException("Excessive output: " + s.length() + truncated);
                 }
                 s = s + String.valueOf(cbuf,0,offset);
@@ -266,14 +276,14 @@ public abstract class AbstractProver implements IProver {
                         if (!errorString.startsWith("\nWARNING") &&
                                 !errorString.startsWith("CVC3 (version") &&
                                 !errorString.startsWith("searching")) {
-                            if (showCommunication >= 1) System.out.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
                             throw new ProverException("Prover error message: " + errorString);
                         } else {
-                            if (showCommunication >= 3) System.out.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
                         }
                     }
                 }
-                if (showCommunication >= 3) System.out.println("HEARD: " + s);
+                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
                 return s;
             } else {
                 // In non-interactive mode, there may be no input at all
@@ -313,14 +323,14 @@ public abstract class AbstractProver implements IProver {
                         if (!errorString.startsWith("\nWARNING") &&
                                 !errorString.startsWith("CVC3 (version") &&
                                 !errorString.startsWith("searching")) {
-                            if (showCommunication >= 1) System.out.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
                             throw new ProverException("Prover error message: " + errorString);
                         } else {
-                            if (showCommunication >= 3) System.out.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
                         }
                     }
                 }
-                if (showCommunication >= 3) System.out.println("HEARD: " + s);
+                if (showCommunication >= 3) Log.instance(context).noticeWriter.println("HEARD: " + s);
                 return s;
             }
         } catch (IOException e) {

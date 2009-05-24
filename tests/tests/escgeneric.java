@@ -4,8 +4,7 @@ import org.jmlspecs.openjml.esc.JmlEsc;
 
 import com.sun.tools.javac.util.Options;
 
-/** This class of JUnit tests checks that assertion violations for assertions
- * declared in other files are printed with source code from the other file.
+/** This class of JUnit tests checks various uses of generic types.
  * @author David R. Cok
  *
  */
