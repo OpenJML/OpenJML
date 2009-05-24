@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.jmlspecs.OpenJMLFeature"
+      label="OpenJML"
+      version="0.1.1"
+      provider-name="David R. Cok">
+
+   <description>
+      The OpenJML plugin packages an implementation of JML tools for Java 1.6 using the OpenJDK source code base.  It includes a JML checker, static checker (ESC), runtime assertion compiler (RAC), and jmldoc.
+   </description>
+
+   <copyright>
+      (c) 2009 David R. Cok
+   </copyright>
+
+   <license>
+      Includes material from:
+- OpenJDK
+- the runtime library from FindBugs
+- the specifications library from org.jmlspecs...
+   </license>
+
+   <requires>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.jdt.core" version="3.4.4" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.resources" version="3.4.2" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.console" version="3.3.1" match="greaterOrEqual"/>
+   </requires>
+
+   <plugin
+         id="org.jmlspecs.OpenJMLUI"
+         download-size="0"
+         install-size="0"
+         version="0.1.1"/>
+
+</feature>

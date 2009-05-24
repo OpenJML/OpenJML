@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: OpenJMLUI Plug-in
+Bundle-SymbolicName: org.jmlspecs.OpenJMLUI;singleton:=true
+Bundle-Version: 0.1.1
+Bundle-ClassPath: findbugs-17-annotations.jar,jmlruntime.jar,openjml.jar,bin/
+Bundle-Activator: org.jmlspecs.openjml.eclipse.Activator
+Bundle-Vendor: David R. Cok
+Export-Package: org.jmlspecs.openjml.eclipse
+Require-Bundle: org.eclipse.ui,org.eclipse.core.runtime,org.eclipse.jdt.core;bundle-version="3.4.4",org.eclipse.core.resources;bundle-version="3.4.2",org.eclipse.ui.console;bundle-version="3.3.1",org.eclipse.ui.ide
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy

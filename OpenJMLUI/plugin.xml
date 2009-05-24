@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+  <!-- This defines a builder used to do JML checking as part of the
+		Eclipse compilation process
+		-->
+  <extension
+         id="JMLBuilder"
+         name="JML Builder"
+         point="org.eclipse.core.resources.builders">
+    <builder
+            hasNature="true">
+      <run class="org.jmlspecs.openjml.eclipse.JMLBuilder"/>
+    </builder>
+  </extension>
+   
+  <!-- An Eclipse Nature that designates a Java project as one to
+   		which JML tools can be applied.  It also controls the builder.
+   		-->
+  <extension
+         id="JMLNatureID"
+         name="JML Nature"
+         point="org.eclipse.core.resources.natures">
+    <requires-nature id="org.eclipse.jdt.core.javanature"/>
+    <runtime>
+      <run class="org.jmlspecs.openjml.eclipse.JMLNature"/>
+    </runtime>
+    <builder
+            id="org.jmlspecs.openjml.eclipse.JMLBuilder">
+    </builder>
+    <!-- FIXME - what about parameter or content-type ? -->
+  </extension>
+   
+  <!-- This decorator is applied to Java projects to indicate whether
+	they have a JML Nature (with decorator) or not (no decorator).
+	-->
+  <extension
+         point="org.eclipse.ui.decorators">
+    <decorator
+            lightweight="true"
+            location="TOP_RIGHT"
+            label="JML"
+            icon="icons/JMLSmall.png"
+            state="true"
+            id="org.jmlspecs.openjml.eclipse.JMLDecoration">
+       <description>
+            JML nature is enabled for this project
+       </description>
+       <enablement>
+        	<and>
+                <objectState name="nature" value="org.jmlspecs.openjml.eclipse.JMLNatureID"/>
+                <objectClass name="org.eclipse.jdt.core.IJavaProject"/> 
+             </and>
+       </enablement>
+    </decorator>
+  </extension>
+
+<!-- This extension adds the preference page -->
+   <extension
+         id="org.jmlspecs.eclipse.preferencesPage"
+         name="JML Preferences"
+         point="org.eclipse.ui.preferencePages">
+      <page 
+         id="org.jmlspecs.eclipse.preferences.JML" 
+         name="JML" 
+         class="org.jmlspecs.openjml.eclipse.Preferences"
+         category="org.eclipse.jdt.ui.preferences.JavaBasePreferencePage"> 
+      </page>
+   </extension>
+   
+  <!-- The following set of extensions add various menu items to the
+  	popup menus that appear when right-clicking on items in the
+  	Package Explorer
+  	 -->
+  <extension
+         point="org.eclipse.ui.popupMenus">
+    <objectContribution
+            adaptable="true"
+            objectClass="java.lang.Object"
+            nameFilter="*"
+            id="JMLUI.container0">
+       <action
+               label="Generate JML doc pages"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$JmlDoc"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.jmldocAction">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="java.lang.Object"
+            nameFilter="*"
+            id="JMLUI.container1">
+       <action
+               label="Show JML classpath"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$ClassPath"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.classpathAction">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="java.lang.Object"
+            nameFilter="*"
+            id="JMLUI.container2">
+       <action
+               label="Edit JML specs path"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$SpecsPath"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.specspathAction">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="java.lang.Object"
+            nameFilter="*"
+            id="JMLUI.container3">
+       <action
+               label="Add to JML specs path"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$AddToSpecsPath"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.addspecspathAction">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="java.lang.Object"
+            nameFilter="*"
+            id="JMLUI.container4">
+       <action
+               label="Remove from JML specs path"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$RemoveFromSpecsPath"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.removespecspathAction">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.jdt.core.IJavaProject"
+            nameFilter="*"
+            id="JMLUI.contribution1">
+       <action
+               label="Disable Auto JML Checking"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$DisableNature"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.removeNatureAction">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.ui.IWorkingSet"
+            nameFilter="*"
+            id="JMLUI.contribution1WS">
+       <action
+               label="Disable Auto JML Checking"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$DisableNature"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.removeNatureActionWS">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.jdt.core.IJavaProject"
+            nameFilter="*"
+            id="JMLUI.contribution2">
+       <action
+               label="Enable Auto JML Checking"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$EnableNature"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.addNatureAction">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.ui.IWorkingSet"
+            nameFilter="*"
+            id="JMLUI.contribution2WS">
+       <action
+               label="Enable Auto JML Checking"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$EnableNature"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.addNatureActionWS">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.jdt.core.IMethod"
+            nameFilter="*"
+            id="JMLUI.contribution3K">
+       <action
+               label="Show JML counterexample"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$ShowCounterexample"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.showSpecsAction1K">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.jdt.core.IJavaElement"
+            nameFilter="*"
+            id="JMLUI.contribution3">
+       <action
+               label="Show JML specifications"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$ShowSpecs"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.showSpecsAction1">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.core.resources.IResource"
+            nameFilter="*"
+            id="JMLUI.contribution4">
+       <action
+               label="Delete JML markers"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$DeleteMarkers"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.deleteMarkerAction">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.ui.IWorkingSet"
+            nameFilter="*"
+            id="JMLUI.contribution4WS">
+       <action
+               label="Delete JML markers"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$DeleteMarkers"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.deleteMarkerActionWS">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.core.resources.IResource"
+            nameFilter="*"
+            id="JMLUI.contribution5">
+       <action
+               label="Compile RAC"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$RAC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.checkRACAction">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.ui.IWorkingSet"
+            nameFilter="*"
+            id="JMLUI.contribution5WS">
+       <action
+               label="Compile RAC"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$RAC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.checkRACActionWS">
+       </action>
+    </objectContribution>
+  </extension>
+  <!--  FIXME - something like this would simplify this file. 
+  <extension
+         point="org.eclipse.ui.popupMenus">
+    <objectContribution
+            adaptable="true"
+            nameFilter="*"
+            id="JMLUI.contribution6M">
+       <action
+               label="Static checks"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$CheckESC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.checkESCActionM">
+          <enablement>
+                <or>
+                <objectClass name="org.eclipse.jdt.core.IMethod"/> 
+                <objectClass name="org.eclipse.jdt.core.IType"/> 
+                <objectClass name="org.eclipse.jdt.core.IResource"/> 
+                <objectClass name="org.eclipse.jdt.core.IWorkingSet"/> 
+             </or>
+       </enablement>
+       </action>
+    </objectContribution>
+  </extension>
+  -->
+  <extension
+         point="org.eclipse.ui.popupMenus">
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.jdt.core.IMethod"
+            nameFilter="*"
+            id="JMLUI.contribution6M">
+       <action
+               label="Static JML checks"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$CheckESC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.checkESCActionM">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.jdt.core.IType"
+            nameFilter="*"
+            id="JMLUI.contribution6T">
+       <action
+               label="Static JML checks"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$CheckESC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.checkESCActionT">
+       </action>
+    </objectContribution>
+  </extension>
+  <!-- An IType adapts to be the containing IResource; adaptable is set false,
+  otherwise a Class in the PackageNavigator will have two entries in its popup
+  menu. But I wonder what other things that would adapt to be an IResource are
+  thereby not enabled.  This could be smarter - FIXME.  -->
+  <extension
+         point="org.eclipse.ui.popupMenus">
+    <objectContribution
+            adaptable="false"
+            objectClass="org.eclipse.core.resources.IResource"
+            nameFilter="*"
+            id="JMLUI.contribution6">
+       <action
+               label="Static JML checks"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$CheckESC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.checkESCAction">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.ui.IWorkingSet"
+            nameFilter="*"
+            id="JMLUI.contribution6WS">
+       <action
+               label="Static JML checks"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$CheckESC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.checkESCActionWS">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.core.resources.IResource"
+            nameFilter="*"
+            id="JMLUI.contribution7">
+       <action
+               label="Check JML"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$CheckJML"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.checkJMLAction">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.ui.IWorkingSet"
+            nameFilter="*"
+            id="JMLUI.contribution5WS">
+       <action
+               label="Check JML"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$CheckJML"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.checkJMLActionWS">
+       </action>
+    </objectContribution>
+  </extension>
+
+<!-- These extensions add menu items to the menubar and toolbar -->
+  <extension
+         point="org.eclipse.ui.actionSets">
+         <actionSet
+            label="JML Actions"
+            visible="true"
+            id="org.jmlspecs.actionSet">
+         <menu
+               label="JML"
+               id="JMLMenu">
+            <separator
+                  name="JMLGroup">
+            </separator>
+         </menu>
+        
+         <action
+               label="Generate JML doc"
+               tooltip="Generates javadoc pages containing JML specifications"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$JmlDoc"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.JmlDoc"
+                           definitionId="org.jmlspecs.eclipse.commands.JmlDoc">
+         </action>
+         <action
+               label="Show Class Path"
+               tooltip="Shows JML's class path"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$ClassPath"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ClassPath"
+                           definitionId="org.jmlspecs.eclipse.commands.ClassPath">
+         </action>
+         <action
+               label="Edit Specs Path"
+               tooltip="Edits the specifications directory path"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$SpecsPath"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.SpecsPath"
+                           definitionId="org.jmlspecs.eclipse.commands.EditSpecsPath">
+         </action>
+         <action
+               label="Remove from Specs Path"
+               tooltip="Removes folder from the specifications directory path"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$RemoveFromSpecsPath"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.RemoveFromSpecsPath"
+                           definitionId="org.jmlspecs.eclipse.commands.RemoveFromSpecsPath">
+         </action>
+         <action
+               label="Add to Specs Path"
+               tooltip="Adds folder to the specifications directory path"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$AddToSpecsPath"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.AddToSpecsPath"
+                           definitionId="org.jmlspecs.eclipse.commands.AddToSpecsPath">
+         </action>
+         <action
+               label="Show Specifications"
+               tooltip="Shows the specifications of the selected object"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$ShowSpecs"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ShowSpecs"
+                           definitionId="org.jmlspecs.eclipse.commands.ShowSpecs">
+         </action>
+         <action
+               label="Show Counterexample"
+               tooltip="Shows the counterexample for the selected method"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$ShowCounterexample"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ShowCounterexample"
+                           definitionId="org.jmlspecs.eclipse.commands.ShowCounterexample">
+         </action>
+         <action
+               label="Disable Auto JML Checking"
+               tooltip="Disables selected objects for auto JML checking"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$DisableJML"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.DisableJML"
+			   definitionId="org.jmlspecs.eclipse.commands.DisableJML">
+         </action>
+         <action
+               label="Enable Auto JML Checking"
+               tooltip="Enables selected objects for auto JML checking"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$EnableJML"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.EnableJML"
+			   definitionId="org.jmlspecs.eclipse.commands.EnableJML">
+         </action>
+         <action
+               label="Delete JML Markers"
+               tooltip="Clears any JML markers in the selected object"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$DeleteMarkers"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.DeleteMarkers"
+               definitionId="org.jmlspecs.eclipse.commands.DeleteJMLMarkers">
+         </action>
+         <action
+               label="RAC"
+               tooltip="Compiles runtime checks in selected objects"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$CheckJML"
+               menubarPath="JMLMenu/JMLGroup"
+               toolbarPath="Normal/build.ext"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.RAC"
+               definitionId="org.jmlspecs.eclipse.commands.RAC">
+         </action>
+         <action
+               label="ESC"
+               tooltip="Runs static checks on selected objects"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$CheckESC"
+               menubarPath="JMLMenu/JMLGroup"
+               toolbarPath="Normal/build.ext"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.CheckESC"
+               definitionId="org.jmlspecs.eclipse.commands.CheckESC">
+         </action>
+         <action
+               label="JML"
+               tooltip="Checks JML in selected objects"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$CheckJML"
+               menubarPath="JMLMenu/JMLGroup"
+               toolbarPath="Normal/build.ext"
+               icon="icons/jml-logo-16x16.png"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.CheckJML"
+               definitionId="org.jmlspecs.eclipse.commands.CheckJML">
+         </action>
+     </actionSet>
+   </extension>
+   
+  <!-- This defines a new marker type -->
+  <!-- The attribute is used to associate additional information with the marker -->  
+  <extension
+         id="JMLProblem"
+         name="JML Problem"
+         point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.jdt.core.problem"/>
+    <persistent value="true"/>
+    <attribute name="declarationInfo"/>
+  </extension>
+
+<!-- FIXME - is the declarationInfo attribute actually used ? -->
+	
+  <!-- This connects the JML markers to editor annotations  -->
+  <!-- Note: The type declarations used to have an attribute
+  			super="org.eclipse.ui.workbench.texteditor.error"
+  	   (there may be a corresponding one for warning as well).  With that
+  	   used, the following annotations would show up in the preference
+  	   page (General>>Editors>>TextEditors>>Annotations), but the display
+  	   would not respond to changes in the preferences.  The super line
+  	   needed to be removed for this behavior to get enabled.  I'm not
+  	   actually sure what benefit the super attribute provides (and thus
+  	   what functionality is broken by its removal. FIXME) -->
+  				
+  <extension
+         point="org.eclipse.ui.editors.annotationTypes"
+         id="JMLAnnotation">
+    <type
+            markerType="org.jmlspecs.openjml.eclipse.JMLProblem"
+            name="org.jmlspecs.openjml.eclipse.JMLProblemAnnotation"
+            markerSeverity="2"
+            >
+    </type>
+    <type
+            markerType="org.jmlspecs.openjml.eclipse.JMLProblem"
+            name="org.jmlspecs.openjml.eclipse.JMLWarningAnnotation"
+            markerSeverity="1"
+                        >
+    </type>
+    <type
+            markerType="org.jmlspecs.openjml.eclipse.JMLProblem"
+            name="org.jmlspecs.openjml.eclipse.JMLNoteAnnotation"
+            markerSeverity="0"
+                        >
+    </type>
+  </extension>
+            <!--super="org.eclipse.ui.workbench.texteditor.error"-->
+            <!--super="org.eclipse.ui.workbench.texteditor.warn"-->
+<!--
+-->
+
+  <!-- Provides the image for the annotations  -->
+  <!-- NOTE: the annotationType must match the name, not the id, of the
+  		annotationType defined above -->
+  <!-- FIXME - there are a lot of options that ought to be considered here -->
+  <extension
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+    <specification
+            icon="icons/jml_problem.gif"
+            annotationType="org.jmlspecs.openjml.eclipse.JMLProblemAnnotation"
+            label="JML Error"
+            overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpKey"
+            verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpKey"
+            highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpKey"
+            textPreferenceKey="org.jmlspecs.openjml.eclipse.trpKey"
+            colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpKey"
+            colorPreferenceValue="255,0,0"
+            textPreferenceValue="true"
+            overviewRulerPreferenceValue="true"
+            verticalRulerPreferenceValue="true"
+            highlightPreferenceValue="true"
+            presentationLayer="3"
+            >
+    </specification>
+    <specification
+            icon="icons/jml_warning.gif"
+            annotationType="org.jmlspecs.openjml.eclipse.JMLWarningAnnotation"
+            label="JML Warning"
+            overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpwKey"
+            verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpwKey"
+            highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpwKey"
+            textPreferenceKey="org.jmlspecs.openjml.eclipse.trpwKey"
+            colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpwKey"
+            colorPreferenceValue="255,128,0"
+            textPreferenceValue="true"
+            overviewRulerPreferenceValue="true"
+            verticalRulerPreferenceValue="true"
+            highlightPreferenceValue="true"
+            presentationLayer="3"
+            >
+    </specification>
+    <specification
+            icon="icons/jml_note.gif"
+            annotationType="org.jmlspecs.openjml.eclipse.JMLNoteAnnotation"
+            label="JML Note"
+            overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpnKey"
+            verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpnKey"
+            highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpnKey"
+            textPreferenceKey="org.jmlspecs.openjml.eclipse.trpnKey"
+            colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpnKey"
+            colorPreferenceValue="0,255,255"
+            textPreferenceValue="true"
+            overviewRulerPreferenceValue="true"
+            verticalRulerPreferenceValue="true"
+            highlightPreferenceValue="false"
+            presentationLayer="3"
+            >
+    </specification>
+  </extension> 
+ 
+ <!--  This has to do with filters in the problems view - I have not tried it yet
+    <extension point="org.eclipse.ui.ide.markerSupport">
+  <problemFilter
+    name = "Warnings"
+    id = "org.eclipse.example.warningFilter"
+    enabled = "true"
+    scope="ON_SELECTED_AND_CHILDREN"
+    onDescription="!NON-NLS"
+    severity="WARNING"
+  > 
+  <selectedType
+    markerId="org.jmlspecs.openjml.eclipse.JMLProblem"/>
+  </problemFilter>
+ </extension>
+   --> 
+
+<!-- The following creates commands that are referenced by
+	actions above and can be mapped to keys -->      
+	
+  <extension
+	point="org.eclipse.ui.commands">
+      <category
+            name="JML"
+            description="JML related commands"
+            id="org.jmlspecs.eclipse.JMLCommandCategory">
+      </category>
+      <command
+            name="Enable JML Auto Checking"
+            description="Enables JML automatic checking during compilation"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.EnableJML">
+      </command> 
+      <command
+            name="Disable JML Auto Checking"
+            description="Disables JML automatic checking during compilation"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.DisableJML">
+      </command>
+      <command
+            name="Check JML"
+            description="Manually checks JML constructs in selected resources"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.CheckJML">
+      </command>
+      <command
+            name="Check ESC"
+            description="Runs static checks on selected resources"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.CheckESC">
+      </command>
+      <command
+            name="Compile RAC"
+            description="Compiles runtime checks on selected resources"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.RAC">
+      </command>
+      <command
+            name="Delete JML Markers"
+            description="Deletes the JML markers in selected resources"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.DeleteJMLMarkers">
+      </command>
+      <command
+            name="Show JML Specifications"
+            description="Show the specifications of selected resources in a popup"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.ShowSpecs">
+      </command>
+      <command
+            name="Show JML Counterexample"
+            description="Show the counterexample for the specified method"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.ShowCounterexample">
+      </command>
+      <command
+            name="Edit JML specs path"
+            description="A wizard to edit the JML specifications directory path"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.EditSpecsPath">
+      </command>
+      <command
+            name="Add to JML specs path"
+            description="Adds a folder to the JML specifications directory path"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.AddToSpecsPath">
+      </command>
+      <command
+            name="Remove from JML specs path"
+            description="Removes a folder from the JML specifications directory path"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.RemoveFromSpecsPath">
+      </command>
+      <command
+            name="Show JML class path"
+            description="Shows JML's class path"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.ClassPath">
+      </command>
+      <command
+            name="Generate JML doc"
+            description="Generates javadoc pages containing JML information"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.JmlDoc">
+      </command>
+  </extension>
+  
+   <!-- This extension adds help information.
+   	-->
+   <extension
+         point="org.eclipse.help.toc">
+      <toc file="html/JMLHelp.xml" primary="true" />
+   </extension>
+   
+   <!-- file extensions - treats JML specs files as Java source and so use the
+                Java editor -->
+   
+   <extension point="org.eclipse.core.runtime.contentTypes"> 
+      <file-association 
+       content-type="org.eclipse.jdt.core.javaSource"
+       file-extensions="spec,jml,refines-java,refines-spec,refines-jml"/>
+   </extension>
+   
+   <!--  FIXME - what does this do -->
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="org.jmlspecs.openjml.eclipse.JMLEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="jml"
+            icon="icons/sample.gif"
+            id="org.jmlspecs.openjml.eclipse.JMLEditor"
+            name="JML Editor"/>
+   </extension>
+
+ 
+   
+</plugin>
