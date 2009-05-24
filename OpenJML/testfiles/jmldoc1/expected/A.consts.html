@@ -101,6 +101,9 @@ java.lang.Object
 extends java.lang.Enum&lt;<A HREF="A.consts.html" title="enum in &lt;Unnamed&gt;">A.consts</A>&gt;</PRE>
 
 <P>
+<STRONG>JML Specifications inherited from java.lang.Comparable: </STRONG><PRE>    public invariant (\forall Comparable<T> o; ; \typeof(o) == \typeof(this) ==> o.consistentWithEquals() == this.consistentWithEquals()); 
+    public invariant consistentWithEquals() ==> (\forall T o; ; equals(o) <==> compareTo(o) == 0); 
+</PRE>
 
 <P>
 <HR>

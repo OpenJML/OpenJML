@@ -56,7 +56,7 @@ import com.sun.tools.apt.comp.UsageMessageNeededException;
 import com.sun.tools.apt.util.Bark;
 import com.sun.mirror.apt.AnnotationProcessorFactory;
 
-/** This class provides a commandline interface to the apt build-time
+/** This class provides a command-line interface to the apt build-time
  *  tool.
  *
  *  <p><b>This is NOT part of any API supported by Sun Microsystems.

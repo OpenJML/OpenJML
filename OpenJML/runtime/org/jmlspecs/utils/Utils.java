@@ -23,7 +23,7 @@ public class Utils {
     public static boolean useExceptions = false;
     
     /** If true, then error messages reporting assertion failures are 
-     * accompanied with a stack trace to System.out.
+     * accompanied with a stack trace to log.errorWriter.
      */
     public static boolean showStack = false;
     
@@ -42,8 +42,28 @@ public class Utils {
      * @param v value to be tested 
      * @return the object which is the second argument
      */
-    public static Object nonNullCheck(String message, Object v) {
+    public static <T> T nonNullCheck(String message, T v) {
         if (v == null) assertionFailure(message);
+        return v;
+    }
+    
+    public static <T> T trueCheck(String message, boolean b, T v) {
+        if (!b) assertionFailure(message);
+        return v;
+    }
+    
+    public static <T> T eqCheck(String message, Object o, T v) {
+        if (o != v) assertionFailure(message);
+        return v;
+    }
+    
+    public static int intRangeCheck(String message, int low, int high, int v) {
+        if (low <= v && v <= high) assertionFailure(message);
+        return v;
+    }
+    
+    public static int zeroIntCheck(String message, int v) {
+        if (v == 0) assertionFailure(message);
         return v;
     }
     
@@ -162,5 +182,4 @@ public class Utils {
 //        }
 //        clearValues();
 //    }
-    
 }

@@ -86,7 +86,7 @@ public class HtmlSerialMethodWriter extends MethodWriterImpl implements
             tagletManager.getSerializedFormTags(),
             writer.getTagletWriterInstance(false), output);
         String outputString = output.toString().trim();
-        if (!outputString.isEmpty()) {
+        if (outputString.length()!=0) { // DRC - 1.5
             writer.printMemberDetailsListStartTag();
             writer.dd();
             writer.dl();

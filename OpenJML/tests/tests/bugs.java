@@ -82,7 +82,7 @@ public class bugs extends TCBase {
     }
     
     public void testMisc11() {
-        options.put("-specs",   testspecpath);
+        options.put("-specspath",   testspecpath);
         helpTCF("A.java","public class A { private /*@ spec_public */ java.util.Vector pending; \n //@ invariant pending.elementCount == 0; \n} "
                 );
     }

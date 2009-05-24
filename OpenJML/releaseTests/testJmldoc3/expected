@@ -71,8 +71,6 @@ error: cannot find symbol
                          ^
   symbol:   class EMp_private
   location: class tp.PVis
-Note: java/lang/Comparable.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 14 errors
 Generating doc\Vis.html...
 Generating doc\Vis.A_public.html...

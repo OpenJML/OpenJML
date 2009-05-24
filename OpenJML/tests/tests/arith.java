@@ -16,7 +16,7 @@ public class arith extends TCBase {
     
     /** See the FIXME in BigInteger.spec */
     public void testSomeJava() {
-        options.put("-specs",   testspecpath);
+        options.put("-specspath",   testspecpath);
         JmlOptionName.putOption(context,JmlOptionName.NOPURITYCHECK);
         helpTCF("A.java","public class A { java.math.BigInteger list; }");
     }

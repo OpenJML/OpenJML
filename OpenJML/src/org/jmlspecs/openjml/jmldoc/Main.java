@@ -7,6 +7,8 @@ import org.jmlspecs.annotations.NonNull;
 import org.jmlspecs.openjml.JmlOptionName;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.Main.IProgressReporter;
+import org.jmlspecs.openjml.Main.PrintProgressReporter;
 
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.util.Context;
@@ -31,7 +33,6 @@ public class Main extends org.jmlspecs.openjml.Main {
      */
     //@ requires \nonnullelements(args);
     public static void main(@NonNull String[] args) {
-        new org.jmlspecs.openjml.jmldoc.ConfigurationJml();  // stores an instance in a static location
         System.exit(execute(args));
     }
 
@@ -50,6 +51,7 @@ public class Main extends org.jmlspecs.openjml.Main {
      */
     //@ requires \nonnullelements(args);
     public static int execute(@NonNull String[] args) {
+        new org.jmlspecs.openjml.jmldoc.ConfigurationJml();  // stores an instance in a static location
         int errorcode = 1; //com.sun.tools.javac.main.Main.EXIT_ERROR;
         try {
             if (args == null) {
@@ -70,8 +72,9 @@ public class Main extends org.jmlspecs.openjml.Main {
                     errorcode = com.sun.tools.javac.Main.compile(args);
                 } else {
                     jmlContext = new Context();
+                    jmlContext.put(IProgressReporter.class,new PrintProgressReporter(jmlContext,System.out));
                     Start jdoc = new JmlStart("jmldoc");//,"org.jmlspecs.openjml.jmldoc.StandardJml");
-                    registerTools(jmlContext,new PrintWriter(System.out,true));
+                    registerTools(jmlContext,new PrintWriter(System.out,true),null);
                     JavacFileManager.preRegister(jmlContext); // can't create it until Log has been set up - is it? FIXME
                     args = processArgs(args,jmlContext);
                     errorcode = jdoc.begin(args);

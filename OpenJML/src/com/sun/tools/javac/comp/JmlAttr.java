@@ -19,15 +19,8 @@ import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotations.NonNull;
-import org.jmlspecs.openjml.IJmlVisitor;
-import org.jmlspecs.openjml.JmlCompiler;
-import org.jmlspecs.openjml.JmlInternalError;
-import org.jmlspecs.openjml.JmlOptionName;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTreeTranslator;
-import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 
@@ -267,7 +260,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void attribClass(ClassSymbol c) throws CompletionFailure {
-        //System.out.println("REQUESTING ATTRIBUTION " + c);
+        //log.noticeWriter.println("REQUESTING ATTRIBUTION " + c);
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
         JmlSpecs.TypeSpecs classSpecs = specs.get(c);
         if (classSpecs == null) {
@@ -296,8 +289,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if ((c.flags_field & UNATTRIBUTED) == 0) return;
         // We let the super class turn it off to avoid recursion
 
-        if (verbose && c != syms.predefClass) {
-            System.out.println("typechecking " + c);
+        if (c != syms.predefClass) {
+            context.get(Main.IProgressReporter.class).report(0,2,"typechecking " + c);
         }
         
         // FIXME - this won't be correct if specs come from multiple files
@@ -322,8 +315,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // attributed and entered into the JmlSpecs database.  Hence we remove
             // the entry.
             if (e != null) {  // SHould be non-null the first time, but subsequent calls will have e null and so we won't do duplicate checking
-                // FIXME - RAC should take advantage of the same stuff as ESC
-                if (!JmlOptionName.isOption(context,JmlOptionName.RAC)) new JmlTreeTranslator(context).translate(e.tree);
+//                // FIXME - RAC should take advantage of the same stuff as ESC
+//                if (true || !JmlOptionName.isOption(context,JmlOptionName.RAC)) {
+//                    new JmlTranslator(context).translate(e.tree);
+//                }
                 if (!JmlCompilationUnit.isJava(((JmlCompilationUnit)e.toplevel).mode)) {
                     //attribClassBodySpecs(e,c,false,true);// Binary class - we still need to do all the body stuff
                     enter.typeEnvs.remove(c); // FIXME - do we need this?
@@ -333,9 +328,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             pureEnvironment = prevPureEnvironment;
             log.useSource(prev);
         }
-        if (Utils.jmldebug) System.out.println("ATTRIBUTING-END " + c.fullname);
-        if (verbose && c != syms.predefClass) {
-            System.out.println("typechecked " + c);
+        if (Utils.jmldebug) log.noticeWriter.println("ATTRIBUTING-END " + c.fullname);
+        if (c != syms.predefClass) {
+            context.get(Main.IProgressReporter.class).report(0,2,"typechecked " + c);
         }
     }
     
@@ -344,7 +339,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) {
         boolean prevIsInJmlDeclaration = isInJmlDeclaration;
         isInJmlDeclaration = Utils.isJML(c.flags());
-        if (Utils.jmldebug) System.out.println("ATTRIBUTING-BODY " + c.fullname + " " + (isInJmlDeclaration?"inJML":"notInJML") + " WAS " + (prevIsInJmlDeclaration?"inJML":"notInJML"));
+        ((JmlCheck)chk).setInJml(isInJmlDeclaration);
+        if (Utils.jmldebug) log.noticeWriter.println("ATTRIBUTING-BODY " + c.fullname + " " + (isInJmlDeclaration?"inJML":"notInJML") + " WAS " + (prevIsInJmlDeclaration?"inJML":"notInJML"));
         boolean prevAttribSpecs = attribSpecs;  // Class definitions might be nested
         JavaFileObject prev = log.useSource(((JmlCompilationUnit)env.toplevel).sourcefile);  // FIXME - no write for multiple source files
         boolean oldRelax = relax;
@@ -362,13 +358,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             relax = true;  // Turns off some bogus lack of overriding warnings
             super.attribClassBody(env,c);
             attribSpecs = true; // Now do all the specs
+            specs.get(c); // Forces computation of the TypeSpecs
             attribClassBodySpecs(env,c,prevIsInJmlDeclaration,false);
+
+//            attribSpecs = true;
+//            relax = true;  // Turns off some bogus lack of overriding warnings
+//            super.attribClassBody(env,c);
+//            specs.get(c); // Forces computation of the TypeSpecs
+
+        
         } finally {
             relax = oldRelax;
             attribSpecs = prevAttribSpecs;
             isInJmlDeclaration = prevIsInJmlDeclaration;
+            ((JmlCheck)chk).setInJml(isInJmlDeclaration);
             log.useSource(prev);
-            if (Utils.jmldebug) System.out.println("ATTRIBUTING-MODS " + c.fullname + " " + isInJmlDeclaration);
+            if (Utils.jmldebug) log.noticeWriter.println("ATTRIBUTING-MODS " + c.fullname + " " + isInJmlDeclaration);
         }
         // Finally, check the class modifiers
         // FIXME - actually we need to get the modifiers from TypeSpecs
@@ -408,6 +413,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 log.useSource(tspecs.file);
                 attribAnnotationTypes(tspecs.modifiers.annotations,env);
                 isInJmlDeclaration = prevIsInJmlDeclaration;
+                ((JmlCheck)chk).setInJml(isInJmlDeclaration);
                 checkClassMods(c.owner,tspecs.decl,tspecs.modifiers);
             }
             
@@ -471,12 +477,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                  if (enclosingMethodEnv == null) {
                     // FIXME - This can happen for anonymous classes, so I expect that
                     // specs (or at least \old) in anonymous classes will cause disaster
-//                  System.out.println("DISASTER-2 AWAITS: " + env.enclMethod.name);
-//                  System.out.println(env.enclMethod);
+//                  log.noticeWriter.println("DISASTER-2 AWAITS: " + env.enclMethod.name);
+//                  log.noticeWriter.println(env.enclMethod);
 //                  }
                     if (sp != null) sp.accept(this);
 //                  if (enclosingMethodEnv == null) {
-//                  System.out.println("DODGED-2: " + env.enclMethod.name);
+//                  log.noticeWriter.println("DODGED-2: " + env.enclMethod.name);
                     deSugarMethodSpecs(((JmlMethodDecl)env.enclMethod),sp);
 
 //                  }
@@ -568,7 +574,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         relax = true;
         JavaFileObject prevSource = null;
         try {
-            if (Utils.jmldebug) System.out.println("ATTRIBUTING METHOD " + env.enclClass.sym + " " + m.sym);
+            if (Utils.jmldebug) log.noticeWriter.println("ATTRIBUTING METHOD " + env.enclClass.sym + " " + m.sym);
             JmlMethodDecl jmethod = (JmlMethodDecl)m;
             prevSource = log.useSource(jmethod.source());
             attribAnnotationTypes(m.mods.annotations,env); // This is needed at least for the spec files of binary classes
@@ -693,6 +699,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // This is only done if the method body is null, otherwise, it is quicker
         // to check the method specs with the body
         
+        boolean isInJml = ((JmlCheck)chk).setInJml(true);
         MethodSymbol m = tree.sym;
 
         Lint lint = env.info.lint.augment(m.attributes_field, m.flags());
@@ -744,6 +751,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         }
         finally {
+            ((JmlCheck)chk).setInJml(isInJml);
             chk.setLint(prevLint);
         }
     }
@@ -760,10 +768,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     JCIdent makeIdent(JCVariableDecl decl) {
-        JCIdent id = make.Ident(decl.name);
+        JCIdent id = make.at(decl.pos).Ident(decl.name);
         id.sym = decl.sym;
         id.type = decl.type;
-        // id.pos = ??? FIXME
+        id.pos = decl.pos;
         return id;
     }
     
@@ -804,7 +812,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // the modifiers are added into the symbol
     // FIXME - check everything for position information
     public void deSugarMethodSpecs(JmlMethodDecl decl, JmlMethodSpecs methodSpecs) {
-        //System.out.println("DESUGARING " + decl.sym.owner + " " + decl.sym);
+        //log.noticeWriter.println("DESUGARING " + decl.sym.owner + " " + decl.sym);
         if (methodSpecs == null || methodSpecs.decl == null) return;
         Env<AttrContext> prevEnv = env;
         env = enter.getEnv((ClassSymbol)decl.sym.owner);
@@ -814,7 +822,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // a tree hierarchy, so we have to set the enclosing method declaration directly.  If we were only
                 // calling deSugarMethodSpecs during AST attribution, then we would not need to set env or adjust
                 // env.enclMethod.
-        // FIXME if (specs.decl != decl) System.out.println("UNEXPECTED MISMATCH " + decl.sym + " " + specs.decl.sym);
+        // FIXME if (specs.decl != decl) log.noticeWriter.println("UNEXPECTED MISMATCH " + decl.sym + " " + specs.decl.sym);
         JavaFileObject prevSource = log.useSource(methodSpecs.decl.sourcefile);
         try {
             JmlTree.Maker jmlF = (JmlTree.Maker)make;
@@ -888,7 +896,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (parent != null) newlist.append(((JmlTree.Maker)make).at(parent.pos).JmlSpecificationCase(parent.modifiers,parent.code,parent.token,parent.also,prefix.toList()));
             else {
                 // ERROR
-                System.out.println("INTERNAL ERROR!");
+                log.noticeWriter.println("INTERNAL ERROR!");
             }
         } else {
             for (JmlSpecificationCase c: cases) {
@@ -1683,7 +1691,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (!attribSpecs && currentClauseType == null && env.enclMethod == null) return; 
         boolean prev = pureEnvironment;
         pureEnvironment = true;
-        //System.out.println("JMLATTR for specs cases of " + tree.decl.sym.owner + " " + tree.decl.sym);
+        //log.noticeWriter.println("JMLATTR for specs cases of " + tree.decl.sym.owner + " " + tree.decl.sym);
         for (JmlSpecificationCase c: tree.cases) {
             c.accept(this);
         }
@@ -2284,10 +2292,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // Need to create a local environment with the new names
         Env<AttrContext> localEnv =
             env.dup(that, env.info.dup(env.info.scope.dup()));
+        
+        boolean b = ((JmlMemberEnter)memberEnter).setInJml(true);
         for (JCVariableDecl decl: that.decls) {
             memberEnter.memberEnter(decl, localEnv);
             decl.type = decl.vartype.type; // FIXME not sure this is needed
         }
+        ((JmlMemberEnter)memberEnter).setInJml(b);
+        
 //        Iterator<JCExpression> iter = that.localtypes.iterator();
 //        for (Name n: that.names) {
 //            // FIXME - need to associate a better position with each type

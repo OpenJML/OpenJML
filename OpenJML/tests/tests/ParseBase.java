@@ -42,7 +42,7 @@ abstract public class ParseBase extends JmlTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         options.put("compilePolicy","check");  // Don't do code generation
-        options.put("-specs",   testspecpath);
+        options.put("-specspath",   testspecpath);
         main.register(context);
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         Log.instance(context).multipleErrors = true;

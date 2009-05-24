@@ -26,35 +26,42 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
     
 
+    //JAVA16 @Override
     public JCTree visitJmlBinary(JmlBinary that, Void p) {
-        JCExpression lhs = copy(that.lhs,null);
-        JCExpression rhs = copy(that.rhs,null);
-        JmlBinary b = M.at(that.pos).JmlBinary(that.op,lhs,rhs);
-        b.type = that.type;
-        return b;
+        JCExpression lhs = copy(that.lhs,p);
+        JCExpression rhs = copy(that.rhs,p);
+        JmlBinary r = M.at(that.pos).JmlBinary(that.op,lhs,rhs);
+        r.type = that.type;
+        return r;
     }
     
+    //JAVA16 @Override
     public JCTree visitJmlMethodInvocation(JmlMethodInvocation that, Void p) {
         List<JCExpression> args = copy(that.args, p);
-        JmlMethodInvocation b = M.at(that.pos).JmlMethodInvocation(that.token, args);
-        b.type = that.type;
-        return b;
+        return M.at(that.pos).JmlMethodInvocation(that.token, args).setType(that.type);
     }
 
 
+    //JAVA16 @Override
     public JCTree visitJmlDoWhileLoop(JmlDoWhileLoop that, Void p) {
-        return M.at(that.pos).JmlDoWhileLoop(that,copy(that.loopSpecs));  // FIXME - I don't think this copies 'that'
+        JmlDoWhileLoop r = M.at(that.pos).JmlDoWhileLoop((JCDoWhileLoop)this.visitDoWhileLoop(that,p),copy(that.loopSpecs,p));
+        r.type = that.type;
+        return r;
     }
 
+    //JAVA16 @Override
     public JCTree visitJmlEnhancedForLoop(JmlEnhancedForLoop that, Void p) {
-        visitTree(that); // FIXME - implement
-        return null;
+        JmlEnhancedForLoop r = M.at(that.pos).JmlEnhancedForLoop((JCEnhancedForLoop)this.visitEnhancedForLoop(that,p),copy(that.loopSpecs,p));
+        r.type = that.type;
+        return r;
     }
 
 
+    //JAVA16 @Override
     public JCTree visitJmlForLoop(JmlForLoop that, Void p) {
-        visitTree(that); // FIXME - implement
-        return null;
+        JmlForLoop r = M.at(that.pos).JmlForLoop((JCForLoop)this.visitForLoop(that,p),copy(that.loopSpecs,p));
+        r.type = that.type;
+        return r;
     }
 
 //    public JCTree visitJmlFunction(JmlFunction that, Void p) {
@@ -63,57 +70,70 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 //        return r;
 //    }
 
+    //JAVA16 @Override
     public JCTree visitJmlGroupName(JmlGroupName that, Void p) {
-        visitTree(that); // FIXME - implement
-        return null;
-    }
-
-    public JCTree visitJmlImport(JmlImport that, Void p) {
-        visitTree(that); // FIXME - implement
-        return null;
-    }
-
-    public JCTree visitJmlLblExpression(JmlLblExpression that, Void p) {
-        JmlLblExpression r = M.at(that.pos).JmlLblExpression(that.token,that.label,copy(that.expression));
+        JmlGroupName r = M.at(that.pos).JmlGroupName(copy(that.selection,p));
         r.type = that.type;
         return r;
     }
 
-    public JCTree visitJmlMethodClauseAssignable(JmlMethodClauseStoreRef that, Void p) {
-        visitTree(that); // FIXME - implement
-        return null;
+    //JAVA16 @Override
+    public JCTree visitJmlImport(JmlImport that, Void p) {
+        JmlImport r = M.at(that.pos).JmlImport(copy(that.qualid,p),that.staticImport,that.isModel);
+        r.type = that.type;
+        return r;
     }
 
+    //JAVA16 @Override
+    public JCTree visitJmlLblExpression(JmlLblExpression that, Void p) {
+        return M.at(that.pos).JmlLblExpression(that.token,that.label,copy(that.expression)).setType(that.type);
+    }
+
+    //JAVA16 @Override
+    public JCTree visitJmlMethodClauseAssignable(JmlMethodClauseStoreRef that, Void p) {
+        JmlMethodClauseStoreRef r = M.at(that.pos).JmlMethodClauseStoreRef(that.token,copy(that.list,p));
+        r.setType(that.type);
+        r.sourcefile = that.sourcefile;
+        return r;
+    }
+
+    //JAVA16 @Override
     public JCTree visitJmlMethodClauseConditional(JmlMethodClauseConditional that, Void p) {
         visitTree(that); // FIXME - implement
         return null;
     }
 
+    //JAVA16 @Override
     public JCTree visitJmlMethodClauseDecl(JmlMethodClauseDecl that, Void p) {
         visitTree(that); // FIXME - implement
         return null;
     }
 
+    //JAVA16 @Override
     public JCTree visitJmlMethodClauseExpr(JmlMethodClauseExpr that, Void p) {
         visitTree(that); // FIXME - implement
         return null;
     }
 
+    //JAVA16 @Override
     public JCTree visitJmlMethodClauseGroup(JmlMethodClauseGroup that, Void p) {
         visitTree(that); // FIXME - implement
         return null;
     }
 
+    //JAVA16 @Override
     public JCTree visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that, Void p) {
         visitTree(that); // FIXME - implement
         return null;
     }
 
+    //JAVA16 @Override
     public JCTree visitJmlMethodClauseSignals(JmlMethodClauseSignals that, Void p) {
         visitTree(that); // FIXME - implement
         return null;
     }
 
+    //JAVA16 @Override
     public JCTree visitJmlMethodSpecs(JmlMethodSpecs that, Void p) {
         visitTree(that); // FIXME - implement
         return null;

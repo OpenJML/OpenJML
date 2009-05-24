@@ -551,95 +551,96 @@ public class esc extends EscBase {
     // FIXME - test not_modified and old nested in each other; remember to test definedness            
 
     public void testFresh() {
+        //options.put("-jmlverbose","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"abstract public class TestJava { \n"
                 
-                +"  //@ requires p != null && p != this;\n"
-                +"  //@ modifies \\everything;\n"
-                +"  public void m1(Object p) {\n"
-                +"    Object pp = c1(p);\n"
-                +"    //@ assert pp != p;\n"  // OK
-                +"    //@ assert pp != this;\n"  // OK
-                +"  }\n"
-                
-                +"  //@ requires p != null && p != this;\n"
-                +"  //@ modifies \\everything;\n"
-                +"  public void m2(Object p) {\n"
-                +"    Object pp = c2(p);\n"
-                +"    //@ assert pp != p;\n"  // BAD
-                +"  }\n"
-                
-                +"  //@ requires p != null && p != this;\n"
-                +"  //@ modifies \\everything;\n"
-                +"  public void m3(Object p) {\n"
-                +"    Object pp = c2(p);\n"
-                +"    //@ assert pp != this;\n"  // BAD
-                +"  }\n"
-                
-                +"  //@ requires p != null && p != this;\n"
-                +"  //@ modifies \\everything;\n"
-                +"  public void m4(Object p) {\n"
-                +"    Object pp = c1(p);\n"
-                +"    Object q = new Object();\n"
-                +"    //@ assert pp != q;\n"  // OK
-                +"  }\n"
-                
-                +"  //@ requires p != null && p != this;\n"
-                +"  //@ modifies \\everything;\n"
-                +"  public void m5(Object p) {\n"
-                +"    Object pp = c2(p);\n"
-                +"    Object q = new Object();\n"
-                +"    //@ assert pp != q;\n"  // OK
-                +"  }\n"
-                
-                +"  //@ modifies \\everything;\n"
-                +"  //@ ensures \\result != null && \\fresh(\\result);\n"
-                +"  //@ ensures \\result != p && \\result != this;\n"
-                +"  public Object m6(Object p) {\n"
-                +"    return new Object();\n"
-                +"  }\n"
-                
-                +"  //@ modifies \\everything;\n"
-                +"  //@ ensures \\result == null;\n"  // BAD
-                +"  public Object m6a(Object p) {\n"
-                +"    return new Object();\n"
-                +"  }\n"
-                
-                +"  //@ modifies \\everything;\n"
-                +"  //@ ensures \\result != null && \\fresh(\\result);\n"
-                +"  //@ ensures \\result == p || \\result == this;\n" // BAD
-                +"  public Object m6b(Object p) {\n"
-                +"    return new Object();\n"
-                +"  }\n"
-                
-                +"  //@ modifies \\everything;\n"
-                +"  //@ ensures \\result != null && !\\fresh(\\result);\n" // BAD
-                +"  public Object m6c(Object p) {\n"
-                +"    return new Object();\n"
-                +"  }\n"
-                
-                +"  Object o;\n"
-                +"  //@ ghost Object oo;\n"
-                +"  static Object so;\n"
-                +"  //@ static ghost Object soo;\n"
-                
-                +"  //@ modifies \\nothing;\n"
-                +"  public void m7(Object p) {\n"
-                +"    Object pp = c1(p);\n"
-                +"    //@ assert pp != o && pp != oo;\n"  // OK
-                +"  }\n"
-                
-                +"  //@ modifies \\nothing;\n"
-                +"  public void m7a(Object p) {\n"
-                +"    Object pp = c2(p);\n"
-                +"    //@ assert pp != o;\n"  // BAD
-                +"  }\n"
-                
-                +"  //@ modifies \\nothing;\n"
-                +"  public void m7b(Object p) {\n"
-                +"    Object pp = c2(p);\n"
-                +"    //@ assert pp != oo;\n"  // BAD
-                +"  }\n"
+//                +"  //@ requires p != null && p != this;\n"
+//                +"  //@ modifies \\everything;\n"
+//                +"  public void m1(Object p) {\n"
+//                +"    Object pp = c1(p);\n"
+//                +"    //@ assert pp != p;\n"  // OK
+//                +"    //@ assert pp != this;\n"  // OK
+//                +"  }\n"
+//                
+//                +"  //@ requires p != null && p != this;\n"
+//                +"  //@ modifies \\everything;\n"
+//                +"  public void m2(Object p) {\n"
+//                +"    Object pp = c2(p);\n"
+//                +"    //@ assert pp != p;\n"  // BAD
+//                +"  }\n"
+//                
+//                +"  //@ requires p != null && p != this;\n"
+//                +"  //@ modifies \\everything;\n"
+//                +"  public void m3(Object p) {\n"
+//                +"    Object pp = c2(p);\n"
+//                +"    //@ assert pp != this;\n"  // BAD
+//                +"  }\n"
+//                
+//                +"  //@ requires p != null && p != this;\n"
+//                +"  //@ modifies \\everything;\n"
+//                +"  public void m4(Object p) {\n"
+//                +"    Object pp = c1(p);\n"
+//                +"    Object q = new Object();\n"
+//                +"    //@ assert pp != q;\n"  // OK
+//                +"  }\n"
+//                
+//                +"  //@ requires p != null && p != this;\n"
+//                +"  //@ modifies \\everything;\n"
+//                +"  public void m5(Object p) {\n"
+//                +"    Object pp = c2(p);\n"
+//                +"    Object q = new Object();\n"
+//                +"    //@ assert pp != q;\n"  // OK
+//                +"  }\n"
+//                
+//                +"  //@ modifies \\everything;\n"
+//                +"  //@ ensures \\result != null && \\fresh(\\result);\n"
+//                +"  //@ ensures \\result != p && \\result != this;\n"
+//                +"  public Object m6(Object p) {\n"
+//                +"    return new Object();\n"
+//                +"  }\n"
+//                
+//                +"  //@ modifies \\everything;\n"
+//                +"  //@ ensures \\result == null;\n"  // BAD
+//                +"  public Object m6a(Object p) {\n"
+//                +"    return new Object();\n"
+//                +"  }\n"
+//                
+//                +"  //@ modifies \\everything;\n"
+//                +"  //@ ensures \\result != null && \\fresh(\\result);\n"
+//                +"  //@ ensures \\result == p || \\result == this;\n" // BAD
+//                +"  public Object m6b(Object p) {\n"
+//                +"    return new Object();\n"
+//                +"  }\n"
+//                
+//                +"  //@ modifies \\everything;\n"
+//                +"  //@ ensures \\result != null && !\\fresh(\\result);\n" // BAD
+//                +"  public Object m6c(Object p) {\n"
+//                +"    return new Object();\n"
+//                +"  }\n"
+//                
+//                +"  Object o;\n"
+//                +"  //@ ghost Object oo;\n"
+//                +"  static Object so;\n"
+//                +"  //@ static ghost Object soo;\n"
+//                
+//                +"  //@ modifies \\nothing;\n"
+//                +"  public void m7(Object p) {\n"
+//                +"    Object pp = c1(p);\n"
+//                +"    //@ assert pp != o && pp != oo;\n"  // OK
+//                +"  }\n"
+//                
+//                +"  //@ modifies \\nothing;\n"
+//                +"  public void m7a(Object p) {\n"
+//                +"    Object pp = c2(p);\n"
+//                +"    //@ assert pp != o;\n"  // BAD
+//                +"  }\n"
+//                
+//                +"  //@ modifies \\nothing;\n"
+//                +"  public void m7b(Object p) {\n"
+//                +"    Object pp = c2(p);\n"
+//                +"    //@ assert pp != oo;\n"  // BAD
+//                +"  }\n"
                 
                 +"  //@ modifies \\everything;\n"
                 +"  public void m7c(Object p) {\n"
@@ -1284,6 +1285,9 @@ public class esc extends EscBase {
                 +"  //@ requires ii == 10;\n"
                 +"  //@ ensures true;\n"
                 +"  public Object inst(int ii) { binstance = ii == 0; o = null; /*@ set oo = null;*/ return null; }\n"
+                +"  //@ requires ii == 10;\n"
+                +"  //@ ensures true;\n"
+                +"  public Object insx(int ii) { binstance = ii == 0;           /*@ set oo = null;*/ return null; }\n"
                 +"}",
                 "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8,
                 "/tt/TestJava.java:8: warning: Associated declaration",23,
@@ -1292,7 +1296,8 @@ public class esc extends EscBase {
                 //"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",8,
                 //"/tt/TestJava.java:10: warning: Associated declaration",16,
                 "/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method i(int)",21,
-                "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Invariant) in method inst",84,
+                "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyNullReference) in method inst",55,
+                "/tt/TestJava.java:25: warning: The prover cannot establish an assertion (Invariant) in method insx",84,
                 "/tt/TestJava.java:9: warning: Associated declaration",16
         );
     }
@@ -2007,8 +2012,8 @@ public class esc extends EscBase {
                 +"  public void inst2(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  /*@ assert a[1][2]; */ }\n" // OK
                 +"  public void inst2a(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  /*@ assert !a[1][2]; */ }\n" // BAD
                 +"  public void inst3(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  a[1][2] = false; /*@ assert !a[1][2]; */ }\n" // OK
-                +"  public void inst3a(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  a[1][2] = false; /*@ assert a[1][3]; */ }\n" // BAD
-                +"  public void inst3b(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  a[1][2] = false; /*@ assert a[0][2]; */ }\n" // BAD
+                +"  public void inst3a(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  a[1][2] = true ; /*@ assert a[1][3]; */ }\n" // BAD
+                +"  public void inst3b(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  a[1][2] = true ; /*@ assert a[0][2]; */ }\n" // BAD - a[0] might be null; even if it isn't a[0][2] is not necessarily true
                 +"  public void inst4(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[0] != null; assume a[1].length == 5; assume a[0].length == 3; *//*@ assume a[0][0]; */  a[1][0] = false; /*@ assert a[0][0]; */ }\n" // OK
                 +"  public void inst4a(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[0] != null; assume a[1].length == 5; assume a[0].length == 3; *//*@ assume a[0][0]; */  a[1][0] = false; /*@ assert !a[0][0]; */ }\n" // BAD
                 +"  public void inst5(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; */  a[0] = a[1]; /*@ assert a[0][3] == a[1][3]; */}\n" // OK
@@ -2017,14 +2022,13 @@ public class esc extends EscBase {
                 +"  public void inst6a(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@assume a.length == 10;*/b = a; /*@ assert a[0] != b[0]; */}\n" // BAD
                 +"  public void inst7(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@ assume b.length == 10 && a.length == 10 && b[0] != null && a[0] != null && b[0].length == 5 && a[0].length==6;*/ b[0][0] = true; b = a; a[0][0] = false; /*@ assert !b[0][0]; */}\n" // OK
                 +"  public void inst7a(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@ assume b.length == 10 && a.length == 10 && b[0] != null && a[0] != null && b[0].length == 5 && a[0].length==6;*/  b[0][0] = true; b = a; a[0][0] = false; /*@ assert b[0][0]; */}\n" // BAD
-                +"  public void inst8(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@ assume b.length == 10 && a.length == 12;*/ b = a; a[0] = null; /*@ assert b != null; assert a != null; assert b.length == 12; assert a.length == 12; */}\n"
+                +"  public void inst8(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@ assume b.length == 10 && a.length == 12;*/ b = a; a[0] = null; /*@ assert b != null; assert a != null; assert b.length == 12; assert a.length == 12; */}\n" // OK
                 +"  public void inst3c(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; assume a[0] != null; */  a[1][2] = false; /*@ assert a[0][2]; */ }\n" // BAD
                 +"  public void inst3d(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; assume a[0] != null; assume a[0].length > 5; */  a[1][2] = false; /*@ assert a[0][2]; */ }\n" // BAD
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst2a",154
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method inst3a",171
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullReference) in method inst3b",-182
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method inst3b",-182
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullReference) in method inst3b",182
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method inst4a",217
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method inst5a",144
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method inst6a",118
@@ -2610,10 +2614,10 @@ public class esc extends EscBase {
     // FIXME - loop invariants, variants,  represents,  signals, modifies 
     // FIXME - old constructs, quantifications, set comprehension, pure methods - check other JMl expressions
     public void testUndefinedInSpec3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
                 +"public class TestJava { \n"
                 +"  int j = 1;\n"
-                +"  static TestJava t;\n"
+                +"  static @Nullable TestJava t;\n"
                 +"  public static void m(TestJava o) { \n"
                 +"    //@ assume o.j == 1; \n"
                 +"  }\n  "
@@ -2627,7 +2631,7 @@ public class esc extends EscBase {
                 +"    //@ ghost int i; debug i = o.j; \n"
                 +"  }\n  "
                 +"  //@ requires o.j == 1;\n"
-                +"  public static void m4(TestJava o) { \n"
+                +"  public static void m4(@Nullable TestJava o) { \n"
                 +"  }\n  "
                 +"  //@ ensures t.j == 1 ? true : true;\n"
                 +"  public static void m5(TestJava o) { \n"
@@ -2681,10 +2685,10 @@ public class esc extends EscBase {
                 +"  boolean j = true;\n"
                 +"  static TestJava t;\n"
                 +"  public TestJava() { \n"
-                +"  }\n  "
+                +"  }\n"
                 +"  //@ initially t.j ? true : true;\n"
                 +"}",
-                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullReference) in method <init>",20  // FIXME - column position could be better
+                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullReference) in method <init>",18
         );
     }
 

@@ -527,7 +527,7 @@ public class JmlResolve extends Resolve {
 //            for (Scope.Entry e = c.members().lookup(name);
 //                        e.scope != null;
 //                        e = e.next()) {
-////              - System.out.println(" e " + e.sym);
+////              - log.noticeWriter.println(" e " + e.sym);
 //                if (e.sym.kind == MTH &&
 //                        (e.sym.flags_field & SYNTHETIC) == 0 &&
 //                        !(!allowJML && Utils.isJML(e.sym.flags_field))) {
@@ -538,7 +538,7 @@ public class JmlResolve extends Resolve {
 //                            operator);
 //                }
 //            }
-////          - System.out.println(" - " + bestSoFar);
+////          - log.noticeWriter.println(" - " + bestSoFar);
 //            if (abstractok) {
 //                Symbol concrete = methodNotFound;
 //                if ((bestSoFar.flags() & ABSTRACT) == 0)
@@ -572,22 +572,22 @@ public class JmlResolve extends Resolve {
       */
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
-         if (Utils.jmldebug) System.out.println("LOADING REQUESTED " + name + " " + ClassReader.isClassAlreadyRead(context,name));
+         if (Utils.jmldebug) log.noticeWriter.println("LOADING REQUESTED " + name + " " + ClassReader.isClassAlreadyRead(context,name));
          Symbol s = super.loadClass(env, name);
 //         if (!s.exists()) {
 //             // FIXME - does not distinguish between bad symbols and packages
-//             System.out.println("Error resolving " + name + ": " + s);
+//             log.noticeWriter.println("Error resolving " + name + ": " + s);
 //             return s;
 //         }
          if (!(s instanceof ClassSymbol)) return s; // loadClass can be called for a package
          JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get((ClassSymbol)s);
          if (tsp == null) {
-             if (Utils.jmldebug) System.out.println("   LOADING SPECS FOR (BINARY) CLASS " + name);
+             if (Utils.jmldebug) log.noticeWriter.println("   LOADING SPECS FOR (BINARY) CLASS " + name);
              ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(env,(ClassSymbol)s);
-             //if (Utils.jmldebug) System.out.println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+             //if (Utils.jmldebug) log.noticeWriter.println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
              return s;
          } else {
-             //if (Utils.jmldebug) System.out.println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
+             //if (Utils.jmldebug) log.noticeWriter.println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
          }
          return s;
      }

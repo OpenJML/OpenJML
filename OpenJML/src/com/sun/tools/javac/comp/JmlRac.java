@@ -2,6 +2,7 @@ package com.sun.tools.javac.comp;
 
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.annotations.Nullable;
 import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
@@ -9,6 +10,7 @@ import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeCopier;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
@@ -33,6 +35,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 public class JmlRac extends TreeTranslator implements IJmlVisitor {
@@ -121,6 +124,10 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
     public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
         JmlToken t = tree.token;
         JCExpression arg;
+        if (t == null) {
+            visitApply(tree);
+            return;
+        }
         switch (t) {
             case BSOLD:
             case BSPRE:
@@ -298,7 +305,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         classInfo.typeSpecs = specs.get(tree.sym);
         JmlSpecs.TypeSpecs typeSpecs = classInfo.typeSpecs;
         if (typeSpecs == null) {
-            System.out.println("UNEXPECTEDLY NULL TYPESPECS");
+            log.noticeWriter.println("UNEXPECTEDLY NULL TYPESPECS");
             return;
         }
         
@@ -402,7 +409,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         for (JmlTypeClauseDecl m: typeSpecs.modelFieldMethods) {
             JmlMethodDecl mdecl = (JmlMethodDecl)m.decl;
             if (mdecl.body.stats.isEmpty()) {
-                //System.out.println("NO IMPLEMENTATION " + mdecl.name);
+                //log.noticeWriter.println("NO IMPLEMENTATION " + mdecl.name);
                 String position = position(m.source,m.pos);
                 String s = mdecl.name.toString();
                 int p = s.lastIndexOf('$');
@@ -450,7 +457,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 
         tree.defs = newlist.toList();
         result = tree;
-        //System.out.println("REWRITTEN " + result);
+        //log.noticeWriter.println("REWRITTEN " + result);
         classInfo = prevClassInfo;
     }
     
@@ -495,7 +502,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
                 result = c;
                 return;
             } else {
-                System.out.println("COULD NOT FIND METHOD FOR MODEL FIELD " + tree.sym);
+                log.noticeWriter.println("COULD NOT FIND METHOD FOR MODEL FIELD " + tree.sym);
                 // FIXME - problem?
             }
         }
@@ -527,7 +534,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
                 result = c;
                 return;
             } else {
-                System.out.println("COULD NOT FIND METHOD FOR MODEL FIELD " + tree.sym);
+                log.noticeWriter.println("COULD NOT FIND METHOD FOR MODEL FIELD " + tree.sym);
                 // FIXME - problem?
             }
         }
@@ -791,7 +798,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 
             tree.body = make.Block(0,newbody.toList());
             
-            //System.out.println("REWRITTEN " + tree);
+            //log.noticeWriter.println("REWRITTEN " + tree);
 
         }
         methodInfo = prevMethodInfo;
@@ -984,21 +991,21 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
             if (tree.lhs instanceof JCIdent) sym = ((JCIdent)tree.lhs).sym;
             else if (tree.lhs instanceof JCFieldAccess) sym = ((JCFieldAccess)tree.lhs).sym;
             if (sym != null) {
-                if (specs.isNonNull(sym,classInfo.typeSpecs.csymbol)) {
-                    String s = "assignment of null to non_null";
-                    tree.rhs = nullCheck(s,tree.pos,tree.rhs);
-                    result = tree;
-                }
+//                if (specs.isNonNull(sym,classInfo.typeSpecs.csymbol)) {
+//                    String s = "assignment of null to non_null";
+//                    tree.rhs = nullCheck(s,tree.pos,tree.rhs);
+//                    result = tree;
+//                }
             }
         }
     }
 
     public void visitVarDef(JCVariableDecl tree) {
         super.visitVarDef(tree);
-        if (tree.init != null && specs.isNonNull(tree.sym,classInfo.typeSpecs.csymbol)) {
-            String s = "null initialization of non_null variable";
-            tree.init = nullCheck(s,tree.pos,tree.init);
-        }
+//        if (tree.init != null && specs.isNonNull(tree.sym,classInfo.typeSpecs.csymbol)) {
+//            String s = "null initialization of non_null variable";
+//            tree.init = nullCheck(s,tree.pos,tree.init);
+//        }
     }
 
 
@@ -1200,7 +1207,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 //            Method invoke = java.lang.reflect.Method.class.getMethod("invoke",new Class<?>[]{Object.class, Object[].class});
 //            invoke.invoke
 //        } catch (Exception e) {
-//            System.out.println("FAILED");
+//            log.noticeWriter.println("FAILED");
 //        }
 //    }
     
@@ -1232,28 +1239,39 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         return f;
     }
     
-    public JCStatement methodCall(JmlStatementExpr tree) {
-        // org.jmlspecs.utils.Utils.assertionFailure();
-        
-        JmlToken t = tree.token;
-        String s = t == JmlToken.ASSERT ? "assertion is false" : t == JmlToken.ASSUME ? "assumption is false" : "unreachable statement reached";
-        s = tree.source.getName() + ":" + tree.line + ": JML " + s;
-        JCExpression lit = makeLit(syms.stringType,s);
-        JCFieldAccess m = findUtilsMethod("assertionFailure");
-        JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit));
-        c.setType(syms.voidType);
-        return make.Exec(c);
-    }
+//    public JCStatement methodCall(JmlStatementExpr tree) {
+//        // org.jmlspecs.utils.Utils.assertionFailure();
+//        
+//        //JmlToken t = tree.token;
+//        //String s = t == JmlToken.ASSERT ? "assertion is false" : t == JmlToken.ASSUME ? "assumption is false" : "unreachable statement reached";
+//        String s = 
+//            tree.label == Label.EXPLICIT_ASSERT ? "assertion is false" :
+//                tree.label == Label.EXPLICIT_ASSUME ? "assumption is false" :
+//                    tree.label == Label.UNREACHABLE ? "unreachable statment reached" :
+//                        tree.label.toString();
+//        s = tree.source.getName() + ":" + tree.line + ": JML " + s;
+//        JCExpression lit = makeLit(syms.stringType,s);
+//        JCFieldAccess m = findUtilsMethod("assertionFailure");
+//        JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit));
+//        c.setType(syms.voidType);
+//        return make.Exec(c);
+//    }
     
-    public JCStatement methodCall(JmlStatementExpr tree, JCExpression translatedOptionalExpr) {
+    public JCStatement methodCall(JmlStatementExpr tree, @Nullable JCExpression translatedOptionalExpr) {
         // org.jmlspecs.utils.Utils.assertionFailure();
         
-        JmlToken t = tree.token;
-        String s = t == JmlToken.ASSERT ? "assertion is false" : t == JmlToken.ASSUME ? "assumption is false" : "unreachable statement reached";
+//        JmlToken t = tree.token;
+//        String s = t == JmlToken.ASSERT ? "assertion is false" : t == JmlToken.ASSUME ? "assumption is false" : "unreachable statement reached";
+        String s = 
+            tree.label == Label.EXPLICIT_ASSERT ? "assertion is false" :
+                tree.label == Label.EXPLICIT_ASSUME ? "assumption is false" :
+                    tree.label == Label.UNREACHABLE ? "unreachable statement reached" :
+                        tree.label.toString();
         s = tree.source.getName() + ":" + tree.line + ": JML " + s;
         JCExpression lit = makeLit(syms.stringType,s);
-        JCFieldAccess m = findUtilsMethod("assertionFailure2");
-        JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit,translatedOptionalExpr));
+        JCFieldAccess m = findUtilsMethod(translatedOptionalExpr == null ? "assertionFailure" : "assertionFailure2");
+        JCExpression c = translatedOptionalExpr == null ? make.Apply(null,m,List.<JCExpression>of(lit)) :
+            make.Apply(null,m,List.<JCExpression>of(lit,translatedOptionalExpr));
         c.setType(syms.voidType);
         return make.Exec(c);
     }
@@ -1266,7 +1284,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
             case ASSUME:
             {
                 if (tree.optionalExpression == null) {
-                    result = make.If(translate(tree.expression),make.Skip(),methodCall(tree));
+                    result = make.If(translate(tree.expression),make.Skip(),methodCall(tree,null));
                 } else {
                     result = make.If(translate(tree.expression),make.Skip(),methodCall(tree,translate(tree.optionalExpression)));
                 }
@@ -1275,8 +1293,8 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
             }
 
             case UNREACHABLE:
-            {
-                result = methodCall(tree);
+            {  // FIXME - should not be needed
+                result = methodCall(tree,null);
                 result.pos = p;
                 break;
             }
@@ -1338,7 +1356,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
     }
 
     public void visitJmlImport(JmlImport that) {
-        log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlImport");
+        result = that; // Nothing else to do
     }
 
     public void visitJmlLblExpression(JmlLblExpression that) {
@@ -1473,6 +1491,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
     }
 
     public void visitJmlStatement(JmlStatement that) {
+        // FIXME - no longer needed
         switch (that.token) {
             case SET:
             case DEBUG: // FIXME - if turned on by options
@@ -1487,7 +1506,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 
     public void visitJmlStatementDecls(JmlStatementDecls that) {
         // FIXME - only handles the first one
-        result = translate(that.list.first());
+        //result = translate(that.list.first());
     }
 
     public void visitJmlStatementLoop(JmlStatementLoop that) {
@@ -1580,7 +1599,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         vars.append(that);
         vars.appendList(checks);
         result = make.Block(0,vars.toList());
-        //System.out.println("REWRITTEN " + result);
+        //log.noticeWriter.println("REWRITTEN " + result);
     }
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
@@ -1637,7 +1656,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         vars.append(that);
         vars.appendList(checks);
         result = make.Block(0,vars.toList());
-        //System.out.println("REWRITTEN " + result);
+        //log.noticeWriter.println("REWRITTEN " + result);
     }
     
     public void makeLoopChecks(List<JmlStatementLoop> specs, ListBuffer<JCStatement> checks, ListBuffer<JCStatement> vars) {

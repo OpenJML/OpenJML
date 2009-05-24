@@ -2448,7 +2448,7 @@ public class JavacParser implements Parser {
      *    | ModifiersOpt Type Ident
      *      ( ConstantDeclaratorsRest | InterfaceMethodDeclaratorRest ";" )
      */
-    List<JCTree> classOrInterfaceBodyDeclaration(Name className, boolean isInterface) {
+    protected List<JCTree> classOrInterfaceBodyDeclaration(Name className, boolean isInterface) { // DRC - changed from package to protected
         if (S.token() == SEMI) {
             S.nextToken();
             return List.<JCTree>of(F.at(Position.NOPOS).Block(0, List.<JCStatement>nil()));

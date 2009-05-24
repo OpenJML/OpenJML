@@ -115,7 +115,7 @@ public class compiler extends TestCase {
     @Test
     public void testSpecPath() throws Exception {
         helper(new String[]
-                  {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specs","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","A.java"},
+                  {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","A.java"},
                   2,
                   0,
                   "jml: file not found: A.java" + eol +
@@ -187,7 +187,7 @@ public class compiler extends TestCase {
         helper(new String[]
                           { "-classpath","",
                             "-sourcepath","testfiles/testNoErrors"+z+"runtime",
-                            "-specs","runtime",
+                            "-specspath","runtime",
                             "-noInternalSpecs",
                             "testfiles/testNoErrors/A.java",  
                           },0,0,"",
@@ -203,12 +203,14 @@ public class compiler extends TestCase {
         helper(new String[]
                           { "-classpath","bin",
                             "-sourcepath","testfiles/testNoErrors",
-                            "-specs","runtime",
-                            "-noPurityCheck",
+                            "-specspath","runtime",
+                            "-noPurityCheck",  "-Xlint:unchecked",
                             "testfiles/testNoErrors/A.java"
-                          },0,0,
-                          "Note: Some input files use unchecked or unsafe operations."+eol+
-                          "Note: Recompile with -Xlint:unchecked for details."+eol);
+                          },0,0
+                          ,"",""
+                          //,"Note: Some input files use unchecked or unsafe operations."+eol+
+                          // "Note: Recompile with -Xlint:unchecked for details."+eol
+                          );
     }
 
     @Test
@@ -216,7 +218,7 @@ public class compiler extends TestCase {
         helper(new String[]
                           { "-classpath","",
                             "-sourcepath","testfiles/testNoErrors"+z+"runtime",
-                            "-specs","",
+                            "-specspath","",
                             "-noInternalSpecs",
                             "testfiles/testNoErrors/A.java",  
                           },0,0,"",
@@ -228,9 +230,9 @@ public class compiler extends TestCase {
     @Test
     public void testSourcePath4() throws Exception {
         helper(new String[]
-                          { "-classpath","jmlruntime.jar",
+                          { "-classpath","jars/jmlruntime.jar",
                             "-sourcepath","testfiles/testNoErrors",
-                            "-specs","",
+                            "-specspath","",
                             "-noInternalSpecs",
                             "testfiles/testNoErrors/A.java",  
                           },0,0,"",
@@ -242,7 +244,7 @@ public class compiler extends TestCase {
         helper(new String[]
                           { "-classpath","bin",
                             "-sourcepath","testfiles/testNoErrors",
-                            "-specs","",
+                            "-specspath","",
                             "-noInternalSpecs",
                             "testfiles/testNoErrors/A.java", 
                           },0,0,"",
@@ -254,7 +256,7 @@ public class compiler extends TestCase {
 //        helper(new String[]
 //                          { "-classpath","bin",
 //                            "-sourcepath","testfiles/testNoErrors",
-//                            "-specs","runtime",
+//                            "-specspath","runtime",
 //                            "-noInternalSpecs",
 //                            "testfiles/testNoErrors/A.java"
 //                          },1,0,"",  // FIXME - exit code should really be 0
@@ -266,7 +268,7 @@ public class compiler extends TestCase {
         helper(new String[]
                           { "-classpath","bin", 
                             "-sourcepath","testfiles",
-                            "-specs","testfiles",
+                            "-specspath","testfiles",
                             "testfiles/testSuperRead/A.java"
                           },1,1
                           ,""

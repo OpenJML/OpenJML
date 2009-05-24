@@ -611,11 +611,16 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         if ((tree.mods.flags & STATIC) != 0) localEnv.info.staticLevel++;
         return localEnv;
     }
+    
+    // DRC extracted from the method below in order to override
+    public boolean visitVarDefIsStatic(JCVariableDecl tree) {
+        return ((tree.mods.flags & STATIC) != 0 ||
+                (env.info.scope.owner.flags() & INTERFACE) != 0);
+    }
 
     public void visitVarDef(JCVariableDecl tree) {
         Env<AttrContext> localEnv = env;
-        if ((tree.mods.flags & STATIC) != 0 ||
-            (env.info.scope.owner.flags() & INTERFACE) != 0) {
+        if (visitVarDefIsStatic(tree)) {
             localEnv = env.dup(tree, env.info.dup());
             localEnv.info.staticLevel++;
         }

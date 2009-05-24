@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import org.jmlspecs.annotations.NonNull;
+
 public interface IProverResult {
 
   /** Kinds of results a prover can produce */
@@ -20,6 +22,9 @@ public interface IProverResult {
    * is incomplete, the counterexample may actually be spurious */
   static public final Kind POSSIBLYSAT = new Kind("POSSIBLYSAT");
   
+  /** The logical assumptions were infeasible (and thus trivially satisfiable) */
+  static public final Kind INCONSISTENT = new Kind("INCONSISTENT");
+  
   /** The logical assertions were not satisfiable */
   static public final Kind UNSAT = new Kind("UNSAT");
   
@@ -29,17 +34,31 @@ public interface IProverResult {
   /** Category of result produced by the prover */
   public Kind result();
   
+  /** Sets the category of result produced by the prover */
+  //@ ensures r == result();  // FIXME - needs an assignable statement
+  public void result(@NonNull Kind r);
+  
   /** True if the prover was able to produce a satisfying assignment 
    * @return true if there is a satisfying assignment
    */
   //@ ensures \result == (result() == SAT || result() == POSSIBLY_SAT);
   public boolean isSat();
   
+  /** A String identifying the kind of prover that was used
+   * 
+   * @return an identifying string for the kind of prover that was used
+   */
+  public String prover();
+  
   /** The satisfying assignment produced by the prover.
    * @return The satisfying assignment produced by the prover
    */
   //@ ensures result() != UNSAT ==> \result == null;
   public ICounterexample counterexample();
+  
+  public Object otherInfo();
+  
+  public void setOtherInfo(Object s);
   
   /** Returns the set of core ids, or null if no such information is available 
    * @return an item holding the core id information

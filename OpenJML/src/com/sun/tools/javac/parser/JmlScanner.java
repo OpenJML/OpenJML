@@ -7,8 +7,6 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlOptionName;
 import org.jmlspecs.openjml.JmlToken;
 
-import sun.misc.resources.Messages;
-
 import com.sun.tools.javac.parser.Scanner.CommentStyle;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -230,7 +228,7 @@ public class JmlScanner extends DocCommentScanner {
         // an empty line comment can be just two characters.
         if (noJML || style == CommentStyle.JAVADOC) {
             super.processComment(style);
-            // System.out.println("Processed " + docComment);
+            // log.noticeWriter.println("Processed " + docComment);
             return;
         }
 
@@ -592,7 +590,7 @@ public class JmlScanner extends DocCommentScanner {
         }
 
         // if (Utils.jmldebug)
-        // System.out.println("NEXT TOKEN " + token() + " " +
+        // log.noticeWriter.println("NEXT TOKEN " + token() + " " +
         // (token()!=Token.CUSTOM?"":jmlToken) + " " + pos() + " " + endPos());
     }
 
@@ -651,7 +649,7 @@ public class JmlScanner extends DocCommentScanner {
      *            The label in the pragma
      */
     protected void handleNowarn(JavaFileObject file, int pos, String label) {
-        // System.out.println("NOWARN " + nowarnPos + " " + label);
+        // log.noticeWriter.println("NOWARN " + nowarnPos + " " + label);
         // TODO - eventually do something here
     }
 

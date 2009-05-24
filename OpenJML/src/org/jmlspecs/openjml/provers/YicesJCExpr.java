@@ -200,7 +200,7 @@ public class YicesJCExpr extends JmlTreeScanner {
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         // Should have only one argument (an \old or \pre can get here)
-        //System.out.println("visit Apply: " + that.meth.getClass() + " " + that.meth);
+        //log.noticeWriter.println("visit Apply: " + that.meth.getClass() + " " + that.meth);
         switch (that.token) {
             case BSTYPEOF:
                 result.append("(");
@@ -221,7 +221,7 @@ public class YicesJCExpr extends JmlTreeScanner {
         // FIXME - document
         if (that.meth != null) {
             // FIXME - review this
-            //System.out.println("visit Apply: " + that.meth.getClass() + " " + that.meth);
+            //log.noticeWriter.println("visit Apply: " + that.meth.getClass() + " " + that.meth);
             if (!(that.meth instanceof JCIdent)) 
                 that.args.get(0).accept(this);
             else {
@@ -265,7 +265,7 @@ public class YicesJCExpr extends JmlTreeScanner {
             // but no, there might be some conversions that happen.  In particular,
             // rhs may be a null literal.
             // Of course - what if arr is a null literal ?  FIXME
-            //System.out.println("BBASSIGN TYPES " + that.type + " " + arr.type + " " + rhs.type);
+            //log.noticeWriter.println("BBASSIGN TYPES " + that.type + " " + arr.type + " " + rhs.type);
             Type t = ((ArrayType)arr.type).elemtype;
             defineArrayTypesIfNeeded(t,oldarrs.toString(),newarrs.toString());
             
@@ -329,7 +329,7 @@ public class YicesJCExpr extends JmlTreeScanner {
             // but no, there might be some conversions that happen.  In particular,
             // rhs may be a null literal.
             // Of course - what if arr is a null literal ?  FIXME
-            //System.out.println("BBASSIGN TYPES " + that.type + " " + arr.type + " " + rhs.type);
+            //log.noticeWriter.println("BBASSIGN TYPES " + that.type + " " + arr.type + " " + rhs.type);
             Type t = ((ArrayType)arr.type).elemtype;
             defineArrayTypesIfNeeded(t,oldarrs.toString(),newarrs.toString());
             

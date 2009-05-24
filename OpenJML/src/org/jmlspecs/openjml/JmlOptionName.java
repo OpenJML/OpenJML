@@ -20,7 +20,9 @@ import com.sun.tools.javac.util.Options;
 public enum JmlOptionName implements OptionInterface {
 
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
-    SPECS("-specs",true,"Specifies the directory path to search for specification files"),
+    DIR("-dir",true,"Process all files, recursively, within this directory"),
+    DIRS("-dirs",true,"Process all files, recursively, within these directories (listed as separate arguments)"),
+    SPECS("-specspath",true,"Specifies the directory path to search for specification files"),
     JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output"),
     USEJAVACOMPILER("-useJavaCompiler",false,"When on, the tool uses only the underlying javac compiler (must be the first option)"),
     NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored"),

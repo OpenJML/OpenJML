@@ -289,7 +289,10 @@ public class Log extends AbstractLog {
             writer.println(msg.substring(0, nl));
             msg = msg.substring(nl+1);
         }
-        if (msg.length() != 0) writer.println(msg);
+        if (msg.length() != 0) {
+            writer.println(msg);
+            writer.flush();  // DRC - added a flush?
+        }
     }
 
     protected void directError(String key, Object... args) {

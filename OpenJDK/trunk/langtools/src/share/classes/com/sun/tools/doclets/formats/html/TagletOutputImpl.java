@@ -71,6 +71,6 @@ public class TagletOutputImpl implements TagletOutput {
      * Check whether the taglet output is empty.
      */
     public boolean isEmpty() {
-        return (toString().trim().isEmpty());
+        return (toString().trim().length()==0); // DRC - 1.5
     }
 }

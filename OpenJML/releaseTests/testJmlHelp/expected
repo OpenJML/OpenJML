@@ -29,7 +29,9 @@ where possible options include:
   -Werror                    Terminate compilation if warnings occur
 
 JML options:
-  -specs                     Specifies the directory path to search for specification files
+  -dir                       Process all files, recursively, within this directory
+  -dirs                      Process all files, recursively, within these directories (listed as separate arguments)
+  -specspath                 Specifies the directory path to search for specification files
   -jmldebug                  When on, the program emits lots of output
   -useJavaCompiler           When on, the tool uses only the underlying javac compiler (must be the first option)
   -noJML                     When on, the JML compiler is used, but all JML constructs are ignored

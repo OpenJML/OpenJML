@@ -88,7 +88,7 @@ public class FieldWriterJml extends FieldWriterImpl {
         JmlSpecs.FieldSpecs fspecs = JmlSpecs.instance(context).getSpecs(newField);
         // FIXME - if the only specs are represent clauses, this won't print them
         String s = Utils.jmlAnnotations(newField);
-        if (fspecs != null && (!fspecs.list.isEmpty() || !s.isEmpty()) ){  // FIXME - what if there are JML annotations but no clauses
+        if (fspecs != null && (!fspecs.list.isEmpty() || s.length()!=0) ){  // FIXME - what if there are JML annotations but no clauses
             strong("JML Specifications: ");
             writer.print(s);
             writer.dl();

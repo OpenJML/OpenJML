@@ -102,13 +102,13 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
         }
     }
 
-    @Override
+    //JAVA16 @Override
     public String format(JCDiagnostic d, Locale locale) {
         printer = new FormatterPrinter();
         return formatDiagnostic(d, locale);
     }
 
-    @Override
+    //JAVA16 @Override
     public String format(JCDiagnostic d, Locale locale, String format) { // DRC -added
         printer = new FormatterPrinter();
         return formatDiagnostic(d, locale, format);

@@ -274,6 +274,10 @@ public class JmlTree {
             return new JmlMethodInvocation(pos,token,args);
         }
         
+        public JmlMethodInvocation JmlMethodInvocation(JCExpression method,List<JCExpression> args) {
+            return new JmlMethodInvocation(pos,method,args);
+        }
+        
         public JmlMethodInvocation JmlMethodInvocation(JmlToken token,JCExpression arg) {
             return new JmlMethodInvocation(pos,token,List.<JCExpression>of(arg));
         }
@@ -461,7 +465,7 @@ public class JmlTree {
             return new JmlMethodClauseSigOnly(pos,t,e);
         }
 
-        public JmlMethodClause JmlMethodClauseStoreRef(JmlToken t, List<JCExpression> list) {
+        public JmlMethodClauseStoreRef JmlMethodClauseStoreRef(JmlToken t, List<JCExpression> list) {
             return new JmlMethodClauseStoreRef(pos, t, list);
         }
 
@@ -804,6 +808,7 @@ public class JmlTree {
     public static class JmlMethodDecl extends JCTree.JCMethodDecl implements JmlSource {
         public JmlMethodDecl specsDecl;
         public JmlMethodSpecs methodSpecs;
+        public JmlClassDecl owner;
         public JavaFileObject sourcefile;
         public String docComment = null;
         
@@ -848,6 +853,7 @@ public class JmlTree {
     // FIXME - this is not really a proper subclass of its parent
     public static class JmlMethodInvocation extends JCMethodInvocation {
         public JmlToken token;
+        public Label label = null;
         
         protected JmlMethodInvocation(int pos,
                 JmlToken token,
@@ -855,6 +861,15 @@ public class JmlTree {
         {
             super(List.<JCExpression>nil(),null,args);
             this.token = token;
+            this.pos = pos;
+        }
+        
+        protected JmlMethodInvocation(int pos,
+                JCExpression method,
+                List<JCExpression> args)
+        {
+            super(List.<JCExpression>nil(),method,args);
+            this.token = null;
             this.pos = pos;
         }
         
@@ -1082,6 +1097,15 @@ public class JmlTree {
             this.op = op;
             this.lhs = lhs;
             this.rhs = rhs;
+        }
+        
+        /** A shallow copy constructor */
+        protected JmlBinary(JmlBinary that) {
+            this.op = that.op;
+            this.lhs = that.lhs;
+            this.rhs = that.rhs;
+            this.pos = that.pos;
+            this.type = that.type;
         }
 
         public JCExpression getLeftOperand() { return lhs; }

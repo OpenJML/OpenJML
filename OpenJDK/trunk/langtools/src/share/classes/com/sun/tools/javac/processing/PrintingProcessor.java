@@ -125,7 +125,7 @@ public class PrintingProcessor extends AbstractProcessor {
                     return this;
 
                 defaultAction(e, true);
-                printFormalTypeParameters(e, true);
+                printFormalTypeParameters((Parameterizable)e, true);
 
                 switch(kind) {
                     case CONSTRUCTOR:
@@ -207,7 +207,7 @@ public class PrintingProcessor extends AbstractProcessor {
                 writer.print(" ");
                 writer.print(e.getSimpleName());
 
-                printFormalTypeParameters(e, false);
+                printFormalTypeParameters((Parameterizable)e, false);
 
                 // Print superclass information if informative
                 if (kind == CLASS) {

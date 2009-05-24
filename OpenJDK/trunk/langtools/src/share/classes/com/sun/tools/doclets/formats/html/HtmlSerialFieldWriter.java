@@ -144,7 +144,7 @@ public class HtmlSerialFieldWriter extends FieldWriterImpl
      */
     public void writeMemberDescription(SerialFieldTag serialFieldTag) {
         String serialFieldTagDesc = serialFieldTag.description().trim();
-        if (!serialFieldTagDesc.isEmpty()) {
+        if (serialFieldTagDesc.length()!=0) {
             writer.dl();
             writer.dd();
             writer.print(serialFieldTagDesc);
@@ -164,7 +164,7 @@ public class HtmlSerialFieldWriter extends FieldWriterImpl
             configuration().tagletManager.getCustomTags(field),
                 writer.getTagletWriterInstance(false), output);
         String outputString = output.toString().trim();
-        if (!outputString.isEmpty()) {
+        if (outputString.length()!=0) {
             writer.printMemberDetailsListStartTag();
             writer.dd();
             writer.dl();
@@ -184,7 +184,7 @@ public class HtmlSerialFieldWriter extends FieldWriterImpl
      */
     public boolean shouldPrintOverview(FieldDoc field) {
         if (!configuration().nocomment) {
-            if(!field.commentText().isEmpty() ||
+            if(field.commentText().length()!=0 ||
                     writer.hasSerializationOverviewTags(field))
                 return true;
         }

@@ -9,6 +9,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlEsc;
 
+import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
@@ -94,7 +95,8 @@ public class JmlCompiler extends JavaCompiler {
     // in the way that happens when called from JavaCompiler.parse.  Is this a problem in the Javac compiler?
     @Override
     public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
-        if (verbose) System.out.println("parsing " + fileobject.toUri().getPath());
+        context.get(Main.IProgressReporter.class).report(0,2,"parsing " + fileobject.toUri().getPath());
+        //if (verbose) log.noticeWriter.println("parsing " + fileobject.toUri().getPath());
         JCCompilationUnit cu = super.parse(fileobject,content);
         if (inSequence) {
             return cu;
@@ -189,9 +191,9 @@ public class JmlCompiler extends JavaCompiler {
             // FIXME - this comparison is not robust, though is usually working
             // we use it to avoid parsing a file twice (which would also give
             // duplicate error messages)
-            //System.out.println(f.toUri().normalize().getPath() + " VS " + javaCU.getSourceFile().toUri().normalize().getPath());
+            //log.noticeWriter.println(f.toUri().normalize().getPath() + " VS " + javaCU.getSourceFile().toUri().normalize().getPath());
             if (javaCU != null && f.equals(javaCU.getSourceFile())) {
-                if (Utils.jmldebug) System.out.println("REFOUND " + f);
+                if (Utils.jmldebug) log.noticeWriter.println("REFOUND " + f);
                 jmlcu = javaCU;
             } else {
                 jmlcu = (JmlCompilationUnit)parse(f);
@@ -246,16 +248,16 @@ public class JmlCompiler extends JavaCompiler {
         loadSuperSpecs(env,csymbol);
         java.util.List<JmlCompilationUnit> specSequence = parseSpecs(csymbol);
         if (verbose && specSequence.isEmpty()) {
-            System.out.println("No specs for " + csymbol);
+            log.noticeWriter.println("No specs for " + csymbol);
         }
         for (JmlCompilationUnit cu: specSequence) {
             if (cu.sourcefile.toString().endsWith(".java")) cu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
             else cu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
         }
-        if (Utils.jmldebug) if (specSequence.isEmpty()) System.out.println("   LOADED CLASS " + csymbol + " FOUND NO SPECS");
-                            else System.out.println("   LOADED CLASS " + csymbol + " PARSED SPECS");
+        if (Utils.jmldebug) if (specSequence.isEmpty()) log.noticeWriter.println("   LOADED CLASS " + csymbol + " FOUND NO SPECS");
+                            else log.noticeWriter.println("   LOADED CLASS " + csymbol + " PARSED SPECS");
         ((JmlEnter)enter).enterTopLevelSpecClassesForBinary(csymbol,specSequence);
-        if (Utils.jmldebug) System.out.println("NEST " + nestingLevel + " " + csymbol);
+        if (Utils.jmldebug) log.noticeWriter.println("NEST " + nestingLevel + " " + csymbol);
         if (nestingLevel==1) ((JmlMemberEnter)JmlMemberEnter.instance(context)).completeBinaryTodo();
         nestingLevel--;
      }
@@ -297,16 +299,21 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     protected void desugar(Env<AttrContext> env, Queue<Pair<Env<AttrContext>, JCClassDecl>> results) {
         // Note super.desugar() translates generic Java to non-generic Java and perhaps does other stuff.
+        
+        // Note - we do not want translation for jmldoc (neither ESC nor RAC)
+        
         if (JmlOptionName.isOption(context,JmlOptionName.ESC)) {
+            new JmlTranslator(context).translate(env);
             esc(env);
             // nothing put in results, so no further compilation phases are performed
         }
         if (JmlOptionName.isOption(context,JmlOptionName.RAC)) {
+            new JmlTranslator(context).translate(env);
             JCTree t = env.tree;
             env = rac(env);
             if (env == null) return;
             // Continue with the usual compilation phases
-            if (verbose) System.out.println("desugar " + todo.size() + " " + 
+            if (verbose) log.noticeWriter.println("desugar " + todo.size() + " " + 
                     (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
                         t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
             super.desugar(env,results);
@@ -326,7 +333,7 @@ public class JmlCompiler extends JavaCompiler {
 //    @Override
 //    protected void flow(Env<AttrContext> env, ListBuffer<Env<AttrContext>> results) {
 //        JCTree t = env.tree;
-//        if (verbose) System.out.println("flow checks " +  
+//        if (verbose) log.noticeWriter.println("flow checks " +  
 //                (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
 //                    t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
 //        super.flow(env,results);
@@ -342,10 +349,10 @@ public class JmlCompiler extends JavaCompiler {
         if (!JmlCompilationUnit.isJava(((JmlCompilationUnit)env.toplevel).mode)) {
             // TODO - explain why we remove these from the symbol tables
             if (env.tree instanceof JCClassDecl) {
-                Symbol c = ((JCClassDecl)tree).sym;
+                Symbol c = ((JCClassDecl)env.tree).sym;
                 ((JmlEnter)enter).remove(c);
-            } else if (env.tree instanceof JCCompilationUnit) {
-                for (JCTree t : ((JCCompilationUnit)tree).defs) {
+            } else if (env.toplevel instanceof JCCompilationUnit) {
+                for (JCTree t : ((JCCompilationUnit)env.toplevel).defs) {
                     if (t instanceof JCClassDecl) ((JmlEnter)enter).remove(((JCClassDecl)t).sym);
                 }
             } else {
@@ -359,7 +366,7 @@ public class JmlCompiler extends JavaCompiler {
         // We have to adjust the toplevel tree accordingly.  Presumably other
         // class declarations in the compilation unit will be translated on 
         // other calls.
-        if (verbose) System.out.println("rac " + todo.size() + " " + Utils.envString(env));
+        if (verbose) log.noticeWriter.println("rac " + todo.size() + " " + Utils.envString(env));
         JmlRac rac = new JmlRac(context,env);  // FIXME - use a factory
         if (env.tree instanceof JCClassDecl) {
             // When we do the RAC translation, we create a new instance
@@ -381,8 +388,8 @@ public class JmlCompiler extends JavaCompiler {
         } else {
             env.toplevel = rac.translate(env.toplevel);
         }
-//        System.out.println("TRANSLATED RAC");
-//        System.out.println(env.tree);
+//        log.noticeWriter.println("TRANSLATED RAC");
+//        log.noticeWriter.println(env.tree);
         //flow(env);  // FIXME - give a better explanation if this produces errors.
                 // IF it does, it is because we have done the RAC translation wrong.
         return env;
@@ -405,7 +412,7 @@ public class JmlCompiler extends JavaCompiler {
                 }
             } else {
                 // FIXME - unknown
-                System.out.println("UNKNOWN - esc");
+                log.noticeWriter.println("UNKNOWN - esc");
             }
             return;
         }
@@ -437,7 +444,7 @@ public class JmlCompiler extends JavaCompiler {
             List<String> classnames,
             Iterable<? extends Processor> processors) throws IOException {
         Runtime rt = Runtime.getRuntime();
-        //System.out.println("    ....... Memory free=" + rt.freeMemory() + "  max="+rt.maxMemory() + "  total="+rt.totalMemory());
+        //log.noticeWriter.println("    ....... Memory free=" + rt.freeMemory() + "  max="+rt.maxMemory() + "  total="+rt.totalMemory());
         JmlResolve.instance(context).loadClass(null,Symtab.instance(context).objectType.tsym.flatName());
 //        JmlResolve.instance(context).loadClass(null,Name.Table.instance(context).fromString("org.jmlspecs.utils.Utils"));
 //        JmlResolve.instance(context).loadClass(null,Name.Table.instance(context).fromString("org.jmlspecs.lang.JMLList"));

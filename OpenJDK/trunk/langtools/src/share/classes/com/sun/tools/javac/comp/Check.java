@@ -62,8 +62,8 @@ public class Check {
     private final Infer infer;
     private final Target target;
     private final Source source;
-    private final Types types;
-    private final JCDiagnostic.Factory diags;
+    protected final Types types;  // DRC - changed from private to protected
+    protected final JCDiagnostic.Factory diags;  // DRC - changed from private to protected
     private final boolean skipAnnotations;
     private final TreeInfo treeinfo;
 
@@ -395,7 +395,7 @@ public class Check {
      *  @param found      The type that is being cast.
      *  @param req        The target type of the cast.
      */
-    Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
+    protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {  // DRC - changed from package to protected
         if (found.tag == FORALL) {
             instantiatePoly(pos, (ForAll) found, req, castWarner(pos, found, req));
             return req;

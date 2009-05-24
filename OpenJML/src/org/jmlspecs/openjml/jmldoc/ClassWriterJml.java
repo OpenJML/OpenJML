@@ -127,12 +127,12 @@ public class ClassWriterJml extends ClassWriterImpl {
             String ss = Utils.jmlAnnotations(newsym);
             headerPrinted = false;
             boolean hsp = hasSpecsToPrint(tspecs);
-            if (hsp || !ss.isEmpty()){
+            if (hsp || ss.length()!=0){
                 printSpecHeader("JML Specifications");
 //                bold("Specification sequence:");
 //                JmlClassDecl list = tspecs.decl;
 //                br();
-                if (!ss.isEmpty()) {
+                if (ss.length()!=0) {
                     strong("Annotations:");
                     print(ss);
                     br();

@@ -300,7 +300,7 @@ public class Main {
      */
     public int compile(String[] args) {
         Context context = new Context();
-        JavacFileManager.preRegister(context); // can't create it until Log has been set up
+        JavacFileManager.preRegister(context); // can't create it until Log has been set up - FIXME - explain
         int result = compile(args, context);
         if (fileManager instanceof JavacFileManager) {
             // A fresh context was created above, so jfm must be a JavacFileManager

@@ -243,8 +243,6 @@ public class JmlParser extends EndPosParser {
                     log.error(S.pos(), "jml.refines.missing.semicolon");
                     skipThroughSemi();
                 }
-                if (Utils.jmldebug)
-                    System.out.println("REFINES " + filename);
             }
             if (filename != null) {
                 if (refinesClause != null) {
@@ -1148,7 +1146,7 @@ public class JmlParser extends EndPosParser {
         // skip up to ALSO/IMPLIES_THAT/FOR_EXAMPLE or ENDJMLCOMMENT or EOF
 
         if (inJmlDeclaration) {
-            System.out.println("ALREADY IN JML DECLARATION"); // FIXME
+            log.noticeWriter.println("ALREADY IN JML DECLARATION"); // FIXME
         }
         JCBlock stat;
         JmlSpecificationCase spc;
@@ -1219,11 +1217,14 @@ public class JmlParser extends EndPosParser {
      */
     public JmlMethodClause getClause() {
         JCExpression e;
+        String dc = null;
         if (S.jmlToken() == ENDJMLCOMMENT) {
             S.nextToken();
+            dc = S.docComment;
             if (S.jmlToken() != STARTJMLCOMMENT)
                 return null;
             S.nextToken();
+            S.docComment = dc;
         }
         JmlToken jt = S.jmlToken();
         int pos = S.pos();

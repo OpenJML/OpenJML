@@ -7,7 +7,5 @@ public class TestPath extends TestPathS {
                  ^
   symbol:   variable z
   location: class TestPath
-Note: java/lang/Comparable.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 2 errors
 ENDING with exit code 1

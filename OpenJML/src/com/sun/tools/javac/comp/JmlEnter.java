@@ -114,7 +114,7 @@ public class JmlEnter extends Enter {
             throw new JmlInternalError();
         }
 
-        if (Utils.jmldebug) System.out.println("entering " + jmltree.sourcefile.getName());
+        if (Utils.jmldebug) log.noticeWriter.println("entering " + jmltree.sourcefile.getName());
         
         if (jmltree.specsSequence == null) {
             // FIXME - when does this happen?
@@ -129,16 +129,16 @@ public class JmlEnter extends Enter {
             // This can be done just based on name and nesting - no resolution of
             // types is needed
             matchAndLinkSpecClasses(jmltree);
-            //if (Utils.jmldebug) System.out.println("ENTER TOPLEVEL - SUPER " + jmltree.sourcefile.getName());
+            //if (Utils.jmldebug) log.noticeWriter.println("ENTER TOPLEVEL - SUPER " + jmltree.sourcefile.getName());
             // Then do all the regular Java registering of packages and types
             // This will recursively call visitClassDef for each java class declaration;
             // visitClassDef will process any linked specs
             super.visitTopLevel(jmltree);
-            //if (Utils.jmldebug) System.out.println("ENTER TOPLEVEL - JML " + jmltree.sourcefile.getName());
+            //if (Utils.jmldebug) log.noticeWriter.println("ENTER TOPLEVEL - JML " + jmltree.sourcefile.getName());
             // Then add in any top-level model types
             addTopLevelModelTypes(jmltree);
         }
-        if (Utils.jmldebug) System.out.println("  completed entering " + jmltree.sourcefile.getName());
+        if (Utils.jmldebug) log.noticeWriter.println("  completed entering " + jmltree.sourcefile.getName());
     }
 
     /** Finds top-level model types in the specs sequence of the argument
@@ -163,7 +163,7 @@ public class JmlEnter extends Enter {
                 if (Utils.isJML(specTypeDeclaration.mods)) {
                     // This is a model declaration
                     // If it isn't, an error gets issued during modifier checking that is part of type checking
-                    if (Utils.jmldebug) System.out.println("ADDING " + specTypeDeclaration.name + " AT TOP LEVEL "  + specCompilationUnit.sourcefile.getName());
+                    if (Utils.jmldebug) log.noticeWriter.println("ADDING " + specTypeDeclaration.name + " AT TOP LEVEL "  + specCompilationUnit.sourcefile.getName());
                     super.visitClassDef(specTypeDeclaration);
                     javaCompilationUnit.specsTopLevelModelTypes.add(specTypeDeclaration);
                     // Model class declarations are their own specification
@@ -324,7 +324,7 @@ public class JmlEnter extends Enter {
                 JmlTypeClauseDecl specsNestedDecl = (JmlTypeClauseDecl)specsNestedDeclaration;
                 JCTree specsNestedJmlDecl = specsNestedDecl.decl;
                 if (specsNestedJmlDecl instanceof JmlClassDecl) {
-                    if (Utils.jmldebug ) System.out.println("ADDING(JmlEnter) DECL FOR NESTED CLASS " + ((JmlClassDecl)specsNestedJmlDecl).name + " TO "  + javaClassDeclaration.name);
+                    if (Utils.jmldebug ) log.noticeWriter.println("ADDING(JmlEnter) DECL FOR NESTED CLASS " + ((JmlClassDecl)specsNestedJmlDecl).name + " TO "  + javaClassDeclaration.name);
                     classEnter(specsNestedJmlDecl,typeEnvs.get(javaClassDeclaration.sym));
                     // the call above sets the sourcefile of the sym to that of the enclosing class, but a model
                     // class can be declared in a specification file, so we fix that
@@ -356,7 +356,7 @@ public class JmlEnter extends Enter {
      * compilation unit)
      */
     public void enterTopLevelSpecClassesForBinary(ClassSymbol csymbol, java.util.List<JmlCompilationUnit> specsSequence) {
-        if (Utils.jmldebug) System.out.println("ENTER TOPLEVEL (BINARY) " + csymbol);
+        if (Utils.jmldebug) log.noticeWriter.println("ENTER TOPLEVEL (BINARY) " + csymbol);
         JmlSpecs specs = JmlSpecs.instance(context);
 
         // First do all the linking of java types to specifications
@@ -417,7 +417,7 @@ public class JmlEnter extends Enter {
             Env<AttrContext> localEnv = topLevelEnv(specCompilationUnit);
             //typeEnvs.put(specCompilationUnit.packge, localEnv);
             this.env = localEnv;
-            if (Utils.jmldebug) System.out.println("ADDED BINARY TODO " + 
+            if (Utils.jmldebug) log.noticeWriter.println("ADDED BINARY TODO " + 
                     localEnv.toplevel.sourcefile);
 
             binaryMemberTodo.add(localEnv);
@@ -425,9 +425,9 @@ public class JmlEnter extends Enter {
         for (JCTree def: specCompilationUnit.defs) {
             if (def instanceof JmlClassDecl) {
                 JmlClassDecl specTypeDeclaration = (JmlClassDecl)def;
-//                if (csymbol != specTypeDeclaration.sym) System.out.println("OUCH: SYMBOL CHANGED " + csymbol);
+//                if (csymbol != specTypeDeclaration.sym) log.noticeWriter.println("OUCH: SYMBOL CHANGED " + csymbol);
 //                Scope newScope = specTypeDeclaration.sym.members();
-//                System.out.println("SPEC TYPE SCOPE " + newScope);
+//                log.noticeWriter.println("SPEC TYPE SCOPE " + newScope);
                 if (Utils.isJML(specTypeDeclaration.mods)) {
                     // This is a model declaration - we enter it into the symbol table
                     // FIXME - actually these have been sorted out and are dealt with later
@@ -460,7 +460,7 @@ public class JmlEnter extends Enter {
                 }
             }
         }
-        if (Utils.jmldebug) System.out.println("ENTER TOPLEVEL (BINARY) - JML " + csymbol);
+        if (Utils.jmldebug) log.noticeWriter.println("ENTER TOPLEVEL (BINARY) - JML " + csymbol);
         // Then add in any top-level model types
         for (JmlClassDecl modelTypeDeclaration: specCompilationUnit.parsedTopLevelModelTypes) {
             modelTypeDeclaration.accept(this);  // FIXME - should this be classEnter?
@@ -469,7 +469,7 @@ public class JmlEnter extends Enter {
         modeOfCurrentCU = JmlCompilationUnit.UNKNOWN;
         
         log.useSource(prevSource);
-        if (Utils.jmldebug) System.out.println("ENTER TOPLEVEL (BINARY) - COMPLETE " + csymbol);
+        if (Utils.jmldebug) log.noticeWriter.println("ENTER TOPLEVEL (BINARY) - COMPLETE " + csymbol);
     }
         
     public boolean enterTypeParametersForBinary(ClassSymbol csym, JmlClassDecl specTypeDeclaration, Env<AttrContext> localEnv) {
@@ -499,7 +499,7 @@ public class JmlEnter extends Enter {
             JmlAttr.instance(context).attribType(specTV,localEnv);
         }
         return true;
-        //System.out.println(" LOCAL ENV NOW " + localEnv);
+        //log.noticeWriter.println(" LOCAL ENV NOW " + localEnv);
     }
     
     public void enterNestedSpecClassesForBinary(ClassSymbol csymbol, JmlClassDecl specTypeDeclaration) {
@@ -542,7 +542,7 @@ public class JmlEnter extends Enter {
                 JCTree specsNestedJmlDecl = nestedTypeSpecs.decl;
                 if (specsNestedJmlDecl instanceof JmlClassDecl) {
                     specs.get(csymbol).clauses.append(nestedTypeSpecs);
-                    if (Utils.jmldebug) System.out.println("ADDING " + ((JmlClassDecl)specsNestedJmlDecl).name + " TO "  + csymbol);
+                    if (Utils.jmldebug) log.noticeWriter.println("ADDING " + ((JmlClassDecl)specsNestedJmlDecl).name + " TO "  + csymbol);
                     classEnter(specsNestedJmlDecl,typeEnvs.get(csymbol)); // FIXME - is the typeENv non-null?
                     // the call above sets the sourcefile of the sym to that of the enclosing class, but a model
                     // class can be declared in a specification file, so we fix that

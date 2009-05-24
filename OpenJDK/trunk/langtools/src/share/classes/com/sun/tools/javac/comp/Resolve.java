@@ -385,7 +385,7 @@ public class Resolve {
             boolean works = allowBoxing
                 ? types.isConvertible(argtypes.head, formals.head, warn)
                 : types.isSubtypeUnchecked(argtypes.head, formals.head, warn);
-            if (!works) return false;
+            if (!works && (!(argtypes.head instanceof TypeVar) || argtypes.head.tsym.name != formals.head.tsym.name)) return false; // FIXME - a hack for now - DRCok
             argtypes = argtypes.tail;
             formals = formals.tail;
         }
