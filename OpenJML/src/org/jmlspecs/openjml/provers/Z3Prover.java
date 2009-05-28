@@ -495,7 +495,7 @@ public class Z3Prover extends AbstractProver implements IProver {
             if (sat == unsat && !unknown) throw new ProverException("Improper response to (check) query: \"" + output + "\"");
             ProverResult r = new ProverResult("Z3");
             if (sat || unknown) {
-                if (unknown) r.result(ProverResult.POSSIBLYSAT);
+                if (unknown) r.result(ProverResult.POSSIBLY_SAT);
                 else r.result(ProverResult.SAT);
                 if (details) {
                     Counterexample ce = createCounterexample(output);

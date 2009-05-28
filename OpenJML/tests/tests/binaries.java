@@ -12,7 +12,7 @@ public class binaries extends TCBase {
     /** Tests that a system spec file is loaded from mock files - though this has no error reports to be sure it happened*/
     public void testBinary() {
         addMockFile("$A/java/io/File.spec",
-                "package java.io; //@ model class VVV{}\n public class File { \n//@model static public class TTT {} \n }");
+                "package java.io; //@ model class VVV{}\n public class File implements Serializable, Comparable<File> { \n//@model static public class TTT {} \n }");
         helpTCF("A.java",
                 " class A { \n" +
                 "    java.io.File file; \n" +
@@ -24,7 +24,7 @@ public class binaries extends TCBase {
     public void testBinary2() {
         addMockFile("$A/java/io/File.spec",
                 "package java.io; //@ model class VVV{ static int i; }\n" + 
-                "public class File { \n" +
+                "public class File  implements Serializable, Comparable<File> { \n" +
                 " public void m() { /*@ assert i; assume j; */ }\n" +
                 "//@model static public class TTT { static int j; } " +
                 "\n }");
@@ -40,7 +40,7 @@ public class binaries extends TCBase {
     public void testBinary2a() {
         addMockFile("$A/java/io/File.spec",
                 "package java.io; //@ model class VVV{ static int i; }\n" + 
-                "public class File { \n" +
+                "public class File implements Serializable, Comparable<File> { \n" +
                 " public void exists() { /*@ assert true; assume true; */ }\n" +
                 "//@model static public class TTT { static int j; } " +
                 "\n }");
@@ -57,7 +57,7 @@ public class binaries extends TCBase {
     public void testBinary3() {
         addMockFile("$A/java/io/File.spec",
                 "package java.io; //@ model class VVV{ public static int i; }\n" + 
-                "public class File { \n" +
+                "public class File implements Serializable, Comparable<File> { \n" +
                 "/*@ invariant VVV.i; invariant TTT.j; */ \n" +
                 "//@model static public class TTT { public static int j; } \n" +
                 "}\n ");
@@ -77,7 +77,7 @@ public class binaries extends TCBase {
     public void testBinary4() {
         addMockFile("$A/java/io/File.spec",
                 "package java.io; \n" + 
-                "public class File { \n" +
+                "public class File implements Serializable, Comparable<File> { \n" +
                 "  static public int j;\n" +
                 "  //@ ghost static public int k; \n" +
                 "}\n ");

@@ -499,7 +499,7 @@ public class SimplifyProver extends AbstractProver implements IProver {
             }
             ProverResult r = new ProverResult("simplify");
             if (sat || unknown) {
-                if (unknown) r.result(ProverResult.POSSIBLYSAT);
+                if (unknown) r.result(ProverResult.POSSIBLY_SAT);
                 else r.result(ProverResult.SAT);
                 if (details) {
                     Counterexample ce = createCounterexample(output);

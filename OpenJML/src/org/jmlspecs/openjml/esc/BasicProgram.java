@@ -148,11 +148,14 @@ public class BasicProgram {
     public String write(String header) {
         StringWriter sw = new StringWriter();
         sw.append(header);
-        sw.append("\n\n");
         write(sw);
         return sw.toString();
     }
 
+    @Override
+    public String toString() {
+        return write("");
+    }
     /** This class holds a basic block (a sequence of non-branching
      * statements, expressions have no embedded calls or side-effects such
      * as assignments).
@@ -221,7 +224,7 @@ public class BasicProgram {
         /*@ non_null*/List<BasicBlock> preceding = new ArrayList<BasicBlock>();
         
         /** Generates a human-readable String representation of the block */
-        @NonNull
+        @Override // @NonNull
         public String toString() {
             java.io.StringWriter s = new java.io.StringWriter();
             write(s);

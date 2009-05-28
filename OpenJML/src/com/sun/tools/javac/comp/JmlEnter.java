@@ -2,6 +2,7 @@ package com.sun.tools.javac.comp;
 
 import static org.jmlspecs.openjml.JmlToken.INSTANCE;
 
+import java.util.Collection;
 import java.util.LinkedList;
 
 import javax.tools.JavaFileObject;
@@ -17,6 +18,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.TypeVar;
@@ -422,9 +424,12 @@ public class JmlEnter extends Enter {
 
             binaryMemberTodo.add(localEnv);
         }
+        
+        
         for (JCTree def: specCompilationUnit.defs) {
             if (def instanceof JmlClassDecl) {
                 JmlClassDecl specTypeDeclaration = (JmlClassDecl)def;
+                
 //                if (csymbol != specTypeDeclaration.sym) log.noticeWriter.println("OUCH: SYMBOL CHANGED " + csymbol);
 //                Scope newScope = specTypeDeclaration.sym.members();
 //                log.noticeWriter.println("SPEC TYPE SCOPE " + newScope);
@@ -434,11 +439,17 @@ public class JmlEnter extends Enter {
                 } else {
                     // This is a Java declaration
                     ClassSymbol matchingCSymbol = decls.get(specTypeDeclaration.name);  // FIXME - lookup the class, so we get secondary classes also
+                    
+                    
                     if (matchingCSymbol == null) {
                         // There is no Java declaration to match this specification declaration
                         // FIXME - check this error message
                         Log.instance(context).error(specTypeDeclaration.pos(),"jml.orphan.jml.toplevel.class.decl",specTypeDeclaration.name,csymbol);
                     } else {
+                        
+                     
+                        checkClassInheritance(specTypeDeclaration,matchingCSymbol);
+
                         JmlSpecs.TypeSpecs tspecs = specs.get(matchingCSymbol);
                         if (tspecs != null) {
                             // There has already been a match made to the Java type of the same name
@@ -470,6 +481,76 @@ public class JmlEnter extends Enter {
         
         log.useSource(prevSource);
         if (Utils.jmldebug) log.noticeWriter.println("ENTER TOPLEVEL (BINARY) - COMPLETE " + csymbol);
+    }
+
+    private void checkClassInheritance(JmlClassDecl specTypeDeclaration,
+            ClassSymbol matchingCSymbol) {
+        // Check that the specification has the correct super types
+        if (!matchingCSymbol.equals(syms.objectType.tsym) && !matchingCSymbol.isInterface()) {
+            JCTree sup = specTypeDeclaration.extending;
+            Type suptype = matchingCSymbol.getSuperclass();
+            Name s = suptype.tsym.getQualifiedName();
+            if (sup == null && !suptype.tsym.equals(syms.objectType.tsym)) {
+                log.error("jml.missing.spec.superclass",matchingCSymbol.getQualifiedName().toString(),s.toString());
+            } else if (sup instanceof JCTree.JCIdent) {
+                if ( s != null && !s.toString().endsWith(((JCTree.JCIdent)sup).name.toString()) ) {
+                    log.error("jml.incorrect.spec.superclass",matchingCSymbol.getQualifiedName().toString(),((JCTree.JCIdent)sup).name.toString(),s.toString());
+                }
+            } else if (sup instanceof JCTree.JCFieldAccess) {
+                if ( !s.toString().endsWith(((JCTree.JCFieldAccess)sup).name.toString()) ) {
+                    log.error("jml.incorrect.spec.superclass",matchingCSymbol.getQualifiedName().toString(),((JCTree.JCFieldAccess)sup).name.toString(),s.toString());
+                }
+            }
+        }
+        
+        // Check the interfaces
+        
+//        if (matchingCSymbol.toString().contains("Writer")) {
+//            System.out.println(matchingCSymbol);
+//        }
+        
+        List<Type> interfaces = matchingCSymbol.getInterfaces();
+        Collection<Type> copy = new LinkedList<Type>();
+        for (Type t: interfaces) copy.add(t);
+        
+        for (JCTree.JCExpression e : specTypeDeclaration.implementing) {
+            Name nm = null;
+            if (e instanceof JCTree.JCIdent) {
+                nm = ((JCTree.JCIdent)e).name;
+            } else if (e instanceof JCTree.JCFieldAccess) {
+                nm = ((JCTree.JCFieldAccess)e).name;
+            } else if (e instanceof JCTree.JCTypeApply){
+                JCTree.JCExpression ee = e;
+                while (ee instanceof JCTree.JCTypeApply) ee = ((JCTree.JCTypeApply)ee).clazz;
+                if (ee instanceof JCTree.JCIdent) nm = ((JCTree.JCIdent)ee).name;
+                if (ee instanceof JCTree.JCFieldAccess) nm = ((JCTree.JCFieldAccess)ee).name;
+            } else {
+                log.noticeWriter.println("UNSUPPORTED IMPLEMENTS TYPE (" + matchingCSymbol + "): " + e.getClass() + " " + e);
+                // ERROR - FIXME
+            }
+            if (nm != null) {
+                boolean found = false;
+                java.util.Iterator<Type> iter = copy.iterator();
+                while (iter.hasNext()) {
+                    Name nmm = iter.next().tsym.getQualifiedName();
+                    if (nmm.toString().contains(nm.toString())) {
+                        iter.remove();
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    log.error("jml.missing.spec.interface",matchingCSymbol.getQualifiedName().toString(),nm.toString());
+                }
+            }
+        }
+        for (Type t: copy) {
+            if (t.toString().equals("java.lang.annotation.Annotation") && matchingCSymbol.isInterface()) continue;
+            log.error("jml.unimplemented.spec.interface",matchingCSymbol.getQualifiedName().toString(),t.toString());
+        }
+        
+        // FIXME - should do thte above from resolved symbols
+        // FIXME - need to check modifiers
     }
         
     public boolean enterTypeParametersForBinary(ClassSymbol csym, JmlClassDecl specTypeDeclaration, Env<AttrContext> localEnv) {

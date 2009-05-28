@@ -317,6 +317,9 @@ public class JmlSpecs {
         return false;
     }
     
+    /** Returns the current list of specification directories in use.
+     * @return The current list of specification directories, in order.
+     */
     public List<Dir> getSpecsPath() {
         return specsDirs;
     }
@@ -338,7 +341,7 @@ public class JmlSpecs {
      * absolute or relative to the working directory 
      * @param specsPathArray the string holding the new specifications path
      */
-    //@ requires \nonnullelements(sp);
+    //@ requires \nonnullelements(specsPathArray);
     public void setSpecsPath(String[] specsPathArray) {
         boolean verbose = Utils.jmldebug ||
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
@@ -416,7 +419,7 @@ public class JmlSpecs {
                 }
             }
         }
-        if (verbose) {
+        if (verbose && false) {
             for (Dir s: specsDirs) {
                 log.noticeWriter.println("SPECSPATH " + s);
             }
@@ -1012,7 +1015,7 @@ public class JmlSpecs {
      *   null the default system nullity setting (pre the command-line) is returned
      * @return JmlToken.NULLABLE or JmlToken.NONNULL
      */
-    //@ ensures \\result != null;
+    //@ ensures \result != null;
     public /*@non_null*/ JmlToken defaultNullity(/*@ nullable*/ ClassSymbol csymbol) {
         if (csymbol == null) {
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.

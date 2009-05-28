@@ -21,7 +21,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/
     public void testBinaryGeneric() {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
-        addMockFile("$A/java/util/Collection.spec","package java.util; public interface Collection<E> { public boolean add(E t); }");
+        addMockFile("$A/java/util/Collection.spec","package java.util; public interface Collection<E> implements Iterable<E> { public boolean add(E t); }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }");
     }
 
@@ -37,7 +37,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/
     public void testBinaryGeneric2() {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
-        addMockFile("$A/java/util/Collection.spec","public interface Collection {  }");
+        addMockFile("$A/java/util/Collection.spec","public interface Collection implements Iterable {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.spec:1: The specification type named Collection (java.util.Collection) with 0 type parameters matches a Java type with 1 type parameters",8
                 );
@@ -46,7 +46,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/
     public void testBinaryGeneric3() {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
-        addMockFile("$A/java/util/Collection.spec","public interface Collection<Z> {  }");
+        addMockFile("$A/java/util/Collection.spec","public interface Collection<Z> implements Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.spec:1: The specification type named Collection (java.util.Collection) has a type parameters named Z but the Java declaration has that type parameter named E",29
                 );
@@ -55,7 +55,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/
     public void testBinaryGeneric4() {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
-        addMockFile("$A/java/util/Collection.spec","public interface Collection<E,Z> {  }");
+        addMockFile("$A/java/util/Collection.spec","public interface Collection<E,Z> implements Iterable<E> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.spec:1: The specification type named Collection (java.util.Collection) with 2 type parameters matches a Java type with 1 type parameters",8
                 );
@@ -68,7 +68,7 @@ public class generics extends TCBase {
     }
     
     public void testMethod2() {
-        addMockFile("$A/java/util/Vector.spec","public class Vector<E> { \npublic <T> T[] toArray(T[] t); }");
+        addMockFile("$A/java/util/Vector.spec","public class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, Serializable { \npublic <T> T[] toArray(T[] t); }");
         helpTCF("A.java","public class A<X> { java.util.Vector<X> t; }"
                 ,"/$A/java/util/Vector.spec:2: The method toArray in the specification matches a Java method <T>toArray(T[]) with different modifiers: synchronized",16
                 );

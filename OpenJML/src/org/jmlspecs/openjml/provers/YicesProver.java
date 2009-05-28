@@ -45,38 +45,38 @@ public class YicesProver extends AbstractProver implements IProver {
     public static final String TYPEOF = "typeof$";
     public static final String SUBTYPE = "subtype$";
     public static final String CAST = "cast$";
-    
-//    /** The process that is the actual prover */
-//    protected Process process = null;
-    
-//    /** The stream connection to send information to the prover process. */
-//    //@ invariant process != null ==> toProver != null;
-//    protected Writer toProver;
-//    
-//    /** The stream connection to read information from the prover process. */
-//    //@ invariant process != null ==> fromProver != null;
-//    protected Reader fromProver;
-//    
-//    /** The error stream connection to read information from the prover process. */
-//    //@ invariant process != null ==> errors != null;
-//    protected Reader errors;
-    
+
+    //    /** The process that is the actual prover */
+    //    protected Process process = null;
+
+    //    /** The stream connection to send information to the prover process. */
+    //    //@ invariant process != null ==> toProver != null;
+    //    protected Writer toProver;
+    //    
+    //    /** The stream connection to read information from the prover process. */
+    //    //@ invariant process != null ==> fromProver != null;
+    //    protected Reader fromProver;
+    //    
+    //    /** The error stream connection to read information from the prover process. */
+    //    //@ invariant process != null ==> errors != null;
+    //    protected Reader errors;
+
     /** A buffer to hold input */
-    /*@ non_null */
+    // /*@ non_null */
     //protected CharBuffer buf = CharBuffer.allocate(100000);
-    
-//    /** A buffer to hold input */
-//    /*@ non_null */
-//    char[] cbuf = new char[100000];
+
+    //    /** A buffer to hold input */
+    //    /*@ non_null */
+    //    char[] cbuf = new char[100000];
 
     /** A handy StringBuilder to build strings internally */
     /*@ non_null */
     protected StringBuilder builder = new StringBuilder();
-    
+
     /** The accumulated list of input sent to the prover process */
     /*@ non_null */
     protected List<String> sent = new LinkedList<String>();
-    
+
     /** The String by which to invoke the prover */
     /*@ nullable */
     protected String app = System.getProperty("openjml.prover.yices");
@@ -84,9 +84,9 @@ public class YicesProver extends AbstractProver implements IProver {
     /** The one instance of the associated translator */
     /*@ non_null */
     protected YicesJCExpr translator;
-    
+
     protected boolean interactive = true;
-    
+
     // FIXME - will need to separate start from construction so there is an opportunity to set parameters (e.g. timeout)
     /** Creates and starts the prover process, sending any startup information */
     public YicesProver(Context context) throws ProverException {
@@ -102,7 +102,7 @@ public class YicesProver extends AbstractProver implements IProver {
         if (org.jmlspecs.openjml.esc.JmlEsc.escdebug && showCommunication <= 1) showCommunication = 2;
         start();
     }
-    
+
     private final static String[][] predefined = { 
         { REF, null},
         { NULL, REF },
@@ -125,38 +125,38 @@ public class YicesProver extends AbstractProver implements IProver {
         { "rmul", "(-> real real real)"},
         { "distinct$", "(-> "+TYPE+" int)"},
         { "loc$", "(-> "+REF+" int)"},
-        };
-    
+    };
+
     // This lists names builtin to Yices
     private final static String[][] otherpredefined = {
-      { "bool", TYPE},
-      { "int", TYPE},
-      { "real", TYPE},
-      { "div", "(-> int int int)"},
-      { "mod", "(-> real real real)"},
-      { "and", "(-> bool bool bool)"},
-      { "or", "(-> bool bool bool)"},
-      { "=>", "(-> bool bool bool)"},
-      { "not", "(-> bool bool)"},
-      { "+", "(-> int int int)"},   // Real?
-      { "-", "(-> int int int)"},  // Real
-      { "*", "(-> int int int)"},  // Real
-      { "/", "(-> real real real)"},
-      // Also bit vector functions
+        { "bool", TYPE},
+        { "int", TYPE},
+        { "real", TYPE},
+        { "div", "(-> int int int)"},
+        { "mod", "(-> real real real)"},
+        { "and", "(-> bool bool bool)"},
+        { "or", "(-> bool bool bool)"},
+        { "=>", "(-> bool bool bool)"},
+        { "not", "(-> bool bool)"},
+        { "+", "(-> int int int)"},   // Real?
+        { "-", "(-> int int int)"},  // Real
+        { "*", "(-> int int int)"},  // Real
+        { "/", "(-> real real real)"},
+        // Also bit vector functions
     };
-    
+
     public static boolean evidence = true;
     public static boolean assertPlus = true;
     public static final String BASSERTPLUS = "assert+";
     public static final String BASSERTNOPLUS = "assert";
     public static String BASSERT;
-    
+
     /**The background predicate that is sent prior to anything else.  Do not include any newline characters. */
     /*@ non_null */
     private static String backgroundPredicate() {
         BASSERT = assertPlus ? BASSERTPLUS : BASSERTNOPLUS;
         return
-          "("+BASSERT+" (not (isType NULL)))"
+        "("+BASSERT+" (not (isType NULL)))"
         + "("+BASSERT+" (not (isArray NULL)))"
         + "("+BASSERT+" (forall (a::REF) (>= (length a) 0)))"
         + "("+BASSERT+" (= length length$0))"
@@ -167,17 +167,17 @@ public class YicesProver extends AbstractProver implements IProver {
         + "("+BASSERT+" (forall (t1::" + TYPE + " t2::" + TYPE + " t3::" + TYPE + ") (=> (and ("+SUBTYPE + " t1 t2)("+SUBTYPE + " t2 t3)) ("+SUBTYPE + " t1 t3)) ))"
         + "("+BASSERT+" (forall (i::int j::int) (= (imul i j) (imul j i)) ))"
         + "("+BASSERT+" (forall (i::int) (and (= (imul i 0) 0) (= (imul 0 i) 0) (= (imul 1 i) i) (= (imul i 1) i) (= (imul -1 i) (- 0 i)) (= (imul i -1) (- 0 i)) )))"
-//        + "("+BASSERT+" (forall (i::int j::int) (= (imul i (+ j 1)) (+ (imul i j) i) ) ))"
-//        + "("+BASSERT+" (forall (i::int j::int) (= (imul i (- j 1)) (- (imul i j) i) ) ))"
+        //        + "("+BASSERT+" (forall (i::int j::int) (= (imul i (+ j 1)) (+ (imul i j) i) ) ))"
+        //        + "("+BASSERT+" (forall (i::int j::int) (= (imul i (- j 1)) (- (imul i j) i) ) ))"
         + "("+BASSERT+" (forall (i::int j::int) (=> (/= j 0) (= (imod (imul i j) j) 0)) ))"
         + "("+BASSERT+" (forall (i::int) (and (= (imod i 1) 0) (= (imod i -1) 0) )))"
         + "("+BASSERT+" (= (distinct$ T$java.lang.Object$$A) 99))"
         + "\n";
     }
-    
+
     /** A counter of assumptions sent to the prover */
     int assumeCounter;
-    
+
     public String[] app() {
         if (!evidence) {
             if (interactive)
@@ -191,11 +191,11 @@ public class YicesProver extends AbstractProver implements IProver {
                 return (new String[]{app,"-tc","--timeout=120","-e","-v","2"});
         }
     }
-    
+
     public String prompt() {
         return "yices> ";
     }
-    
+
     /** Does the startup work */
     public void start() throws ProverException {
         if (app == null) {
@@ -218,7 +218,7 @@ public class YicesProver extends AbstractProver implements IProver {
         eatPrompt(false);  // Whether there is output to eat depends on the level of -v
         background();
     }
-    
+
     private void background() throws ProverException {
         for (String[] pairs: otherpredefined) {
             defined.put(pairs[0],pairs[1]);
@@ -249,11 +249,11 @@ public class YicesProver extends AbstractProver implements IProver {
         send(s.toString());
         eatPrompt(interactive);
     }
-    
+
     public String eatPrompt() throws ProverException {
         return eatPrompt(interactive);
     }
-    
+
     public String eatPrompt(boolean wait) throws ProverException {
         // We read characters until we get to the sequence "> ", which is the
         // end of the Yices prover's prompt (which is "yices> ").  Be careful 
@@ -261,62 +261,62 @@ public class YicesProver extends AbstractProver implements IProver {
         // FIXME - need a better way to read both inputs
         // FIXME - this probably can be made a lot more efficient
         try {
-//            if (interactive && false) {
-//                buf.position(0);
-//                outer: while (true) {
-//                    int n = fromProver.read();
-//                    if (n < 0) {
-//                        throw new ProverException("Prover died");
-//                    }
-//                    char c = (char)n;
-//                    buf.append(c);
-//                    if (c != '>') continue;
-//                    while (true) {
-//                        n = fromProver.read();
-//                        if (n < 0) {
-//                            throw new ProverException("Prover died");
-//                        }
-//                        c = (char)n;
-//                        buf.append(c);
-//                        if (c == ' ') break outer;
-//                        if (c != '>') break;
-//                    }
-//                }
-//                buf.limit(buf.position());
-//                buf.rewind();
-//                String s = buf.toString();
-//                buf.clear();
-//                if (errors.ready()) {
-//                    while (errors.ready()) {
-//                        int n = errors.read(buf);
-//                        if (n < 0) throw new ProverException("Prover died");
-//                        if (n == 0) break;
-//                    }
-//                    if (buf.position() > 0) {
-//                        buf.limit(buf.position());
-//                        buf.rewind();
-//                        String errorString = buf.toString();
-//                        if (!errorString.startsWith("\nWARNING") &&
-//                                !errorString.startsWith("Yices (version") &&
-//                                !errorString.startsWith("searching")) {
-//                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
-//                            throw new ProverException("Prover error message: " + errorString);
-//                        } else {
-//                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
-//                        }
-//                    }
-//                    buf.clear();
-//                }
-//                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
-//                return s;
-//            } else 
+            //            if (interactive && false) {
+            //                buf.position(0);
+            //                outer: while (true) {
+            //                    int n = fromProver.read();
+            //                    if (n < 0) {
+            //                        throw new ProverException("Prover died");
+            //                    }
+            //                    char c = (char)n;
+            //                    buf.append(c);
+            //                    if (c != '>') continue;
+            //                    while (true) {
+            //                        n = fromProver.read();
+            //                        if (n < 0) {
+            //                            throw new ProverException("Prover died");
+            //                        }
+            //                        c = (char)n;
+            //                        buf.append(c);
+            //                        if (c == ' ') break outer;
+            //                        if (c != '>') break;
+            //                    }
+            //                }
+            //                buf.limit(buf.position());
+            //                buf.rewind();
+            //                String s = buf.toString();
+            //                buf.clear();
+            //                if (errors.ready()) {
+            //                    while (errors.ready()) {
+            //                        int n = errors.read(buf);
+            //                        if (n < 0) throw new ProverException("Prover died");
+            //                        if (n == 0) break;
+            //                    }
+            //                    if (buf.position() > 0) {
+            //                        buf.limit(buf.position());
+            //                        buf.rewind();
+            //                        String errorString = buf.toString();
+            //                        if (!errorString.startsWith("\nWARNING") &&
+            //                                !errorString.startsWith("Yices (version") &&
+            //                                !errorString.startsWith("searching")) {
+            //                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
+            //                            throw new ProverException("Prover error message: " + errorString);
+            //                        } else {
+            //                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
+            //                        }
+            //                    }
+            //                    buf.clear();
+            //                }
+            //                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
+            //                return s;
+            //            } else 
             if (interactive) {
                 int offset = 0;
                 String s = "";
                 int truncated = 0;
                 while (true) { // There is always a prompt to read, so it is OK to block
-                        // until it is read.  That gives the prover process time to
-                        // do its processing.
+                    // until it is read.  That gives the prover process time to
+                    // do its processing.
                     int n = fromProver.read(cbuf,offset,cbuf.length-offset);
                     if (n < 0) {
                         int off = 0;
@@ -347,10 +347,10 @@ public class YicesProver extends AbstractProver implements IProver {
                     }
                 }
                 if (truncated == 0) s = s + String.valueOf(cbuf,0,offset);
-//                if (truncated > 0) {
-//                    log.noticeWriter.println("OUTPUT LENGTH " + s.length() + " " + truncated);
-//                    throw new ProverException("Excessive output: " + s.length() + " " + truncated);
-//                }
+                //                if (truncated > 0) {
+                //                    log.noticeWriter.println("OUTPUT LENGTH " + s.length() + " " + truncated);
+                //                    throw new ProverException("Excessive output: " + s.length() + " " + truncated);
+                //                }
 
                 offset = 0;
                 if (errors.ready()) {
@@ -429,7 +429,7 @@ public class YicesProver extends AbstractProver implements IProver {
             throw new ProverException("IO Error on reading from prover: " + e);
         }
     }
-    
+
     public int assume(JCExpression tree) throws ProverException {
         if (assertPlus) ++assumeCounter;
         try {
@@ -450,7 +450,7 @@ public class YicesProver extends AbstractProver implements IProver {
         // look at the output returned from eatPrompt (FIXME)
         return assumeCounter;
     }
-    
+
     public int assumePlus(JCExpression tree) throws ProverException {
         ++assumeCounter;
         try {
@@ -471,7 +471,7 @@ public class YicesProver extends AbstractProver implements IProver {
         // look at the output returned from eatPrompt (FIXME)
         return assumeCounter;
     }
-    
+
     public int assume(JCExpression tree, int weight) throws ProverException {
         if (assertPlus) ++assumeCounter;
         try {
@@ -492,7 +492,7 @@ public class YicesProver extends AbstractProver implements IProver {
         }
         return assumeCounter;
     }
-    
+
     public int rawassume(String t) throws ProverException {
         if (assertPlus) ++assumeCounter;
         try {
@@ -510,7 +510,7 @@ public class YicesProver extends AbstractProver implements IProver {
         }
         return assumeCounter;
     }
-    
+
     /** Does the actual work of sending information to the prover process.  You 
      * need to call eatPrompt for each newline you send.  This method does not 
      * add any newlines to the supplied String. 
@@ -521,9 +521,9 @@ public class YicesProver extends AbstractProver implements IProver {
         sent.add(s);
         if (showCommunication >= 2) {
             String ss = pretty(s);
-//            if (ss.startsWith("(define i1::int)")) {
-//                ss = ss.trim();
-//            }
+            //            if (ss.startsWith("(define i1::int)")) {
+            //                ss = ss.trim();
+            //            }
             //log.noticeWriter.print("SENDING " + ss);
             log.noticeWriter.print("SENDING ["+assumeCounter+":" + s.length()+ "]" + ss);
         }
@@ -546,7 +546,7 @@ public class YicesProver extends AbstractProver implements IProver {
             throw new ProverException("Failed to write to prover: (" + s.length() + " chars) " + se);
         }
     }
-    
+
     public void reassertCounterexample(ICounterexample ce) {
         //log.noticeWriter.println("REASSERTING");
         for (Map.Entry<String,String> entry : ce.sortedEntries()) {
@@ -561,18 +561,18 @@ public class YicesProver extends AbstractProver implements IProver {
                 log.noticeWriter.println(e);
             }
         }
-//        try {
-//            IProverResult r = check(false);
-//            log.noticeWriter.println("STATUS " + r.result());
-//        } catch (ProverException e) {
-//            log.noticeWriter.println("FAILED TO REASSERT " );
-//            log.noticeWriter.println(e);
-//
-//        }
+        //        try {
+        //            IProverResult r = check(false);
+        //            log.noticeWriter.println("STATUS " + r.result());
+        //        } catch (ProverException e) {
+        //            log.noticeWriter.println("FAILED TO REASSERT " );
+        //            log.noticeWriter.println(e);
+        //
+        //        }
     }
 
 
-    
+
     protected String pretty(String s) {
         if (s.length() <= 50) return s;
         StringBuilder sb = new StringBuilder();
@@ -612,7 +612,7 @@ public class YicesProver extends AbstractProver implements IProver {
         }
         return sb.toString();
     }
-    
+
     /** Converts an AST type to a type that Yices knows
      * 
      * @param t the AST type
@@ -634,22 +634,22 @@ public class YicesProver extends AbstractProver implements IProver {
         }
         return s;
     }
-    
+
     /** The set of variables already defined in Yices (since Yices objects if
      * a variable is defined more than once).
      */
     private Map<String,String> defined = new HashMap<String,String>();
-    
+
     /** A stack holding lists of defined variables between various push() calls,
      * since a pop removes the definitions as well.
      */
     private List<List<String>> stack = new LinkedList<List<String>>();
-    
+
     /** The list of definitions since the last push (duplicates some of those
      * in 'defined'.
      */
     private List<String> top = new LinkedList<String>();
-    
+
     /** Checks if the argument is already defined, recording it as defined
      *  if it is not.
      * @param id the variable to define
@@ -661,26 +661,26 @@ public class YicesProver extends AbstractProver implements IProver {
         top.add(id);
         return false;
     }
-    
+
     public void declare(String id, String typeString) {
         defined.put(id,typeString);
         top.add(id);
     }
-    
+
     public boolean removeDeclaration(String id) {
         defined.remove(id);
         top.remove(id);
         return false;
     }
-    
+
     public boolean isDefined(String id) {
         return defined.containsKey(id); 
     }
-    
+
     public String getTypeString(String id) {
         return defined.get(id);
     }
-    
+
     public String defineType(Type t) {
         String s = convertType(t);
         if (isDefined(s)) return s; // DO nothing if already defined
@@ -728,7 +728,7 @@ public class YicesProver extends AbstractProver implements IProver {
         }
         return s;
     }
-    
+
     public void define(String id, Type t) throws ProverException {
         if (isDefined(id)) return; // DO nothing if already defined
         builder.setLength(0);
@@ -794,16 +794,16 @@ public class YicesProver extends AbstractProver implements IProver {
     }
 
 
-//    public boolean isSat() throws ProverException {
-//        send("(check)\n");
-//        String output = eatPrompt();
-//        //log.noticeWriter.println("HEARD " + output);
-//        boolean sat = output.startsWith("sat") || output.startsWith("unknown");
-//        boolean unsat = output.startsWith("unsat");
-//        if (sat == unsat) throw new ProverException("Improper response to (check) query: \"" + output + "\"");
-//        satResult = output.substring(0,output.length()-8);
-//        return sat;
-//    }
+    //    public boolean isSat() throws ProverException {
+    //        send("(check)\n");
+    //        String output = eatPrompt();
+    //        //log.noticeWriter.println("HEARD " + output);
+    //        boolean sat = output.startsWith("sat") || output.startsWith("unknown");
+    //        boolean unsat = output.startsWith("unsat");
+    //        if (sat == unsat) throw new ProverException("Improper response to (check) query: \"" + output + "\"");
+    //        satResult = output.substring(0,output.length()-8);
+    //        return sat;
+    //    }
 
     /** A pattern to interpret Yices counterexample information */
     static private Pattern pattern = Pattern.compile("\\(=[ ]+(.+)[ ]+([^)]+)\\)");
@@ -825,7 +825,7 @@ public class YicesProver extends AbstractProver implements IProver {
         details  &= evidence;
         ProverResult r = new ProverResult("yices");
         if (sat || unknown) {
-            if (unknown) r.result(ProverResult.POSSIBLYSAT);
+            if (unknown) r.result(ProverResult.POSSIBLY_SAT);
             else r.result(ProverResult.SAT);
             if (details) {
                 Counterexample ce = createCounterexample(output);
@@ -850,12 +850,12 @@ public class YicesProver extends AbstractProver implements IProver {
         }
         return r;
     }
-    
-    Map<String,String> epairs = new HashMap<String,String>();
-//    { 
-//        epairs.put(NULL,NULL); 
-//    }
-    
+
+    Map<String, String> epairs = new HashMap<String,String>();
+    //    { 
+    //        epairs.put(NULL,NULL); 
+    //    }
+
     protected int getArg(String output, int pos) {
         int count = 0;
         while (true) {
@@ -873,12 +873,12 @@ public class YicesProver extends AbstractProver implements IProver {
         }
         return pos;
     }
-    
+
     protected int skipWS(String output, int pos) {
         while (Character.isWhitespace(output.charAt(pos))) pos++;
         return pos;
     }
-    
+
     protected int findStart(String output, int pos) {
         int len = output.length();
         while (pos < len) {
@@ -893,18 +893,24 @@ public class YicesProver extends AbstractProver implements IProver {
         return -1;
     }
 
-    /**
+    /** The method translates a Yices counterexample into something more
+     * understandable.  In particular, Yices maps some types into integers,
+     * which have no meaning outside the prover and cannot even be reexpressed
+     * back to the prover.  So we pick canonical values by which to represent
+     * these internal values.
      * @param output text returned by prover
      * @return a Counterexample object with locations translated
      * @throws ProverException
      */
     protected Counterexample createCounterexample(String output)
-            throws ProverException {
-        Counterexample ce = new Counterexample();
-        Counterexample newce = new Counterexample();
-        Map<String,String> canonical = new HashMap<String,String>();
-        //StringBuilder sb = new StringBuilder();
-        //Matcher m = pattern.matcher(output);
+    throws ProverException {
+        Counterexample ce = new Counterexample(); // The Yices produced counterexample
+        Counterexample newce = new Counterexample(); // The rewritten counterexample information
+        Map<String,String> canonical = new HashMap<String,String>(); // A map from integers to canonical values for those integers
+        epairs = new HashMap<String,String>(); // a map of canonical representations for sets of things that are 
+                    // equivalent.  This map is used by the canonical() method to
+                    // map a name to an equivalent name that is more canonical
+
         int pos = 0;
         while (true) {
             pos = findStart(output,pos);
@@ -926,27 +932,40 @@ public class YicesProver extends AbstractProver implements IProver {
                     String s1 = canonical.get(res);
                     if (s1 == null) {
                         canonical.put(res,canonical(name));
-                        //log.noticeWriter.println("IMAP: " + res + " -> " + name);
+                        //log.noticeWriter.println("IMAP: " + name + " -> " + res + " SO " + res + " -> " + canonical(name));
                     } else {
                         String s2 = canonical(name);
-                        if (s2.equals(NULL)) epairs.put(s1,s2);
-                        else epairs.put(s2,s1);
-                        newce.put(name,s1);
-                        //log.noticeWriter.println("IMAP: " + res + "   SO " + name + " -> " + s1);
+                        // res maps to s1; name maps to s2
+                        if (!s1.equals(s2)) {
+                            if (s2.equals(name)) {
+                                epairs.put(s2,s1);
+                                //log.noticeWriter.println( name + " -> " + res + " SO " + s2 + " -> " + s1);
+                            } else { 
+                                epairs.put(s2,s1);
+                                //log.noticeWriter.println("IMAP: " + res + "   SO " + name + " -> " + s1);
+                                //log.noticeWriter.println( name + " -> " + res + " SO " + s2 + " -> " + s1);
+                            }
+                            //newce.put(name,s1);
+                        }
                     }
                 } else {
                     String s1 = canonical(name);
                     String s2 = canonical(res);
                     if (!s1.equals(s2)) { 
-                        if (s1.equals(NULL)) epairs.put(s2,s1);
-                        else epairs.put(s1,s2);
-                        newce.put(name,s2); 
+                        if (s1.equals(NULL)) {
+                            epairs.put(s2,s1);
+                            //log.noticeWriter.println( name + " -> " + res + " SO " + s2 + " -> " + s1);
+                        } else {
+                            epairs.put(s1,s2);
+                            //log.noticeWriter.println( name + " -> " + res + " SO " + s1 + " -> " + s2);
+                            //newce.put(name,s2); 
+                        }
+                        //log.noticeWriter.println("EMAP: " + name + "=" + res + "   SO " + s1 + " -> " + s2);
                     }
-                    //if (!s1.equals(s2)) log.noticeWriter.println("EMAP: " + name + "=" + res + "   SO " + s1 + " -> " + s2);
                 }
             }
         }
-            
+
         for (Map.Entry<String,String> entry : ce.sortedEntries()) {
             String nm = entry.getKey();
             String res = entry.getValue();
@@ -989,12 +1008,12 @@ public class YicesProver extends AbstractProver implements IProver {
         //log.noticeWriter.println("CE STATUS " + check(false).result());
         return newce;
     }
-    
+
     Map<String,Integer> locs = new HashMap<String,Integer>();
     {
         locs.put(NULL,0);
     }
-    
+
     static protected boolean isARefType(String typeString) {
         return !("int".equals(typeString) || "bool".equals(typeString) || "real".equals(typeString) || (typeString != null && typeString.startsWith("(->")));
     }
@@ -1007,14 +1026,14 @@ public class YicesProver extends AbstractProver implements IProver {
         } 
         return s;
     }
-    
+
     int pos;
-    
+
     public YTree parse(String val) {
         pos = 0;
         return parseTree(val);
     }
-    
+
     public YTree parseTree(String val) {
         YTree t;
         int len = val.length();
@@ -1032,7 +1051,7 @@ public class YicesProver extends AbstractProver implements IProver {
         }
         return t;
     }
-    
+
     public YId parseId(String val) {
         int i = pos;
         int len = val.length();
@@ -1045,7 +1064,7 @@ public class YicesProver extends AbstractProver implements IProver {
         id.id = val.substring(i,pos);
         return id;
     }
-    
+
     public YFcn parseFcn(String val) {
         YFcn f = new YFcn();
         f.fcn = parseTree(val);
@@ -1056,16 +1075,16 @@ public class YicesProver extends AbstractProver implements IProver {
         }
         return f;
     }
-    
+
     abstract public static class YTree {
         String type;
         abstract public void attachType(YicesProver p);
         abstract public String toString(Map<String,String> canonical);
     }
-    
+
     public static class YId extends YTree {
         String id;
-        
+
         public int parse(String val, int pos) {
             int i = pos;
             int len = val.length();
@@ -1073,11 +1092,11 @@ public class YicesProver extends AbstractProver implements IProver {
             id = val.substring(i,pos);
             return pos;
         }
-        
+
         public void attachType(YicesProver p) {
             if (type == null) type = p.defined.get(id);
         }
-        
+
         public int attachType(String typeString, int pos) {
             int i = pos;
             int len = typeString.length();
@@ -1094,20 +1113,20 @@ public class YicesProver extends AbstractProver implements IProver {
             type = typeString.substring(i,pos);
             return pos;
         }
-        
+
         public String toString(Map<String,String> canonical) {
             if (isARefType(type) && Character.isDigit(id.charAt(0))) {
                 return canonical.get(id);
             }
             return id; 
         }
-        
+
     }
     public static class YFcn extends YTree {
         // The type field in the superclass is the result type
         YTree fcn; // The function, usually but not necessarily an identifier
         List<YTree> args = new LinkedList<YTree>();
-        
+
         public String toString(Map<String,String> canonical) {
             StringBuilder s = new StringBuilder();
             s.append("(");
@@ -1117,12 +1136,12 @@ public class YicesProver extends AbstractProver implements IProver {
             s.append(")");
             return s.toString();
         }
-        
+
         public void attachType(YicesProver p) {
             fcn.attachType(p);
             attachTypeArgs(p);
         }
-        
+
         public void attachTypeArgs(YicesProver p) {
             int pos = 3;  // The 3 skips the initial (->
             for (YTree a: args) {
@@ -1131,7 +1150,7 @@ public class YicesProver extends AbstractProver implements IProver {
             }
             attachType(p,this,fcn.type,pos);
         }
-        
+
         public int attachType(YicesProver p, YTree arg, String typeString, int pos) {
             int len = typeString.length();
             int count = 0;
@@ -1150,13 +1169,13 @@ public class YicesProver extends AbstractProver implements IProver {
             return pos;
         }
     }
-    
+
     public void maxsat() throws ProverException {
         send("(max-sat)\n");
         String output = eatPrompt(true);
         if (showCommunication >= 2) log.noticeWriter.println("MAXSAT INFO:" + output);
     }
-    
+
     public void pop() throws ProverException {
         send("(pop)\n");
         eatPrompt(interactive);
@@ -1180,17 +1199,17 @@ public class YicesProver extends AbstractProver implements IProver {
     public void retract() throws ProverException {
         throw new ProverException("retract() not suppported by YicesProver"); // FIXME
     }
-    
+
     public void retract(int n) throws ProverException {
         send("(retract " + n + ")\n");
         eatPrompt(interactive);
     }
-    
+
     public void kill() throws ProverException {
         if (process != null) process.destroy();
         process = null;
     }
-    
+
     public Supports supports() {
         Supports s = super.supports();
         s.retract = true;
@@ -1199,14 +1218,14 @@ public class YicesProver extends AbstractProver implements IProver {
     }
 
 
-    
+
     static public class CoreIds implements IProverResult.ICoreIds {
         Collection<Integer> coreIds = new ArrayList<Integer>();
-        
+
         public Collection<Integer> coreIds() {
             return coreIds;
         }
-        
+
         public void add(int i) {
             coreIds.add(i);
         }

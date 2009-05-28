@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Queue;
 
 import javax.annotation.processing.Processor;
@@ -14,6 +15,7 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlEnter;
@@ -21,6 +23,7 @@ import com.sun.tools.javac.comp.JmlMemberEnter;
 import com.sun.tools.javac.comp.JmlRac;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.main.JavaCompiler;
+import com.sun.tools.javac.parser.EndPosParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -62,6 +65,7 @@ public class JmlCompiler extends JavaCompiler {
      */
     protected JmlCompiler(Context context) {
         super(context);
+        //shouldStopPolicy = CompileState.GENERATE;
         this.context = context;
         this.verbose = JmlOptionName.isOption(context,"-verbose") ||
                         JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
@@ -135,11 +139,13 @@ public class JmlCompiler extends JavaCompiler {
                     "JmlCompiler.parse expects to receive objects of type JmlCompilationUnit, but it found a " 
                     + cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
         }
+        try {
         if (cu.endPositions != null) {
             JavaFileObject prev = log.useSource(fileobject);
             log.setEndPosTable(fileobject,cu.endPositions);
             log.useSource(prev);
         }
+        } catch (Exception e) {} // FIXME _ get duplicate endpos table entries
         return cu;
         
     }
@@ -305,6 +311,7 @@ public class JmlCompiler extends JavaCompiler {
         if (JmlOptionName.isOption(context,JmlOptionName.ESC)) {
             new JmlTranslator(context).translate(env);
             esc(env);
+            
             // nothing put in results, so no further compilation phases are performed
         }
         if (JmlOptionName.isOption(context,JmlOptionName.RAC)) {
@@ -319,13 +326,18 @@ public class JmlCompiler extends JavaCompiler {
             super.desugar(env,results);
         }
     }
+    
+    public CountMethodInvocation counter = new CountMethodInvocation();
 
     /** Initiates type attribution for the given class; overridden in order
      * 
      */
     public Env<AttrContext> attribute(Env<AttrContext> env) {
         // FIXME - I think this can go away.  Test some time.
-        return super.attribute(env);
+        env = super.attribute(env);
+        //counter.scan(env.tree == null ? env.toplevel : env.tree);
+        return env;
+
     }
     
 
@@ -445,7 +457,7 @@ public class JmlCompiler extends JavaCompiler {
             Iterable<? extends Processor> processors) throws IOException {
         Runtime rt = Runtime.getRuntime();
         //log.noticeWriter.println("    ....... Memory free=" + rt.freeMemory() + "  max="+rt.maxMemory() + "  total="+rt.totalMemory());
-        JmlResolve.instance(context).loadClass(null,Symtab.instance(context).objectType.tsym.flatName());
+//        JmlResolve.instance(context).loadClass(null,Symtab.instance(context).objectType.tsym.flatName());
 //        JmlResolve.instance(context).loadClass(null,Name.Table.instance(context).fromString("org.jmlspecs.utils.Utils"));
 //        JmlResolve.instance(context).loadClass(null,Name.Table.instance(context).fromString("org.jmlspecs.lang.JMLList"));
         super.compile(sourceFileObjects,classnames,processors);
@@ -459,4 +471,74 @@ public class JmlCompiler extends JavaCompiler {
 //    protected void flow(Env<AttrContext> env, ListBuffer<Env<AttrContext>> results) {
 //        results.append(env);
 //    }
+    
+    public class CountMethodInvocation extends JmlTreeScanner {
+        
+        public java.util.Map<String,Integer> counter =
+            new java.util.HashMap<String,Integer>();
+
+        public int classes = 0;
+        
+        public CountMethodInvocation() {
+        }
+        
+        public void scan(JCTree t) {
+            if (t == null) return;
+            if (t instanceof JCTree.JCClassDecl) classes++;
+            
+            if (t instanceof JCTree.JCMethodInvocation) {
+                JCTree.JCMethodInvocation m = (JCTree.JCMethodInvocation)t;
+                Symbol sym = null;
+                if (m.meth instanceof JCTree.JCIdent) {
+                    sym = ((JCTree.JCIdent)m.meth).sym;
+                } else if (m.meth instanceof JCTree.JCFieldAccess) {
+                    sym = ((JCTree.JCFieldAccess)m.meth).sym;
+                } else if (t instanceof JmlTree.JmlMethodInvocation){
+                } else {
+                    System.out.println("NOT COUNTED");
+                }
+                String ms = null;
+                if (sym != null) {
+                    if (sym instanceof MethodSymbol) {
+                        MethodSymbol msym = (MethodSymbol)sym;
+                        if (msym.owner != null) {
+                            ms = msym.owner.getQualifiedName() + "." + msym;
+                        }
+                    } else if (sym instanceof ClassSymbol) {
+                        ms = ((ClassSymbol)sym).getQualifiedName().toString();
+                    }
+                    //log.noticeWriter.println("COUNTING " + ms);
+                    if (ms != null) {
+                        Integer i = counter.get(ms);
+                        if (i == null) i = new Integer(0);
+                        counter.put(ms,i+1);
+                    }
+                }
+            }
+            super.scan(t);
+        }
+        
+        public java.util.Iterator<java.util.Map.Entry<String,Integer>> iterator() {
+            java.util.SortedSet<java.util.Map.Entry<String,Integer>> set =
+                new java.util.TreeSet<java.util.Map.Entry<String,Integer>>(
+                        new java.util.Comparator<java.util.Map.Entry<String,Integer>>() {
+                            public boolean equals(Object oo) {
+                                return this == oo;
+                            }
+                            public int compare(java.util.Map.Entry<String,Integer> o,
+                                    java.util.Map.Entry<String,Integer> oo) {
+                                int i = oo.getValue().compareTo(o.getValue());
+                                if (i == 0) {
+                                    i = oo.getKey().compareTo(o.getKey());
+                                }
+                                return i;
+                            }
+                            
+                        }
+                        );
+            set.addAll(counter.entrySet());
+            
+            return set.iterator();
+        }
+    }
 }

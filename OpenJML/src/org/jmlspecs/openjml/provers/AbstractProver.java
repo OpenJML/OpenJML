@@ -27,7 +27,7 @@ public abstract class AbstractProver implements IProver {
     /** A debugging flag - 0 = show nothing; 1 = show errors; 2 = show something; 3 = show everything */
     // Value should be 1 for ordinary operation
     // @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_SHOULD_BE_FINAL")
-    static public int showCommunication = 3;
+    static public int showCommunication = 1;
     
     public Context context;
     public Log log;

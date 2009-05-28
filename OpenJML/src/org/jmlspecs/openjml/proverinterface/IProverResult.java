@@ -20,7 +20,7 @@ public interface IProverResult {
   
   /** The logical assertions were satisfiable, but since the logic engine
    * is incomplete, the counterexample may actually be spurious */
-  static public final Kind POSSIBLYSAT = new Kind("POSSIBLYSAT");
+  static public final Kind POSSIBLY_SAT = new Kind("POSSIBLY_SAT");
   
   /** The logical assumptions were infeasible (and thus trivially satisfiable) */
   static public final Kind INCONSISTENT = new Kind("INCONSISTENT");

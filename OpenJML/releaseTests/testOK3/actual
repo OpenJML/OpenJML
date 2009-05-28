@@ -1,0 +1,320 @@
+AIS: version 6
+AIS EDS: false
+Using internal specs openjml.jar!specs16
+SPECSPATH .
+SPECSPATH openjml.jar!specs16
+SOURCEPATH -sourcepath = null
+CLASSPATH -classpath = null
+CLASSPATH java.class.path = openjml.jar
+Using internal runtime openjml.jar
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Object.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/Array.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Cloneable.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/org/jmlspecs/lang/JMLDataGroup.jml
+No specs for java.lang.annotation.Annotation
+No specs for org.jmlspecs.annotations.NonNull
+No specs for org.jmlspecs.annotations.Model
+No specs for org.jmlspecs.annotations.Ghost
+No specs for org.jmlspecs.annotations.Nullable
+No specs for org.jmlspecs.annotations.Pure
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/Serializable.jml
+No specs for java.lang.reflect.GenericDeclaration
+No specs for java.lang.reflect.Type
+No specs for java.lang.reflect.AnnotatedElement
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Class.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Throwable.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Exception.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/CloneNotSupportedException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Comparable.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/CharSequence.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/String.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/InterruptedException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/RuntimeException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/IllegalArgumentException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/IndexOutOfBoundsException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ArrayIndexOutOfBoundsException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NegativeArraySizeException.jml
+No specs for java.io.Closeable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/InputStream.jml
+No specs for org.jmlspecs.annotations.NullableByDefault
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ClassNotFoundException.jml
+No specs for java.lang.ClassLoader
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/InstantiationException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/IllegalAccessException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Package.jml
+No specs for java.lang.reflect.AccessibleObject
+No specs for java.lang.reflect.Member
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/Field.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/SecurityException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/Method.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/Constructor.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NoSuchFieldException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NoSuchMethodException.jml
+No specs for java.net.URL
+No specs for java.security.ProtectionDomain
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StackTraceElement.jml
+No specs for java.io.Flushable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/OutputStream.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/FilterOutputStream.jml
+No specs for java.lang.Appendable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/PrintStream.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/Writer.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/PrintWriter.jml
+No specs for org.jmlspecs.annotations.Instance
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/IOException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/UnsupportedEncodingException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Locale.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/regex/Pattern.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Comparator.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NullPointerException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StringIndexOutOfBoundsException.jml
+No specs for java.lang.AbstractStringBuilder
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StringBuffer.jml
+No specs for java.util.jar.Manifest
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Number.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/math/BigInteger.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/MissingResourceException.jml
+No specs for java.util.regex.MatchResult
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/regex/Matcher.jml
+No specs for java.util.Random
+parsing /home/projects/OpenJML/trunk/OpenJML/temp/B.java
+typechecking java.lang.Object
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/System.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Dictionary.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Map.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Hashtable.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Properties.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/SecurityManager.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Enumeration.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Iterable.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Collection.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Set.jml
+No specs for java.io.FileDescriptor
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/File.jml
+No specs for java.security.Guard
+No specs for java.security.Permission
+No specs for java.io.FilePermission
+No specs for java.security.BasicPermission
+No specs for java.awt.AWTPermission
+No specs for java.util.PropertyPermission
+No specs for java.lang.RuntimePermission
+No specs for java.net.SocketPermission
+No specs for java.net.NetPermission
+No specs for java.net.InetAddress
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Runnable.jml
+No specs for java.lang.Thread
+No specs for java.lang.ThreadGroup
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Iterator.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ArrayStoreException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/net/URI.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/net/MalformedURLException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/FileFilter.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/FilenameFilter.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/ObjectStreamException.jml
+No specs for java.io.InvalidObjectException
+No specs for java.io.DataInput
+No specs for java.io.ObjectInput
+No specs for java.io.ObjectStreamConstants
+No specs for java.io.ObjectInputStream
+No specs for java.io.DataOutput
+No specs for java.io.ObjectOutput
+No specs for java.io.ObjectOutputStream
+No specs for java.nio.Buffer
+No specs for java.nio.ByteBuffer
+No specs for java.lang.Readable
+No specs for java.nio.CharBuffer
+No specs for java.nio.charset.CharsetDecoder
+No specs for java.nio.charset.CharsetEncoder
+No specs for java.nio.charset.CoderResult
+No specs for java.nio.charset.CodingErrorAction
+No specs for java.nio.charset.CharacterCodingException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Character.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/net/URISyntaxException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Integer.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NumberFormatException.jml
+typechecked java.lang.Object
+typechecking java.lang.reflect.Array
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Byte.jml
+typechecked java.lang.reflect.Array
+typechecking java.lang.Cloneable
+typechecked java.lang.Cloneable
+typechecking org.jmlspecs.lang.JMLDataGroup
+typechecked org.jmlspecs.lang.JMLDataGroup
+typechecking java.io.Serializable
+typechecked java.io.Serializable
+typechecking java.lang.Class
+typechecked java.lang.Class
+typechecking java.lang.Throwable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/IllegalStateException.jml
+typechecked java.lang.Throwable
+typechecking java.lang.Exception
+typechecked java.lang.Exception
+typechecking java.lang.CloneNotSupportedException
+typechecked java.lang.CloneNotSupportedException
+typechecking java.lang.Comparable
+typechecked java.lang.Comparable
+typechecking java.lang.CharSequence
+typechecked java.lang.CharSequence
+typechecking java.lang.String
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ClassCastException.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Boolean.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Long.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Float.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Double.jml
+typechecked java.lang.String
+typechecking java.lang.InterruptedException
+typechecked java.lang.InterruptedException
+typechecking java.lang.RuntimeException
+typechecked java.lang.RuntimeException
+typechecking java.lang.IllegalArgumentException
+typechecked java.lang.IllegalArgumentException
+typechecking java.lang.IndexOutOfBoundsException
+typechecked java.lang.IndexOutOfBoundsException
+typechecking java.lang.ArrayIndexOutOfBoundsException
+typechecked java.lang.ArrayIndexOutOfBoundsException
+typechecking java.lang.NegativeArraySizeException
+typechecked java.lang.NegativeArraySizeException
+typechecking java.io.InputStream
+typechecked java.io.InputStream
+typechecking java.lang.ClassNotFoundException
+typechecked java.lang.ClassNotFoundException
+typechecking java.lang.InstantiationException
+typechecked java.lang.InstantiationException
+typechecking java.lang.IllegalAccessException
+typechecked java.lang.IllegalAccessException
+typechecking java.lang.Package
+typechecked java.lang.Package
+typechecking java.lang.reflect.Field
+typechecked java.lang.reflect.Field
+typechecking java.lang.SecurityException
+typechecked java.lang.SecurityException
+typechecking java.lang.reflect.Method
+typechecked java.lang.reflect.Method
+typechecking java.lang.reflect.Constructor
+typechecked java.lang.reflect.Constructor
+typechecking java.lang.NoSuchFieldException
+typechecked java.lang.NoSuchFieldException
+typechecking java.lang.NoSuchMethodException
+typechecked java.lang.NoSuchMethodException
+typechecking java.lang.StackTraceElement
+typechecked java.lang.StackTraceElement
+typechecking java.io.OutputStream
+typechecked java.io.OutputStream
+typechecking java.io.FilterOutputStream
+typechecked java.io.FilterOutputStream
+typechecking java.io.PrintStream
+typechecked java.io.PrintStream
+typechecking java.io.Writer
+typechecked java.io.Writer
+typechecking java.io.PrintWriter
+typechecked java.io.PrintWriter
+typechecking java.io.IOException
+typechecked java.io.IOException
+typechecking java.io.UnsupportedEncodingException
+typechecked java.io.UnsupportedEncodingException
+typechecking java.util.Locale
+typechecked java.util.Locale
+typechecking java.util.regex.Pattern
+typechecked java.util.regex.Pattern
+typechecking java.util.Comparator
+typechecked java.util.Comparator
+typechecking java.lang.NullPointerException
+typechecked java.lang.NullPointerException
+typechecking java.lang.StringIndexOutOfBoundsException
+typechecked java.lang.StringIndexOutOfBoundsException
+typechecking java.lang.StringBuffer
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Math.jml
+typechecked java.lang.StringBuffer
+typechecking java.lang.Number
+typechecked java.lang.Number
+typechecking java.math.BigInteger
+typechecked java.math.BigInteger
+typechecking java.util.MissingResourceException
+typechecked java.util.MissingResourceException
+typechecking java.util.regex.Matcher
+typechecked java.util.regex.Matcher
+typechecking B
+typechecked B
+typechecking java.lang.System
+typechecked java.lang.System
+typechecking java.util.Dictionary
+typechecked java.util.Dictionary
+typechecking java.util.Map
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/UnsupportedOperationException.jml
+typechecked java.util.Map
+typechecking java.util.Hashtable
+typechecked java.util.Hashtable
+typechecking java.util.Properties
+No specs for org.jmlspecs.annotations.SpecPublic
+typechecked java.util.Properties
+typechecking java.lang.SecurityManager
+typechecked java.lang.SecurityManager
+typechecking java.util.Enumeration
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/NoSuchElementException.jml
+typechecked java.util.Enumeration
+typechecking java.lang.Iterable
+typechecked java.lang.Iterable
+typechecking java.util.Collection
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Arrays.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/List.jml
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/ListIterator.jml
+typechecking java.util.Collection.Content
+typechecked java.util.Collection.Content
+typechecked java.util.Collection
+typechecking java.util.Set
+typechecked java.util.Set
+typechecking java.io.File
+typechecked java.io.File
+typechecking java.lang.Runnable
+typechecked java.lang.Runnable
+typechecking java.util.Iterator
+typechecked java.util.Iterator
+typechecking java.lang.ArrayStoreException
+typechecked java.lang.ArrayStoreException
+typechecking java.net.URI
+typechecked java.net.URI
+typechecking java.net.MalformedURLException
+typechecked java.net.MalformedURLException
+typechecking java.io.FileFilter
+typechecked java.io.FileFilter
+typechecking java.io.FilenameFilter
+typechecked java.io.FilenameFilter
+typechecking java.io.ObjectStreamException
+typechecked java.io.ObjectStreamException
+typechecking java.lang.Character
+typechecked java.lang.Character
+typechecking java.net.URISyntaxException
+typechecked java.net.URISyntaxException
+typechecking java.lang.Integer
+typechecked java.lang.Integer
+typechecking java.lang.NumberFormatException
+typechecked java.lang.NumberFormatException
+typechecking java.lang.Byte
+typechecked java.lang.Byte
+typechecking java.lang.IllegalStateException
+typechecked java.lang.IllegalStateException
+typechecking java.lang.ClassCastException
+typechecked java.lang.ClassCastException
+typechecking java.lang.Boolean
+typechecked java.lang.Boolean
+typechecking java.lang.Long
+typechecked java.lang.Long
+typechecking java.lang.Float
+typechecked java.lang.Float
+typechecking java.lang.Double
+typechecked java.lang.Double
+typechecking java.lang.Math
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StrictMath.jml
+typechecked java.lang.Math
+typechecking java.lang.UnsupportedOperationException
+typechecked java.lang.UnsupportedOperationException
+typechecking java.util.NoSuchElementException
+typechecked java.util.NoSuchElementException
+typechecking java.util.Arrays
+typechecked java.util.Arrays
+typechecking java.util.List
+typechecked java.util.List
+typechecking java.util.ListIterator
+typechecked java.util.ListIterator
+typechecking java.lang.StrictMath
+typechecked java.lang.StrictMath

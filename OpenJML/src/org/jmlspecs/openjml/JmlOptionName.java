@@ -67,7 +67,6 @@ public enum JmlOptionName implements OptionInterface {
      * @param hasArg Whether the option takes a (required) argument
      * @param help The associated help string
      */
-     //@ requires numargs == 0 || numargs == 1;
     private JmlOptionName(/*@ non_null */ String s, boolean hasArg, /*@ non_null */ String help) {
         this.name = s;
         this.hasArg = hasArg;
