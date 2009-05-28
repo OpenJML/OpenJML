@@ -19,9 +19,9 @@ public class JMLList<E> {
 //    //@    ensures get(size()-1) == item;
 //    void add(@Nullable E item);
     
-    @Pure @NonNull
+    @Query @NonNull
     public JMLList<E> add(@Nullable E item) { return null; }
 
-    @Nullable @Pure
+    @Nullable @Query
     public E get(int i) { return null; }
 }

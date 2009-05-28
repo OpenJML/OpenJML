@@ -148,7 +148,7 @@ public @Pure class JMLChar implements JMLComparable<JMLChar> {
     /*@ also
       @   public normal_behavior
       @    requires op2 != null;
-      @    ensures (theChar < op2).theChar ==> \result == -1)
+      @    ensures (theChar < op2.theChar ==> \result == -1)
       @         && (theChar == op2.theChar ==> \result == 0)
       @         && (theChar > op2.theChar ==> \result == +1);
       @*/

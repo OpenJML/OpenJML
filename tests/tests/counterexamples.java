@@ -274,7 +274,7 @@ public class counterexamples extends EscBase {
     
 
     /** Tests called method return */
-    public void ______testCE10() {  // FIXME - infinite loop concerning canonical representation
+    public void testCE10() {  // FIXME - infinite loop concerning canonical representation
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

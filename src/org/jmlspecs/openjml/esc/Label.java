@@ -62,7 +62,7 @@ public class Label {
     /*@ non_null*/ public final static Label PRECONDITION = new Label("Precondition");
     
     /** Used for assume statements generated from assignable clauses */
-    /*@ non_null*/ public final static Label HAVOC = new Label("Assignable");
+    /*@ non_null*/ public final static Label HAVOC = new Label("Havoc");
     
     /** Used for assume or assert statements generated from invariants */
     /*@ non_null*/ public final static Label INVARIANT = new Label("Invariant");

@@ -551,96 +551,99 @@ public class esc extends EscBase {
     // FIXME - test not_modified and old nested in each other; remember to test definedness            
 
     public void testFresh() {
-        //options.put("-jmlverbose","");
+//        print = true;
+//        options.put("-showbb","");
+//        options.put("-trace",   "");
+//        options.put("-subexpressions",   "");
         helpTCX("tt.TestJava","package tt; \n"
                 +"abstract public class TestJava { \n"
                 
-//                +"  //@ requires p != null && p != this;\n"
-//                +"  //@ modifies \\everything;\n"
-//                +"  public void m1(Object p) {\n"
-//                +"    Object pp = c1(p);\n"
-//                +"    //@ assert pp != p;\n"  // OK
-//                +"    //@ assert pp != this;\n"  // OK
-//                +"  }\n"
-//                
-//                +"  //@ requires p != null && p != this;\n"
-//                +"  //@ modifies \\everything;\n"
-//                +"  public void m2(Object p) {\n"
-//                +"    Object pp = c2(p);\n"
-//                +"    //@ assert pp != p;\n"  // BAD
-//                +"  }\n"
-//                
-//                +"  //@ requires p != null && p != this;\n"
-//                +"  //@ modifies \\everything;\n"
-//                +"  public void m3(Object p) {\n"
-//                +"    Object pp = c2(p);\n"
-//                +"    //@ assert pp != this;\n"  // BAD
-//                +"  }\n"
-//                
-//                +"  //@ requires p != null && p != this;\n"
-//                +"  //@ modifies \\everything;\n"
-//                +"  public void m4(Object p) {\n"
-//                +"    Object pp = c1(p);\n"
-//                +"    Object q = new Object();\n"
-//                +"    //@ assert pp != q;\n"  // OK
-//                +"  }\n"
-//                
-//                +"  //@ requires p != null && p != this;\n"
-//                +"  //@ modifies \\everything;\n"
-//                +"  public void m5(Object p) {\n"
-//                +"    Object pp = c2(p);\n"
-//                +"    Object q = new Object();\n"
-//                +"    //@ assert pp != q;\n"  // OK
-//                +"  }\n"
-//                
-//                +"  //@ modifies \\everything;\n"
-//                +"  //@ ensures \\result != null && \\fresh(\\result);\n"
-//                +"  //@ ensures \\result != p && \\result != this;\n"
-//                +"  public Object m6(Object p) {\n"
-//                +"    return new Object();\n"
-//                +"  }\n"
-//                
-//                +"  //@ modifies \\everything;\n"
-//                +"  //@ ensures \\result == null;\n"  // BAD
-//                +"  public Object m6a(Object p) {\n"
-//                +"    return new Object();\n"
-//                +"  }\n"
-//                
-//                +"  //@ modifies \\everything;\n"
-//                +"  //@ ensures \\result != null && \\fresh(\\result);\n"
-//                +"  //@ ensures \\result == p || \\result == this;\n" // BAD
-//                +"  public Object m6b(Object p) {\n"
-//                +"    return new Object();\n"
-//                +"  }\n"
-//                
-//                +"  //@ modifies \\everything;\n"
-//                +"  //@ ensures \\result != null && !\\fresh(\\result);\n" // BAD
-//                +"  public Object m6c(Object p) {\n"
-//                +"    return new Object();\n"
-//                +"  }\n"
-//                
-//                +"  Object o;\n"
-//                +"  //@ ghost Object oo;\n"
-//                +"  static Object so;\n"
-//                +"  //@ static ghost Object soo;\n"
-//                
-//                +"  //@ modifies \\nothing;\n"
-//                +"  public void m7(Object p) {\n"
-//                +"    Object pp = c1(p);\n"
-//                +"    //@ assert pp != o && pp != oo;\n"  // OK
-//                +"  }\n"
-//                
-//                +"  //@ modifies \\nothing;\n"
-//                +"  public void m7a(Object p) {\n"
-//                +"    Object pp = c2(p);\n"
-//                +"    //@ assert pp != o;\n"  // BAD
-//                +"  }\n"
-//                
-//                +"  //@ modifies \\nothing;\n"
-//                +"  public void m7b(Object p) {\n"
-//                +"    Object pp = c2(p);\n"
-//                +"    //@ assert pp != oo;\n"  // BAD
-//                +"  }\n"
+                +"  //@ requires p != null && p != this;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m1(Object p) {\n"
+                +"    Object pp = c1(p);\n"
+                +"    //@ assert pp != p;\n"  // OK
+                +"    //@ assert pp != this;\n"  // OK
+                +"  }\n"
+                
+                +"  //@ requires p != null && p != this;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m2(Object p) {\n"
+                +"    Object pp = c2(p);\n"
+                +"    //@ assert pp != p;\n"  // BAD
+                +"  }\n"
+                
+                +"  //@ requires p != null && p != this;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m3(Object p) {\n"
+                +"    Object pp = c2(p);\n"
+                +"    //@ assert pp != this;\n"  // BAD
+                +"  }\n"
+                
+                +"  //@ requires p != null && p != this;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m4(Object p) {\n"
+                +"    Object pp = c1(p);\n"
+                +"    Object q = new Object();\n"
+                +"    //@ assert pp != q;\n"  // OK
+                +"  }\n"
+                
+                +"  //@ requires p != null && p != this;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m5(Object p) {\n"
+                +"    Object pp = c2(p);\n"
+                +"    Object q = new Object();\n"
+                +"    //@ assert pp != q;\n"  // OK
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  //@ ensures \\result != null && \\fresh(\\result);\n"
+                +"  //@ ensures \\result != p && \\result != this;\n"
+                +"  public Object m6(Object p) {\n"
+                +"    return new Object();\n"
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  //@ ensures \\result == null;\n"  // BAD
+                +"  public Object m6a(Object p) {\n"
+                +"    return new Object();\n"
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  //@ ensures \\result != null && \\fresh(\\result);\n"
+                +"  //@ ensures \\result == p || \\result == this;\n" // BAD
+                +"  public Object m6b(Object p) {\n"
+                +"    return new Object();\n"
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  //@ ensures \\result != null && !\\fresh(\\result);\n" // BAD
+                +"  public Object m6c(Object p) {\n"
+                +"    return new Object();\n"
+                +"  }\n"
+                
+                +"  Object o;\n"
+                +"  //@ ghost Object oo;\n"
+                +"  static Object so;\n"
+                +"  //@ static ghost Object soo;\n"
+                
+                +"  //@ modifies \\nothing;\n"
+                +"  public void m7(Object p) {\n"
+                +"    Object pp = c1(p);\n"
+                +"    //@ assert pp != o && pp != oo;\n"  // OK
+                +"  }\n"
+                
+                +"  //@ modifies \\nothing;\n"
+                +"  public void m7a(Object p) {\n"
+                +"    Object pp = c2(p);\n"
+                +"    //@ assert pp != o;\n"  // BAD
+                +"  }\n"
+                
+                +"  //@ modifies \\nothing;\n"
+                +"  public void m7b(Object p) {\n"
+                +"    Object pp = c2(p);\n"
+                +"    //@ assert pp != oo;\n"  // BAD
+                +"  }\n"
                 
                 +"  //@ modifies \\everything;\n"
                 +"  public void m7c(Object p) {\n"
@@ -719,6 +722,7 @@ public class esc extends EscBase {
                 +"  //@ ensures true;\n"
                 +"  abstract public Object c2e(Object o); \n"
                 
+                +"  public TestJava() {}\n"
                 +"}"
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method m2",9
                 ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (Assert) in method m3",9

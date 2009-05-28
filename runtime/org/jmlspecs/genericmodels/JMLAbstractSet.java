@@ -3,6 +3,8 @@ package org.jmlspecs.genericmodels;
 import org.jmlspecs.lang.*;
 import org.jmlspecs.annotations.*;
 
+// FIXME - this should be in org.jmlspecs.lang if it exists at all.
+
 @Pure
 public abstract class JMLAbstractSet<E> implements JMLSetType<E> {
 

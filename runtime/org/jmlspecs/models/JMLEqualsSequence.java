@@ -237,7 +237,6 @@ public /*@ pure @*/ class JMLEqualsSequence
      *  @param e the element that is the first element in this sequence.
      *  @see #singleton
      */
-    public JMLEqualsSequence (Object e)
         /*@  public normal_behavior
           @    assignable objectState, elementType, containsNull, owner;
           @    ensures int_length() == 1;
@@ -246,6 +245,7 @@ public /*@ pure @*/ class JMLEqualsSequence
           @    ensures_redundantly
           @        (* this is a sequence containing just e *); 
           @*/
+    public JMLEqualsSequence (Object e)
     {
         //@ set owner = null;
         theSeq = JMLListEqualsNode.cons(e, null); // cons() clones e, if needed

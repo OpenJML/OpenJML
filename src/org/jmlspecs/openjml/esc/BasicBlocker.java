@@ -5846,7 +5846,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     } else if (label == Label.ARRAY_INIT) {
                         // Just print the expression - don't try to evaluate it
                         w.append(pos + label + " " + expr + "\n");
-                    } else if (label == Label.BRANCHT || label == Label.BRANCHE) {
+                    } else if (label == Label.BRANCHT || label == Label.BRANCHE || label == Label.HAVOC) {
                         // skip
                     } else {
                         w.append(pos + label + " " + expr + "\n");
@@ -5962,7 +5962,7 @@ public class BasicBlocker extends JmlTreeScanner {
             List<JCIdent> ids = new LinkedList<JCIdent>();
             try {
                 for (JCExpression e: exprlist) {
-                    JCIdent id = newIdent(e.type);
+                    JCIdent id = newIdent(e);
                     JCExpression ex = factory.Binary(JCTree.EQ,id,e);
                     ex.type = syms.booleanType;
                     ids.add(id);
@@ -5997,7 +5997,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 expr.type = syms.objectType;
                 JCExpression e = factory.at(0).JmlMethodInvocation(JmlToken.BSTYPEOF,expr);
                 e.type = syms.classType;
-                JCIdent id = newIdent(e.type);
+                JCIdent id = newIdent(e);
                 JCExpression ex = factory.Binary(JCTree.EQ,id,e);
                 ex.type = syms.booleanType;
                 prover.assume(ex);
@@ -6032,14 +6032,18 @@ public class BasicBlocker extends JmlTreeScanner {
         }
         
         public void request(JCExpression expr) {
-            JCIdent id = newIdent(expr.type);
+            JCIdent id = newIdent(expr);
             requests.put(id.name.toString(),expr);
             JCBinary bin = (factory.Binary(JCTree.EQ,id,expr));
             bin.type = syms.booleanType;
             exprs.add(bin);
         }
         
-        public JCIdent newIdent(Type t)  {
+        public JCIdent newIdent(JCExpression expr)  {
+            Type t = expr.type;
+//            if (expr instanceof JCIdent && !((JCIdent)expr).sym.isStatic()) {
+//                // non-static fields are type (REF -> t)
+//            }
             Name n = names.fromString(prefix + (++count));
             JCIdent id = factory.Ident(n);
             id.type = t;
@@ -6048,6 +6052,10 @@ public class BasicBlocker extends JmlTreeScanner {
         
         public void scan(JCTree that) {
             super.scan(that);
+            if (that instanceof JCIdent &&
+                    ((JCIdent)that).sym != null &&
+                    ((JCIdent)that).sym.owner != null &&
+                    !((JCIdent)that).sym.isStatic()) return;  // These are maps that we don't handle for now - I think they just come up in HAVOC assumptions - FIXME
             if (that instanceof JCExpression &&
                     !(that instanceof JCParens) &&
                     !(that instanceof JCLiteral)) request((JCExpression)that);

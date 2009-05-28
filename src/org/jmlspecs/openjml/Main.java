@@ -109,7 +109,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * direct writing is needed (such as printing out help information) before
      * the Log facility is registered.
      */
-    //@edu.umd.cs.findbugs.annotations.NonNull
+    // @edu.umd.cs.findbugs.annotations.NonNull
     @NonNull
     protected PrintWriter out;
     
@@ -178,7 +178,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /**
      * Construct a compiler instance.  Errors go to stderr.
      */
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_SAME_SIMPLE_NAME_AS_SUPERCLASS")
+    // @edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_SAME_SIMPLE_NAME_AS_SUPERCLASS")
     public Main() {
         this(applicationName, new PrintWriter(System.err, true), null);
     }
@@ -221,17 +221,17 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     /** The default application name */
-    //@edu.umd.cs.findbugs.annotations.NonNull
+    // @edu.umd.cs.findbugs.annotations.NonNull
     @NonNull
     final public static String applicationName = "jml";
     
     /** The option string for requesting help information */
-    //@edu.umd.cs.findbugs.annotations.NonNull
+    // @edu.umd.cs.findbugs.annotations.NonNull
     @NonNull
     final public static String helpOption = "-help";
     
     /** The option string for requesting interactive mode */
-    //@edu.umd.cs.findbugs.annotations.NonNull
+    // @edu.umd.cs.findbugs.annotations.NonNull
     @NonNull
     final public static String interactiveOption = "-i";
 
@@ -339,6 +339,17 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
 //        JmlSpecs specs = JmlSpecs.instance(context); // This is just for debugging
 //        specs.printDatabase();
+//        {
+//            Log.instance(context).noticeWriter.println("OUTPUT: " + ((JmlCompiler)JmlCompiler.instance(context)).counter.classes + " classes");
+//            java.util.Iterator<java.util.Map.Entry<String,Integer>> iter =
+//                ((JmlCompiler)JmlCompiler.instance(context)).counter.iterator();
+//            for (int i = 0; i< 100 && iter.hasNext(); i++) {
+//                java.util.Map.Entry<String,Integer> e = iter.next();
+//                Log.instance(context).noticeWriter.println(e.getValue() + " : " + e.getKey());
+//            }
+//            
+//        }
+
         return exit;
     }
         
@@ -376,7 +387,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param remainingArgs any arguments that are not JML options
      * @return the index of the next argument to be processed
      */
-    //@ requires \nonnullelement(args);
+    //@ requires \nonnullelements(args);
     //@ requires (* elements of remainingArgs are non-null *);
     //@ requires 0<= i && i< args.length;
     //@ ensures \result > i;
@@ -516,7 +527,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** This is overridden so that serious internal bugs are reported as OpenJML
      * rather than Javac bugs.
      */
-    //@Override
+    // @Override
     protected void bugMessage(Throwable ex) {
         System.err.println("Internal JML bug - please report.  Build" + JavaCompiler.version());
         ex.printStackTrace(System.out);

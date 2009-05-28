@@ -569,7 +569,6 @@ public /*@ pure @*/ interface JMLInfiniteInteger
     /** Return the digits representing this integer in the given radix.
      * @see #toString()
      */
-    String toString(int radix)
         /*@ public model_program {
           @    if (is_infinite) {
           @       if (nonnegative) {
@@ -582,5 +581,5 @@ public /*@ pure @*/ interface JMLInfiniteInteger
           @    }
           @ }
           @*/
-        ;
+    String toString(int radix) ;
 }

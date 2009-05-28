@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,6 +16,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotations.NonNull;
 import org.jmlspecs.annotations.Nullable;
+import org.jmlspecs.openjml.JmlSpecs.Dir;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -48,6 +50,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.Options;
 
 /** This class is a wrapper and publicly published API for the OpenJML tool 
  * functionality.  In principle, any external programmatic interaction with
@@ -162,7 +165,6 @@ public class API {
     protected Log log;
     
     //@ initially main != null;
-    //@ initially context != null;
     
     /** Creates a new compilation context, initialized with given command-line arguments (no files or directories).
      * @param args the command-line options and initial set of files with which
@@ -170,7 +172,7 @@ public class API {
      */
     public API(@NonNull String ... args) throws Exception {
         main = new Main(args);
-        context = main.context;
+        context = main.context;  // FIXME - not necessarily set
         log = Log.instance(context);
     }
     
@@ -251,7 +253,7 @@ public class API {
      * @return a list of corresponding ASTs
      */
     //@ requires \nonnullelements(files);
-    //@ ensures files.size() == \result.size();
+    //@ ensures files.length == \result.size();
     //@ ensures (* output elements are non-null *); // FIXME - what about parse errors?
     public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull File... files) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
@@ -343,6 +345,31 @@ public class API {
         return null;
     }
     
+    public void setOption(String name, String value) {
+        Options.instance(context).put(name,value);
+    }
+    
+    public void setOption(String name) {
+        Options.instance(context).put(name,"");
+    }
+    
+    public void removeOption(String name) {
+        Options.instance(context).remove(name);
+    }
+    
+
+    
+    static public void setLibrarySpecsPath(String[] dirs) {
+        JmlSpecs.externalDefaultSpecs = dirs;
+    }
+    
+    public java.util.List<String> getSpecsPath() {
+        java.util.List<Dir> list = JmlSpecs.instance(context).getSpecsPath();
+        java.util.List<String> out = new LinkedList<String>();
+        for (Dir d: list) out.add(d.name());
+        return out;
+    }
+    
     public void doEsc(MethodSymbol msym) {
         JmlMethodDecl decl = getJavaDecl(msym);
         JmlEsc.instance(context).proveMethod(decl);
@@ -368,7 +395,7 @@ public class API {
         JmlMethodDecl tree = getJavaDecl(msym);
         JmlClassDecl cdecl = getJavaDecl((ClassSymbol)msym.owner);
         BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, JmlSpecs.instance(context).getSpecs(msym).deSugared, cdecl);
-        return program.write("BASIC BLOCK PROGRAM FOR " + msym.owner.getQualifiedName() + "." + msym.toString());
+        return program.write("BASIC BLOCK PROGRAM FOR " + msym.owner.getQualifiedName() + "." + msym.toString() + "\n\n");
     }
     
     public void collectSuperTypes(@NonNull ClassSymbol csym, java.util.List<ClassSymbol> list) {

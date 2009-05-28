@@ -53,10 +53,10 @@ import org.jmlspecs.annotations.Pure;
       @  also
       @    ensures \result <==>
       @        ls != null && 0 < n && n < ls.size()
-      @          ==> elem_equals(ls.itemAt(n),ls.next().itemAt(n - 1)));
+      @          ==> elem_equals(ls.itemAt(n),ls.next().itemAt(n - 1));
       @ |}
       public pure model boolean equational_theory(
-                       @Nullable JMLListNode<E> ls, @Nullable JMLListNode<E> ls2,
+                 @Nullable JMLListNode<E> ls, @Nullable JMLListNode<E> ls2,
                        @Nullable E e1, @Nullable E e2, \bigint n);
       @*/
 

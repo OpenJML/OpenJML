@@ -2702,17 +2702,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             chk.checkType(tree.expr.pos(), elemtype, tree.var.sym.type);
             loopEnv.tree = tree; // before, we were not in loop!
 
-            trForeachLoop(tree,elemtype);
+            trForeachLoop(tree,tree.var.sym.type);
             
             attribLoopSpecs(tree.loopSpecs,loopEnv);
             // FIXME - should this be before or after the preceding statement
             
-            PackageSymbol p = enclosingMethodEnv.enclClass.sym.packge();
-            if (tree.implementation != null && !p.flatName().toString().equals("org.jmlspecs.utils")) {
-                attribStat(tree.implementation, loopEnv);
-            } else {
+            // FIXME on next line
+            if (enclosingMethodEnv == null) { // Could be an initializer
                 tree.implementation = null;
                 attribStat(tree.body, loopEnv);
+            } else {
+                PackageSymbol p = enclosingMethodEnv.enclClass.sym.packge();
+                if (tree.implementation != null && !p.flatName().toString().equals("org.jmlspecs.utils")) {
+                    attribStat(tree.implementation, loopEnv);
+                } else {
+                    tree.implementation = null;
+                    attribStat(tree.body, loopEnv);
+                }
             }
             loopEnv.info.scope.leave();
             result = null;
@@ -2757,7 +2763,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Name defempty = names.fromString("defaultEmpty");
             JCFieldAccess sel = factory.Select(factory.Type(JMLUtilsType),defempty);
             JCExpression e = factory.Apply(List.<JCExpression>of(factory.Type(boxedElemType)),sel,List.<JCExpression>nil()); // Utils.<boxedElemType>defaultEmpty()
-
+            // FIXME e.type = ?
+            
             int p = tree.pos;
             name = names.fromString("$$values$"+p);
             ClassType ct = new ClassType(JMLValuesType.getEnclosingType(),List.<Type>of(boxedElemType),JMLValuesType.tsym);
@@ -2768,12 +2775,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             factory.at(tree.pos+2);
             Name add = names.fromString("add");
             sel = factory.Select(factory.Ident(tree.valuesDecl),add);
+            //sel.type = 
             JCExpression ev = factory.Ident(tree.var);
             if (tree.var.type.isPrimitive() && !boxedElemType.isPrimitive()) ev = autobox(ev,tree.var.type);
             JCMethodInvocation app = factory.Apply(null,sel,List.<JCExpression>of(ev));
+            app.type = tree.valuesDecl.type; // FIXME _ check this
             
             factory.at(tree.pos+3);
             JCAssign asgn = factory.Assign(factory.Ident(tree.valuesDecl),app);
+            asgn.type = asgn.lhs.type;
             step.append(factory.Exec(asgn));
             
             factory.at(tree.pos);
@@ -2802,11 +2812,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             JCExpression arraylen = factory.Select(tree.expr,syms.lengthVar);
             cond = factory.Binary(JCTree.LT,ident,arraylen);
+            cond.type = syms.booleanType;
 
             newvalue = factory.Indexed(tree.expr,ident); // newvalue :: expr[$$index]
-            if (elemtype.isPrimitive() && !tree.var.type.isPrimitive()) newvalue = autobox(newvalue,elemtype);
+            // FIXME newvalue.type = ???
+            if (elemtype.isPrimitive() && !tree.var.type.isPrimitive()) {
+                newvalue = autobox(newvalue,elemtype);
+                // FIXME newvalue.type = ???
+            }
             
-            JCExpression invexpr = factory.Binary(JCTree.AND,factory.Binary(JCTree.LE,zeroLit,ident),factory.Binary(JCTree.LE,ident,arraylen));
+            JCBinary invexpr = factory.Binary(JCTree.AND,factory.Binary(JCTree.LE,zeroLit,ident),factory.Binary(JCTree.LE,ident,arraylen));
+            invexpr.type = invexpr.lhs.type = invexpr.rhs.type = syms.booleanType;
             inv = factory.JmlStatementLoop(JmlToken.LOOP_INVARIANT,invexpr);
 
             
@@ -2831,23 +2847,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Name hasNext = names.fromString("hasNext");
             JCFieldAccess sel = factory.Select(factory.Ident(tree.iterDecl),hasNext);
             cond = factory.Apply(null,sel,List.<JCExpression>nil()); // cond :: $$iter . hasNext()
+            cond.type = syms.booleanType;
 
             Name next = names.fromString("next");
             sel = factory.Select(factory.Ident(tree.iterDecl),next);
             newvalue = factory.Apply(null,sel,List.<JCExpression>nil());  // newvalue ::  $$iter . next()
+            // FIXME - newvalue.type = ???
         }
         
         bodystats.append(factory.Exec(factory.Assign(factory.Ident(tree.var),newvalue))); // t = newvalue;
+        // FIXME - assign types
         bodystats.append(tree.body);
         
         factory.at(tree.pos+1);
         Name sz = names.fromString("size");
         JCFieldAccess sel = factory.Select(factory.Ident(tree.valuesDecl),sz);
+        // FIXME sel.type ??? invexpr2.type
         JCExpression invexpr2 = factory.Apply(null,sel,List.<JCExpression>nil());  // invexpr2 ::  $$values . size()
-        invexpr2 = factory.Binary(JCTree.AND,factory.Binary(JCTree.NE,nullLit,factory.Ident(tree.valuesDecl)),factory.Binary(JCTree.EQ,ident,invexpr2));
-        JmlStatementLoop inv2 = factory.JmlStatementLoop(JmlToken.LOOP_INVARIANT,invexpr2);
-        factory.at(tree.pos);
+        JCBinary invexpr3 = factory.Binary(JCTree.AND,factory.Binary(JCTree.NE,nullLit,factory.Ident(tree.valuesDecl)),factory.Binary(JCTree.EQ,ident,invexpr2));
+        invexpr3.type = invexpr3.lhs.type = invexpr3.rhs.type = syms.booleanType;
+        JmlStatementLoop inv2 = factory.JmlStatementLoop(JmlToken.LOOP_INVARIANT,invexpr3);
         
+        factory.at(tree.pos);
         JCBlock block = factory.Block(0,bodystats.toList());
         block.endpos = (tree.body instanceof JCBlock) ? ((JCBlock)tree.body).endpos : tree.body.pos;
         
@@ -2855,7 +2876,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlForLoop jmlforstatement = factory.JmlForLoop(forstatement,tree.loopSpecs);
         {
             ListBuffer<JmlStatementLoop> list = new ListBuffer<JmlStatementLoop>();
-            list.appendList(tree.loopSpecs);
+            if (tree.loopSpecs != null) list.appendList(tree.loopSpecs); // FIXME - is this right?
             if (inv != null) list.append(inv);
             list.append(inv2);
             jmlforstatement.loopSpecs = list.toList();

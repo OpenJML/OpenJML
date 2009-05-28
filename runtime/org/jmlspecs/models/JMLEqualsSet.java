@@ -212,13 +212,13 @@ public /*@ pure @*/ class JMLEqualsSet
     /** Initialize this to be a singleton set containing the given element.
      * @see #singleton
      */
-    public JMLEqualsSet (Object e)
         /*@ public normal_behavior
           @    assignable objectState, elementType, containsNull, owner;
           @    ensures this.has(e) && this.int_size() == 1;
           @    ensures_redundantly
           @      (* this is a singleton set containing e *); 
           @*/
+    public JMLEqualsSet (Object e)
     {
         //@ set owner = null;
         the_list = JMLListEqualsNode.cons(e, null);  // cons() clones if needed

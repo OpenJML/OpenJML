@@ -141,7 +141,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
 
     /** Set to the currently owning class declaration while visiting JCClassDecl and its children. */
-    //@Nullable JCClassDecl currentClassDecl = null;
+    // @Nullable JCClassDecl currentClassDecl = null;
     
     public void visitClassDef(JCClassDecl node) {
         if (node.sym.isInterface()) return;  // Nothing to verify in an interface
@@ -639,6 +639,10 @@ public class JmlEsc extends JmlTreeScanner {
      */
     public boolean prove(@NonNull JCMethodDecl methodDecl, @NonNull BasicProgram program) {
         String name = methodDecl.sym.owner + "." + methodDecl.sym;
+//        log.noticeWriter.println(methodDecl.toString());
+//        log.noticeWriter.println(program.toString());
+
+
         boolean ok = false;
         IProver p = null;
         try {
@@ -736,7 +740,7 @@ public class JmlEsc extends JmlTreeScanner {
             }
 
             long time2=0,time3=0;
-
+            
             IProverResult r = p.check(YicesProver.evidence);
             proverResults.put(methodDecl.sym,r);
             //log.noticeWriter.println("Recorded proof for " + methodDecl.sym); log.noticeWriter.flush();

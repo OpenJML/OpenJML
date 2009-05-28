@@ -37,26 +37,36 @@ import org.jmlspecs.annotations.*;
 //-@ immutable
 public @Pure interface JMLSetType<E> extends JMLIterable<E>
 {
+    
     //**************************** Observers **********************************
 
     /** Tell whether the argument is equal to one of the elements in
      * this collection, using the notion of element equality
      * appropriate for the collection.
+     * 
+     * This method defines the model of what is or is not in the set.
      */
     /*@ public normal_behavior
       @     ensures isEmpty() ==> !\result;
+      @     //ensures !(elem instanceof E) ==> !\result; // illegal Java TODO
       @*/    
-    boolean has(@Nullable Object elem );
+    boolean has(@Nullable Object elem );  // TODO - should be contains?
 
     //@ public normal_behavior
     //@    ensures s2 == null ==> !\result;
-    //@    ensures !(s2 instanceof JMLType) ==> !\result;
+    //@    ensures !(s2 instanceof JMLSetType) ==> !\result; // TODO should be JMLSetType<E>
     boolean equals(@Nullable Object s2);
     
     //@ public normal_behavior
     //@   ensures (item == o) ==> (\result == true);
     //@   ensures ((item == null) != (o == null)) ==> (\result == false);
     boolean elem_equals(@Nullable E item, @Nullable Object o);
+
+    // This invariant ties the definition of has to that of elem_equals and
+    // imposes 'setness' on this object - no duplicate objects (measured by elem_equals)
+    // Note that changes to the contents of objects in a set may change which elements
+    // are equal to others and therefore whether this invariant remains true.
+    //@ public invariant (\forall E e1, e2; elem_equals(e1,e2) ==> (has(e1) <==> has(e2)));
 
     /** Is the set empty.
      * @see #int_size()
@@ -77,7 +87,6 @@ public @Pure interface JMLSetType<E> extends JMLIterable<E>
 
     /** Return an arbitrary element of this.
      *  @see #isEmpty()
-     *  @see #elements()
      */
     /*@   public normal_behavior
       @      requires !isEmpty();
@@ -95,30 +104,29 @@ public @Pure interface JMLSetType<E> extends JMLIterable<E>
     /*@ 
       @  public normal_behavior
       @   requires int_size() < Integer.MAX_VALUE || has(elem);
-      @   ensures \result != null
-      @	  && (\forall Object e; ;
-      @        \result.has(e) ==> this.has(e)
-      @                            || (e == null && elem == null)
-      @                            || (e != null && e.equals(elem)));
-      @*/  // FIXME - cannot presume element equality is equals ???
+      @   ensures (\forall Object e; \result.has(e);
+      @                  (this.has(e) || elem_equals(e,elem)));
+      @   ensures (\forall Object e; this.has(e); \result.has(e));
+      @   ensures  this.has(elem) ==> (this.int_size() == \result.int_size());
+      @   ensures  !this.has(elem) ==> (this.int_size()+1 == \result.int_size());
+      @*/
     @NonNull JMLSetType<E> insert(@Nullable E elem);
 
     /** Return a new array containing all the elements of this.
      */
     /*@ public normal_behavior
-      @    ensures \result != null && \result.length == int_size()
-      @         && (\forall Object o; has(o);
+      @    ensures \result != null;
+      @    ensures \result.length == this.int_size();
+      @    ensures (\forall Object o; has(o);
       @              (\exists int i;
-      @                   (o == null && \result[i] == null)
-      @                || (o != null && o.equals(\result[i]))));
+      @                   elem_equals(o,\result[i])));
       @*/
-    @NonNull E[] toArray();
+    E[] toArray(); // CAUTION - be careful of JSR308 syntax // FIXME - should be @Readonly 
 
     /** Returns an Iterator over this set.
      */
     /*@  public normal_behavior
-      @      ensures \fresh(\result)
-      @          && \result.equals(new JMLEnumerationToIterator(elements()));
+      @      ensures \fresh(\result);
       @*/  
     @NonNull JMLIterator<E> iterator();
 

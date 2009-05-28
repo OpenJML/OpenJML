@@ -63,7 +63,7 @@ public class ProverResult implements IProverResult {
      * @param r the value of the result category
      */
     //@ also
-    //@ assignable this.r;
+    //@ assignable this.result;
     //@ ensures result() == r;
     //JAVA16 @Override
     public void result(@NonNull Kind r) { result = r; }
@@ -73,7 +73,7 @@ public class ProverResult implements IProverResult {
      */
     //@ ensures \result == (result() == SAT);
     public boolean isSat() {
-        return result == SAT || result == POSSIBLYSAT;
+        return result == SAT || result == POSSIBLY_SAT;
     }
     
     /** The details of the result 

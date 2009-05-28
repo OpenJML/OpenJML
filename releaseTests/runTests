@@ -20,6 +20,9 @@ TESTLOC=../releaseTests
 export RTH=../releaseTests/releaseTestHelper
 RES=0
 
+## Reports the version of Java being used
+java -version
+
 ## Checks the contents of the release tar file
 ${RTH} testTar "tar ztf *gz" || RES=$(($RES+1))
 

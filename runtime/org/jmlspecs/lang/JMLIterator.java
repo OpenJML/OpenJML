@@ -31,42 +31,30 @@ import org.jmlspecs.annotations.*;
  * @see JMLEnumerationToIterator
  */
 
-// FIXME - the design of immutable iterators is not finalized
-@Pure
+
 public interface JMLIterator<E> {
 
+    //@ public model instance JMLDataGroup position;
+    
     /** Return a clone of this iterator.
+     * This declaration makes the method public.
      */
+    @Query @NonNull
     Object clone();
     
-    // @ also public normal_behavior
-    /* FIXME - generic types not allowed in instanceof 
-      @ ensures (o == null || !(o instanceof JMLIterator<E>)) ==> !\result;
-      @ ensures (o != null && (o instanceof JMLIterator<E>) &&
-             hasNext() != ((JMLIterator<E>)o).hasNext()) ==> !\result;
-      @ ensures (o != null && (o instanceof JMLIterator<E>) &&
-             !hasNext() && !((JMLIterator<E>)o).hasNext()) ==> \result;
-      @ ensures (o != null && (o instanceof JMLIterator<E>) &&
-             !advance().equals((JMLIterator<E>)o).advance()) ==> !\result;
-      @*/
-    boolean equals(Object o);
+    //@ also public normal_behavior
+    //@   ensures (o == this) ==> \result;
+    @Query
+    boolean equals(@Nullable Object o);
 
     /** Returns true if there is a next element */
     //@ public normal_behavior
-    //@   ensures true;
+    //@   ensures \not_assigned(position);
+    @Query
     boolean hasNext();
     
-    /** Returns an iterator for the tail of the sequence (since JMLIterators
-     * are immutable).
-     * @return an iterator for the tail of the sequence
-     */
-    //@ public normal_behavior
     //@ requires hasNext();
-    @NonNull JMLIterator<E> advance();
-    
-    //@ public normal_behavior
-    //@ requires hasNext();
-    E value();
+    //@ assignable position;
+    @Nullable E next();
 
-    //@ public instance represents moreElements <- hasNext();
 }

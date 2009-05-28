@@ -24,15 +24,16 @@ ${NAME}: release
 
 other:
 	diff ../OpenJMLUI/plugin.xml ../OpenJML-DevUI/plugin.xml || echo "PLUGINS ARE DIFFERENT - RESOLVE!!!!!"
-	diff -r ../OpenJMLUI/icons ../OpenJML-DevUI/icons || echo "ICON DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!"
-	diff -r ../OpenJMLUI/html ../OpenJML-DevUI/html || echo "HTML DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!"
+	diff -r -x ".svn" ../OpenJMLUI/icons ../OpenJML-DevUI/icons || echo "ICON DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!"
+	diff -r -x ".svn" ../OpenJMLUI/html ../OpenJML-DevUI/html || echo "HTML DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!"
 
 
 ## Test the release named ${NAME}
 .PHONY: test
 test: 
 	@echo Testing
-	releaseTests/runTests  ${NAME} 
+	##( source ~/mybin/java15.sh; releaseTests/runTests  ${NAME} ) 
+	( source ~/mybin/java16.sh; releaseTests/runTests  ${NAME} ) 
 	@echo Testing Complete
 
 ## Builds a tar file of the release components

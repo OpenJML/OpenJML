@@ -691,23 +691,57 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
     }
     
     public JmlMethodDecl matchMethod(JmlMethodDecl specMethod, JmlClassDecl javaClassDecl, Env<AttrContext> env) {
+        JCMethodDecl tree = specMethod;
+        
+        // If tree.sym != null, then it should be the case that specMethod is part of the javaClassDecl
+        if (tree.sym == null) {
+            // Taken from MemberEnter.visitMethodDef
+            Scope enclScope = enter.enterScope(env);
+            MethodSymbol msym = new MethodSymbol(0, tree.name, null, enclScope.owner);
+            msym.flags_field = tree.mods.flags; //m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, msym, tree);
+            tree.sym = msym;
+            Env<AttrContext> localEnv = methodEnv(tree, env);
+
+            // Compute the method type
+            msym.type = signature(tree.typarams, tree.params,
+                    tree.restype, tree.thrown,
+                    localEnv);
+
+            // Set m.params
+            ListBuffer<VarSymbol> params = new ListBuffer<VarSymbol>();
+            JCVariableDecl lastParam = null;
+            for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
+                JCVariableDecl param = lastParam = l.head;
+                assert param.sym != null;
+                params.append(param.sym);
+            }
+            msym.params = params.toList();
+
+            // mark the method varargs, if necessary
+            if (lastParam != null && (lastParam.mods.flags & Flags.VARARGS) != 0)
+                msym.flags_field |= Flags.VARARGS;
+
+            localEnv.info.scope.leave();
+        }
+        
+        
         //attribAnnotations(javaClass,method.mods); // FIXME
 
-        List<Type> tvars = enter.classEnter(specMethod.typarams, env);
-        Attr.instance(context).attribTypeVariables(specMethod.typarams, env);
+//        List<Type> tvars = enter.classEnter(specMethod.typarams, env);
+//        Attr.instance(context).attribTypeVariables(specMethod.typarams, env);
 
-        ListBuffer<Type> tatypes = ListBuffer.<Type>lb();  // FIXME - use TreeInfo method
-        for (JCTypeParameter tp: specMethod.typarams) {
-            tatypes.append(tp.type);
-        }
+//        ListBuffer<Type> tatypes = ListBuffer.<Type>lb();  // FIXME - use TreeInfo method
+//        for (JCTypeParameter tp: specMethod.typarams) {
+//            tatypes.append(tp.type);
+//        }
         
         //Attr.instance(context).attribBounds(specMethod.typarams); //, Enter.instance(context).getEnv(javaClassDecl.sym));
         int n = specMethod.getParameters().size();
-        ListBuffer<Type> ptypes = ListBuffer.<Type>lb();
-        for (int i=0; i<n; i++) {
-            Attr.instance(context).attribType(specMethod.getParameters().get(i).vartype, Enter.instance(context).getEnv(javaClassDecl.sym));
-            ptypes.append(specMethod.getParameters().get(i).vartype.type);
-        }
+//        ListBuffer<Type> ptypes = ListBuffer.<Type>lb();
+//        for (int i=0; i<n; i++) {
+//            Attr.instance(context).attribType(specMethod.getParameters().get(i).vartype, Enter.instance(context).getEnv(javaClassDecl.sym));
+//            ptypes.append(specMethod.getParameters().get(i).vartype.type);
+//        }
         JmlMethodDecl match = null;
         try {
             if (Utils.jmldebug) log.noticeWriter.println("  CLASS " + javaClassDecl.name + " SPECS HAVE METHOD " + specMethod.name);
@@ -716,6 +750,10 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
             
             loop: for (JCTree t : javaClassDecl.defs) {
                 // FIXME - allow this to match inherited methods also?
+                if (t == specMethod) {
+                    match = specMethod;
+                    break;
+                }
                 if (t instanceof JmlMethodDecl) {
                     JmlMethodDecl javaMethod = (JmlMethodDecl)t;
                     if (!javaMethod.name.equals(specMethod.name)) continue;
@@ -764,7 +802,7 @@ public class JmlMemberEnter extends MemberEnter { //implements IJmlVisitor {
                 Log.instance(context).error(specMethod.pos(),"jml.no.method.match",
                         javaClassDecl.sym.fullname + "." + specMethod.name,
                         sb.toString());
-            } else {
+            } else if (match != specMethod) { // If they are equal there is nothing to do
                 checkMethodMatch(match,specMethod);
                 addAnnotations(match.sym,env,specMethod.mods);  // Might repeat annotations, so we use the conditional call
             }

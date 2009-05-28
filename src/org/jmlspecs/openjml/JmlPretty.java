@@ -726,7 +726,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         visitMethodDef(that);
     }
 
-    //@ xxxx
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);  // FIXME - print field specs
     }

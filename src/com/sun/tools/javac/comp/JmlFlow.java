@@ -99,7 +99,14 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     // is tree.meth null for some JML constructs?
     @Override
     public void visitApply(JCMethodInvocation tree) {
-        if (tree.meth != null) super.visitApply(tree);
+        if (tree.meth == null) return;
+        if (tree.meth.type == null) {
+            // FIXME - need to do this just because we don't have full attribution in trEnhancedForLoop
+            scanExpr(tree.meth);
+            scanExprs(tree.args);
+        } else {
+            super.visitApply(tree);
+        }
         // Ignore JML functions (FIXME - should we make this a JmlTreeScanner and do lots more checks?)
     }
 

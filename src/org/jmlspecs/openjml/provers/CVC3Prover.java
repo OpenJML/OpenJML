@@ -496,7 +496,7 @@ public class CVC3Prover extends AbstractProver implements IProver {
         ProverResult r = new ProverResult("cvc3");
         if (sat || unknown) {
             justChecked = true;
-            if (unknown) r.result(ProverResult.POSSIBLYSAT);
+            if (unknown) r.result(ProverResult.POSSIBLY_SAT);
             else r.result(ProverResult.SAT);
             if (details) {
                 send("COUNTERMODEL;\n");
