@@ -57,7 +57,7 @@ public class List<A> extends AbstractCollection<A> implements java.util.List<A> 
     /** The remainder of the list except for its first element, supposed
      *  to be immutable.
      */
-    //@Deprecated
+    // @Deprecated
     public List<A> tail;
 
     /** Construct a list given its head and tail.
@@ -139,14 +139,14 @@ public class List<A> extends AbstractCollection<A> implements java.util.List<A> 
 
     /** Does list have elements?
      */
-    //@Deprecated
+    // @Deprecated
     public boolean nonEmpty() {
         return tail != null;
     }
 
     /** Return the number of elements in this list.
      */
-    //@Deprecated
+    // @Deprecated
     public int length() {
         List<A> l = this;
         int len = 0;

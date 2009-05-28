@@ -885,7 +885,9 @@ public class Check {
                 // The enclosing type is not a class, so we are
                 // looking at a static member type.  However, the
                 // qualifying expression is parameterized.
-                log.error(tree.pos(), "cant.select.static.class.from.param.type");
+                //log.error(tree.pos(), "cant.select.static.class.from.param.type"); // FIXME - ignore this error
+                tree.selected.type = tree.selected.type.tsym.erasure_field;
+                tree.selected.accept(this); // DRC - added
             } else {
                 // otherwise validate the rest of the expression
                 tree.selected.accept(this);

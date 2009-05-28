@@ -1386,16 +1386,16 @@ public class HtmlDocletWriter extends HtmlDocWriter {
         MemberDoc refMem = see.referencedMember();
         String refMemName = see.referencedMemberName();
         if (refClass == null) {
-            //@see is not referencing an included class
+            // @see is not referencing an included class
             PackageDoc refPackage = see.referencedPackage();
             if (refPackage != null && refPackage.isIncluded()) {
-                //@see is referencing an included package
+                // @see is referencing an included package
                 String packageName = isplaintext ? refPackage.name() :
                     getCode() + refPackage.name() + getCodeEnd();
                 result.append(getPackageLink(refPackage,
                     label.length() == 0 ? packageName : label, false));
             } else {
-                //@see is not referencing an included class or package.  Check for cross links.
+                // @see is not referencing an included class or package.  Check for cross links.
                 String classCrossLink, packageCrossLink = getCrossPackageLink(refClassName);
                 if (packageCrossLink != null) {
                     //Package cross link found

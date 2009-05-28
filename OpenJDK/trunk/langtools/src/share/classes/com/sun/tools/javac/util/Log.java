@@ -56,13 +56,13 @@ public class Log extends AbstractLog {
     public static final Context.Key<PrintWriter> outKey =
         new Context.Key<PrintWriter>();
 
-    //@Deprecated
+    // @Deprecated
     public final PrintWriter errWriter;
 
-    //@Deprecated
+    // @Deprecated
     public final PrintWriter warnWriter;
 
-    //@Deprecated
+    // @Deprecated
     public final PrintWriter noticeWriter;
 
     /** The maximum number of errors/warnings that are reported.
