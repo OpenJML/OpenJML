@@ -3,7 +3,9 @@
 <plugin>
 
   <!-- This defines a builder used to do JML checking as part of the
-		Eclipse compilation process
+		Eclipse compilation process.  The unqualified id appears
+		to be implicitly prefixed by the plugin id as defined in
+		the Activator and in the manifest.
 		-->
   <extension
          id="JMLBuilder"
@@ -16,7 +18,10 @@
   </extension>
    
   <!-- An Eclipse Nature that designates a Java project as one to
-   		which JML tools can be applied.  It also controls the builder.
+   	which JML tools can be applied.  It also controls the builder.
+   	The unqualified id appears
+        to be implicitly prefixed by the plugin id as defined in
+        the Activator and in the manifest.
    		-->
   <extension
          id="JMLNatureID"
@@ -27,13 +32,15 @@
       <run class="org.jmlspecs.openjml.eclipse.JMLNature"/>
     </runtime>
     <builder
-            id="org.jmlspecs.openjml.eclipse.JMLBuilder">
+            id="org.jmlspecs.OpenJMLUI.JMLBuilder">
     </builder>
     <!-- FIXME - what about parameter or content-type ? -->
   </extension>
    
   <!-- This decorator is applied to Java projects to indicate whether
 	they have a JML Nature (with decorator) or not (no decorator).
+	NOTE: Per the code in PopupActions.java the decorator id must
+	be PLUGIN_ID + ".JMLDecorator"
 	-->
   <extension
          point="org.eclipse.ui.decorators">
@@ -43,13 +50,13 @@
             label="JML"
             icon="icons/JMLSmall.png"
             state="true"
-            id="org.jmlspecs.openjml.eclipse.JMLDecoration">
+            id="org.jmlspecs.OpenJMLUI.JMLDecoration">
        <description>
             JML nature is enabled for this project
        </description>
        <enablement>
         	<and>
-                <objectState name="nature" value="org.jmlspecs.openjml.eclipse.JMLNatureID"/>
+                <objectState name="nature" value="org.jmlspecs.OpenJMLUI.JMLNatureID"/>
                 <objectClass name="org.eclipse.jdt.core.IJavaProject"/> 
              </and>
        </enablement>
@@ -525,6 +532,9 @@
 <!-- FIXME - is the declarationInfo attribute actually used ? -->
 	
   <!-- This connects the JML markers to editor annotations  -->
+  <!--  NOTE: Per the code in JMLBuilder the marker type must
+        be PLUGIN_ID + ".JMLProblem"
+  -->
   <!-- Note: The type declarations used to have an attribute
   			super="org.eclipse.ui.workbench.texteditor.error"
   	   (there may be a corresponding one for warning as well).  With that
@@ -539,20 +549,20 @@
          point="org.eclipse.ui.editors.annotationTypes"
          id="JMLAnnotation">
     <type
-            markerType="org.jmlspecs.openjml.eclipse.JMLProblem"
-            name="org.jmlspecs.openjml.eclipse.JMLProblemAnnotation"
+            markerType="org.jmlspecs.OpenJMLUI.JMLProblem"
+            name="org.jmlspecs.OpenJMLUI.JMLProblemAnnotation"
             markerSeverity="2"
             >
     </type>
     <type
-            markerType="org.jmlspecs.openjml.eclipse.JMLProblem"
-            name="org.jmlspecs.openjml.eclipse.JMLWarningAnnotation"
+            markerType="org.jmlspecs.OpenJMLUI.JMLProblem"
+            name="org.jmlspecs.OpenJMLUI.JMLWarningAnnotation"
             markerSeverity="1"
                         >
     </type>
     <type
-            markerType="org.jmlspecs.openjml.eclipse.JMLProblem"
-            name="org.jmlspecs.openjml.eclipse.JMLNoteAnnotation"
+            markerType="org.jmlspecs.OpenJMLUI.JMLProblem"
+            name="org.jmlspecs.OpenJMLUI.JMLNoteAnnotation"
             markerSeverity="0"
                         >
     </type>
@@ -570,7 +580,7 @@
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
     <specification
             icon="icons/jml_problem.gif"
-            annotationType="org.jmlspecs.openjml.eclipse.JMLProblemAnnotation"
+            annotationType="org.jmlspecs.OpenJMLUI.JMLProblemAnnotation"
             label="JML Error"
             overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpKey"
             verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpKey"
@@ -587,7 +597,7 @@
     </specification>
     <specification
             icon="icons/jml_warning.gif"
-            annotationType="org.jmlspecs.openjml.eclipse.JMLWarningAnnotation"
+            annotationType="org.jmlspecs.OpenJMLUI.JMLWarningAnnotation"
             label="JML Warning"
             overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpwKey"
             verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpwKey"
@@ -604,7 +614,7 @@
     </specification>
     <specification
             icon="icons/jml_note.gif"
-            annotationType="org.jmlspecs.openjml.eclipse.JMLNoteAnnotation"
+            annotationType="org.jmlspecs.OpenJMLUI.JMLNoteAnnotation"
             label="JML Note"
             overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpnKey"
             verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpnKey"

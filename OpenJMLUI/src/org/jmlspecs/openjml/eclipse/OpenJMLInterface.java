@@ -845,7 +845,7 @@ public class OpenJMLInterface {
             }
         }
         
-        {
+        if (lastRun != null) {
             String versionString = System.getProperty("java.version");
             int version = 6; // the current default
             if (versionString.startsWith("1.6")) version = 6;
@@ -861,10 +861,11 @@ public class OpenJMLInterface {
             if (specsBundle == null) {
                 Log.log("No specification plugin " + Activator.SPECS_PLUGIN_ID);
             } else {
+                String loc = null;
                 try {
                     URL url = FileLocator.toFileURL(specsBundle.getResource(""));
                     File root = new File(url.toURI());
-                    String loc = root.toString();
+                    loc = root.toString();
                     Log.log("JMLSpecs plugin found " + root + " " + root.exists());
                     String[] defspecs = new String[5]; // null entries OK
                     if (root.isFile()) {
@@ -893,13 +894,12 @@ public class OpenJMLInterface {
                         f = new File(root,"java4");
                         if (version >= 4 && f.exists()) defspecs[4] = root + "/java4";
                     } else {
-                        Log.log("Stuff not found in specs bundle");
+                        Log.log("Stuff not found in specs bundle at " + root);
                     }
-                    Log.log("Set external specspath defaults");
-                    for (String z: defspecs) if (z != null) JmlSpecs.externalDefaultSpecs = defspecs;  // FIXME - go through API class
-                    if (JmlSpecs.externalDefaultSpecs != null) Log.log("Whoops - nothing there");
+                    for (String z: defspecs) if (z != null) lastRun.setLibrarySpecsPath(defspecs);
+                    if (JmlSpecs.externalDefaultSpecs != null) Log.log("Set library specspath defaults from JMLspecs plugin");
                 } catch (Exception e) {
-                    Log.log("Stuff not found in specs bundle");
+                    Log.log("Stuff not found in specs bundle: "+ loc + " " + e);
                 }
             }
             Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
@@ -942,6 +942,14 @@ public class OpenJMLInterface {
         // specs , classpath , sourcepath, stopiferrors
         // Java options, Jmldoc options
         return opts;
+    }
+    
+//    public java.util.List<String> getSpecsPath() {
+//        return lastRun.getSpecsPath();
+//    }
+    
+    public void setOption(String name, String value) {
+        lastRun.setOption(name,value);
     }
     
     public String getBasicBlockProgram(MethodSymbol msym) {

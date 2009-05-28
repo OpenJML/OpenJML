@@ -623,6 +623,9 @@ public class Utils {
             StringBuilder ss = new StringBuilder();
             for (File s: list) { ss.append(s.toString()); ss.append("\n"); }
             if (!Activator.options.noInternalSpecs) ss.append("<Using internal JML library specs>");
+//            ss.append("----------------\n");
+//            List<String> pdirs = jml.getSpecsPath();
+//            for (String s: pdirs) { ss.append(s); ss.append("\n");
             showMessage(shell,"JML Specs path for project " + jp.getElementName(), ss.toString());
         }
     }
