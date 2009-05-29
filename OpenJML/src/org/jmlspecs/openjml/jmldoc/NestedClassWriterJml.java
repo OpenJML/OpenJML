@@ -21,12 +21,12 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javadoc.ClassDocImpl;
 import com.sun.tools.javadoc.DocEnv;
 
-/** This class extends its parent class in order to add to the list of
- * Java nested classes printed out by Javadoc any model nested classes or
- * interfaces supplied by JML.  
+/**
+ * This class extends its parent class in order to add to the list of Java
+ * nested classes printed out by Javadoc any nested model classes or interfaces
+ * supplied by JML.
  * 
- * @author David Cok
- *
+ * @author David R. Cok
  */
 public class NestedClassWriterJml extends NestedClassWriterImpl {
 

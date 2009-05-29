@@ -4,12 +4,12 @@ import org.jmlspecs.openjml.JmlOptionName;
 
 import com.sun.tools.javadoc.Start;
 
-/** This class is an alternate class to initiate the standard doclet.
- * It simply provides additional usage information for the command-line
- * options.  (It could also specify an alternate doclet to use.)
+/**
+ * This class is an alternate class to initiate the standard doclet. It simply
+ * provides additional usage information for the command-line options. (It could
+ * also specify an alternate doclet to use.)
  * 
- * @author David Cok
- *
+ * @author David R. Cok
  */
 public class JmlStart extends Start {
 

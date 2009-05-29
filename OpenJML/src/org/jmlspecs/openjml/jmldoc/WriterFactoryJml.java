@@ -10,17 +10,18 @@ import com.sun.tools.doclets.internal.toolkit.*;
 import com.sun.tools.doclets.internal.toolkit.util.ClassTree;
 import com.sun.tools.doclets.internal.toolkit.util.VisibleMemberMap;
 
-// MAINTENANCE: This replicates the code in com.sun.tools.doclets.formats.html.WriterFactoryImpl
-// even though much of it is unchanged.  We would like to extend that class, but it is not written
-// in an extensible way.
+// MAINTENANCE: This replicates the code in
+// com.sun.tools.doclets.formats.html.WriterFactoryImpl
+// even though much of it is unchanged. We would like to extend that class, but
+// it is not written in an extensible way.
 
-/** This class extends WriterFactory in order to override factory methods so that 
+/**
+ * This class extends WriterFactory in order to override factory methods so that
  * they create JML-enabled writer, that then write HTML content that includes
  * JML information.
  */
 public class WriterFactoryJml implements WriterFactory 
 {
-
     /** A lazily-initialized singleton instance of the factory */
     private static WriterFactoryJml instance;
 

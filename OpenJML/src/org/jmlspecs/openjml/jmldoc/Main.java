@@ -36,9 +36,10 @@ public class Main extends org.jmlspecs.openjml.Main {
         System.exit(execute(args));
     }
 
-    /** The compilation context used for JML parsing (which is different than
-     * the context used for javadoc parsing - see the
-     * <A HREF="package-summary.html">package documentation</A>.
+    /**
+     * The compilation context used for JML parsing (which is different than the
+     * context used for javadoc parsing - see the <A HREF="package.html">package
+     * documentation</A>.
      */
     public static Context jmlContext = new Context(); // FIXME - not thread safe
 
