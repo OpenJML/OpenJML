@@ -32,10 +32,11 @@ import com.sun.tools.javadoc.ClassDocImpl;
 import com.sun.tools.javadoc.DocEnv;
 import com.sun.tools.javadoc.FieldDocImpl;
 
-/** This class extends its Javadoc parent class in order to write out any
- * JML specifications associated with 
- * @author L593102
- *
+/**
+ * This class extends its Javadoc parent class in order to write out any JML
+ * specifications associated with fields.
+ * 
+ * @author David R. Cok
  */
 public class FieldWriterJml extends FieldWriterImpl {
 

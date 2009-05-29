@@ -13,7 +13,7 @@ system_chart OPENJML
   cluster JAVA_AST
     description
       "TBW."
-  cluster JAVA_PARSER
+  cluster JAVA_FRONTEND
     description
       "TBW."
   cluster JAVA_COMPILER
@@ -34,8 +34,10 @@ system_chart OPENJML
   cluster OPENJML_UTILS
     description
       "TBW."
+  cluster OPENJMLDOC
+    description "A JML-aware javadoc called jmldoc built on top of the OpenJDK."
 end
-
+      
 -- ===================================================================
 -- Cluster Charts
 -- ===================================================================
@@ -71,7 +73,7 @@ cluster_chart JAVA_AST
     refines_to: "comsun.source.tree";
 end
 
-cluster_chart JAVA_PARSER
+cluster_chart JAVA_FRONTEND
   indexing
     author: "Sun Microsystems";
   class JAVA_DOCUMENTATION_SCANNER
@@ -279,7 +281,7 @@ class_chart JML_PARSER
     refines_to: "com.sun.tools.javac.parser.JmlParser";
     review: "No comment.";
   explanation
-    ""
+    "TBD"
   inherit JAVA_PARSER
 end
 
@@ -288,7 +290,7 @@ class_chart JML_SCANNER
     refines_to: "com.sun.tools.javac.parser.JmlScanner";
     review: "No comment.";
   explanation
-    ""
+    "TBD"
   inherit JAVA_SCANNER
 end
 

@@ -29,11 +29,12 @@ import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javadoc.ClassDocImpl;
 
-/** This class extends ClassWriterImpl in order to include in the HTML output
- * information about the JML specifications of the class whose javadoc page
- * is being written.
+/**
+ * This class extends ClassWriterImpl in order to include in the HTML output
+ * information about the JML specifications of the class whose javadoc page is
+ * being written.
+ * 
  * @author David R. Cok
- *
  */
 public class ClassWriterJml extends ClassWriterImpl {
     

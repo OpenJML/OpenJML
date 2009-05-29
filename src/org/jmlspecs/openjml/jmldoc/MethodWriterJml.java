@@ -37,11 +37,12 @@ import com.sun.tools.javadoc.ClassDocImpl;
 import com.sun.tools.javadoc.DocEnv;
 import com.sun.tools.javadoc.MethodDocImpl;
 
-/** This class extends its parent in order (a) to add JML specification 
- * information to the documentation of Java methods and (b) to document
- * model methods.
+/**
+ * This class extends its parent in order (a) to add JML specification
+ * information to the documentation of Java methods and (b) to document model
+ * methods.
  * 
- * @author David Cok
+ * @author David R. Cok
  */
 public class MethodWriterJml extends MethodWriterImpl {
 

@@ -35,11 +35,12 @@ import com.sun.tools.javadoc.ClassDocImpl;
 import com.sun.tools.javadoc.ConstructorDocImpl;
 import com.sun.tools.javadoc.DocEnv;
 
-/** This class extends its parent in order to write out documentation about
- * (a) model constructors and (b) the JML specifications of constructors and
- * model constructors.
- * @author David Cok
- *
+/**
+ * This class extends its parent in order to write out documentation about (a)
+ * model constructors and (b) the JML specifications of constructors and model
+ * constructors.
+ * 
+ * @author David R. Cok
  */
 public class ConstructorWriterJml extends ConstructorWriterImpl {
 

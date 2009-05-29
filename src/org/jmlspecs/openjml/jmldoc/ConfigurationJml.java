@@ -6,13 +6,12 @@ import com.sun.tools.doclets.internal.toolkit.WriterFactory;
 
 import org.jmlspecs.annotations.NonNull;
 
-
-/** This class extends the ComfigurationImpl class that is part of the javadoc
- * tool; the extension is needed so that the configuration used by the doclet contains
- * the factory that writes JML information.
+/**
+ * This class extends the ConfigurationImpl class that is part of the javadoc
+ * tool; the extension is needed so that the configuration used by the doclet
+ * contains the factory that writes JML information.
  * 
- * @author David Cok
- *
+ * @author David R. Cok
  */
 public class ConfigurationJml extends ConfigurationImpl {
     
