@@ -56,6 +56,7 @@ public class Check {
     protected static final Context.Key<Check> checkKey =
         new Context.Key<Check>();
 
+    protected Context context;
     private final Names names;
     private final Log log;
     private final Symtab syms;
@@ -82,6 +83,7 @@ public class Check {
     protected Check(Context context) {
         context.put(checkKey, this);
 
+        this.context = context;
         names = Names.instance(context);
         log = Log.instance(context);
         syms = Symtab.instance(context);
@@ -1871,6 +1873,17 @@ public class Check {
             if (e.sym.kind == MTH)
                 members.add((MethodSymbol) e.sym);
 
+        // DRC - added this first case to take care of the situation in which there is just one member 
+        // that is assigned implicitly
+        if (a.args.size() == 1 && members.size() == 1) {
+            JCTree arg = a.args.iterator().next();
+            if (arg.getTag() != JCTree.ASSIGN) {
+                Symbol sym = members.iterator().next();
+                JCIdent id = TreeMaker.instance(context).Ident(sym);
+                a.args.head = TreeMaker.instance(context).Assign(id,a.args.head);
+            }
+        }
+
         // count them off as they're annotated
         for (JCTree arg : a.args) {
             if (arg.getTag() != JCTree.ASSIGN) continue; // recovery
@@ -1883,13 +1896,13 @@ public class Check {
             if (assign.rhs.getTag() == ANNOTATION)
                 validateAnnotation((JCAnnotation)assign.rhs);
         }
-
+        
         // all the remaining ones better have default values
         for (MethodSymbol m : members)
             if (m.defaultValue == null && !m.type.isErroneous())
                 log.error(a.pos(), "annotation.missing.default.value",
                           a.type, m.name);
-
+        
         // special case: java.lang.annotation.Target must not have
         // repeated values in its value member
         if (a.annotationType.type.tsym != syms.annotationTargetType.tsym ||
