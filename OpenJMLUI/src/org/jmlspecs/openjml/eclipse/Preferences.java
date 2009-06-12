@@ -14,6 +14,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
+import com.sun.tools.javac.main.JavaCompiler;
+
 /**
  * @author David Cok
  * 
@@ -234,6 +236,9 @@ implements IWorkbenchPreferencePage {
    */
   private Control addControl(Composite parent) {
     Composite composite0 = new Widgets.VComposite(parent);
+    
+    new Label(composite0, SWT.CENTER)
+    .setText("OpenJML version: " + OpenJMLInterface.version());
     new Label(composite0, SWT.CENTER)
     .setText("These options are workspace options that apply to every JML-enabled Java project.");
 //  Composite composite0 = new Widgets.HComposite(composite0a, 2);

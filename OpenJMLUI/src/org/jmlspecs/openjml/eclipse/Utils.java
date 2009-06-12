@@ -1,9 +1,12 @@
+/*
+ * This file is part of the OpenJML plugin project. 
+ * Copyright 2006-2009 David R. Cok
+ */
 package org.jmlspecs.openjml.eclipse;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringBufferInputStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,17 +16,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -35,6 +34,7 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -51,9 +51,10 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.part.FileEditorInput;
 import org.jmlspecs.annotations.NonNull;
 import org.jmlspecs.annotations.Nullable;
+import org.jmlspecs.annotations.Pure;
+import org.jmlspecs.annotations.Query;
 
 public class Utils {
 
@@ -72,6 +73,28 @@ public class Utils {
         }
     }
 
+    /** The ID of the marker, which must match that in the plugin file. */
+    final public static @NonNull String JML_MARKER_ID = Activator.PLUGIN_ID + ".JMLProblem";
+
+    /** A map relating java projects to the instance of OpenJMLInterface that
+     * handles openjml stuff for that project.  we have a separate instance for
+     * each project since options can be different by project.
+     */
+    final
+    protected @NonNull Map<IJavaProject,OpenJMLInterface> projectMap = new HashMap<IJavaProject,OpenJMLInterface>();
+
+    /** Returns the unique OpenJMLInterface for a given project
+     * @param jproject the Java project whose interface is desired
+     * @return the OpenJMLInterface for that project
+     */
+    public @NonNull OpenJMLInterface getInterface(@NonNull IJavaProject jproject) {
+        OpenJMLInterface i = projectMap.get(jproject);
+        if (i == null) {
+            projectMap.put(jproject, i = new OpenJMLInterface(jproject));
+        }
+        return i;
+    }
+
     /** This routine initiates (as a Job) checking the JML of all the Java files
      * in the selection; if any containers are selected, the operation applies
      * the contents of the container (including working sets); if any Java 
@@ -82,27 +105,30 @@ public class Utils {
      * @param shell  the current shell
      */
     public void checkSelection(@NonNull final ISelection selection, @Nullable final IWorkbenchWindow window, @NonNull final Shell shell) {
-        final List<IResource> res = getSelectedResources(selection,window,shell);
+        List<IResource> res = getSelectedResources(selection,window,shell);
         if (res.size() == 0) {
             showMessage(shell,"JML Check","Nothing appropriate to check");
             return;
         }
         deleteMarkers(res,shell);
-        Job j = new Job("JML Manual Build") {
-            public IStatus run(IProgressMonitor monitor) {
-                boolean c = false;
-                try {
-                    ProjectInfo pi = new ProjectInfo(Activator.options,JMLBuilder.preq);
-                    (new OpenJMLInterface(pi)).executeExternalCommand(OpenJMLInterface.Cmd.CHECK,res,monitor);
-                } catch (Exception e) {
-                    showMessageInUI(shell,"OpenJML Exception",e.getClass() + " - " + e.getMessage());
-                    c = true;
+        final Map<IJavaProject,List<IResource>> sorted = sortByProject(res);
+        for (final IJavaProject jp : sorted.keySet()) {
+            final List<IResource> ores = sorted.get(jp);
+            Job j = new Job("JML Manual Build") {
+                public IStatus run(IProgressMonitor monitor) {
+                    boolean c = false;
+                    try {
+                        getInterface(jp).executeExternalCommand(OpenJMLInterface.Cmd.CHECK,ores,monitor);
+                    } catch (Exception e) {
+                        showMessageInUI(shell,"OpenJML Exception",e.getClass() + " - " + e.getMessage());
+                        c = true;
+                    }
+                    return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
                 }
-                return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
-            }
-        };
-        j.setUser(true); // FIXME - document this and elsewhere
-        j.schedule();
+            };
+            j.setUser(true); // FIXME - document this and elsewhere
+            j.schedule();
+        }
     }
 
     /** This routine initiates (as a Job) executing ESC on all the Java files
@@ -113,31 +139,35 @@ public class Utils {
      * @param window null or the currently active IWorkbenchWindow
      * @param shell  the current shell
      */
-    public void checkESCSelection(ISelection selection, IWorkbenchWindow window, final Shell shell) {
+    public void checkESCSelection(ISelection selection, @Nullable IWorkbenchWindow window, @Nullable final Shell shell) {
         final List<Object> res = getSelectedElements(selection,window,shell);
         if (res.size() == 0) {
             showMessage(shell,"ESC","Nothing applicable to check");
             return;
         }
-        Log.log("Checking ESC (" + res.size() + " items)");
-        deleteMarkers(res,shell);
-        Job j = new Job("Static Checks - Manual") {
-            public IStatus run(IProgressMonitor monitor) {
-                ProjectInfo pi = new ProjectInfo(Activator.options,JMLBuilder.preq);
-                boolean c = false;
-                try {
-                    (new OpenJMLInterface(pi)).executeESCCommand(OpenJMLInterface.Cmd.ESC,res,monitor);
-                } catch (Exception e) {
-                    String s = e.getMessage();
-                    if (s == null || s.length()==0) s = e.getClass().toString();
-                    showMessageInUI(shell,"OpenJML",s);
-                    c = true;
+        final Map<IJavaProject,List<Object>> sorted = sortByProject(res);
+        for (final IJavaProject jp : sorted.keySet()) {
+            final List<Object> ores = sorted.get(jp);
+            Log.log("Checking ESC (" + res.size() + " items)");
+            deleteMarkers(res,shell);
+            Job j = new Job("Static Checks - Manual") {
+                public IStatus run(IProgressMonitor monitor) {
+                    boolean c = false;
+                    try {
+                        getInterface(jp).executeESCCommand(OpenJMLInterface.Cmd.ESC,
+                                        ores,monitor);
+                    } catch (Exception e) {
+                        String s = e.getMessage();
+                        if (s == null || s.length()==0) s = e.getClass().toString();
+                        showMessageInUI(shell,"OpenJML",s);
+                        c = true;
+                    }
+                    return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
                 }
-                return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
-            }
-        };
-        j.setUser(true);
-        j.schedule();
+            };
+            j.setUser(true);
+            j.schedule();
+        }
     }
 
     /** This routine initiates (as a Job) compiling RAC for all the Java files
@@ -149,28 +179,30 @@ public class Utils {
      * @param window null or the currently active IWorkbenchWindow
      * @param shell  the current shell
      */
-    public void racSelection(final ISelection selection, @Nullable final IWorkbenchWindow window, final Shell shell) {
+    public void racSelection(final @NonNull ISelection selection, @Nullable final IWorkbenchWindow window, final Shell shell) {
         // For now at least, only IResources are accepted for selection
-        final List<IResource> res = getSelectedResources(selection,window,shell);
+        final @NonNull List<IResource> res = getSelectedResources(selection,window,shell);
         if (res.size() == 0) {
             showMessage(shell,"JML RAC","Nothing appropriate to check");
             return;
         }
-        Job j = new Job("Compiling Runtime Assertions") {
-            public IStatus run(IProgressMonitor monitor) {
-                boolean c = false;
-                try {
-                    ProjectInfo pi = new ProjectInfo(Activator.options,JMLBuilder.preq);
-                    (new OpenJMLInterface(pi)).executeExternalCommand(OpenJMLInterface.Cmd.RAC,res,monitor);
-                } catch (Exception e) {
-                    showMessageInUI(shell,"OpenJML",e.getMessage());
-                    c = true;
+        final @NonNull Map<IJavaProject,List<IResource>> sorted = sortByProject(res);
+        for (final IJavaProject jp : sorted.keySet()) {
+            Job j = new Job("Compiling Runtime Assertions") {
+                public IStatus run(IProgressMonitor monitor) {
+                    boolean c = false;
+                    try {
+                        getInterface(jp).executeExternalCommand(OpenJMLInterface.Cmd.RAC,sorted.get(jp),monitor);
+                    } catch (Exception e) {
+                        showMessageInUI(shell,"OpenJML",e.getMessage());
+                        c = true;
+                    }
+                    return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
                 }
-                return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
-            }
-        };
-        j.setUser(true);
-        j.schedule();
+            };
+            j.setUser(true);
+            j.schedule();
+        }
     }
 
     /** This routine initiates (as a Job) generating jmldoc pages for each 
@@ -195,8 +227,7 @@ public class Utils {
                     Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
                     if (projects.size() == 0) projects = getSelectedProjects(true,selection,window,shell);
                     for (IJavaProject p : projects) {
-                        ProjectInfo pi = new ProjectInfo(Activator.options,JMLBuilder.preq);
-                        (new OpenJMLInterface(pi)).generateJmldoc(p);
+                        getInterface(p).generateJmldoc(p);
                     }
                 } catch (Exception e) {
                     showMessageInUI(shell,"OpenJML",e.getMessage());
@@ -217,8 +248,6 @@ public class Utils {
      */
     public void showSpecsForSelection(ISelection selection, @Nullable IWorkbenchWindow window, Shell shell) {
         List<Object> list = getSelectedElements(selection, window, shell);
-        ProjectInfo pi = null;
-        OpenJMLInterface jml = new OpenJMLInterface(pi);
         String sn = "";
         boolean something = false;
         for (Object o : list) {
@@ -226,17 +255,17 @@ public class Utils {
                 String s = null;
                 if (o instanceof IType) {
                     IType t = (IType)o;
-                    s = jml.getAllSpecs(t);
+                    s = getInterface(t.getJavaProject()).getAllSpecs(t);
                     if (s != null) s = s.replace('\r',' ');
                     sn = "type " + t.getFullyQualifiedName();
                 } else if (o instanceof IMethod) {
                     IMethod m = (IMethod)o;
-                    s = jml.getAllSpecs(m);
+                    s = getInterface(m.getJavaProject()).getAllSpecs(m);
                     if (s != null) s = s.replace('\r',' ');
                     sn = "method " + m.getDeclaringType().getFullyQualifiedName() + "." + m.getElementName();
                 } else if (o instanceof IField) {
                     IField f = (IField)o;
-                    s = jml.getSpecs(f);
+                    s = getInterface(f.getJavaProject()).getSpecs(f);
                     if (s != null) s = s.replace('\r',' ');
                     sn = "field " + f.getDeclaringType().getFullyQualifiedName() + "." + f.getElementName();
                 }
@@ -252,7 +281,7 @@ public class Utils {
                 showMessage(shell,"JML", e.getMessage());
             }
         }
-        if (!something) showMessage(shell,"JML", "Choose a type, method or field to show specifications");
+        if (!something) showMessage(shell,"JML", "Choose a type, method or field whose specifications are to be shown");
     }
 
 
@@ -270,16 +299,16 @@ public class Utils {
             // Ignore anything that does not match.  Other types of items can be
             // selected, particularly with a MenuAction.
         }
-        ProjectInfo pi = null;
-        OpenJMLInterface jml = new OpenJMLInterface(pi);
         if (list.isEmpty()) {
-            showMessage(shell,"JML","No methods were selected for the 'show counterexample' operation");
+            showMessage(shell,"JML","No methods were selected for the 'show proof info' operation");
         } else {
             for (IMethod m: list) {
+                OpenJMLInterface jml = getInterface(m.getJavaProject());
                 jml.showProofInfo(m,shell); // This puts up an appropriate dialog 
             }
         }
     }
+    
     /**
      * This method interprets the selection returning a List of IResources or
      * IJavaElements, and
@@ -401,8 +430,8 @@ public class Utils {
                         }
                     }
                 }
-//            } else {
-//                showMessage(shell,"Unknown selection",selection.getClass().toString());
+                //            } else {
+                //                showMessage(shell,"Unknown selection",selection.getClass().toString());
             }
         }
         if (convert && list.size() == 0) {
@@ -491,6 +520,16 @@ public class Utils {
         return list;
     }
 
+    /** Alters whether the JML nature is enabled or disabled for the given
+     * selected objects.  The operation makes sense only for IJavaProject objects;
+     * if other types of objects are selected, the enclosing IJavaProject is
+     * used; if there is none, the selected object is ignored.   The operation is
+     * performed entirely in the UI thread (and should be called from the UI thread).
+     * @param enable if true, the JML nature is enabled; if false, it is disabled
+     * @param selection the objects selected in the UI
+     * @param window the current window
+     * @param shell the current shell (for any dialogs)
+     */
     public void changeJmlNatureSelection(boolean enable, ISelection selection, IWorkbenchWindow window, Shell shell) {
         Collection<IJavaProject> list = Activator.getDefault().utils.getSelectedProjects(true,selection,window,shell);
         Iterator<IJavaProject> i = list.iterator();
@@ -523,7 +562,8 @@ public class Utils {
     // FIXME - should resource things be happening in another thread?
     /** Deletes all JML markers from the items selected, right within the UI thread,
      * without a progress dialog.  The resources for which markers are deleted are
-     * those returned by Utils.getSelectedResources.
+     * those returned by Utils.getSelectedResources.   This should be called from
+     * the UI thread.
      * @param selection the IStructuredSelection whose markers are to be deleted
      * @param window the current workbench window, or null (used in getSelectedResources)
      * @param shell the current Shell, or null for the default shell (for message dialogs)
@@ -537,14 +577,21 @@ public class Utils {
         deleteMarkers(list,shell);
         return;
     }
-    
+
 
     /** This map holds the specs path for each project.  The specs path can hold
      * folders or libraries (jar files).
      */
     Map<IJavaProject, List<File>> specsPaths = new HashMap<IJavaProject, List<File>>();
-    
-    public void addSelectionToSpecsPath(ISelection selection, IWorkbenchWindow window, Shell shell) {
+
+    /** Expects the selection to hold exactly one Java project, plus one or more
+     * folders or jar files; those folders and jar files are added to the 
+     * beginning of the specs path for the given project.
+     * @param selection the current selection in the UI
+     * @param window the currently active window
+     * @param shell the current shell (for dialogs)
+     */
+    public void addSelectionToSpecsPath(ISelection selection, IWorkbenchWindow window, @Nullable Shell shell) {
         Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
         if (projects.size() != 1) {
             showMessage(shell,"JML - Add to Specs Path", "Select exactly one Java Project along with the desired folders");
@@ -573,7 +620,7 @@ public class Utils {
             if (specslist.contains(f)) {
                 showMessage(shell,"JML - Add to Specs Path","The specs path for " + jp.getElementName() + " already contains " + f);
             } else {
-                specslist.add(0,f);
+                specslist.add(0,f); // Add to the beginning
                 added = true;
             }
         }
@@ -583,8 +630,15 @@ public class Utils {
             showMessage(shell,"JML - Add to Specs Path","Nothing was added");
         }
     }
-    
-    public void removeSelectionFromSpecsPath(ISelection selection, IWorkbenchWindow window, Shell shell) {
+
+    /** Expects the selection to hold exactly one Java project, plus one or more
+     * folders or jar files; those folders and jar files are removed from the 
+     * the specs path of the given project.
+     * @param selection the current selection in the UI
+     * @param window the currently active window
+     * @param shell the current shell (for dialogs)
+     */
+    public void removeSelectionFromSpecsPath(ISelection selection, @Nullable IWorkbenchWindow window, @Nullable Shell shell) {
         Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
         if (projects.size() != 1) {
             showMessage(shell,"JML - Remove from Specs Path", "Select exactly one Java Project along with the desired folders");
@@ -613,7 +667,8 @@ public class Utils {
             showMessage(shell,"JML - Remove from Specs Path","These were not removed: " + notremoved);
         }
     }
-    
+
+    // TODO _ document; also clarify the content
     public void manipulateSpecsPath(ISelection selection, IWorkbenchWindow window, Shell shell) {
         Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
         if (projects.size() == 0)  projects = getSelectedProjects(true,selection,window,shell);
@@ -622,14 +677,20 @@ public class Utils {
             if (list == null) specsPaths.put(jp,list = new LinkedList<File>());
             StringBuilder ss = new StringBuilder();
             for (File s: list) { ss.append(s.toString()); ss.append("\n"); }
-            if (!Activator.options.noInternalSpecs) ss.append("<Using internal JML library specs>");
-//            ss.append("----------------\n");
-//            List<String> pdirs = jml.getSpecsPath();
-//            for (String s: pdirs) { ss.append(s); ss.append("\n");
+            if (!Activator.options.noInternalSpecs) ss.append("<Using internal JML library specs>\n");
+            ss.append("----------------\n");
+            List<String> pdirs = getInterface(jp).getSpecsPath();
+            for (String s: pdirs) { ss.append(s); ss.append("\n"); }
             showMessage(shell,"JML Specs path for project " + jp.getElementName(), ss.toString());
         }
     }
-    
+
+    /** Shows the classpath for selected projects.  
+     * SHould be called from the UI thread; is executed entirely in the calling thread.
+     * @param selection the current selection in the UI
+     * @param window the currently active window
+     * @param shell the currently active shell (or null for default)
+     */
     public void manipulateClassPath(ISelection selection, IWorkbenchWindow window, Shell shell) {
         Collection<IJavaProject> projects = getSelectedProjects(true,selection,window,shell);
         for (IJavaProject jp: projects) {
@@ -639,8 +700,15 @@ public class Utils {
             showMessage(shell,"JML Classpath for project " + jp.getElementName(), ss.toString());
         }
     }
-    
-    List<String> getClasspath(IJavaProject jproject) {
+
+    /** Gets the classpath of the given project, interpreting all Eclipse entries
+     * and converting them into file system paths to directories or jars.
+     * @param jproject the Java project whose class path is wanted
+     * @return a List of Strings giving the paths to the files and directories 
+     * on the class path
+     */
+    @NonNull
+    List<String> getClasspath(@NonNull IJavaProject jproject) {
         try {
             IClasspathEntry[] entries = jproject.getResolvedClasspath(true); // FIXME - resovled or raw? true or false?
             List<String> cpes = new LinkedList<String>();
@@ -660,8 +728,8 @@ public class Utils {
                     case IClasspathEntry.CPE_PROJECT:
                     case IClasspathEntry.CPE_VARIABLE:
                     default:
-                        Log.log("CPE NOT HANDLED" + i);
-                        break;
+                        Log.log("CPE NOT HANDLED" + i);  // FIXME - and better error message
+                    break;
                 }
             }
             return cpes;
@@ -669,61 +737,128 @@ public class Utils {
             throw new Utils.OpenJMLException("Failed in determining classpath",e);
         }
     }
-    
+
+    /** This class is an implementation of the interfaces needed to provide input
+     * to and launch editors in the workspace.
+     * @author David R. Cok
+     */
     public static class StringStorage implements IStorage, IStorageEditorInput {
-        private String content;
-        private String name;
-        public StringStorage(String content, String name) { this.content = content; this.name = name; }
+        /** The initial content of the editor */
+        private @NonNull String content;
+        /** The name of storage unit (e.g. the file name) */
+        private @NonNull String name;
+        
+        /** A constructor for a new storage unit */
+        //@ assignable this.*;
+        public StringStorage(@NonNull String content, @NonNull String name) { 
+            this.content = content; 
+            this.name = name; 
+        }
+        
+        /** Interface method that returns the contents of the storage unit */
+        //JAVA16 @Override
         public InputStream getContents() throws CoreException {
             return new StringBufferInputStream(content);
         }
 
+        /** Returns the path to the underlying resource
+         * @return null (not needed for readonly Strings)
+         */
+        //JAVA16 @Override
         public IPath getFullPath() {
-            // TODO Auto-generated method stub
             return null;
         }
 
-        public String getName() { return name; }
+        /** Returns the name of the storage object 
+         * @return the name of the storage unit
+         */
+        //JAVA16 @Override
+        @Query
+        public @NonNull String getName() { return name; }
 
+        /** Returns whether the storage object is read only
+         * @return always true
+         */
+        //JAVA16 @Override
         public boolean isReadOnly() { return true; }
 
-        public Object getAdapter(Class arg0) { return null; }
-        
+        /** Returns the object adapted to the given class.  It appears we can
+         * ignore this and always return null.
+         * @return null
+         */
+        //JAVA16 @Override
+        public @Nullable Object getAdapter(@NonNull Class arg0) { return null; }
+
+        /** Returns self
+         * @return this object
+         */
+        //@ ensures \return == this;
+        //JAVA16 @Override
         public IStorage getStorage() throws CoreException {
             return (IStorage)this;
         }
+        
+        /** Returns whether the underlying storage object exists
+         * @return always true
+         */
+        //JAVA16 @Override
         public boolean exists() {
             return true;
         }
+        
+        /** Returns an ImageDescriptor, here ignored
+         * @return always null
+         */
+        //JAVA16 @Override
         public ImageDescriptor getImageDescriptor() {
             return null;
         }
+        
+        /** Returns a corresponding Persistable object, here ignored
+         * @return always null
+         */
+        //JAVA16 @Override
         public IPersistableElement getPersistable() {
             return null;
         }
+        
+        /** Return the text desired in a tool tip, here the name of the
+         * storage unit
+         */
+        @NonNull
+        //JAVA16 @Override
         public String getToolTipText() {
             return name;
         }
 
     }
 
+    /** Launches a read-only text editor with the given content and name
+     * @param content the content of the editor
+     * @param name the name (as in the title) of the editor
+     */
     public void launchEditor(String content,String name) {
         try {
             IEditorInput editorInput = new StringStorage(content,name);
             IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
             IWorkbenchPage page = window.getActivePage();
-            
-//            IEditorPart[] parts = page.getEditors();
-//            for (IEditorPart e: parts) Log.log("EDITOR " + e.getEditorSite().getId());
+
+            //            IEditorPart[] parts = page.getEditors();
+            //            for (IEditorPart e: parts) Log.log("EDITOR " + e.getEditorSite().getId());
             page.openEditor(editorInput, "org.eclipse.ui.DefaultTextEditor");
         } catch (Exception e) {
             showMessageInUI(null,"JML Exception",e.getMessage());
-            // FIXME
         }
-
     }
-    
-    public <T> void deleteMarkers(List<T> list, Shell shell) {
+
+    /** Deletes the markers in any of the objects in the List that are 
+     * IResource objects; if the object is a container, markers are deleted for
+     * any resources in the container; other kinds of objecs are ignored.
+     * @param <T> just the type of the list
+     * @param list a list of objects whose markers are to be deleted
+     * @param shell the current shell for dialogs (or null for default)
+     */
+    public <T> void deleteMarkers(List<T> list, @Nullable Shell shell) {
         int maxdialogs = 5;
         for (T t: list) {
             if (!(t instanceof IResource)) continue;
@@ -731,7 +866,7 @@ public class Utils {
             try {
                 try {
                     Log.log("Deleting markers in " + resource.getName());
-                    resource.deleteMarkers(JMLBuilder.JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
+                    resource.deleteMarkers(JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
                 } catch (CoreException e) {
                     String msg = "Failed to delete markers on " + resource.getProject();
                     Log.errorlog(msg, e);
@@ -746,54 +881,54 @@ public class Utils {
                 }           
             }
         }
-
     }
-    //    /**
-    //     * Creates a map indexed by IJavaProject, with the value for
-    //     * each IJavaProject being a Collection consisting of the subset
-    //     * of the argument that belongs to the Java project.
-    //     * 
-    //     * @param elements The set of elements to sort
-    //     * @return The resulting Map of IJavaProject to Collection
-    //     */
-    //    /*@ requires elements != null;
-    //          requires elements.elementType <: IResource ||
-    //                   elements.elementType <: IJavaElement;
-    //          ensures \result != null;
-    //     */
-    //    public static @NonNull <T> Map<IJavaProject,List<T> > sortByProject(@NonNull Collection<T> elements) {
-    //        Map<IJavaProject,List<T>> map = new HashMap<IJavaProject,List<T>>();
-    //        Iterator<T> i = elements.iterator();
-    //        while (i.hasNext()) {
-    //            T o = i.next();
-    //            IJavaProject jp;
-    //            if (o instanceof IResource) {
-    //                jp = JavaCore.create(((IResource)o).getProject());
-    //            } else if (o instanceof IJavaElement) {
-    //                jp = ((IJavaElement)o).getJavaProject();
-    //            } else {
-    //                Log.errorlog("INTERNAL ERROR: Unexpected content for a selection List - " + o.getClass(),null);
-    //                continue;
-    //            }
-    //            if (jp != null && jp.exists()) addToMap(map,jp,o);
-    //        }
-    //        return map;
-    //    }
-    //
-    //    /**
-    //     * If key is not a key in the map, it is added, with an empty
-    //     * Collection for its value; then the given object is added
-    //     * to the Collection for that key.
-    //     * @param map A map of key values to Collections
-    //     * @param key A key value to add to the map, if it is not
-    //     *      already present
-    //     * @param object An item to add to the Collection for the given key
-    //     */
-    //    private static <T> void addToMap(@NonNull Map<IJavaProject,List<T>> map, @NonNull IJavaProject key, @NonNull T object) {
-    //        List<T> list = map.get(key);
-    //        if (list == null) map.put(key, list = new LinkedList<T>());
-    //        list.add(object);
-    //    }
+    
+    /**
+     * Creates a map indexed by IJavaProject, with the value for
+     * each IJavaProject being a Collection consisting of the subset
+     * of the argument that belongs to the Java project.
+     * 
+     * @param elements The set of elements to sort
+     * @return The resulting Map of IJavaProject to Collection
+     */
+    /*@ requires elements != null;
+              requires elements.elementType <: IResource ||
+                       elements.elementType <: IJavaElement;
+              ensures \result != null;
+     */
+    public static @NonNull <T> Map<IJavaProject,List<T> > sortByProject(@NonNull Collection<T> elements) {
+        Map<IJavaProject,List<T>> map = new HashMap<IJavaProject,List<T>>();
+        Iterator<T> i = elements.iterator();
+        while (i.hasNext()) {
+            T o = i.next();
+            IJavaProject jp;
+            if (o instanceof IResource) {
+                jp = JavaCore.create(((IResource)o).getProject());
+            } else if (o instanceof IJavaElement) {
+                jp = ((IJavaElement)o).getJavaProject();
+            } else {
+                Log.errorlog("INTERNAL ERROR: Unexpected content for a selection List - " + o.getClass(),null);
+                continue;
+            }
+            if (jp != null && jp.exists()) addToMap(map,jp,o);
+        }
+        return map;
+    }
+
+    /**
+     * If key is not a key in the map, it is added, with an empty
+     * Collection for its value; then the given object is added
+     * to the Collection for that key.
+     * @param map A map of key values to Collections
+     * @param key A key value to add to the map, if it is not
+     *      already present
+     * @param object An item to add to the Collection for the given key
+     */
+    private static <T> void addToMap(@NonNull Map<IJavaProject,List<T>> map, @NonNull IJavaProject key, @NonNull T object) {
+        List<T> list = map.get(key);
+        if (list == null) map.put(key, list = new LinkedList<T>());
+        list.add(object);
+    }
 
     /**
      * Displays a message in a dialog in the UI thread - this may
@@ -840,6 +975,7 @@ public class Utils {
         });
     }
 
+    // FIXME this does not seem to be working
     static public class NonModalDialog extends MessageDialog {
         final static String[] buttons = { "OK" };
         public NonModalDialog(Shell shell, String title, String message) {
@@ -865,9 +1001,30 @@ public class Utils {
                 msg);
     }
     
+    // FIXME -document
+
     public void topLevelException(Shell shell, String title, Exception e) {
-        //e.printStackTrace(sw); // FIXME
+        //e.printStackTrace(sw); // TODO
         showMessage(shell,"JML Top-level Exception: " + title,
                 e.toString());
     }
+
+
+    /** This method returns an int giving the precedence of the suffix of the
+     * file name: -1 indicates not a JML file; 0 is the preferred suffix;
+     * increasing positive numbers indicate decreasing precedence of suffixes.
+     * @param name the file name to be assessed
+     * @return the precedence of the suffix (0 highest, more positive lower, -1 is not JML)
+     */
+    @Pure
+    static public int suffixOK(/*@ non_null */ String name) {
+        if (name.endsWith(".java")) return 3;
+        if (name.endsWith(".spec")) return 4;
+        if (name.endsWith(".jml")) return 5;
+        if (name.endsWith(".refines-java")) return 0;
+        if (name.endsWith(".refines-spec")) return 1;
+        if (name.endsWith(".refines-jml")) return 2;
+        return -1;
+    }
+
 }

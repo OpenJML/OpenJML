@@ -74,7 +74,8 @@ public class JMLBuilder extends IncrementalProjectBuilder {
   }
 
   /** This class is used to walk the tree of full build changes; collects all
-   * files, recursively; does not delete markers. */
+   * files, recursively; does not delete markers. It ignores directories 
+   * because the contents of the directory are automatically walked. */
   static class ResourceVisitor implements IResourceVisitor {
     /** Local variable to store the resources to be built.  This list is
      * accumulated while walking the tree, and then the JML tools are activated
@@ -91,9 +92,6 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 
   /** The ID of the Builder, which must match that in the plugin file */
   public static final String JML_BUILDER_ID = Activator.PLUGIN_ID + ".JMLBuilder";
-
-  /** The ID of the marker, which must match that in the plugin file. */
-  final static String JML_MARKER_ID = Activator.PLUGIN_ID + ".JMLProblem";
 
   /*
    * (non-Javadoc)
@@ -148,7 +146,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
   static void accumulate(List<IResource> resourcesToBuild, IResource resource, boolean delete) {
     if (!(resource instanceof IFile)) return;
     String name = resource.getName();
-    if (ProjectInfo.suffixOK(name) >= 0) {
+    if (Utils.suffixOK(name) >= 0) {
       IFile file = (IFile) resource;
       resourcesToBuild.add(file);
       if (delete) deleteMarkers(file,false);
@@ -163,117 +161,12 @@ public class JMLBuilder extends IncrementalProjectBuilder {
    * @param monitor the monitor to record progress and cancellation
    */
   static void doChecking(IJavaProject jproject, List<IResource> resourcesToBuild, IProgressMonitor monitor) {
-    Options options = Activator.options;
     // We've already checked that this is a Java and a JML project
     // Also all the resources should be from this project, because the
     // builders work project by project
-    
-    ProjectInfo pi = new ProjectInfo(options,preq);
-    pi.setJavaProject(jproject);
-    pi.specsproject = JavaCore.create(ResourcesPlugin.getWorkspace().getRoot().getProject("specsProject"));
-    pi.racFolder = null; // FIXME - ???
-    (new OpenJMLInterface(pi)).executeExternalCommand(OpenJMLInterface.Cmd.CHECK,resourcesToBuild, monitor);
-
-    // FIXME - do we really want to work on compilation units -associated with working copies?
-    
-    //    
-//    ICompilationUnit[] cus = new ICompilationUnit[resourcesToBuild.size()];
-//    int i = 0;
-//    for (IResource item: resourcesToBuild) {
-//      IJavaElement e = JavaModelManager.create(item,jproject);
-//      // NOTE: The call above creates a "handle-only" Java element.
-//      // The resulting element may not actually exist.
-//      Log.log("JML: " + item );
-//      // FIXME - check this cast
-//      cus[i++] = (ICompilationUnit)e;
-//    }
-//    Log.log(Timer.getTimeString() + " Starting actual JML checking");
-//    try {
-//      // FIXME- this recreates the ASTs - can we avoid that?
-//      (new OpenJMLInterface(pi)).doProcessing(cus, monitor);
-//    } catch (Exception e) {
-//      Log.errorlog("Failure during JML checking " + e,e);
-//    }
+    Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.CHECK,resourcesToBuild, monitor);
   }
   
-  /** This holds an instance of an IProblemRequestor, implemented to
-   * convert problems returned by JML checking into markers to be persisted
-   * and displayed by the Eclipse workbench.
-   */
-  final static public JmlProblemRequestor preq = new JmlProblemRequestor() {
-    public void acceptProblem(/*@ non_null */ IProblem p) {
-      // JML checking produces CompilerProblems (in OpenJMLInterface); 
-      // Eclipse produces other kinds of problems
-      // stuff; Eclipse problems are already reported, so don't report them 
-      // over again if JML encounters it as part of getting the Java AST
-      if (!(p instanceof JmlEclipseProblem)) {
-        int id = p.getID();
-        if (!(id == IProblem.MethodRequiresBody || id == IProblem.UninitializedBlankFinalField)) return;
-        String s = new String(p.getOriginatingFileName());
-        if (s.endsWith(".java")) return;
-//        Log.log("JAVA Problem: " + id + " " + new String(p.getOriginatingFileName()) + " " + p.getMessage());
-//        p.delete();
-        return;
-      }
-      if (p.isWarning() && level == 2) return;
-
-      try {
-        IResource f = null;
-        char[] ch = p.getOriginatingFileName();
-        IWorkspace w = ResourcesPlugin.getWorkspace();
-        IWorkspaceRoot root = w.getRoot();
-        if (ch != null) {
-          Path path = new Path(new String(ch));
-          f = root.findMember(path);
-        } else {
-          // No originating file name, so use the workspace root
-          // FIXME - mihgt be better to use the project, if it were available
-          f = root;
-        }
-        // Use the following if you want problems printed to the console
-        // as well as producing markers and annotations
-        //JmlEclipseProblem.printProblem(Log.log.stream(), p);
-
-        final IResource r = f;
-        final int finalLineNumber = p.getSourceLineNumber();
-        final int column = p.getSourceStart();
-        final int finalOffset = p.getSourceStart() + ((JmlEclipseProblem)p).lineStart;
-        final int finalEnd = p.getSourceEnd() + 1 + ((JmlEclipseProblem)p).lineStart;
-        final String finalErrorMessage = p.getMessage();
-        final int finalSeverity = 
-          p.isError() ? IMarker.SEVERITY_ERROR :
-          p.isWarning() ? IMarker.SEVERITY_WARNING :
-            IMarker.SEVERITY_INFO;
-
-        // FIXME - perhaps should do all the markers for a given file at once for performance sake
-
-        // Eclipse recommends that things that modify the resources
-        // in a workspace be performed in a IWorkspaceRunnable
-        IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
-          public void run(IProgressMonitor monitor) throws CoreException {
-            IMarker marker = r.createMarker(JML_MARKER_ID);
-            marker.setAttribute(IMarker.LINE_NUMBER, 
-                    finalLineNumber >= 1? finalLineNumber : 1);
-            if (column >= 0) {
-              marker.setAttribute(IMarker.CHAR_START, finalOffset); 
-              marker.setAttribute(IMarker.CHAR_END, finalEnd);
-            }
-            // Note - it appears that CHAR_START is measured from the beginning of the
-            // file and overrides the line number
-
-            marker.setAttribute(IMarker.SEVERITY,finalSeverity);
-            marker.setAttribute(IMarker.MESSAGE, finalErrorMessage);
-          }
-        };
-        r.getWorkspace().run(runnable, null);
-
-        //addMarker(f,p.getMessage(),p.getSourceLineNumber(),IMarker.SEVERITY_WARNING);
-      } catch (Exception e) {
-        Log.errorlog("Failed to make a marker " + e,e);
-      }
-    }
-  };
-
 
   /** Called when a full build is requested on the current project. 
    * @param monitor the progress monitor to use
@@ -349,7 +242,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
    */
   static public void deleteMarkers(IResource resource, boolean recursive) {
     try {
-      resource.deleteMarkers(JML_MARKER_ID, false, 
+      resource.deleteMarkers(Utils.JML_MARKER_ID, false, 
               recursive? IResource.DEPTH_INFINITE :IResource.DEPTH_ZERO);
     } catch (CoreException e) {
       Log.errorlog("Failed to delete markers on " + resource.getName(), e);

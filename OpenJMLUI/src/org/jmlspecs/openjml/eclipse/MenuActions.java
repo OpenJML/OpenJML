@@ -320,12 +320,12 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      */
     public static IStatus showSpecs(Shell shell, /*@ non_null */ Object o) {
         //      try {
-        //        ProjectInfo pi = ProjectInfo.getProjectInfo(((IJavaElement)o).getJavaProject());
-        //        if (pi == null) {
-        //          pi = new ProjectInfo(Activator.options,JMLBuilder.preq);
-        //          pi.setJavaProject(((IJavaElement)o).getJavaProject());
+        //        ProjectInfo jproject = ProjectInfo.getProjectInfo(((IJavaElement)o).getJavaProject());
+        //        if (jproject == null) {
+        //          jproject = new ProjectInfo(Activator.options,JMLBuilder.preq);
+        //          jproject.setJavaProject(((IJavaElement)o).getJavaProject());
         //        }
-        //        final ProjectInfo ppi = pi;
+        //        final ProjectInfo ppi = jproject;
         //        final Shell sh = shell;
         //        String title,content;
         //        if (o instanceof IType) {
@@ -364,7 +364,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
         //              ss.append(JmlASTCodeWriter.generateSnippets(j));
         //            }
         //            while (true) {
-        //              t = Types.getSuperClass(t,pi);
+        //              t = Types.getSuperClass(t,jproject);
         //              if (t == null) break;
         //              s = JmlSpecifications.findTypeSpecs(t);
         //              ss.append("\nSpecifications of super type " + t.getFullyQualifiedName() + "\n");
@@ -473,7 +473,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
         //            IMethod mfirst = m;
         //            IType st = m.getDeclaringType();
         //            while (true) {
-        //              st = Types.getSuperClass(st,pi);
+        //              st = Types.getSuperClass(st,jproject);
         //              if (st == null) break;
         //              IMethod[] meths = st.findMethods(mfirst);
         //              if (meths == null || meths.length == 0) continue;
@@ -504,7 +504,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
         //          content = "              ????\n  ?????";
         //        } else if (o instanceof IPackageFragment) {
         //          String packagename = ((IPackageFragment)o).getElementName();
-        //          List<IFolder> locations = pi.getLocations(packagename);
+        //          List<IFolder> locations = jproject.getLocations(packagename);
         //          title = "Locations for package " + packagename;
         //          content = "Files for package " + packagename + " are located at\n";
         //          for (IFolder f: locations) {
@@ -650,18 +650,18 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
         private IStatus editSpecsPath(Shell shell) {
             // At the moment, the specsProject is independent of project, so we don't
             // require any project selection to edit the path
-            //      final ProjectInfo pi = new ProjectInfo(Activator.options,JMLBuilder.preq);
-            //      specsProjectText = pi.options.specsProjectName;
+            //      final ProjectInfo jproject = new ProjectInfo(Activator.options,JMLBuilder.preq);
+            //      specsProjectText = jproject.options.specsProjectName;
             //      EditPath d = new EditPath(shell);
             //      boolean ok = d.open() == Window.OK;
             //      if (!ok) return Status.CANCEL_STATUS;
-            //      pi.options.specsProjectName = specsProjectText;
+            //      jproject.options.specsProjectName = specsProjectText;
             //      final Shell sh = shell;
             //      Job j = new Job("Creating specs project") {
             //        public IStatus run(IProgressMonitor monitor) {
             //          // FIXME - should we provide a way to cancel this?  it might leave things in a bad state?
-            //          pi.specsproject = pi.createEmptyJavaProject(specsProjectText,true,true);  // FIXME - errors?
-            //          String errors = pi.createSpecspathFolders(listItems);
+            //          jproject.specsproject = jproject.createEmptyJavaProject(specsProjectText,true,true);  // FIXME - errors?
+            //          String errors = jproject.createSpecspathFolders(listItems);
             //          if (errors != null) showMessageInUI(sh,"JML Plugin",errors);
             //          return Status.OK_STATUS;
             //        }

@@ -4,8 +4,8 @@ import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.jmlspecs.annotations.*;
 
 /** This class implements the JML Nature that can be associated with Java Projects.
  *  The effects of this nature are to enable an additional decoration on Java
@@ -17,7 +17,7 @@ public class JMLNature implements IProjectNature {
   /**
    * ID of this project nature
    */
-  public static final String NATURE_ID = Activator.PLUGIN_ID + ".JMLNatureID";
+  public static final String JML_NATURE_ID = Activator.PLUGIN_ID + ".JMLNatureID";
 
   /** The ID of the Java nature */
   public static final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature";
@@ -25,9 +25,8 @@ public class JMLNature implements IProjectNature {
   /** The project to which this nature applies. */
   private IProject project;
 
-  /*
-   * (non-Javadoc)
-   * 
+  /** Creates a JML Builder in the project.  This is automatically called by
+   * Eclipse when a project becomes a JML project.
    * @see org.eclipse.core.resources.IProjectNature#configure()
    */
   public void configure() throws CoreException {
@@ -49,9 +48,8 @@ public class JMLNature implements IProjectNature {
     project.setDescription(desc, null);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
+  /* Removes the JML BUilder from the project.  This is automatically called
+   * by Eclipse when a project's JML Nasture is removed.
    * @see org.eclipse.core.resources.IProjectNature#deconfigure()
    */
   public void deconfigure() throws CoreException {
@@ -69,40 +67,35 @@ public class JMLNature implements IProjectNature {
     }
   }
 
-  /*
-   * (non-Javadoc)
-   * 
+  /* Returns the project associated with this instance of the JML Nature.
    * @see org.eclipse.core.resources.IProjectNature#getProject()
    */
+  @Query @NonNull
   public IProject getProject() {
     return project;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
+  /* Sets the project associated with this instaqnce of the JML Nature
    * @see org.eclipse.core.resources.IProjectNature#setProject(org.eclipse.core.resources.IProject)
    */
-  public void setProject(IProject project) {
+  //@ ensures getProjecdt() == project;
+  public void setProject(@NonNull IProject project) {
     this.project = project;
   }
 
   /**
    * Enables the JML nature on a project
-   * 
-   * @param project
-   *            to have nature enabled
+   * @param project project to have nature enabled
    */
   static public void enableJMLNature(IProject project) {
     try {
-      Log.log("Enabling nature " + NATURE_ID);
+      Log.log("Enabling JML nature for project " + project.getName());
       IProjectDescription description = project.getDescription();
       String[] natures = description.getNatureIds();
 
       boolean hasJava = false;
       for (int i = 0; i < natures.length; ++i) {
-        //Log.log("   Nature " + natures[i]);
-        if (NATURE_ID.equals(natures[i])) {
+        if (JML_NATURE_ID.equals(natures[i])) {
           Log.log("JML Nature already present in " + project.getName());
           return;
         }
@@ -114,7 +107,7 @@ public class JMLNature implements IProjectNature {
       // Add the nature
       String[] newNatures = new String[natures.length + 1];
       System.arraycopy(natures, 0, newNatures, 0, natures.length);
-      newNatures[natures.length] = NATURE_ID;
+      newNatures[natures.length] = JML_NATURE_ID;
       description.setNatureIds(newNatures);
       project.setDescription(description, null);
       Log.log("JML Nature added to " + project.getName());
@@ -126,19 +119,17 @@ public class JMLNature implements IProjectNature {
 
   /**
    * Disables the JML nature on a project
-   * 
-   * @param project
-   *            to have nature disabled
+   * @param project project to have nature disabled
    */
   static public void disableJMLNature(IProject project) {
     try {
-      Log.log("Disabling nature " + JMLNature.NATURE_ID);
+      Log.log("Disabling nature on project " + project.getName());
       IProjectDescription description = project.getDescription();
       String[] natures = description.getNatureIds();
 
       for (int i = 0; i < natures.length; ++i) {
         //Log.log("   Nature " + natures[i]);
-        if (NATURE_ID.equals(natures[i])) {
+        if (JML_NATURE_ID.equals(natures[i])) {
           // Remove the nature
           String[] newNatures = new String[natures.length - 1];
           System.arraycopy(natures, 0, newNatures, 0, i);
@@ -146,7 +137,7 @@ public class JMLNature implements IProjectNature {
                   natures.length - i - 1);
           description.setNatureIds(newNatures);
           project.setDescription(description, null);
-          project.deleteMarkers(JMLBuilder.JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
+          //project.deleteMarkers(Utils.JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
 
           Log.log("JML Nature removed from " + project.getName());
           return;

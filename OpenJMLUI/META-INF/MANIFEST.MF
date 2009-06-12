@@ -2,8 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: OpenJMLUI Plug-in
 Bundle-SymbolicName: org.jmlspecs.OpenJMLUI;singleton:=true
-Bundle-Version: 0.1.1
-Bundle-ClassPath: findbugs-17-annotations.jar,jmlruntime.jar,openjml.jar,bin/
+Bundle-Version: 0.1.10
+Bundle-ClassPath: bin/,
+ openjml/,
+ runtime/
 Bundle-Activator: org.jmlspecs.openjml.eclipse.Activator
 Bundle-Vendor: David R. Cok
 Export-Package: org.jmlspecs.openjml.eclipse

@@ -1,7 +1,6 @@
-/**
- * Copyright (c) 2005 David R. Cok
- * @author David R. Cok
- * Created Jul 14, 2005
+/*
+ * This file is part of the OpenJML plugin project. 
+ * Copyright 2006-2009 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
