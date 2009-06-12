@@ -1,4 +1,4 @@
-Usage: jml <options> <source files>
+Usage: openjml <options> <source files>
 where possible options include:
   -g                         Generate all debugging info
   -g:none                    Generate no debugging info
@@ -32,13 +32,14 @@ JML options:
   -dir                       Process all files, recursively, within this directory
   -dirs                      Process all files, recursively, within these directories (listed as separate arguments)
   -specspath                 Specifies the directory path to search for specification files
-  -jmldebug                  When on, the program emits lots of output
+  -jmldebug                  When on, the program emits lots of output (includes -progress)
   -useJavaCompiler           When on, the tool uses only the underlying javac compiler (must be the first option)
   -noJML                     When on, the JML compiler is used, but all JML constructs are ignored
   -noCheckSpecsPath          When on, no warnings for non-existent specification path directories are issued
   -noPurityCheck             When on, no warnings for use of impure methods are issued
   -showNotImplemented        When on, warnings about unimplemented constructs are issued
-  -jmlverbose                Like -verbose, but only jml information and not as much
+  -jmlverbose                Like -verbose, but only jml information and not as much (included in -verbose)
+  -progress                  Shows progress through compilation phases, includes -jmlverbose
   -i                         Must be first, starts interactive mode
   -stopIfParseErrors         When enabled, stops after parsing if any files have parsing errors
   -noInternalSpecs           Disables automatically appending the internal specs directory to the specification path

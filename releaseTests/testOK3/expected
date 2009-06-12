@@ -1,10 +1,12 @@
+Java version 6
 Using internal specs openjml.jar!specs16
-SPECSPATH .
-SPECSPATH openjml.jar!specs16
-SOURCEPATH -sourcepath = null
-CLASSPATH -classpath = null
-CLASSPATH java.class.path = openjml.jar
+specspath: . openjml.jar!specs16
+sourcepath: null
+classpath: null
+java.class.path: openjml.jar
 Using internal runtime openjml.jar
+parsing /home/projects/OpenJML/trunk/OpenJML/temp/B.java
+typechecking B
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Object.jml
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/Array.jml
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Cloneable.jml
@@ -69,13 +71,13 @@ parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/la
 No specs for java.lang.AbstractStringBuilder
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StringBuffer.jml
 No specs for java.util.jar.Manifest
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/InvocationTargetException.jml
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Number.jml
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/math/BigInteger.jml
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/MissingResourceException.jml
 No specs for java.util.regex.MatchResult
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/regex/Matcher.jml
 No specs for java.util.Random
-parsing /home/projects/OpenJML/trunk/OpenJML/temp/B.java
 typechecking java.lang.Object
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/System.jml
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Dictionary.jml
@@ -131,6 +133,7 @@ parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/ne
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Integer.jml
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NumberFormatException.jml
 typechecked java.lang.Object
+typechecked B
 typechecking java.lang.reflect.Array
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Byte.jml
 typechecked java.lang.reflect.Array
@@ -187,6 +190,8 @@ typechecked java.lang.reflect.Field
 typechecking java.lang.SecurityException
 typechecked java.lang.SecurityException
 typechecking java.lang.reflect.Method
+No specs for java.lang.reflect.Modifier
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Short.jml
 typechecked java.lang.reflect.Method
 typechecking java.lang.reflect.Constructor
 typechecked java.lang.reflect.Constructor
@@ -223,6 +228,8 @@ typechecked java.lang.StringIndexOutOfBoundsException
 typechecking java.lang.StringBuffer
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Math.jml
 typechecked java.lang.StringBuffer
+typechecking java.lang.reflect.InvocationTargetException
+typechecked java.lang.reflect.InvocationTargetException
 typechecking java.lang.Number
 typechecked java.lang.Number
 typechecking java.math.BigInteger
@@ -231,8 +238,6 @@ typechecking java.util.MissingResourceException
 typechecked java.util.MissingResourceException
 typechecking java.util.regex.Matcher
 typechecked java.util.regex.Matcher
-typechecking B
-typechecked B
 typechecking java.lang.System
 typechecked java.lang.System
 typechecking java.util.Dictionary
@@ -301,6 +306,8 @@ typechecking java.lang.Float
 typechecked java.lang.Float
 typechecking java.lang.Double
 typechecked java.lang.Double
+typechecking java.lang.Short
+typechecked java.lang.Short
 typechecking java.lang.Math
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StrictMath.jml
 typechecked java.lang.Math

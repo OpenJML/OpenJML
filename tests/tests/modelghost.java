@@ -99,15 +99,15 @@ public class modelghost extends TCBase {
                 "  }*/\n" +
                 "}\n" +
 
-                "/*@ model */ public class Y { \n" + // BAD
+                "/*@ model */ class Y { \n" + // BAD
                 "}\n" +
 
-                "/*@ model public class Q { \n" +
+                "/*@ model class Q { \n" +
                 "  model  public class C{}\n" + // NO POINT
                 "   public class D{}\n" + 
                 "}*/\n" +                                       // Line 20
 
-                "public class Z { \n" +
+                "class Z { \n" +
                 "  //@ model  public class B{}\n" +
                 "  /*@ model */  public class C{}\n" + // BAD
                 "  //@  public class D{}\n" + // BAD
@@ -117,7 +117,7 @@ public class modelghost extends TCBase {
                 ,"/A.java:8: A method or type declaration within a JML annotation must be model",17
                 ,"/A.java:4: A method or type declaration within a JML annotation must be model",21
                 ,"/A.java:11: A model type may not contain model declarations",19
-                ,"/A.java:15: A Java declaration (not within a JML annotation) may not be either ghost or model",21
+                ,"/A.java:15: A Java declaration (not within a JML annotation) may not be either ghost or model",14
                 ,"/A.java:23: A Java declaration (not within a JML annotation) may not be either ghost or model",24
                 ,"/A.java:24: A method or type declaration within a JML annotation must be model",15
                 ,"/A.java:18: A model type may not contain model declarations",17

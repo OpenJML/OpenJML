@@ -289,7 +289,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         result = tree;
         if (tree.sym == null) return;
         if (tree.sym.className().startsWith("org.jmlspecs")) return;  // FIXME - don't instrument runtime files (can get infinite loops)
-        if (Utils.isInstrumented(tree.mods.flags)) {
+        if (Utils.instance(context).isInstrumented(tree.mods.flags)) {
             // The file is already instrumented.
             // This can happen if desugarLater is called on a file, so that it
             // is put back on the todo list.  If we are in the mode of BY_FILE
@@ -298,7 +298,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
             // for and skip this case.
             return;
         }
-        Utils.setInstrumented(tree.mods);
+        Utils.instance(context).setInstrumented(tree.mods);
         
         ClassInfo prevClassInfo = classInfo;
         classInfo = new ClassInfo(tree);

@@ -74,7 +74,7 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     @Override
     public void moreClassDef(JCClassDecl tree) {
         if (tree.sym == null) return;
-        if (Utils.isInstrumented(tree.mods.flags)) return;
+        if (Utils.instance(context).isInstrumented(tree.mods.flags)) return;
         JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(tree.sym);
         if (tspecs == null) return;
         

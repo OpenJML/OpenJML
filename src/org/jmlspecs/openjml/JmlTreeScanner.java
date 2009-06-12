@@ -246,7 +246,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     }
 
     public void visitJmlClassDecl(JmlClassDecl that) {
-        // scan specsDecl, typeSpecs?  // FIXME
+        // scan specsDecls, typeSpecs?  // FIXME
         visitClassDef(that);
     }
 

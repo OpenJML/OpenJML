@@ -64,12 +64,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return r;
     }
 
-//    public JCTree visitJmlFunction(JmlFunction that, Void p) {
-//        JmlFunction r = M.at(that.pos).JmlFunction(that.token);
-//        r.type = that.type;
-//        return r;
-//    }
-
     //JAVA16 @Override
     public JCTree visitJmlGroupName(JmlGroupName that, Void p) {
         JmlGroupName r = M.at(that.pos).JmlGroupName(copy(that.selection,p));
@@ -471,8 +465,9 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitJmlClassDecl(JmlClassDecl that, Void p) {
         JmlClassDecl copy = (JmlClassDecl)super.visitClass(that,p);
         copy.sourcefile = that.sourcefile;
-        copy.specsDecl = that.specsDecl;
+        copy.specsDecls = that.specsDecls;
         copy.typeSpecs = that.typeSpecs;
+        copy.typeSpecsCombined = that.typeSpecsCombined;
         copy.type = that.type;
         return copy;
     }
@@ -493,7 +488,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlMethodDecl copy = (JmlMethodDecl)super.visitMethod(that,p);
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl;
-        copy.methodSpecs = that.methodSpecs;
+        copy.methodSpecs = copy(that.methodSpecs);
+        copy.methodSpecsCombined = copy(that.methodSpecsCombined);
         copy.type = that.type;
         return copy;
     }
@@ -502,18 +498,11 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlVariableDecl copy = (JmlVariableDecl)super.visitVariable(that,p);
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl;
-        copy.fieldSpecs = that.fieldSpecs;
+        copy.fieldSpecs = (that.fieldSpecs);
+        copy.fieldSpecsCombined = (that.fieldSpecsCombined); // FIXME - need copy
         copy.sym = that.sym;
         copy.type = that.type;
         return copy;
     }
-
-//    public JCTree visitAuxVarDSA(AuxVarDSA that, Void p) {
-//        return that.copy();
-//    }
-//
-//    public JCTree visitProgVarDSA(ProgVarDSA that, Void p) {
-//        return that.copy();
-//    }
 
 }

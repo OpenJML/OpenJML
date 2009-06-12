@@ -22,28 +22,41 @@ public enum JmlOptionName implements OptionInterface {
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
     DIR("-dir",true,"Process all files, recursively, within this directory"),
     DIRS("-dirs",true,"Process all files, recursively, within these directories (listed as separate arguments)"),
+    COMMAND("-command",true,"The command to execute (check,esc,rac,doc,compile)"),
+    CHECK("-check",false,"Does a JML syntax check - abbreviation for -command check")
+        { public void process(Options options) { options.put(COMMAND.name,"check"); }},
+    COMPILE("-compile",false,"Does a Java-only compiler - abbreviation for -command compile")
+        { public void process(Options options) { options.put(COMMAND.name,"compile"); }},
+    DOC("-doc",false,"Runs jmldoc - abbreviation for -command doc")
+        { public void process(Options options) { options.put(COMMAND.name,"doc"); }},
     SPECS("-specspath",true,"Specifies the directory path to search for specification files"),
-    JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output"),
+    JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)"),
     USEJAVACOMPILER("-useJavaCompiler",false,"When on, the tool uses only the underlying javac compiler (must be the first option)"),
     NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored"),
     NOCHECKSPECSPATH("-noCheckSpecsPath",false,"When on, no warnings for non-existent specification path directories are issued"),
     NOPURITYCHECK("-noPurityCheck",false,"When on, no warnings for use of impure methods are issued"),
     SHOW_NOT_IMPLEMENTED("-showNotImplemented",false,"When on, warnings about unimplemented constructs are issued"),
-    JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much"),
+    JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much (included in -verbose)")
+        { public void process(Options options) { options.put(PROGRESS.name,""); }},
+    PROGRESS("-progress",false,"Shows progress through compilation phases, includes -jmlverbose")
+        { public void process(Options options) { options.put(JMLVERBOSE.name,""); }},
     INTERACTIVE("-i",false,"Must be first, starts interactive mode"),
     STOPIFERRORS("-stopIfParseErrors",true,"When enabled, stops after parsing if any files have parsing errors"),
     NOINTERNALSPECS("-noInternalSpecs",false,"Disables automatically appending the internal specs directory to the specification path"),
     NOINTERNALRUNTIME("-noInternalRuntime",false,"Disables automatically appending the internal JML runtime library to the classpath"),
-    RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks"),
+    RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks - abbreviation for -command rac")
+        { public void process(Options options) { options.put(COMMAND.name,"rac"); }},
     NONNULLBYDEFAULT("-nonnullByDefault",false,"Makes references non_null by default")
         { public void process(Options options) { options.put(NULLABLEBYDEFAULT.name,null); }},
     NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default")
         { public void process(Options options) { options.put(NONNULLBYDEFAULT.name,null); }},
-    ESC("-esc",false,"Enables static checking"),
+    ESC("-esc",false,"Enables static checking - abbreviation for -command esc")
+        { public void process(Options options) { options.put(COMMAND.name,"esc"); }},
     TRACE("-trace",false,"ESC: Enables tracing of counterexamples"),
     COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample"),
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions"),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!"),
+    ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files")
     ;
     public void process(Options options) {}
     

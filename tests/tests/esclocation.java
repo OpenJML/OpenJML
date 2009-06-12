@@ -78,6 +78,8 @@ public class esclocation extends EscBase {
     }
     
     public void testLocationSignals() {
+//        options.put("-progress","");
+//        options.put("-jmlverbose","");
         addMockFile("$A/tt/TestJava.refines-java","package tt; public class TestJava {\n"
                 +"  //@   signals (Exception) false;\n"
                 +"  public void m();\n"

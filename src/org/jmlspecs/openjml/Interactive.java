@@ -44,12 +44,16 @@ public class Interactive extends Main {
     //@ requires args != null && \nonnullelements(args);
     //@ diverges true;
     public static void main(String[] args) {
-        System.exit(new Interactive().run(args));
+        try {
+            System.exit(new Interactive().run(args));
+        } catch (Exception e) {
+            System.err.println("Failed with exception " + e);
+        }
     }
     
     /** The constructor for an object of this class, initiating the base class
      * with System.out as the output location. */
-    public Interactive() {
+    public Interactive() throws Exception {
         super("jml-interactive", new PrintWriter(System.out, true), null);
     }
     

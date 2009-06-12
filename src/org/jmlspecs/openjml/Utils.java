@@ -7,6 +7,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -14,16 +15,45 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 
-/** This class holds a number of static constants and utility methods. */
+/** This class holds a number of utility methods.  They could often be
+ * static, but we make this a registerable tool, so that it can be 
+ * overridden by some enterprising future person.
+ */
 public class Utils {
+    /** The key to use to retrieve the instance of this class from the Context object. */
+    //@ non_null
+    public static final Context.Key<Utils> utilsKey =
+        new Context.Key<Utils>();
 
+    /** A method that returns the unique instance of this class for the given Context
+     * 
+     * @param context the Context whose JmlSpecs instance is wanted
+     * @return the singleton instance (per Context) of this class
+     */
+    //@ non_null
+    public static Utils instance(Context context) {
+        Utils instance = context.get(utilsKey);
+        if (instance == null) {
+            instance = new Utils(context);  // registers itself
+        }
+        return instance;
+    }
+
+
+    /** Creates an instance in association with the given Context; 
+     * @param context The compilation context
+     */
+    protected Utils(Context context) {
+        context.put(utilsKey, this);
+    }
     /** Global utility value that enables printing of debugging information. */
-    public static boolean jmldebug = false;
+    public boolean jmldebug = false;
 
-    /** A bit that distinguishes Java from JML declarations */
+    /** A bit that indicates that a declaration was declared within a JML annotation */
     final public static long JMLBIT = 1L << 50; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that JML instrumentation has been added .... FIXME */
@@ -34,7 +64,7 @@ public class Utils {
      * @param mods the instance of JCModifiers to test
      * @return true if JML is set
      */
-    public static boolean isJML(/*@ nullable */ JCModifiers mods) {
+    public boolean isJML(/*@ nullable */ JCModifiers mods) {
         return mods != null && (mods.flags & JMLBIT) != 0;
     }
     
@@ -42,7 +72,7 @@ public class Utils {
      * @param flags the bit-array to test
      * @return true if JML is set
      */
-    public static boolean isJML(long flags) {
+    public boolean isJML(long flags) {
         return (flags & JMLBIT) != 0;
     }
     
@@ -50,7 +80,7 @@ public class Utils {
      * 
      * @param mods The modifiers in which to set the JML flag
      */
-    public static void setJML(/*@ non_null */ JCModifiers mods) {
+    public void setJML(/*@ non_null */ JCModifiers mods) {
         mods.flags |= JMLBIT;
     }
     
@@ -58,12 +88,12 @@ public class Utils {
      * 
      * @param mods The modifiers in which to set the JML flag
      */
-     public static void unsetJML(/*@ non_null */ JCModifiers mods) {
+     public void unsetJML(/*@ non_null */ JCModifiers mods) {
          mods.flags &= ~JMLBIT;
      }
     
     // FIXME - document
-    public static Object envString(/*@ non_null */Env<AttrContext> env) {
+    public Object envString(/*@ non_null */Env<AttrContext> env) {
         return (env.tree instanceof JCCompilationUnit ? 
                 ((JCCompilationUnit)env.tree).sourcefile : 
                env.tree instanceof JCClassDecl ? 
@@ -72,12 +102,12 @@ public class Utils {
     }
 
     // FIXME - document
-    public static boolean isInstrumented(long flags) {
+    public boolean isInstrumented(long flags) {
         return (flags & JMLINSTRUMENTED) != 0;
     }
 
     // FIXME - document
-    public static void setInstrumented(/*@ non_null */JCModifiers mods) {
+    public void setInstrumented(/*@ non_null */JCModifiers mods) {
         mods.flags |= JMLINSTRUMENTED;
     }
     
@@ -85,7 +115,7 @@ public class Utils {
      * @param mods the modifiers structure to check
      * @return true if any standard flags or annotations are set
      */  // FIXME - should this check for just JML annotations?
-    public static boolean hasNone(/*@ nullable */JCModifiers mods) {
+    public boolean hasNone(/*@ nullable */JCModifiers mods) {
         return mods == null || ((mods.flags&Flags.StandardFlags) == 0 && (mods.annotations == null || mods.annotations.isEmpty()));
     }
     
@@ -93,7 +123,7 @@ public class Utils {
      * @param mods the modifiers structure to check
      * @return true if any of the given flags are set
      */
-    public static boolean hasAny(/*@ nullable */JCModifiers mods, long flags) {
+    public boolean hasAny(/*@ nullable */JCModifiers mods, long flags) {
         return mods != null && ((mods.flags&flags) != 0);
     }
     
@@ -101,7 +131,7 @@ public class Utils {
      * @param mods the modifiers structure to check
      * @return bit-vector of the offending flags
      */
-    public static long hasOnly(/*@ nullable */JCModifiers mods, long flags) {
+    public long hasOnly(/*@ nullable */JCModifiers mods, long flags) {
         if (mods == null) return 0;
         return mods.flags & ~flags & Flags.StandardFlags;
     }
@@ -116,7 +146,7 @@ public class Utils {
      * @return the annotation AST if present, null if not
      */
     //@ nullable
-    public static JCTree.JCAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */Name m) {
+    public JCTree.JCAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */Name m) {
         if (mods == null) return null;
         for (JCTree.JCAnnotation a: mods.annotations) {
             Type t = a.annotationType.type;

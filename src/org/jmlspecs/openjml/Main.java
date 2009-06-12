@@ -34,7 +34,7 @@ import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.main.JavaCompiler.CompileState;
-import com.sun.tools.javac.parser.JmlParser;
+import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
@@ -176,28 +176,28 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     
     /**
-     * Construct a compiler instance.  Errors go to stderr.
+     * Construct a compiler instance; all options are set to default values.  
+     * Errors go to stderr.
      */
     // @edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_SAME_SIMPLE_NAME_AS_SUPERCLASS")
-    public Main() {
+    public Main() throws java.io.IOException {
         this(applicationName, new PrintWriter(System.err, true), null);
     }
 
     /**
-     * Construct a compiler instance.
+     * Construct an initialized compiler instance; all options are set to default values.
      * @param name the name to use for the application
      * @param out  the PrintWriter to which to send information and error messages
+     * @param diagListener the listener to receive problem and warning reports
      */
-    public Main(/*@ non_null */String name, /*@ non_null */PrintWriter out, DiagnosticListener<? extends JavaFileObject> diagListener) {
+    public Main(/*@ non_null */String name, /*@ non_null */PrintWriter out, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, String... args) 
+        throws java.io.IOException {
         super(name,out);
         this.out = out;  // FIXME - would not need this if the super class declared out protected
         this.diagListener = diagListener;
+        if (args != null) initialize(args);
     }
 
-    public void registerReporter(Context context) {
-        context.put(IProgressReporter.class,progressDelegate);
-    }
-    
     /** The external entry point - simply calls compiler(args) and exits with the
      * exit code returned.
      * @param args the command-line arguments
@@ -223,7 +223,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** The default application name */
     // @edu.umd.cs.findbugs.annotations.NonNull
     @NonNull
-    final public static String applicationName = "jml";
+    final public static String applicationName = "openjml";
     
     /** The option string for requesting help information */
     // @edu.umd.cs.findbugs.annotations.NonNull
@@ -283,12 +283,12 @@ public class Main extends com.sun.tools.javac.main.Main {
                 } else if (args.length > 0 && args[0].equals(interactiveOption)) {
                     // interactive mode
                     errorcode = new org.jmlspecs.openjml.Interactive().run(args);
-                    if (Utils.jmldebug || errorcode != 0) writer.println("ENDING with exit code " + errorcode); 
+                    if (errorcode != 0) writer.println("ENDING with exit code " + errorcode); 
                 } else {
-                    Main compiler = new Main(applicationName, writer,diagListener);
+                    Main compiler = new Main(applicationName, writer, diagListener, (String[])null);
                     lastRun = compiler;
                     errorcode = compiler.compile(args);
-                    if (Utils.jmldebug || errorcode != 0) writer.println("ENDING with exit code " + errorcode);
+                    if (errorcode != 0) writer.println("ENDING with exit code " + errorcode);
                 }
             }
         } catch (Exception e) {
@@ -329,7 +329,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             helpJML();
         } else {
             register(context);
-            // Note that the Java option processing happens in compile below.
+            // Note that the Java option processing happens in compile method call below.
             // Those options are not read at the time of the register call,
             // but the register call has to happen before compile is called.
             exit = super.compile(args,context);
@@ -437,9 +437,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                     // Just skip it
                 }
             }
-        } else if (JmlOptionName.JMLVERBOSE.optionName().equals(s)) {
-            if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
-            options.put(s,res);
+        } else if (JmlOptionName.ENDOPTIONS.optionName().equals(s)) {
+            i = args.length;
         } else {
             // An empty string is the value of the option if it takes no arguments
             // That is, for boolean options, "" is true, null is false
@@ -447,6 +446,35 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         return i;
     }
+    
+    /** This method is called after tools are registered and options are read,
+     * but before compilation actually begins; here any tool setup based on 
+     * options can be performed.
+     */
+    protected void setupOptions() {
+        Options options = Options.instance(context);
+        if (options.get(JmlOptionName.JMLDEBUG.optionName()) != null) {
+            Utils.instance(context).jmldebug = true;
+            options.put(JmlOptionName.PROGRESS.optionName(),"");
+        }
+        
+        JmlSpecs.instance(context).initializeSpecsPath();
+        
+        if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALRUNTIME)) {
+            JmlSpecs.instance(context).appendRuntime();
+        }
+        
+        if (options.get(JmlOptionName.JMLVERBOSE.optionName()) != null) {
+            // ??? FIXME Utils.jmlverbose = true;
+            options.put(JmlOptionName.PROGRESS.optionName(),"");
+        }
+        
+        if (options.get(JmlOptionName.PROGRESS.optionName()) != null) {
+            if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
+        }
+    }
+    
+
 
     /* We override this method in order to process the JML command-line 
      * arguments and to do any tool-specific initialization
@@ -459,11 +487,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         Context context = this.context; // At least cache it here at the beginning
         args = processJmlArgs(args,Options.instance(context));
         List<File> files = super.processArgs(args);
-        Utils.jmldebug = Options.instance(context).get(JmlOptionName.JMLDEBUG.optionName()) != null; 
-        JmlSpecs.instance(context).initializeSpecsPath();
-        if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALRUNTIME)) {
-            JmlSpecs.instance(context).appendRuntime();
-        }
+        setupOptions();
         return files;
     }
         
@@ -502,16 +526,17 @@ public class Main extends com.sun.tools.javac.main.Main {
         // tool registration.
         JavacMessages.instance(context).add(Utils.messagesJML); // registering an additional source of JML-specific error messages
 
-        // These register JML versions of the various tools.  ALL OF THESE MUST
-        // REGISTER FACTORIES AND NOT CREATE ACTUAL INSTANCES.  Creating instances
-        // will trigger a cascade of tool instance generation, which can create
-        // tools (such as the Log) before the Options are processed, and can
+        // These register JML versions of the various tools.  These essentially
+        // register factories: no actual instances are created until 
+        // instance(context) is called on the particular tool.  Creating instances
+        // may trigger a cascade of tool instance generation, which can create
+        // tools (such as the Log) before the Options are processed and can
         // trigger some circular dependencies in the constructors of the various
         // tools.
         // Any initialization of these tools that needs to be done based on 
         // options should be performed in processArgs() in this method.
         JmlSpecs.preRegister(context); // registering the specifications repository
-        JmlParser.JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlParsers
+        JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlParsers
         JmlScanner.JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlScanners
         JmlTree.Maker.preRegister(context); // registering a JML-aware factory for generating JmlTree nodes
         JmlCompiler.preRegister(context);
@@ -552,9 +577,9 @@ public class Main extends com.sun.tools.javac.main.Main {
      * This should not be called by a client, but only internally.
      * 
      * @param args the array of command-line arguments used to setup options
-     * 
      */
-    protected Main initialize(@NonNull String[] args) throws Exception {
+    protected Main initialize(@NonNull String[] args) throws java.io.IOException {
+        if (args == null) args = emptyArgs;
         context = new Context();
         JavacFileManager.preRegister(context); // can't create it until Log has been set up
         setOptions(Options.instance(context));
@@ -565,6 +590,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         // FIXME - warn about ignored files? or process them?
         return this;
     }
+    
+    /** An empty array used simply to avoid repeatedly creating one. */
+    private final @NonNull String[] emptyArgs = new String[]{};
     
     public Context context() {
         return context;

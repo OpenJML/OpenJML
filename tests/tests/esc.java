@@ -35,6 +35,8 @@ public class esc extends EscBase {
     
 
     public void testForEach() {
+        options.put("-showbb","");
+        options.put("-counterexample","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -46,73 +48,75 @@ public class esc extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 
-                +"  public void m3() {\n"  // Line 10
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    for (long k: a) {\n"
-                +"      //@ assert \\index >= 1;\n"  // BAD
-                +"    }\n"
-                +"  }\n"
+//                +"  public void m3() {\n"  // Line 10
+//                +"    long[] a = { 1,2,3,4};\n"
+//                +"    for (long k: a) {\n"
+//                +"      //@ assert \\index >= 1;\n"  // BAD
+//                +"    }\n"
+//                +"  }\n"
+//                
+//                +"  public void m4() {\n"
+//                +"    long[] a = { 1,2,3,4};\n"
+//                +"    long[] b = { 1,2};\n"
+//                +"    for (long k: a) {\n"
+//                +"      //@ ghost int i = \\index;\n"  // OK
+//                +"      //@ assert \\index >= 0;\n"  // OK
+//                +"      for (long kk: b) {\n"
+//                +"         //@ assert \\index < 2;\n" // OK
+//                +"      }\n"
+//                +"      //@ assert \\index == i;\n"  // OK
+//                +"    }\n"
+//                +"  }\n"
+//                
+//                +"  public void m5() {\n"
+//                +"    long[] a = { 1,2,3,4};\n"
+//                +"    long[] b = { 1,2};\n" // Line 30
+//                +"    for (long k: a) {\n"
+//                +"      //@ ghost int i = \\index;\n"  
+//                +"      for (long kk: b) {\n"
+//                +"         //@ assert \\index == i;\n" // BAD
+//                +"      }\n"
+//                +"    }\n"
+//                +"  }\n"
+//                
+//                +"  public void m6() {\n"
+//                +"    long[] a = { 1,2,3,4};\n"
+//                +"    //@ loop_invariant \\index >= 0 && \\index <= a.length;\n" // OK
+//                +"    //@ decreases a.length - \\index;\n" // OK
+//                +"    for (long k: a) {\n"
+//                +"    }\n"
+//                +"  }\n"
+//                
+//                +"  public void m7() {\n"
+//                +"    long[] a = { 1,2,3,4};\n"
+//                +"    //@ decreases a.length - \\index -1;\n" // BAD // FIXME
+//                +"    for (long k: a) {\n"
+//                +"    }\n"
+//                +"  }\n"  // Line 50
+//                
+//                +"  public void m7a() {\n"
+//                +"    long[] a = { 1,2,3,4};\n"
+//                +"    //@ decreases \\index;\n" // BAD
+//                +"    for (long k: a) {\n"
+//                +"    }\n"
+//                +"  }\n"
+//                
+//                +"  public void m8() {\n"
+//                +"    long[] a = { 1,2,3,4};\n"
+//                +"    //@ loop_invariant \\index > 0 && \\index <= a.length;\n" // BAD - first time through loop
+//                +"    for (long k: a) {\n"
+//                +"    }\n"
+//                +"  }\n"
+//                
+//                +"  public void m9() {\n"
+//                +"    long[] a = { 1,2,3,4};\n"
+//                +"    //@ loop_invariant \\index >= 0 && \\index < a.length;\n" // BAD - last time through loop
+//                +"    for (long k: a) {\n"
+//                +"    }\n"
+//                +"  }\n"
+//                
                 
-                +"  public void m4() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    long[] b = { 1,2};\n"
-                +"    for (long k: a) {\n"
-                +"      //@ ghost int i = \\index;\n"  // OK
-                +"      //@ assert \\index >= 0;\n"  // OK
-                +"      for (long kk: b) {\n"
-                +"         //@ assert \\index < 2;\n" // OK
-                +"      }\n"
-                +"      //@ assert \\index == i;\n"  // OK
-                +"    }\n"
-                +"  }\n"
-                
-                +"  public void m5() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    long[] b = { 1,2};\n" // Line 30
-                +"    for (long k: a) {\n"
-                +"      //@ ghost int i = \\index;\n"  
-                +"      for (long kk: b) {\n"
-                +"         //@ assert \\index == i;\n" // BAD
-                +"      }\n"
-                +"    }\n"
-                +"  }\n"
-                
-                +"  public void m6() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ loop_invariant \\index >= 0 && \\index <= a.length;\n" // OK
-                +"    //@ decreases a.length - \\index;\n" // OK
-                +"    for (long k: a) {\n"
-                +"    }\n"
-                +"  }\n"
-                
-                +"  public void m7() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ decreases a.length - \\index -1;\n" // BAD // FIXME
-                +"    for (long k: a) {\n"
-                +"    }\n"
-                +"  }\n"  // Line 50
-                
-                +"  public void m7a() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ decreases \\index;\n" // BAD
-                +"    for (long k: a) {\n"
-                +"    }\n"
-                +"  }\n"
-                
-                +"  public void m8() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ loop_invariant \\index > 0 && \\index <= a.length;\n" // BAD - first time through loop
-                +"    for (long k: a) {\n"
-                +"    }\n"
-                +"  }\n"
-                
-                +"  public void m9() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ loop_invariant \\index >= 0 && \\index < a.length;\n" // BAD - last time through loop
-                +"    for (long k: a) {\n"
-                +"    }\n"
-                +"  }\n"
-                
+                +"  public TestJava() {}\n"
                 +"}"
                 
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",11
@@ -1416,6 +1420,8 @@ public class esc extends EscBase {
     }
 
     public void testOld2() {
+        options.put("-showbb","");
+        options.put("-trace","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static int i;\n"
@@ -2223,12 +2229,12 @@ public class esc extends EscBase {
 
     public void testInheritedPost() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
-                +"abstract public class TestJavaA { \n"
+                +"abstract class TestJavaA { \n"
                 +"  //@ requires iii > 0;\n"
                 +"  //@ ensures \\result > 0;\n"
                 +"  abstract public int m(int iii);\n"
                 +"}\n"
-                +"abstract public class TestJavaB extends TestJavaA { \n"
+                +"abstract class TestJavaB extends TestJavaA { \n"
                 +"  //@ also\n"
                 +"  //@ ensures \\result > ii;\n"
                 +"  abstract public int m(int ii);\n"
@@ -2249,12 +2255,12 @@ public class esc extends EscBase {
 
     public void testInheritedPostB() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
-                +"abstract public class TestJavaA { \n"
+                +"abstract class TestJavaA { \n"
                 +"  //@ requires iii > 0;\n"
                 +"  //@ ensures \\result > 0;\n"
                 +"  abstract public int m(int iii);\n"
                 +"}\n"
-                +"abstract public class TestJavaB extends TestJavaA { \n"
+                +"abstract class TestJavaB extends TestJavaA { \n"
                 +"  //@ also\n"
                 +"  //@ requires ii > 0;\n"
                 +"  //@ ensures \\result > ii;\n"
@@ -2272,12 +2278,12 @@ public class esc extends EscBase {
 
     public void testInheritedPre() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
-                +"abstract public class TestJavaA { \n"
+                +"abstract class TestJavaA { \n"
                 +"  //@ requires iii == 1;\n"
                 +"  //@ ensures \\result == iii;\n"
                 +"  abstract public int m(int iii);\n"
                 +"}\n"
-                +"abstract public class TestJavaB extends TestJavaA { \n"
+                +"abstract class TestJavaB extends TestJavaA { \n"
                 +"  //@ also\n"
                 +"  //@ requires ii == 2;\n"
                 +"  //@ ensures \\result == ii;\n"

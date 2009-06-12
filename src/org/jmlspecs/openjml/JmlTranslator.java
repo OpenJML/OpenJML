@@ -50,6 +50,9 @@ public class JmlTranslator extends JmlTreeTranslator {
     /** The Names table from the compilation context, initialized in the constructor */
     @NonNull protected Names names;
     
+    /** Cached value of the utilities object */
+    @NonNull protected Utils utils;
+    
     @NonNull protected Name nonNullName;
     
     /** The factory used to create AST nodes, initialized in the constructor */
@@ -76,6 +79,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     
     public JmlTranslator(Context context) {
         this.context = context;
+        this.utils = Utils.instance(context);
         this.log = Log.instance(context);
         this.factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
         this.names = Names.instance(context);
@@ -405,7 +409,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     
     protected void checkFieldAssignable(JCFieldAccess assignee, int pos) {
         if (!(currentMethodDecl instanceof JmlMethodDecl)) return;
-        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecs.deSugared;
+        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.deSugared;
         if (mspecs == null) return;
         for (JmlSpecificationCase c: mspecs.cases) {
             JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
@@ -462,7 +466,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     
     protected void checkArrayAssignable(JCArrayAccess assignee, int pos) {
         if (!(currentMethodDecl instanceof JmlMethodDecl)) return;
-        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecs.deSugared;
+        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.deSugared;
         if (mspecs == null) return;
         for (JmlSpecificationCase c: mspecs.cases) {
             JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
@@ -523,7 +527,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     protected JCExpression checkIdentAssignable(JCIdent assignee, int pos) {
         JCExpression wrapped = assignee;
         if (!(currentMethodDecl instanceof JmlMethodDecl)) return wrapped;
-        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecs.deSugared;
+        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.deSugared;
         if (mspecs == null) return wrapped;
         for (JmlSpecificationCase c: mspecs.cases) {
             JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
@@ -743,7 +747,7 @@ public class JmlTranslator extends JmlTreeTranslator {
             that.defs = newlist.toList();
 
             inSpecExpression = true;
-            JmlSpecs.TypeSpecs tspecs = that.typeSpecs;
+            JmlSpecs.TypeSpecs tspecs = that.typeSpecsCombined;
             if (true) {
                 if (tspecs != null) {
                     ListBuffer<JmlTypeClause> nlist = new ListBuffer<JmlTypeClause>();
@@ -856,7 +860,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         JCMethodDecl prev = currentMethodDecl;
         currentMethodDecl = that;
         try {
-            JmlMethodSpecs mspecs = that.methodSpecs;
+            JmlMethodSpecs mspecs = that.methodSpecsCombined;
             ListBuffer<JmlSpecificationCase> newcases = new ListBuffer<JmlSpecificationCase>();
             if (mspecs != null) { // FIXME - why would this be null
                 for (JmlSpecificationCase c: mspecs.cases) {
@@ -1089,9 +1093,10 @@ public class JmlTranslator extends JmlTreeTranslator {
 
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         boolean prev = inSpecExpression;
-        if (Utils.isJML(that.mods)) inSpecExpression = true;
+        if (utils.isJML(that.mods)) inSpecExpression = true;
         visitVarDef(that);
         inSpecExpression = true;
+        if (that.fieldSpecsCombined != null) translate(that.fieldSpecsCombined.list); // FIXME - check why this is sometimes null
         if (that.fieldSpecs != null) translate(that.fieldSpecs.list); // FIXME - check why this is sometimes null
         inSpecExpression = prev;
     }

@@ -96,7 +96,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         if (!noCollectDiagnostics) context.put(DiagnosticListener.class, collector);
         JavacFileManager.preRegister(context); // can't create it until Log has been set up
         options = Options.instance(context);
-        if (jmldebug) { Utils.jmldebug = true; options.put("-jmldebug", "");}
+        if (jmldebug) { Utils.instance(context).jmldebug = true; options.put("-jmldebug", "");}
         print = false;
         //System.out.println("JUnit: Testing " + getName());
     }

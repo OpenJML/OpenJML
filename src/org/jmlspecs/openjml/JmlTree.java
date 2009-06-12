@@ -12,32 +12,18 @@ import com.sun.source.tree.TreeVisitor;
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
-import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCForLoop;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
-import com.sun.tools.javac.tree.JCTree.Visitor;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -147,6 +133,9 @@ public class JmlTree {
             });
         }
         
+        public static JmlTree.Maker instance(Context context) {
+            return (JmlTree.Maker)TreeMaker.instance(context);
+        }
         /** Sets the preferred token position to be used for subsequent
          * factory produced nodes, typically used like this, for example:
          * maker.at(pos).JmlPrimitiveTypeTree(token)
@@ -158,7 +147,7 @@ public class JmlTree {
         }
         
         @Override
-        public JCCompilationUnit TopLevel(List<JCAnnotation> packageAnnotations,
+        public JmlCompilationUnit TopLevel(List<JCAnnotation> packageAnnotations,
                 JCExpression pid,
                 List<JCTree> defs) {
             JmlCompilationUnit t = new JmlCompilationUnit(packageAnnotations,
@@ -166,6 +155,27 @@ public class JmlTree {
                     defs,
                     null,null,null,null);
             t.pos = this.pos;
+            return t;
+        }
+        
+        /** Overridden because super.Literal(value) appears to have forgotten
+         * the boolean case.
+         */
+        @Override 
+        public JCLiteral Literal(Object value) {
+            if (value instanceof Boolean) {
+                return super.Literal(TypeTags.BOOLEAN,(Boolean)value ? 1 : 0)
+                    .setType(Symtab.instance(context).stringType.constType(value));
+            } else {
+                return super.Literal(value);
+            }
+        }
+        
+        public JCExpression QualIdent(Name... names) {
+            JCExpression t = Ident(names[0]);
+            for (int i = 1; i < names.length; i++) {
+                t = Select(t,names[i]);
+            }
             return t;
         }
         
@@ -750,27 +760,45 @@ public class JmlTree {
       
     /** This class adds some JML specific information to the JCClassDecl toplevel node. */
     public static class JmlClassDecl extends JCTree.JCClassDecl implements JmlSource {
-        public JmlClassDecl specsDecl; // This is a source-code declaration that 
-                // contains the accumulated specs, but not necessarily the Java code.
-                // It will be a 'matching' declaration to the Java declaration,
-                // but may have more specs declarations
-                // than would necessarily be present in the Java declaration.
-                // However, it might also simply point to the Java declaration itself.
-                // TODO - this may not be useful in the long run - we have to deal with 
-                // the specs sequence and then we divvy the contents up into typeSpecs anyway
-        public JmlSpecs.TypeSpecs typeSpecs; // This field accumulates all the 
-                // class-level specifications in a sorted fashion
-        public JavaFileObject sourcefile; // The sourcefile from which the class was parsed, for convenience
-                    // This is not necessarily the source location of particular bits
-                    // of specifications however
-                    // TODO - decide how useful this is in the long run
+        /** This is a list of type declarations from the specs files that refine
+         * the owning class. The list is in reverse order from the specs
+         * sequence. That is, the least-refined file (the tail of the specs
+         * sequence) is the first in this list, if it refines this particular
+         * class, and the most refined file (the beginning of the 'refines'
+         * declaration chain) would be last. A null value is legal and
+         * corresponds to an empty list.
+         */
+        public java.util.List<JmlClassDecl> specsDecls;
+
+        /* This field is the combination of specifications from all
+         * specification sources (valid for the Java declaration, or, for
+         * binary files, for the most refined specs file)
+         */        
+        public JmlSpecs.TypeSpecs typeSpecsCombined; 
+        
+        /** This field holds the class-level specifications given in this 
+         * particular class declaration; it may not be all the specs of the class.
+         */
+        public JmlSpecs.TypeSpecs typeSpecs;
+
+        /** The Java or spec source file from which this class declaration was parsed. */
+        public JavaFileObject sourcefile;
+
+        /** The top-level tree that this class declaration (perhaps indirectly) belongs to. */
+        public JmlCompilationUnit toplevel;
+        
+        /** The scope environment just inside this class (e.g. with type parameters
+         * added.  Not set or used in parsing; set during the enter phase and
+         * used there and during type attribution.
+         */
+        public Env<AttrContext> env;
         
         public JmlClassDecl(JCModifiers mods, Name name,
                 List<JCTypeParameter> typarams, JCTree extending,
                 List<JCExpression> implementing, List<JCTree> defs,
                 ClassSymbol sym) {
             super(mods, name, typarams, extending, implementing, defs, sym);
-            specsDecl = null;
+            specsDecls = null;
             typeSpecs = null;
             sourcefile = null;
         }
@@ -808,6 +836,7 @@ public class JmlTree {
     public static class JmlMethodDecl extends JCTree.JCMethodDecl implements JmlSource {
         public JmlMethodDecl specsDecl;
         public JmlMethodSpecs methodSpecs;
+        public JmlMethodSpecs methodSpecsCombined;
         public JmlClassDecl owner;
         public JavaFileObject sourcefile;
         public String docComment = null;
@@ -903,6 +932,7 @@ public class JmlTree {
     public static class JmlVariableDecl extends JCTree.JCVariableDecl implements JmlSource {
         public JmlVariableDecl specsDecl;
         public JmlSpecs.FieldSpecs fieldSpecs;
+        public JmlSpecs.FieldSpecs fieldSpecsCombined;
         public JavaFileObject sourcefile;
         public String docComment = null;
         
@@ -911,6 +941,7 @@ public class JmlTree {
             super(mods, name, vartype, init, sym);
             specsDecl = null;
             fieldSpecs = null;
+            fieldSpecsCombined = null;
             sourcefile = null;
         }
         

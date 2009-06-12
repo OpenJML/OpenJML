@@ -329,7 +329,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod1() { 
         addMockFile("$A/A.spec","public class A { void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(Object i) {} }",
-                "/$A/A.spec:1: The method A.m is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class. \n      Signatures found:\n  \t\t\tm(boolean)\n  \t\t\tm(java.lang.Object)", 23); 
+                "/$A/A.spec:1: The method A.m(int) is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.", 23); 
     }
     
     @Test public void testMatchMethod2() { // Should be OK
@@ -340,7 +340,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod3() { 
         addMockFile("$A/A.spec","public class A { void m(int i, boolean j); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(int i) {} }",
-                "/$A/A.spec:1: The method A.m is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class. \n      Signatures found:\n  \t\t\tm(boolean)\n  \t\t\tm(int)", 23); 
+                "/$A/A.spec:1: The method A.m(int,boolean) is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.", 23); 
     }
     
     @Test public void testMatchMethod4() { 
@@ -1016,6 +1016,9 @@ public class modifiers extends TCBase {
     // FIXME - test initializers
     
     @Test public void testBinaryMods() {  // FIXME - should complain on the second line of the spec file
+//        options.put("-jmldebug","");
+//        options.put("-jmlverbose","");
+//        options.put("-progress","");
         addMockFile("$A/java/lang/Object.spec","/*@ non_null */ public class Object {\n"
                 +"//@ spec_public spec_protected\n"
                 +"public boolean equals(Object o);}");

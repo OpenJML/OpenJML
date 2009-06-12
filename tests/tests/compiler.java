@@ -49,8 +49,8 @@ public class compiler extends TestCase {
      */
     public void helper(String[] args, int exitcode, int all, String ... output) {
         int e = org.jmlspecs.openjml.Main.execute(args);
-        savederr.flush();
-        savedout.flush();
+        System.err.flush();
+        System.out.flush();
         System.setErr(savederr);
         System.setOut(savedout);
         // Depending on how the log is setup, error output can go to either bout or berr
@@ -102,8 +102,8 @@ public class compiler extends TestCase {
     
     @Test
     public void testBadOption() throws Exception {
-        String failureMessage = "jml: invalid flag: -ZZZ" + eol +
-                                "Usage: jml <options> <source files>" + eol + 
+        String failureMessage = "openjml: invalid flag: -ZZZ" + eol +
+                                "Usage: openjml <options> <source files>" + eol + 
                                 "use -help for a list of possible options" + eol;
         helper(new String[]{"-ZZZ"},2,0,failureMessage);
     }
@@ -118,8 +118,8 @@ public class compiler extends TestCase {
                   {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","A.java"},
                   2,
                   0,
-                  "jml: file not found: A.java" + eol +
-                  "Usage: jml <options> <source files>" + eol +
+                  "openjml: file not found: A.java" + eol +
+                  "Usage: openjml <options> <source files>" + eol +
                   "use -help for a list of possible options" + eol +
                   "warning: A specification path directory does not exist: A" + eol +
                   "warning: A specification path directory does not exist: cpath" + eol +
@@ -162,7 +162,10 @@ public class compiler extends TestCase {
                           },0,2,"",
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.java" + eol +
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.refines-java" + eol +
+                          "entering A.java" + eol +
+                          "  completed entering A.java" + eol +
                           "typechecking A" + eol +
+                          "No specs for java.lang.Object" + eol + 
                           "typechecked A" + eol +
                           //"flow checks A" + eol + 
                           "");
@@ -176,7 +179,10 @@ public class compiler extends TestCase {
                           },0,2,"",
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.java" + eol +
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.refines-java" + eol +
+                          "entering A.java" + eol +
+                          "  completed entering A.java" + eol +
                           "typechecking A" + eol +
+                          "No specs for java.lang.Object" + eol +
                           "typechecked A" + eol +
                           //"flow checks A" + eol + 
                           "");
@@ -198,12 +204,13 @@ public class compiler extends TestCase {
      * compilation warnings in the spec files as they evolve.
      * @throws Exception
      */
+    // FIXME - get annotation type errors when use runtime (i.e. source files) instead of bin for specspath
     @Test
     public void testSourcePathX() throws Exception {
         helper(new String[]
                           { "-classpath","bin",
                             "-sourcepath","testfiles/testNoErrors",
-                            "-specspath","runtime",
+                            "-specspath","bin",
                             "-noPurityCheck",  "-Xlint:unchecked",
                             "testfiles/testNoErrors/A.java"
                           },0,0
@@ -269,6 +276,7 @@ public class compiler extends TestCase {
                           { "-classpath","bin", 
                             "-sourcepath","testfiles",
                             "-specspath","testfiles",
+                            "-noPurityCheck",
                             "testfiles/testSuperRead/A.java"
                           },1,1
                           ,""
@@ -276,36 +284,5 @@ public class compiler extends TestCase {
                           );
     }
     
-    
-    // FIXME - need to check that the output of these two is correct
-    
-    @Test
-    public void testAPI() {
-        System.setErr(savederr);
-        System.setOut(savedout);
-        try {
-            java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(new String[]{});
-            String s = m.prettyPrint(m.parseFiles(f).get(0),true);
-            System.out.println(s);
-        } catch (Exception e) {
-            System.out.println(e);
-            e.printStackTrace(System.out);
-        }
-    }
-    
-    @Test
-    public void testAPI2() {
-        System.setErr(savederr);
-        System.setOut(savedout);
-        try {
-            java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(new String[]{"-v"});
-            String s = m.prettyPrint(m.parseFiles(f).get(0),true);
-            System.out.println(s);
-        } catch (Exception e) {
-            System.out.println(e);
-            e.printStackTrace(System.out);
-        }
-    }
+
 }
