@@ -309,13 +309,24 @@ public class Enter extends JCTree.Visitor {
                 }
             }
         }
-        classEnter(tree.defs, env);
+        for (JCTree def: tree.defs) {
+            classEnter(def,env);
+        }
         if (addEnv) {
             todo.append(env);
         }
         log.useSource(prev);
         result = null;
+        this.env = env; // DRC - added in order to export the env
     }
+
+    // DRC - this was extracted in order to be able to insert some functionality
+    // after the class symbol was created, but before the nested classes were
+    // handled.  The first argument is null at the top-level
+    protected void enterNestedClasses(/*@nullable*/ TypeSymbol containingClass, List<? extends JCTree> defs, Env<AttrContext> env) {
+        classEnter(defs, env);
+    }
+    
 
     public void visitClassDef(JCClassDecl tree) {
         Symbol owner = env.info.scope.owner;
@@ -400,7 +411,7 @@ public class Enter extends JCTree.Visitor {
 //      System.err.println("entering " + c.fullname + " in " + c.owner);//DEBUG
 
         // Recursively enter all member classes.
-        classEnter(tree.defs, localEnv);
+        enterNestedClasses(c.type.tsym,tree.defs, localEnv);
 
         result = c.type;
     }

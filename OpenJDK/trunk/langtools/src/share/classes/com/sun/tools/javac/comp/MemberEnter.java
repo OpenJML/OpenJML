@@ -65,7 +65,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     private final Enter enter;
     protected final Log log; // DRC - changed from private to protected
     private final Check chk;
-    private final Attr attr;
+    protected final Attr attr; // DRC - changed from private to protected
     private final Symtab syms;
     private final TreeMaker make;
     private final ClassReader reader;
@@ -811,7 +811,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 /* ********************************************************************
  * Source completer
  *********************************************************************/
-    protected boolean binary = false;
+    protected boolean binary = false; // DRC - did I add this?  Do we still need it?  Never set to true?
     
     /** Complete entering a class.
      *  @param sym         The symbol of the class to be completed.
@@ -994,7 +994,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         }
     }
 
-    private Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) {
+    protected Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) { // DRC - changed from private to protected
         Scope typaramScope = new Scope(tree.sym);
         if (tree.typarams != null)
             for (List<JCTypeParameter> typarams = tree.typarams;
@@ -1012,7 +1012,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     /** Enter member fields and methods of a class
      *  @param env        the environment current for the class block.
      */
-    protected void finish(Env<AttrContext> env) {  // DRC - changed from private to protected
+    private void finish(Env<AttrContext> env) {
         JavaFileObject prev = log.useSource(env.toplevel.sourcefile);
         try {
             JCClassDecl tree = (JCClassDecl)env.tree;
