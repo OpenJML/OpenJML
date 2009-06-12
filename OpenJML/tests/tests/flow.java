@@ -12,7 +12,7 @@ public class flow extends TCBase {
 
     /** Forward reference from invariant is OK */
     public void testForwardReference() {
-        helpTC("public class A { \n//@ invariant b;\n  boolean b;}");
+        helpTC("public class TEST { \n//@ invariant b;\n  boolean b;}");
     }
 
     /** Flow checks for model methods*/
@@ -20,6 +20,13 @@ public class flow extends TCBase {
         addMockFile("$A/A.spec","public class A { \n//@ model int m() {} \n}");
         helpTCF("A.java","public class A { }"
         ,"/$A/A.spec:2: missing return statement",20
+        );
+    }
+
+    /** Check on name of file  - not particularly a flow check */
+    public void testFileName() {
+        helpTCF("A.java","public class B { }"
+        ,"/A.java:1: class B is public, should be declared in a file named B.java",8
         );
     }
 

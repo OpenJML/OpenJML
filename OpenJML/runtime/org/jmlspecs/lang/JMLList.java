@@ -1,6 +1,7 @@
 package org.jmlspecs.lang;
 import org.jmlspecs.annotations.*;
 
+// FIXME - needs a real implementation for RAC
 public class JMLList<E> {
 
     public int _size;
@@ -19,9 +20,9 @@ public class JMLList<E> {
 //    //@    ensures get(size()-1) == item;
 //    void add(@Nullable E item);
     
-    @Query @NonNull
+    @Pure @NonNull
     public JMLList<E> add(@Nullable E item) { return null; }
 
-    @Nullable @Query
+    @Nullable @Pure
     public E get(int i) { return null; }
 }

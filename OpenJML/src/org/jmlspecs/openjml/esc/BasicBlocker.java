@@ -1791,7 +1791,7 @@ public class BasicBlocker extends JmlTreeScanner {
             // The specs may be null because none were ever written (and there
             // was not even a declaration of the method to which an empty spec
             // was attached).
-            mspecs = JmlSpecs.defaultSpecs(0);
+            mspecs = JmlSpecs.defaultSpecs(null);
         }
         // Note: The mspecs.decl may be null if the original class is only
         // binary and no specs file was written (so there is no source code
@@ -3362,7 +3362,8 @@ public class BasicBlocker extends JmlTreeScanner {
                 }
                 
                 // Bump up the version of the heap
-                newIdentIncarnation(heapVar,pos);
+                boolean isPure = isPure(methodSym) || isPure(methodSym.enclClass());
+                if (!isPure) newIdentIncarnation(heapVar,pos);
 
                 // Bump up the allocation, in case there are any fresh declarations
                 
@@ -4774,7 +4775,7 @@ public class BasicBlocker extends JmlTreeScanner {
             int p = that.init.pos;
             boolean prevInSpecExpression = inSpecExpression;
             try {
-                if (Utils.isJML(that.mods)) inSpecExpression = true;
+                if (Utils.instance(context).isJML(that.mods)) inSpecExpression = true;
                 JCExpression ninit = trJavaExpr(that.init);
                 addAssume(p,Label.ASSIGNMENT,makeBinary(JCTree.EQ,vd,ninit,p));
             } finally {
@@ -5676,7 +5677,7 @@ public class BasicBlocker extends JmlTreeScanner {
         // information in these methods.
         
         protected boolean traceBlockStatements(BasicBlock b) throws IOException {
-            if (Utils.jmldebug || true) w.append(" [ block " + b.id() + " ]\n");
+            w.append(" [ block " + b.id() + " ]\n");
             boolean sawFalseAssert = false;
             String pos=null, lastpos;
             for (JCStatement statement: b.statements) {
@@ -6165,5 +6166,13 @@ public class BasicBlocker extends JmlTreeScanner {
         }
         
     }
-    
+
+    private ClassSymbol pureAnnotationSymbol = null;
+    public boolean isPure(Symbol symbol) {
+        if (pureAnnotationSymbol == null) {
+            pureAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.Pure"));
+        }
+        return symbol.attribute(pureAnnotationSymbol)!=null;
+    }
+
 }

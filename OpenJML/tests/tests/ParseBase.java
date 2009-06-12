@@ -10,6 +10,7 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.parser.JavacParser;
+import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.Parser;
@@ -91,7 +92,7 @@ abstract public class ParseBase extends JmlTestCase {
      */
     public List<JCTree> parseCompilationUnit(String s) {
         Log.instance(context).useSource(new TestJavaFileObject(s));
-        parser = ((JmlParser.JmlFactory)fac).newParser(s,false,true,true,jml);
+        parser = ((JmlFactory)fac).newParser(s,false,true,true,jml);
         JCTree e = parser.parseCompilationUnit();
         return ParseTreeScanner.walk(e);
     }

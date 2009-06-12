@@ -69,6 +69,9 @@ public class JmlResolve extends Resolve {
     /** The compilation context in which to do lookup. */
     public Context context;
     
+    /** Cached value of a Utils object */
+    protected Utils utils;
+    
     /** A constant symbol that represents the < operation on locks; it is 
      * initialized in the constructor.
      */
@@ -115,6 +118,7 @@ public class JmlResolve extends Resolve {
     protected JmlResolve(Context context) {
         super(context);
         this.context = context;
+        this.utils = Utils.instance(context);
         
         Symtab syms = Symtab.instance(context);
         integerType = reader.enterClass(names.fromString("java.lang.Integer")).type;
@@ -231,7 +235,7 @@ public class JmlResolve extends Resolve {
                  e.scope != null;
                  e = e.next()) {
                 if (e.sym.kind == TYP) {
-                    if (!allowJML && Utils.isJML(e.sym.flags_field)) continue;
+                    if (!allowJML && utils.isJML(e.sym.flags_field)) continue;
                     if (staticOnly &&
                         e.sym.type.tag == TYPEVAR &&
                         e.sym.owner.kind == TYP) return new StaticError(e.sym);
@@ -295,7 +299,7 @@ public class JmlResolve extends Resolve {
         Scope.Entry e = c.members().lookup(name);
         while (e.scope != null) {
             if (e.sym.kind == TYP &&
-                (allowJML || !Utils.isJML(e.sym.flags_field))) {
+                (allowJML || !utils.isJML(e.sym.flags_field))) {
                 return isAccessible(env, site, e.sym)
                     ? e.sym
                     : new AccessError(env, site, e.sym);
@@ -334,7 +338,7 @@ public class JmlResolve extends Resolve {
         Symbol bestSoFar = typeNotFound;
         for (Scope.Entry e = scope.lookup(name); e.scope != null; e = e.next()) {
             Symbol sym = loadClass(env, e.sym.flatName());
-            if (!allowJML && Utils.isJML(e.sym.flags_field)) continue;
+            if (!allowJML && utils.isJML(e.sym.flags_field)) continue;
             if (bestSoFar.kind == TYP && sym.kind == TYP &&
                 bestSoFar != sym)
                 return new AmbiguityError(bestSoFar, sym);
@@ -360,7 +364,7 @@ public class JmlResolve extends Resolve {
             Scope.Entry e = env1.info.scope.lookup(name);
             while (e.scope != null &&
                    (e.sym.kind != VAR
-                   || (!allowJML && Utils.isJML(e.sym.flags_field)) 
+                   || (!allowJML && utils.isJML(e.sym.flags_field)) 
                    || (e.sym.flags_field & SYNTHETIC) != 0)) {
                 e = e.next();
             }
@@ -408,7 +412,7 @@ public class JmlResolve extends Resolve {
             sym = e.sym;
             if (sym.kind != VAR)
                 continue;
-            if (!allowJML && Utils.isJML(e.sym.flags_field)) continue;
+            if (!allowJML && utils.isJML(e.sym.flags_field)) continue;
             // invariant: sym.kind == VAR
             if (bestSoFar.kind < AMBIGUOUS && sym.owner != bestSoFar.owner)
                 return new AmbiguityError(bestSoFar, sym);
@@ -439,7 +443,7 @@ public class JmlResolve extends Resolve {
         Scope.Entry e = c.members().lookup(name);
         while (e.scope != null) {
             if (e.sym.kind == VAR && (e.sym.flags_field & SYNTHETIC) == 0
-                    && !(!allowJML && Utils.isJML(e.sym.flags_field))) {
+                    && !(!allowJML && utils.isJML(e.sym.flags_field))) {
                 return isAccessible(env, site, e.sym)
                 ? e.sym : new AccessError(env, site, e.sym);
             }
@@ -491,7 +495,7 @@ public class JmlResolve extends Resolve {
                         e = e.next()) {
                 if (e.sym.kind == MTH &&
                         (e.sym.flags_field & SYNTHETIC) == 0 &&
-                        !(!allowJML && Utils.isJML(e.sym.flags_field))) {
+                        !(!allowJML && utils.isJML(e.sym.flags_field))) {
                     bestSoFar = selectBest(env, site, argtypes, typeargtypes,
                             e.sym, bestSoFar,
                             allowBoxing,
@@ -530,7 +534,7 @@ public class JmlResolve extends Resolve {
 ////              - log.noticeWriter.println(" e " + e.sym);
 //                if (e.sym.kind == MTH &&
 //                        (e.sym.flags_field & SYNTHETIC) == 0 &&
-//                        !(!allowJML && Utils.isJML(e.sym.flags_field))) {
+//                        !(!allowJML && utils.isJML(e.sym.flags_field))) {
 //                    bestSoFar = selectBest(env, site, argtypes, typeargtypes,
 //                            e.sym, bestSoFar,
 //                            allowBoxing,
@@ -572,22 +576,25 @@ public class JmlResolve extends Resolve {
       */
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
-         if (Utils.jmldebug) log.noticeWriter.println("LOADING REQUESTED " + name + " " + ClassReader.isClassAlreadyRead(context,name));
+         if (utils.jmldebug) log.noticeWriter.println("LOADING REQUESTED " + name + " " + ClassReader.isClassAlreadyRead(context,name));
          Symbol s = super.loadClass(env, name);
-//         if (!s.exists()) {
-//             // FIXME - does not distinguish between bad symbols and packages
-//             log.noticeWriter.println("Error resolving " + name + ": " + s);
-//             return s;
-//         }
+         // Here s can be a type or a package or not exist 
+         // s may not exist because it is being tested whether such a type exists
+         // (rather than a package) and is a legitimate workflow in this
+         // architecture.  Hence no warning or error is given.
+         // This happens for example in the resolution of org.jmlspecs.annotations
+         if (!s.exists()) {
+             return s;
+         }
          if (!(s instanceof ClassSymbol)) return s; // loadClass can be called for a package
          JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get((ClassSymbol)s);
          if (tsp == null) {
-             if (Utils.jmldebug) log.noticeWriter.println("   LOADING SPECS FOR (BINARY) CLASS " + name);
+             //if (true || utils.jmldebug) log.noticeWriter.println("   LOADING SPECS FOR (BINARY) CLASS " + name);
              ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(env,(ClassSymbol)s);
-             //if (Utils.jmldebug) log.noticeWriter.println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
-             return s;
+             //if (true || utils.jmldebug) log.noticeWriter.println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+             if (JmlSpecs.instance(context).get((ClassSymbol)s) == null) log.noticeWriter.println("POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
          } else {
-             //if (Utils.jmldebug) log.noticeWriter.println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
+             //log.noticeWriter.println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
          }
          return s;
      }

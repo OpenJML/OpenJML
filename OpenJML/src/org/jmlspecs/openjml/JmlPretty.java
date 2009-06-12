@@ -103,6 +103,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
      */
     protected void perr(/*@ non_null*/JCTree that, /*@ non_null*/Exception e) {
         System.err.println(e.getClass() + " error in JMLPretty: " + that.getClass());
+        e.printStackTrace(System.err);
     }
     
     public void visitJmlBinary(JmlBinary that) {
@@ -257,10 +258,12 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(" (");
             if (that.vardef != null) {
                 that.vardef.vartype.accept(this);
-                String s = that.vardef.name.toString();
-                if (!JmlAttr.syntheticExceptionID.equals(s)) {
-                    print(" ");
-                    print(that.vardef.name.toString());
+                if (that.vardef.name != null) {
+                    String s = that.vardef.name.toString();
+                    if (!JmlAttr.syntheticExceptionID.equals(s)) {
+                        print(" ");
+                        print(that.vardef.name.toString());
+                    }
                 }
             }
             print(") ");
@@ -466,7 +469,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
         try { // FIXME - modifiers?
-            that.specs.accept(this);
+            if (that.specs != null) that.specs.accept(this);
+            align();
             print(that.token.internedName());
             print(" {}");
             println();
@@ -664,9 +668,29 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         super.visitWhileLoop(that);
     }
 
+    JmlSpecs.TypeSpecs specsToPrint = null;
+    
     public void visitJmlClassDecl(JmlClassDecl that) {
-        // FIXME - does this print the class specs?
+        if (that.typeSpecsCombined != null) {
+            specsToPrint = that.typeSpecsCombined;
+        } else if (that.typeSpecs != null) {
+            specsToPrint = that.typeSpecs;
+        }
+
         visitClassDef(that);
+    }
+    
+    public void printStats(List<? extends JCTree> stats) throws IOException {
+        JmlSpecs.TypeSpecs toPrint = specsToPrint;
+        specsToPrint = null;
+        super.printStats(stats);
+        if (toPrint != null) {
+            for (JmlTypeClause t: toPrint.clauses) {
+                align();
+                t.accept(this);
+                println();
+            }
+        }
     }
     
     boolean inSequence = false;
@@ -722,7 +746,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-        if (that.methodSpecs != null) that.methodSpecs.accept(this);
+        if (that.methodSpecsCombined != null) that.methodSpecsCombined.accept(this);
+        else if (that.methodSpecs != null) that.methodSpecs.accept(this);
         visitMethodDef(that);
     }
 

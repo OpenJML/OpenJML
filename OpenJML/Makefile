@@ -9,7 +9,7 @@
 ROOT=..
 SPECS=../../../JMLspecs/trunk
 VERSION:=$(shell date +%Y%m%d)
-NAME=jml-${VERSION}.tar.gz
+NAME=openjml-${VERSION}.tar.gz
 
 ## Default - build and test the release
 .PHONY: release-and-test
@@ -50,7 +50,7 @@ alljars jmlspecs.jar openjml.jar:
 	rm -rf temp temp2
 	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/JML-${VERSION}/ > version.properties )
 	cp src/com/sun/tools/javac/resources/version.properties bin/com/sun/tools/javac/resources/version.properties
-	echo "jml JML-${VERSION}" > releaseTests/testJmlVersion/expected
+	echo "openjml OpenJML-${VERSION}" > releaseTests/testJmlVersion/expected
 	mkdir temp
 	mkdir -p jars
 	rm -f jars/jmlspecs.jar jars/openjml.jar
@@ -72,9 +72,27 @@ alljars jmlspecs.jar openjml.jar:
 	echo "Main-Class: org.jmlspecs.openjml.Main" >> temp2/manifest
 	rm -r temp/tests
 	(cd temp; jar -cfm ../jars/openjml.jar ../temp2/manifest . )
-	cp jars/openjml.jar ../OpenJMLUI
-	rm -rf temp temp2
-
+	##cp jars/openjml.jar ../OpenJMLUI
+	
+copy:
+	(cd ../OpenJMLUI; rm -rf specs16 runtime openjml specs java4 java5 java6 java7 ; )
+	(cd ../OpenJMLUI; mkdir -p specs ;)
+	cp -rf ${SPECS}/java7 ../OpenJMLUI/specs
+	cp -rf ${SPECS}/java6 ../OpenJMLUI/specs
+	cp -rf ${SPECS}/java5 ../OpenJMLUI/specs
+	cp -rf ${SPECS}/java4 ../OpenJMLUI/specs
+	find ../OpenJMLUI/specs -name .svn -exec rm -rf \{\} +
+	mkdir -p ../OpenJMLUI/openjml
+	mkdir -p ../OpenJMLUI/runtime/org/jmlspecs
+	cp -r ${ROOT}/OpenJDK/bin/* ../OpenJMLUI/openjml
+	cp -r ${ROOT}/OpenJML/bin/* ../OpenJMLUI/openjml
+	rm -rf ../OpenJMLUI/openjml/tests
+	cp -r ${ROOT}/OpenJML/bin/org/jmlspecs/annotations ../OpenJMLUI/runtime/org/jmlspecs
+	cp -r ${ROOT}/OpenJML/bin/org/jmlspecs/lang ../OpenJMLUI/runtime/org/jmlspecs
+	cp -r ${ROOT}/OpenJML/bin/org/jmlspecs/models ../OpenJMLUI/runtime/org/jmlspecs
+	cp -r ${ROOT}/OpenJML/bin/org/jmlspecs/utils ../OpenJMLUI/runtime/org/jmlspecs
+	echo "Copy to OpenJMLUI complete"
+	
 ## Builds jmlruntime.jar
 jmlruntime.jar:
 	rm -rf temp

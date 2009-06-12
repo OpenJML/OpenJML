@@ -88,7 +88,7 @@ public class JmlEsc extends JmlTreeScanner {
     boolean verbose;
     
     /** Just for debugging esc */
-    public static boolean escdebug = Utils.jmldebug;
+    public static boolean escdebug;
     
     /** true if counterexample information is desired */
     boolean showCounterexample;
@@ -133,11 +133,12 @@ public class JmlEsc extends JmlTreeScanner {
         this.factory = (JmlTree.JmlFactory)JmlTree.Maker.instance(context);
         this.verbose = JmlOptionName.isOption(context,"-verbose") ||
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
-            Utils.jmldebug;
-        this.showCounterexample = JmlOptionName.isOption(context,"-ce") || JmlOptionName.isOption(context,JmlOptionName.COUNTEREXAMPLE) || JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ; // FIXME - options
+            Utils.instance(context).jmldebug;
+        this.showCounterexample = JmlOptionName.isOption(context,"-ce") || JmlOptionName.isOption(context,JmlOptionName.COUNTEREXAMPLE) || JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE);
         this.showSubexpressions = JmlOptionName.isOption(context,JmlOptionName.SUBEXPRESSIONS);
         this.showTrace = showCounterexample || JmlOptionName.isOption(context,JmlOptionName.TRACE) || showSubexpressions;
         this.checkAssumptions = !JmlOptionName.isOption(context,"-noCheckAssumptions");
+        escdebug = Utils.instance(context).jmldebug;
     }
 
     /** Set to the currently owning class declaration while visiting JCClassDecl and its children. */

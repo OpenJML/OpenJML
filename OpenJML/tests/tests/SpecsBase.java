@@ -1,6 +1,7 @@
 package tests;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -160,6 +161,7 @@ public class SpecsBase extends TCBase {
             if (!print && !noExtraPrinting) printErrors();
             throw e;
         }
+        assertTrue(!foundErrors);
     }
 
     /** The test to run - finds all system specs and runs tests on them that
@@ -184,13 +186,17 @@ public class SpecsBase extends TCBase {
     static public SortedSet<String> findAllFiles(/*@ nullable*/ JmlSpecs specs) {
         System.out.println("JRE version " + System.getProperty("java.version"));
         //Main m = new Main();
-        if (specs == null) {
-            Context context = new Context();
-            Main main = new Main();
-            main.register(context);
-            JavacFileManager.preRegister(context); // can't create it until Log has been set up
-            specs = JmlSpecs.instance(context);
-            specs.setSpecsPath("$SY");
+        try {
+            if (specs == null) {
+                Context context = new Context();
+                Main main = new Main();
+                main.register(context);
+                JavacFileManager.preRegister(context); // can't create it until Log has been set up
+                specs = JmlSpecs.instance(context);
+                specs.setSpecsPath("$SY");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         java.util.List<Dir> dirs = specs.getSpecsPath();
         assertTrue ("Null specs path",dirs != null); 

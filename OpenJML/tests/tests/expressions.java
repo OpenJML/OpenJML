@@ -6,6 +6,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlTree.*;
 
+import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.Parser;
@@ -46,7 +47,7 @@ public class expressions extends ParseBase {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s));
             //Scanner sc = sfac.newScanner(s);
-            JmlParser p = ((JmlParser.JmlFactory)fac).newParser(s,false,true,true,true);
+            JmlParser p = ((JmlFactory)fac).newParser(s,false,true,true,true);
             if (jml && p instanceof JmlParser) {
                 p.getScanner().setJml(jml);
             }
@@ -83,7 +84,7 @@ public class expressions extends ParseBase {
     public void helpExprErrors(String s, Object... list) {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s));
-            Parser p = ((JmlParser.JmlFactory)fac).newParser(s,false,true,true,jml);
+            Parser p = ((JmlFactory)fac).newParser(s,false,true,true,jml);
             //JmlScanner sc = ((JmlParser)p).getScanner();
             //if (jml) sc.setJml(jml);
             p.parseExpression();

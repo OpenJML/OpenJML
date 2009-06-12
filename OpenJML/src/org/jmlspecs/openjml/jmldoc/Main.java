@@ -25,6 +25,8 @@ public class Main extends org.jmlspecs.openjml.Main {
     static public String JmlTableHeadingColor = "#FFCCCC";
     static public String JmlTableRowColor = "#FFFFCC";
 
+    private Main() throws Exception {}
+    
     /** The entry point for command-line execution of the tool.  The conventional
      * array of arguments contains options and their arguments, files to be 
      * documented and any annotation processing classes.
@@ -79,7 +81,7 @@ public class Main extends org.jmlspecs.openjml.Main {
                     JavacFileManager.preRegister(jmlContext); // can't create it until Log has been set up - is it? FIXME
                     args = processArgs(args,jmlContext);
                     errorcode = jdoc.begin(args);
-                    if (Utils.jmldebug || errorcode != 0) System.out.println("ENDING with exit code " + errorcode);
+                    if (Utils.instance(jmlContext).jmldebug || errorcode != 0) System.out.println("ENDING with exit code " + errorcode);
                 }
             }
         } catch (Exception e) {
@@ -139,7 +141,7 @@ public class Main extends org.jmlspecs.openjml.Main {
         // FIXME - some cleanup needed here
         //args = processJmlArgs(args,Options.instance(context));
         //List<File> files = super.processArgs(args);
-        Utils.jmldebug = Options.instance(context).get(JmlOptionName.JMLDEBUG.optionName()) != null; 
+        Utils.instance(context).jmldebug = Options.instance(context).get(JmlOptionName.JMLDEBUG.optionName()) != null; 
         JmlSpecs.instance(context).initializeSpecsPath();
         if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALRUNTIME)) {
             JmlSpecs.instance(context).appendRuntime();

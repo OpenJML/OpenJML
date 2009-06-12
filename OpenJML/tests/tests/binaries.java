@@ -26,13 +26,15 @@ public class binaries extends TCBase {
                 "package java.io; //@ model class VVV{ static int i; }\n" + 
                 "public class File  implements Serializable, Comparable<File> { \n" +
                 " public void m() { /*@ assert i; assume j; */ }\n" +
-                "//@model static public class TTT { static int j; } " +
+                "//@model static class TTT { static int j; } " +
                 "\n }");
         helpTCF("A.java",
                 " class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
-                ,"/$A/java/io/File.spec:3: The method java.io.File.m is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class. \n      Signatures found:   <none>",14
+                ,"/$A/java/io/File.spec:3: The method java.io.File.m() is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.",14
+                //,"/$A/java/io/File.spec:3: cannot find symbol\n  symbol:   variable i\n  location: class java.io.File",31
+                //,"/$A/java/io/File.spec:3: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",41
         );
     }
     
@@ -42,7 +44,7 @@ public class binaries extends TCBase {
                 "package java.io; //@ model class VVV{ static int i; }\n" + 
                 "public class File implements Serializable, Comparable<File> { \n" +
                 " public void exists() { /*@ assert true; assume true; */ }\n" +
-                "//@model static public class TTT { static int j; } " +
+                "//@model static class TTT { static int j; } " +
                 "\n }");
         helpTCF("A.java",
                 " class A { \n" +
@@ -59,7 +61,7 @@ public class binaries extends TCBase {
                 "package java.io; //@ model class VVV{ public static int i; }\n" + 
                 "public class File implements Serializable, Comparable<File> { \n" +
                 "/*@ invariant VVV.i; invariant TTT.j; */ \n" +
-                "//@model static public class TTT { public static int j; } \n" +
+                "//@model static class TTT { public static int j; } \n" +
                 "}\n ");
         helpTCF("java/io/A.java",
                 "package java.io; class A { \n" +
@@ -96,5 +98,21 @@ public class binaries extends TCBase {
                 ,"/java/io/A.java:5: incompatible types\n  required: boolean\n  found:    int",52
         );
     }
+
+    /** Checks that an extra Java class in a spec file is reported */
+    public void testBinary5() {
+        addMockFile("$A/java/io/File.spec",
+                "package java.io; \n" + 
+                "public class File implements Serializable, Comparable<File> { \n" +
+                "}\n" +
+                "class Extra {}\n");
+        helpTCF("java/io/A.java",
+                "package java.io; class A { \n" +
+                "    java.io.File file; \n" +
+                "}"
+                ,"/$A/java/io/File.spec:4: This secondary type declaration (Extra) is not matched by a binary class",1
+        );
+    }
+
 
 }

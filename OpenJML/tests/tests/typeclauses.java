@@ -2,6 +2,8 @@ package tests;
 
 public class typeclauses extends TCBase {
 
+    String eol = "\n";  // Just newline for Windows also
+    
     @Override
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
@@ -223,12 +225,14 @@ public class typeclauses extends TCBase {
     public void testRepresents6() {
         helpTCF("A.java","public class A {\n //@ model int i; represents j = 0\n}"
                 ,"/A.java:2: The expression is invalid or not terminated by a semicolon",35
+                ,"/A.java:2: cannot find symbol"+eol+"  symbol:   variable j"+eol+"  location: class A",30
                 );
     }
     
     public void testRepresents7() {
         helpTCF("A.java","public class A {\n //@ model int i; represents x = 0\n}"
                 ,"/A.java:2: The expression is invalid or not terminated by a semicolon",35
+                ,"/A.java:2: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",30
                 );
     }
     
@@ -236,6 +240,7 @@ public class typeclauses extends TCBase {
         helpTCF("A.java","public class A {\n //@ model int i; represents x.* = 0\n}"
                 ,"/A.java:2: Expected an identifier after the dot in this context",32
                 ,"/A.java:2: A represents clause must have a =, <- or \\such_that after the identifier",37
+                ,"/A.java:2: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",30
                 );
     }
     
@@ -244,6 +249,7 @@ public class typeclauses extends TCBase {
                 ,"/A.java:2: illegal start of expression",32
                 ,"/A.java:2: illegal start of expression",33
                 ,"/A.java:2: The expression is invalid or not terminated by a semicolon",38
+                ,"/A.java:2: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",30
                 );
     }
     
@@ -597,9 +603,8 @@ public class typeclauses extends TCBase {
         );
     }
 
-    public void testInitializer10() {  // FIXME - the error messages are duplicated inside the initializer block
+    public void testInitializer10() {
         helpTCF("A.java","public class A {int i; static int j; \n //@ ensures i==0; \n static { i = 0; } \n}"
-                ,"/A.java:3: non-static variable i cannot be referenced from a static context",11
                 ,"/A.java:3: non-static variable i cannot be referenced from a static context",11
                 ,"/A.java:2: non-static variable i cannot be referenced from a static context",14
         );

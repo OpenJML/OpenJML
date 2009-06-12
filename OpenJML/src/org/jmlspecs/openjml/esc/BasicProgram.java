@@ -13,8 +13,11 @@ import java.util.TreeMap;
 
 import org.jmlspecs.annotations.*;
 import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.JmlBinary;
 
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
@@ -138,7 +141,7 @@ public class BasicProgram {
                 w.flush();
             }
             for (BasicProgram.BasicBlock b: this.blocks) {
-                b.write();
+                b.write(w,this);
             }
         } catch (java.io.IOException e) {
             System.out.println("EXCEPTION: " + e);
@@ -227,20 +230,20 @@ public class BasicProgram {
         @Override // @NonNull
         public String toString() {
             java.io.StringWriter s = new java.io.StringWriter();
-            write(s);
+            write(s,null);
             return s.toString();
         }
         
         /** Writes out the block to log.noticeWriter, for diagnostic purposes */
         public void write() {
-            write(new OutputStreamWriter(System.out));
+            write(new OutputStreamWriter(System.out),null);
         }
         
         /** Writes out the block to the given Writer
          * 
          * @param w where to put a String representation of the block
          */
-        public void write(Writer w) {
+        public void write(Writer w, BasicProgram program) {
             try {
                 // The 'false' argument allows non-compilable output and avoids
                 // putting JML comment symbols everywhere
@@ -256,6 +259,19 @@ public class BasicProgram {
                 for (JCTree t: statements) {
                     w.write("    "); // FIXME - use JMLPretty indentation?
                     t.accept(pw);
+                    if (program != null && t instanceof JmlTree.JmlStatementExpr && ((JmlTree.JmlStatementExpr)t).expression instanceof JCIdent) {
+                        JCIdent i = (JCIdent)((JmlTree.JmlStatementExpr)t).expression;
+                        for (JCExpression e : program.definitions) {
+                            if (e instanceof JCBinary && ((JCBinary)e).lhs instanceof JCIdent 
+                                    && ((JCIdent)((JCBinary)e).lhs ).name.equals(i.name)) {
+                                JCExpression rhs = ((JCBinary)e).rhs;
+                                w.write("    [ ");
+                                rhs.accept(pw);
+                                w.write(" ]");
+                                break;
+                            }
+                        }
+                    }
                     w.write("\n");
                     w.flush();
                 }

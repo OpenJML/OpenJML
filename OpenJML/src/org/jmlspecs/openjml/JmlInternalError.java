@@ -17,11 +17,22 @@ public class JmlInternalError extends RuntimeException {
     private static final long serialVersionUID = 2146006306510130631L;
 
     /**
-	 * Constructs an instance, printing the current stack trace to System.err.
-	 * You should have already logged an error message with as much other
-	 * information as you can.
-	 */
+     * Constructs an instance, printing the current stack trace to System.err.
+     * You should have already logged an error message with as much other
+     * information as you can.
+     */
     public JmlInternalError() {
+        this.printStackTrace(System.err);
+    }
+    
+    /**
+     * Constructs an instance, printing the current stack trace to System.err.
+     * You should have already logged an error message with as much other
+     * information as you can.
+     */
+    public JmlInternalError(String msg) {
+        super(msg);
+        System.err.println(msg);
         this.printStackTrace(System.err);
     }
 }
