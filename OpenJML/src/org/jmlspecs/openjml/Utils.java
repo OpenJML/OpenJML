@@ -53,6 +53,21 @@ public class Utils {
     /** Global utility value that enables printing of debugging information. */
     public boolean jmldebug = false;
 
+    /** Do ESC - set by Main.setupOptions */
+    public boolean esc = false;
+    
+    /** Do RAC - set by Main.setupOptions */
+    public boolean rac = false;
+    
+    /** Do JML check only - set by Main.setupOptions */
+    public boolean check = false;
+    
+    /** Do Java compilation - set by Main.setupOptions */
+    public boolean compile = false;
+    
+    /** Do Jmldoc - set by Main.setupOptions */
+    public boolean doc = false;
+    
     /** A bit that indicates that a declaration was declared within a JML annotation */
     final public static long JMLBIT = 1L << 50; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 

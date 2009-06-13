@@ -34,7 +34,7 @@ public abstract class TCBase extends JmlTestCase {
         options.put("-specspath",   testspecpath);
         options.put("-sourcepath",   testspecpath);
         if (!useSystemSpecs) options.put("-noInternalSpecs","");
-        main.register(context);
+        //main.register(context);
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         specs = JmlSpecs.instance(context);
         Log.instance(context).multipleErrors = true;

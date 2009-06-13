@@ -182,7 +182,8 @@ public class ClassWriterJml extends ClassWriterImpl {
         }
     }
     
-    /** Returns true if the argument contains specs worth printing.
+    /** Returns true if the argument contains specs worth printing (this does not
+     * include model or ghost declarations).
      * @param tspecs the specs of a class or interface
      * @return true if the argument contains stuff to print
      */

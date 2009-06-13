@@ -46,7 +46,7 @@ ${RTH} testJmlHelp "java -jar openjml.jar" || RES=$(($RES+1))
 echo "public class A { /*@ invariant 0; */ }" > A.java
 echo "public class B { /*@ invariant true; */ }" > B.java
 echo "import org.jmlspecs.annotations.Pure; public class C { @Pure int m() { return 0; } }" > C.java
-echo "import org.jmlspecs.annotations.*; public class C { @Pure int m() { return 0; } }" > D.java
+echo "import org.jmlspecs.annotations.*; public class D { @Pure int m() { return 0; } }" > D.java
 
 ## FIXME - uses unchecked calls
 ## Checks a valid file using java -jar
@@ -133,22 +133,22 @@ ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc1/expected
 ## jmldoc - checking the -public flag
 rm -rf doc ../testfiles/jmldoc3/actual
 ${RTH} testJmldoc3 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -public -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java"
-${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc3/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc3/actual; mv doc ../testfiles/jmldoc3/actual; }
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc3/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc3/actual; }
 
 ## jmldoc - checking the -protected flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc4/actual
 ${RTH} testJmldoc4 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -protected -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java"
-${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc4/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc4/actual; mv doc ../testfiles/jmldoc4/actual; }
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc4/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc4/actual; }
 
 ## jmldoc - checking the -package flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc5/actual
 ${RTH} testJmldoc5 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -package -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java"
-${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc5/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc5/actual; mv doc ../testfiles/jmldoc5/actual; }
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc5/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc5/actual; }
 
 ## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc6/actual
 ${RTH} testJmldoc6 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java"
-${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc6/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc6/actual; mv doc ../testfiles/jmldoc6/actual; }
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc6/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc6/actual; }
 
 if [[ ${RES} -eq 0 ]]; then echo "All tests succeeded"; else echo ${RES} tests failed  ; fi
 

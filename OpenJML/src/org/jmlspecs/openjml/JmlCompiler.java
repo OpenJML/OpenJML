@@ -343,13 +343,18 @@ public class JmlCompiler extends JavaCompiler {
         
         // Note - we do not want translation for jmldoc (neither ESC nor RAC)
         
-        if (JmlOptionName.isOption(context,JmlOptionName.ESC)) {
+        if (utils.check || utils.doc) {
+            // Stop here
+            return;
+        }
+        
+        if (utils.esc) {
             new JmlTranslator(context).translate(env);
             esc(env);
             
             // nothing put in results, so no further compilation phases are performed
         }
-        if (JmlOptionName.isOption(context,JmlOptionName.RAC)) {
+        if (utils.rac) {
             new JmlTranslator(context).translate(env);
             JCTree t = env.tree;
             env = rac(env);

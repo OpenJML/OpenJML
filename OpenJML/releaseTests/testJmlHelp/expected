@@ -31,6 +31,10 @@ where possible options include:
 JML options:
   -dir                       Process all files, recursively, within this directory
   -dirs                      Process all files, recursively, within these directories (listed as separate arguments)
+  -command                   The command to execute (check,esc,rac,doc,compile)
+  -check                     Does a JML syntax check - abbreviation for -command check
+  -compile                   Does a Java-only compiler - abbreviation for -command compile
+  -doc                       Runs jmldoc - abbreviation for -command doc
   -specspath                 Specifies the directory path to search for specification files
   -jmldebug                  When on, the program emits lots of output (includes -progress)
   -useJavaCompiler           When on, the tool uses only the underlying javac compiler (must be the first option)
@@ -44,12 +48,13 @@ JML options:
   -stopIfParseErrors         When enabled, stops after parsing if any files have parsing errors
   -noInternalSpecs           Disables automatically appending the internal specs directory to the specification path
   -noInternalRuntime         Disables automatically appending the internal JML runtime library to the classpath
-  -rac                       Enables generating code instrumented with runtime assertion checks
+  -rac                       Enables generating code instrumented with runtime assertion checks - abbreviation for -command rac
   -nonnullByDefault          Makes references non_null by default
   -nullableByDefault         Makes references nullable by default
-  -esc                       Enables static checking
+  -esc                       Enables static checking - abbreviation for -command esc
   -trace                     ESC: Enables tracing of counterexamples
   -counterexample            ESC: Enables output of complete, raw counterexample
   -subexpressions            ESC: Enables tracing with subexpressions
   -roots                     Enables the Reflective Object-Oriented Testing System---w00t!
+  --                         Terminates option processing - all remaining arguments are files
 ENDING with exit code 2

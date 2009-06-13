@@ -26,8 +26,9 @@ public abstract class EscBase extends JmlTestCase {
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
         options.put("-specspath",   testspecpath);
-        options.put("-esc",   "");
-        main.register(context);
+        options.put("-esc","");
+        main.setupOptions();
+        //main.register(context);
         specs = JmlSpecs.instance(context);
         Log.instance(context).multipleErrors = true;
         expectedExit = 0;
