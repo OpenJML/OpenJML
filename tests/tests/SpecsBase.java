@@ -79,7 +79,7 @@ import com.sun.tools.javac.util.Log;
 // flag.
 public class SpecsBase extends TCBase {
 
-    static private boolean dotests = false;  // Change this to enable/disable tests
+    static private boolean dotests = true;  // Change this to enable/disable tests
     
     /** If true, then a progress message is printed as each test is executed.*/
     private static boolean verbose;

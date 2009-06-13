@@ -451,10 +451,14 @@ public class Main extends com.sun.tools.javac.main.Main {
      * but before compilation actually begins; here any tool setup based on 
      * options can be performed.
      */
-    protected void setupOptions() {
+    // This should be able to be called without difficulty whenever any option
+    // is changed
+    public void setupOptions() {
         Options options = Options.instance(context);
+        Utils utils = Utils.instance(context);
+
         if (options.get(JmlOptionName.JMLDEBUG.optionName()) != null) {
-            Utils.instance(context).jmldebug = true;
+            utils.jmldebug = true;
             options.put(JmlOptionName.PROGRESS.optionName(),"");
         }
         
@@ -472,6 +476,17 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (options.get(JmlOptionName.PROGRESS.optionName()) != null) {
             if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
         }
+        String cmd = options.get(JmlOptionName.COMMAND.optionName());
+        utils.rac = "rac".equals(cmd) || (cmd == null && options.get(JmlOptionName.RAC.optionName()) != null);
+        utils.esc = "esc".equals(cmd) || (cmd == null && options.get(JmlOptionName.ESC.optionName()) != null);
+        utils.check = "check".equals(cmd) || (cmd == null && options.get(JmlOptionName.CHECK.optionName()) != null);
+        utils.compile = "compile".equals(cmd) || (cmd == null && options.get(JmlOptionName.COMPILE.optionName()) != null);
+        utils.doc = "doc".equals(cmd) || (cmd == null && options.get(JmlOptionName.DOC.optionName()) != null);
+        boolean picked = utils.rac||utils.esc||utils.check||utils.compile||utils.doc;
+        if (!picked && cmd != null) {
+            Log.instance(context).noticeWriter.println("Invalid argument to the -command option: " + cmd); // FIXME - change to a wanring
+        }
+        if (!picked) utils.check = true;
     }
     
 

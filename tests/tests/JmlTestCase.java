@@ -1,4 +1,5 @@
 package tests;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -91,10 +92,10 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
      */
     protected void setUp() throws Exception {
         //super.setUp(); // Why commented out FIXME
-        main = new Main();
-        context = new Context();
-        if (!noCollectDiagnostics) context.put(DiagnosticListener.class, collector);
-        JavacFileManager.preRegister(context); // can't create it until Log has been set up
+        main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null);
+        context = main.context();
+        //if (!noCollectDiagnostics) context.put(DiagnosticListener.class, collector);
+        //JavacFileManager.preRegister(context); // can't create it until Log has been set up
         options = Options.instance(context);
         if (jmldebug) { Utils.instance(context).jmldebug = true; options.put("-jmldebug", "");}
         print = false;

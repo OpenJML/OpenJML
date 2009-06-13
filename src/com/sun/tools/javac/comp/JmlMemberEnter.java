@@ -522,7 +522,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             }
             if (javaMatch == null) {
                 for (JmlTypeClause t: javaDecl.typeSpecsCombined.clauses) {
-                    if (t instanceof JmlTypeClauseDecl && (javaMatch=(JmlVariableDecl)((JmlTypeClauseDecl)t).decl).sym == matchSym) break;
+                    if (t instanceof JmlTypeClauseDecl &&
+                            ((JmlTypeClauseDecl)t).decl instanceof JmlVariableDecl && 
+                            (javaMatch=(JmlVariableDecl)((JmlTypeClauseDecl)t).decl).sym == matchSym) break;
                 }
             }
 
@@ -1838,6 +1840,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         //env = enter.classEnv(d,env);
         //enter.typeEnvs.put(d.sym,env);
         
+        if (classDecl.sym.members() instanceof Scope.ErrorScope) {
+            // Errors occured making this symbol unresolveable
+            // Catastrophes await if we proceed.  If errors have been reported
+            // we figure that is the cause.
+            if (log.nerrors == 0) log.error("jml.internal","Type " + classDecl.sym + " is unexpectedly lacking proper scope information");
+            return;
+        }
+        
         // FIXME - use a tree walker?  do we need to do nested classes?
         Map<Symbol,Integer> matchedSyms = new HashMap<Symbol,Integer>();
         ListBuffer<JCTree> remove = null;
@@ -2251,6 +2261,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         boolean wasStatic = (flags&Flags.STATIC) != 0;
         super.visitVarDef(tree);
         Symbol sym = tree.sym;
+        if (specs.getSpecs(tree.sym) != null) log.noticeWriter.println("Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
+        specs.putSpecs(tree.sym,new JmlSpecs.FieldSpecs(tree.mods));
         if (sym.kind == Kinds.VAR && sym.owner.kind == TYP && (sym.owner.flags_field & INTERFACE) != 0
                 && utils.isJML(tree.mods)) {
             // In the case of a JML ghost variable that is a field of an interface, the default is static and not final

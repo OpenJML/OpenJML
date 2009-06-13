@@ -17,7 +17,7 @@ release-and-test: release test
 
 ## Just build a release named ${NAME}
 .PHONY: release
-release: other alljars jmlruntime.jar tar
+release: other alljars jmlruntime.jar tar copy
 	@echo Release complete
 
 ${NAME}: release
@@ -48,7 +48,7 @@ tar:
 alljars jmlspecs.jar openjml.jar:
 	echo `pwd`
 	rm -rf temp temp2
-	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/JML-${VERSION}/ > version.properties )
+	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/OpenJML-${VERSION}/ > version.properties )
 	cp src/com/sun/tools/javac/resources/version.properties bin/com/sun/tools/javac/resources/version.properties
 	echo "openjml OpenJML-${VERSION}" > releaseTests/testJmlVersion/expected
 	mkdir temp
@@ -101,7 +101,7 @@ jmlruntime.jar:
 	rm -f jars/jmlruntime.jar
 	cp -r bin/org/jmlspecs/annotations bin/org/jmlspecs/lang bin/org/jmlspecs/models bin/org/jmlspecs/utils temp/org/jmlspecs
 	(cd temp; jar -cf ../jars/jmlruntime.jar . ) 
-	cp jars/jmlruntime.jar ../OpenJMLUI
+	##cp jars/jmlruntime.jar ../OpenJMLUI
 	rm -rf temp
 
 ## Separate target for jmlspecs.jar, though it is normally built along with

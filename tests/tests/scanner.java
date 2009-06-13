@@ -22,7 +22,7 @@ public class scanner extends JmlTestCase {
     
     protected void setUp() throws Exception {
         super.setUp();
-        main.register(context);
+        //main.register(context);
         fac = Scanner.Factory.instance(context);
         Log.instance(context).multipleErrors = true;
     }

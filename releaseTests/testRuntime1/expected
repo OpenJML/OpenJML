@@ -12,6 +12,27 @@ import org.jmlspecs.annotations.Pure; public class C { @Pure int m() { return 0;
 openjml.jar(specs16/java/lang/Object.jml):21: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
+openjml.jar(specs16/java/lang/Object.jml):52: package org.jmlspecs.annotations does not exist
+    public /*@ pure @*/ Object();
+               ^
+openjml.jar(specs16/java/lang/Object.jml):59: package org.jmlspecs.annotations does not exist
+    public /*@ pure @*/ final /*@non_null*/ Class<?> getClass();
+               ^
+openjml.jar(specs16/java/lang/Object.jml):59: package org.jmlspecs.annotations does not exist
+    public /*@ pure @*/ final /*@non_null*/ Class<?> getClass();
+                                 ^
+openjml.jar(specs16/java/lang/Object.jml):95: package org.jmlspecs.annotations does not exist
+    public /*@ pure @*/ boolean equals(/*@\readonly*//*@nullable*/ Object obj);
+                                                        ^
+openjml.jar(specs16/java/lang/Object.jml):95: package org.jmlspecs.annotations does not exist
+    public /*@ pure @*/ boolean equals(/*@\readonly*//*@nullable*/ Object obj);
+               ^
+openjml.jar(specs16/java/lang/Object.jml):161: package org.jmlspecs.annotations does not exist
+    protected /*@non_null*/ Object clone() throws CloneNotSupportedException;
+                 ^
+openjml.jar(specs16/java/lang/Object.jml):177: package org.jmlspecs.annotations does not exist
+    public /*@ non_null @*/ String toString();
+               ^
 openjml.jar(specs16/java/lang/Object.jml):35: cannot find symbol
     //@ public non_null model JMLDataGroup objectState;
                               ^
@@ -22,6 +43,9 @@ openjml.jar(specs16/java/lang/Object.jml):38: cannot find symbol
                               ^
   symbol:   class JMLDataGroup
   location: class java.lang.Object
+openjml.jar(specs16/java/lang/reflect/Array.jml):22: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
 openjml.jar(specs16/java/lang/Object.jml):35: package org.jmlspecs.annotations does not exist
     //@ public non_null model JMLDataGroup objectState;
                ^
@@ -40,39 +64,18 @@ openjml.jar(specs16/java/lang/Object.jml):44: package org.jmlspecs.annotations d
 openjml.jar(specs16/java/lang/Object.jml):44: package org.jmlspecs.annotations does not exist
     //@ ghost public nullable Object owner;
                      ^
-openjml.jar(specs16/java/lang/Object.jml):52: package org.jmlspecs.annotations does not exist
-    public /*@ pure @*/ Object();
-               ^
-openjml.jar(specs16/java/lang/Object.jml):59: package org.jmlspecs.annotations does not exist
-    public /*@ pure @*/ final /*@non_null*/ Class<?> getClass();
-               ^
-openjml.jar(specs16/java/lang/Object.jml):59: package org.jmlspecs.annotations does not exist
-    public /*@ pure @*/ final /*@non_null*/ Class<?> getClass();
-                                 ^
 openjml.jar(specs16/java/lang/Object.jml):61: package org.jmlspecs.annotations does not exist
     //@ public model int theHashCode; in objectState;
                ^
-openjml.jar(specs16/java/lang/Object.jml):95: package org.jmlspecs.annotations does not exist
-    public /*@ pure @*/ boolean equals(/*@\readonly*//*@nullable*/ Object obj);
-               ^
-openjml.jar(specs16/java/lang/Object.jml):161: package org.jmlspecs.annotations does not exist
-    protected /*@non_null*/ Object clone() throws CloneNotSupportedException;
-                 ^
 openjml.jar(specs16/java/lang/Object.jml):164: package org.jmlspecs.annotations does not exist
     //@ public model non_null String theString; in objectState;
                ^
 openjml.jar(specs16/java/lang/Object.jml):164: package org.jmlspecs.annotations does not exist
     //@ public model non_null String theString; in objectState;
                      ^
-openjml.jar(specs16/java/lang/Object.jml):177: package org.jmlspecs.annotations does not exist
-    public /*@ non_null @*/ String toString();
-               ^
 openjml.jar(specs16/java/lang/Object.jml):221: package org.jmlspecs.annotations does not exist
     //@ protected ghost int objectTimesFinalized = 0; // not part of objectState
                   ^
-openjml.jar(specs16/java/lang/reflect/Array.jml):22: package org.jmlspecs.lang does not exist
-package java.lang.reflect;
-^
 openjml.jar(specs16/java/lang/reflect/Array.jml):40: package org.jmlspecs.annotations does not exist
     //@ pure
         ^
@@ -100,6 +103,9 @@ openjml.jar(specs16/java/lang/reflect/Array.jml):129: package org.jmlspecs.annot
 openjml.jar(specs16/java/lang/reflect/Array.jml):136: package org.jmlspecs.annotations does not exist
     //@ pure
         ^
+openjml.jar(specs16/java/io/Serializable.jml):3: package org.jmlspecs.lang does not exist
+package java.io;
+^
 openjml.jar(specs16/java/lang/reflect/Array.jml):191: package org.jmlspecs.annotations does not exist
     //@ pure
         ^
@@ -112,9 +118,6 @@ openjml.jar(specs16/java/lang/reflect/Array.jml):229: package org.jmlspecs.annot
 openjml.jar(specs16/java/lang/reflect/Array.jml):230: package org.jmlspecs.annotations does not exist
     public static native /*@nullable*/ java.lang.Object get(java.lang.Object Param0, int Param1)
                             ^
-openjml.jar(specs16/java/io/Serializable.jml):3: package org.jmlspecs.lang does not exist
-package java.io;
-^
 openjml.jar(specs16/java/lang/Class.jml):20: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
@@ -127,12 +130,21 @@ openjml.jar(specs16/java/lang/Class.jml):27: package org.jmlspecs.annotations do
 openjml.jar(specs16/java/lang/Class.jml):37: package org.jmlspecs.annotations does not exist
     //@ pure
         ^
+openjml.jar(specs16/java/lang/Class.jml):66: package org.jmlspecs.annotations does not exist
+        Class<?> forName(/*@ non_null @*/ String className)
+                             ^
 openjml.jar(specs16/java/lang/Class.jml):64: package org.jmlspecs.annotations does not exist
     //@ pure
         ^
 openjml.jar(specs16/java/lang/Class.jml):65: package org.jmlspecs.annotations does not exist
     public static /*@ non_null @*/
                       ^
+openjml.jar(specs16/java/lang/Class.jml):87: package org.jmlspecs.annotations does not exist
+        Class<?> forName(/*@ non_null @*/ String name,
+                             ^
+openjml.jar(specs16/java/lang/Class.jml):89: package org.jmlspecs.annotations does not exist
+                      /*@ non_null @*/ ClassLoader loader)
+                          ^
 openjml.jar(specs16/java/lang/Class.jml):86: package org.jmlspecs.annotations does not exist
     public static /*@ non_null @*/
                       ^
@@ -148,23 +160,14 @@ openjml.jar(specs16/java/lang/Class.jml):97: package org.jmlspecs.annotations do
 openjml.jar(specs16/java/lang/Class.jml):99: package org.jmlspecs.annotations does not exist
     public /*@ pure @*/ boolean isAssignableFrom(Class<?> cls);
                ^
-openjml.jar(specs16/java/lang/Class.jml):101: package org.jmlspecs.annotations does not exist
-    //@ public model boolean _isInterface; // cf. _isArray
-               ^
 openjml.jar(specs16/java/lang/Class.jml):105: package org.jmlspecs.annotations does not exist
     public /*@ pure @*/ boolean isInterface();
-               ^
-openjml.jar(specs16/java/lang/Class.jml):116: package org.jmlspecs.annotations does not exist
-    //@ public model boolean _isArray;
                ^
 openjml.jar(specs16/java/lang/Class.jml):130: package org.jmlspecs.annotations does not exist
     public /*@ pure @*/ boolean isArray();
                ^
 openjml.jar(specs16/java/lang/Class.jml):145: package org.jmlspecs.annotations does not exist
     public /*@ pure @*/ boolean isPrimitive();
-               ^
-openjml.jar(specs16/java/lang/Class.jml):147: package org.jmlspecs.annotations does not exist
-    //@ public model String _getName;
                ^
 openjml.jar(specs16/java/lang/Class.jml):151: package org.jmlspecs.annotations does not exist
     public /*@ pure @*/ /*@ non_null @*/ String getName();
@@ -274,35 +277,32 @@ openjml.jar(specs16/java/lang/Class.jml):217: package org.jmlspecs.annotations d
 openjml.jar(specs16/java/lang/Class.jml):219: package org.jmlspecs.annotations does not exist
     public /*@ pure @*/ java.net.URL getResource(String name);
                ^
+openjml.jar(specs16/java/lang/Throwable.jml):37: package org.jmlspecs.lang does not exist
+package java.lang;
+^
 openjml.jar(specs16/java/lang/Class.jml):221: package org.jmlspecs.annotations does not exist
     public /*@ pure @*/ java.security.ProtectionDomain getProtectionDomain();
                ^
 openjml.jar(specs16/java/lang/Class.jml):225: package org.jmlspecs.annotations does not exist
     public /*@ pure @*/ boolean desiredAssertionStatus();
                ^
-openjml.jar(specs16/java/lang/Throwable.jml):37: package org.jmlspecs.lang does not exist
-package java.lang;
-^
-openjml.jar(specs16/java/lang/Throwable.jml):42: package org.jmlspecs.annotations does not exist
-    //@ public model nullable String _message;  in objectState;
+openjml.jar(specs16/java/lang/Class.jml):101: package org.jmlspecs.annotations does not exist
+    //@ public model boolean _isInterface; // cf. _isArray
                ^
-openjml.jar(specs16/java/lang/Throwable.jml):42: package org.jmlspecs.annotations does not exist
-    //@ public model nullable String _message;  in objectState;
-                     ^
-openjml.jar(specs16/java/lang/Throwable.jml):43: package org.jmlspecs.annotations does not exist
-    //@ public model nullable Throwable _cause; in objectState;
+openjml.jar(specs16/java/lang/Class.jml):116: package org.jmlspecs.annotations does not exist
+    //@ public model boolean _isArray;
                ^
-openjml.jar(specs16/java/lang/Throwable.jml):43: package org.jmlspecs.annotations does not exist
-    //@ public model nullable Throwable _cause; in objectState;
-                     ^
-openjml.jar(specs16/java/lang/Throwable.jml):45: package org.jmlspecs.annotations does not exist
-    //@ public model boolean causeSet;  in _cause;
+openjml.jar(specs16/java/lang/Class.jml):147: package org.jmlspecs.annotations does not exist
+    //@ public model String _getName;
                ^
-openjml.jar(specs16/java/lang/Throwable.jml):48: package org.jmlspecs.annotations does not exist
-    //@ public model non_null StackTraceElement[/*#@non_null*/] _stackTrace; in objectState;
-               ^
-openjml.jar(specs16/java/lang/Throwable.jml):48: package org.jmlspecs.annotations does not exist
-    //@ public model non_null StackTraceElement[/*#@non_null*/] _stackTrace; in objectState;
-                     ^
+openjml.jar(specs16/java/lang/Throwable.jml):92: package org.jmlspecs.annotations does not exist
+    public /*@pure*/ Throwable();
+              ^
+openjml.jar(specs16/java/lang/Throwable.jml):100: package org.jmlspecs.annotations does not exist
+    public /*@pure*/ Throwable(/*@non_null*/String message);
+                                  ^
+openjml.jar(specs16/java/lang/Throwable.jml):100: package org.jmlspecs.annotations does not exist
+    public /*@pure*/ Throwable(/*@non_null*/String message);
+              ^
 100 errors
 ENDING with exit code 1

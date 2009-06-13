@@ -52,7 +52,7 @@ public abstract class RacBase extends JmlTestCase {
                 options.put("-classpath",sy+"/testdata"+z+sy+"/jdkbin"+z+sy+"/bin");
             }
         }
-        main.register(context);
+        //main.register(context);
         specs = JmlSpecs.instance(context);
         Log.instance(context).multipleErrors = true;
         expectedExit = 0;

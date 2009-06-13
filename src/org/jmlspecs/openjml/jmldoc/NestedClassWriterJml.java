@@ -95,16 +95,13 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
         TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(nsym);
         ArrayList<ClassDoc> list = new ArrayList<ClassDoc>();
         // Find all the JML inherited nested classes to describe
-        for (JmlTypeClause tc : tspecs.clauses) {
-            if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JCTree.JCClassDecl) {
-                JmlClassDecl mdecl = (JmlClassDecl)((JmlTypeClauseDecl)tc).decl;
-                ClassSymbol msym = mdecl.sym;
-                //if (!currentDocEnv.shouldDocument(msym)) continue;
-                if (!shouldDocumentModel(currentDocEnv,msym)) continue;
-                if (!Utils.isInherited(msym,currentClassSym)) continue;
-                ClassDoc modelClass = new ClassDocImpl(((ClassDocImpl)classDoc).docenv(),msym,mdecl.docComment,mdecl,null);
-                list.add(modelClass);
-            }
+        for (JmlClassDecl mdecl : tspecs.modelTypes) {
+            ClassSymbol msym = mdecl.sym;
+            //if (!currentDocEnv.shouldDocument(msym)) continue;
+            if (!shouldDocumentModel(currentDocEnv,msym)) continue;
+            if (!Utils.isInherited(msym,currentClassSym)) continue;
+            ClassDoc modelClass = new ClassDocImpl(((ClassDocImpl)classDoc).docenv(),msym,mdecl.docComment,mdecl,null);
+            list.add(modelClass);
         } 
         
         if (!list.isEmpty()) {
@@ -145,15 +142,12 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
         ArrayList<ClassDoc> list = new ArrayList<ClassDoc>();
         DocEnv denv = ((ClassDocImpl)classDoc).docenv();
         TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(currentClassSym);
-        for (JmlTypeClause tc : tspecs.clauses) {
-            if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JCTree.JCClassDecl) {
-                JmlClassDecl cdecl = ((JmlClassDecl)((JmlTypeClauseDecl)tc).decl);
-                ClassSymbol msym = cdecl.sym;
-                //if (!denv.shouldDocument(msym)) continue;
-                if (!denv.isVisible(msym)) continue;
-                ClassDoc modelClass = new ClassDocImpl(((ClassDocImpl)classDoc).docenv(),msym,cdecl.docComment,cdecl,null);
-                list.add(modelClass);
-            }
+        for (JmlClassDecl cdecl : tspecs.modelTypes) {
+            ClassSymbol msym = cdecl.sym;
+            //if (!denv.shouldDocument(msym)) continue;
+            if (!denv.isVisible(msym)) continue;
+            ClassDoc modelClass = new ClassDocImpl(((ClassDocImpl)classDoc).docenv(),msym,cdecl.docComment,cdecl,null);
+            list.add(modelClass);
         }
         if (list.isEmpty()) return;
         Collections.sort(list);

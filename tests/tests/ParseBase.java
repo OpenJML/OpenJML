@@ -44,7 +44,7 @@ abstract public class ParseBase extends JmlTestCase {
         super.setUp();
         options.put("compilePolicy","check");  // Don't do code generation
         options.put("-specspath",   testspecpath);
-        main.register(context);
+        //main.register(context);
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         Log.instance(context).multipleErrors = true;
         sfac = Scanner.Factory.instance(context);

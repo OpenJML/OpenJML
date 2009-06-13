@@ -6,6 +6,7 @@ import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.Flags.NATIVE;
 import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
+import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
@@ -373,11 +374,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void completeTodo() {
+        level++;
         while (!todo.isEmpty()) {
             ClassSymbol sym = todo.remove(0);
-            if (utils.jmldebug) log.noticeWriter.println("Retrived for attribution " + sym + " " + todo.size());
+            if (utils.jmldebug) log.noticeWriter.println("Retrieved for attribution " + sym + " " + todo.size());
             attribClass(sym);
         }
+        level--;
     }
     
     public void addTodo(ClassSymbol c) {
@@ -1534,7 +1537,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (sym.owner != env.enclClass.sym) {
                 log.error(tree.identifier.pos,"jml.ident.not.in.class",sym,sym.owner,env.enclClass.sym);
             } else {
-                specs.getSpecs((VarSymbol)sym).list.append(tree);
+                VarSymbol vsym = (VarSymbol)sym;
+                JmlSpecs.FieldSpecs fs = specs.getSpecs(vsym);
+                //if (fs == null) specs.putSpecs(vsym,fs=new JmlSpecs.FieldSpecs(tree.sym.));
+                fs.list.append(tree);
             }
             // FIXME - set static environment if ident is static
             attribExpr(tree.expression, env, syms.booleanType);
@@ -3066,16 +3072,29 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // earlier and avoid this check, but there is no convenient place
             // during parsing, and the Enter/MemberEnter steps do not handle
             // local classes.
-            if (enclosingMethodEnv == null) {
-                // Warn for non-local classes
-                log.error("jml.internal.notsobad","A non-local class's specsDecl field was unexpectedly null in JmlAtt.visitJmlClassDecl: " + that.name);
-            }
+            // There is also the case of anonymous classes in expressions that
+            // in class specs (e.g. invariants)
+//            if (enclosingMethodEnv == null && !isInJmlDeclaration) {
+//                // Warn for non-local classes
+//                log.error("jml.internal.notsobad","A non-local class's specsDecl field was unexpectedly null in JmlAtt.visitJmlClassDecl: " + that.name);
+//            }
             that.specsDecls = List.<JmlClassDecl>of(that);
+            that.typeSpecsCombined = that.typeSpecs = new JmlSpecs.TypeSpecs(that);
         }
         
         visitClassDef(that);
     }
 
+    public void visitClassDef(JCClassDecl tree) {
+        // The superclass calls classEnter if the env is owned by a VAR or MTH.
+        // But JML has the case of an anonymous class that occurs in a class
+        // specification (e.g. an invariant)
+        if ((env.info.scope.owner.kind & (VAR | MTH)) == 0 && tree.sym == null) {
+            enter.classEnter(tree, env);
+        }
+        super.visitClassDef(tree);
+
+    }
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
         visitTopLevel(that);
     }
