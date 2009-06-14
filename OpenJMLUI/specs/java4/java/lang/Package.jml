@@ -1,0 +1,182 @@
+// @(#)$Id: Package.jml 1599 2005-08-26 19:37:47Z chalin $
+
+// Copyright (C) 2001 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+
+package java.lang;
+
+import java.net.URL;
+
+/** JML's specification of java.lang.Package
+ * @version $Revision: 1599 $
+ * @author Gary T. Leavens
+ */
+public class Package {
+
+    //@ public model String name;
+    //@ public model String spectitle;
+    //@ public model String specversion;
+    //@ public model String specvendor;
+    //@ public model String impltitle;
+    //@ public model String implversion;
+    //@ public model String implvendor;
+    //@ public model URL sealbase;
+
+    /*+@
+	represents name <- getName();
+	represents spectitle <- getSpecificationTitle();
+	represents specversion <- getSpecificationVersion();
+	represents specvendor <- getSpecificationVendor();
+	represents impltitle <- getImplementationTitle();
+	represents implversion <- getImplementationVersion();
+	represents implvendor <- getImplementationVendor();
+    */
+
+    /*@ public normal_behavior
+      @    ensures name == null ==> \result == null;
+      @    ensures name != null ==> \result != null
+      @         && name.equals(\result);
+      @*/
+    public /*@ pure @*/ String getName();
+
+    /*@ public normal_behavior
+      @    ensures spectitle == null ==> \result == null;
+      @    ensures spectitle != null ==> \result != null
+      @         && spectitle.equals(\result);
+      @*/
+    public /*@ pure @*/ String getSpecificationTitle();
+    
+    /*@ public normal_behavior
+      @    ensures specversion == null ==> \result == null;
+      @    ensures specversion != null ==> \result != null
+      @         && specversion.equals(\result);
+      @*/
+    public /*@ pure @*/ String getSpecificationVersion();
+
+    /*@ public normal_behavior
+      @    ensures specvendor == null ==> \result == null;
+      @    ensures specvendor != null ==> \result != null
+      @         && specvendor.equals(\result);
+      @*/
+    public /*@ pure @*/ String getSpecificationVendor();
+
+    /*@ public normal_behavior
+      @    ensures impltitle == null ==> \result == null;
+      @    ensures impltitle != null ==> \result != null
+      @         && impltitle.equals(\result);
+      @*/
+    public /*@ pure @*/ String getImplementationTitle();
+
+    /*@ public normal_behavior
+      @    ensures implversion == null ==> \result == null;
+      @    ensures implversion != null ==> \result != null
+      @         && implversion.equals(\result);
+      @*/
+    public /*@ pure @*/ String getImplementationVersion();
+
+    /*@ public normal_behavior
+      @    ensures implvendor == null ==> \result == null;
+      @    ensures implvendor != null ==> \result != null
+      @         && implvendor.equals(\result);
+      @*/
+    public /*@ pure @*/ String getImplementationVendor();
+
+    /*@ public normal_behavior
+      @   ensures \result <==> sealbase != null;
+      @*/
+    public /*@ pure @*/ boolean isSealed();
+
+    /*@ public normal_behavior
+      @   requires url != null;
+      @   ensures \result
+      @      <==> sealbase != null && sealbase.equals(url);
+      @ also public exceptional_behavior
+      @   requires url == null;
+      @   signals (NullPointerException);
+      @*/
+    public /*@ pure @*/ boolean isSealed(URL url)
+	throws NullPointerException;
+
+    // A version is at least compatible with itself:
+    //@ ensures desired.equals(getSpecificationVersion()) ==> \result;
+    public /*@ pure @*/ boolean isCompatibleWith(String desired)
+	throws NumberFormatException;
+
+// TODO - are the specs for getPackage and getPackages correct in the
+// face of various class loaders?
+// TODO - results are interned or not???
+    //@ ensures \result != null ==> \result.getName().equals(name.replace('/','.'));
+    //@ ensures getPackage("java.lang") != null;
+    //@ ensures getPackage("java/lang") != null;
+    //@ ensures getPackage("java") == null;
+    //@ ensures getPackage("lang") == null;
+    //@ ensures getPackage("") == null;
+    //@ ensures getPackage("ZZZZZ") == null;
+    public /*@ pure @*/ static
+        Package getPackage(/*@ non_null @*/ String name);
+
+    /*@ ensures \result != null &&
+	    (\forall int i; 0<= i && i < \result.length;
+		    getPackage(\result[i].getName()) != null );
+	ensures 
+	    (\forall String s; s != null;
+		    ((\exists int i; 0<=i && i < \result.length;
+			getPackage(s)==\result[i]) <==> getPackage(s) != null));
+	ensures
+	    (\exists int i; 0<=i && i < \result.length;
+			\result[i] == getPackage("java.lang"));
+    */
+    public /*@ pure @*/ static /*@ non_null @*/ Package[] getPackages();
+
+    // FIXME -- needs a spec
+    //@ nullable
+    static /*@ pure @*/ Package getPackage(/*@ non_null @*/ Class c);
+
+    // FIXME -- needs a spec
+    public /*@ pure @*/ int hashCode();
+
+    //@ also
+    //@ ensures \result.startsWith("package " + getName());
+    public /*@ pure @*/ String toString();
+
+
+    /*@ normal_behavior
+      @    assignable objectState;
+      @    assignable this.name;
+      @    assignable this.spectitle, this.specversion, this.specvendor;
+      @    assignable this.impltitle, this.implversion, this.implvendor;
+      @    assignable this.sealbase;
+      @    ensures this.name == name;
+      @    ensures this.spectitle == spectitle
+      @         && this.specversion == specversion
+      @         && this.specvendor == specvendor;
+      @    ensures this.impltitle == impltitle
+      @         && this.implversion == implversion
+      @         && this.implvendor == implvendor;
+      @    ensures this.sealbase == sealbase;
+      @*/
+    /*@ pure @*/
+    Package(String name, 
+	    String spectitle, String specversion, String specvendor,
+	    String impltitle, String implversion, String implvendor,
+	    URL sealbase);
+
+// TODO - package protected: needs another constructor, 2 getSystemPackages
+}

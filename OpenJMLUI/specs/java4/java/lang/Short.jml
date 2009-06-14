@@ -1,0 +1,281 @@
+// @(#)$Id: Short.jml 2022 2006-08-13 02:36:42Z chalin $
+
+// Copyright (C) 2002 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass  Ave, Cambridge, MA 02139, USA.
+
+package java.lang;
+
+/** JML's specification of java.lang.Integer.
+ * @version $Revision: 2022 $
+ * @author Brandon Shilling
+ * @author Gary T. Leavens
+ */
+//-@ immutable
+public /*@ pure @*/ final
+    class Short extends Number implements Comparable {
+
+	//@ public model short theShort;
+	//@ represents theShort <- shortValue();
+
+	/*@
+	  @	public normal_behavior
+	  @	  ensures \result == parseable( s, 10 );
+	  @   model public static pure boolean parseable( String s ) {
+		try { Short ss = Short.valueOf(s); return true; }
+		catch (Exception e) { return false; }
+          @   }
+	  @
+	  @	public normal_behavior
+	  @	  requires Character.MIN_RADIX <= r && r <= Character.MAX_RADIX;
+	  @	  ensures \result <==>
+	  @		  s != null && !s.equals("") &&
+	  @		  (\forall int i; 0 <= i && i < s.length(); 
+	  @			   Character.digit(s.charAt(i), r) != -1);
+	  @	also
+	  @	public normal_behavior
+	  @	  requires Character.MIN_RADIX <= r && r <= Character.MAX_RADIX;
+	  @	  ensures \result <==>
+	  @		  s != null && !s.equals("") &&
+	  @		  (\forall int i; 1 <= i && i < s.length() && s.charAt(0) == '-'; 
+	  @			   Character.digit(s.charAt(i), r) != -1);
+	  @   model public static pure boolean parseable( String s, int r ){
+		try { Short ss = Short.valueOf(s,r); return true; }
+		catch (Exception e) { return false; }
+          @   }
+
+	  @	public normal_behavior
+	  @	 {|
+	  @	   requires (nm.charAt(0) == 'O' && nm.charAt(1) == 'x');  // posititve hex
+	  @	   ensures \result == parseable(nm.substring(2), 16);
+	  @	  also
+	  @	   requires (nm.charAt(0) == '-' && nm.charAt(1) == 'O' && nm.charAt(2) == 'x');  // negative hex
+	  @	   ensures \result == parseable(nm.substring(3), 16);
+	  @	  also
+	  @	   requires (nm.charAt(0) == '#');  			// positive hex
+	  @	   ensures \result == parseable(nm.substring(1), 16);
+	  @	  also
+	  @	   requires (nm.charAt(0) == '-' && nm.charAt(1) == '#');  // negetive hex
+	  @	   ensures \result == parseable(nm.substring(2), 16);
+	  @	  also
+	  @	   requires (nm.charAt(0) == 'O');  			//positive octal
+	  @	   ensures \result == parseable(nm.substring(1), 8);
+	  @	  also
+	  @	   requires (nm.charAt(0) == '-' && nm.charAt(1) == 'O');  // negetive octal
+	  @	   ensures \result == parseable(nm.substring(2), 8);
+	  @	  also
+	  @	   ensures \result == parseable(nm);  // positive or negetive short, radix 10
+	  @	 |}
+	  @   model public static pure boolean decodeable( String nm ) {
+		try { decode(nm); return true; }
+		catch (Exception e) { return false; }
+	      }
+	  @ 
+	  @*/
+
+
+	public static final short   MIN_VALUE;
+	public static final short   MAX_VALUE;
+
+	public static final Class   TYPE;
+	//@ initially TYPE == \type(short);
+	//@ invariant_redundantly TYPE == short.class;
+
+	/*@
+	  @ public normal_behavior
+	  @   {|
+	  @	requires s < 0;
+	  @	ensures \result != null &&  \result.charAt(0) == '-' && \result.charAt(1) != '0'
+	  @		&& s == parseShort(\result);
+	  @   also
+	  @	requires s > 0;
+	  @	ensures \result != null  && \result.charAt(0) != '0'
+	  @		&& s == parseShort(\result);
+	  @   also
+	  @	requires s == 0;
+	  @	ensures \result != null && \result.charAt(0) == '0' && \result.length() == 1;
+	  @   |}
+          @ implies_that
+          @   public normal_behavior
+          @     ensures (* \result is a string representation of s *);
+          @ for_example
+          @   public normal_example
+          @     requires s == (short) -34;
+          @     ensures \result != null && \result.equals("-34");
+	  @*/
+	public static /*@ pure @*/ /*@ non_null @*/ String toString(short s);
+
+	/*@    public normal_behavior
+	  @      requires parseable(s);
+	  @      ensures \result == parseShort(s, 10);
+	  @ also
+	  @    public exceptional_behavior
+	  @      requires !parseable(s);
+	  @      signals (NumberFormatException);
+	  @*/
+        public static /*@ pure @*/ short parseShort(String s)
+            throws NumberFormatException ;
+
+	/*@ public normal_behavior
+	  @   requires parseable(s, radix);
+	  @   ensures (* \result is the short represented by string s with specified radix *);
+	  @ also 
+	  @ public exceptional_behavior
+	  @   requires !parseable(s, radix);
+	  @   signals (NumberFormatException);
+	  @ for_example
+	  @   public normal_example
+	  @	requires s.equals("-34")  && radix == 10;
+	  @	ensures \result == -34;
+	  @*/
+	public static /*@ pure @*/ short parseShort(String s, int radix)
+            throws NumberFormatException ;
+
+	/*@ public normal_behavior
+	  @   requires parseable(s, radix);
+	  @   ensures \fresh(\result) && \result.shortValue() == parseShort(s, radix);
+	  @ also 
+	  @ public exceptional_behavior
+	  @   requires !parseable(s, radix);
+	  @   signals (NumberFormatException);
+	  @*/
+	public static /*@ pure @*/ /*@ non_null @*/
+            Short valueOf(String s, int radix)
+            throws NumberFormatException ;
+
+	/*@ public normal_behavior
+	  @   requires parseable(s);
+	  @   ensures \fresh(\result) && \result.shortValue() == parseShort(s);
+	  @ also
+	  @ public exceptional_behavior
+	  @   requires !parseable(s);
+	  @   signals (NumberFormatException);
+	  @*/
+	public static /*@ pure @*/ /*@ non_null @*/
+            Short valueOf(String s) throws NumberFormatException ;
+
+	/*@ public normal_behavior
+	  @   requires decodeable(nm);
+	  @   ensures (* \result is a Short representation of nm *);
+	  @ also
+	  @ public exceptional_behavior
+	  @   requires !decodeable(nm);
+	  @   signals(NumberFormatException);
+	  @*/
+	public static /*@ pure @*/ /*@ non_null @*/
+            Short decode(/*@ non_null @*/ String nm)
+            throws NumberFormatException ;
+
+	/*@ public normal_behavior
+	  @   assignable theShort;
+	  @   ensures theShort == value;
+	  @*/
+	public Short(short value) ;
+
+	/*@ public normal_behavior
+	  @   requires parseable(s);
+	  @   assignable theShort;
+	  @   ensures theShort == parseShort(s);
+	  @ also
+	  @ public exceptional_behavior
+	  @   requires !parseable(s);
+	  @   signals(NumberFormatException);
+	  @*/
+	public Short(String s) throws NumberFormatException ;
+
+	/*@ also
+          @   public normal_behavior
+	  @     ensures \result == (byte) theShort;
+	  @*/
+	public byte byteValue() ;
+
+	/*@ also
+	  @   public normal_behavior
+	  @     ensures \result == theShort;
+	  @*/
+	public short shortValue() ;
+
+	/*@ also
+	  @   public normal_behavior
+	  @     ensures \result == (int) theShort;
+	  @*/
+	public int intValue() ;
+
+	/*@ also
+	  @   public normal_behavior
+	  @     ensures \result == (long) theShort;
+	  @*/
+	public long longValue() ;
+
+	/*@ also
+	  @   public normal_behavior
+	  @     ensures \result == (float) theShort;
+	  @*/
+	public float floatValue() ;
+
+	/*@ also
+	  @   public normal_behavior
+	  @     ensures \result == (double) theShort;
+	  @*/
+	public double doubleValue() ;
+
+        // specification inherited from Object
+	public /*@ non_null @*/ String toString();
+
+	/*@ also
+	  @   public normal_behavior
+	  @     ensures (* \result is a hash code for this object *);
+	  @*/
+	public int hashCode() ;
+
+	/*@ also
+	  @   public normal_behavior
+	  @     requires obj != null && (obj instanceof Short);
+	  @     ensures \result == (theShort == ((Short) obj).shortValue());
+	  @   also
+	  @   public normal_behavior
+	  @     requires obj == null || !(obj instanceof Short);
+	  @     ensures !\result;
+	  @*/
+	public boolean equals(/*@\readonly*//*@nullable*/Object obj) ;
+
+	/*@ public normal_behavior
+	  @ {|
+	  @   requires theShort == anotherShort.shortValue();
+	  @   ensures \result == 0;
+	  @ also 
+	  @   requires theShort < anotherShort.shortValue();
+	  @   ensures \result < 0;
+	  @ also
+	  @   requires theShort > anotherShort.shortValue();
+	  @   ensures \result > 0;
+	  @ |}
+	  @*/
+	public int compareTo(/*@ non_null @*/ Short anotherShort) ;
+
+	/*@ also
+	  @     public normal_behavior
+	  @       requires o != null && (o instanceof Short);
+	  @       ensures \result == compareTo((Short) o);
+	  @   also
+	  @     public exceptional_behavior
+	  @       requires o == null && !(o instanceof Short);
+	  @       signals(ClassCastException);
+	  @*/
+	public int compareTo(Object o) throws ClassCastException;
+
+    }

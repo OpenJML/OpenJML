@@ -1,0 +1,309 @@
+// @(#)$Id: Byte.jml 2227 2006-12-13 01:59:22Z chalin $
+
+// Copyright (C) 2002 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.lang;
+
+/** JML's specification of java.lang.Byte.
+ * @version $Revision: 2227 $
+ * @author Brandon Shilling
+ * @author Gary T. Leavens
+ */
+//-@ immutable
+public /*@ pure @*/ final class Byte extends Number implements Comparable
+{
+
+    //@ public model byte theByte;
+    //@ represents theByte <- byteValue();
+
+    /*@ 
+      @     public normal_behavior
+      @       assignable \nothing;
+      @	  ensures \result == parseable( s, 10 );
+      @   model public static pure boolean parseable( String s ) {
+      try { Byte ss = Byte.valueOf(s); return true; }   
+      catch (Exception e) { return false; }
+      }     
+
+      @	public normal_behavior
+      @	  requires Character.MIN_RADIX <= r && r <= Character.MAX_RADIX;
+      @       assignable \nothing;
+      @	  ensures \result <==>
+      @		  s != null && !s.equals("") &&
+      @		  (\forall int i; 0 <= i && i < s.length(); 
+      @			   Character.digit(s.charAt(i), r) != -1);
+      @     also
+      @	public normal_behavior
+      @       requires Character.MIN_RADIX <= r && r <= Character.MAX_RADIX;
+      @       assignable \nothing;
+      @       ensures \result <==>
+      @               s != null && !s.equals("") &&
+      @               (\forall int i; 1 <= i && i < s.length() && s.charAt(0) == '-';
+      @                        Character.digit(s.charAt(i), r) != -1);
+      @   model public static pure boolean parseable( String s, int r ) {
+      try { Byte ss = Byte.valueOf(s,r); return true; } 
+      catch (Exception e) { return false; }     
+      @   }
+
+      @	public normal_behavior
+      @	 {|
+      @	   requires (nm.charAt(0) == 'O' && nm.charAt(1) == 'x'); // posititve hex
+      @	   ensures \result == parseable(nm.substring(2), 16);
+      @	  also
+      @	   requires (nm.charAt(0) == '-' && nm.charAt(1) == 'O' && nm.charAt(2) == 'x'); // negative hex
+      @	   ensures \result == parseable(nm.substring(3), 16);
+      @	  also
+      @	   requires (nm.charAt(0) == '#');  			// positive hex
+      @	   ensures \result == parseable(nm.substring(1), 16);
+      @	  also
+      @	   requires (nm.charAt(0) == '-' && nm.charAt(1) == '#');  // negative hex
+      @	   ensures \result == parseable(nm.substring(2), 16);
+      @	  also
+      @	   requires (nm.charAt(0) == 'O');  			//positive octal
+      @	   ensures \result == parseable(nm.substring(1), 8);
+      @	  also
+      @	   requires (nm.charAt(0) == '-' && nm.charAt(1) == 'O');  // negative octal
+      @	   ensures \result == parseable(nm.substring(2), 8);
+      @	  also
+      @	   ensures \result == parseable(nm);  // positive or negative byte, radix 10
+      @	 |}
+      @   model public static pure boolean decodeable( String nm ) {
+      try { decode(nm); return true; }
+      catch (Exception e) { return false; }
+      }
+      @*/
+
+    public static final byte MIN_VALUE; //@ initially MIN_VALUE == -128;
+    public static final byte MAX_VALUE; //@ initially MAX_VALUE == 127;
+
+    public static /* non_null */ final Class TYPE;
+    //@ initially TYPE == \type(byte);
+    //@ invariant_redundantly TYPE == byte.class;
+
+    /*@
+      @ public normal_behavior
+      @   {|
+      @	requires b < 0;
+      @     assignable \nothing;
+      @	ensures \result != null &&  \result.charAt(0) == '-' && \result.charAt(1) != '0'
+      @		&& b == parseByte(\result);
+      @   also
+      @	requires b > 0;
+      @     assignable \nothing;
+      @	ensures \result != null  && \result.charAt(0) != '0'
+      @		&& b == parseByte(\result);
+      @   also
+      @	requires b == 0;
+      @     assignable \nothing;
+      @	ensures \result != null && \result.charAt(0) == '0' && \result.length() == 1;
+      @   |}
+      @ implies_that
+      @   public normal_behavior
+      @ 	ensures (*\result is a string representation of s *);
+      @ for_example
+      @   public normal_example
+      @     requires b == (short) -34;
+      @     ensures \result != null && \result.equals("-34");
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String toString(byte b);
+
+    /*@    public normal_behavior
+      @      requires parseable(s);
+      @      assignable \nothing;
+      @      ensures \result == parseByte(s, 10);
+      @ also
+      @    public exceptional_behavior
+      @      requires !parseable(s);
+      @      assignable \nothing;
+      @      signals (NumberFormatException);
+      @*/
+    public static /*@ pure @*/ byte parseByte(String s)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   requires parseable(s, radix);
+      @   assignable \nothing;
+      @   ensures (* the byte represented by string s with specified radix *);
+      @ also 
+      @ public exceptional_behavior
+      @   requires !parseable(s, radix);
+      @   assignable \nothing;
+      @   signals (NumberFormatException);
+      @ for_example
+      @   public normal_example
+      @	requires s.equals("-34")  && radix == 10;
+      @	ensures \result == -34;
+      @*/
+    public static /*@ pure @*/ byte parseByte(String s, int radix)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   requires parseable(s, radix);
+      @   assignable \nothing;
+      @   ensures \fresh(\result);
+      @   ensures \result.byteValue() == parseByte(s, radix);
+      @ also 
+      @ public exceptional_behavior
+      @   requires !parseable(s, radix);
+      @   assignable \nothing;
+      @   signals (NumberFormatException);
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/
+        Byte valueOf(String s, int radix)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   requires parseable(s);
+      @   assignable \nothing;
+      @   ensures \fresh(\result);
+      @   ensures \result.byteValue() == parseByte(s);
+      @ also
+      @ public exceptional_behavior
+      @   requires !parseable(s);
+      @   assignable \nothing;
+      @   signals (NumberFormatException);
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ Byte valueOf(String s)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   requires decodeable(nm);
+      @   assignable \nothing;
+      @   ensures (* \result is a Byte representation of nm *);
+      @ also
+      @ public exceptional_behavior
+      @   requires !decodeable(nm);
+      @   assignable \nothing;
+      @   signals(NumberFormatException);
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ Byte decode(String nm)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   assignable theByte;
+      @   ensures theByte == value;
+      @*/
+    public Byte(byte value);
+
+    /*@ public normal_behavior
+      @   requires parseable(s);
+      @   assignable theByte;
+      @   ensures theByte == parseByte(s);
+      @ also
+      @ public exceptional_behavior
+      @   requires !parseable(s);
+      @   assignable \nothing;
+      @   signals(NumberFormatException);
+      @*/
+    public Byte(String s) throws NumberFormatException;
+
+    /*@ also
+      @   public normal_behavior
+      @     assignable \nothing;
+      @     ensures \result == theByte;
+      @*/
+    public byte byteValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     assignable \nothing;
+      @     ensures \result == (short) theByte;
+      @*/
+    public short shortValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     assignable \nothing;
+      @     ensures \result == (int) theByte;
+      @*/
+    public int intValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     assignable \nothing;
+      @     ensures \result == (long) theByte;
+      @*/
+    public long longValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     assignable \nothing;
+      @     ensures \result == (float) theByte;
+      @*/
+    public float floatValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     assignable \nothing;
+      @     ensures \result == (double) theByte;
+      @*/
+    public double doubleValue();
+
+    // specification inherited from Object
+    public /*@ non_null @*/ String toString();
+
+    /*@ also
+      @   public normal_behavior
+      @     assignable \nothing;
+      @     ensures (* \result is a hash code for this object *);
+      @*/
+    public int hashCode();
+
+    /*@ also
+      @   public normal_behavior
+      @   {|
+      @     requires obj instanceof Byte;
+      @     assignable \nothing;
+      @     ensures \result == (theByte == ((Byte) obj).byteValue());
+      @   also
+      @     requires !(obj instanceof Byte);
+      @     assignable \nothing;
+      @     ensures !\result;
+      @   |}
+      @*/
+    public /*@ pure @*/ boolean equals(/*@\readonly*//*@nullable*/Object obj);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires theByte == anotherByte.byteValue();
+      @   assignable \nothing;
+      @   ensures \result == 0;
+      @ also 
+      @   requires theByte < anotherByte.byteValue();
+      @   assignable \nothing;
+      @   ensures \result < 0;
+      @ also
+      @   requires theByte > anotherByte.byteValue();
+      @   assignable \nothing;
+      @   ensures \result > 0;
+      @ |}
+      @*/
+    public int compareTo(/*@ non_null */ Byte anotherByte);
+
+    /*@ also public normal_behavior
+      @   requires o instanceof Byte;
+      @   assignable \nothing;
+      @   ensures \result == compareTo((Byte) o);
+      @ also public exceptional_behavior
+      @   requires o != null && !(o instanceof Byte);
+      @   assignable \nothing;
+      @   signals_only ClassCastException;
+      @*/
+    public int compareTo(Object o);
+}

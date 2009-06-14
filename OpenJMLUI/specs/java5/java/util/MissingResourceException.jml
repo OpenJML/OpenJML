@@ -1,0 +1,26 @@
+package java.util;
+
+// FIXME - needs completion; Throwable non null? what about message
+// Java 1.6 differs in adding a protected constructor
+
+public class MissingResourceException extends RuntimeException {
+
+    //@ public non_null model String theKey;
+    //@ public non_null model String theClass;
+    
+    /*@ public normal_behavior
+      @   ensures standardThrowable(s);
+      @   ensures theClass.equals(ss);
+      @   ensures theKey.equals(sss);
+      @*/
+    //@ pure
+    public MissingResourceException(/*@ non_null*/String s, /*@ non_null*/String ss, /*@ non_null*/String sss);
+
+    //@ public normal_behavior
+    //@ ensures theKey.equals(\result);
+    public /*@ pure non_null*/String getKey();
+
+    //@ public normal_behavior
+    //@ ensures theClass.equals(\result);
+    public /*@ pure non_null*/String getClassName();
+}

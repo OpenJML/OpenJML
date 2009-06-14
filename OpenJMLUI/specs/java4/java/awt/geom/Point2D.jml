@@ -1,0 +1,159 @@
+package java.awt.geom;
+
+// refines "Point2D.java";
+
+import java.io.Serializable;
+
+public abstract class Point2D implements Cloneable {
+
+    //@ public model double xCoordinate; in objectState;
+    //@ public model double yCoordinate; in objectState;
+    
+    //@ requires true;
+    //@ pure
+    protected Point2D();
+
+    //@ ensures java.lang.Double.isNaN(xCoordinate) ? java.lang.Double.isNaN(\result) : \result == xCoordinate;
+    //@ pure
+    public abstract double getX();
+
+    //@ ensures java.lang.Double.isNaN(yCoordinate) ? java.lang.Double.isNaN(\result) : \result == yCoordinate;
+    //@ pure
+    public abstract double getY();
+
+    //@ assignable objectState;
+    //@ ensures java.lang.Double.isNaN(x) ? java.lang.Double.isNaN(xCoordinate) : xCoordinate == x;
+    //@ ensures java.lang.Double.isNaN(y) ? java.lang.Double.isNaN(yCoordinate) : yCoordinate == y;
+    public abstract void setLocation(double x, double y);
+
+    //@ assignable objectState;
+    //@ ensures java.lang.Double.isNaN(p.xCoordinate) ? java.lang.Double.isNaN(xCoordinate) : xCoordinate == p.xCoordinate;
+    //@ ensures java.lang.Double.isNaN(p.yCoordinate) ? java.lang.Double.isNaN(yCoordinate) : yCoordinate == p.yCoordinate;
+    public void setLocation(/*@ non_null @*/ Point2D p);
+
+
+    /*@
+       requires !anyNaN(x1, y1, x2, y2);
+       ensures \result == (x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2);
+       public pure model static double squareDistance(double x1, double y1, double x2, double y2) {
+         return (x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2);
+       } 
+      @*/
+    
+    /*@
+       ensures \result == java.lang.Double.isNaN(a) || java.lang.Double.isNaN(b) || java.lang.Double.isNaN(c) || java.lang.Double.isNaN(d);
+       public pure model static boolean anyNaN(double a, double b, double c, double d) {
+          return java.lang.Double.isNaN(a) || java.lang.Double.isNaN(b) || java.lang.Double.isNaN(c) || java.lang.Double.isNaN(d);
+       }
+      @*/
+
+    //@ requires !anyNaN(x1, y1, x2, y2);
+    //@ ensures \result == squareDistance(x1, y1, x2, y2);
+    //@ also 
+    //@ requires anyNaN(x1, y1, x2, y2);
+    //@ ensures java.lang.Double.isNaN(\result);       
+    //@ pure
+    public static double distanceSq(double x1, double y1, double x2, double y2);
+
+    //@ requires !anyNaN(x1, y1, x2, y2);
+    //@ ensures \result == Math.sqrt(squareDistance(x1, y1, x2, y2));
+    //@ also 
+    //@ requires anyNaN(x1, y1, x2, y2);
+    //@ ensures java.lang.Double.isNaN(\result);       
+    //@ pure
+    public static double distance(double x1, double y1, double x2, double y2);
+
+
+    //@ requires !anyNaN(px, py, xCoordinate, yCoordinate);
+    //@ ensures \result == squareDistance(px, py, xCoordinate, yCoordinate);
+    //@ also 
+    //@ requires anyNaN(px, py, xCoordinate, yCoordinate);
+    //@ ensures java.lang.Double.isNaN(\result);       
+    //@ pure
+    public double distanceSq(double px, double py);
+
+    //@ requires !anyNaN(pt.xCoordinate, pt.yCoordinate, xCoordinate, yCoordinate);
+    //@ ensures \result == squareDistance(pt.xCoordinate, pt.yCoordinate, xCoordinate, yCoordinate);
+    //@ also 
+    //@ requires anyNaN(pt.xCoordinate, pt.yCoordinate, xCoordinate, yCoordinate);
+    //@ ensures java.lang.Double.isNaN(\result);       
+    //@ pure
+    public double distanceSq(/*@ non_null @*/ Point2D pt);
+
+    //@ requires !anyNaN(px, py, xCoordinate, yCoordinate);
+    //@ ensures \result == Math.sqrt(squareDistance(px, py, xCoordinate, yCoordinate));
+    //@ also 
+    //@ requires anyNaN(px, py, xCoordinate, yCoordinate);
+    //@ ensures java.lang.Double.isNaN(\result);       
+    //@ pure
+    public double distance(double px, double py);
+
+    //@ requires !anyNaN(pt.xCoordinate, pt.yCoordinate, xCoordinate, yCoordinate);
+    //@ ensures \result == Math.sqrt(squareDistance(pt.xCoordinate, pt.yCoordinate, xCoordinate, yCoordinate));
+    //@ also 
+    //@ requires anyNaN(pt.xCoordinate, pt.yCoordinate, xCoordinate, yCoordinate);
+    //@ ensures java.lang.Double.isNaN(\result);       
+    //@ pure
+    public double distance(/*@ non_null @*/ Point2D pt);
+
+    //@ also
+    //@ ensures \fresh(\result) && \result instanceof Point2D;
+    //@ ensures java.lang.Double.isNaN(xCoordinate) ? java.lang.Double.isNaN(((Point2D)\result).xCoordinate) : ((Point2D)\result).xCoordinate == xCoordinate;
+    //@ ensures java.lang.Double.isNaN(yCoordinate) ? java.lang.Double.isNaN(((Point2D)\result).yCoordinate) : ((Point2D)\result).yCoordinate == yCoordinate;
+    //@ pure
+    public Object clone();
+
+    //@ also
+    //@ ensures obj == null ==> !\result;
+    //@ ensures !(obj instanceof Point2D) ==> !\result;
+    //@ ensures (obj instanceof Point2D) && \result ==> java.lang.Double.compare(xCoordinate, ((Point2D)obj).xCoordinate) == 0 && java.lang.Double.compare(yCoordinate, ((Point2D)obj).yCoordinate) == 0;
+    //@ pure
+    public boolean equals(/*@ nullable @*/ Object obj);
+
+
+    
+    
+    public static class Float extends Point2D implements Serializable {
+
+    	public float x; //@ in xCoordinate;
+    	                //@ represents xCoordinate = x;
+        public float y; //@ in yCoordinate;
+                        //@ represents yCoordinate = y;
+
+        //@ assignable objectState;
+        //@ ensures xCoordinate == 0.0;
+        //@ ensures yCoordinate == 0.0;
+        public Float();
+
+        //@ assignable objectState;
+        //@ ensures java.lang.Float.isNaN(x) ? java.lang.Double.isNaN(xCoordinate) : xCoordinate == x;
+        //@ ensures java.lang.Float.isNaN(y) ? java.lang.Double.isNaN(yCoordinate) : yCoordinate == y;
+        public Float(float x, float y);
+
+        //@ assignable objectState;
+        //@ ensures java.lang.Float.isNaN(x) ? java.lang.Double.isNaN(xCoordinate) : xCoordinate == x;
+        //@ ensures java.lang.Float.isNaN(y) ? java.lang.Double.isNaN(yCoordinate) : yCoordinate == y;
+        public void setLocation(float x, float y);
+
+    }
+
+    public static class Double extends Point2D implements Serializable {
+
+    	public double x; //@ in xCoordinate;
+                         //@ represents xCoordinate = x;
+        public double y; //@ in yCoordinate;
+                         //@ represents yCoordinate = y;
+
+        //@ assignable objectState;
+        //@ ensures xCoordinate == 0.0;
+        //@ ensures yCoordinate == 0.0;
+        public Double();
+        
+        //@ assignable objectState;
+        //@ ensures java.lang.Double.isNaN(x) ? java.lang.Double.isNaN(xCoordinate) : xCoordinate == x;
+        //@ ensures java.lang.Double.isNaN(y) ? java.lang.Double.isNaN(yCoordinate) : yCoordinate == y;
+        public Double(double x, double y);
+
+    }    
+
+}

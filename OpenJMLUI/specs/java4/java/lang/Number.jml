@@ -1,0 +1,158 @@
+// @(#)$Id: Number.jml 1388 2005-05-05 00:40:33Z davidcok $
+
+// Copyright (C) 2002 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.lang;
+
+/** JML's specification of java.lang.Number.
+ * @version $Revision: 1388 $
+ * @author Brandon Shilling
+ * @author Gary T. Leavens
+ */
+public abstract class Number implements java.io.Serializable {
+
+  /* FIXME - include this when we can reason about characters @
+    @   public normal_behavior
+    @     requires Character.MIN_RADIX <= r && r <= Character.MAX_RADIX;
+    @     ensures \result <==>
+    @             s != null && !s.equals("") &&
+    @             (\forall int i; 0 <= i && i < s.length();
+    @                      Character.digit(s.charAt(i), r) != -1);
+    @   also
+    @     public normal_behavior
+    @     requires Character.MIN_RADIX <= r && r <= Character.MAX_RADIX;
+    @     ensures \result <==>
+    @             s != null && s.length() > 1 &&
+    @             s.charAt(0) == '-' &&
+    @             (\forall int i; 1 <= i && i < s.length();
+    @                      Character.digit(s.charAt(i), r) != -1);
+    @*/
+  /*@   public normal_behavior
+    @     requires s == null || s.equals("") ||
+    @       !( Character.MIN_RADIX <= r && r <= Character.MAX_RADIX);
+    @     ensures !\result;
+
+    // This returns true if the argument contains a character representation
+    // of a valid integral number - optional initial minus sign, then a
+    // sequence of digits of the given radix, with the resulting signed
+    // number fitting in the given number of bits.
+    @   model public static pure boolean parseable( String s, int r, int bits );
+    @*/
+
+        // A String is decodable if it has a legitimate radix-indicating
+        // prefix followed by a parseable string for that radix and number
+        // of bits in the final, signed result.  Any negation sign must appear
+        // before the radix prefix, not after it.
+  /*@  public normal_behavior
+    @    requires nm == null || nm.length() == 0;
+    @    ensures !\result;
+    @*/
+  /* FIXME - include when we can do character-level reasoning @
+    @   public normal_behavior
+    @    requires nm.length() > 0;
+    @    {|
+    @      // positive hex
+    @      requires (nm.length() >= 2
+    @                && nm.charAt(0) == 'O' && nm.charAt(1) == 'x');
+    @      ensures \result == parseable(nm.substring(2), 16, bits);
+    @     also
+    @      // negative hex
+    @      requires (nm.length() >= 3
+    @                && nm.charAt(0) == '-' && nm.charAt(1) == 'O'
+    @                && nm.charAt(2) == 'x');
+    @      ensures \result == parseable(nm.substring(3), 16, bits);
+    @     also
+    @      // positive hex
+    @      requires (nm.charAt(0) == '#');
+    @      ensures \result == parseable(nm.substring(1), 16, bits);
+    @     also
+    @      // negative hex
+    @      requires (nm.length() >= 2
+    @                && nm.charAt(0) == '-' && nm.charAt(1) == '#');
+    @      ensures \result == parseable(nm.substring(2), 16, bits);
+    @     also
+    @      // positive octal
+    @      requires (nm.charAt(0) == 'O');
+    @      ensures \result == parseable(nm.substring(1), 8, bits);
+    @     also
+    @      // negative octal
+    @      requires (nm.length() >= 2
+    @                && nm.charAt(0) == '-' && nm.charAt(1) == 'O');
+    @      ensures \result == parseable(nm.substring(2), 8, bits);
+    @     also
+    @      // positive or negative long, radix 10
+    @      requires !(   (nm.length() >= 2
+    @                      && nm.charAt(0) == 'O' && nm.charAt(1) == 'x')
+    @                 || (nm.length() >= 3
+    @                      && nm.charAt(0) == '-' && nm.charAt(1) == 'O'
+    @                      && nm.charAt(2) == 'x')
+    @                 || (nm.charAt(0) == '#')
+    @                 || (nm.length() >= 2
+    @                      && nm.charAt(0) == '-' && nm.charAt(1) == '#')
+    @                 || (nm.charAt(0) == 'O')
+    @                 || (nm.length() >= 2
+    @                      && nm.charAt(0) == '-' && nm.charAt(1) == 'O')
+    @                );
+    @      ensures \result == parseable(nm, 10, bits);
+    @    |}
+    @*/
+  //@   model public static pure boolean decodable( String nm, int bits );
+
+
+    /*@ public normal_behavior
+      @   assignable objectState;
+      @*/
+    public /*@ pure @*/ Number();
+
+    /*@ public normal_behavior
+      @   ensures (* \result is an int approximation
+      @              to the value of this object *);
+      @*/
+    public abstract /*@ pure @*/ int intValue();
+
+    /*@ public normal_behavior
+      @   ensures (* \result is an long approximation
+      @              to the value of this object *);
+      @*/
+    public abstract /*@ pure @*/ long longValue();
+
+    /*@ public normal_behavior
+      @   ensures (* \result is an float approximation
+      @              to the value of this object *);
+      @*/
+    public abstract /*@ pure @*/ float floatValue();
+
+    /*@ public normal_behavior
+      @   ensures (* \result is an double approximation
+      @              to the value of this object *);
+      @*/
+    public abstract /*@ pure @*/ double doubleValue();
+
+    /*@ public normal_behavior
+      @   ensures (* \result is an byte approximation
+      @              to the value of this object *);
+      @*/
+    public /*@ pure @*/ byte byteValue();
+
+    /*@ public normal_behavior
+      @   ensures (* \result is an short approximation
+      @              to the value of this object *);
+      @*/
+    public /*@ pure @*/ short shortValue();
+}

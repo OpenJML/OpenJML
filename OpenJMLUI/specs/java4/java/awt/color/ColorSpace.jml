@@ -1,0 +1,78 @@
+// $Id: ColorSpace.jml 2735 2007-06-27 10:46:13Z chalin $
+
+package java.awt.color;
+
+// FIXME - resolve commented out private fields
+
+public abstract class ColorSpace extends Object implements java.io.Serializable {
+
+    // CLASS SPECIFICATIONS
+
+    // FIELDS
+    public static final int TYPE_8CLR;
+    public static final int TYPE_ACLR;
+    // private static /*@non_null*/ ColorSpace sRGBspace;
+    static final long serialVersionUID;
+    public static final int CS_LINEAR_RGB;
+    public static final int TYPE_4CLR;
+    public static final int TYPE_FCLR;
+    public static final int TYPE_9CLR;
+    // private static /*@non_null*/ ColorSpace PYCCspace;
+    public static final int TYPE_BCLR;
+    // private int numComponents;
+    public static final int TYPE_HLS;
+    public static final int TYPE_YCbCr;
+    public static final int CS_sRGB;
+    public static final int TYPE_5CLR;
+    public static final int TYPE_CMYK;
+    public static final int CS_PYCC;
+    public static final int TYPE_GRAY;
+    public static final int TYPE_RGB;
+    // private static /*@non_null*/ ColorSpace XYZspace;
+    public static final int TYPE_CCLR;
+    public static final int CS_GRAY;
+    public static final int TYPE_CMY;
+    public static final int CS_CIEXYZ;
+    public static final int TYPE_6CLR;
+    public static final int TYPE_Luv;
+    public static final int TYPE_Lab;
+    public static final int TYPE_2CLR;
+    public static final int TYPE_XYZ;
+    public static final int TYPE_DCLR;
+    // private int type;
+    public static final int TYPE_7CLR;
+    public static final int TYPE_HSV;
+    public static final int TYPE_Yxy;
+    public static final int TYPE_3CLR;
+    // private static /*@non_null*/ ColorSpace LINEAR_RGBspace;
+    // private static /*@non_null*/ ColorSpace GRAYspace;
+    public static final int TYPE_ECLR;
+
+    // METHODS AND CONSTRUCTORS
+
+    public int getNumComponents();
+
+    public int getType();
+
+    public boolean isCS_sRGB();
+
+    public float getMaxValue(int Param0);
+
+    public float getMinValue(int Param0);
+
+    protected ColorSpace(int Param0, int Param1);
+
+    public abstract /*@non_null*/ float[] fromCIEXYZ(/*@non_null*/ float[] Param0);
+
+    public abstract /*@non_null*/ float[] fromRGB(/*@non_null*/ float[] Param0);
+
+    public abstract /*@non_null*/ float[] toCIEXYZ(/*@non_null*/ float[] Param0);
+
+    public abstract /*@non_null*/ float[] toRGB(/*@non_null*/ float[] Param0);
+
+    public static /*@non_null*/ ColorSpace getInstance(int Param0);
+
+    static boolean isCS_CIEXYZ(/*@non_null*/ ColorSpace Param0);
+
+    public /*@non_null*/ String getName(int Param0);
+}

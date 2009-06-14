@@ -1,0 +1,22 @@
+package java.io;
+// FIXME - neeeds completion
+ 
+public class InvalidClassException extends ObjectStreamException {
+  
+    public String classname;
+    
+    public String getMessage();
+    
+    /*@ public normal_behavior
+      @   ensures standardThrowable(reason);
+      @*/
+    //@ pure
+    public InvalidClassException(String reason);
+  
+    /*@ public normal_behavior
+      @   ensures standardThrowable(reason);
+      @   ensures this.classname == classname;
+      @*/
+    //@ pure
+    public InvalidClassException(String classname, String reason);
+}

@@ -161,6 +161,26 @@ abstract public class PopupActions implements IObjectActionDelegate {
         }
     }
 
+    /**
+     * This action opens an editor containing the specifications file
+     * for the selected Java classes.
+     * 
+     * @author David Cok
+     *
+     */
+    static public class SpecsEditor extends PopupActions {
+        // This is done in the UI thread.
+        @Override
+        public final void run(final IAction action) {
+            try {
+                utils.openSpecEditorForSelection(selection,null,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.SpecsEditor",e);
+            }
+        }
+    }
+
+
     /** This class implements the action of popping up a dialog to
      * show the counterexample for a Java method.
      */

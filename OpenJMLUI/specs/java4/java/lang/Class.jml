@@ -1,0 +1,233 @@
+// @(#)$Id: Class.jml 2225 2006-12-13 01:24:19Z perryjames $
+
+// Copyright (C) 1998, 1999 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.lang;
+
+import java.lang.reflect.*;
+import java.io.InputStream;
+
+/** JML's specification of java.lang.Class
+ * @version $Revision: 2225 $
+ * @author Gary T. Leavens
+ * @author Erik Poll
+ */
+//-@ immutable
+//@ pure 
+public final class Class implements java.io.Serializable {
+
+    private Class();
+
+    /*@ also public normal_behavior
+      @   ensures \result != null && !\result.equals("")
+      @        && (* \result is the name of this class object *);
+      @*/
+    //@ pure
+    public String toString();
+
+    /// *@ also public normal_behavior
+      // @   ensures \result <==> (this == o);
+      // @*/
+    // // @ pure function 
+    //public boolean equals(Object o);
+
+    /*@   public normal_behavior
+      @     requires className != null
+      @         && (* a class named className has been or can be loaded
+      @               by the defining loader of the current class *);
+      @     ensures \result != null;
+      @ also
+      @   public behavior
+      @     requires className != null;
+      @     ensures true;
+      @     signals_only ClassNotFoundException;
+            // JML does not allow Errors in specs
+      @     //signals (LinkageError) (* if linkage fails *);
+      @     //signals (ExceptionInInitializerError)
+      @     //          (* if the class must be loaded and its
+      @     //             initialization throws an exception *);
+      @     signals (ClassNotFoundException)
+      @               (* if className can't be located *);
+      @*/
+    //@ pure
+    public static /*@ non_null @*/
+        Class forName(/*@ non_null @*/ String className)
+        throws ClassNotFoundException;
+
+    /*@   public normal_behavior
+      @     requires name != null && loader != null
+      @         && (* a class named name has been/can be loaded by loader *);
+      @     ensures \result != null;
+      @ also
+      @   public behavior
+      @     requires name != null && loader != null;
+      @     ensures true;
+      @     signals_only ClassNotFoundException;
+            // JML does not allow Errors in specs
+      @     //signals (LinkageError) (* if linkage fails *);
+      @     //signals (ExceptionInInitializerError)
+      @     //          (* if the class must be loaded and its
+      @     //             initialization throws an exception *);
+      @     signals (ClassNotFoundException)
+      @               (* if name can't be located *);
+      @*/
+    public static /*@ non_null @*/
+        Class forName(/*@ non_null @*/ String name,
+                      boolean initialize,
+                      /*@ non_null @*/ ClassLoader loader)
+        throws ClassNotFoundException;
+
+    public /*@ pure non_null @*/ Object newInstance() 
+        throws InstantiationException, IllegalAccessException;
+
+    //@ public normal_behavior
+    //@   ensures \result <==> (obj != null && (\typeof(obj) <: this));
+    public /*@ pure @*/ native boolean isInstance(Object obj);
+
+    public /*@ pure @*/ native boolean isAssignableFrom(Class cls);
+
+    //@ public model boolean _isInterface; // cf. _isArray
+    //@        represents _isInterface = isInterface();
+
+    //@ ensures \result == _isInterface;
+    public /*@ pure @*/ native boolean isInterface();
+
+    /** Needed to specify that invoking isArray() on an object always
+      * produces the same result: no methods include this model field
+      * in their assignable clause, so no methods can alter the
+      * outcome of invoking isArray() on some object.  This property
+      * is important when using ESC/Java on specs that use isArray(),
+      * just knowing that isArray() is pure is not enough.
+      *
+      * Similar specs could be added to all other pure methods in this Class.
+      */
+    //@ public model boolean _isArray;
+    //@        represents _isArray = isArray();
+
+    //@ ensures \result == _isArray;
+    //@ ensures \elemtype(this) <: \type(Object) ==> \result;
+    //@ ensures \elemtype(this) == \type(int) ==> \result;
+    //@ ensures \elemtype(this) == \type(byte) ==> \result;
+    //@ ensures \elemtype(this) == \type(short) ==> \result;
+    //@ ensures \elemtype(this) == \type(long) ==> \result;
+    //@ ensures \elemtype(this) == \type(char) ==> \result;
+    //@ ensures \elemtype(this) == \type(float) ==> \result;
+    //@ ensures \elemtype(this) == \type(double) ==> \result;
+    //@ ensures \elemtype(this) == \type(boolean) ==> \result;
+	// FIXME - really need a better way to express this
+    public /*@ pure @*/ native boolean isArray();
+
+    /*@ public normal_behavior
+      @ ensures \result <==> (
+                   this == int.class ||
+                   this == short.class ||
+                   this == long.class ||
+                   this == float.class ||
+                   this == double.class ||
+                   this == char.class ||
+                   this == boolean.class ||
+                   this == byte.class ||
+		   this == void.class		// this case was missing --PC
+                  );
+      @*/
+    public /*@ pure @*/ native boolean isPrimitive();
+
+    //@ public model String _getName;
+    //@        represents _getName = getName();
+
+    //@ ensures \result == _getName;
+    public /*@ pure @*/ /*@ non_null @*/ String getName();
+
+    public /*@ pure nullable @*/ ClassLoader getClassLoader();
+
+    /*@ pure nullable @*/ native ClassLoader getClassLoader0();
+
+    public /*@ pure @*/ native Class getSuperclass();
+
+    public /*@ pure @*/ Package getPackage();
+
+    public /*@ pure @*/ native Class[] getInterfaces();
+
+    public /*@ pure @*/ native Class getComponentType();
+
+    public /*@ pure @*/ native int getModifiers();
+
+    public /*@ pure @*/ native Object[] getSigners();
+        
+    native void setSigners(Object[] signers);
+
+    public /*@ pure @*/ native Class getDeclaringClass();
+
+    public /*@ pure @*/ Class[] getClasses();
+
+    public /*@ pure @*/ Field[] getFields() throws SecurityException;
+
+    public /*@ pure non_null @*/ Method[] getMethods() throws SecurityException;
+
+    public /*@ pure non_null @*/ Constructor[] getConstructors() throws SecurityException;
+
+    public /*@ pure @*/ Field getField(String name)
+        throws NoSuchFieldException, SecurityException;
+
+    public /*@ pure non_null @*/ Method getMethod(String name, Class[] parameterTypes)
+        throws NoSuchMethodException, SecurityException;
+
+    public /*@ pure non_null @*/ Constructor getConstructor(Class[] parameterTypes)
+        throws NoSuchMethodException, SecurityException;
+
+    //@ ensures \result != null;
+    //@ ensures \nonnullelements(\result);
+    public /*@ pure @*/ Class[] getDeclaredClasses() throws SecurityException;
+
+    //@ ensures \result != null;
+    //@ ensures \nonnullelements(\result);
+    public /*@ pure @*/ Field[] getDeclaredFields() throws SecurityException;
+
+    //@ ensures \result != null;
+    //@ ensures \nonnullelements(\result);
+    public /*@ pure @*/ Method[] getDeclaredMethods() throws SecurityException;
+
+    public /*@ pure @*/ Constructor[] getDeclaredConstructors() throws SecurityException;
+
+
+    //@ non_null
+    public /*@ pure @*/ Field getDeclaredField(String name)
+        throws NoSuchFieldException, SecurityException;
+
+    //@ non_null
+    public /*@ pure @*/ Method getDeclaredMethod(String name, Class[] parameterTypes)
+        throws NoSuchMethodException, SecurityException;
+
+    //@ non_null
+    public /*@ pure @*/ Constructor getDeclaredConstructor(Class[] parameterTypes)
+        throws NoSuchMethodException, SecurityException;
+
+    public /*@ pure @*/ InputStream getResourceAsStream(String name);
+
+    public /*@ pure @*/ java.net.URL getResource(String name);
+
+    public /*@ pure @*/ java.security.ProtectionDomain getProtectionDomain();
+
+    native void setProtectionDomain0(java.security.ProtectionDomain pd);
+
+    public /*@ pure @*/ boolean desiredAssertionStatus();
+
+}
+
+

@@ -240,6 +240,19 @@
     </objectContribution>
     <objectContribution
             adaptable="true"
+            objectClass="org.eclipse.core.resources.IResource"
+            nameFilter="*"
+            id="JMLUI.contributionE">
+       <action
+               label="Open Specs Editor"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$SpecsEditor"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.specsEditor">
+       </action>
+    </objectContribution>
+    <objectContribution
+            adaptable="true"
             objectClass="org.eclipse.ui.IWorkingSet"
             nameFilter="*"
             id="JMLUI.contribution4WS">
@@ -488,6 +501,14 @@
                definitionId="org.jmlspecs.eclipse.commands.DeleteJMLMarkers">
          </action>
          <action
+               label="Open Specifications Editor"
+               tooltip="Opens a specification file editor for the selected object"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$SpecsEditor"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.SpecsEditor"
+               definitionId="org.jmlspecs.eclipse.commands.SpecsEditor">
+         </action>
+         <action
                label="RAC"
                tooltip="Compiles runtime checks in selected objects"
                class="org.jmlspecs.openjml.eclipse.MenuActions$CheckJML"
@@ -734,6 +755,12 @@
             description="Generates javadoc pages containing JML information"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.JmlDoc">
+      </command>
+      <command
+            name="Open a Specifications Editor"
+            description="Opens an editor on the corresponding specifications file"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.SpecsEditor">
       </command>
   </extension>
   

@@ -1,0 +1,363 @@
+// @(#)$Id: Double.jml 2022 2006-08-13 02:36:42Z chalin $
+
+// Copyright (C) 2002 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass  Ave, Cambridge, MA 02139, USA.
+
+package java.lang;
+
+/** JML's specification of java.lang.Double.
+ * @version $Revision: 2022 $
+ * @author Brandon Shilling
+ * @author David R. Cok
+ * @author Gary T. Leavens
+ */
+//-@ immutable
+public /*@ pure @*/ final class Double extends Number implements Comparable {
+    
+    //@ public model double theDouble;
+    //@ represents theDouble <- doubleValue();
+
+    /** Returns true if the string is a parseable double value (but not
+	an infinite or NaN value).
+    */
+    /*@
+    @     public normal_behavior
+    @	  requires s != null;
+    @	  {|
+    @	    requires s.equals("NaN");
+    @	    ensures !\result;
+    @	  also
+    @	    requires s.equals("");
+    @	    ensures !\result;
+    @	  also
+    @	    requires s.equals("Infinity") || s.equals("-Infinity");
+    @	    ensures !\result;
+    @	  also
+    @	    requires s.equals("0.0") || s.equals("-0.0");
+    @	    ensures \result;
+    @	  also 
+    @	    requires (* parseable to a floating-point double
+    @                     by the IEEE 754 standards *);
+    @	    ensures \result;
+    @	  also
+    @	    requires !(* parseable to a floating-point double
+    @                      by the IEEE 754 standards *);
+    @	    ensures !\result;
+    @	  |}
+    @  public static pure model boolean parseable( String s ) {
+	    try { Double d = Double.valueOf(s); return true; }
+	    catch (Exception e) { return false; }
+	}
+    @*/
+	
+    public static final double POSITIVE_INFINITY;
+
+    public static final double NEGATIVE_INFINITY;
+
+    public static final double NaN;
+
+    public static final double MAX_VALUE;
+    public static final double MIN_VALUE;
+
+    public static final Class TYPE;
+    //@ initially TYPE == \type(double);
+    //@ invariant_redundantly TYPE == double.class;
+
+    /*@ public normal_behavior
+      @   ensures !isNaN(d) && !isInfinite(d) ==> parseable(\result);
+      @   ensures !isNaN(d) && !isInfinite(d) ==> 
+      @                                   identical(d, parseDouble(\result));
+      @   ensures isNaN(d) ==> \result.equals("NaN");
+      @   ensures (d == Double.POSITIVE_INFINITY)==>\result.equals("Infinity");
+      @   ensures (d == Double.NEGATIVE_INFINITY)==>\result.equals("-Infinity");
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String toString(double d);
+
+    /*@ public normal_behavior
+      @     requires s != null && parseable(s);
+      @     ensures  \result.equals(new Double(parseDouble(s)));
+      @ also
+      @   public exceptional_behavior
+      @     requires s != null && !parseable(s);
+      @     signals(NumberFormatException);
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ Double valueOf(
+        /*@ non_null @*/ String s)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @    requires s != null && parseable(s);
+      @    ensures true;  // FIXME - put some conditions on the result
+      @ also
+      @ public exceptional_behavior
+      @   requires s != null && !parseable(s);
+      @   signals(NumberFormatException);
+      @*/
+    public static /*@ pure @*/ double parseDouble(/*@ non_null @*/ String s)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   ensures \result == !(v == v);
+      @*/
+    public static /*@ pure @*/ boolean isNaN(double v);
+
+    /*@ public normal_behavior
+      @   ensures \result <==>
+      @           (v == POSITIVE_INFINITY || v == NEGATIVE_INFINITY);
+      @*/
+    public static /*@ pure @*/ boolean isInfinite(double v);
+
+    /*@ public normal_behavior
+      @   assignable theDouble;
+      @   ensures identical(theDouble, value);
+      @*/
+    public Double(double value);
+
+    /*@ public normal_behavior
+      @   requires parseable(s);
+      @   assignable theDouble;
+      @   ensures identical(theDouble, parseDouble(s));
+      @ also
+      @ public exceptional_behavior
+      @   requires !parseable(s);
+      @   signals(NumberFormatException);
+      @*/
+    public Double(/*@ non_null @*/ String s)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   ensures \result == !(theDouble == theDouble);
+      @*/
+    public boolean isNaN();
+
+    /*@ public normal_behavior
+      @   ensures \result == ( theDouble == POSITIVE_INFINITY
+      @			|| theDouble == NEGATIVE_INFINITY );
+      @*/
+    public boolean isInfinite();
+
+    // specification inherited from java.lang.Object
+    //@ also ensures \result.equals(toString(doubleValue()));
+    public String toString();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (byte) theDouble;
+      @*/
+    public byte byteValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (short) theDouble;
+      @*/
+    public short shortValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (int) theDouble;
+      @*/
+    public int intValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (long) theDouble;
+      @*/
+    public long longValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures Float.identical(\result, (float) theDouble);
+      @*/
+    public float floatValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures identical(\result, theDouble);
+      @*/
+    public double doubleValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures (* \result is a hashcode value for this object *);
+      @*/
+    public int hashCode();
+
+    /*@ also
+      @   public normal_behavior
+      @     requires obj != null && (obj instanceof Double);
+      @     ensures \result == identical(theDouble,((Double)obj).doubleValue());
+      @  also public normal_behavior
+      @     requires obj != null && !(obj instanceof Double);
+      @     ensures !\result;
+      @*/
+    public boolean equals(/*@\readonly*//*@nullable*/Object obj);
+
+    /*@ public normal_behavior
+      @ {|
+      @     requires value == POSITIVE_INFINITY;
+      @     ensures \result == 0x7ff0000000000000L;
+      @   also
+      @     requires value == NEGATIVE_INFINITY;
+      @     ensures \result == 0xfff0000000000000L;
+      @   also
+      @     requires isNaN(value);
+      @     ensures \result == 0x7ff8000000000000L;
+      @   also
+      @     ensures (* \result is the bits that represent
+      @                the floating-point number *);
+      @   also
+      @     ensures identical(value, longBitsToDouble(doubleToLongBits(value)));
+      @ |}
+      @ implies_that
+      @   public normal_behavior
+      @     requires !isNaN(value);
+      @	ensures longBitsToDouble(\result) == value;
+      @*/
+    public static /*@ pure @*/ native long doubleToLongBits(double value);
+
+    /*@ public normal_behavior
+      @ {|
+      @     requires value == POSITIVE_INFINITY;
+      @     ensures \result == 0x7ff0000000000000L;
+      @   also
+      @     requires value == NEGATIVE_INFINITY;
+      @     ensures \result == 0xfff0000000000000L;
+      @   also
+      @     requires isNaN(value);
+      @     ensures (* is the long integer representing
+      @                the actual NaN value *);
+      @   also
+      @     ensures (* \result is the bits that represent
+      @                the floating-point number *);
+      @   also
+      @     ensures identical(value, 
+      @                          longBitsToDouble(doubleToRawLongBits(value)));
+      @ |}
+      @ implies_that
+      @   public normal_behavior
+      @     requires !isNaN(value);
+      @	ensures longBitsToDouble(\result) == value;
+      @*/
+    public static /*@ pure @*/ native long doubleToRawLongBits(double value);
+
+    /*@ public normal_behavior
+      @  {|
+      @     requires bits == 0x7ff0000000000000L;
+      @     ensures \result == POSITIVE_INFINITY;
+      @   also
+      @     requires bits == 0xfff0000000000000L;
+      @     ensures \result == NEGATIVE_INFINITY;
+      @   also
+      @     requires ( 0x7ff0000000000001L <= bits
+      @                && bits <= 0x7fffffffffffffffL )
+      @	          || ( 0xfff0000000000001L <= bits
+      @                && bits <= 0xffffffffffffffffL );
+      @     ensures isNaN(\result);
+      @   also
+      @     ensures (* \result is floating-point value with
+      @                the same bit pattern as bits *);
+      @  |}
+      @*/
+    public static /*@ pure @*/ native double longBitsToDouble(long bits);
+
+    /*@ public normal_behavior
+      @     requires anotherDouble != null;
+      @     {|
+      @       requires anotherDouble.isNaN() && this.isNaN();
+      @       ensures \result == 0;
+      @     also
+      @       requires this.isNaN() && !anotherDouble.isNaN();
+      @       ensures \result > 0;
+      @     also
+      @       requires !this.isNaN() && anotherDouble.isNaN();
+      @       ensures \result < 0;
+      @     also
+      @       requires isPositiveZero(theDouble)
+      @                && isNegativeZero(anotherDouble.doubleValue());
+      @       ensures \result > 0;
+      @     also
+      @       requires isNegativeZero(theDouble)
+      @             && isPositiveZero(anotherDouble.doubleValue());
+      @       ensures \result < 0;
+      @     also
+      @       requires !(anotherDouble.isNaN() || this.isNaN())
+      @             && !(isPositiveZero(theDouble)
+      @                  && isNegativeZero(anotherDouble.doubleValue()))
+      @             && !(isNegativeZero(theDouble)
+      @                  && isPositiveZero(anotherDouble.doubleValue()));
+      @       {|
+      @         requires theDouble < anotherDouble.doubleValue();
+      @         ensures \result < 0;
+      @       also
+      @         requires theDouble == anotherDouble.doubleValue();
+      @         ensures \result == 0;
+      @       also
+      @         requires theDouble > anotherDouble.doubleValue();
+      @         ensures \result > 0;
+      @       |}
+      @     |}
+      @*/
+    public int compareTo(/*@ non_null @*/ Double anotherDouble);
+
+    /*@ also
+      @     public normal_behavior
+      @       requires o != null && (o instanceof Double);
+      @       ensures \result == compareTo((Double) o);
+      @   also
+      @     public exceptional_behavior
+      @       requires o == null || !(o instanceof Double);
+      @       signals_only ClassCastException;
+      @*/
+    public int compareTo(Object o);
+    
+    /*@ public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result == new Double(d1).compareTo(new Double(d2));
+      @*/
+    public static /*@ pure @*/ int compare(double d1, double d2);
+
+    /** Returns true if the argument is a negative (and not positive) zero;
+        the usual == returns true for comparing positive and negative zero.
+    */  
+    /*@ public static model pure boolean isNegativeZero( double a) {
+          if (a != 0) return false;
+          return (new java.lang.Double(a)).equals(new java.lang.Double("-0.0"));
+        } 
+      @*/          
+      
+    /** Returns true if the argument is a positive (and not negative) zero;
+        the usual == returns true for comparing positive and negative zero.
+    */  
+    /*@ public static model pure boolean isPositiveZero( double a) {
+          if (a != 0) return false;
+          return (new java.lang.Double(a)).equals(new java.lang.Double("+0.0"));
+        }    
+      @*/ 
+
+    /** Returns true if a and b represent the same double value;
+        the usual == does not work to distinguish positive and negative
+        zeros or to identify two NaN values as equal.
+    */
+    /*@ public static model pure boolean identical(double a, double b) {
+	  return (isNaN(a) == isNaN(b)) &&
+                 (isPositiveZero(a) == isPositiveZero(b)) &&
+		 (isNegativeZero(a) == isNegativeZero(b)) &&
+		 (isNaN(a) || isNaN(b) || (a==b));
+	}
+    */
+}

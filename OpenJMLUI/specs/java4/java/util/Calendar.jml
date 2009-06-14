@@ -1,0 +1,497 @@
+// @(#)$Id$
+
+// Copyright (C) 2003 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.util;
+
+import java.io.Serializable;
+import java.text.DateFormat;
+
+
+/** JML's specification of java.util.Calendar.
+ * Some of this specification is taken from ESC/Java.
+ * @version $Revision: 1599 $
+ * @author Kristina Boysen
+ * @author Gary T. Leavens
+ */
+public abstract class Calendar implements Serializable, Cloneable {
+
+    public final static int ERA;
+    public final static int YEAR;
+    public final static int MONTH;
+    public final static int WEEK_OF_YEAR;
+    public final static int WEEK_OF_MONTH;
+    public final static int DATE;
+    public final static int DAY_OF_MONTH;
+    public final static int DAY_OF_YEAR;
+    public final static int DAY_OF_WEEK;
+    public final static int DAY_OF_WEEK_IN_MONTH;
+    public final static int AM_PM;
+    public final static int HOUR;
+    public final static int HOUR_OF_DAY;
+    public final static int MINUTE;
+    public final static int SECOND;
+    public final static int MILLISECOND;
+    public final static int ZONE_OFFSET;
+    public final static int DST_OFFSET;
+    public final static int FIELD_COUNT;
+    
+    public final static int SUNDAY;
+    public static final int MONDAY;
+    public static final int TUESDAY;
+    public static final int WEDNESDAY;
+    public static final int THURSDAY;
+    public static final int FRIDAY;
+    public static final int SATURDAY;
+
+    public final static int JANUARY;
+    public static final int FEBRUARY;
+    public static final int MARCH;
+    public static final int APRIL;
+    public static final int MAY;
+    public static final int JUNE;
+    public static final int JULY;
+    public static final int AUGUST;
+    public static final int SEPTEMBER;
+    public static final int OCTOBER;
+    public static final int NOVEMBER;
+    public static final int DECEMBER;
+    public static final int UNDECIMBER;
+    public static final int AM;
+    public static final int PM;
+    
+    protected /*@ spec_public @*/ int []        fields; 
+    protected /*@ spec_public @*/ boolean []    isSet; 
+    transient /*@ spec_public @*/ int []        stamp;
+    protected /*@ spec_public @*/ long          time;
+    protected /*@ spec_public @*/ boolean       isTimeSet; 
+    protected /*@ spec_public @*/ boolean       areFieldsSet; 
+    transient /*@ spec_public @*/ boolean       areAllFieldsSet;
+    //@ public model boolean       lenient;
+    //@ public model TimeZone      zone;
+    //@ public model int           firstDayOfWeek;
+    //@ public model int           minimalDaysInFirstWeek;
+    //@ public model static        Hashtable cachedLocaleData;
+    
+    /*@ spec_public @*/ static final int UNSET;
+    /*@ spec_public @*/ static final int INTERNALLY_SET;
+    /*@ spec_public @*/ static final int MINIMUM_USER_STAMP;
+
+    static final int currentSerialVersion;
+    static final long serialVersionUID;
+
+    /*@ public model Locale locale; 
+       @*/
+    
+    /** For use with computeTime() and computeFields(), which are opposite methods
+      * of each other.  Each method ensures that the boolean below is true.
+      */
+    /*@ public normal_behavior 
+       @ ensures (* fields[*] is now a representation of time and vice versa *);        
+       @ public pure model boolean correspondsTimeAndFields(); 
+       @*/
+        
+    /** For use with getMinimum(), getGreatestMinimum(), and getActualMinimum(),
+      * since these all ensure basically the same thing.
+      */
+    /*@ public normal_behavior 
+       @ ensures (* \result is the minimum for this field *);
+       @ public pure model boolean resultIsMinimum(); 
+       @*/
+       
+    /** For use with getMaximum(), getGreatestMaximum(), and getActualMaximum(),
+      * since these all ensure basically the same thing.
+      */   
+    /*@ public normal_behavior 
+       @ ensures (* \result is the maximum for this field *);
+       @ public pure model boolean resultIsMaximum(); 
+       @*/
+
+    /*@ public invariant zone != null;
+       @*/
+
+    /*@ protected normal_behavior
+       @        assignable zone, locale;
+       @        ensures_redundantly zone.equals(TimeZone.getDefault()) && 
+       @                            locale.equals(Locale.getDefault());
+       @*/
+    protected Calendar();
+
+    /** firstDayOfWeek and minimalDaysInFirstWeek are both set in private
+      * void setWeekCountData(Locale desiredLocale), which I did not write
+      * specifications for since it is private.  The first line calls on
+      * the Hashtable cachedLocaleData, and this data is needed to check
+      * correct assignment to firstDayOfWeek and minimalDaysInFirstWeek.
+      */
+    /*@ protected normal_behavior
+       @        old int[] data = (int[]) cachedLocaleData.get(aLocale);
+       @        requires zone != null && aLocale != null;
+       @        assignable this.zone, locale, firstDayOfWeek, minimalDaysInFirstWeek;
+       @        ensures this.zone.equals(zone)
+       @             && this.locale.equals(aLocale)
+       @             && firstDayOfWeek == data[0]
+       @             && minimalDaysInFirstWeek == data[1];
+       @*/
+    protected Calendar(TimeZone zone, Locale aLocale);
+
+    /*@ public normal_behavior
+       @        assignable \nothing;
+       @        ensures \result != null;
+       @*/
+    public /*@ pure @*/ static Calendar getInstance();
+
+    /*@ public normal_behavior
+       @        requires zone != null;
+       @        assignable \nothing;
+       @        ensures \result != null && \result.zone.equals(zone);
+       @*/
+    public /*@ pure @*/ static Calendar getInstance(TimeZone zone);
+
+    /*@ public normal_behavior
+       @        requires aLocale != null;
+       @        assignable \nothing;
+       @        ensures \result != null && \result.locale.equals(aLocale);
+       @*/
+    public /*@ pure @*/ static Calendar getInstance(Locale aLocale);
+
+    /*@ public normal_behavior
+       @        requires zone != null && aLocale != null;
+       @        assignable \nothing;
+       @        ensures \result != null
+       @             && \result.zone.equals(zone)
+       @             && \result.locale.equals(aLocale);
+       @*/
+    public /*@ pure @*/ static Calendar getInstance(TimeZone zone,
+                                       Locale aLocale);
+                                           
+    /*@ public normal_behavior
+       @        assignable \nothing;
+       @        ensures \nonnullelements(\result) &&
+       @                \result.equals(DateFormat.getAvailableLocales());
+       @*/
+    public static /*@ pure @*/ synchronized Locale[] getAvailableLocales();
+
+    /*@ protected normal_behavior
+       @     assignable time;
+       @     ensures correspondsTimeAndFields();
+       @*/
+    protected abstract void computeTime();
+
+    /*@ protected normal_behavior
+       @      assignable fields[*];
+       @      ensures correspondsTimeAndFields();
+       @*/
+    protected abstract void computeFields();
+
+    /*@ public normal_behavior
+       @        assignable \nothing;
+       @        ensures \result != null &&
+       @                \result.getTime() == this.getTimeInMillis();
+       @*/
+    public /*@ pure @*/ final Date getTime();
+
+    /*@ public normal_behavior
+       @        requires date != null;
+       @        assignable \nothing;
+       @        ensures date.getTime() == this.getTimeInMillis();
+       @*/
+    public final void setTime(Date date);
+
+    /*@ public normal_behavior
+       @        assignable \nothing;
+       @        ensures \result == time;
+       @*/
+    public /*@ pure @*/ long getTimeInMillis();
+
+    /* This method has an error in its implementation.  areFieldsSet is set
+     * to false, and then an if statement executes some extra code if allFieldsSet
+     * is false.  The if statement is true all the time, so either the condition
+     * for the if statement is wrong or it does not need to be there.  In the 
+     * specification for this method, I assumed the latter and assumed the code in
+     * the if statement would always execute.
+     */
+    /*@ public normal_behavior
+       @        assignable isTimeSet, areFieldsSet, areAllFieldsSet;
+       @        ensures time == millis && isTimeSet &&
+       @                areFieldsSet && areAllFieldsSet;
+       @*/
+    public void setTimeInMillis(long millis);
+
+    /*@ public normal_behavior
+       @        requires 0 <= field && field < FIELD_COUNT;
+       @        assignable \nothing;
+       @        ensures \result == fields[field];
+       @*/
+    public /*@ pure @*/ int get(int field);
+
+    /*@ protected normal_behavior
+       @        requires_redundantly 0 <= field && field < FIELD_COUNT;
+       @        assignable \nothing;
+       @        ensures \result == fields[field];
+       @*/
+    protected /*@ pure @*/ final int internalGet(int field);
+
+    /*@ normal_behavior
+       @        requires_redundantly 0 <= field && field < FIELD_COUNT;
+       @        assignable fields[field];
+       @        ensures fields[field] == value;
+       @*/
+    final void internalSet(int field, int value);
+
+    /*@ public normal_behavior
+       @        requires 0 <= field && field < FIELD_COUNT;
+       @        assignable isTimeSet, areFieldsSet, stamp[*], isSet[*];
+       @        ensures !isTimeSet && !areFieldsSet && isSet[field];
+       @*/
+    public void set(int field, int value);
+
+    /*@ public normal_behavior
+       @        requires 0 <= year && 0 <= month && 1 <= date;
+       @        assignable \nothing;
+       @        ensures_redundantly fields[YEAR] == year && 
+       @                            fields[MONTH] == month && 
+       @                            fields[DATE] == date;
+       @*/
+    public /*@ pure @*/ final void set(int year, int month, int date);
+
+   /*@ public normal_behavior
+      @         requires 0 <= year && 0 <= month && 1 <= date &&
+      @                  0 <= hour && 0 <= minute;
+      @         assignable \nothing;
+      @         ensures_redundantly fields[YEAR] == year && 
+      @                 fields[MONTH] == month && 
+      @                 fields[DATE] == date &&
+      @                 fields[HOUR_OF_DAY] == hour && 
+      @                 fields[MINUTE] == minute;
+      @*/
+    public /*@ pure @*/ final void set(int year, int month, int date, int hour, int minute);
+
+   /*@ public normal_behavior
+      @         requires 0 <= year && 0 <= month && 1 <= date &&
+      @                  0 <= hour && 0 <= minute && 0 <= second;
+      @         assignable \nothing;
+      @         ensures_redundantly fields[YEAR] == year && 
+      @                 fields[MONTH] == month && 
+      @                 fields[DATE] == date &&
+      @                 fields[HOUR_OF_DAY] == hour && 
+      @                 fields[MINUTE] == minute &&
+      @                 fields[SECOND] == second;
+      @*/
+    public /*@ pure @*/ final void set(int year, int month, int date, int hour, int minute,
+                          int second);
+
+    /*@ public normal_behavior
+       @        assignable fields[*], stamp[*], areFieldsSet, 
+       @                   areAllFieldsSet, isSet[*], isTimeSet;
+       @        ensures !areFieldsSet && !areAllFieldsSet && !isTimeSet &&
+       @                fields != null && stamp != null && isSet != null;
+       @*/
+    public final void clear();
+
+    /*@ public normal_behavior
+       @        requires 0 <= field && field < FIELD_COUNT;
+       @        assignable fields[*], stamp[*], areFieldsSet,
+       @                   areAllFieldsSet, isSet[*], isTimeSet;
+       @        ensures fields[field] == 0 &&
+       @                stamp[field] == UNSET &&
+       @                !areFieldsSet && !areAllFieldsSet &&
+       @                !isSet[field] && !isTimeSet;
+       @*/
+    public final void clear(int field);
+
+    /*@ public normal_behavior
+       @        requires 0 <= field && field < FIELD_COUNT;
+       @        assignable \nothing;
+       @        ensures \result == (stamp[field] != UNSET);
+       @*/
+    public /*@ pure @*/ final boolean isSet(int field);
+
+    /*@ protected normal_behavior
+       @        assignable areFieldsSet, areAllFieldsSet;
+       @        ensures areFieldsSet && areAllFieldsSet;
+       @*/
+    protected void complete();
+
+    /*@ also
+       @ public normal_behavior
+       @        old Calendar calendar = (Calendar)obj;
+       @        requires obj != null;
+       @        assignable \nothing;
+       @        ensures obj instanceof Calendar &&
+       @                this.getTimeInMillis() == calendar.getTimeInMillis() &&
+       @                this.lenient == calendar.lenient &&
+       @                this.firstDayOfWeek == calendar.firstDayOfWeek &&
+       @                this.minimalDaysInFirstWeek == calendar.minimalDaysInFirstWeek &&
+       @                zone.equals(calendar.zone);
+       @*/
+    public /*@ pure @*/ boolean equals(/*@ nullable \readonly @*/ Object obj);
+
+    // Specification is inherited
+    public int hashCode();
+
+    /*@ public normal_behavior
+       @        requires when != null;
+       @        assignable \nothing;
+       @        ensures when instanceof Calendar &&
+       @                \result == (this.getTimeInMillis() < ((Calendar)when).getTimeInMillis());
+       @*/
+    public /*@ pure @*/ boolean before(Object when);
+    
+    /*@ public normal_behavior
+       @        requires when != null;
+       @        assignable \nothing;
+       @        ensures when instanceof Calendar &&
+       @                \result == (this.getTimeInMillis() > ((Calendar)when).getTimeInMillis());
+       @*/
+    public /*@ pure @*/ boolean after(Object when);
+
+    /*@ public normal_behavior
+       @        assignable fields[*];
+       @        ensures (* fields[field] has been increased by amount 
+       @                   and all appropriate corresponding fields 
+       @                   have been updated *);
+       @*/
+    abstract public void add(int field, int amount);
+
+    /*@ public normal_behavior
+       @        requires up;
+       @        assignable fields[*];
+       @        ensures (* fields[field] has been increased by one based on 
+       @                   its restraints without changing larger fields *);
+       @ also
+       @ public normal_behavior
+       @        requires !up;
+       @        assignable fields[*];
+       @        ensures (* fields[field] has been decreased by one based on 
+       @                   its restraints without changing larger fields *);
+       @*/
+    abstract public void roll(int field, boolean up);
+
+    /*@ public normal_behavior
+       @        assignable fields[*];
+       @        ensures (* fields[field] has been incremented by amount based
+       @                   on its restraints without changing larger fields *);
+       @*/
+    public void roll(int field, int amount);
+
+    /*@ public normal_behavior
+       @        requires value != null;
+       @        assignable this.zone, areFieldsSet;
+       @        ensures this.zone.equals(value) && !areFieldsSet;
+       @*/
+    public void setTimeZone(TimeZone value);
+
+    /*@ public normal_behavior
+       @        assignable \nothing;
+       @        ensures \result.equals(this.zone);
+       @*/
+    public /*@ pure @*/ TimeZone getTimeZone();
+
+    /*@ public normal_behavior
+       @        assignable this.lenient;
+       @        ensures this.lenient == lenient;
+       @*/
+    public void setLenient(boolean lenient);
+
+    /*@ public normal_behavior
+       @        assignable \nothing;
+       @        ensures \result == lenient;
+       @*/
+    public /*@ pure @*/ boolean isLenient();
+
+    /*@ public normal_behavior
+       @        assignable firstDayOfWeek;
+       @        ensures firstDayOfWeek == value;
+       @*/
+    public void setFirstDayOfWeek(int value);
+
+    /*@ public normal_behavior
+       @        assignable \nothing;
+       @        ensures \result == firstDayOfWeek;
+       @*/
+    public /*@ pure @*/ int getFirstDayOfWeek();
+
+    /*@ public normal_behavior
+       @        assignable minimalDaysInFirstWeek;
+       @        ensures minimalDaysInFirstWeek == value;
+       @*/
+    public void setMinimalDaysInFirstWeek(int value);
+
+    /*@ public normal_behavior
+       @        assignable \nothing;
+       @        ensures \result == minimalDaysInFirstWeek;
+       @*/
+    public /*@ pure @*/ int getMinimalDaysInFirstWeek();
+
+    /*@ public normal_behavior
+       @        requires 0 <= field && field < FIELD_COUNT;
+       @        assignable \nothing;
+       @        ensures resultIsMinimum();
+       @*/
+    abstract /*@ pure @*/ public int getMinimum(int field);
+
+    /*@ public normal_behavior
+       @        requires 0 <= field && field < FIELD_COUNT;
+       @        assignable \nothing;
+       @        ensures resultIsMaximum();
+       @*/
+    abstract /*@ pure @*/ public int getMaximum(int field);
+
+    /*@ public normal_behavior
+       @        requires 0 <= field && field < FIELD_COUNT;
+       @        assignable \nothing;
+       @        ensures resultIsMinimum();
+       @*/
+    abstract /*@ pure @*/ public int getGreatestMinimum(int field);
+
+     /*@ public normal_behavior
+       @        requires 0 <= field && field < FIELD_COUNT;
+       @        assignable \nothing;
+       @        ensures resultIsMaximum();
+       @*/
+    abstract /*@ pure @*/ public int getLeastMaximum(int field);
+
+    /*@ public normal_behavior
+       @        requires 0 <= field && field < FIELD_COUNT;
+       @        assignable \nothing;
+       @        ensures resultIsMinimum();
+       @*/
+    public /*@ pure @*/ int getActualMinimum(int field);
+
+   /*@ public normal_behavior
+       @        requires 0 <= field && field < FIELD_COUNT;
+       @        assignable \nothing;
+       @        ensures resultIsMaximum();
+       @*/
+    public /*@ pure @*/ int getActualMaximum(int field);
+
+    /*@ also
+       @ public normal_behavior
+       @        assignable \nothing;
+       @        ensures \fresh(\result) && \result.equals(this);
+       @*/
+    public Object clone();
+
+    /*@ also
+       @ public normal_behavior
+       @        assignable \nothing;
+       @        ensures (* \result is the String representation of Calendar *);
+       @*/
+    public /*@ pure @*/ String toString();
+}

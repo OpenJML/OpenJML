@@ -1,0 +1,36 @@
+package org.jmlspecs.lang;
+import org.jmlspecs.annotations.*;
+
+/** This class is used internally within OpenJML for the purpose of desugaring
+ * enhanced for loops.
+ */
+public class JMLList<E> {
+
+    //@ public ghost instance Data state;
+    // @ public pure model int size(Data state);
+    //@ public pure model E get(Data state,int i);
+    // @ public instance model int _size;
+    
+
+    public int _size;
+    
+    public static class Data {}
+
+    @Pure @NonNull
+    public JMLList<E> empty();
+    
+    @Pure
+    public int size();
+    
+//    //@ public normal_behavior
+//    //@    ensures size() == \old(size()+1);
+//    //@    ensures (\forall int i; i>=0 && i < \old(size()); get(i)N == \old(get(i)));
+//    //@    ensures get(size()-1) == item;
+//    void add(@Nullable E item);
+    
+    @Pure @NonNull
+    public JMLList<E> add(@Nullable E item);
+
+    @Nullable @Pure
+    public E get(int i);
+}

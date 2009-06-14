@@ -1,0 +1,124 @@
+// @(#)$Id: OutputStream.refines-java 2236 2006-12-16 04:25:17Z perryjames $
+
+// Copyright (C) 2004 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.io;
+
+// FIXME - more fixing needed
+
+//@ model import java.math.BigInteger;
+
+/** JML's specification of OutputStream.
+ * @author Gary T. Leavens
+ */
+public abstract class OutputStream extends Object implements Closeable, Flushable {
+
+    // FIELDS
+    /** The output data group is used to specify things like caching,
+     * and to make sure that methods that might produce some output
+     * have a side effect on some datagroup. */
+    //@ public model JMLDataGroup output; in objectState;
+
+    /** The bytes that are to be (or have been) output. */
+    //@ public model non_null byte[] outputBytes; in output;
+
+    /** Is this file open? */
+    //@ public model boolean isOpen; in objectState;
+
+    /** Was this file closed? */
+    //@ public model boolean wasClosed; in objectState;
+
+    //@ public invariant isOpen ==> !wasClosed;
+    //@ public invariant wasClosed ==> !isOpen;
+
+    // wasClosed can only change to true, not back to false
+    //@ public constraint \old(wasClosed) ==> wasClosed;
+
+    // METHODS AND CONSTRUCTORS
+
+    /*@ public normal_behavior
+      @   assignable isOpen, outputBytes;
+      @   ensures !isOpen;
+      @   ensures !wasClosed;
+      @   ensures outputBytes.length == 0;
+      @*/
+    //@ pure
+    public OutputStream();
+
+    /*@ public behavior
+      @   requires isOpen;
+      @   assignable output, isOpen, wasClosed;
+      @   ensures !isOpen;
+      @   ensures wasClosed;
+      @   ensures \not_modified(outputBytes);
+      @   signals (IOException) (* an IO error occured *);
+      @*/
+    public void close() throws IOException;
+
+// FIXME - ought to keep track of how much of hte outputBytes buffer is flushed?
+    /*@ public behavior
+      @   requires isOpen;
+      @   assignable output;
+      @   ensures \not_modified(outputBytes);
+      @   ensures (* the output is written to the device *);
+      @   signals (IOException) (* an IO error occured *);
+      @*/
+    public void flush() throws IOException;
+
+// FIXME - record what was written
+    /*@ public behavior
+      @   requires isOpen;
+      @   assignable outputBytes;
+      @   signals (IOException) (* an IO error occured *);
+      @*/
+    public abstract void write(int i) throws IOException;
+
+// FIXME - record what was written
+    /*@ public behavior
+      @   old \bigint siz = outputBytes.length;
+      @   requires isOpen;
+      @   assignable outputBytes;
+      @   signals (IOException) (* an IO error occured *);
+      @   signals (NullPointerException) b == null;
+      @   signals_only IOException, NullPointerException; */
+    public void write(/*@ non_null*/ byte[] b) throws IOException;
+
+// FIXME - record what was written
+    /*@ public behavior
+      @   old \bigint siz = outputBytes.length;
+      @   requires isOpen
+      @         && b != null && off >= 0 && len >= 0 && off + len <= b.length;
+      @   assignable outputBytes;
+      @   signals (IOException) (* an IO error occured *);
+      @ also
+      @ public exceptional_behavior
+      @   requires isOpen
+      @         && (b == null || off < 0 || len < 0 || off + len > b.length);
+      @   assignable \nothing;
+      @   //-@ signals_only NullPointerException, IndexOutOfBoundsException;
+      @   signals (IndexOutOfBoundsException) off < 0 || len < 0
+      @                                       || off + len > b.length;
+      @   signals (NullPointerException) b == null;
+      @ also public exceptional_behavior
+      @   requires !isOpen;
+      @   assignable \nothing;
+      @   //-@ signals_only IOException;
+      @*/
+    public void write(/*@ non_null*/ byte[] b, int off, int len) throws IOException;
+}

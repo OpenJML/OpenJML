@@ -1,0 +1,73 @@
+// @(#)$Id: Constructor.jml 1589 2005-08-26 08:20:19Z chalin $
+
+// Copyright (C) 1998, 1999 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.lang.reflect;
+
+// FIXME
+public final
+class Constructor extends AccessibleObject implements Member {
+
+    //@ pure
+    Constructor(Class declaringClass,
+                Class[] parameterTypes,
+                Class[] checkedExceptions,
+                int modifiers,
+                int slot);
+
+    Constructor copy();
+
+    /*@ also public normal_behavior
+      @   ensures \result != null;
+      @*/
+    public /*@ pure @*/ Class getDeclaringClass();
+
+    /*@ also public normal_behavior
+      @   ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getName();
+
+    public /*@ pure @*/ int getModifiers();
+
+    /*@ public normal_behavior
+      @   ensures \result != null;
+      @*/
+    public /*@ pure @*/ Class[] getParameterTypes();
+
+    /*@ public normal_behavior
+      @   ensures \result != null;
+      @*/
+    public /*@ pure @*/ Class[] getExceptionTypes();
+
+    public /*@ pure @*/ boolean equals(/*@nullable*/Object obj);
+
+    public /*@ pure @*/ int hashCode();
+
+    public /*@ pure @*/ String toString();
+
+    public /*@ non_null @*/ Object newInstance(Object[] initargs)
+	throws InstantiationException, IllegalAccessException,
+               IllegalArgumentException, InvocationTargetException;
+
+    // ConstructorAccessor is a sun proprietary class
+    // ConstructorAccessor getConstructorAccessor();
+    // void setConstructorAccessor(ConstructorAccessor accessor);
+
+    int getSlot();
+}

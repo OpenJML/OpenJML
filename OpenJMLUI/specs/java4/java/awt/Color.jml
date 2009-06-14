@@ -1,0 +1,97 @@
+// $Id: Color.jml 2735 2007-06-27 10:46:13Z chalin $
+
+package java.awt;
+
+import java.awt.color.ColorSpace;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
+import java.awt.image.ColorModel;
+
+public class Color implements Paint, java.io.Serializable {
+
+    // FIELDS
+    public static final /*@non_null*/ Color black;
+    public static final /*@non_null*/ Color ORANGE;
+    public static final /*@non_null*/ Color red;
+    public static final /*@non_null*/ Color LIGHT_GRAY;
+    public static final /*@non_null*/ Color cyan;
+    public static final /*@non_null*/ Color BLACK;
+    public static final /*@non_null*/ Color GRAY;
+    public static final /*@non_null*/ Color magenta;
+    public static final /*@non_null*/ Color lightGray;
+    public static final /*@non_null*/ Color BLUE;
+    public static final /*@non_null*/ Color pink;
+    public static final /*@non_null*/ Color darkGray;
+    public static final /*@non_null*/ Color DARK_GRAY;
+    public static final /*@non_null*/ Color green;
+    public static final /*@non_null*/ Color white;
+    public static final /*@non_null*/ Color GREEN;
+    public static final /*@non_null*/ Color gray;
+    public static final /*@non_null*/ Color MAGENTA;
+    public static final /*@non_null*/ Color WHITE;
+    public static final /*@non_null*/ Color yellow;
+    public static final /*@non_null*/ Color CYAN;
+    public static final /*@non_null*/ Color blue;
+    public static final /*@non_null*/ Color orange;
+    public static final /*@non_null*/ Color RED;
+    public static final /*@non_null*/ Color PINK;
+    public static final /*@non_null*/ Color YELLOW;
+
+    // METHODS AND CONSTRUCTORS
+
+    public Color(int Param0, int Param1, int Param2);
+    public Color(int Param0, int Param1, int Param2, int Param3);
+    public Color(int Param0);
+    public Color(int Param0, boolean Param1);
+    public Color(float Param0, float Param1, float Param2);
+    public Color(float Param0, float Param1, float Param2, float Param3);
+    public Color(ColorSpace Param0, /*@non_null*/ float[] Param1, float Param2);
+
+    public int getRed();
+    public int getGreen();
+    public int getBlue();
+    public int getAlpha();
+    public int getRGB();
+
+    public Color brighter();
+    public Color darker();
+
+    public int hashCode();
+
+    public boolean equals(/*@nullable*/ Object o);
+
+    public /*@non_null*/ String toString();
+
+    public static Color decode(/*@non_null*/ String nm)
+        throws NumberFormatException;
+
+    public static /*@nullable*/ Color getColor(/*@non_null*/ String nm);
+    public static /*@non_null*/ Color getColor(/*@non_null*/ String nm, /*@non_null*/ Color v);
+    public static /*@non_null*/ Color getColor(/*@non_null*/ String nm, int v);
+
+    public static int HSBtoRGB(float Param0, float Param1, float Param2);
+
+    public static /*@non_null*/ float[] RGBtoHSB(int r, int g, int b, /*@nullable*/ float[] Param3);
+
+    public static /*@non_null*/ Color getHSBColor(float Param0, float Param1, float Param2);
+
+    public /*@non_null*/ float[] getRGBComponents(/*@nullable*/ float[] Param0);
+    public /*@non_null*/ float[] getRGBColorComponents(/*@nullable*/ float[] Param0);
+    public /*@non_null*/ float[] getComponents(/*@nullable*/ float[] Param0);
+    public /*@non_null*/ float[] getColorComponents(/*@nullable*/ float[] Param0);
+    public /*@non_null*/ float[] getComponents(/*@non_null*/ ColorSpace Param0, 
+					       /*@non_null*/ float[] Param1);
+    public /*@non_null*/ float[] getColorComponents(/*@non_null*/ ColorSpace Param0, 
+						    /*@nullable*/ float[] Param1);
+
+    public /*@non_null*/ ColorSpace getColorSpace();
+
+    public synchronized /*@non_null*/ PaintContext 
+	createContext(/*@nullable*/ ColorModel Param0,
+		      /*@nullable*/ Rectangle Param1, 
+		      /*@nullable*/ Rectangle2D Param2, 
+		      /*@nullable*/ AffineTransform Param3, 
+		      /*@nullable*/ RenderingHints Param4);
+
+    public int getTransparency();
+}

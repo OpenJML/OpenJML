@@ -218,7 +218,26 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
             try {
                 utils.showSpecsForSelection(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.CheckJML",e);
+                utils.topLevelException(shell,"MenuActions.ShowSpecs",e);
+            }
+        }
+    }
+
+    /**
+     * This action opens an editor containing the specifications file
+     * for the selected Java classes.
+     * 
+     * @author David Cok
+     *
+     */
+    static public class SpecsEditor extends MenuActions {
+        // This is done in the UI thread.
+        @Override
+        public final void run(final IAction action) {
+            try {
+                utils.openSpecEditorForSelection(selection,window,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.SpecsEditor",e);
             }
         }
     }

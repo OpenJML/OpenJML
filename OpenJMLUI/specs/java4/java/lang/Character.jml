@@ -1,0 +1,581 @@
+// @(#)$Id: Character.jml 2650 2007-06-08 08:55:46Z dcochran $
+
+// Copyright (C) 1998, 1999 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.lang;
+
+/** JML's specification of java.lang.Character.
+ * @version $Revision: 2650 $
+ * @author Curtis Clifton with help from the JML Seminar participants summer 1999.
+ * @author Gary T. Leavens
+ * @author David R. Cok
+ * @author Mikolas Janota
+ */
+//-@ immutable
+public /*@ pure @*/ final 
+    class Character extends Object implements java.io.Serializable, Comparable
+{
+
+    //@ public model char ch_;
+    //+@ public constraint ch_ == \old(ch_);
+    //+@ public represents ch_ <- charValue();
+
+    public static final int MIN_RADIX; //@ initially MIN_RADIX == 2;
+    public static final int MAX_RADIX;
+    public static final char MIN_VALUE;
+    public static final char MAX_VALUE;
+    public static final Class TYPE;   //@ initially TYPE == \type(char);
+    public static final byte UPPERCASE_LETTER;
+    public static final byte LOWERCASE_LETTER;
+    public static final byte TITLECASE_LETTER;
+    public static final byte NON_SPACING_MARK;
+    public static final byte COMBINING_SPACING_MARK;
+    public static final byte ENCLOSING_MARK;
+    public static final byte DECIMAL_DIGIT_NUMBER;
+    public static final byte LETTER_NUMBER;
+    public static final byte OTHER_NUMBER;
+    public static final byte SPACE_SEPARATOR;
+    public static final byte LINE_SEPARATOR;
+    public static final byte PARAGRAPH_SEPARATOR;
+    public static final byte CONTROL;
+    public static final byte FORMAT;
+    public static final byte SURROGATE;
+    public static final byte PRIVATE_USE;
+    public static final byte UNASSIGNED;
+    public static final byte MODIFIER_LETTER;
+    public static final byte OTHER_LETTER;
+    public static final byte CONNECTOR_PUNCTUATION;
+    public static final byte DASH_PUNCTUATION;
+    public static final byte START_PUNCTUATION;
+    public static final byte END_PUNCTUATION;
+    public static final byte INITIAL_QUOTE_PUNCTUATION;
+    public static final byte FINAL_QUOTE_PUNCTUATION;
+    public static final byte OTHER_PUNCTUATION;
+    public static final byte MATH_SYMBOL;
+    public static final byte CURRENCY_SYMBOL;
+    public static final byte MODIFIER_SYMBOL;
+    public static final byte OTHER_SYMBOL;
+    
+    public static final byte DIRECTIONALITY_UNDEFINED;
+    public static final byte DIRECTIONALITY_LEFT_TO_RIGHT;
+    public static final byte DIRECTIONALITY_RIGHT_TO_LEFT;
+    public static final byte DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC;
+    public static final byte DIRECTIONALITY_EUROPEAN_NUMBER;
+    public static final byte DIRECTIONALITY_EUROPEAN_NUMBER_SEPARATOR;
+    public static final byte DIRECTIONALITY_EUROPEAN_NUMBER_TERMINATOR;
+    public static final byte DIRECTIONALITY_ARABIC_NUMBER;
+    public static final byte DIRECTIONALITY_COMMON_NUMBER_SEPARATOR;
+    public static final byte DIRECTIONALITY_NONSPACING_MARK;
+    public static final byte DIRECTIONALITY_BOUNDARY_NEUTRAL;
+    public static final byte DIRECTIONALITY_PARAGRAPH_SEPARATOR;
+    public static final byte DIRECTIONALITY_SEGMENT_SEPARATOR;
+    public static final byte DIRECTIONALITY_WHITESPACE;
+    public static final byte DIRECTIONALITY_OTHER_NEUTRALS;
+    public static final byte DIRECTIONALITY_LEFT_TO_RIGHT_EMBEDDING;
+    public static final byte DIRECTIONALITY_LEFT_TO_RIGHT_OVERRIDE;
+    public static final byte DIRECTIONALITY_RIGHT_TO_LEFT_EMBEDDING;
+    public static final byte DIRECTIONALITY_RIGHT_TO_LEFT_OVERRIDE;
+    public static final byte DIRECTIONALITY_POP_DIRECTIONAL_FORMAT;
+
+
+    public static class Subset  {
+        protected Subset(String name);
+        public final /*@ pure @*/ boolean equals(/*@nullable*/Object obj);
+        public final int hashCode();
+        public final String toString();
+    }
+
+    public static final class UnicodeBlock extends Subset {
+
+        private UnicodeBlock(String name);
+
+        public static final UnicodeBlock
+            BASIC_LATIN,
+            LATIN_1_SUPPLEMENT,
+            LATIN_EXTENDED_A,
+            LATIN_EXTENDED_B,
+            IPA_EXTENSIONS,
+            SPACING_MODIFIER_LETTERS,
+            COMBINING_DIACRITICAL_MARKS,
+            GREEK,
+            CYRILLIC,
+            ARMENIAN,
+            HEBREW,
+            ARABIC,
+            DEVANAGARI,
+            BENGALI,
+            GURMUKHI,
+            GUJARATI,
+            ORIYA,
+            TAMIL,
+            TELUGU,
+            KANNADA,
+            MALAYALAM,
+            THAI,
+            LAO,
+            TIBETAN,
+            GEORGIAN,
+            HANGUL_JAMO,
+            LATIN_EXTENDED_ADDITIONAL,
+            GREEK_EXTENDED,
+            GENERAL_PUNCTUATION,
+            SUPERSCRIPTS_AND_SUBSCRIPTS,
+            CURRENCY_SYMBOLS,
+            COMBINING_MARKS_FOR_SYMBOLS,
+            LETTERLIKE_SYMBOLS,
+            NUMBER_FORMS,
+            ARROWS,
+            MATHEMATICAL_OPERATORS,
+            MISCELLANEOUS_TECHNICAL,
+            CONTROL_PICTURES,
+            OPTICAL_CHARACTER_RECOGNITION,
+            ENCLOSED_ALPHANUMERICS,
+            BOX_DRAWING,
+            BLOCK_ELEMENTS,
+            GEOMETRIC_SHAPES,
+            MISCELLANEOUS_SYMBOLS,
+            DINGBATS,
+            CJK_SYMBOLS_AND_PUNCTUATION,
+            HIRAGANA,
+            KATAKANA,
+            BOPOMOFO,
+            HANGUL_COMPATIBILITY_JAMO,
+            KANBUN,
+            ENCLOSED_CJK_LETTERS_AND_MONTHS,
+            CJK_COMPATIBILITY,
+            CJK_UNIFIED_IDEOGRAPHS,
+            HANGUL_SYLLABLES,
+            SURROGATES_AREA,
+            PRIVATE_USE_AREA,
+            CJK_COMPATIBILITY_IDEOGRAPHS,
+            ALPHABETIC_PRESENTATION_FORMS,
+            ARABIC_PRESENTATION_FORMS_A,
+            COMBINING_HALF_MARKS,
+            CJK_COMPATIBILITY_FORMS,
+            SMALL_FORM_VARIANTS,
+            ARABIC_PRESENTATION_FORMS_B,
+            HALFWIDTH_AND_FULLWIDTH_FORMS,
+            SPECIALS;
+
+        public static final UnicodeBlock
+            SYRIAC,
+            THAANA,
+            SINHALA,
+            MYANMAR,
+            ETHIOPIC,
+            CHEROKEE,
+            UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS,
+            OGHAM,
+            RUNIC,
+            KHMER,
+            MONGOLIAN,
+            BRAILLE_PATTERNS,
+            CJK_RADICALS_SUPPLEMENT,
+            KANGXI_RADICALS,
+            IDEOGRAPHIC_DESCRIPTION_CHARACTERS,
+            BOPOMOFO_EXTENDED,
+            CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A,
+            YI_SYLLABLES,
+            YI_RADICALS;
+
+        public static /*@ pure @*/ UnicodeBlock of(char c);
+    }
+
+    //---------------------------------------------------------------------
+    // Constructors
+    //---------------------------------------------------------------------
+
+    /*@  public normal_behavior
+      @   assignable ch_;
+      @   ensures ch_ == value;
+      @*/
+    public Character(char value);
+
+    //---------------------------------------------------------------------
+    // Character.java Methods
+    //---------------------------------------------------------------------
+    /*@  public normal_behavior
+      @   ensures \result == ch_;
+      @*/
+    public char charValue();
+
+    /*@ also
+      @ public normal_behavior
+      @   ensures \result >= 0 && (* \result is a hash code for ch_ *);
+      @*/
+    public int hashCode();
+
+    /*@ also
+      @  public normal_behavior
+      @  {|
+      @    requires (obj instanceof Character);
+      @    ensures \result <==> ((Character) obj).ch_ == ch_;
+      @  also
+      @    requires !(obj instanceof Character);
+      @    ensures \result <==> false;
+      @  |}
+      @*/
+    public boolean equals(/*@nullable*/Object obj);
+
+    /*@ also
+      @  public normal_behavior
+      @   ensures \result !=null && \result.equals(String.valueOf(ch_));
+      @   ensures \result.charAt(0) == ch_;
+      @*/
+    public String toString();
+
+    /*@ 
+      @  public normal_behavior
+      @   ensures \result !=null && \result.equals(String.valueOf(c));
+      @   ensures \result.charAt(0) == c;
+      @*/
+    public static /*@ pure @*/ String toString(char c);
+
+    /*@  public normal_behavior
+      @   ensures \result <==> getType(ch) == LOWERCASE_LETTER;
+      @*/
+    public static /*@ pure @*/ boolean isLowerCase(char ch);
+
+    /*@  public normal_behavior
+      @   ensures \result <==> getType(ch) == UPPERCASE_LETTER;
+      @*/
+    public static /*@ pure @*/ boolean isUpperCase(char ch);
+
+    /*@  public normal_behavior
+      @  ensures \result <==> getType(ch) == TITLECASE_LETTER;
+      @*/
+    public static /*@ pure @*/ boolean isTitleCase(char ch);
+
+    //@ axiom isDigit('0');
+    //@ axiom isDigit('1');
+    //@ axiom isDigit('2');
+    //@ axiom isDigit('3');
+    //@ axiom isDigit('4');
+    //@ axiom isDigit('5');
+    //@ axiom isDigit('6');
+    //@ axiom isDigit('7');
+    //@ axiom isDigit('8');
+    //@ axiom isDigit('9');
+    // FIXME - need to say when isDigit is false!
+    /*@  public normal_behavior
+      @   ensures \result <==> getType(ch) == DECIMAL_DIGIT_NUMBER;
+      @*/
+    public static /*@ pure @*/ boolean isDigit(char ch);
+
+    /*@  public normal_behavior
+      @   ensures \result <==> getType(ch) != UNASSIGNED;
+      @*/
+    public static /*@ pure @*/ boolean isDefined(char ch);
+
+    /*@  public normal_behavior
+      @   ensures \result <==>
+      @               getType(ch) == UPPERCASE_LETTER ||
+      @               getType(ch) == LOWERCASE_LETTER ||
+      @               getType(ch) == TITLECASE_LETTER ||
+      @               getType(ch) == MODIFIER_LETTER ||
+      @               getType(ch) == OTHER_LETTER;
+      @*/
+    public static /*@ pure @*/ boolean isLetter(char ch);
+
+    /*@  public normal_behavior
+      @  ensures \result <==> isDigit(ch) || isLetter(ch);
+      @*/
+    public static /*@ pure @*/ boolean isLetterOrDigit(char ch);
+
+    /** @deprecated Replaced by isJavaIdentifierStart(char). */
+    /*@  public normal_behavior
+      @   ensures \result <==> isJavaIdentifierStart(ch);
+      @*/
+    public static /*@ pure @*/ boolean isJavaLetter(char ch);
+
+    /** @deprecated Replaced by isJavaIdentifierPart(char). */
+    /*@  public normal_behavior
+      @   ensures \result <==> isJavaIdentifierPart(ch);
+      @*/
+    public static /*@ pure @*/ boolean isJavaLetterOrDigit(char ch);
+
+    /*@  public normal_behavior
+      @   ensures \result <==> isLetter(ch) || 
+      @                         getType(ch) == CURRENCY_SYMBOL || 
+      @                         getType(ch) == CONNECTOR_PUNCTUATION;
+      @  //(* ch is permissible as the first character in a Java identifier *);
+      @*/
+    public static /*@ pure @*/ boolean isJavaIdentifierStart(char ch);
+
+    /*@  public normal_behavior
+      @   ensures \result <==> isJavaIdentifierStart(ch) ||
+      @                         isDigit(ch) ||
+      @                         getType(ch) == LETTER_NUMBER ||
+      @                         getType(ch) == COMBINING_SPACING_MARK ||
+      @                         getType(ch) == NON_SPACING_MARK ||
+      @                         isIdentifierIgnorable(ch);
+      @  //(* ch is permissible as a character in a Java identifier *);
+      @*/
+    public static /*@ pure @*/ boolean isJavaIdentifierPart(char ch);
+
+    /*@  public normal_behavior
+      @   ensures \result <==> isLetter(ch);
+      @  //(* ch is permissible as the first character in a Unicode identifier *);
+      @*/
+    public static /*@ pure @*/ boolean isUnicodeIdentifierStart(char ch);
+
+    /*@  public normal_behavior
+      @   ensures \result <==> isLetter(ch) ||
+      @                         getType(ch) == CONNECTOR_PUNCTUATION ||
+      @                         isDigit(ch) ||
+      @                         getType(ch) == LETTER_NUMBER ||
+      @                         getType(ch) == COMBINING_SPACING_MARK ||
+      @                         getType(ch) == NON_SPACING_MARK ||
+      @                         isIdentifierIgnorable(ch);
+      @ //(* ch is permissible as a character in a Unicode identifier *);
+      @*/
+    public static /*@ pure @*/ boolean isUnicodeIdentifierPart(char ch);
+
+    /*@  public normal_behavior
+      @   ensures \result <==> ('\u0000' <= ch && ch <= '\u0008') ||
+      @                         ('\u000e' <= ch && ch <= '\u001b') ||
+      @                         ('\u007F' <= ch && ch <= '\u009F') ||
+      @                         ('\u200C' <= ch && ch <= '\u200F') ||
+      @                         ('\u200A' <= ch && ch <= '\u200E') ||
+      @                         ('\u206A' <= ch && ch <= '\u206F') ||
+      @                         ch == '\uFEFF';
+      @*/
+    public static /*@ pure @*/ boolean isIdentifierIgnorable(char ch);
+
+    /*@  public normal_behavior
+      @  {|
+      @    requires (* a lowercase mapping is specified for ch in the
+      @                Unicode attribute table *);
+      @    ensures (* \result == the lowercase mapping of ch in the Unicode
+      @                         attribute table *);
+      @  also
+      @    requires (* !(a lowercase mapping is specified for ch in the
+      @                  Unicode attribute table) *);
+      @    ensures \result == ch;
+      @  |}
+      @*/
+    public static /*@ pure @*/ char toLowerCase(char ch);
+
+    /*@  public normal_behavior
+      @  {|
+      @    requires (* an uppercase mapping is specified for ch in the
+      @                Unicode attribute table *);
+      @    ensures (* \result == the uppercase mapping of ch in the Unicode
+      @                         attribute table *);
+      @  also
+      @    requires (* !(an uppercase mapping is specified for ch in the
+      @                 Unicode attribute table) *);
+      @    ensures \result == ch;
+      @  |}
+      @*/
+    public static /*@ pure @*/ char toUpperCase(char ch);
+
+    /*@  public normal_behavior
+      @  {|
+      @    requires (* a titlecase mapping is specified for ch in the
+      @                Unicode attribute table *);
+      @    ensures (* \result == the titlecase mapping of ch in the Unicode
+      @                         attribute table *);
+      @  also
+      @    requires (* !(a titlecase mapping is specified for ch in the
+      @                 Unicode attribute table) *);
+      @    ensures \result == ch;
+      @  |}
+      @*/
+    public static /*@ pure @*/ char toTitleCase(char ch);
+
+    //@ axiom digitVal('0') == 0;
+    //@ axiom digitVal('1') == 1;
+    //@ axiom digitVal('2') == 2;
+    //@ axiom digitVal('3') == 3;
+    //@ axiom digitVal('4') == 4;
+    //@ axiom digitVal('5') == 5;
+    //@ axiom digitVal('6') == 6;
+    //@ axiom digitVal('7') == 7;
+    //@ axiom digitVal('8') == 8;
+    //@ axiom digitVal('9') == 9;
+    //@ public normal_behavior
+    //@   ensures -1 <= \result && \result <= 9;
+    /*@ public static model pure int digitVal(char ch)
+      @ {
+      @   if (!isDigit(ch)) {
+      @     return -1;
+      @   } else {
+      @     int val = ch;
+      @    // Determine the base (0 value) depending on the type of digit 
+      @    // (e.g., ISO-LATIN-1, Arabic-Indic, Tibetan)
+      @    int base;
+      @    if (val <= 0x06F9 || val >= 0x0E50) {
+      @      base = val & 0xFFF0;
+      @    } else {
+      @      base = ((int)(val - 6) & 0xFFF0) | 0x0006;
+      @    }
+      @    // convert to a value between 0 and 9 inclusive
+      @    return (int)(val - base);
+      @   }
+      @ }
+      @*/
+          
+    /*@  public normal_behavior
+      @ {|
+      @   requires (MIN_RADIX <= radix && radix <= MAX_RADIX) &&
+      @             isDigit(ch) && 
+      @             digitVal(ch) < radix;
+      @   ensures \result == digitVal(ch);
+      @ also
+      @   requires (MIN_RADIX <= radix && radix <= MAX_RADIX) &&
+      @             (ch >= 'A' && ch <= 'Z') &&
+      @             (ch - 'A' + 10) < radix;
+      @   ensures \result == (ch - 'A' + 10);
+      @ also
+      @   requires (MIN_RADIX <= radix && radix <= MAX_RADIX) &&
+      @             (ch >= 'a' && ch <= 'z') &&
+      @             (ch - 'a' + 10) < radix;
+      @   ensures \result == (ch - 'a' + 10);
+      @ also
+      @   requires radix < MIN_RADIX || radix > MAX_RADIX ||
+      @             (isDigit(ch) && digitVal(ch) >= radix) ||
+      @             (ch >= 'A' && ch <='Z' && (ch - 'A' + 10) >= radix) ||
+      @             (ch >= 'a' && ch <='z' && (ch - 'a' + 10) >= radix) ||
+      @             (!isDigit(ch) && 
+      @              !(ch >= 'A' && ch <='Z') && 
+      @              !(ch >= 'a' && ch <='z'));
+      @   requires_redundantly (* none of the other requires clauses are met *);
+      @   ensures \result == -1;
+      @
+      @ also
+      @   ensures -1 <= \result && \result < radix;
+      @ |}
+      @*/
+    public static /*@ pure @*/ int digit(char ch, int radix);
+
+    /*@  public normal_behavior
+      @  {|
+      @    requires (* ch has a Unicode numeric value *);
+      @     {|
+      @       requires (* the Unicode numeric value of ch is 
+      @                    a non-negative integer *);
+      @       ensures (* \result == the Unicode numeric value of ch *);
+      @     also
+      @       requires (* !(the Unicode numeric value of ch is 
+      @                      a non-negative integer) *);
+      @       ensures \result == -2;
+      @     |}
+      @  also
+      @    requires (* !(ch has a Unicode numeric value) *);
+      @    ensures \result == -1;
+      @  |}
+      @*/
+    public static /*@ pure @*/ int getNumericValue(char ch); 
+
+    /** @deprecated Replaced by isWhitespace(char). */
+    /*@  public normal_behavior
+      @   ensures \result <==> ch == '\t' ||
+      @                         ch == '\n' ||
+      @                         ch == '\f' ||
+      @                         ch == '\r' ||
+      @                         ch == ' ';
+      @*/
+    public static /*@ pure @*/ boolean isSpace(char ch);
+
+    /*@  public normal_behavior
+      @   ensures \result <==> 
+      @              getType(ch) == SPACE_SEPARATOR ||
+      @              getType(ch) == LINE_SEPARATOR ||
+      @              getType(ch) == PARAGRAPH_SEPARATOR;
+      @*/
+    public static /*@ pure @*/ boolean isSpaceChar(char ch);
+
+    /*@  public normal_behavior
+      @   ensures \result <==> (getType(ch) == SPACE_SEPARATOR &&
+      @                          ch != '\u00A0' && ch != '\uFEFF') ||
+      @                         getType(ch) == LINE_SEPARATOR ||
+      @                         getType(ch) == PARAGRAPH_SEPARATOR ||
+      @                         ch == '\r' ||  // CARRIAGE RETURN
+      @                         ch == '\n'     ||  // LINE FEED
+					// Note: Can't put the unicode for
+					// a linefeed directly in the quotes
+					// because it is converted into a
+					// real linefeed before lexing occurs.
+					// Real linefeeds are not allowed in
+					// quotes - you have to use \n
+      @                         ch == '\u0009' ||  // HORIZONTAL TABULATION
+      @                         ch == '\u000B' ||  // VERTICAL TABULATION
+      @                         ch == '\u000C' ||  // FORM FEED
+      @                         ch == '\u001C' ||  // FILE SEPARATOR
+      @                         ch == '\u001D' ||  // GROUP SEPARATOR
+      @                         ch == '\u001E' ||  // RECORD SEPARATOR
+      @                         ch == '\u001F';    // UNIT SEPARATOR */
+     /*>>> commenting out as the comments is translated into result==true at the moment 
+      >@   ensures_redundantly  \result <==> (* ch is a Java whitespace character *);
+      >@*/
+    public static /*@ pure @*/ boolean isWhitespace(char ch); 
+
+    /*@  public normal_behavior
+      @   ensures \result <==> getType(ch) == CONTROL;
+      @   ensures_redundantly \result <==>
+      @                ('\u0000' <= ch && ch <= '\u001F')
+      @                 || ('\u007F' <= ch && ch <= '\u009F');
+      @*/
+    public static /*@ pure @*/ boolean isISOControl(char ch);
+
+    /*@  public normal_behavior
+      @   ensures UNASSIGNED <= \result && \result <= OTHER_SYMBOL
+      @            && (* \result == the Unicode character category of ch *);
+      @   ensures (ch == '\u0020' || ch == '\u00A0' || ch == '\u2000') ==> (\result == SPACE_SEPARATOR);
+      @*/
+    public static /*@ pure @*/ int getType(char ch);
+
+    /*@  public normal_behavior
+      @ {|
+      @   requires MIN_RADIX <= radix && radix <= MAX_RADIX &&
+      @             0 <= digit && digit < radix &&
+      @             digit < 10;
+      @   ensures \result == (char) ('0' + digit);
+      @   ensures digit(\result,radix) == digit;
+      @ also
+      @   requires MIN_RADIX <= radix && radix <= MAX_RADIX &&
+      @             0 <= digit && digit < radix &&
+      @             digit >= 10;
+      @   ensures \result == (char) ('a' + digit - 10);
+      @   ensures digit(\result,radix) == digit;
+      @ also
+      @   requires MIN_RADIX > radix || radix > MAX_RADIX ||
+      @             0 > digit || digit >= radix;
+      @   ensures \result == '\u0000';
+      @ |}
+      @*/
+    public static /*@ pure @*/ char forDigit(int digit, int radix);
+
+    public static /*@ pure @*/ byte getDirectionality(char c);
+
+    public static /*@ pure @*/ boolean isMirrored(char c);
+
+    /*@ public normal_behavior
+      @   requires equals(anotherCharacter);
+      @   ensures \result == 0;
+      @ also public normal_behavior
+      @   requires !equals(anotherCharacter);
+      @   ensures \result != 0;
+      @*/
+    public int compareTo(Character anotherCharacter);
+
+    public int compareTo(Object o);
+
+}

@@ -9,6 +9,13 @@ Bundle-ClassPath: bin/,
 Bundle-Activator: org.jmlspecs.openjml.eclipse.Activator
 Bundle-Vendor: David R. Cok
 Export-Package: org.jmlspecs.openjml.eclipse
-Require-Bundle: org.eclipse.ui,org.eclipse.core.runtime,org.eclipse.jdt.core;bundle-version="3.4.4",org.eclipse.core.resources;bundle-version="3.4.2",org.eclipse.ui.console;bundle-version="3.3.1",org.eclipse.ui.ide
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.jdt.core;bundle-version="3.4.4",
+ org.eclipse.core.resources;bundle-version="3.4.2",
+ org.eclipse.ui.console;bundle-version="3.3.1",
+ org.eclipse.ui.ide,
+ org.eclipse.jdt.ui;bundle-version="3.4.2";visibility:=reexport,
+ org.eclipse.jface.text;bundle-version="3.4.2"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

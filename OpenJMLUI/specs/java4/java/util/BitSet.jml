@@ -1,0 +1,415 @@
+// @(#)$Id: BitSet.jml 1532 2005-08-19 18:41:37Z jkiniry $
+
+// @author David R. Cok
+
+package java.util;
+
+public class BitSet implements Cloneable, java.io.Serializable{
+    // The logical representation is as an array of booleans.
+    // One could also model this as a Set of ints.
+    // Which would be easier to reason with?
+
+    /*-@
+      @ //-@ immutable 
+      @ model class Content {}
+      @ public non_null model Content content;
+      @
+      @ public normal_behavior
+      @   ensures \result >= 0;
+      @ public static pure model int size(Content content);
+      @
+      @ public normal_behavior
+      @   ensures \result >= 0;
+      @ public static pure model int cardinality(Content content);
+      @
+      @ public static pure model boolean isSet(Content c, int index);
+      @*/
+
+    //@ normal_behavior
+    //@   assignable \not_specified;
+    //-@   ensures size(content) >= 0;
+    //-@   ensures cardinality(content) == 0;
+    //-@   ensures (\forall int i; 0 <= i; !isSet(content,i));
+    public BitSet();
+
+    //@ public normal_behavior
+    //@   assignable \not_specified;
+    //-@   ensures size(content) >= i;
+    //-@   ensures cardinality(content) == 0;
+    //-@   ensures (\forall int i; 0 <= i; !isSet(content,i));
+    public BitSet(int i);
+
+    // number of set bits
+    //@ public normal_behavior
+    //@   ensures isEmpty() ==> \result == 0;
+    //-@   ensures \result == cardinality(content);
+    //@   ensures \result <= length();
+    //@   // num_of not implemented for proofs, and causes inconsistencies - FIXME
+    //@   // ensures \result == (\num_of int i; 0<=i; isSet(content,i));
+    //@ pure
+    public int cardinality();
+
+    //@ pure
+    public int hashCode();
+
+    // index of the highest set bit
+    /*@ public normal_behavior
+      @   ensures \result >= 0;
+      @   ensures \result >= cardinality(); */
+    /*-@
+      @   ensures \result == 0 <==> (\forall int i; 0<=i; !isSet(content,i));
+      @   ensures \result > 0 ==> (isSet(content,\result-1) &&
+      @                      (\forall int i; \result <= i; !isSet(content,i)));
+      @*/
+    //@ pure
+    public int length();
+
+    //@ public normal_behavior
+    //-@   ensures \result == size(content);
+    //@   ensures \result >= 0;
+    //@   ensures \result >= length();
+    //@ pure
+    public int size();
+
+    /*-@ public normal_behavior
+      @   assignable content;
+      @   ensures (\forall int i; 0<=i; !isSet(content, i) );
+      @   ensures cardinality() == 0;
+      @*/
+    public void clear();
+
+    //@ public normal_behavior
+    //-@   ensures \result <==> (\forall int i; 0<=i; !isSet(content,i));
+    //@   ensures \result <==> cardinality() == 0;
+    //@ pure
+    public boolean isEmpty();
+
+    /*-@ public normal_behavior
+      @   requires index > size(content);
+      @   ensures \result == index;
+      @   ensures !isSet(content,\result);
+      @ also public normal_behavior
+      @   requires 0 <= index && index <= size(content);
+      @   ensures index <= \result;
+      @   ensures (\forall int i; index<=i && i<\result; isSet(content,i));
+      @   ensures !isSet(content,\result);
+      @ also public exceptional_behavior
+      @   requires index < 0;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    //@ pure
+    public int nextClearBit(int index);
+
+    /*-@ public normal_behavior
+      @   requires index > size(content);
+      @   ensures \result == -1;
+      @ also public normal_behavior
+      @   requires 0 <= index && index <= size(content);
+      @   ensures \result == -1 ==> (\forall int i; index<=i; !isSet(content,i));
+      @   ensures \result != -1 ==> index <= \result;
+      @   ensures (\forall int i; index<=i && i<\result; !isSet(content,i));
+      @   ensures \result != -1 ==> isSet(content,\result);
+      @ also public exceptional_behavior
+      @   requires index < 0;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    //@ pure
+    public int nextSetBit(int index);
+
+    /*-@ public normal_behavior
+      @   requires 0 <= i;
+      @   assignable content;
+      @   ensures isSet(content,i) == false;
+      @   ensures (\forall int j; 0<=j && j != i;
+      @                        isSet(content,j) == \old(isSet(content,j)));
+      @   ensures \old(isSet(content,i)) ==>
+                          cardinality() == \old(cardinality() - 1);
+      @   ensures \old(!isSet(content,i)) ==>
+                          cardinality() == \old(cardinality());
+      @ also public exceptional_behavior
+      @   requires i < 0;
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public void clear(int i);
+
+    /*-@ public normal_behavior
+      @   requires 0 <= i;
+      @   assignable content;
+      @   ensures isSet(content,i) == !\old(isSet(content,i));
+      @   ensures (\forall int j; 0<=j && j != i;
+      @                        isSet(content,j) == \old(isSet(content,j)));
+      @   ensures size(content) >= Math.max(\old(size(content)),i+1);
+      @   ensures \old(isSet(content,i)) ==>
+                          cardinality() == \old(cardinality() - 1);
+      @   ensures \old(!isSet(content,i)) ==>
+                          cardinality() == \old(cardinality() + 1);
+      @ also public exceptional_behavior
+      @   requires i < 0;
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public void flip(int i);
+
+    /*-@ public normal_behavior
+      @   requires 0 <= i;
+      @   assignable content;
+      @   ensures isSet(content,i) == true;
+      @   ensures (\forall int j; 0<=j && j != i;
+      @                        isSet(content,j) == \old(isSet(content,j)));
+      @   ensures size(content) >= Math.max(\old(size(content)),i+1);
+      @   ensures \old(!isSet(content,i)) ==>
+                          cardinality() == \old(cardinality() + 1);
+      @   ensures \old(isSet(content,i)) ==>
+                          cardinality() == \old(cardinality());
+      @ also public exceptional_behavior
+      @   requires i < 0;
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public void set(int i);
+
+    /*-@ public normal_behavior
+      @   requires 0 <= i;
+      @   ensures \result == isSet(content,i);
+      @ also public exceptional_behavior
+      @   requires i < 0;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    //@ pure
+    public boolean get(int i);
+
+    /*-@ public normal_behavior
+      @   requires 0 <= i;
+      @   assignable content;
+      @   ensures isSet(content,i) == v;
+      @   ensures (\forall int j; 0<=j && j != i;
+      @                        isSet(content,j) == \old(isSet(content,j)));
+      @   ensures v ==> size(content) >= Math.max(\old(size(content)),i+1);
+      @   ensures (\old(isSet(content,i)) && !v) ==>
+                          cardinality() == \old(cardinality() - 1);
+      @   ensures (\old(!isSet(content,i)) && v) ==>
+                          cardinality() == \old(cardinality() + 1);
+      @   ensures (\old(isSet(content,i)) && v) ==>
+                          cardinality() == \old(cardinality());
+      @   ensures (\old(!isSet(content,i)) && !v) ==>
+                          cardinality() == \old(cardinality());
+      @ also public exceptional_behavior
+      @   requires i < 0;
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public void set(int i,boolean v);
+
+    /*-@ public normal_behavior
+      @   requires 0 <= fromIndex;
+      @   requires fromIndex <= toIndex;
+      @   requires 0 <= toIndex;
+      @   assignable content;
+      @   ensures (\forall int j; fromIndex <= j && j < toIndex;
+      @                   isSet(content,j) == false);
+      @   ensures (\forall int j; ( 0<=j && j < fromIndex ) ||
+      @                            toIndex <= j ;
+      @                   isSet(content,j) == \old(isSet(content,j)));
+      @   ensures cardinality() <= \old(cardinality());
+      @ also public exceptional_behavior
+      @   requires fromIndex < 0 || toIndex < 0 || fromIndex > toIndex;
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public void clear(int fromIndex,int toIndex);
+
+    /*-@ public normal_behavior
+      @   requires 0 <= fromIndex;
+      @   requires fromIndex <= toIndex;
+      @   requires 0 <= toIndex;
+      @   assignable content;
+      @   ensures (\forall int j; fromIndex <= j && j < toIndex;
+      @                   isSet(content,j) == !\old(isSet(content,j)));
+      @   ensures (\forall int j; ( 0<=j && j < fromIndex ) ||
+      @                             toIndex <= j ;
+      @                   isSet(content,j) == \old(isSet(content,j)));
+      @   ensures size(content) >= Math.max(\old(size(content)),toIndex);
+      @ also public exceptional_behavior
+      @   requires fromIndex < 0 || toIndex < 0 || fromIndex > toIndex;
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public void flip(int fromIndex, int toIndex);
+
+    /*-@ public normal_behavior
+      @   requires 0 <= fromIndex;
+      @   requires fromIndex <= toIndex;
+      @   requires 0 <= toIndex;
+      @   assignable content;
+      @   ensures (\forall int j; fromIndex <= j && j < toIndex;
+      @                   isSet(content,j) == true);
+      @   ensures (\forall int j; ( 0<=j && j < fromIndex ) ||
+      @                           ( toIndex <= j );
+      @                   isSet(content,j) == \old(isSet(content,j)));
+      @   ensures size(content) >= Math.max(\old(size(content)),toIndex);
+      @   ensures cardinality() >= \old(cardinality());
+      @ also public exceptional_behavior
+      @   requires fromIndex < 0 || toIndex < 0 || fromIndex > toIndex;
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public void set(int fromIndex,int toIndex);
+
+    /*-@ public normal_behavior
+      @   requires 0 <= fromIndex;
+      @   requires fromIndex <= toIndex;
+      @   requires 0 <= toIndex;
+      @   assignable content;
+      @   ensures (\forall int j; fromIndex <= j && j < toIndex;
+      @                   isSet(content,j) == b);
+      @   ensures (\forall int j; ( 0<=j && j < fromIndex ) ||
+      @                           ( toIndex <= j );
+      @                   isSet(content,j) == \old(isSet(content,j)));
+      @   ensures b ==> size(content) >= Math.max(\old(size(content)),toIndex);
+      @   ensures b ==> cardinality() >= \old(cardinality());
+      @   ensures !b ==> cardinality() <= \old(cardinality());
+      @ also public exceptional_behavior
+      @   requires fromIndex < 0 || toIndex < 0 || fromIndex > toIndex;
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
+      @*/
+    public void set(int fromIndex,int toIndex,boolean b);
+
+
+    /*@ also public normal_behavior
+      @   assignable \not_specified;
+      @   ensures \typeof(\result) == \type(BitSet);
+      @   ensures \result != null; */
+    /*-@   ensures (\forall int i; 0<=i; isSet(((BitSet)\result).content,i) ==
+      @                              isSet(content,i)); */
+    /*@   ensures ((BitSet)\result).cardinality() == cardinality();
+      @*/
+    public Object clone();
+
+    /*@ also public normal_behavior
+      @   requires o != null && o instanceof BitSet; */
+    /*-@  ensures \result <==> (\forall int i; 
+      @			0<=i;
+      @             	isSet(content,i) == isSet(((BitSet)o).content,i)); */
+    /*@   ensures \result ==> (cardinality() == ((BitSet)o).cardinality());
+      @ also public normal_behavior
+      @   requires o != null && !(o instanceof BitSet);
+      @   ensures !\result;
+      @*/
+    //@ pure
+    public boolean equals(/*@nullable*/Object o);
+
+    /*@ also public normal_behavior
+      @   ensures \result != null && \result.length() > 0;
+      @   ensures \result.charAt(0) == '{';
+      @   ensures \result.charAt(\result.length()-1) == '}';
+      @   // within the braces is a comma+space separated list of indices
+      @   // for which the bit is set
+      @*/
+    //@ pure
+    public String toString();
+
+    /*@ public normal_behavior
+      @   requires 0 <= fromIndex && 0 <= toIndex;
+      @   requires fromIndex <= toIndex;
+      @   ensures \result != null; */
+    /*-@  ensures (\forall int i; 0<=i && i<fromIndex; !isSet(\result.content,i));
+      @   ensures (\forall int i; toIndex<=i; !isSet(\result.content,i));
+      @   ensures (\forall int i; fromIndex <= i && i < toIndex;
+      @                       isSet(\result.content,i) == isSet(content,i));
+      @   ensures size(\result.content) >= toIndex; */
+    /*@   ensures cardinality() >= \result.cardinality();
+      @*/
+    //@ pure
+    public BitSet get(int fromIndex,int toIndex);
+
+    /*@ public normal_behavior
+      @   requires b != null;
+      @   assignable \not_specified;
+      @*/
+    /*-@
+      @ also public normal_behavior
+      @   requires b != null;
+      @   assignable content;
+      @   ensures size(content) >=\old(Math.min(size(content),size(b.content)));
+      @   ensures (\forall int i; 0<=i;
+      @              isSet(content,i) <==>
+      @                \old(isSet(content,i) && isSet(b.content,i)));
+      @   ensures cardinality() <= \old(cardinality());
+      @   ensures cardinality() <= \old(b.cardinality());
+      @ also public exceptional_behavior
+      @   requires b == null;
+      @   signals_only NullPointerException;
+      @*/
+    public void and(BitSet b);
+
+    /*@ public normal_behavior
+      @   requires b != null;
+      @   assignable \not_specified;
+      @*/
+    /*-@
+      @ also public normal_behavior
+      @   assignable content;
+      @   ensures size(content) >= \old(size(content));
+      @   ensures (\forall int i; 0<=i;
+      @              isSet(content,i) <==>
+      @                \old(isSet(content,i) && !isSet(b.content,i)));
+      @   ensures cardinality() <= \old(cardinality());
+      @ also public exceptional_behavior
+      @   requires b == null;
+      @   signals_only NullPointerException;
+      @*/
+    public void andNot(BitSet b);
+
+    /*@ public normal_behavior
+      @   requires b != null;
+      @   assignable \not_specified;
+      @*/
+    /*-@
+      @ also public normal_behavior
+      @   assignable content;
+      @   ensures size(content) >=\old(Math.max(size(content),size(b.content))); 
+      @   ensures (\forall int i; 0<=i;
+      @              isSet(content,i) <==>
+      @                \old(isSet(content,i) || isSet(b.content,i)));
+      @   ensures cardinality() >= \old(cardinality());
+      @   ensures cardinality() >= \old(b.cardinality());
+      @ also public exceptional_behavior
+      @   requires b == null;
+      @   signals_only NullPointerException;
+      @*/
+    public void or(BitSet b);
+
+    /*@ public normal_behavior
+      @   requires b != null;
+      @   assignable \not_specified;
+      @*/
+    /*-@
+      @ also public normal_behavior
+      @   assignable content;
+      @   ensures size(content) >=\old(Math.max(size(content),size(b.content))); 
+      @   ensures (\forall int i; 0<=i;
+      @              isSet(content,i) <==>
+      @                \old(isSet(content,i) != isSet(b.content,i)));
+      @ also public exceptional_behavior
+      @   requires b == null;
+      @   signals_only NullPointerException;
+      @*/
+    public void xor(BitSet b);
+
+    /*@ public normal_behavior
+      @   requires b != null;
+      @*/
+    /*-@
+      @ also public normal_behavior
+      @   ensures \result <==> (\exists int i; 0<=i ;
+      @                isSet(content,i) && isSet(b.content,i));
+      @ also public exceptional_behavior
+      @   requires b == null;
+      @   signals_only NullPointerException;
+      @*/
+    //@ pure
+    public boolean intersects(BitSet b);
+}
+

@@ -1,0 +1,98 @@
+// @(#)$Id: Method.jml 2022 2006-08-13 02:36:42Z chalin $
+
+// Copyright (C) 2001 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.lang.reflect;
+
+// FIXME
+public final
+class Method extends AccessibleObject implements Member {
+
+    //@ public model Class returntype;
+
+    //@ ensures this.returntype == returnType;
+    //@ pure
+    Method(Class declaringClass,
+           String name,
+           Class[] parameterTypes,
+           Class returnType,
+           Class[] checkedExceptions,
+           int modifiers,
+           int slot);
+
+    Method copy();
+
+    /*@ also public normal_behavior
+      @   ensures \result != null;
+      @*/
+    public /*@ pure @*/ Class getDeclaringClass();
+
+    /*@ also public normal_behavior
+      @   ensures \result != null;
+      @*/
+    public /*@ pure @*/ String getName();
+
+    public /*@ pure @*/ int getModifiers();
+
+    /*@ public normal_behavior
+      @   ensures \result == returntype;
+      @*/
+    public /*@ pure non_null @*/ Class getReturnType();
+
+    /*@ public normal_behavior
+      @   ensures \result != null;
+      @*/
+    public /*@ pure @*/ Class[] getParameterTypes();
+
+    /*@ public normal_behavior
+      @   ensures \result != null;
+      @*/
+    public /*@ pure @*/  Class[] getExceptionTypes();
+
+    public /*@ pure @*/ boolean equals(/*@\readonly*//*@nullable*/Object obj);
+
+    public /*@ pure @*/ int hashCode();
+
+    public /*@ pure @*/ String toString();
+
+    //+@ requires !Modifier.isStatic(getModifiers()) ==> obj != null;
+    /*@ ensures getReturnType() == boolean.class ==> \result instanceof Boolean;
+      @ ensures getReturnType() == byte.class    ==> \result instanceof Byte;
+      @ ensures getReturnType() == char.class    ==> \result instanceof Character;
+      @ ensures getReturnType() == int.class     ==> \result instanceof Integer;
+      @ ensures getReturnType() == long.class    ==> \result instanceof Long;
+      @ ensures getReturnType() == short.class   ==> \result instanceof Short;
+      @ ensures getReturnType() == double.class  ==> \result instanceof Double;
+      @ ensures getReturnType() == float.class   ==> \result instanceof Float;
+      @ ensures getReturnType() == void.class    ==> \result == null;
+      @ ensures_redundantly 
+      @ 	getReturnType().isPrimitive() && getReturnType() != void.class 
+      @			==> \result != null;
+      @*/
+    public /*@ nullable */ Object invoke(/*@nullable*/Object obj, Object[] args)
+	throws IllegalAccessException, IllegalArgumentException,
+               InvocationTargetException;
+
+    // MethodAccessor is not a public class, it's a sun proprietary class
+    // MethodAccessor getMethodAccessor();
+
+    // void setMethodAccessor(MethodAccessor accessor);
+
+    static Class[] copy(Class[] in);
+}

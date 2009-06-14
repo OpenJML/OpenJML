@@ -1,0 +1,117 @@
+package java.io;
+
+/** Java 1.4 version, from earlier work by chalin.
+ *  Edited by cok
+ */
+//TODO - if it is immutable, then everything should be pure; can we say that everything is strictly pure?
+//-@ immutable
+public class File implements Serializable, Comparable {
+
+    // FIELDS
+    public static final char pathSeparatorChar;
+    public static final char separatorChar;
+
+    public static final /*@non_null*/ String pathSeparator;
+    public static final /*@non_null*/ String separator;
+    // TODO the separator is the string form of separatorChar
+    // TODO the pathSeparator is the string form of pathSeparatorChar
+    
+    // CONSTRUCTORS
+
+    /*@pure*/ public File(/*@nullable*/ File parent, /*@non_null*/ String child);
+    /*@pure*/ public File(/*@nullable*/ String parent, /*@non_null*/ String child);
+    /*@pure*/ public File(/*@non_null*/ String pathname);
+    /*@pure*/ public File(/*@non_null*/ java.net.URI uri);
+
+    //@ requires prefix.length() >= 3;
+    public static /*@non_null*/ File createTempFile(
+    		/*@non_null*/ String prefix, 
+		    /*@nullable*/ String suffix) throws IOException;
+
+    //@ requires prefix.length() >= 3;
+    public static /*@non_null*/ File createTempFile(/*@non_null*/ String prefix, 
+		       /*@nullable*/ String suffix, 
+		       /*@nullable*/ File directory)
+        throws IOException;
+
+    // METHODS
+
+    /*@ pure */ public int hashCode();
+    /*@ pure */ public long lastModified();
+    /*@ pure */ public long length();
+    public void deleteOnExit();
+    /*@ pure */ public boolean canRead();
+    /*@ pure */ public boolean canWrite();
+    public boolean createNewFile() throws IOException;
+    public boolean delete();
+
+    /*@ pure */ public boolean exists();
+    /*@ pure */ public boolean isAbsolute();
+    /*@ pure */ public boolean isDirectory();
+    /*@ pure */ public boolean isFile();
+    /*@ pure */ public boolean isHidden();
+
+    public boolean mkdir();
+    public boolean mkdirs();
+    public boolean setReadOnly();
+    public boolean setLastModified(long time);
+
+    public /*@non_null*/ File getAbsoluteFile();
+    public /*@non_null*/ File getCanonicalFile() throws IOException;
+    public /*@non_null*/ File getParentFile();
+
+    /*@ public normal_behavior
+      @   requires isDirectory();
+      @   ensures \result != null;
+      @   ensures \nonnullelements(\result);
+      @ also
+      @ public normal_behavior
+      @   requires !isDirectory();
+      @   ensures \result == null;
+      @*/
+    //@ pure
+    public /*@nullable*/ File[/*#@non_null*/] listFiles();
+
+    //@ pure
+    public static /*@nullable*/ File[/*#@non_null*/] listRoots();
+
+    //@ public normal_behavior
+    //@   ensures this == pathname ==>\result == 0;
+    //@   ensures \result == compareTo(pathname); // FIXME
+    //@ pure
+    public int compareTo(/*@non_null*/ File pathname);
+
+    // TODO - isn't this redundant?
+    // TODO - is it inherited from the Comparable interface?
+    /*@ also public normal_behavior
+      @    ensures \result == (\typeof(o) <: \typeof(this));
+      @ public model pure boolean definedComparison(non_null Object o);
+      @*/
+
+    //@ also public normal_behavior
+    //@   requires pathname instanceof File && definedComparison(pathname);
+    //@   ensures \result == this.compareTo((File)pathname);
+    //@ pure
+    public int compareTo(/*@non_null*/ Object pathname);
+
+    //@ pure
+    public boolean equals(/*@nullable*/ Object obj);
+    public boolean renameTo(/*@non_null*/ File dest);
+
+    /*@ pure */ public /*@non_null*/ String getAbsolutePath();
+    /*@ pure */ public /*@non_null*/ String getCanonicalPath() throws IOException;
+    /*@ pure */ public /*@non_null*/ String getName();
+    /*@ pure */ public /*@non_null*/ String getParent();
+    /*@ pure */ public /*@non_null*/ String getPath();
+    /*@ pure */ public /*@non_null*/ String toString();
+    /*@ pure */ public /*@nullable*/ String[] list();
+    /*@ pure */ public /*@non_null*/ java.net.URI toURI();
+
+    // TODO _ result non_null?
+    /*@ pure */ public java.net.URL toURL()  throws java.net.MalformedURLException;
+
+    /*@ pure */ public /*@non_null*/ File[] listFiles(/*@non_null*/ FileFilter filter);
+    /*@ pure */ public /*@non_null*/ File[] listFiles(/*@non_null*/ FilenameFilter filter);
+    /*@ pure */ public /*@non_null*/ String[] list(/*@non_null*/ FilenameFilter filter);
+
+}

@@ -1,0 +1,12 @@
+// $Id: FilenameFilter.refines-spec 2252 2006-12-18 03:39:16Z chalin $
+//
+// While the documentation does not say that the formal parameters directory
+// and filename must be non-null, numerous examples (e.g. in the Eclipse JDT
+// core) show that they are assumed to be non-null.
+
+package java.io;
+
+public interface FilenameFilter {
+	// FIXME - should the directory have to exist?
+    public boolean accept(/*@non_null*/File directory, /*@non_null*/ String filename);
+}

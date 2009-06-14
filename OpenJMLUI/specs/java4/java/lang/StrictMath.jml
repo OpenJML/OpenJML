@@ -1,0 +1,790 @@
+// @(#)$Id: StrictMath.jml 1388 2005-05-05 00:40:33Z davidcok $
+
+// Copyright (C) 2002 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass  Ave, Cambridge, MA 02139, USA.
+
+package java.lang;
+import java.util.Random;
+
+/** JML's specification of java.lang.StrictMath.
+ * @version $Revision: 1388 $
+ * @author Brandon Shilling
+ * @author David Cok
+ * @author Gary T. Leavens
+ */
+/* CAUTION: Note that 
+    - there is a difference between positive and negative 0
+    - primitive == does not distinguish between positive and negative zero
+	that is, (+0.0 == -0.0) is true; use isPositiveZero and 
+	isNegativeZero when you need to distinguish these
+    - NaN compares false to everything: (NaN == NaN) is false; you have to
+	use Double.isNaN(\...)
+    - primitive == is not the same as .equals on Doubles
+    - primitive comparisions (<, >, <=, >=) on doubles are not the same as
+	.comparesTo on Doubles
+*/
+public /*@ pure @*/ final class StrictMath {
+
+    /*@ public static model boolean firstTimeCalledRandom;
+      @ public static initially firstTimeCalledRandom;
+      @*/
+
+    private StrictMath();
+
+    public static final double E;
+    //@ axiom E > 0.0;
+
+    public static final double PI;
+    //@ axiom PI > 0.0;
+    //@ axiom 2*PI > 0.0; // FIXME - teach Esc/Java or Simplify to infer this from the above - see samples/dbc/Complex.java
+
+    /*@ public normal_behavior 
+      @ {|
+      @   requires Double.isNaN(a) || Double.isInfinite(a);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires a == 0;  // positive or negative zero
+      @   ensures \result == 0;
+      @ also
+      @   requires isPositiveZero(a);
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires isNegativeZero(a);
+      @   ensures isNegativeZero(\result);
+      @ |}
+      @*/
+    public static /*@ pure @*/ double sin(double a);
+
+    /*@ public normal_behavior
+      @   requires Double.isNaN(a) || Double.isInfinite(a);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires a == 0;  // positive or negative zero
+      @   ensures \result == 1.0;
+      @*/
+    public static /*@ pure @*/ double cos(double a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a) || Double.isInfinite(a);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires a == 0;  // positive or negative zero
+      @   ensures \result == 0;
+      @ also
+      @   requires isPositiveZero(a);
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires isNegativeZero(a);
+      @   ensures isNegativeZero(\result);
+      @ |}
+      @*/
+    public static /*@ pure @*/ double tan(double a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a) || abs(a) > 1;
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires a == 0;  // positive or negative zero
+      @   ensures \result == 0;
+      @ also
+      @   requires isPositiveZero(a);
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires isNegativeZero(a);
+      @   ensures isNegativeZero(\result);
+      @ also
+      @   requires !Double.isNaN(a) && abs(a) <= 1;
+      @   ensures sin(asin(a)) == a;
+      @ |}
+      @*/
+    public static /*@ pure @*/ double asin(double a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a) || abs(a) > 1;
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires !Double.isNaN(a) && abs(a) <= 1;
+      @   ensures close(cos(acos(a)),a,acos(a),1.e-17);
+      @ |}
+      @*/
+    public static /*@ pure @*/ double acos(double a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires a == 0;  // positive or negative zero
+      @   ensures \result == 0;
+      @ also
+      @   requires isPositiveZero(a);
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires isNegativeZero(a);
+      @   ensures isNegativeZero(\result);
+      @ also
+      @   requires !Double.isNaN(a) && !Double.isInfinite(a);
+      @   requires abs(a) < 1.e16;  // FIXME - to avoid precision problems
+      @   ensures close(tan(atan(a)),a,atan(a),1e-15);
+      @ |}
+      @*/
+    public static /*@ pure @*/ double atan(double a);
+
+    /*@ public normal_behavior
+      @   requires !Double.isNaN(angdeg);
+      @   ensures \result == angdeg / 180.0 * PI;
+      @ also
+      @ public normal_behavior
+      @   requires Double.isNaN(angdeg);
+      @   ensures Double.isNaN(\result);
+      @*/
+    public static /*@ pure @*/ strictfp double toRadians(double angdeg);
+
+    /*@ public normal_behavior
+      @   requires !Double.isNaN(angrad);
+      @   ensures \result == angrad * 180.0 / PI;
+      @ also
+      @ public normal_behavior
+      @   requires Double.isNaN(angrad);
+      @   ensures Double.isNaN(\result);
+      @*/
+    public static /*@ pure @*/ strictfp double toDegrees(double angrad);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires a == Double.POSITIVE_INFINITY;
+      @   ensures \result == Double.POSITIVE_INFINITY;
+      @ also
+      @   requires a == Double.NEGATIVE_INFINITY;
+      @   ensures isPositiveZero(\result);
+      @ |}
+      @*/
+    public static /*@ pure @*/ double exp(double a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a) || a < 0.0;
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires a == Double.POSITIVE_INFINITY;
+      @   ensures \result == Double.POSITIVE_INFINITY;
+      @ also
+      @   requires a == 0;  // positive or negative zero
+      @   ensures \result == Double.NEGATIVE_INFINITY;
+      @ |}
+      @*/
+    public static /*@ pure @*/ double log(double a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a) || a < 0.0;
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires a == Double.POSITIVE_INFINITY;
+      @   ensures \result == Double.POSITIVE_INFINITY;
+      @ also
+      @   requires isPositiveZero(a);
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires isNegativeZero(a);
+      @   ensures isNegativeZero(\result);
+      @ also
+      @	  requires a > 0 && a < Double.POSITIVE_INFINITY;
+      @   // ensures a == sqrt(a) * sqrt(a);
+      @   ensures close(a,sqrt(a)*sqrt(a),1.e-17);
+      @ |}
+      @*/
+    public static /*@ pure @*/ double sqrt(double a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(f1) || Double.isNaN(f2);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @ requires !Double.isNaN(f1) && !Double.isNaN(f2);
+      @ {|
+      @   requires Double.isInfinite(f1) || f2 == 0.0;
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires !Double.isInfinite(f1) && Double.isInfinite(f2);
+      @   ensures \result == f1;
+      @ also
+      @   requires f1 == Double.MAX_VALUE && f2 == Double.MIN_VALUE;
+      @   ensures \result == 0;
+      @ also
+      @   requires f2 != 0 
+      @		   && !Double.isInfinite(f2) 
+      @            && !Double.isInfinite(f1/f2)
+      @		   && !Double.isInfinite(f2 * rint(f1/f2))
+      @		   && ((f1/f2) != 0) ;
+      @   // FIXME - need a postcondition that works when precision is lost,
+	  // e.g. for when f1 is MAX_VALUE
+      @	  //ensures  \result == f1 - f2 * rint(f1 / f2 );
+      @	  //ensures  \result == f2 * ( (f1/f2) - rint(f1 / f2 ) );
+      @ |}
+      @ |}
+      @*/
+    public static /*@ pure @*/ double IEEEremainder(double f1,
+                                                             double f2);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires Double.isInfinite(a) || a == 0;  // positive or negative 0
+      @   ensures \result == a;
+      @ also
+      @   requires isPositiveZero(a);
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires isNegativeZero(a);
+      @   ensures isNegativeZero(\result);
+      @ also
+      @   requires -1.0 < a && a < 0.0;
+      @   ensures Double.isNegativeZero(\result);
+      @ also 
+      @   requires a == rint(a);
+      @   ensures \result == a;
+      @ also
+      @   requires -Double.MAX_VALUE < a && a < Double.MAX_VALUE;
+      @   ensures \result == rint(\result);
+      @   ensures a <= \result;
+      @   ensures ((a+1) != 1) ==> \result < (a+1);  // Guard is for precision problems
+      @ |}
+      @*/
+    public static /*@ pure @*/ double ceil(double a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isInfinite(a) || a == 0;  // positive or negative 0
+      @   ensures \result == a;
+      @ also
+      @   requires isPositiveZero(a);
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires isNegativeZero(a);
+      @   ensures isNegativeZero(\result);
+      @ also
+      @   requires Double.isNaN(a);
+      @   ensures Double.isNaN(\result);
+      @ also 
+      @   requires a == rint(a);
+      @   ensures \result == a;
+      @ also
+      @   requires -Double.MAX_VALUE < a && a < Double.MAX_VALUE;
+      @   ensures \result == rint(\result);
+      @   ensures \result <= a;
+      @   ensures ((a-1) != -1) ==> (a-1) < \result;  // Guard is for precision problems
+      @ |}
+      @*/
+    public static /*@ pure @*/ double floor(double a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires !Double.isNaN(a) && !Double.isInfinite(a)
+      @         && a != 0;
+      @   ensures (* \result is mathematical integer closest to a *);  // FIXME
+      @ also
+      @   requires isPositiveZero(a);
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires isNegativeZero(a);
+      @   ensures isNegativeZero(\result);
+      @ also
+      @   requires Double.isNaN(a);
+      @   ensures  Double.isNaN(\result);
+      @ also
+      @   requires Double.isInfinite(a) || a == 0.0;  // pos or neg zero
+      @   ensures \result == a;
+      @ |}
+      @*/
+    public static /*@ pure @*/ double rint(double a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(y) || Double.isNaN(x);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires (isPositiveZero(y) && x > 0.0)
+      @             || (0 < y && y <Double.POSITIVE_INFINITY 
+      @                 && x ==Double.POSITIVE_INFINITY);
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires (isNegativeZero(y) && x > 0.0)
+      @            || (Double.NEGATIVE_INFINITY < y && y < 0
+      @                && x ==Double.POSITIVE_INFINITY);
+      @   ensures isNegativeZero(\result);
+      @ also
+      @   requires (isPositiveZero(y) && x < 0.0)
+      @            || (0 < y && y <Double.POSITIVE_INFINITY 
+      @                && x == Double.NEGATIVE_INFINITY);
+      @   ensures \result == PI;
+      @ also
+      @   requires (isNegativeZero(y) && x < 0.0)
+      @             || (Double.NEGATIVE_INFINITY < y && y < 0
+      @                 && x == Double.NEGATIVE_INFINITY);
+      @   ensures \result == -(PI);
+      @ also
+      @   requires (y > 0.0 && x == 0)
+      @            || ( y ==Double.POSITIVE_INFINITY
+      @                 &&  Double.NEGATIVE_INFINITY < x
+      @                 && x <Double.POSITIVE_INFINITY);
+      @   ensures \result == PI/2;
+      @ also
+      @   requires (y < 0.0 && x == 0)
+      @            || ( y == Double.NEGATIVE_INFINITY
+      @                && Double.NEGATIVE_INFINITY < x
+      @                && x <Double.POSITIVE_INFINITY);
+      @   ensures \result == -(PI)/2;
+      @ also
+      @   requires y == x && y > 0;
+      @   ensures \result == PI/4;
+      @ also
+      @   requires y == -x && y > 0;
+      @   ensures \result == (3*PI)/4;
+      @ also
+      @   requires y == -x && y < 0;
+      @   ensures \result == -(PI)/4;
+      @ also
+      @   requires y == x && y < 0;
+      @   ensures \result == -(3*PI)/4;
+      @ |}
+      @*/
+    public static /*@ pure @*/ double atan2(double y, double x);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(b);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @ requires !Double.isNaN(b);
+      @ {|
+      @   requires b == 0;  // positive or negative zero
+      @   ensures \result == 1.0;
+      @ also
+      @   requires b == 1.0 && !Double.isNaN(a);
+      @   ensures \result == a;
+      @ also
+      @   requires Double.isNaN(a) && b != 0;  // positive or negative 0
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires (abs(a) > 1 && b == Double.POSITIVE_INFINITY) || 
+      @        (abs(a) < 1 && b == Double.NEGATIVE_INFINITY);
+      @   ensures \result == Double.POSITIVE_INFINITY;
+      @ also
+      @   requires (abs(a) < 1 && b == Double.POSITIVE_INFINITY) || 
+      @        (abs(a) > 1 && b == Double.NEGATIVE_INFINITY);
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires (a == -1.0 || a == 1.0) && Double.isInfinite(b);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires (isPositiveZero(a) && b > 0.0)
+      @         || (a == Double.POSITIVE_INFINITY && b < 0.0);
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires (isPositiveZero(a) && b < 0.0)
+      @         || (a == Double.POSITIVE_INFINITY && b > 0.0);
+      @   ensures \result ==Double.POSITIVE_INFINITY;
+      @ also
+      @   requires (isNegativeZero(a) && b > 0.0 && !isFiniteOdd(b))
+      @       || (a == Double.NEGATIVE_INFINITY && b < 0.0 && !isFiniteOdd(b));
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires (isNegativeZero(a) && b > 0.0 && isFiniteOdd(b))
+      @       || (a == Double.NEGATIVE_INFINITY && b < 0.0 && isFiniteOdd(b));
+      @   ensures isNegativeZero(\result);
+      @ also
+      @   requires (isNegativeZero(a) && b < 0.0 && !isFiniteOdd(b))
+      @       || (a == Double.NEGATIVE_INFINITY && b > 0.0 && !isFiniteOdd(b));
+      @   ensures \result ==Double.POSITIVE_INFINITY;
+      @ also
+      @   requires (isNegativeZero(a) && b < 0.0 && isFiniteOdd(b))
+      @        || (a == Double.NEGATIVE_INFINITY && b > 0.0 && isFiniteOdd(b));
+      @   ensures \result == Double.NEGATIVE_INFINITY;
+      @ also
+      @   requires (a < 0.0 && isFiniteOdd(b)); 
+      @   ensures \result == - pow(-a,b);
+      @ also
+      @   requires (a < 0.0 && isFiniteEven(b));
+      @   ensures \result == pow( -a, b);
+      @ also
+      @   requires !Double.isInfinite(a) && a < 0.0 && !Double.isInfinite(b) 
+      @         && rint(b) != b;
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires rint(a) == a && rint(b) == b;
+      @   ensures (* \result is a raised to the power of b *)
+      @		<==> (* \result can be represented as a double *);
+      @ |}
+      @ |}
+      @*/
+    public static /*@ pure @*/ double pow(double a, double b);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Float.isNaN(a);
+      @   ensures \result == 0;  // NOTE THIS NON-INTUITIVE BEHAVIOR
+      @ also
+      @   requires a == Float.NEGATIVE_INFINITY || a <= Integer.MIN_VALUE;
+      @   ensures \result == Integer.MIN_VALUE;
+      @ also
+      @   requires a == Float.POSITIVE_INFINITY || a >= Integer.MAX_VALUE;
+      @   ensures \result == Integer.MAX_VALUE;
+      @ also
+      @   requires !Float.isNaN(a) && !Float.isInfinite(a)
+      @         && Integer.MIN_VALUE < a && a < Integer.MAX_VALUE;
+      @   ensures \result == (int)StrictMath.floor(a + 0.5f);
+      @ |}
+      @*/ // rounds n+.5 to n+1
+    public static /*@ pure @*/ int round(float a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a);
+      @   ensures \result == 0;  // NOTE THIS NON-INTUITIVE BEHAVIOR
+      @ also
+      @   requires a == Double.NEGATIVE_INFINITY || a <= Long.MIN_VALUE;
+      @   ensures \result == Long.MIN_VALUE;
+      @ also
+      @   requires a == Double.POSITIVE_INFINITY || a >= Long.MAX_VALUE;
+      @   ensures \result == Long.MAX_VALUE;
+      @ also
+      @   requires !Double.isNaN(a) && !Double.isInfinite(a)
+      @         && Long.MIN_VALUE < a && a < Long.MAX_VALUE;
+      @   ensures \result == (long)StrictMath.floor(a + 0.5d);
+      @ |}
+      @*/ // rounds n+.5 to n+1
+    public static /*@ pure @*/ long round(double a);
+
+    // FIXME - commented out because there is no implementation of firstTimeCalledRandom
+    /* public normal_behavior
+      @ {|
+      @   requires firstTimeCalledRandom;
+      @   assignable firstTimeCalledRandom;
+      @   ensures (* \result generated by new instantiation of java.util.Random *);
+      @ also
+      @   requires !firstTimeCalledRandom;
+      @   ensures (* \result is equal to Random.nextDouble() *);
+      @ |}
+      @*/ // FIXME - can these specs be improved? // FIXME - what is the range of the result?
+    public static double random();
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires a == Integer.MIN_VALUE;
+      @   ensures \result == Integer.MIN_VALUE;
+      @ also
+      @   requires a >= 0;
+      @   ensures \result == a;
+      @ also
+      @   requires a < 0 && a != Integer.MIN_VALUE;
+      @   ensures \result == -a;
+      @ also
+      @   ensures (\result != Integer.MIN_VALUE) ==> \result >= 0L;
+      @ |}
+      @*/
+    public static /*@ pure @*/ int abs(int a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires a == Long.MIN_VALUE;
+      @   ensures \result == Long.MIN_VALUE;
+      @ also
+      @   requires a >= 0;
+      @   ensures \result == a;
+      @ also
+      @   requires a < 0 && a != Long.MIN_VALUE;
+      @   ensures \result == -a;
+      @ also
+      @   ensures (\result != Long.MIN_VALUE) ==> \result >= 0L;
+      @ |}
+      @*/
+    public static /*@ pure @*/ long abs(long a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Float.isNaN(a);
+      @   ensures Float.isNaN(\result);
+      @ also
+      @   requires a == 0;  // positive or negative 0
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires Float.isInfinite(a);
+      @   ensures \result == Float.POSITIVE_INFINITY;
+      @ also
+      @   requires a > 0;
+      @   ensures \result == a;
+      @ also
+      @   requires a < 0;
+      @   ensures \result == -a;
+       @ |}
+      @*/
+    //@ implies_that
+    //@   ensures !Float.isNaN(a) ==> \result >= 0.0f;
+    public static /*@ pure @*/ float abs(float a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires a == 0;  // positive or negative zero
+      @   ensures isPositiveZero(\result);
+      @ also
+      @   requires Double.isInfinite(a);
+      @   ensures \result == Double.POSITIVE_INFINITY;
+      @ also
+      @   requires a > 0;
+      @   ensures \result == a;
+      @ also
+      @   requires a < 0;
+      @   ensures \result == -a;
+      @ |}
+      @*/
+    //@ implies_that
+    //@   ensures !Double.isNaN(a) ==> \result >= 0.0;
+    public static /*@ pure @*/ double abs(double a);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires a == b;
+      @   ensures \result == a;
+      @ also
+      @   requires a <= b;
+      @   ensures \result == b;
+      @ also
+      @   requires a >= b;
+      @   ensures \result == a;
+      @ also
+      @   ensures \result >= a && \result >= b;
+      @   ensures \result == a || \result == b;
+      @ |}
+      @*/
+    public static /*@ pure @*/ int max(int a, int b);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires a == b;
+      @   ensures \result == a;
+      @ also
+      @   requires a <= b;
+      @   ensures \result == b;
+      @ also
+      @   requires a >= b;
+      @   ensures \result == a;
+      @ also
+      @   ensures \result >= a && \result >= b;
+      @   ensures \result == a || \result == b;
+      @ |}
+      @*/
+    public static /*@ pure @*/ long max(long a, long b);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Float.isNaN(a) || Float.isNaN(b);
+      @   ensures Float.isNaN(\result);
+      @ also
+      @   requires !(Float.isNaN(a) || Float.isNaN(b));
+      @   {|
+      @     requires (isPositiveZero(a) && b == 0)
+      @              || (isPositiveZero(b) && a == 0);
+      @     ensures isPositiveZero(\result);
+      @   also
+      @     requires new Float(a).compareTo(new Float(b)) == 0;
+      @     ensures \result == a;
+      @   also
+      @     requires new Float(a).compareTo(new Float(b)) <= 0;
+      @     ensures \result == b;
+      @   also
+      @     requires new Float(a).compareTo(new Float(b)) >= 0;
+      @     ensures \result == a;
+      @   |}
+      @ |}
+      @*/
+    public static /*@ pure @*/ float max(float a, float b);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a) || Double.isNaN(b);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires !( Double.isNaN(a) || Double.isNaN(b));
+      @   {|
+      @     requires (isPositiveZero(a) && b == 0)
+      @              || (isPositiveZero(b) && a == 0);
+      @      ensures isPositiveZero(\result);
+      @   also
+      @      requires new Double(a).compareTo(new Double(b)) == 0;
+      @      ensures \result == a;
+      @   also
+      @      requires new Double(a).compareTo(new Double(b)) <= 0;
+      @      ensures \result == b;
+      @    also
+      @      requires new Double(a).compareTo(new Double(b)) >= 0;
+      @      ensures \result == a;
+      @   |}
+      @ |}
+      @*/
+    public static /*@ pure @*/ double max(double a, double b);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires a == b;
+      @   ensures \result == a;
+      @ also
+      @   requires a >= b;
+      @   ensures \result == b;
+      @ also
+      @   requires a <= b;
+      @   ensures \result == a;
+      @ also
+      @   ensures \result <= a && \result <= b;
+      @   ensures \result == a || \result == b;
+      @ |}
+      @*/
+    public static /*@ pure @*/ int min(int a, int b);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires a == b;
+      @   ensures \result == a;
+      @ also
+      @   requires a >= b;
+      @   ensures \result == b;
+      @ also
+      @   requires a <= b;
+      @   ensures \result == a;
+      @ also
+      @   ensures \result <= a && \result <= b;
+      @   ensures \result == a || \result == b;
+      @ |}
+      @*/
+    public static /*@ pure @*/ long min(long a, long b);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Float.isNaN(a) || Float.isNaN(b);
+      @   ensures Float.isNaN(\result);
+      @ also
+      @   requires !(Float.isNaN(a) || Float.isNaN(b));
+      @   {|
+      @     requires (isNegativeZero(a) && b == 0) || (isNegativeZero(b) && a == 0);
+      @     ensures isNegativeZero(\result);
+      @   also
+      @     requires new Float(a).compareTo(new Float(b)) == 0;
+      @     ensures \result == a;
+      @   also
+      @     requires new Float(a).compareTo(new Float(b)) <= 0;
+      @     ensures \result == a;
+      @   also
+      @     requires new Float(a).compareTo(new Float(b)) >= 0;
+      @     ensures \result == b;
+      @   |}
+      @ |}
+      @*/
+    public static /*@ pure @*/ float min(float a, float b);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires Double.isNaN(a) || Double.isNaN(b);
+      @   ensures Double.isNaN(\result);
+      @ also
+      @   requires !(Double.isNaN(a) || Double.isNaN(b));
+      @   {|
+      @     requires (isNegativeZero(a) && b == 0) || (isNegativeZero(b) && a == 0);
+      @     ensures isNegativeZero(\result);
+      @   also
+      @     requires new Double(a).compareTo(new Double(b)) == 0;
+      @     ensures \result == a;
+      @   also
+      @     requires new Double(a).compareTo(new Double(b)) <= 0;
+      @     ensures \result == a;
+      @   also
+      @     requires new Double(a).compareTo(new Double(b)) >= 0;
+      @     ensures \result == b;
+      @   |}
+      @ |}
+      @*/
+    public static /*@ pure @*/ double min(double a, double b);
+    
+    /*@ public static model pure boolean isPositiveZero( double a) {
+	  return new Double(a).equals(new Double("+0.0"));
+	  //return java.lang.Double.isPositiveZero(a);
+        }
+	
+        public static model pure boolean isNegativeZero( double a) {
+	  return new Double(a).equals(new Double("-0.0"));
+	  //return java.lang.Double.isNegativeZero(a);
+        }
+    
+        public static model pure boolean isPositiveZero( float a) {
+	  return new Float(a).equals(new Float("+0.0"));
+	  //return java.lang.Float.isPositiveZero(a);
+        }
+	
+        public static model pure boolean isNegativeZero( float a) {
+	  return new Float(a).equals(new Float("-0.0"));
+	  //return java.lang.Float.isNegativeZero(a);
+        }
+    
+	// FIXME - can't seem to reference model methods in other specs
+    @*/
+
+    /*@ 
+      @ public static model pure boolean isFiniteOdd( double a ) {
+      @   if( (a - 2*floor(a/2)) == 1.0
+      @      && Double.NEGATIVE_INFINITY < a && a <Double.POSITIVE_INFINITY ) {
+      @     return true;
+      @   }
+      @   return false;
+      @ }
+      @*/
+
+    /*@ 
+      @ public static model pure boolean isFiniteEven( double a ) {
+      @   if( IEEEremainder(a, 2.0) == 0.0
+      @      && Double.NEGATIVE_INFINITY < a && a <Double.POSITIVE_INFINITY ) {
+      @     return true;
+      @   }
+      @   return false;
+      @ }
+      @*/
+
+    /*@
+      @	public static model pure boolean close(double a, double b,
+      @                                        double eps) {
+      @     return abs(a-b) <= max(abs(a),abs(b))*eps;
+      @	}
+      @*/
+
+    /*@
+      @	public static model pure boolean close(double a, double b, double c,
+      @                                        double eps) {
+      @    return abs(a-b) <= max(max(abs(a),abs(b)),abs(c))*eps;
+      @ }
+      @ */
+
+}

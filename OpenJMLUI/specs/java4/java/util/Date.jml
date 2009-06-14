@@ -1,0 +1,221 @@
+// Copyright (C) 2003 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.util;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.lang.ref.SoftReference;
+
+/** JML's specification of java.util.Date.
+ * Some of this specification is taken from ESC/Java.
+ * @version $Revision: 1599 $
+ * @author Kristina Boysen
+ */
+
+public class Date implements java.io.Serializable, Cloneable, Comparable {
+    //@ public model Calendar cal;
+    //@ public model long fastTime;
+    
+    /*@ public normal_behavior
+       @   assignable \nothing;
+       @   ensures cal == null;
+       @*/
+    public Date();
+    
+    /*@ public normal_behavior
+       @   assignable fastTime;
+       @   ensures cal == null && fastTime == date;
+       @*/
+    public Date(long date);
+
+    /** @deprecated as of JDK 1.1 */
+    public Date(int year, int month, int date);
+
+    /** @deprecated as of JDK 1.1 */
+    public Date(int year, int month, int date, int hrs, int min);
+
+   /** @deprecated as of JDK 1.1 */
+    public Date(int year, int month, int date, int hrs, int min, int sec);
+
+    /** @deprecated as of JDK 1.1 */
+    public Date(String s);
+
+   /*@ also
+       @ public normal_behavior
+       @   assignable \nothing;
+       @   ensures \fresh(\result) && \result.equals(this);
+       @*/
+    public Object clone();
+    
+    /** @deprecated as of JDK 1.1 */
+    public static long UTC(int year, int month, int date,
+                           int hrs, int min, int sec);
+
+    /** @deprecated as of JDK 1.1 */
+    public static long parse(String s);
+
+    /** @deprecated as of JDK 1.1 */
+    public int getYear();
+
+    /** @deprecated as of JDK 1.1 */
+    public void setYear(int year);
+
+    /** @deprecated as of JDK 1.1 */
+    public int getMonth();
+
+    /** @deprecated as of JDK 1.1 */
+    public void setMonth(int month);
+
+    /** @deprecated as of JDK 1.1 */
+    public int getDate();
+
+    /** @deprecated as of JDK 1.1 */
+    public void setDate(int date);
+
+   /** @deprecated as of JDK 1.1 */
+    public int getDay();
+
+    /** @deprecated as of JDK 1.1 */
+    public int getHours();
+    
+    /** @deprecated as of JDK 1.1 */
+    public void setHours(int hours);
+
+    /** @deprecated as of JDK 1.1 */
+    public int getMinutes();
+
+    /** @deprecated as of JDK 1.1 */
+    public void setMinutes(int minutes);
+
+    /** @deprecated as of JDK 1.1 */
+    public int getSeconds();
+
+    /** @deprecated as of JDK 1.1 */
+    public void setSeconds(int seconds);
+
+    /*@ public normal_behavior
+       @   requires cal == null;
+       @   assignable \nothing;
+       @   ensures \result == fastTime;
+       @ also
+       @ public normal_behavior
+       @   requires cal != null;
+       @   assignable \nothing;
+       @   ensures \result == cal.getTimeInMillis();
+       @*/
+    public /*@ pure @*/ long getTime();
+    
+    /*@ public normal_behavior
+       @   requires cal == null;
+       @   assignable fastTime;
+       @   ensures fastTime == time;
+       @ also
+       @ public normal_behavior
+       @   requires cal != null;
+       @   assignable cal;
+       @   ensures time == cal.getTimeInMillis();
+       @*/
+    public void setTime(long time);
+
+    /*@ public normal_behavior
+       @   requires when != null &&
+       @            this.getTime() < when.getTime();
+       @   assignable \nothing;
+       @   ensures \result == true;
+       @ also
+       @ public normal_behavior
+       @   requires when != null &&
+       @            this.getTime() >= when.getTime();
+       @   ensures \result == false;
+       @*/
+    public /*@ pure @*/ boolean before(Date when);
+
+    /*@ public normal_behavior
+       @   requires when != null &&
+       @            this.getTime() > when.getTime();
+       @   assignable \nothing;
+       @   ensures \result == true;
+       @ also
+       @ public normal_behavior
+       @   requires when != null &&
+       @            this.getTime() <= when.getTime();
+       @   ensures \result == false;
+       @*/
+    public /*@ pure @*/ boolean after(Date when);
+    
+    /*@ also
+       @ public normal_behavior
+       @   old Date date = (Date)obj;
+       @   requires obj != null;
+       @   assignable \nothing;
+       @   ensures obj instanceof Date &&
+       @           \result == (this.getTime() == date.getTime());
+       @*/
+    public /*@ pure @*/ boolean equals(/*@ nullable \readonly @*/ Object obj);
+
+    /*@ public normal_behavior
+       @   requires anotherDate != null && this.before(anotherDate);
+       @   assignable \nothing;
+       @   ensures \result < 0;
+       @ also
+       @ public normal_behavior
+       @   requires anotherDate != null && this.equals(anotherDate);
+       @   assignable \nothing;
+       @   ensures \result == 0;
+       @ also
+       @ public normal_behavior
+       @   requires anotherDate != null && this.after(anotherDate);
+       @   assignable \nothing;
+       @   ensures \result > 0;
+       @*/
+    public /*@ pure @*/ int compareTo(Date anotherDate);
+
+    /*@ also
+       @ public normal_behavior
+       @   requires o != null && o instanceof Date;
+       @   assignable \nothing;
+       @   ensures \result  == compareTo((Date) o);
+       @*/
+    public /*@ pure @*/ int compareTo(Object o);
+
+    // Specification is inherited
+    public int hashCode();
+
+    /*@ also
+       @ public normal_behavior
+       @   assignable \nothing;
+       @   ensures (* \result is the String representation of Date *);
+       @*/
+    public String toString();
+
+    /** @deprecated as of JDK 1.1 */
+    public String toLocaleString();
+
+    /** @deprecated as of JDK 1.1 */
+    public String toGMTString();
+
+    /** @deprecated as of JDK 1.1 */
+    public int getTimezoneOffset();
+}

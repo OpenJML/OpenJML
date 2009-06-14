@@ -1,0 +1,18 @@
+package java.io;
+
+// FIXME - needs completion
+ 
+public class WriteAbortedException extends ObjectStreamException {
+
+    public Exception detail;
+    
+    public String getMessage();
+    
+    public Throwable getCause();
+    
+    /*@ public normal_behavior
+      @   ensures standardThrowable(msg);
+      @*/
+    //@ pure
+    public WriteAbortedException(String msg, Exception cause);
+}

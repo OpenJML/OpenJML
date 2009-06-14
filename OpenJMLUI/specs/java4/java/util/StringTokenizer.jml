@@ -1,0 +1,28 @@
+// @(#)$Id$
+
+package java.util;
+
+public class StringTokenizer extends Object implements Enumeration {
+
+    public StringTokenizer(/*@non_null*/String str, /*@non_null*/String delim, boolean returnDelims);
+
+    public StringTokenizer(/*@non_null*/String str, /*@non_null*/String delim);
+
+    public StringTokenizer(/*@non_null*/String str);
+
+    public boolean hasMoreTokens();
+
+    public /*@non_null*/String nextToken();
+
+    public /*@non_null*/String nextToken(/*@non_null*/String delim);
+
+    public boolean hasMoreElements();
+
+    public Object nextElement();
+
+    public int countTokens();
+}
+
+// Copyright (C) 2008 JML Consortium, jmlspecs.org.
+//
+// This file is part of the runtime library of the Java Modeling Language.

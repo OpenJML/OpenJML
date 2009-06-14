@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.jmlspecs.annotations.*;
 import org.jmlspecs.openjml.API;
 import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
@@ -91,6 +92,8 @@ public class OpenJMLInterface {
     @NonNull
     final protected IJavaProject jproject;
 
+    protected List<File> specsPath;
+    
     /** The problem requestor that reports problems it is told about to the user
      * in some fashion (here via Eclipse problem markers).
      */
@@ -107,8 +110,10 @@ public class OpenJMLInterface {
    public OpenJMLInterface(@NonNull IJavaProject pi) {
        this.jproject = pi;
        preq = new JmlProblemRequestor(pi); 
+       specsPath = Utils.getSpecsPath(pi);
        PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener).getConsoleStream());
-       api = new API(w,new EclipseDiagnosticListener(preq));
+       try { api = new API(w,new EclipseDiagnosticListener(preq)); }
+       catch (Exception e) {} // FIXME _ add an error
    }
    
     /** Executes the JML Check (syntax and typechecking) or the RAC compiler
@@ -293,6 +298,8 @@ public class OpenJMLInterface {
         } catch (JmlCanceledException e) {
             Log.log("Canceled ESC operation");
             throw e;
+        } catch (java.io.IOException e) {
+            // FIXME - error dialog
         }
     }
 
@@ -483,6 +490,16 @@ public class OpenJMLInterface {
             String smods = api.prettyPrint(fspecs.mods,false);
             return smods + "\n" + fspecs.toString(); // FIXME - use proper eol
         } catch (Exception e) { return "<Exception>: " + e; }
+    }
+    
+    public File getLeadingSpecFile(IType t) {
+        ClassSymbol csym = convertType(t);
+        if (csym != null) {
+            // FIXME go through API
+            JavaFileObject f = JmlSpecs.instance(api.context).findLeadingSpecFile(csym);
+            return null;
+        }
+        return null;
     }
 
     /** Show information about the most recent proof of the given method in a 
@@ -840,7 +857,7 @@ public class OpenJMLInterface {
         opts.add("-classpath");
         opts.add(ss.toString());
 
-        List<File> files = utils.specsPaths.get(jproject);
+        List<File> files = specsPath;
         first = true;
         ss = new StringBuilder();
         if (files != null) { 

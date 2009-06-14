@@ -1,0 +1,28 @@
+package java.util;
+
+public abstract class Dictionary<K,V> {
+    //@ public ghost \TYPE keyType = \type(K);
+    //@ public ghost \TYPE elementType = \type(V);
+
+    //@ pure
+    public Dictionary();
+
+    //@ modifies \nothing;
+    public abstract int size();
+
+    //@ modifies \nothing;
+    public abstract boolean isEmpty();
+
+    //@ modifies \nothing;
+    public abstract /*@non_null*/ Enumeration<K> keys();
+
+    //@ modifies \nothing;
+    public abstract /*@non_null*/ Enumeration<V> elements();
+
+    //@ modifies \nothing;
+    public abstract /*@nullable*/ V get(/*@non_null*/ Object key);
+
+    public abstract /*@nullable*/ V put(/*@non_null*/ K key, /*@non_null*/ V value);
+
+    public abstract /*@nullable*/ V remove(/*@non_null*/ Object key);
+}

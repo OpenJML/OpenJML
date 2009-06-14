@@ -1,0 +1,301 @@
+// @(#)$Id: BigInteger.refines-spec 1388 2005-05-05 00:40:33Z davidcok $
+
+// Copyright (C) 2001 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.math;
+
+import java.util.Random;
+
+// FIXME
+/** JML's specification of java.math.BigInteger.
+ *
+ * @version $Revision: 1388 $
+ * @author David R. Cok
+ * @author Gary T. Leavens
+ */
+//-@ immutable
+public /*@ pure @*/ class BigInteger extends Number implements Comparable {
+
+    /*@
+        public static model pure BigInteger parse(String val, int radix) {
+		// !FIXME! - should put in a non-circular computation
+		return new BigInteger(val,radix);
+	}
+        public static model pure BigInteger convert(byte[] val) {
+		// !FIXME! - should put in a non-circular computation
+		return new BigInteger(val);
+	}
+    @*/
+
+    //--- public model \bigint value; --
+    //@ public model int sign;
+    //@ public represents sign <- signum();
+    //@ public invariant sign == compareTo(ZERO);
+
+
+    /*@ public normal_behavior
+      @     requires val != null;
+      @     requires val.length != 0;
+      @  also public exceptional_behavior
+      @     requires val != null;
+      @     requires val.length == 0;
+      @     //-@ signals_only java.lang.NumberFormatException;
+      @  also public exceptional_behavior
+      @     requires val == null;
+      @     //-@ signals_only java.lang.NullPointerException;
+      @*/
+    //@ pure
+    public BigInteger(/*@ non_null @*/ byte[] val);
+
+    /*@ public normal_behavior
+      @    requires magnitude != null;
+      @    requires signum == 0 || signum == 1 || signum == -1;
+      @    requires signum == 0 <==> convert(magnitude).equals(ZERO);
+      @    ensures sign == signum;
+      @*/
+    //@ pure
+    public BigInteger(int signum, /*@ non_null @*/ byte[] magnitude);
+
+    /*@  public normal_behavior
+      @     requires val != null && !val.equals("");
+      @     requires radix > 1;
+      @     ensures this.equals(parse(val,radix));
+      @ also
+      @   public exceptional_behavior
+      @     requires val != null && val.equals("");
+      @     signals_only java.lang.NumberFormatException;
+      @ also
+      @   public exceptional_behavior
+      @     requires val == null;
+      @     signals_only java.lang.NullPointerException;
+      @*/
+    //@ pure
+    public BigInteger(String val, int radix);
+
+    /*@ normal_behavior
+      @    ensures true;
+      @*/
+    //@ pure
+    BigInteger(char[] val);
+
+    /*@  public normal_behavior
+      @     requires val != null && !val.equals("");
+      @     ensures this.equals(parse(val,10));
+      @ also
+      @   public exceptional_behavior
+      @     requires val.equals("");
+      @     //-@ signals_only java.lang.NumberFormatException;
+      @ also
+      @   public exceptional_behavior
+      @     requires val == null;
+      @     //-@ signals_only java.lang.NullPointerException;
+      @*/
+    //@ pure
+    public BigInteger(String val);
+
+    //@ pure
+    public BigInteger(int numBits, Random rnd);
+
+    //@ pure
+    public BigInteger(int bitLength, int certainty, Random rnd);
+
+    //@ model pure public BigInteger(\bigint val);
+
+    public static /*@ pure @*/ BigInteger probablePrime(int bitLength,
+                                                          Random rnd);
+
+    boolean primeToCertainty(int certainty);
+
+    int jacobiSymbol(int p, BigInteger n);
+
+    // BigInteger(MutableBigInteger val, int sign);
+
+    //Static Factory Methods
+
+    public static /*@ pure @*/ BigInteger valueOf(long val);
+
+    int signum;
+    int[] mag; 
+    public static final BigInteger ZERO;
+    public static final BigInteger ONE;
+
+    //@ public invariant ZERO != null && ZERO.equals(valueOf(0L));
+    //@ public invariant ZERO.equals(ZERO);
+    //@ public constraint ZERO == \old(ZERO);
+    //@ public invariant ONE != null && ONE.equals(valueOf(1L));
+    //@ public invariant ONE.equals(ONE);
+    //@ public invariant !ZERO.equals(ONE);
+    //@ public constraint ONE == \old(ONE);
+
+    // Arithmetic Operations
+
+    //@ requires val != null;
+    public BigInteger add(BigInteger val);
+
+    //@ requires val != null;
+    //@ ensures equals(\result.add(val));
+    public BigInteger subtract(BigInteger val);
+
+    //@ requires val != null;
+    public BigInteger multiply(BigInteger val);
+
+    //@ requires val != null;
+    //@ ensures equals(\result.multiply(val).add(remainder(val)));
+    public BigInteger divide(BigInteger val);
+
+    //@ ensures \result[0].equals(divide(val));
+    //@ ensures \result[1].equals(remainder(val));
+    public BigInteger[] divideAndRemainder(BigInteger val);
+
+    public BigInteger remainder(BigInteger val);
+
+    public BigInteger pow(int exponent);
+
+    public BigInteger gcd(BigInteger val);
+
+    static void primitiveRightShift(int[] a, int len, int n);
+
+    static void primitiveLeftShift(int[] a, int len, int n);
+
+    //@ assignable \nothing;
+    //@ ensures \result.signum() >= 0 && (sign==0 ==> \result.signum() == 0);
+    public BigInteger abs();
+
+    //@ assignable \nothing;
+    //@ ensures \result.signum() == - sign;
+    public BigInteger negate();
+
+    //@ ensures \result == sign;
+    public int signum();
+
+    // Modular Arithmetic Operations
+
+    public BigInteger mod(BigInteger m);
+
+    public BigInteger modPow(BigInteger exponent, BigInteger m);
+
+    static int[] bnExpModThreshTable;
+
+    static int mulAdd(int[] out, int[] in, int offset, int len, int k);
+
+    static int addOne(int[] a, int offset, int mlen, int carry);
+
+    public BigInteger modInverse(BigInteger m);
+
+    // Shift Operations
+
+    public BigInteger shiftLeft(int n);
+
+    public BigInteger shiftRight(int n);
+
+    int[] javaIncrement(int[] val);
+
+    // Bitwise Operations
+
+    public BigInteger and(BigInteger val);
+
+    public BigInteger or(BigInteger val);
+
+    public BigInteger xor(BigInteger val);
+
+    public BigInteger not();
+
+    public BigInteger andNot(BigInteger val);
+
+    // Single Bit Operations
+
+    public boolean testBit(int n);
+
+    public BigInteger setBit(int n);
+
+    public BigInteger clearBit(int n);
+
+    public BigInteger flipBit(int n);
+
+    public int getLowestSetBit();
+
+    // Miscellaneous Bit Operations
+
+    public int bitLength();
+
+    static int bitLen(int w);
+
+    static final byte[] trailingZeroTable;
+
+    public int bitCount();
+
+    static int bitCnt(int val);
+
+    static int trailingZeroCnt(int val);
+
+    // Primality Testing
+
+    public boolean isProbablePrime(int certainty);
+
+    // Comparison Operations
+
+    public int compareTo(BigInteger val);
+
+    public int compareTo(Object o);
+
+    /*@ also public normal_behavior
+      @   requires x != null && x instanceof BigInteger;
+      @   assignable \nothing;
+      @   ensures \result == x.equals(this);
+      @*/
+    public /*@ pure @*/ boolean equals(/*@ nullable \readonly @*/ Object x);
+
+    public BigInteger min(BigInteger val);
+
+    public BigInteger max(BigInteger val);
+
+    // Hash Function
+
+    public int hashCode();
+
+    //@  ensures \result != null;
+    //@ ensures  parse(\result,radix).equals(this);
+    public String toString(int radix);
+
+    //@ also
+    //@ ensures \result != null;
+    //@ ensures  parse(\result,10).equals(this);
+    public String toString();
+
+    //@ ensures convert(\result).equals(this);
+    //@ ensures_redundantly this.equals(\old(this));
+    public byte[] toByteArray();
+
+    //@ also
+    //@ ensures_redundantly this.equals(\old(this));
+    public int intValue();
+
+    //@ also
+    //@ ensures_redundantly this.equals(\old(this));
+    public long longValue();
+
+    //@ also
+    //@ ensures_redundantly this.equals(\old(this));
+    public float floatValue();
+
+    //@ also
+    //@ ensures_redundantly this.equals(\old(this));
+    public double doubleValue();
+
+}

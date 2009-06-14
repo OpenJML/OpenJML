@@ -50,8 +50,6 @@ implements IWorkbenchPreferencePage {
     final static public String classpathKey = prefix + "classpath";
     /** The preference store key for the destination option. */
     final static public String destinationKey = prefix + "destination";
-    /** The preference store key for the specspath option. */
-    final static public String specspathKey = prefix + "specspath";
     /** The preference store key for the specsProjectName option. */
     final static public String specsProjectNameKey = prefix + "specsProjectName";
     /** The preference store key for the parsePlus option. */
@@ -100,11 +98,6 @@ implements IWorkbenchPreferencePage {
 //    /** The object controlling the preference store entry for the classpath option. */
 //    public AbstractPreference.StringOption classpath = 
 //      new AbstractPreference.StringOption(classpathKey,defaultOptions.classpath,"classpath","Classpath as used by Java");
-
-    // FIXME - not sure we need to save this
-//    /** The object controlling the preference store entry for the specspath option. */
-//    public AbstractPreference.StringOption specspath = 
-//      new AbstractPreference.StringOption(specspathKey,defaultOptions.specspath,"specspath","Directory path containing specification files");
 
     /** The object controlling the preference store entry for the specsProjectName option. */
     public AbstractPreference.StringOption specsProjectName = 
@@ -156,7 +149,6 @@ implements IWorkbenchPreferencePage {
     options.source = poptions.source.getValue();
     options.destination = poptions.destination.getValue();
 //    options.classpath = poptions.classpath.getValue();
-//    options.specspath = poptions.specspath.getValue();
     options.specsProjectName = poptions.specsProjectName.getValue();
     options.parsePlus = poptions.parsePlus.getValue();
     options.checkPurity = poptions.checkPurity.getValue();

@@ -1,0 +1,370 @@
+// @(#)$Id: Long.jml 2022 2006-08-13 02:36:42Z chalin $
+
+// Copyright (C) 2002 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.lang;
+
+/** JML's specification of java.lang.Long.
+ * @version $Revision: 2022 $
+ * @author Brandon Shilling
+ * @author Gary T. Leavens
+ * @author David R. Cok
+ */
+//-@ immutable
+public /*@ pure @*/ final
+    class Long extends Number implements Comparable {
+
+    //@ public model long theLong;
+
+    // A String is parseable iff it is a sequence of characters legal for
+    // the radix, possibly prefixed by a - sign.
+  /*@
+    @   public normal_behavior
+    @     ensures \result == parseable( s, 10 );
+    @   model public static pure boolean parseable( String s );
+    @*/
+
+  /*@   public normal_behavior
+    @     ensures \result <==> parseable(s,r,64);
+    @   model public static pure boolean parseable( String s, int r );
+    @*/
+
+  /*@
+    @   public normal_behavior
+    @     ensures \result <==> decodable( nm, 64 );
+    @*/
+  //@   model public static pure boolean decodable( String nm );
+
+          
+    public static final long MIN_VALUE;
+                     //@ initially MIN_VALUE == 0x8000000000000000L;
+
+    public static final long MAX_VALUE;
+                     //@ initially MAX_VALUE == 0x7fffffffffffffffL;
+
+    public static final Class TYPE;
+                     //@ initially TYPE == \type(long);
+		     //@ invariant_redundantly TYPE == long.class;
+
+    /*@ public normal_behavior
+      @   requires (Character.MIN_RADIX <= radix
+      @             && radix <= Character.MAX_RADIX);
+      @   ensures parseable(\result,radix);
+      @   ensures i == parseLong(\result,radix);
+      @ also public normal_behavior
+      @   requires !(Character.MIN_RADIX <= radix
+      @             && radix <= Character.MAX_RADIX);
+      @   ensures parseable(\result,10);
+      @   ensures i == parseLong(\result,10);
+      @ also public normal_behavior
+      @   ensures \result != null;
+      @   ensures i == 0 ==> \result.length() == 1;
+      @   ensures i > 0 ==> \result.length() >= 1;
+      @   ensures i < 0 ==> \result.length() >= 2;
+      @   ensures i == 0 ==> \result.equals("0");
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/
+        String toString(long i, int radix);
+
+    /*@ public normal_behavior
+      @   requires i >= 0;
+      @   ensures \result != null;
+      @   ensures \fresh(\result);
+      @   ensures parseable(\result,16);
+      @   ensures \result.equals(toString(i,16));
+      @   ensures parseLong(\result,16) == i;
+      @   ensures \result.length() >= 1;
+      @ also public normal_behavior
+      @   requires i < 0;
+      @   ensures \result != null;
+      @   ensures \fresh(\result);
+      @   ensures \result.length() >= 1;
+      @   ensures parseable(\result,16,65);
+      @   // FIXME ensures \result.equals(toString(i, 16));
+      @   // FIXME ensures parseLong(\result,16) == i;
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String toHexString(long i);
+
+    /*@ public normal_behavior
+      @   requires i >= 0;
+      @   ensures \result != null;
+      @   ensures \fresh(\result);
+      @   ensures parseable(\result,8);
+      @   ensures \result.equals(toString(i,8));
+      @   ensures parseLong(\result,8) == i;
+      @   ensures \result.length() >= 1;
+      @ also public normal_behavior
+      @   requires i < 0;
+      @   ensures \result != null;
+      @   ensures \fresh(\result);
+      @   ensures \result.length() >= 1;
+      @   ensures parseable(\result,8,65);
+      @   // FIXME ensures \result.equals(toString(i + (1<<64), 8, 65));
+      @   // FIXME ensures (long)parseLong(\result,8) == i;
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String toOctalString(long i);
+
+    /*@ public normal_behavior
+      @   requires i >= 0;
+      @   ensures \result != null;
+      @   ensures \fresh(\result);
+      @   ensures parseable(\result,2);
+      @   ensures \result.equals(toString(i,2));
+      @   ensures parseLong(\result,2) == i;
+      @   ensures \result.length() >= 1;
+      @ also public normal_behavior
+      @   requires i < 0;
+      @   ensures \result != null;
+      @   ensures \fresh(\result);
+      @   ensures \result.length() >= 1;
+      @   ensures parseable(\result,2,65);
+      @   // FIXME ensures \result.equals(toString(i, 2));
+      @   // FIXME ensures parseLong(\result,2) == i;
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/
+        String toBinaryString(long i);
+
+    /*@ public normal_behavior
+      @  ensures \result != null;
+      @  ensures parseable(\result);
+      @  ensures \result.equals(toString(i,10));
+      @  ensures i == parseLong(\result, 10);
+      @  ensures i == 0 ==> \result.length() == 1;
+      @  ensures i >  0 ==> \result.length() >= 1;
+      @  ensures i <  0 ==> \result.length() >= 2;
+      @  ensures i == 0 ==> \result.equals("0");
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ String toString(long i);
+
+// FIXME - what if radix is out of range - supposed to use 10
+    /*@  public normal_behavior
+      @    requires parseable(s, radix);
+      @    ensures (* \result is the long of the string representation
+      @               in the specified radix *);
+      @ also 
+      @  public exceptional_behavior
+      @    requires !parseable(s, radix);
+      @    signals_only NumberFormatException;
+      @*/
+    public static /*@ pure @*/ long parseLong(String s, int radix)
+        throws NumberFormatException;
+
+    /*@    public normal_behavior
+      @      requires parseable(s,10);
+      @      ensures \result == parseLong(s, 10);
+      @ also
+      @    public exceptional_behavior
+      @      requires !parseable(s);
+      @      signals_only NumberFormatException;
+      @*/
+    public static /*@ pure @*/ long parseLong(String s)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   requires parseable(s, radix);
+      @   ensures \fresh(\result);
+      @   ensures \result.longValue() == parseLong(s,radix);
+      @ also
+      @ public exceptional_behavior
+      @   requires !parseable(s, radix);
+      @   signals_only NumberFormatException;
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/
+        Long valueOf(String s, int radix)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   requires parseable(s);
+      @   ensures \fresh(\result);
+      @   ensures \result.longValue() == parseLong(s,10);
+      @ also
+      @ public exceptional_behavior
+      @   requires !parseable(s);
+      @   signals_only NumberFormatException;
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ Long valueOf(String s)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   requires decodable(nm);
+      @   ensures (* \result is a Long representation of nm *);
+      @ also
+      @ public exceptional_behavior
+      @   requires !decodable(nm);
+      @   signals_only NumberFormatException;
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/
+        Long decode(/*@non_null*/ String nm)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   assignable theLong;
+      @   ensures theLong == value;
+      @*/
+    public Long(long value);
+
+    /*@ public normal_behavior
+      @   requires parseable(s);
+      @   assignable theLong;
+      @   ensures theLong == parseLong(s);
+      @ also
+      @ public exceptional_behavior
+      @   requires !parseable(s);
+      @   signals_only NumberFormatException;
+      @*/
+    public Long(String s) throws NumberFormatException;
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (byte) theLong;
+      @*/
+    public byte byteValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (short) theLong;
+      @*/
+    public short shortValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (int) theLong;
+      @*/
+    public int intValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == theLong;
+      @*/
+    public long longValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (float) theLong;
+      @*/
+    public float floatValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (double) theLong;
+      @*/
+    public double doubleValue();
+
+    // specification inherited from Object
+    /*@ also public normal_behavior
+      @   ensures parseable(\result);
+      @   ensures Long.parseLong(\result,10) == longValue();
+      @*/
+    public /*@ non_null @*/ String toString();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (int)(this.longValue()^(this.longValue()>>>32)) 
+      @         && (* \result is a hash code for theLong *);
+      @*/
+    public int hashCode();
+
+    /*@ 
+      @   public normal_behavior
+      @     requires i != null && ii != null;
+      @     ensures \result <==> (i.theLong == ii.theLong);
+      @   also
+      @   public normal_behavior
+      @     requires i == null || ii == null;
+      @     ensures \result <==> ( i == ii );
+      @*/
+    //-@ function
+    /*@ public pure static model boolean equalsLong(Long i, Long ii);
+      @*/
+
+    /*@ also
+      @   public normal_behavior
+      @     requires obj != null && (obj instanceof Long);
+      @     ensures \result == equalsLong(this,(Long)obj);
+      @   also
+      @   public normal_behavior
+      @     requires obj == null || !(obj instanceof Long);
+      @     ensures !\result;
+      @*/
+    public boolean equals(/*@nullable*/Object obj);
+
+    /*@ public normal_behavior
+      @   ensures (\result == null && getLong(nm,null) == null) ||
+      @            \result.equals(getLong(nm, null));
+      @*/
+    public static /*@ pure @*/ Long getLong(String nm);
+
+    /*@ public normal_behavior
+      @   ensures \result.equals(getLong(nm, new Long(val)));
+      @*/
+    public static /*@ pure @*/ 
+        Long getLong(String nm, long val);
+
+    /*@ public normal_behavior
+      @   requires nm != null && !nm.equals("")
+      @         && System.getProperty(nm) != null
+      @         && decodable(System.getProperty(nm));
+      @   ensures \result.equals(decode(System.getProperty(nm)));
+      @ also
+      @ public normal_behavior
+      @   requires nm == null || nm.equals("")
+      @         || System.getProperty(nm) == null
+      @         || !decodable(System.getProperty(nm));
+      @   ensures \result == val || \result.equals(val);
+      @*/
+    //@ implies_that
+    //@    ensures val != null ==> \result != null;
+    public static /*@ pure @*/ /*@ non_null @*/
+        Long getLong(String nm, Long val);
+
+    /*@ public normal_behavior
+      @ requires anotherLong != null;
+      @ {|
+      @   requires theLong == anotherLong.longValue();
+      @   ensures \result == 0;
+      @ also 
+      @   requires theLong < anotherLong.longValue();
+      @   ensures \result == -1;
+      @ also
+      @   requires theLong > anotherLong.longValue();
+      @   ensures \result == 1;
+      @ |}
+      @ also public exceptional_behavior
+      @   requires anotherLong == null;
+      @   signals_only NullPointerException;
+      @*/
+    public int compareTo(Long anotherLong);
+
+    /*@ also
+      @   public normal_behavior
+      @     requires o != null && (o instanceof Long);
+      @     ensures \result == compareTo((Long) o);
+      @ also
+      @   public exceptional_behavior
+      @     requires o != null && !(o instanceof Long);
+      @     signals_only ClassCastException;
+      @ also
+      @   public exceptional_behavior
+      @     requires o == null;
+      @     signals_only NullPointerException;
+      @*/
+    public int compareTo(Object o);
+
+
+}

@@ -5,16 +5,16 @@
 package org.jmlspecs.openjml.eclipse;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.StringBufferInputStream;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.StringWriter;
+import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
@@ -23,21 +23,16 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.internal.core.JavaModel;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
@@ -45,16 +40,19 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
 import org.jmlspecs.annotations.NonNull;
 import org.jmlspecs.annotations.Nullable;
 import org.jmlspecs.annotations.Pure;
 import org.jmlspecs.annotations.Query;
+import org.jmlspecs.openjml.API;
 
 public class Utils {
 
@@ -283,7 +281,313 @@ public class Utils {
         }
         if (!something) showMessage(shell,"JML", "Choose a type, method or field whose specifications are to be shown");
     }
+    
+    /** This method opens an editor on the specs for the selected Java classes.  
+     * Executed entirely in the UI thread.
+     * @param selection the selection (multiple items may be selected)
+     * @param window   the current window
+     * @param shell    the current shell
+     */
+    public void openSpecEditorForSelection(ISelection selection, @Nullable IWorkbenchWindow window, Shell shell) {
+        IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+        ITextSelection textSelection = getSelectedText(selection);
+        List<Object> list;
+        String text;
+        if (textSelection != null && window != null && (text=textSelection.getText()).length() != 0) {
+            Log.log("Selected text: " + text);
+            String classname = text.replace('.','/') + ".class";
+            IEditorPart p = window.getActivePage().getActiveEditor();
+            IEditorInput e = p==null? null : p.getEditorInput();
+            IFile o = e==null ? null : (IFile)e.getAdapter(IFile.class);
+            IJavaProject jp = o == null ? null : JavaCore.create(o).getJavaProject();
+            List<IType> matches = new LinkedList<IType>();
+            if (jp != null) try {
+                for (IClasspathEntry cpe: jp.getResolvedClasspath(true)) {
+                    //Log.log(" CPE " + cpe);  // cpe is SOURCE, PROJECT, or LIBRARY
+                    if (cpe.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+                        // findPackageFragmentRoots does not work for library entries
+                        try {
+                            ZipFile z = new ZipFile(cpe.getPath().toString());
+                            Enumeration<? extends ZipEntry> en = z.entries();
+                            while (en.hasMoreElements()) {
+                                ZipEntry ze = en.nextElement();
+                                String zs = ze.getName();
+                                if (zs.endsWith(classname)) {
+                                    zs = zs.replace('/','.');
+                                    zs = zs.substring(0,zs.length()-".class".length());
+                                    matches.add(jp.findType(zs));
+                                }
+                            }
+                        } catch (java.io.IOException ex) {
+                            Log.errorlog("Failed to open jar file " + cpe.getPath().toString(),ex);
+                            // Pretend there is no match
+                        }
+                    } else {
+                        for (IPackageFragmentRoot pfr: jp.findPackageFragmentRoots(cpe)) {
+                            //Log.log("  PackageFragmentRoot " + pfr.isOpen() + " " + pfr.getElementName());
+                            if (!pfr.isOpen()) continue;
+                            for (IJavaElement element : pfr.getChildren()) { // element is a IPackageFragment
+                                //Log.log("    Package " + element.getElementName());
+                                for (IJavaElement je: ((IPackageFragment)element).getChildren()) { // je is a ICompilationUnit
+                                    //Log.log("      CompUnit " + je.getElementName());
+                                    if (je instanceof ICompilationUnit) for (IType ee: ((ICompilationUnit)je).getAllTypes()) {
+                                        //Log.log("        Type " + ee.getElementName());
+                                        if (ee.getFullyQualifiedName().endsWith(text)) {
+                                            matches.add(ee);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (JavaModelException ex) {
+                Log.errorlog("Failed to match text to a type name because of an exception",ex);
+                // Pretend there is no match
+            }
+            list = new LinkedList<Object>();
+            if (matches.size() == 1) {
+                list.add(matches.get(0));
+            } else if (matches.size() > 1) {
+                IType fullmatch = null;
+                IType partialmatch = null;
+                String ptext = "." + text;
+                for (IType t: matches) {
+                    String fqname = t.getFullyQualifiedName();
+                    if (fqname.equals(text)) {
+                        fullmatch = t;
+                        list.add(fullmatch);
+                        break;
+                    }
+                    if (fqname.endsWith(ptext)) {
+                        partialmatch = t;
+                    }
+                }
+                if (fullmatch == null) {
+                    if (partialmatch != null) list.add(partialmatch);
+                    else list.add(matches.get(0));
+                }
+                // FIXME we are just using the first match and ignoring any others
+                // - should we ask the user which to use
+                // - even better is to get the class from the resolved AST directly so we get it correct
+                // (but we also want to do that for stuff in specs)
+            }
+        } else {
+            list = getSelectedElements(selection, window, shell);
+        }
+        boolean something = false;
+        String kinds = "";
+        for (Object o : list) {
+            try {
+                IType t = null;
+                if (o instanceof IType) {
+                    t = (IType)o;
+                } else if (o instanceof ICompilationUnit) {
+                    t = ((ICompilationUnit)o).findPrimaryType();
+                } else if (o instanceof IFile) {
+                    IJavaElement cu = JavaCore.create((IFile)o);
+                    if (cu instanceof ICompilationUnit) t = ((ICompilationUnit)cu).findPrimaryType();
+                } else if (o instanceof IAdaptable) {
+                    ICompilationUnit cu = (ICompilationUnit)((IAdaptable)o).getAdapter(ICompilationUnit.class);
+                    if (cu != null) t = cu.findPrimaryType();
+                    if (t == null) t = (IType)((IAdaptable)o).getAdapter(IType.class);
+                } 
+                if (t == null) {
+                    kinds = kinds + o.getClass() + " ";
+                    continue;
+                }
+                String name = t.getElementName();
+                String[] fullnames = new String[suffixes.length];
+                for (int i=0; i<suffixes.length; i++) fullnames[i] = name + suffixes[i];
+                String pname = t.getPackageFragment().getElementName();
+                pname = pname.replace('.','/');
+                List<File> roots = getInterface(t.getJavaProject()).specsPath;
+                File firstEditableLocation = null;
+                File match = null;
+                ZipFile jarfile = null;
+                ZipEntry jarentry = null;
+                outer: for (File f: roots) {
+                    if (f.isDirectory()) {
+                        File ff = new File(f,pname);
+                        if (!ff.exists()) continue;
+                        if (firstEditableLocation == null) firstEditableLocation = ff;
+                        for (String n: fullnames) {
+                            File fff = new File(ff,n);
+                            if (fff.exists()) { 
+                                match = fff; 
+                                break outer; 
+                            }
+                        }
+                    } else { // Jar file
+                        ZipFile jf = new ZipFile(f);
+                        ZipEntry je = jf.getEntry(pname);
+                        if (je != null) {
+                            for (String n: fullnames) {
+                                ZipEntry nje = jf.getEntry(pname + "/" + n);
+                                if (nje != null) { 
+                                    jarfile = jf;
+                                    jarentry = nje; 
+                                    break outer; 
+                                }
+                            }
+                        }
+                    }
+                }
+                something = true;
+                if (match != null) {
+                    IFile f = root.getFileForLocation(new Path(match.toString()));
+                    launchJavaEditor(f);
+                } else if (jarentry != null) {
+                    InputStream is = jarfile.getInputStream(jarentry);
+                    int size = (int)jarentry.getSize();
+                    byte[] bytes = new byte[size];
+                    is.read(bytes,0,size);
+                    String s = new String(bytes);
+                    showMessage(shell,"JML - Spec Editor","Specification file for " + t.getFullyQualifiedName() + " in " + jarfile.getName() + " is not editable");
+                    String nm = jarentry.getName();
+                    int k = nm.lastIndexOf('/');
+                    if (k >= 0) nm = nm.substring(k+1);
+                    launchJavaEditor(s,nm);
+                } else if (firstEditableLocation != null) {
+                    File f = new File(firstEditableLocation,name + ".jml");
+                    Log.log("Creating " + f);
+                    // FIXME - add default content
+                    // FIXME - be able to decline to create, or to choose location
+                    boolean b = MessageDialog.openConfirm(
+                            shell,"JML - Specs Editor","Creating " + f);
+                    if (b) {
+                        PrintWriter w = new PrintWriter(new FileWriter(f));
+                        generateDefaultSpecs(w,t);
+                        IFile ifile = root.getFileForLocation(new Path(f.toString()));
+                        ifile.refreshLocal(IResource.DEPTH_ZERO,null);
+                        launchJavaEditor(ifile);
+                    }
 
+                } else {
+                    showMessage(shell,"JML", "No spec file or possible new location found " + t.getFullyQualifiedName());
+                }
+            } catch (Exception e) {
+                showMessage(shell,"JML", "Internal Error: " + e);
+            }
+        }
+        if (!something) {
+            showMessage(shell,"JML - no specs files",
+                    kinds.length() == 0 ? "Nothing found for which to open an editor"
+                            : "Cannot show specification files for " + kinds);
+        }
+    }
+    
+    // FIXME - add default content
+
+    public void generateDefaultSpecs(PrintWriter ww, IType t) {
+        StringWriter sw = new StringWriter();
+        PrintWriter w = new PrintWriter(sw);
+        Set<String> imports = new HashSet<String>();
+        try {
+            // No extending Object
+            // No importing java.lang
+            // No duplicate imports
+            // type parameters names and bounds not handled correctly
+            // Need methods and fields and nested classes
+            // Need secondary types
+            printClass(w,t,imports);
+        } catch (JavaModelException e) {
+            w.println("<Error in generating default content>");
+        }
+        for (String s: imports) {
+            ww.println("import " + s + ";");
+        }
+        w.close();
+        ww.println("package " + t.getPackageFragment().getElementName() + ";");
+        ww.println();
+        ww.println(sw.toString());
+        ww.close();
+    }
+    
+    protected void printClass(PrintWriter w, IType t, Set<String> imports) throws JavaModelException {
+        ITypeHierarchy th = t.newSupertypeHierarchy(null);
+        IType sup = th.getSuperclass(t);
+        if (sup.getFullyQualifiedName().equals("java.lang.Object")) sup = null;
+        IType[] ifaces = th.getSuperInterfaces(t);
+        if (sup != null) imports.add(sup.getPackageFragment().getElementName());
+        for (IType i: ifaces) imports.add(i.getPackageFragment().getElementName());
+        w.println();
+        // FIXME - annotations
+        w.print(Flags.toString(t.getFlags()));
+        w.print(" class " );
+        printType(w,t,imports);
+        if (sup != null) {
+            w.print(" extends ");
+            printType(w,sup,imports);
+        }
+        if (ifaces.length > 0) w.print(" implements");
+        boolean isFirst = true;
+        for (IType i: ifaces) {
+            if (isFirst) isFirst = false; else w.print(",");
+            w.print(" ");
+            printType(w,i,imports);
+        }
+        w.println(" {");
+        w.println();
+        w.println("  //@ requires true;");
+        w.println("  //@ ensures true;");
+        w.println("  //@ static_initalizer;");
+        w.println();
+        w.println("  //@ requires true;");
+        w.println("  //@ ensures true;");
+        w.println("  //@ initalizer;");
+        
+        for (IMethod m : t.getMethods()) {
+            w.println();
+            w.print("    ");
+            // FIXME - annotations
+            w.print(Flags.toString(m.getFlags()));
+            w.print(" ");
+            w.print(m.getReturnType());
+            w.print(" ");
+            w.print(m.getElementName());
+            w.print("(");
+            boolean isFirst2 = true;
+            String[] pn = m.getParameterNames();
+            String[] pt = m.getParameterTypes();
+            for (int i=0; i<pn.length; i++) {
+                if (isFirst2) isFirst2 = false; else w.print(", ");
+                // FIXME _ modifierse
+                w.print(pt[i]);
+                w.print(" ");
+                w.print(pn[i]);
+            }
+            w.print(")");
+            // FIXME - exceptions
+            w.print(";");
+        }
+        w.println();
+        w.println("}");
+    }
+    
+    protected void printType(PrintWriter w, IType t, Set<String> imports) throws JavaModelException {
+        w.print(t.getElementName());
+        ITypeParameter[] tparams = t.getTypeParameters();
+        if (tparams.length != 0) {
+            w.print("<");
+            boolean isFirst = true;
+            for (ITypeParameter tp: tparams) {
+                if (isFirst) isFirst = false; else w.print(",");
+                w.print(tp.getElementName());
+                String[] bounds = tp.getBounds();
+                if (bounds.length > 0) {
+                    w.print(" extends");
+                    boolean isFirst2 = true;
+                    for (String s: bounds) {
+                        if (isFirst2) isFirst2 = false; else w.print(" &");
+                        w.print(" ");
+                        w.print(s);
+                    }
+                }
+            }
+            w.print(">");
+        }
+    }
 
     /** This method pops up an information window to show the proof result for
      * each selected method.  Executed entirely in the UI thread.
@@ -361,10 +665,12 @@ public class Utils {
             try {
                 IEditorPart p = window.getActivePage().getActiveEditor();
                 IEditorInput e = p==null? null : p.getEditorInput();
-                Object o = e==null ? null : e.getAdapter(IFile.class);
+                Object o = e==null ? null : e.getAdapter(ICompilationUnit.class);
+                o = o==null ? e.getAdapter(IFile.class) : o;
+                o = o==null? e : o;
                 if (o != null) {
                     //Log.log("Selected " + o);
-                    list.add(o);  // This is an IFile
+                    list.add(o);
                 } 
             } catch (Exception ee) {
                 Log.errorlog("Exception when finding selected targets: " + ee,ee);
@@ -374,6 +680,13 @@ public class Utils {
         return list;
     }
 
+    public ITextSelection getSelectedText(@NonNull ISelection selection) {
+        if (!selection.isEmpty() && selection instanceof ITextSelection) {
+            return (ITextSelection)selection;
+        } else {
+            return null;
+        }
+    }
     /**
      * This method interprets the selection returning a List of IResources or
      * IJavaElements, and
@@ -582,8 +895,8 @@ public class Utils {
     /** This map holds the specs path for each project.  The specs path can hold
      * folders or libraries (jar files).
      */
-    Map<IJavaProject, List<File>> specsPaths = new HashMap<IJavaProject, List<File>>();
-
+    //Map<IJavaProject, List<File>> specsPaths = new HashMap<IJavaProject, List<File>>();
+    
     /** Expects the selection to hold exactly one Java project, plus one or more
      * folders or jar files; those folders and jar files are added to the 
      * beginning of the specs path for the given project.
@@ -599,8 +912,6 @@ public class Utils {
         }
         IJavaProject jp = projects.iterator().next();
         List<Object> list = getSelectedElements(selection,window,shell);
-        List<File> specslist = specsPaths.get(jp);
-        if (specslist == null) specsPaths.put(jp, specslist = new LinkedList<File>());
         String notadded = "";
         boolean added = false;
         for (Object r: list) {
@@ -617,10 +928,12 @@ public class Utils {
             } else {
                 f = ((IFolder)r).getLocation().toFile();
             }
-            if (specslist.contains(f)) {
+            List<File> specsPath = getInterface(jp).specsPath;
+            if (specsPath.contains(f)) {
                 showMessage(shell,"JML - Add to Specs Path","The specs path for " + jp.getElementName() + " already contains " + f);
             } else {
-                specslist.add(0,f); // Add to the beginning
+                specsPath.add(0,f);
+                putSpecsPath(jp,specsPath);
                 added = true;
             }
         }
@@ -646,7 +959,7 @@ public class Utils {
         }
         IJavaProject jp = projects.iterator().next();
         List<Object> list = getSelectedElements(selection,window,shell);
-        List<File> specslist = specsPaths.get(jp);
+        List<File> specsPath = getInterface(jp).specsPath;
         String notremoved = "";
         for (Object r: list) {
             File f; String n;
@@ -661,11 +974,12 @@ public class Utils {
                 f = ((IFolder)r).getLocation().toFile();
                 n = ((IFolder)r).getName();
             } else continue;
-            if (specslist == null || !specslist.remove(f)) notremoved = notremoved + n + " ";
+            if (!specsPath.remove(f)) notremoved = notremoved + n + " ";
         }
         if (notremoved.length()!=0) {
             showMessage(shell,"JML - Remove from Specs Path","These were not removed: " + notremoved);
         }
+        putSpecsPath(jp,specsPath);
     }
 
     // TODO _ document; also clarify the content
@@ -673,8 +987,7 @@ public class Utils {
         Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
         if (projects.size() == 0)  projects = getSelectedProjects(true,selection,window,shell);
         for (IJavaProject jp: projects) {
-            List<File> list = specsPaths.get(jp);
-            if (list == null) specsPaths.put(jp,list = new LinkedList<File>());
+            List<File> list = getInterface(jp).specsPath;
             StringBuilder ss = new StringBuilder();
             for (File s: list) { ss.append(s.toString()); ss.append("\n"); }
             if (!Activator.options.noInternalSpecs) ss.append("<Using internal JML library specs>\n");
@@ -710,7 +1023,7 @@ public class Utils {
     @NonNull
     List<String> getClasspath(@NonNull IJavaProject jproject) {
         try {
-            IClasspathEntry[] entries = jproject.getResolvedClasspath(true); // FIXME - resovled or raw? true or false?
+            IClasspathEntry[] entries = jproject.getResolvedClasspath(true);
             List<String> cpes = new LinkedList<String>();
             for (IClasspathEntry i: entries) {
                 //Log.log("ENTRY " +  i);
@@ -725,8 +1038,9 @@ public class Utils {
                     case IClasspathEntry.CPE_LIBRARY:
                         cpes.add(i.getPath().toString());
                         break;
-                    case IClasspathEntry.CPE_PROJECT:
                     case IClasspathEntry.CPE_VARIABLE:
+                        // Variables and containers are already resolved
+                    case IClasspathEntry.CPE_PROJECT:
                     default:
                         Log.log("CPE NOT HANDLED" + i);  // FIXME - and better error message
                     break;
@@ -851,9 +1165,39 @@ public class Utils {
         }
     }
 
+    /** Launches a read-only text editor with the given content and name
+     * @param content the content of the editor
+     * @param name the name (as in the title) of the editor
+     */
+    public void launchJavaEditor(String content,String name) {
+        try {
+            IEditorInput editorInput = new StringStorage(content,name);
+            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            IWorkbenchPage page = window.getActivePage();
+            page.openEditor(editorInput, org.eclipse.jdt.ui.JavaUI.ID_CU_EDITOR);
+        } catch (Exception e) {
+            showMessageInUI(null,"JML Exception",e.getMessage());
+        }
+    }
+
+    /** Launches a editable Java editor with the given file
+     * @param content the content of the editor
+     * @param name the name (as in the title) of the editor
+     */
+    public void launchJavaEditor(IFile file) {
+        try {
+            IFileEditorInput editorInput = new FileEditorInput(file);
+            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            IWorkbenchPage page = window.getActivePage();
+            page.openEditor(editorInput, org.eclipse.jdt.ui.JavaUI.ID_CU_EDITOR );
+        } catch (Exception e) {
+            showMessageInUI(null,"JML Exception",e.getMessage());
+        }
+    }
+
     /** Deletes the markers in any of the objects in the List that are 
      * IResource objects; if the object is a container, markers are deleted for
-     * any resources in the container; other kinds of objecs are ignored.
+     * any resources in the container; other kinds of objects are ignored.
      * @param <T> just the type of the list
      * @param list a list of objects whose markers are to be deleted
      * @param shell the current shell for dialogs (or null for default)
@@ -984,6 +1328,38 @@ public class Utils {
             setBlockOnOpen(false);
         }
     }
+    
+    public final static QualifiedName SPECSPATH_ID = new QualifiedName(Activator.PLUGIN_ID,"specspath");
+    
+    static public List<File> getSpecsPath(IJavaProject jp) {
+        try {
+            String s = jp.getProject().getPersistentProperty(SPECSPATH_ID);
+            if (s == null) s = "";
+            String[] names = s.split(",");
+            List<File> files = new ArrayList<File>(names.length);
+            for (String n: names) {
+                if (n.length() > 0) files.add(new File(n));
+            }
+            return files;
+        } catch (CoreException e) {
+            Log.log("CoreException happened: " + e);
+            return new ArrayList<File>();
+        }
+    }
+
+    static public void putSpecsPath(IJavaProject jp, List<File> files) {
+        StringBuilder s = new StringBuilder();
+        boolean isFirst = true;
+        for (File n: files) {
+            if (isFirst) isFirst = false; s.append(",");
+            s.append(n.toString());
+        }
+        try {
+            jp.getProject().setPersistentProperty(SPECSPATH_ID,s.toString());
+        } catch (CoreException e) {
+            Log.log("CoreException happened: " + e);
+        }
+    }
 
     /**
      * Displays a message in a information dialog; must be called from the UI thread.
@@ -1009,6 +1385,7 @@ public class Utils {
                 e.toString());
     }
 
+    static public final String[] suffixes = { ".refines-java", ".refines-spec", ".refines-jml", ".java", ".spec", ".jml" };
 
     /** This method returns an int giving the precedence of the suffix of the
      * file name: -1 indicates not a JML file; 0 is the preferred suffix;
@@ -1018,12 +1395,11 @@ public class Utils {
      */
     @Pure
     static public int suffixOK(/*@ non_null */ String name) {
-        if (name.endsWith(".java")) return 3;
-        if (name.endsWith(".spec")) return 4;
-        if (name.endsWith(".jml")) return 5;
-        if (name.endsWith(".refines-java")) return 0;
-        if (name.endsWith(".refines-spec")) return 1;
-        if (name.endsWith(".refines-jml")) return 2;
+        int i = 0;
+        for (String s : suffixes) {
+            if (name.endsWith(s)) return i;
+            i++;
+        }
         return -1;
     }
 

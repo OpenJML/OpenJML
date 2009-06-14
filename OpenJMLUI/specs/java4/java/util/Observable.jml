@@ -1,0 +1,101 @@
+// @(#)$Id: Observable.refines-spec 1287 2005-03-01 02:58:57Z cok $
+
+// Copyright (C) 2003 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.util;
+
+/**
+ * JML's specification of the java.util.Observable.
+ * @author  Gary T. Leavens
+ * @version $Revision: 1287 $
+ */
+public class Observable {
+
+    //@ public model non_null Observer[] observers;
+    //@ public model boolean _changed;
+
+    /*@ public invariant \nonnullelements(observers);
+      @*/
+
+    /*@ public normal_behavior
+      @   assignable observers, _changed;
+      @   ensures observers.length==0 && !_changed;
+      @*/
+    public Observable();
+
+    /* FIXME @ public normal_behavior
+      @   requires o != null;
+      @   assignable observers;
+      @   ensures observers.equals(\old(observers.insert(o)));
+      @*/
+    public synchronized void addObserver(Observer o);
+
+    /* FIXME @ public normal_behavior
+      @   requires o != null;
+      @   assignable observers;
+      @   ensures observers.equals(\old(observers.remove(o)));
+      @*/
+    public synchronized void deleteObserver(Observer o);
+
+    /*@   public normal_behavior
+      @     requires !_changed;
+      @     assignable \nothing;
+      @ also
+      @   public model_program {
+      @     notifyObservers(null);
+      @   }
+      @*/
+    public void notifyObservers();
+
+    /*@   public normal_behavior
+      @     requires !_changed;
+      @     assignable \nothing;
+      @*/
+    public void notifyObservers(Object arg);
+
+    /*@ public normal_behavior
+      @   assignable observers;
+      @   ensures observers.length == 0;
+      @*/
+    public synchronized void deleteObservers();
+
+    /*@ protected normal_behavior
+      @   assignable _changed;
+      @   ensures _changed;
+      @*/
+    protected synchronized void setChanged();
+
+    /*@ protected normal_behavior
+      @   assignable _changed;
+      @   ensures !_changed;
+      @*/
+    protected synchronized void clearChanged();
+
+    /*@ public normal_behavior
+      @   assignable \nothing;
+      @   ensures \result <==> _changed;
+      @*/
+    public /*@ pure @*/ synchronized boolean hasChanged();
+
+    /*@ public normal_behavior
+      @   assignable \nothing;
+      @   ensures \result == observers.length;
+      @*/
+    public /*@ pure @*/ synchronized int countObservers();
+}

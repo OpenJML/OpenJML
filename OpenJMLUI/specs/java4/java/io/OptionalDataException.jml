@@ -1,0 +1,26 @@
+package java.io;
+
+// FIXME - needs completion
+ 
+public class OptionalDataException extends ObjectStreamException {
+
+    /** Number of bytes available to be read */
+    public int length;
+    
+    /** True if there is no more data in the buffer */
+    public boolean eof;
+    
+    /*@ public normal_behavior
+      @   ensures standardThrowable();
+      @   ensures length == i;
+      @*/
+    //@ pure
+    OptionalDataException(int i);
+  
+    /*@ public normal_behavior
+      @   ensures standardThrowable();
+      @   ensures eof == b;
+      @*/
+    //@ pure
+    OptionalDataException(boolean b);
+}

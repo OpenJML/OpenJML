@@ -1,0 +1,31 @@
+// $Id: InputStreamReader.refines-spec 2224 2006-12-12 00:09:00Z chalin $
+
+package java.io;
+
+public class InputStreamReader extends Reader {
+
+    //private final sun.nio.cs.StreamDecoder sd;
+
+    public int read()
+        throws IOException;
+
+    public void close()
+        throws IOException;
+
+    public boolean ready()
+        throws IOException;
+
+    public int read(/*@non_null*/ char[] Param0, int Param1, int Param2)
+        throws IOException;
+
+    public InputStreamReader(/*@non_null*/ InputStream Param0);
+
+    public /*@ nullable */ String getEncoding();
+
+    public InputStreamReader(/*@non_null*/ InputStream Param0, /*@non_null*/ String Param1)
+        throws UnsupportedEncodingException;
+
+    public InputStreamReader(/*@non_null*/ InputStream Param0, /*@non_null*/ java.nio.charset.Charset Param1);
+
+    public InputStreamReader(/*@non_null*/ InputStream Param0, /*@non_null*/ java.nio.charset.CharsetDecoder Param1);
+}

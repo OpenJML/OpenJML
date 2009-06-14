@@ -1,0 +1,31 @@
+package java.lang.reflect;
+
+import org.jmlspecs.annotations.*;
+
+// FIXME - needs completion
+ 
+public class UndeclaredThrowableException extends RuntimeException {
+
+    //@ also
+    //@ public normal_behavior
+    //@   ensures \result == super.getCause();
+    public /*@pure*/ /*@nullable*/ Throwable getCause();
+    
+    //@ public normal_behavior
+    //@   ensures \result == getCause();
+    public /*@pure*/ /*@nullable*/ Throwable getUndeclaredThrowable();
+    
+    /*@ public normal_behavior
+      @   ensures standardThrowable(null,undeclaredThrowable);
+      @   ensures getCause() == undeclaredThrowable;
+      @*/
+    //@ pure
+    public UndeclaredThrowableException(/*@nullable*/ Throwable undeclaredThrowable);
+  
+    /*@ public normal_behavior
+      @   ensures standardThrowable(detail,undeclaredThrowable);
+      @   ensures getCause() == undeclaredThrowable;
+      @*/
+    //@ pure
+    public UndeclaredThrowableException(/*@nullable*/ Throwable undeclaredThrowable, String detail);
+}

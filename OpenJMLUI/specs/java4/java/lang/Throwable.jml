@@ -1,0 +1,197 @@
+// @(#)$Id: Throwable.jml,v 1.13 2007/12/30 05:24:15 chalin Exp $
+
+// Copyright (C) 2005 Iowa State University
+//
+// This file is part of the runtime library of the Java Modeling Language.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2.1,
+// of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+// Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+// 02110-1301  USA.
+
+/* Note that the Java API specifications are ambiguous when it comes to the
+ * nullity of the <code>message</code> argument of the constructors. We
+ * require the message to be non_null; this allows us to maximize the error
+ * reporting capabilities of, e.g., EscJava2. If the intent was to provide a
+ * null message, then the appropriate constructor (i.e. the one not taking a
+ * message argument) should be used instead.
+ * 
+ * @author Patrice Chalin <chalin@dsrg.org>
+ * @author David Cok <cok@frontiernet.net>
+ * @author Joe Kiniry <kiniry@cs.kun.nl>
+ *
+ * @todo kiniry - Replace use of java.lang.String with JMLString?
+ *
+ */
+
+package java.lang;
+// @ model import java.util.Arrays;
+
+public class Throwable extends Object implements java.io.Serializable
+{
+    //@ public model nullable String _message;  in objectState;
+    //@ public model nullable Throwable _cause; in objectState;
+
+    //@ public model boolean causeSet;  in _cause;
+    //@ public represents causeSet <- _cause != this;
+
+    //@ public model non_null StackTraceElement[/*#@non_null*/] _stackTrace; in objectState;
+    //@ public invariant \nonnullelements(_stackTrace);
+
+    /*@
+      @ public normal_behavior
+      @   ensures \result == (_message == null && !causeSet);
+      @
+        public pure model boolean standardThrowable();
+
+      @ public normal_behavior
+      @   ensures \result == (_message == s && !causeSet);
+      @
+        public pure model boolean standardThrowable(non_null String s);
+
+      @ public normal_behavior
+      @   requires c != this;
+      @   ensures \result == (initMessage(c) && _cause == c);
+      @   ensures_redundantly causeSet;
+      @
+        public pure model boolean standardThrowable(nullable Throwable c);
+
+      @ public normal_behavior
+      @   requires c != this;
+      @   ensures \result == (_message == s && _cause == c);
+      @   ensures_redundantly causeSet;
+      @
+        public pure model boolean standardThrowable(non_null String s, nullable Throwable c);
+
+      @ public normal_behavior
+      @   requires c != null;
+      @   ensures  \result == (_message != null && _message.equals(c.toString()));
+      @ also public normal_behavior
+      @   requires c == null;
+      @   ensures  \result == (_message == null);
+      @
+        public pure model boolean initMessage(nullable Throwable c);
+      @*/
+
+    /*@ public normal_behavior
+      @   assignable _message, _cause, _stackTrace;
+      @   ensures _message == null;
+      @   ensures !causeSet;
+      @   ensures_redundantly standardThrowable();
+      @*/
+    public /*@pure*/ Throwable();
+
+    /*@ public normal_behavior
+      @   assignable _message, _cause, _stackTrace;
+      @   ensures _message == message;
+      @   ensures !causeSet;
+      @   ensures_redundantly standardThrowable(message);
+      @*/
+    public /*@pure*/ Throwable(/*@non_null*/String message);
+
+    /*@ public normal_behavior
+      @   requires cause != this;
+      @   assignable _message, _cause, _stackTrace;
+      @   ensures _message == message;
+      @   ensures _cause == cause;
+      @   ensures_redundantly standardThrowable(message, cause);
+      @*/
+    public /*@pure*/ Throwable(/*@non_null*/String message, /*@nullable*/Throwable cause);
+
+    /*@ public normal_behavior
+      @   requires cause != this;
+      @   assignable _message, _cause, _stackTrace;
+      @   ensures initMessage(cause);
+      @   ensures _cause == cause;
+      @   ensures_redundantly standardThrowable(cause);
+      @*/
+    public /*@pure*/ Throwable(/*@nullable*/Throwable cause);
+
+    /*@ public normal_behavior
+      @   ensures \result == _message;
+      @*/
+    public /*@pure*//*@nullable*/ String getMessage();
+
+    /*@ public normal_behavior
+      @   requires _message == null;
+      @   ensures  \result == null;
+      @ also public normal_behavior
+      @   requires _message != null;
+      @   ensures  \result != null;
+      @   ensures  (* \result is a localized version of _message *);
+      @*/
+    public /*@pure*//*@nullable*/ String getLocalizedMessage();
+
+    /*@ public normal_behavior
+      @  requires causeSet;
+      @  ensures \result == _cause;
+      @ also public normal_behavior
+      @  requires !causeSet;
+      @  ensures \result == null;
+      @*/
+    public /*@pure*//*@nullable*/ Throwable getCause();
+
+    /*@ public normal_behavior
+      @   requires !causeSet && cause != this;
+      @   assignable _cause;
+      @   ensures causeSet;
+      @ also
+      @ public exceptional_behavior
+      @   requires causeSet || cause == this;
+      @   assignable \nothing;
+      @   signals_only IllegalStateException, IllegalArgumentException;
+      @   signals (IllegalStateException e) causeSet && e._message != null && !e.causeSet;
+      @   signals (IllegalArgumentException e) cause == this && e._message != null && !e.causeSet;
+      @*/
+    public synchronized /*@non_null*/ Throwable initCause(/*@non_null*/Throwable cause);
+
+    /*@ also public normal_behavior
+      @   requires \typeof(this) == \type(Throwable);
+      @   ensures _message == null ==> \result.equals(this.getClass().theString);
+      @   ensures _message != null ==> \result.equals(this.getClass().theString + ": " + _message);
+      @ 
+      @*/
+    public /*@ pure non_null @*/ String toString();
+
+    // FIXME - need to indicate that the output streams are modified and not
+    // other stuff
+    // Prints to System.err
+    public void printStackTrace();
+    public void printStackTrace(/*@non_null*/java.io.PrintStream s);
+    public void printStackTrace(/*@non_null*/java.io.PrintWriter s);
+
+    /*@ public normal_behavior
+      @   assignable _stackTrace;
+      @   ensures \result == this;
+      @*/
+    public synchronized native /*@non_null*/ Throwable fillInStackTrace();
+
+    /*+@ public normal_behavior  // FIXME - this crashes Simplify
+      @   ensures \result != null;
+      @   ensures (\forall int i; 0 <= i && i < _stackTrace.length;
+      @                           _stackTrace[i].equals(\result[i]));
+      @*/
+    public /*@pure*//*@non_null*/ StackTraceElement[/*#@non_null*/] getStackTrace();
+
+    /*@ public normal_behavior
+      @   requires \nonnullelements(stackTrace);
+      @   assignable _stackTrace;
+      @   ensures _stackTrace.equals(stackTrace);
+      @ also
+      @ public exceptional_behavior
+      @   requires !\nonnullelements(stackTrace);
+      @   assignable \nothing;
+      @   signals_only NullPointerException;
+      @*/
+    public void setStackTrace(/*@non_null*/StackTraceElement[/*#@non_null*/] stackTrace);
+}

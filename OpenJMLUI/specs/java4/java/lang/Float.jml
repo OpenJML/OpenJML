@@ -1,0 +1,367 @@
+// @(#)$Id: Float.jml 2022 2006-08-13 02:36:42Z chalin $
+
+// Copyright (C) 2002 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass  Ave, Cambridge, MA 02139, USA.
+
+package java.lang;
+
+/** JML's specification of java.lang.Float.
+ * @version $Revision: 2022 $
+ * @author Brandon Shilling
+ * @author David R. Cok
+ * @author Gary T. Leavens
+ */
+//-@ immutable
+public /*@ pure @*/ final class Float extends Number implements Comparable {
+    
+    //@ public model float theFloat;
+    //@ public represents theFloat <- floatValue();
+    
+    /** Returns true if the string is parseable as a float value (but not
+	an infinite or NaN value).
+    */
+    /*@   public normal_behavior
+    @     requires s != null;
+    @     {|
+    @       requires s.equals("NaN");
+    @       ensures !\result;
+    @     also
+    @       requires s.equals("Infinity") || s.equals("-Infinity");
+    @       ensures !\result;
+    @     also
+    @	    requires s.equals("");
+    @       ensures !\result;
+    @	  also
+    @       requires s.equals("0.0") || s.equals("-0.0");
+    @       ensures \result;
+    @     also 
+    @       requires (* s is parseable to a float
+    @                     by the IEEE 754 standards *);
+    @       ensures \result;
+    @     also
+    @       requires !(* s is parseable to a float
+    @                      by the IEEE 754 standards *);
+    @       ensures !\result;
+    @     |}
+    @  public static model pure boolean parseable( String s ) {
+	    try { Float d = Float.valueOf(s); return true; }
+	    catch (Exception e) { return false; }
+	}
+    @*/
+        
+    public static final float POSITIVE_INFINITY;
+
+    public static final float NEGATIVE_INFINITY;
+
+    public static final float NaN;
+
+    public static final float MAX_VALUE;
+
+    public static final float MIN_VALUE;
+
+    public static final Class TYPE;
+    //@ initially TYPE == \type(float);
+    //@ invariant_redundantly TYPE == float.class;
+
+    /*@ public normal_behavior
+      @   ensures !isNaN(f) && !isInfinite(f) ==> parseable(\result);
+      @   ensures !isNaN(f) && !isInfinite(f) ==> 
+      @                              identical(f, parseFloat(\result));
+      @   ensures isNaN(f) ==> \result.equals("NaN");
+      @   ensures (f == Float.POSITIVE_INFINITY) ==>\result.equals("Infinity");
+      @   ensures (f == Float.NEGATIVE_INFINITY) ==>\result.equals("-Infinity");
+      @*/
+    // Note - I don't know of any parseable representation for 
+    // NaN or infinite values
+    public static /*@ pure @*/ /*@ non_null @*/ String toString(float f);
+
+    /*@ public normal_behavior
+      @   requires s != null && parseable(s);
+      @   ensures  \result.equals(new Float(parseFloat(s)));
+      @ also
+      @ public exceptional_behavior
+      @   requires s != null && !parseable(s);
+      @   signals(NumberFormatException);
+      @*/
+    public static /*@ pure @*/ /*@ non_null @*/ Float valueOf(
+        /*@ non_null @*/ String s)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @    requires s != null && parseable(s);
+      @    ensures true;  // FIXME - put some conditions on the result
+      @ also
+      @ public exceptional_behavior
+      @   requires s != null && !parseable(s);
+      @   signals(NumberFormatException);
+      @*/
+    public static /*@ pure @*/ float parseFloat(/*@ non_null @*/ String s)
+        throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   ensures \result ==  !(v == v);
+      @*/
+    public static /*@ pure @*/ boolean isNaN(float v);
+
+    /*@ public normal_behavior
+      @   ensures \result == ( v == POSITIVE_INFINITY
+      @                       || v == NEGATIVE_INFINITY );
+      @*/
+    public static /*@ pure @*/ boolean isInfinite(float v);
+
+    /*@ public normal_behavior
+      @   assignable theFloat;
+      @   ensures identical(theFloat, value);
+      @*/
+    public Float(float value);
+
+    /*@ public normal_behavior
+      @   assignable theFloat;
+      @   ensures identical(theFloat, (float)value);
+      @*/
+    public Float(double value);
+
+    /*@ public normal_behavior
+      @   requires parseable(s);
+      @   assignable theFloat;
+      @   ensures identical(theFloat, parseFloat(s));
+      @ also
+      @ public exceptional_behavior
+      @   requires !parseable(s);
+      @   signals(NumberFormatException);
+      @*/
+    public Float(String s) throws NumberFormatException;
+
+    /*@ public normal_behavior
+      @   requires true;
+      @   ensures \result == !(theFloat == theFloat);
+      @*/
+    public boolean isNaN();
+
+    /*@ public normal_behavior
+      @   ensures \result == ( theFloat == POSITIVE_INFINITY
+      @                       || theFloat == NEGATIVE_INFINITY );
+      @*/
+    public boolean isInfinite();
+        
+    // specification inherited from java.lang.Object
+    //@  also ensures \result.equals(toString(floatValue()));
+    public String toString();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (byte) theFloat;
+      @*/
+    public byte byteValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (short) theFloat;
+      @*/
+    public short shortValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (int) theFloat;
+      @*/
+    public int intValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures \result == (long) theFloat;
+      @*/
+    public long longValue();
+
+    /*@ also
+      @   public normal_behavior
+      @   ensures identical(theFloat, \result);
+      @*/
+    public float floatValue();
+
+    /*@ also
+      @   public normal_behavior
+      @   ensures Double.identical((double)theFloat, \result);
+      @*/
+    public double doubleValue();
+
+    /*@ also
+      @   public normal_behavior
+      @     ensures (* \result is a hashcode value for this object *);
+      @*/
+    public int hashCode();
+
+    /*@ also
+      @   public normal_behavior
+      @     requires obj != null && (obj instanceof Float);
+      @     ensures \result == identical(theFloat, ((Float)obj).floatValue());
+      @  also public normal_behavior
+      @     requires obj != null && !(obj instanceof Float);
+      @     ensures !\result;
+      @*/
+    public boolean equals(/*@\readonly*//*@nullable*/Object obj);
+
+    /*@ public normal_behavior
+      @ {|
+      @     requires value == POSITIVE_INFINITY;
+      @     ensures \result == 0x7f800000;
+      @   also
+      @     requires value == NEGATIVE_INFINITY;
+      @     ensures \result == 0xff800000;
+      @   also
+      @     requires new Float(value).isNaN();
+      @     ensures \result == 0x7fc00000;
+      @   also
+      @     ensures (* \result is the bits that represent
+      @                the floating-point number *);
+      @   also
+      @     ensures identical(value, intBitsToFloat(floatToIntBits(value)));
+      @ |}
+      @ implies_that
+      @   public normal_behavior
+      @     requires !isNaN(value);
+      @     ensures intBitsToFloat(\result) == value;
+      @*/
+    public static /*@ pure @*/ native int floatToIntBits(float value);
+
+    /*@ public normal_behavior
+      @ {|
+      @     requires value == POSITIVE_INFINITY;
+      @     ensures \result == 0x7f800000;
+      @   also
+      @     requires value == NEGATIVE_INFINITY;
+      @     ensures \result == 0xff800000;
+      @   also
+      @     requires isNaN(value);
+      @     ensures (* is the int representing the actual NaN value *);
+      @   also
+      @     ensures (* \result is the bits that represent
+      @              the floating-point number *);
+      @   also
+      @     ensures identical(value, intBitsToFloat(floatToRawIntBits(value)));
+      @ |}
+      @ implies_that
+      @   public normal_behavior
+      @     requires !isNaN(value);
+      @     ensures intBitsToFloat(\result) == value;
+      @*/
+    public static /*@ pure @*/ native int floatToRawIntBits(float value);
+
+    /*@ public normal_behavior
+      @ {|
+      @   requires bits == 0x7f800000;
+      @   ensures \result == POSITIVE_INFINITY;
+      @ also
+      @   requires bits == 0xff800000;
+      @   ensures \result == NEGATIVE_INFINITY;
+      @ also
+      @   requires ( 0x7f800001 <= bits && bits <= 0x7fffffff )
+      @     || ( 0xff800001 <= bits && bits <= 0xffffffff );
+      @   ensures new Float(\result).isNaN();
+      @ also
+      @   ensures (* \result is floating-point value with
+      @              the same bit pattern as bits *);
+      @ |}
+      @*/
+    public static /*@ pure @*/ native float intBitsToFloat(int bits);
+
+    /*@ public normal_behavior
+      @   requires anotherFloat != null;
+      @   {|
+      @     requires this.isNaN() && anotherFloat.isNaN();
+      @     ensures \result == 0;
+      @   also
+      @     requires !this.isNaN() && anotherFloat.isNaN();
+      @     ensures \result < 0;
+      @   also
+      @     requires this.isNaN() && !anotherFloat.isNaN();
+      @     ensures \result > 0;
+      @   also
+      @     requires isPositiveZero(theFloat) && 
+      @                          isNegativeZero(anotherFloat.floatValue());
+      @     ensures \result > 0;
+      @   also
+      @     requires isNegativeZero(theFloat) && 
+      @                          isPositiveZero(anotherFloat.floatValue());
+      @     ensures \result < 0;
+      @   also
+      @     requires !(this.isNaN() || anotherFloat.isNaN())
+      @         && !(isPositiveZero(theFloat)
+      @                  && isNegativeZero(anotherFloat.floatValue()))
+      @         && !(isNegativeZero(theFloat)
+      @                  && isPositiveZero(anotherFloat.floatValue()));
+      @     {|
+      @       requires theFloat < anotherFloat.floatValue();
+      @       ensures \result < 0;
+      @     also
+      @       requires theFloat == anotherFloat.floatValue();
+      @       ensures \result == 0;
+      @     also
+      @       requires theFloat > anotherFloat.floatValue();
+      @       ensures \result > 0;
+      @     |}
+      @   |}
+      @*/
+    public int compareTo(/*@ non_null @*/ Float anotherFloat);
+
+    /*@ also
+      @   public normal_behavior
+      @     requires o != null && (o instanceof Float);
+      @     ensures \result == compareTo((Float) o);
+      @  also
+      @   public exceptional_behavior
+      @     requires o == null || !(o instanceof Float);
+      @     signals_only ClassCastException;
+      @*/
+    public int compareTo(Object o);
+
+    /*@ public normal_behavior
+      @    assignable \nothing;
+      @    ensures \result == new Float(f1).compareTo(new Float(f2));
+      @*/
+    public static /*@ pure @*/ int compare(float f1, float f2);
+
+    /** Returns true if the argument is a negative (and not positive) zero;
+        the usual == returns true for comparing positive and negative zero. 
+    */
+    /*@ public static model pure boolean isNegativeZero( float a) {
+          if (a != 0) return false;
+          return (new java.lang.Float(a)).equals(new java.lang.Float("-0.0f"));
+        } 
+      @*/          
+      
+    /** Returns true if the argument is a positive (and not negative) zero;
+        the usual == returns true for comparing positive and negative zero. 
+    */
+    /*@ public static model pure boolean isPositiveZero( float a) {
+          if (a != 0) return false;
+          return (new java.lang.Float(a)).equals(new java.lang.Float("+0.0f"));
+        }    
+      @*/ 
+      		
+    /** Returns true if a and b represent the same double value;
+        the usual == does not work to distinguish positive and negative
+        zeros or to identify two NaN values as equal.
+    */
+    /*@ public static model pure boolean identical(float a, float b) {
+          return (isNaN(a) == isNaN(b)) &&
+                 (isPositiveZero(a) == isPositiveZero(b)) &&
+                 (isNegativeZero(a) == isNegativeZero(b)) &&
+                 (isNaN(a) || isNaN(b) || (a==b));
+        }        
+    */           
+}

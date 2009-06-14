@@ -1,0 +1,85 @@
+package java.lang.reflect;
+
+public final
+class Field extends AccessibleObject implements Member {
+
+//    //@ pure
+//    Field(Class declaringClass,
+//          String name,
+//          Class type,
+//          int modifiers,
+//          int slot);
+//
+//    Field copy();
+
+    public /*@ pure @*/ Class<?> getDeclaringClass();
+
+    public /*@ pure @*/ String getName();
+
+    public /*@ pure @*/ int getModifiers();
+
+    public /*@ pure @*/ Class<?> getType();
+
+    public /*@ pure @*/ boolean equals(/*@nullable*/ Object obj);
+
+    public /*@ pure @*/ int hashCode();
+
+    public /*@ pure @*/ String toString();
+
+    public /*@ pure @*/ Object get(Object obj)
+        throws IllegalArgumentException, IllegalAccessException;
+
+    public /*@ pure @*/ boolean getBoolean(Object obj)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public /*@ pure @*/ byte getByte(Object obj)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public /*@ pure @*/ char getChar(Object obj)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public /*@ pure @*/ short getShort(Object obj)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public /*@ pure @*/ int getInt(Object obj)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public /*@ pure @*/ long getLong(Object obj)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public /*@ pure @*/ float getFloat(Object obj)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public /*@ pure @*/ double getDouble(Object obj)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public void set(Object obj, Object value)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public void setBoolean(Object obj, boolean z)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public void setByte(Object obj, byte b)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public void setChar(Object obj, char c)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public void setShort(Object obj, short s)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public void setInt(Object obj, int i)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public void setLong(Object obj, long l)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public void setFloat(Object obj, float f)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    public void setDouble(Object obj, double d)
+    throws IllegalArgumentException, IllegalAccessException;
+
+    static /*@ pure @*/ String getTypeName(Class type);
+
+}

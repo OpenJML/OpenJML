@@ -1,0 +1,28 @@
+// $Id: StringWriter.refines-spec 2210 2006-11-28 01:30:20Z chalin $
+
+package java.io;
+
+public class StringWriter extends java.io.Writer {
+
+    // private StringBuffer buf;
+
+    public StringWriter();
+
+    public void close() throws java.io.IOException;
+
+    public void flush();
+
+    public StringWriter(int Param0);
+
+    public void write(int Param0);
+
+    public void write(/*@non_null*/ char[] Param0, int Param1, int Param2);
+
+    public /*@non_null*/ String toString();
+
+    public void write(/*@non_null*/ String Param0);
+
+    public void write(/*@non_null*/ String Param0, int Param1, int Param2);
+
+    public /*@non_null*/ StringBuffer getBuffer();
+}

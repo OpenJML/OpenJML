@@ -1,0 +1,80 @@
+// @(#)$Id: AbstractMap.refines-spec 1394 2005-05-09 01:00:39Z chalin $
+
+// Copyright (C) 2003 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+// This is a quick spec so that we can test TreeMap
+package java.util;
+
+public abstract class AbstractMap implements Map {
+    /*@ public normal_behavior
+      @   ensures \result <==> initialMap();
+      @ public pure model boolean initialAbstractMap();
+      @*/
+
+    /*@ protected normal_behavior
+      @   assignable \not_specified;
+      @   ensures initialAbstractMap();
+      @*/
+    protected AbstractMap();
+
+    // The specs for the following are all inherited
+
+    public int size();
+    public boolean isEmpty();
+    public boolean containsValue(Object value);
+    public boolean containsKey(Object key);
+    public Object get(Object key);
+    public Object put(Object key, Object value);
+    public Object remove(Object key);
+    public void putAll(Map t);
+    public void clear();
+    public Set keySet();
+    public Collection values();
+    public abstract Set entrySet();
+    public boolean equals(/*@ nullable \readonly @*/ Object o);
+    public int hashCode();
+    public String toString();
+    protected Object clone() throws CloneNotSupportedException;
+
+/*
+    static class SimpleEntry implements Entry {
+
+        //@ public normal_behavior
+        //@   ensures abstractKey == key;
+        //@   ensures abstractValue == value;
+        //@ pure
+        public SimpleEntry(Object key, Object value);
+
+        //@ public normal_behavior
+        //@   ensures abstractKey == e.getKey();
+        //@   ensures abstractValue == e.getValue();
+        //@ pure
+        public SimpleEntry(Map.Entry e);
+
+        public Object getKey();
+        public Object getValue();
+        public Object setValue(Object value);
+        public boolean equals(Object o);
+        public int hashCode();
+        public String toString();
+
+    }
+*/
+
+}

@@ -1,0 +1,24 @@
+package java.util;
+
+// FIXME - needs completion
+ 
+public class MissingResourceException extends RuntimeException {
+  
+    //@ public non_null model String theKey;
+    //@ public non_null model String theClass;
+    /*@ public normal_behavior
+      @   ensures standardThrowable(s);
+      @   ensures theClass.equals(ss);
+      @   //ensures theKey.equals(sss); ?
+      @*/
+    //@ pure
+    public MissingResourceException(String s, String ss);
+
+    //@ public normal_behavior
+    //@ ensures theKey.equals(\result);
+    public /*@ pure non_null*/String getKey();
+
+    //@ public normal_behavior
+    //@ ensures theClass.equals(\result);
+    public /*@ pure non_null*/String getClassName();
+}

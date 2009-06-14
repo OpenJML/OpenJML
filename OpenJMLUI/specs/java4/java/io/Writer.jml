@@ -1,0 +1,26 @@
+// $Id$
+
+package java.io;
+
+public abstract class Writer extends Object {
+
+    protected /*@non_null*/Object lock;
+
+    protected Writer();
+
+    public abstract void close() throws java.io.IOException;
+
+    public abstract void flush() throws java.io.IOException;
+
+    public void write(int Param0) throws java.io.IOException;
+
+    public void write(/*@non_null*/char[] Param0) throws java.io.IOException;
+
+    public abstract void write(/*@non_null*/char[] Param0, int Param1, int Param2) throws java.io.IOException;
+
+    protected Writer(/*@non_null*/Object Param0);
+
+    public void write(/*@non_null*/String Param0) throws java.io.IOException;
+
+    public void write(/*@non_null*/String Param0, int Param1, int Param2) throws java.io.IOException;
+}

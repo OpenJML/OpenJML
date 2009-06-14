@@ -1,0 +1,1209 @@
+// Copyright (C) 2003 Iowa State University
+
+// This file is part of JML
+
+// JML is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or (at your option)
+// any later version.
+
+// JML is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with JML; see the file COPYING.  If not, write to
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+package java.util;
+
+/** JML's specification of java.util.Calendar.
+ * @version $Revision: 1613 $
+ * @author Kristina Boysen
+ * @author Gary T. Leavens
+ * @author Patrice Chalin
+ */
+public class GregorianCalendar extends Calendar {
+
+    public static final int BC;
+    public static final int AD;
+
+    //@ public static model int  JAN_1_1_JULIAN_DAY;
+    //@ public static represents JAN_1_1_JULIAN_DAY <- 1721426;
+    //@ public static model int  EPOCH_JULIAN_DAY;
+    //@ public static represents EPOCH_JULIAN_DAY <- 2440588;
+    //@ public static model int  EPOCH_YEAR;
+    //@ public static represents EPOCH_YEAR <- 1970;
+
+    //@ public static final ghost int NUM_DAYS[] = {0,31,59,90,120,151,181,212,243,273,304,334};
+    //@ public static final ghost int LEAP_NUM_DAYS[] = {0,31,60,91,121,152,182,213,244,274,305,335};
+    //@ public static final ghost int MONTH_LENGTH[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    //@ public static final ghost int LEAP_MONTH_LENGTH[] = {31,29,31,30,31,30,31,31,30,31,30,31};
+
+    /*@ constraint 
+      @		\old(NUM_DAYS).equals(NUM_DAYS) &&
+      @		\old(LEAP_NUM_DAYS).equals(LEAP_NUM_DAYS) &&
+      @		\old(MONTH_LENGTH).equals(MONTH_LENGTH) &&
+      @		\old(LEAP_MONTH_LENGTH).equals(LEAP_MONTH_LENGTH);
+      @*/
+
+    //@ public static model int  ONE_SECOND; public static represents ONE_SECOND = 1000;
+    //@ public static model int  ONE_MINUTE; public static represents ONE_MINUTE = 60*ONE_SECOND;
+    //@ public static model int  ONE_HOUR;   public static represents ONE_HOUR   = 60*ONE_MINUTE;
+    //@ public static model long ONE_DAY;    public static represents ONE_DAY    = 24*ONE_HOUR;
+    //@ public static model long ONE_WEEK;   public static represents ONE_WEEK   = 7*ONE_DAY;
+
+    /*
+     * <pre>
+     *                            Greatest       Least 
+     * Field name        Minimum   Minimum     Maximum     Maximum
+     * ----------        -------   -------     -------     -------
+     * ERA                     0         0           1           1
+     * YEAR                    1         1   292269054   292278994
+     * MONTH                   0         0          11          11
+     * WEEK_OF_YEAR            1         1          52          53
+     * WEEK_OF_MONTH           0         0           4           6
+     * DAY_OF_MONTH            1         1          28          31
+     * DAY_OF_YEAR             1         1         365         366
+     * DAY_OF_WEEK             1         1           7           7
+     * DAY_OF_WEEK_IN_MONTH   -1        -1           4           6
+     * AM_PM                   0         0           1           1
+     * HOUR                    0         0          11          11
+     * HOUR_OF_DAY             0         0          23          23
+     * MINUTE                  0         0          59          59
+     * SECOND                  0         0          59          59
+     * MILLISECOND             0         0         999         999
+     * ZONE_OFFSET           -12*      -12*         12*         12*
+     * DST_OFFSET              0         0           1*          1*
+     * </pre>
+     * (*) In units of one-hour
+     */
+
+    /*@ public static final ghost int MIN_VALUES[] = {
+      @   0,1,0,1,0,1,1,1,-1,0,0,0,0,0,0,-12*ONE_HOUR,0
+      @ };
+      @
+      @ public static final ghost int LEAST_MAX_VALUES[] = {
+      @   1,292269054,11,52,4,28,365,7,4,1,11,23,59,59,999,12*ONE_HOUR,1*ONE_HOUR
+      @ };
+      @
+      @ public static final ghost int MAX_VALUES[] = {
+      @   1,292278994,11,53,6,31,366,7,6,1,11,23,59,59,999,12*ONE_HOUR,1*ONE_HOUR
+      @ };
+      @
+      @ constraint
+      @		\old(MIN_VALUES).equals(MIN_VALUES) &&
+      @		\old(MAX_VALUES).equals(MAX_VALUES) &&
+      @		\old(LEAST_MAX_VALUES).equals(LEAST_MAX_VALUES);
+      @*/
+
+    //@ public model long gregorianCutover; 
+    //@ public represents gregorianCutover = -12219292800000L;
+    //@ public model long normalizedGregorianCutover;
+    //@ public represents normalizedGregorianCutover = gregorianCutover;
+    //@ public model int gregorianCutoverYear;
+    //@ public represents gregorianCutoverYear = 1582;
+    
+    /*@ public invariant zone != null;
+      @ public invariant locale != null;
+      @ public invariant boundsCheck(fields[ERA], ERA);
+      @ public invariant boundsCheck(fields[YEAR], YEAR);
+      @ public invariant boundsCheck(fields[MONTH], MONTH);
+      @ public invariant boundsCheck(fields[WEEK_OF_YEAR], WEEK_OF_YEAR);
+      @ public invariant boundsCheck(fields[WEEK_OF_MONTH], WEEK_OF_MONTH);
+      @ public invariant boundsCheck(fields[DAY_OF_MONTH], DAY_OF_MONTH);
+      @ public invariant boundsCheck(fields[DATE], DATE);
+      @ public invariant boundsCheck(fields[DAY_OF_YEAR], DAY_OF_YEAR);
+      @ public invariant boundsCheck(fields[DAY_OF_WEEK], DAY_OF_WEEK);
+      @ public invariant boundsCheck(fields[DAY_OF_WEEK_IN_MONTH], 
+      @                              DAY_OF_WEEK_IN_MONTH);
+      @ public invariant boundsCheck(fields[AM_PM], AM_PM);
+      @ public invariant boundsCheck(fields[HOUR], HOUR);
+      @ public invariant boundsCheck(fields[HOUR_OF_DAY], HOUR_OF_DAY);
+      @ public invariant boundsCheck(fields[MINUTE], MINUTE);
+      @ public invariant boundsCheck(fields[SECOND], SECOND);
+      @ public invariant boundsCheck(fields[MILLISECOND], MILLISECOND);
+      @ public invariant boundsCheck(fields[ZONE_OFFSET], ZONE_OFFSET);
+      @ public invariant boundsCheck(fields[DST_OFFSET], DST_OFFSET);
+      @ public invariant boundsCheck(fields[FIELD_COUNT], FIELD_COUNT);
+      @*/
+       
+    //------------------------------------------------------------------------
+    // Model Methods
+    //------------------------------------------------------------------------
+       
+    /* Model methods used in several class methods.
+     */
+    
+    /** This should return true if time is less than or equal to the current
+     * time in milliseconds and if isTimeSet, areFieldsSet, and 
+     * areAllFieldsSet are all true.
+     * @return true if time <= System.currentTimeMillis() and if isTimeSet,
+     *         areFieldsSet, and areAllFields set are true; false otherwise.
+     */
+    //+@ public pure model boolean milliFieldsAreSet();
+    /*-@ public pure model boolean milliFieldsAreSet() {
+      @    return time <= System.currentTimeMillis()
+      @        && isTimeSet && areFieldsSet && areAllFieldsSet;
+      @ }
+      @*/
+    
+    /** This should return true if isTimeSet and areFieldsSet are false and
+     * false if both are true.
+     * @return true if isTimeSet and areFieldsSet are false; false otherwise.
+     */
+    /*@ public pure model boolean calendarFieldsAreSet() {
+      @     return !isTimeSet && !areFieldsSet;
+      @ }
+      @*/
+    
+    /** This should return true if areFieldsSet and areAllFieldsSet are true,
+     * and false if both are false.
+     * @return true if areFieldsSet and areAllFieldsSet are true; 
+     *         false otherwise.
+     */
+    /*@ public pure model boolean isComplete() {
+      @    return areFieldsSet && areAllFieldsSet;
+      @ }
+      @*/
+       
+    /* Model methods used for add(int field, int amount)
+     */
+
+    /** This should return true if month value is set correctly after
+     * adjustments to higher fields.  This means that if we add 1 month 
+     * to January 31st, the resulting month is set to February 28th instead 
+     * of March 3rd (example from JavaDoc).
+     * @return true if month value is set correctly after adjustments to higher
+     *         fields; false otherwise.
+     */
+    /*@ public normal_behavior
+      @     old int monthLen = monthLength(get(MONTH));
+      @          {|
+      @               requires oldDayOfMonth > monthLen;
+      @               assignable \nothing;
+      @               ensures \result == (dayOfMonth == monthLen);
+      @          also
+      @               requires oldDayOfMonth <= monthLen;
+      @               assignable \nothing;
+      @               ensures \result == (dayOfMonth == oldDayOfMonth);
+      @          |}
+      @ public pure model boolean pinDayOfMonthIsSet(int oldDayOfMonth,
+      @                                               int dayOfMonth);
+      @*/
+    
+    /** This should return whether the y_amount calculated in the method
+     * is zero.  This y_amount determines whether the current month plus
+     * amount is a valid value for month.
+     * @return true if the current month + amount is valid; false otherwise
+     */
+    /*@ public normal_behavior
+      @     old int y_amount = 0;
+      @          {|
+      @               requires y_amount != 0;
+      @               assignable \nothing;
+      @               ensures \result == true;
+      @          also
+      @               requires y_amount == 0;
+      @               assignable \nothing;
+      @               ensures \result == false;
+      @          |}
+      @ public pure model boolean isYAmountNotZero(int month);
+      @*/
+    
+    /** This should compute the number of milliseconds in the entered field
+     * and multiply the entered amount by that delta value.
+     * @return the delta value for the entered field and amount
+     */
+    /*@ public normal_behavior
+      @     old int delta = amount;
+      @          {|
+      @               requires field == WEEK_OF_YEAR || field == WEEK_OF_MONTH
+      @                        || field == DAY_OF_WEEK_IN_MONTH;
+      @               assignable \nothing;
+      @               ensures delta == delta * 7 * 24 * 60 * 60 * 1000;
+      @          also
+      @               requires field == AM_PM;
+      @               assignable \nothing;
+      @               ensures delta == delta * 12 * 60 * 60 * 1000;
+      @          also
+      @               requires field == DATE || field == DAY_OF_YEAR
+      @                        || field == DAY_OF_WEEK;
+      @               assignable \nothing;
+      @               ensures delta == delta * 24 * 60 * 60 * 1000;
+      @          also
+      @               requires field == HOUR_OF_DAY || field == HOUR;
+      @               assignable \nothing;
+      @               ensures delta == delta * 60 * 60 * 1000;
+      @          also
+      @               requires field == MINUTE;
+      @               assignable \nothing;
+      @               ensures delta == delta * 60 * 1000;
+      @          also
+      @               requires field == SECOND;
+      @               assignable \nothing;
+      @               ensures delta == delta * 1000;
+      @     |}
+      @ public pure model method long computeDelta(int field, int amount);
+      @*/
+    
+    /** This should compute the daylight savings time (DST) for any field that
+     * sets its adjustDST variable to true.
+     * @return the dst value for the given DST offsets
+     */
+    /*@ public normal_behavior
+      @     old int dst = 0;
+      @     requires adjustDST;
+      @     assignable \nothing;
+      @     ensures dst == oldDSTOffset - newDSTOffset;
+      @ public pure model int computeDST(boolean adjustDST, int oldDSTOffset,
+      @                                   int newDSTOffset);
+      @*/
+       
+    /* Model methods used in getActualMaximum(int field)
+     */
+    
+    /** This should return the maximum possible value for the YEAR field,
+     * depending on the type of calendar.
+     * @return the maximum possible value for YEAR, depending on the calendar
+     */
+    /*@ public normal_behavior
+      @     old int lowGood = LEAST_MAX_VALUES[YEAR];
+      @     assignable \nothing;
+      @     ensures \result == lowGood && LEAST_MAX_VALUES[YEAR] <= lowGood
+      @             && lowGood <= MAX_VALUES[YEAR] + 1;
+      @ public pure model int computeLowGood();
+      @*/
+       
+    /* Model methods used for roll(int field, int amount)
+     */
+    
+    /** This should return the value by which oldHour changes once amount
+     * is added to it.  It is done in this way to avoid the problem with 
+     * rolling the hour over the onset or cease of daylight savings time.
+     * @return the value by which oldHour changes after amount is added
+     */
+    /*@ public normal_behavior
+      @     old int newHour = (int)((oldHour + amount) % (getMaximum(field) + 1));
+      @     assignable \nothing;
+      @     ensures \result == newHour && getMinimum(HOUR) <= newHour
+      @             && newHour <= getMaximum(HOUR);
+      @ public pure model method int computeNewHour(int field, int amount,
+      @                                       Date start, int oldHour);
+      @*/
+    
+    /** This should compute the new month value after amount is added to it.
+     * @return the new month value after amount is added
+     */
+    /*@ public normal_behavior
+      @     old int mon = (int)(get(MONTH) + amount) % 12;
+      @     assignable \nothing;
+      @     ensures \result == mon && getMinimum(MONTH) <= mon
+      @             && mon <= getMaximum(MONTH);
+      @ public pure model int computeMonth(int amount);
+      @*/
+    
+    /** This should compute the new week of year value after amount is added 
+     * to it.  The rolling of this value depends on how many days per week, as
+     * this value can be changed.  Steps should be taken to make sure the
+     * function rolls correctly to account for all of the aspects of the
+     * calendar.
+     * @return the new week of year value after amount is added
+     */
+    /*@ public normal_behavior
+      @     old int woy = get(WEEK_OF_YEAR);
+      @     assignable \nothing;
+      @     ensures \result == woy && 1 <= woy && woy <= 52;
+      @ public pure model int computeWoy(int amount);
+      @*/
+    
+    /** This should return the ISO year depending on the conditions of
+     * WEEK_OF_YEAR and MONTH.  These values, in turn, depend on the calendar
+     * restrictions on these values.
+     * @return the ISO year
+     */
+    /*@ public normal_behavior
+      @     old int isoYear = get(YEAR);
+      @     assignable \nothing;
+      @     ensures \result == isoYear && getMinimum(YEAR) <= isoYear
+      @             && isoYear <= getMaximum(YEAR);
+      @ public pure model int computeIsoYear();
+      @*/
+    
+    /** This should compute the new day of week after amount is added to it.
+     * The day of week holds the value of the current day in the week (Sunday,
+     * Monday, etc.).  This is changed when rolling occurs.
+     * @return the day of week after amount is added
+     */
+    /*@ public normal_behavior
+      @     old int day_of_month = 0;
+      @     assignable \nothing;
+      @     ensures \result == day_of_month 
+      @             && getMinimum(DAY_OF_MONTH) <= day_of_month
+      @             && day_of_month <= getMaximum(DAY_OF_MONTH);
+      @ public pure model int computeDayOfMonth(int amount);
+      @*/
+    
+    /** This should compute min2 value used for computing the roll amount
+     * for DAY_OF_WEEK.  Min2 is the number of days before the current
+     * day in the week in question.
+     * @return min2 for use in computing the DAY_OF_WEEK roll amount
+     */
+    /*@ public normal_behavior
+      @     old int leadDays = (int)(get(DAY_OF_WEEK) - getFirstDayOfWeek());
+      @     old long min2 = 0;
+      @     ensures \result == min2 && min2 == time - leadDays * ONE_DAY;
+      @ public pure model long computeMin2();
+      @*/
+    
+    /** This should compute the new value for which to roll field after amount 
+     * is added to it.  This is computed for the standard roll instructions
+     * used for the default field.
+     * @return the new value for which to roll field after amount is added
+     */
+    /*@ public normal_behavior
+      @     old int fieldAmount = get(field);
+      @     old int value = 0;
+      @     assignable \nothing;
+      @     ensures \result == value && getMinimum(field) <= fieldAmount + value
+      @             && fieldAmount + value <+ getMaximum(field);
+      @ public pure model method int computeValue(int field, int amount);
+      @*/
+       
+    /* Model methods used for computeFields()
+     */
+      
+    /** This should return the number of milliseconds past midnight for
+     * for the date specified by millis.  This should take into account
+     * the correct time zone.
+     * @return the number of milliseconds past midnight for the given date
+     */
+    /*@ public normal_behavior
+      @         ensures 0 <= \result && \result < ONE_DAY;
+      @ public pure model method long computeMillisInDay(long millis);
+      @*/
+       
+    /** This should return the number of milliseconds past midnight for
+     * for the date specified by millis.  This should take into account
+     * the correct time zone.
+     * @return the number of milliseconds past midnight for the given date
+     */
+    /*@ public normal_behavior
+      @     ensures -ONE_DAY <= \result[0] && \result[0] <= ONE_DAY
+      @             && -ONE_DAY <= \result[1] && \result[1] <= ONE_DAY;
+      @ public pure model method int[] getOffsetsForComputeFields();
+      @*/
+
+    /** This should return true if the isSet[field] methods all are true
+     * and if calendarFieldsAreSet() also returns true.
+     * @return true if all isSet[field] return true and if 
+     *  calendarFieldsAreSet(); false otherwise.
+     */
+    /*@ public normal_behavior
+      @    ensures isSet[ERA] && isSet[YEAR] && isSet[MONTH] && isSet[DATE] 
+      @            && isSet[DAY_OF_WEEK] && isSet[DAY_OF_YEAR] 
+      @            && isSet[WEEK_OF_YEAR] && isSet[WEEK_OF_MONTH] 
+      @            && isSet[DAY_OF_WEEK_IN_MONTH] && calendarFieldsAreSet();
+      @ public pure model method boolean timeToFieldsVarsAreSet();
+      @*/
+    
+    /** Model methods used for computeTime()
+     */
+    
+    /** This should report whether the input millis value is before the current
+     * time reported by the system.  This is used in the specification of
+     * computeMillis() because the method System.currentTimeMillis() is not 
+     * specified as pure at this time and therefore cannot be used in a 
+     * pure public normal_behavior statement.
+     * @return true if millis is less than or equal to the current system time
+     *         in millis; false otherwise
+     */
+    //+@ public pure model method boolean millisAreBeforeCurrent(long millis);
+    /*-@ public pure model method boolean millisAreBeforeCurrent(long millis) {
+      @     return millis <= System.currentTimeMillis();
+      @ }
+      @*/
+      
+    /** This should compute the number of milliseconds from the current values
+     * of the fields without DST or time zone adjustments
+     * @return the number of milliseconds from current values of the fields 
+     *  without DST or time zone adjustments.
+     */
+    /*@ public normal_behavior
+      @     old long millis = 0;
+      @     assignable \nothing;
+      @     ensures \result == millis && 0 <= millis
+      @             && millisAreBeforeCurrent(millis);
+      @ public pure model method long computeMillis();
+      @*/
+
+    /** This should return the correct time zone offset for the current
+     * time zone and the given time, specified by the argument millis.
+     * This must work in all circumstances, no matter what the internal
+     * data structures contain.
+     * @return the number of milliseconds for the time zone offset from GMT
+     */
+    /*@ public normal_behavior
+      @     ensures -ONE_DAY <= \result && \result <= ONE_DAY;
+      @ public pure model method int computeZoneOffset(long millis);
+      @*/
+       
+    //------------------------------------------------------------------------
+    // Class Method Specifications
+    //------------------------------------------------------------------------
+
+    /*@ public normal_behavior
+      @ assignable zone, locale;
+      @ ensures zone.equals(TimeZone.getDefault())
+      @         && locale.equals(Locale.getDefault());
+      @*/
+    public GregorianCalendar();
+
+    /*@ public normal_behavior
+      @ requires zone != null;
+      @ assignable this.zone, locale;
+      @ ensures this.zone.equals(zone)
+      @         && locale.equals(Locale.getDefault());
+      @*/
+    public GregorianCalendar(TimeZone zone);
+
+    /*@ public normal_behavior
+      @ requires aLocale != null;
+      @ assignable zone, locale;
+      @ ensures zone.equals(TimeZone.getDefault())
+      @         && locale.equals(aLocale);
+      @*/
+    public GregorianCalendar(Locale aLocale);
+
+    /*@ public normal_behavior
+      @ requires zone != null && aLocale != null;
+      @ assignable this.zone, locale;
+      @ assignable_redundantly time, isTimeSet, areFieldsSet, 
+      @                        areAllFieldsSet;
+      @ ensures this.zone.equals(zone) && locale.equals(aLocale);
+      @ ensures_redundantly milliFieldsAreSet();
+      @*/
+    public GregorianCalendar(TimeZone zone, Locale aLocale);
+
+    /*@ public normal_behavior
+      @ assignable zone, locale;
+      @ assignable_redundantly fields[YEAR], fields[MONTH], fields[DATE],
+      @                        isTimeSet, areFieldsSet, isSet[*];
+      @ ensures zone.equals(TimeZone.getDefault())
+      @         && locale.equals(Locale.getDefault());
+      @ ensures_redundantly fields[YEAR] == year 
+      @                     && fields[MONTH] == month
+      @                     && fields[DATE] == date
+      @                     && isSet[YEAR] && isSet[MONTH]
+      @                     && isSet[DATE] && calendarFieldsAreSet();
+      @*/
+    public GregorianCalendar(int year, int month, int date);
+
+    /*@ public normal_behavior
+      @ assignable zone, locale;
+      @ assignable_redundantly fields[YEAR], fields[MONTH], fields[DATE],
+      @                        fields[HOUR_OF_DAY], fields[MINUTE], 
+      @                        isTimeSet, areFieldsSet, isSet[*];
+      @ ensures zone.equals(TimeZone.getDefault()) &&
+      @         locale.equals(Locale.getDefault());
+      @ ensures_redundantly fields[YEAR] == year
+      @                     && fields[MONTH] == month
+      @                     && fields[DATE] == date
+      @                     && fields[HOUR_OF_DAY] == hour
+      @                     && fields[MINUTE] == minute
+      @                     && isSet[YEAR] && isSet[MONTH]
+      @                     && isSet[DATE] && isSet[HOUR_OF_DAY]
+      @                     && isSet[MINUTE] && calendarFieldsAreSet();
+      @*/
+    public GregorianCalendar(int year, int month, int date, int hour,
+                             int minute);
+
+    /*@ public normal_behavior
+      @ assignable zone, locale;
+      @ assignable_redundantly fields[YEAR], fields[MONTH], fields[DATE],
+      @                        fields[HOUR_OF_DAY], fields[MINUTE],
+      @                        fields[SECOND], isTimeSet, areFieldsSet,
+      @                        isSet[*];
+      @ ensures zone.equals(TimeZone.getDefault())
+      @         && locale.equals(Locale.getDefault());
+      @ ensures_redundantly fields[YEAR] == year
+      @                     && fields[MONTH] == month
+      @                     && fields[DATE] == date
+      @                     && fields[HOUR_OF_DAY] == hour
+      @                     && fields[MINUTE] == minute
+      @                     && fields[SECOND] == second
+      @                     && isSet[YEAR] && isSet[MONTH]
+      @                     && isSet[DATE] && isSet[HOUR_OF_DAY]
+      @                     && isSet[MINUTE] && isSet[SECOND]
+      @                     && calendarFieldsAreSet();
+      @*/
+    public GregorianCalendar(int year, int month, int date, int hour,
+                             int minute, int second);
+
+    /*@ public normal_behavior
+      @ old long cutoverDay = floorDivide(gregorianCutover, ONE_DAY);
+      @ old GregorianCalendar cal = new GregorianCalendar(getTimeZone());
+      @ {|
+      @     requires date != null;
+      @     assignable gregorianCutover;
+      @     ensures gregorianCutover == date.getTime();
+      @ also
+      @     requires cutoverDay < 0 && normalizedGregorianCutover > 0;
+      @     assignable normalizedGregorianCutover, gregorianCutoverYear;
+      @     ensures normalizedGregorianCutover == (cutoverDay + 1) * ONE_DAY;
+      @ also
+      @     requires cutoverDay >= 0 || normalizedGregorianCutover <= 0;
+      @     assignable normalizedGregorianCutover, gregorianCutoverYear;
+      @     ensures normalizedGregorianCutover == cutoverDay * ONE_DAY;
+      @ also
+      @     requires cal.get(ERA) == BC;
+      @     assignable normalizedGregorianCutover, gregorianCutoverYear;
+      @     ensures gregorianCutoverYear == 1 - \old(gregorianCutoverYear);
+      @ also
+      @     requires cal.get(ERA) != BC;
+      @     assignable normalizedGregorianCutover, gregorianCutoverYear;
+      @     ensures gregorianCutoverYear == cal.get(YEAR);
+      @ |}
+      @*/
+    public void setGregorianChange(Date date);
+
+    /*@ public normal_behavior
+      @     assignable \nothing;
+      @     ensures \result.getTime() == gregorianCutover;
+      @*/
+    public /*@ pure @*/ final Date getGregorianChange();
+
+    /*@  public normal_behavior
+      @     requires year >= gregorianCutoverYear;
+      @     assignable \nothing;
+      @     ensures \result == ((year%4 == 0) && ((year%100 != 0)
+      @                        || (year%400 == 0)));
+      @ also
+      @   public normal_behavior
+      @     requires year < gregorianCutoverYear;
+      @     assignable \nothing;
+      @     ensures \result == (year%4 == 0);
+      @*/
+    public /*@ pure @*/ boolean isLeapYear(int year);
+
+    /*@ also
+      @   public normal_behavior
+      @     old GregorianCalendar gcal = (GregorianCalendar)obj;
+      @     requires obj != null;
+      @     assignable \nothing;
+      @     ensures obj instanceof GregorianCalendar
+      @             && gregorianCutover == gcal.gregorianCutover;
+      @*/
+    public boolean equals(/*@nullable*/Object obj);
+    
+    // Specification is inherited
+    public int hashCode();
+
+    /*@ also
+      @   public normal_behavior
+      @     requires amount == 0;
+      @     assignable \nothing;
+      @ also
+      @   public normal_behavior
+      @     old int year = get(YEAR);
+      @     {|
+      @         ensures isComplete();
+      @     also
+      @       {|
+      @         requires field == YEAR;
+      @         assignable_redundantly fields[YEAR], fields[ERA], isTimeSet,
+      @                                areFieldsSet, isSet[*];
+      @         ensures pinDayOfMonthIsSet(\old(fields[DAY_OF_MONTH]),
+      @                                    fields[DAY_OF_MONTH]);
+      @         ensures_redundantly isSet[YEAR] && isSet[ERA] 
+      @                             && calendarFieldsAreSet();
+      @       also
+      @         requires year > 0;
+      @         assignable_redundantly fields[YEAR], isTimeSet, areFieldsSet,
+      @                                isSet[YEAR];
+      @         ensures_redundantly fields[YEAR] == \old(fields[YEAR]) + amount
+      @                             && isSet[YEAR] && calendarFieldsAreSet();
+      @       also
+      @         {|
+      @                 requires year <= 0;
+      @                 assignable_redundantly fields[YEAR], fields[ERA],
+      @                                        isTimeSet, areFieldsSet,
+      @                                        isSet[*];
+      @                 ensures_redundantly fields[YEAR]
+      @                                     == 1 - \old(fields[YEAR])
+      @                                     && isSet[YEAR] && isSet[ERA] 
+      @                                     && calendarFieldsAreSet();
+      @         also
+      @                 requires this.internalGetEra() == AD;
+      @                 assignable_redundantly fields[ERA], isTimeSet, 
+      @                                        areFieldsSet, isSet[ERA];
+      @                 ensures_redundantly fields[ERA] == BC && isSet[ERA]
+      @                                     && calendarFieldsAreSet();
+      @         also
+      @                 requires this.internalGetEra() == BC;
+      @                 assignable_redundantly fields[ERA], isTimeSet, 
+      @                                        areFieldsSet, isSet[ERA];
+      @                 ensures_redundantly fields[ERA] == AD && isSet[ERA]
+      @                                     && calendarFieldsAreSet();
+      @         |}
+      @      |}
+      @    also
+      @      old int month = (int)(get(MONTH) + amount);
+      @      {|
+      @         requires field == MONTH;
+      @         assignable_redundantly fields[YEAR], fields[ERA], fields[MONTH],
+      @                                isTimeSet, areFieldsSet, isSet[*];
+      @         ensures pinDayOfMonthIsSet(\old(fields[DAY_OF_MONTH]), 
+      @                                    fields[DAY_OF_MONTH]);
+      @         ensures_redundantly isSet[YEAR] && isSet[ERA] && isSet[MONTH] 
+      @                             && calendarFieldsAreSet();
+      @      also
+      @         {|
+      @                 requires isYAmountNotZero((int)(get(MONTH) + amount));
+      @         also
+      @                 requires year > 0;
+      @                 assignable_redundantly fields[YEAR], isTimeSet, 
+      @                                        areFieldsSet, isSet[YEAR];
+      @                 ensures_redundantly fields[YEAR]
+      @                                     == \old(fields[YEAR]) + amount
+      @                                     && isSet[YEAR]
+      @                                     && calendarFieldsAreSet();
+      @         also
+      @             {|
+      @                 requires year <= 0;
+      @                 assignable_redundantly fields[YEAR], fields[ERA], 
+      @                                        isTimeSet, areFieldsSet, 
+      @                                        isSet[*];
+      @                 ensures_redundantly fields[YEAR] 
+      @                                     == 1 - \old(fields[YEAR]) 
+      @                                     && isSet[YEAR] && isSet[ERA] 
+      @                                     && calendarFieldsAreSet();
+      @             also
+      @                 requires this.internalGetEra() == AD;
+      @                 assignable_redundantly fields[ERA], isTimeSet, 
+      @                                        areFieldsSet, isSet[ERA];
+      @                 ensures_redundantly fields[ERA] == BC && isSet[ERA]
+      @                                     && calendarFieldsAreSet();
+      @             also        
+      @                 requires this.internalGetEra() == BC;
+      @                 assignable_redundantly fields[ERA], isTimeSet, 
+      @                                        areFieldsSet, isSet[ERA];
+      @                 ensures_redundantly fields[ERA] == AD && isSet[ERA]
+      @                                     && calendarFieldsAreSet();
+      @             |}
+      @         also
+      @             requires month >= 0;
+      @             assignable_redundantly fields[MONTH], isTimeSet, 
+      @                                    areFieldsSet, isSet[MONTH];
+      @             ensures_redundantly fields[MONTH] == (int) (month % 12) 
+      @                                 && isSet[MONTH] 
+      @                                 && calendarFieldsAreSet();
+      @         also
+      @                 requires month < 0;
+      @                 assignable_redundantly fields[MONTH], isTimeSet, 
+      @                                        areFieldsSet, isSet[MONTH];
+      @                 ensures_redundantly fields[MONTH] == JANUARY + month
+      @                                     && isSet[MONTH]
+      @                                     && calendarFieldsAreSet();
+      @         |}
+      @     |}
+      @     also
+      @         old int era = get(ERA);
+      @         requires field == ERA;
+      @         assignable_redundantly fields[ERA], isTimeSet, areFieldsSet, 
+      @                                isSet[ERA];
+      @         ensures_redundantly fields[ERA] == era && isSet[ERA]
+      @                             && calendarFieldsAreSet();
+      @     also
+      @         requires field == WEEK_OF_YEAR || field == WEEK_OF_MONTH
+      @                  || field == DAY_OF_WEEK_IN_MONTH || field == AM_PM
+      @                  || field == DATE || field == DAY_OF_YEAR 
+      @                  || field== DAY_OF_WEEK || field == HOUR_OF_DAY 
+      @                  || field == HOUR || field == MINUTE 
+      @                  || field == SECOND || field == MILLISECOND;
+      @         assignable \nothing;
+      @     also
+      @         {|
+      @             assignable_redundantly time, isTimeSet, areFieldsSet, 
+      @                                    areAllFieldsSet;
+      @             ensures getTimeInMillis() 
+      @                     == time + computeDelta(field, amount);
+      @             ensures_redundantly milliFieldsAreSet();
+      @         also
+      @             old boolean adjustDST = (field == WEEK_OF_YEAR
+      @                                      || field == WEEK_OF_MONTH
+      @                                      || field == DAY_OF_WEEK_IN_MONTH
+      @                                      || field == AM_PM
+      @                                      || field == DATE
+      @                                      || field == DAY_OF_YEAR
+      @                                      || field == DAY_OF_WEEK);
+      @             old int oldDSTOffset = get(DST_OFFSET);
+      @             requires adjustDST && computeDST(adjustDST, oldDSTOffset, 
+      @                                              get(DST_OFFSET)) != 0;
+      @             assignable_redundantly time, isTimeSet, 
+      @                                    areFieldsSet, areAllFieldsSet;
+      @             ensures getTimeInMillis() == time 
+      @                                          + computeDST(adjustDST, 
+      @                                                       oldDSTOffset, 
+      @                                                       get(DST_OFFSET));
+      @             ensures_redundantly milliFieldsAreSet();
+      @     |}
+      @ |}
+      @ also
+      @   public exceptional_behavior
+      @     requires field != WEEK_OF_YEAR || field != WEEK_OF_MONTH
+      @              || field != DAY_OF_WEEK_IN_MONTH || field != AM_PM
+      @              || field != DATE || field != DAY_OF_YEAR
+      @              || field != DAY_OF_WEEK || field != HOUR_OF_DAY
+      @              || field != HOUR || field != MINUTE || field != SECOND
+      @              || field != MILLISECOND;
+      @    assignable \nothing;
+      @    signals (IllegalArgumentException);
+      @*/
+    public void add(int field, int amount)
+	throws IllegalArgumentException;
+
+    /*@ also
+      @   public normal_behavior
+      @    requires up;
+      @    assignable fields[*];
+      @ also
+      @   public normal_behavior
+      @    requires !up;
+      @    assignable fields[*];
+      @ also
+      @  public model_program {
+      @      if (up) { roll(fld, 1); }
+      @      else { roll(fld, -1); }
+      @  }
+      @*/
+    public void roll(int fld, boolean up);
+
+    /*@ also
+      @   public normal_behavior
+      @     requires amount == 0;
+      @     assignable \nothing;
+      @ also
+      @   public normal_behavior
+      @     requires field == ERA || field == YEAR || field == AM_PM
+      @              || field == MINUTE || field == SECOND 
+      @              || field == MILLISECOND || field == DAY_OF_MONTH;
+      @     assignable \nothing;
+      @     ensures isComplete();
+      @ also
+      @   public normal_behavior
+      @     old Date start = getTime();
+      @     old int oldHour = get(field);
+      @     old int newHour = computeNewHour(field, amount, start, oldHour);
+      @     requires field == HOUR || field == HOUR_OF_DAY;
+      @     assignable time, isTimeSet, areFieldsSet, areAllFieldsSet;
+      @     ensures getTimeInMillis() == start.getTime()
+      @                                  + ONE_HOUR * (newHour - oldHour);
+      @     ensures_redundantly milliFieldsAreSet();
+      @ also
+      @   public normal_behavior
+      @     old int mon = computeMonth(amount);
+      @     old int monthLen = monthLength(mon);
+      @     old int dom = get(DAY_OF_MONTH);
+      @     {|
+      @         requires field == MONTH;
+      @         assignable fields[MONTH], fields[DAY_OF_MONTH], 
+      @                    isTimeSet, areFieldsSet, isSet[*];
+      @         ensures fields[MONTH] == mon && isSet[MONTH]
+      @                 && isSet[DAY_OF_MONTH] && calendarFieldsAreSet();
+      @     also
+      @         requires dom > monthLen;
+      @         assignable fields[DAY_OF_MONTH], isTimeSet, 
+      @                    areFieldsSet, isSet[DAY_OF_MONTH];
+      @         ensures fields[DAY_OF_MONTH] == monthLen
+      @                 && isSet[DAY_OF_MONTH] && calendarFieldsAreSet();
+      @     |}
+      @ also
+      @   public normal_behavior
+      @     old int woy = computeWoy(amount);
+      @     old int isoYear = computeIsoYear();
+      @     requires field == WEEK_OF_YEAR;
+      @     assignable fields[WEEK_OF_YEAR], fields[YEAR], isTimeSet,
+      @                areFieldsSet, isSet[*];
+      @     ensures fields[WEEK_OF_YEAR] == woy
+      @             && fields[YEAR] == isoYear && isSet[WEEK_OF_YEAR]
+      @             && isSet[YEAR] && calendarFieldsAreSet();
+      @ also
+      @   public normal_behavior
+      @     old int day_of_month = computeDayOfMonth(amount);
+      @     requires field == WEEK_OF_MONTH;
+      @     assignable fields[DAY_OF_MONTH], isTimeSet, areFieldsSet,
+      @                isSet[DAY_OF_MONTH];
+      @     ensures fields[DAY_OF_MONTH] == day_of_month
+      @             && isSet[DAY_OF_MONTH] && calendarFieldsAreSet();
+      @ also
+      @   public normal_behavior
+      @     old long oldTime = time;
+      @     old long delta = (long)(amount * ONE_DAY);
+      @     old long min2 = (long)(oldTime - (get(DAY_OF_YEAR) - 1) * ONE_DAY);
+      @     old int yearLength = yearLength();
+      @     {|
+      @         requires field == DAY_OF_YEAR;
+      @         assignable time, isTimeSet, areFieldsSet, areAllFieldsSet;
+      @         ensures getTimeInMillis() <= time + min2;
+      @         ensures_redundantly milliFieldsAreSet();
+      @     also
+      @         {|
+      @                 requires oldTime >= 0;
+      @                 assignable time;
+      @                 ensures time == (oldTime + delta - min2)
+      @                                  % (yearLength*ONE_DAY);
+      @         also
+      @                 requires oldTime < 0;
+      @                 assignable time;
+      @                 ensures time == ((oldTime + delta - min2)
+      @                                   % (yearLength*ONE_DAY))
+      @                                  + yearLength*ONE_DAY;
+      @         |}
+      @     |}
+      @ also
+      @   public normal_behavior
+      @     old long min2 = computeMin2();
+      @     old long delta = (long)(amount * ONE_DAY);
+      @     {| 
+      @         requires field == DAY_OF_WEEK;
+      @         assignable time, isTimeSet, areFieldsSet, areAllFieldsSet;
+      @         ensures getTimeInMillis() == time + min2;
+      @         ensures_redundantly milliFieldsAreSet();
+      @     also
+      @         requires time >= 0;
+      @         assignable time;
+      @         ensures time == (time + delta - min2) % ONE_WEEK;
+      @     also
+      @         requires time < 0;
+      @         assignable time;
+      @         ensures time == ((time + delta - min2) % ONE_WEEK) + ONE_WEEK;
+      @     |}
+      @ also
+      @   public normal_behavior
+      @     old long oldTime = time;
+      @     old long delta = (long)(amount * ONE_WEEK);
+      @     old int preWeeks = (int)((get(DAY_OF_MONTH) - 1) / 7);
+      @     old int postWeeks = (int)((monthLength(get(MONTH)) -
+      @                         get(DAY_OF_MONTH)) / 7);
+      @     old long min2 = (long)(oldTime - preWeeks * ONE_WEEK);
+      @     old long gap2 = (long)(ONE_WEEK * (preWeeks + postWeeks + 1));
+      @     {|
+      @         requires field == DAY_OF_WEEK_IN_MONTH;
+      @         assignable time, isTimeSet, areFieldsSet, areAllFieldsSet;
+      @         ensures getTimeInMillis() <= time + min2;
+      @         ensures_redundantly milliFieldsAreSet();
+      @     also
+      @         {|
+      @                 requires time >= 0;
+      @                 assignable time;
+      @                 ensures time == (oldTime + delta - min2) % gap2;
+      @         also
+      @                 requires time < 0;
+      @                 assignable time;
+      @                 ensures time == ((oldTime + delta - min2) % gap2)
+      @                                 + gap2;
+      @         |}
+      @     |}
+      @ also
+      @   public exceptional_behavior
+      @     requires field != ERA || field != YEAR || field != AM_PM
+      @              || field != MINUTE || field != SECOND 
+      @              || field != MILLISECOND || field != DAY_OF_MONTH 
+      @              || field != HOUR || field != HOUR_OF_DAY
+      @              || field != MONTH || field != WEEK_OF_YEAR
+      @              || field != WEEK_OF_MONTH || field != DAY_OF_YEAR 
+      @              || field != DAY_OF_WEEK || field != DAY_OF_WEEK_IN_MONTH;
+      @     assignable \nothing;
+      @     signals (IllegalArgumentException);
+      @ also
+      @   public normal_behavior
+      @     old int value = computeValue(field, amount);
+      @     assignable fields[field], isTimeSet, areFieldsSet, isSet[field];
+      @     ensures fields[field] == value && isSet[field]
+      @             && calendarFieldsAreSet();
+      @*/
+    public void roll(int field, int amount)
+	throws IllegalArgumentException;
+
+    /*@ also
+      @ public normal_behavior
+      @ requires 0 <= field && field <= MIN_VALUES.length;
+      @ assignable \nothing;
+      @ ensures \result == MIN_VALUES[field];
+      @*/
+    public /*@ pure @*/ int getMinimum(int field);
+
+    /*@ also
+      @ public normal_behavior
+      @ requires 0 <= field && field <= MAX_VALUES.length;
+      @ assignable \nothing;
+      @ ensures \result == MAX_VALUES[field];
+      @*/
+    public /*@ pure @*/ int getMaximum(int field);
+
+    /*@ also
+      @ public normal_behavior
+      @ requires 0 <= field && field <= MIN_VALUES.length;
+      @ assignable \nothing;
+      @ ensures \result == getMinimum(field);
+      @*/
+    public /*@ pure @*/ int getGreatestMinimum(int field);
+
+    /*@ also
+      @ public normal_behavior
+      @ requires 0 <= field && field <= LEAST_MAX_VALUES.length;
+      @ assignable \nothing;
+      @ ensures \result == LEAST_MAX_VALUES[field];
+      @*/
+    public /*@ pure @*/ int getLeastMaximum(int field);
+    
+    /*@ also
+      @ public normal_behavior
+      @     requires 0 <= field && field <= MIN_VALUES.length;
+      @     assignable \nothing;
+      @     ensures \result == MIN_VALUES[field];
+      @*/
+    public /*@ pure @*/ int getActualMinimum(int field);
+
+    /*@ also
+      @   public normal_behavior
+      @    requires field == DAY_OF_MONTH;
+      @    assignable \nothing;
+      @    ensures \result == monthLength(get(MONTH));
+      @ also
+      @   public normal_behavior
+      @     requires field == DAY_OF_YEAR;
+      @     assignable \nothing;
+      @     ensures \result == yearLength();
+      @ also
+      @   public normal_behavior 
+      @     requires field == WEEK_OF_YEAR
+      @              || field == WEEK_OF_MONTH
+      @              || field == DAY_OF_WEEK_IN_MONTH;
+      @     assignable \nothing;
+      @     ensures \result == super.getActualMaximum(field);
+      @ also
+      @   public normal_behavior
+      @     requires field == YEAR;
+      @     assignable \nothing;
+      @     ensures \result == computeLowGood();
+      @ also
+      @   public normal_behavior
+      @     requires field != DAY_OF_MONTH
+      @              && field != DAY_OF_YEAR
+      @              && field != WEEK_OF_YEAR
+      @              && field != WEEK_OF_MONTH
+      @              && field != DAY_OF_WEEK_IN_MONTH
+      @              && field != YEAR;
+      @     assignable \nothing;
+      @     ensures \result == getMaximum(field);
+      @*/
+    public /*@ pure @*/ int getActualMaximum(int field);
+
+    /*@  normal_behavior
+      @     requires !getTimeZone().useDaylightTime();
+      @     assignable \nothing;
+      @     ensures \result == false;
+      @ also
+      @   normal_behavior
+      @     requires getTimeZone().useDaylightTime();
+      @     assignable \nothing;
+      @     ensures \result == (get(DST_OFFSET) != 0);
+      @     ensures_redundantly isComplete();
+      @*/
+    boolean inDaylightTime();
+
+    /*@ normal_behavior
+      @     old int isoYear = get(YEAR);
+      @     assignable \nothing;
+      @     ensures \result == isoYear;
+      @     ensures_redundantly isComplete();
+      @*/
+    /*@ pure @*/ int getISOYear();
+
+    /*@ also
+      @   protected normal_behavior
+      @     old long valueForMillis = computeMillisInDay(time);
+      @     old long valueForSecond = (long)(valueForMillis / 1000);
+      @     old long valueForMinute = (long)(valueForSecond / 60);
+      @     old int[] offsets = getOffsetsForComputeFields();
+      @     assignable fields[MILLISECOND], fields[SECOND],
+      @                fields[MINUTE], fields[HOUR_OF_DAY],
+      @                fields[AM_PM], fields[HOUR],
+      @                fields[ZONE_OFFSET], fields[DST_OFFSET], 
+      @                isTimeSet, areFieldsSet, isSet[*];
+      @     ensures timeToFieldsVarsAreSet()
+      @             && fields[MILLISECOND] == valueForMillis % 1000
+      @             && fields[SECOND] == valueForSecond % 60
+      @             && fields[MINUTE] == valueForMinute % 60
+      @             && fields[HOUR_OF_DAY] == valueForMillis
+      @             && fields[AM_PM] == valueForMillis / 12
+      @             && fields[HOUR] == valueForMillis % 12
+      @             && fields[ZONE_OFFSET] == offsets[0]
+      @             && fields[DST_OFFSET] == offsets[1]
+      @             && (\forall int i; 0 <= i && i < FIELD_COUNT;
+      @                     stamp[i] == INTERNALLY_SET && isSet[i])
+      @             && isSet[MILLISECOND] && isSet[SECOND]
+      @             && isSet[MINUTE] && isSet[HOUR_OF_DAY]
+      @             && isSet[AM_PM] && isSet[HOUR]
+      @             && isSet[ZONE_OFFSET] && isSet[DST_OFFSET]
+      @             && calendarFieldsAreSet();
+      @*/
+    protected void computeFields() ;
+
+    /*@ also
+      @   protected exceptional_behavior
+      @     requires !isLenient() && !validateFields();
+      @     assignable \nothing;
+      @     signals (IllegalArgumentException);
+      @ also
+      @   protected exceptional_behavior
+      @     requires get(ERA) != BC || get(ERA) != AD;
+      @     assignable \nothing;
+      @     signals (IllegalArgumentException);
+      @ also
+      @   protected normal_behavior
+      @     old long millis = computeMillis();
+      @     old int zoneOffset = computeZoneOffset(millis);
+      @     {|
+      @         requires stamp[DST_OFFSET] < MINIMUM_USER_STAMP;
+      @         assignable time;
+      @         ensures time == millis - zoneOffset;
+      @     also
+      @         requires stamp[DST_OFFSET] >= MINIMUM_USER_STAMP;
+      @         assignable time;
+      @         ensures time == millis - zoneOffset - get(DST_OFFSET);
+      @     |}
+      @*/
+    protected void computeTime()
+	throws IllegalArgumentException;
+    
+    //------------------------------------------------------------------------
+    // Private Methods from Source Code
+    //------------------------------------------------------------------------
+    
+    /* These are private methods from the source code that need specifications
+     * so they can be accessed by multiple specifications above.
+     */
+
+    /*@ private normal_behavior
+      @     requires numerator >= 0;
+      @     assignable \nothing;
+      @     ensures \result == numerator / denominator;
+      @ also
+      @  private normal_behavior
+      @     requires numerator < 0;
+      @     assignable \nothing;
+      @     ensures \result == ((numerator + 1) / denominator) - 1;
+      @*/  
+    private /*@ spec_public pure @*/ static final
+        long floorDivide(long numerator, long denominator);
+
+    /*@ private normal_behavior
+      @     old int year = internalGet(YEAR);
+      @     {|
+      @          requires isLeapYear(year);
+      @          assignable \nothing;
+      @          ensures \result == LEAP_MONTH_LENGTH[month];
+      @     also
+      @          requires !isLeapYear(year);
+      @          assignable \nothing;
+      @          ensures \result == MONTH_LENGTH[month];
+      @     |}
+      @*/ 
+    private /*@ spec_public pure @*/ final int monthLength(int month);
+
+    /*@ private normal_behavior
+      @     requires (\forall int field; 0 <= field && field < FIELD_COUNT; 
+      @                field != DATE && field != DAY_OF_YEAR
+      @                && isSet(field)
+      @                && !boundsCheck(internalGet(field), field));
+      @     assignable \nothing;
+      @     ensures \result == false;
+      @ also
+      @  private normal_behavior
+      @     requires (\forall int field; 0 <= field && field < FIELD_COUNT; 
+      @                field == DATE || field == DAY_OF_YEAR
+      @                || !isSet(field)
+      @                || boundsCheck(internalGet(field), field));
+      @     assignable \nothing;
+      @     ensures \result == true;
+      @ also
+      @  private normal_behavior
+      @     requires stamp[DATE] >= MINIMUM_USER_STAMP
+      @              && (get(DATE) < getMinimum(DATE) 
+      @                  || get(DATE) > monthLength(get(MONTH)));
+      @     assignable \nothing;
+      @     ensures \result == false;
+      @ also
+      @  private normal_behavior
+      @     requires stamp[DATE] < MINIMUM_USER_STAMP
+      @              || (get(DATE) >= getMinimum(DATE) 
+      @                  && get(DATE) <= monthLength(get(MONTH)));
+      @     assignable \nothing;
+      @     ensures \result == true;
+      @ also
+      @  private normal_behavior
+      @     requires stamp[DAY_OF_YEAR] >= MINIMUM_USER_STAMP
+      @              && (get(DAY_OF_YEAR) < 1 
+      @                  || get(DAY_OF_YEAR) > yearLength());
+      @     assignable \nothing;
+      @     ensures \result == false;
+      @ also
+      @  private normal_behavior
+      @     requires stamp[DAY_OF_YEAR] < MINIMUM_USER_STAMP
+      @              || (get(DAY_OF_YEAR) >= 1 
+      @                  && get(DAY_OF_YEAR) <= yearLength());
+      @     assignable \nothing;
+      @     ensures \result == true;
+      @ also
+      @  private normal_behavior
+      @     requires isSet(DAY_OF_WEEK_IN_MONTH)
+      @              && 0 == internalGet(DAY_OF_WEEK_IN_MONTH);
+      @     assignable \nothing;
+      @     ensures \result == false;
+      @ also
+      @  private normal_behavior
+      @     requires !isSet(DAY_OF_WEEK_IN_MONTH)
+      @              || 0 != internalGet(DAY_OF_WEEK_IN_MONTH);
+      @     assignable \nothing;
+      @     ensures \result == true;
+      @*/
+    private /*@ spec_public pure @*/ boolean validateFields();
+    
+    /*@ private normal_behavior
+      @     assignable \nothing;
+      @     ensures \result == (getMinimum(field) <= value
+      @                         && value <= getMaximum(field));
+      @*/
+    private /*@ spec_public pure @*/ final
+        boolean boundsCheck(int value, int field);
+    
+    /*@ private normal_behavior
+      @     requires isSet(ERA);
+      @     assignable \nothing;
+      @     ensures \result == internalGet(ERA);
+      @ also
+      @  private normal_behavior
+      @     requires !isSet(ERA);
+      @     assignable \nothing;
+      @     ensures \result == AD;
+      @*/
+    private /*@ spec_public pure @*/ final int internalGetEra();
+       
+    /*@ private normal_behavior
+      @     requires isLeapYear(get(YEAR));
+      @     assignable \nothing;
+      @     ensures \result == 366;
+      @ also
+      @  private normal_behavior
+      @     requires !isLeapYear(get(YEAR));
+      @     assignable \nothing;
+      @     ensures \result == 365;
+      @*/
+    private /*@ spec_public pure @*/ final int yearLength();
+
+    static final long serialVersionUID;
+}
