@@ -92,7 +92,7 @@ public class OpenJMLInterface {
     @NonNull
     final protected IJavaProject jproject;
 
-    protected List<File> specsPath;
+    protected List<IResource> specsPath;
     
     /** The problem requestor that reports problems it is told about to the user
      * in some fashion (here via Eclipse problem markers).
@@ -110,7 +110,7 @@ public class OpenJMLInterface {
    public OpenJMLInterface(@NonNull IJavaProject pi) {
        this.jproject = pi;
        preq = new JmlProblemRequestor(pi); 
-       specsPath = Utils.getSpecsPath(pi);
+       specsPath = utils.getSpecsPath(pi);
        PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener).getConsoleStream());
        try { api = new API(w,new EclipseDiagnosticListener(preq)); }
        catch (Exception e) {} // FIXME _ add an error
@@ -743,79 +743,6 @@ public class OpenJMLInterface {
     }
 
 
-//    /** Processes the given set of compilation units, parsing them and
-//     * producing any error messages caused by bad syntax or semantics.
-//     * FIXME - no JML checking or rac or jmldoc stuff is done as yet.
-//     * 
-//     * @param icus the set of compilation units to parse, created from source files
-//     * @param monitor the IProgressMonitor on which to report progress and cancellations
-//     * @throws Exception  ??? FIXME
-//     */
-//    public void doProcessing(ICompilationUnit[] icus, IProgressMonitor monitor) throws Exception {
-//        Options options = jproject.options;
-//        if (options.verbosity > 2) Log.log(Timer.getTimeString() + " parsing...");
-//
-//        // Make working copies.  Creating a working copy also "opens"
-//        // the compilation unit, if it has not already been opened.
-//        // Opening a CU includes parsing the file sufficient to obtain
-//        // the basic Java structure of the CU - types, field and method
-//        // signatures, so that inter-CU name resolution can be performed.
-//
-//        if (options.verbosity > 2) Log.log(Timer.getTimeString() + " Read compilation units");
-//        if (monitor != null) monitor.subTask("Reading compilation units");
-//
-//        List<ICompilationUnit> workingCopyList = new ArrayList<ICompilationUnit>(icus.length);
-//        List<CUInfo> infoList = new ArrayList<CUInfo>(icus.length*2);
-//        for (ICompilationUnit icu: icus) {
-//            if (monitor != null) monitor.subTask("Reading compilation units - " + icu.getElementName());
-//            try {
-//                ICompilationUnit wcu = icu.getWorkingCopy(jproject.owner,preq,null);  // FIXME - what are we supposed to do with problem requestors?
-//                workingCopyList.add(wcu);
-//                //                CUInfo cuinfo = new CUInfo();
-//                //                cuinfo.file = (IFile)icu.getResource();
-//                //                cuinfo.original = icu;
-//                //                cuinfo.workingCopy = wcu;
-//                //                putMap(cuinfo);
-//                //                infoList.add(cuinfo);
-//            } catch (Exception e) {
-//                // FIXME - report properly
-//                Log.log("Skipping " + icu.getElementName() + " because it does not appear to exist in the file system");
-//                continue;
-//            }
-//            if (monitor != null) {
-//                monitor.worked(1);
-//                if (monitor.isCanceled()) {
-//                    // Discard all of these working copies
-//                    //          for (ICompilationUnit c: workingCopyList) {
-//                    //            c.discardWorkingCopy();
-//                    //          }
-//                    return;
-//                }
-//            }
-//        }
-//        org.eclipse.jdt.core.IJavaElement e;
-//        ICompilationUnit[] workingCopies = workingCopyList.toArray(new ICompilationUnit[workingCopyList.size()]);
-//
-//        try {
-//            List<IResource> ics = new java.util.LinkedList<IResource>();
-//            for (ICompilationUnit icu : workingCopies) {
-//                ics.add(icu.getResource());
-//            }
-//            //                executeExternalCommand(Cmd.CHECK, ics,monitor);
-//            //              List<CompilationUnit> parsedCUs = parseCUs(workingCopies,monitor);
-//            //              if (monitor != null && monitor.isCanceled()) return; // see finally block below
-//            //              getSpecs(infoList,TypeInfo.State.TYPECHECKED,monitor);
-//            //              if (monitor!=null && monitor.isCanceled()) return; // see finally block below
-//            //              typeCheck(infoList,parsedCUs,monitor);
-//        } finally {
-//            // Any cleanup - but we are not discarding the working copies
-//            // we want to keep them so that work is not repeated on subsequent
-//            // calls, and so that type and spec information is available for
-//            // querying.  However, some sort of cleanup needs to be done 
-//            // eventually, perhaps manually.  FIXME
-//        }
-//    }
-
     /** Retrieves the options from the preference page, determines the 
      * corresponding options for OPenJML and sends them.
      * @param jproject
@@ -829,15 +756,15 @@ public class OpenJMLInterface {
         Options opt = Activator.options;
         boolean verbose = opt.verbosity >= 1;
         if (opt.debug) opts.add(JmlOptionName.JMLDEBUG.optionName());
-        // FIXME if (opt.verbosity != 0)  { opts.add(JmlOptionName.JMLVERBOSE.optionName()); opts.add(Integer.toString(opt.verbosity)); }
+        //if (opt.verbosity != 0)  { opts.add(JmlOptionName.JMLVERBOSE.optionName()); } //opts.add(Integer.toString(opt.verbosity)); }
         if (opt.source != null && opt.source.length()!=0) { opts.add("-source"); opts.add(opt.source); }
         if (cmd != Cmd.JMLDOC && opt.destination != null && opt.destination.length()!=0)  { opts.add("-d"); opts.add(opt.destination); }
         if (!opt.checkPurity) opts.add(JmlOptionName.NOPURITYCHECK.optionName());
         // FIXME if (opt.parsePlus) opts.add(JmlOptionName.PARSEPLUS.optionName());
         if (opt.showNotImplemented) opts.add(JmlOptionName.SHOW_NOT_IMPLEMENTED.optionName());
         // FIXME if (opt.showNotExecutable) opts.add(JmlOptionName.SHOWNOTEXECUTABLE.optionName());
-        if (opt.noInternalSpecs) opts.add(JmlOptionName.NOINTERNALSPECS.optionName());
-        if (opt.noInternalRuntime) opts.add(JmlOptionName.NOINTERNALRUNTIME.optionName());
+        opts.add(JmlOptionName.NOINTERNALSPECS.optionName());
+        opts.add(JmlOptionName.NOINTERNALRUNTIME.optionName());
         if (!opt.checkSpecsPath) opts.add(JmlOptionName.NOCHECKSPECSPATH.optionName());
         if (opt.nonnullByDefault) opts.add(JmlOptionName.NONNULLBYDEFAULT.optionName());
         else                      opts.add(JmlOptionName.NULLABLEBYDEFAULT.optionName());
@@ -846,129 +773,162 @@ public class OpenJMLInterface {
             // jmldoc specific options
             opts.add("-private");
         }
-        List<String> cpes = utils.getClasspath(jproject);
+
+        List<IResource> files = specsPath;
         boolean first = true;
         StringBuilder ss = new StringBuilder();
+        if (files != null) { 
+            for (IResource s: files) {
+                if (first) first = false; else ss.append(java.io.File.pathSeparator);
+                ss.append(s.getLocation().toString());
+            }
+        }
+        // Now determine the location of library specs and the internal 
+        // runtime library
+        
+        if (!opt.noInternalSpecs) {
+            try {
+                boolean somethingPresent = false;
+                String versionString = System.getProperty("java.version"); // FIXME - use eclipse version?
+                int version = 6; // the current default
+                if (versionString.startsWith("1.6")) version = 6;
+                else if (versionString.startsWith("1.5")) version = 5;
+                else if (versionString.startsWith("1.4")) version = 4;
+                else if (versionString.startsWith("1.7")) version = 7;
+                else if (versionString.startsWith("1.8")) version = 8;
+                else if (versionString.startsWith("1.9")) version = 9;
+                else {
+                    Log.log("Unrecognized version: " + versionString);
+                    version = 6; // default, if the version string is in an unexpected format
+                }
+
+                String[] defspecs = new String[8]; // null entries OK
+
+                Bundle specsBundle = Platform.getBundle(Activator.SPECS_PLUGIN_ID);
+                if (specsBundle == null) {
+                    if (verbose) Log.log("No specification plugin " + Activator.SPECS_PLUGIN_ID);
+                } else {
+                    String loc = null;
+                    URL url = FileLocator.toFileURL(specsBundle.getResource(""));
+                    File root = new File(url.toURI());
+                    loc = root.toString();
+                    if (verbose) Log.log("JMLSpecs plugin found " + root + " " + root.exists());
+                    if (root.isFile()) {
+                        // Presume it is a jar or zip file
+                        JarFile j = new JarFile(root);
+                        int i = 0;
+                        for (int v = version; v >=4; --v) {
+                            JarEntry f = j.getJarEntry("java"+v);
+                            if (f != null) defspecs[i++] = loc + "!java" + v;
+                        }
+                    } else if (root.isDirectory()) {
+                        // Normal file system directory
+                        int i = 0;
+                        for (int v = version; v >=4; --v) {
+                            File f = new File(root,"java"+v);
+                            if (f.exists()) defspecs[i++] = root + "/java" + v;
+                        }
+                    } else {
+                        if (verbose) Log.log("Expected contents (javaN subdirectories) not found in specs bundle at " + root);
+                    }
+                    for (String z: defspecs) {
+                        if (z != null) {
+                            somethingPresent = true;
+                            if (verbose) Log.log("Set library specspath defaults from JMLspecs plugin");
+                            break;
+                        }
+                    }
+                }
+                if (!somethingPresent) {
+                    Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
+                    if (selfBundle == null) {
+                        if (verbose) Log.log("No self plugin");
+                    } else {
+                        URL url = FileLocator.toFileURL(selfBundle.getResource(""));
+                        if (url != null) {
+                            File root = new File(url.toURI());
+                            if (verbose) Log.log("Self bundle found " + root + " " + root.exists());
+                            int i = 0;
+                            if (root.isDirectory()) {
+                                for (int v = version; v >=4; --v) {
+                                    File f = new File(root,"../specs/java"+v);
+                                    if (f.exists()) defspecs[i++] = f.toString();
+                                }
+                            } else {
+                                JarFile j = new JarFile(root);
+                                for (int v = version; v >=4; --v) {
+                                    JarEntry f = j.getJarEntry("specs/java"+v);
+                                    if (f != null) defspecs[i++] = root + "!specs/java" + v;
+                                }
+                            }
+                            if (i > 0) somethingPresent = true;
+                        }
+                    }
+                }
+                if (!somethingPresent) Log.errorlog("No internal library specs found",null);
+                for (String z: defspecs) if (z != null) {
+                    ss.append(java.io.File.pathSeparator);
+                    ss.append(z);
+                }
+            } catch (Exception e) {
+                Log.log("Failure finding internal specs: "  + e);
+            }
+        }
+
+        if (ss.toString().length()!=0) {
+            opts.add(JmlOptionName.SPECS.optionName());
+            opts.add(ss.toString());
+        }
+        
+        // Handle the classpath and internal runtime library if needed
+       
+        List<String> cpes = utils.getClasspath(jproject);
+        first = true;
+        ss = new StringBuilder();
         for (String s: cpes) {
             //Log.log("CPE " + s );
             if (first) first = false; else ss.append(java.io.File.pathSeparator);
             ss.append(s);
         }
+
+        if (!opt.noInternalRuntime) {
+            try {
+                Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
+                if (selfBundle == null) {
+                    Log.log("No self plugin");
+                } else {
+                    URL url = FileLocator.toFileURL(selfBundle.getResource(""));
+                    if (url != null) {
+                        File root = new File(url.toURI());
+                        if (root.isDirectory()) {
+                            File f = new File(root,"../runtime");
+                            if (f.exists()) {
+                                //API.setExternalRuntime(new String[]{ f.toString() });
+                                ss.append(java.io.File.pathSeparator);
+                                ss.append(f.toString());
+                                Log.log("Internal runtime location: " + f.toString());
+                            }
+                        } else {
+                            JarFile j = new JarFile(root);
+                            JarEntry f = j.getJarEntry("runtime");
+                            if (f != null) {
+                                //API.setExternalRuntime(new String[]{ root + "!runtime"} );
+                                ss.append(java.io.File.pathSeparator);
+                                ss.append(root + "!runtime");
+                                Log.log("Internal runtime location: " + root + "!runtime");
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                Log.log("Failure finding internal runtime: "  + e);
+            }
+        }
+
         opts.add("-classpath");
         opts.add(ss.toString());
 
-        List<File> files = specsPath;
-        first = true;
-        ss = new StringBuilder();
-        if (files != null) { 
-            for (File s: files) {
-                if (first) first = false; else ss.append(java.io.File.pathSeparator);
-                ss.append(s.toString());
-            }
-        }
-        if (ss.toString().length()!=0) {
-            opts.add(JmlOptionName.SPECS.optionName());
-            opts.add(ss.toString());
-        }
-       
-        // Now determine the location of library specs and the internal 
-        // runtime library
-        
-        try {
-            boolean somethingPresent = false;
-            String versionString = System.getProperty("java.version");
-            int version = 6; // the current default
-            if (versionString.startsWith("1.6")) version = 6;
-            else if (versionString.startsWith("1.5")) version = 5;
-            else if (versionString.startsWith("1.4")) version = 4;
-            else if (versionString.startsWith("1.7")) version = 7;
-            else if (versionString.startsWith("1.8")) version = 8;
-            else if (versionString.startsWith("1.9")) version = 9;
-            else {
-                Log.log("Unrecognized version: " + versionString);
-                version = 6; // default, if the version string is in an unexpected format
-            }
-
-            String[] defspecs = new String[8]; // null entries OK
-
-            Bundle specsBundle = Platform.getBundle(Activator.SPECS_PLUGIN_ID);
-            if (specsBundle == null) {
-                Log.log("No specification plugin " + Activator.SPECS_PLUGIN_ID);
-            } else {
-                String loc = null;
-                URL url = FileLocator.toFileURL(specsBundle.getResource(""));
-                File root = new File(url.toURI());
-                loc = root.toString();
-                Log.log("JMLSpecs plugin found " + root + " " + root.exists());
-                if (root.isFile()) {
-                    // Presume it is a jar or zip file
-                    JarFile j = new JarFile(root);
-                    int i = 0;
-                    for (int v = version; v >=4; --v) {
-                        JarEntry f = j.getJarEntry("java"+v);
-                        if (f != null) defspecs[i++] = loc + "!java" + v;
-                    }
-                } else if (root.isDirectory()) {
-                    // Normal file system directory
-                    int i = 0;
-                    for (int v = version; v >=4; --v) {
-                        File f = new File(root,"java"+v);
-                        if (f.exists()) defspecs[i++] = root + "/java" + v;
-                    }
-                } else {
-                    Log.log("Expected contents (javaN subdirectories) not found in specs bundle at " + root);
-                }
-                for (String z: defspecs) if (z != null) somethingPresent = true;
-                if (somethingPresent) {
-                    API.setLibrarySpecsPath(defspecs);
-                    Log.log("Set library specspath defaults from JMLspecs plugin");
-                }
-            }
-            Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
-            if (selfBundle == null) {
-                Log.log("No self plugin");
-            } else {
-                URL url = FileLocator.toFileURL(selfBundle.getResource(""));
-                if (url != null) {
-                    File root = new File(url.toURI());
-                    if (verbose) Log.log("JMLSpecs folders found " + root + " " + root.exists());
-                    if (root.isDirectory()) {
-                        int i = 0;
-                        for (int v = version; v >=4; --v) {
-                            File f = new File(root,"../specs/java"+v);
-                            if (f.exists()) defspecs[i++] = f.toString();
-                        }
-                    } else {
-                        JarFile j = new JarFile(root);
-                        int i = 0;
-                        for (int v = version; v >=4; --v) {
-                            JarEntry f = j.getJarEntry("specs/java"+v);
-                            if (f != null) defspecs[i++] = root + "!specs/java" + v;
-                        }
-                    }
-                    
-                    if (root.isDirectory()) {
-                        File f = new File(root,"../runtime");
-                        if (f.exists()) {
-                            API.setExternalRuntime(new String[]{ f.toString() });
-                            Log.log("Internal runtime location: " + f.toString());
-                        }
-                    } else {
-                        JarFile j = new JarFile(root);
-                        JarEntry f = j.getJarEntry("runtime");
-                        if (f != null) {
-                            API.setExternalRuntime(new String[]{ root + "!runtime"} );
-                            Log.log("Internal runtime location: " + root + "!runtime");
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            Log.log("Failure finding specs: "  + e);
-        }
-
         // FIXME - what about these options
-        // specsProjectName
         // roots, nojml, nojavacompiler
         // trace subexpressions counterexample
         // specs , classpath , sourcepath, stopiferrors

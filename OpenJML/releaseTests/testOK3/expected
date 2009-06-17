@@ -1,10 +1,10 @@
+Using internal runtime openjml.jar
 Java version 6
 Using internal specs openjml.jar!specs16
 specspath: . openjml.jar!specs16
 sourcepath: null
-classpath: null
+classpath: openjml.jar
 java.class.path: openjml.jar
-Using internal runtime openjml.jar
 parsing /home/projects/OpenJML/trunk/OpenJML/temp/B.java
 entering B.java
   completed entering B.java
@@ -269,40 +269,96 @@ entering (binary) java.lang.Character.UnicodeBlock
 entering (binary) java.lang.Character.CharacterCache
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/net/URISyntaxException.jml
 entering (binary) java.net.URISyntaxException
+typechecking java.lang.System
+typechecking java.lang.Class
+typechecking java.lang.String
+typechecking java.lang.CharSequence
+typechecked java.lang.CharSequence
+typechecking java.util.Locale
+typechecked java.util.Locale
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Boolean.jml
+entering (binary) java.lang.Boolean
+typechecking java.lang.Boolean
+typechecked java.lang.Boolean
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Integer.jml
 entering (binary) java.lang.Integer
 entering (binary) java.lang.Integer.IntegerCache
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NumberFormatException.jml
 entering (binary) java.lang.NumberFormatException
+typechecking java.lang.Integer
+typechecking java.lang.Number
+typechecked java.lang.Number
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Long.jml
+entering (binary) java.lang.Long
+entering (binary) java.lang.Long.LongCache
+typechecking java.lang.Long
+typechecked java.lang.Long
+typechecked java.lang.Integer
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Float.jml
+entering (binary) java.lang.Float
+typechecking java.lang.Float
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Double.jml
+entering (binary) java.lang.Double
+typechecking java.lang.Double
+typechecked java.lang.Double
+typechecked java.lang.Float
+typechecking java.lang.Character
+typechecked java.lang.Character
+typechecked java.lang.String
+typechecked java.lang.Class
+typechecking java.util.Hashtable
+typechecking java.util.Dictionary
+typechecked java.util.Dictionary
+typechecking java.util.Map
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ClassCastException.jml
+entering (binary) java.lang.ClassCastException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/UnsupportedOperationException.jml
+entering (binary) java.lang.UnsupportedOperationException
+typechecking java.util.Set
+typechecking java.util.Collection
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Arrays.jml
+entering (binary) java.util.Arrays
+entering (binary) java.util.Arrays.ArrayList
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/List.jml
+entering (binary) java.util.List
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/ListIterator.jml
+entering (binary) java.util.ListIterator
+typechecking java.util.Arrays
+typechecking java.lang.Comparable
+typechecked java.lang.Comparable
+typechecking java.util.Comparator
+typechecked java.util.Comparator
+typechecked java.util.Arrays
+typechecking java.util.Collection.Content
+typechecked java.util.Collection.Content
+typechecked java.util.Collection
+typechecked java.util.Set
+typechecked java.util.Map
+typechecked java.util.Hashtable
+typechecking java.util.Properties
+No specs for org.jmlspecs.annotations.SpecPublic
+typechecked java.util.Properties
+typechecked java.lang.System
 typechecked java.lang.Object
 typechecked B
 typechecking java.lang.reflect.Array
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Byte.jml
 entering (binary) java.lang.Byte
 entering (binary) java.lang.Byte.ByteCache
+typechecking java.lang.Byte
+typechecked java.lang.Byte
 typechecked java.lang.reflect.Array
-typechecking java.lang.Class
-typechecked java.lang.Class
 No specs for Bound
 typechecking java.lang.CloneNotSupportedException
 typechecking java.lang.Exception
 typechecking java.lang.Throwable
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/IllegalStateException.jml
 entering (binary) java.lang.IllegalStateException
+typechecking java.lang.StackTraceElement
+typechecked java.lang.StackTraceElement
 typechecked java.lang.Throwable
 typechecked java.lang.Exception
 typechecked java.lang.CloneNotSupportedException
-typechecking java.lang.String
-parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Boolean.jml
-entering (binary) java.lang.Boolean
-parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Long.jml
-entering (binary) java.lang.Long
-entering (binary) java.lang.Long.LongCache
-parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Float.jml
-entering (binary) java.lang.Float
-parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Double.jml
-entering (binary) java.lang.Double
-typechecked java.lang.String
 typechecking java.lang.InterruptedException
 typechecked java.lang.InterruptedException
 typechecking org.jmlspecs.lang.JMLDataGroup
@@ -356,22 +412,12 @@ typechecking java.io.PrintWriter
 typechecking java.io.Writer
 typechecked java.io.Writer
 typechecked java.io.PrintWriter
-typechecking java.lang.StackTraceElement
-typechecked java.lang.StackTraceElement
-typechecking java.lang.CharSequence
-typechecked java.lang.CharSequence
 typechecking java.io.UnsupportedEncodingException
 typechecking java.io.IOException
 typechecked java.io.IOException
 typechecked java.io.UnsupportedEncodingException
-typechecking java.util.Locale
-typechecked java.util.Locale
 typechecking java.util.regex.Pattern
 typechecked java.util.regex.Pattern
-typechecking java.util.Comparator
-typechecked java.util.Comparator
-typechecking java.lang.Comparable
-typechecked java.lang.Comparable
 typechecking java.lang.NullPointerException
 typechecked java.lang.NullPointerException
 typechecking java.lang.StringIndexOutOfBoundsException
@@ -379,51 +425,29 @@ typechecked java.lang.StringIndexOutOfBoundsException
 typechecking java.lang.StringBuffer
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Math.jml
 entering (binary) java.lang.Math
+typechecking java.lang.Math
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StrictMath.jml
+entering (binary) java.lang.StrictMath
+typechecking java.lang.StrictMath
+typechecked java.lang.StrictMath
+typechecked java.lang.Math
 typechecked java.lang.StringBuffer
 typechecking java.lang.Cloneable
 typechecked java.lang.Cloneable
 typechecking java.lang.reflect.InvocationTargetException
 typechecked java.lang.reflect.InvocationTargetException
 typechecking java.math.BigInteger
-typechecking java.lang.Number
-typechecked java.lang.Number
 typechecked java.math.BigInteger
 typechecking java.util.MissingResourceException
 typechecked java.util.MissingResourceException
 typechecking java.util.regex.Matcher
 typechecked java.util.regex.Matcher
-typechecking java.util.Properties
-typechecking java.util.Hashtable
-typechecking java.util.Dictionary
-typechecked java.util.Dictionary
-typechecked java.util.Hashtable
-No specs for org.jmlspecs.annotations.SpecPublic
-typechecked java.util.Properties
 typechecking java.lang.SecurityManager
 typechecked java.lang.SecurityManager
 typechecking java.util.Enumeration
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/NoSuchElementException.jml
 entering (binary) java.util.NoSuchElementException
 typechecked java.util.Enumeration
-typechecking java.util.Map
-parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ClassCastException.jml
-entering (binary) java.lang.ClassCastException
-parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/UnsupportedOperationException.jml
-entering (binary) java.lang.UnsupportedOperationException
-typechecked java.util.Map
-typechecking java.util.Set
-typechecked java.util.Set
-typechecking java.util.Collection
-parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Arrays.jml
-entering (binary) java.util.Arrays
-entering (binary) java.util.Arrays.ArrayList
-parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/List.jml
-entering (binary) java.util.List
-parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/ListIterator.jml
-entering (binary) java.util.ListIterator
-typechecking java.util.Collection.Content
-typechecked java.util.Collection.Content
-typechecked java.util.Collection
 typechecking java.io.File
 typechecked java.io.File
 typechecking java.util.Iterator
@@ -440,28 +464,10 @@ typechecking java.io.FileFilter
 typechecked java.io.FileFilter
 typechecking java.io.FilenameFilter
 typechecked java.io.FilenameFilter
-typechecking java.lang.Character
-typechecked java.lang.Character
 typechecking java.net.URISyntaxException
 typechecked java.net.URISyntaxException
-typechecking java.lang.Integer
-typechecked java.lang.Integer
 typechecking java.lang.NumberFormatException
 typechecked java.lang.NumberFormatException
-typechecking java.lang.Byte
-typechecked java.lang.Byte
-typechecking java.lang.IllegalStateException
-typechecked java.lang.IllegalStateException
-typechecking java.lang.Boolean
-typechecked java.lang.Boolean
-typechecking java.lang.Long
-typechecked java.lang.Long
-typechecking java.lang.Float
-typechecked java.lang.Float
-typechecking java.lang.Double
-typechecked java.lang.Double
-typechecking java.lang.Short
-typechecked java.lang.Short
 typechecking java.lang.UnsupportedOperationException
 typechecked java.lang.UnsupportedOperationException
 typechecking java.lang.ClassCastException
@@ -470,3 +476,7 @@ typechecking java.util.List
 typechecked java.util.List
 typechecking java.util.ListIterator
 typechecked java.util.ListIterator
+typechecking java.lang.IllegalStateException
+typechecked java.lang.IllegalStateException
+typechecking java.lang.Short
+typechecked java.lang.Short

@@ -112,7 +112,7 @@ public class Env {
   // Some hard-coded strings
   
   /** The default name of the specs project */
-  final static public String defaultSpecsProjectName = "specsProject";
+  final static public String defaultSpecsProjectName = "specsProject";  // FIXME - delete this
   
   /** The fixed name of the folder that holds all the source folders for the specs path items. */
   final static public String specsContainerName = "specspath";

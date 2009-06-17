@@ -1805,6 +1805,7 @@ public class Attr extends JCTree.Visitor {
             // If symbol is a local variable accessed from an embedded
             // inner class check that it is final.
             if (v.owner.kind == MTH &&
+                    v.owner.enclClass() != env.info.scope.owner.enclClass() && // DRC added so that variables used in initializers (e.g. in old clauses) do not have to be final
                 v.owner != env.info.scope.owner &&
                 (v.flags_field & FINAL) == 0) {
                 log.error(tree.pos(),

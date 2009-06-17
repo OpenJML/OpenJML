@@ -2,8 +2,11 @@ package com.sun.tools.javac.comp;
 
 import static com.sun.tools.javac.code.TypeTags.FORALL;
 
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ForAll;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Warner;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -56,6 +59,8 @@ public class JmlCheck extends Check {
     
     boolean isInJml = false;
     
+    public boolean staticOldEnv = false;
+    
     public boolean setInJml(Boolean inJml) {
         boolean b = isInJml;
         isInJml = inJml;
@@ -83,5 +88,12 @@ public class JmlCheck extends Check {
                              found, req);
         }
     }
-
+    
+    @Override
+    long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
+        if (staticOldEnv) flags &= ~Flags.STATIC;
+        long k = super.checkFlags(pos,flags,sym,tree);
+        if (staticOldEnv) { flags |= Flags.STATIC; k |= Flags.STATIC; }
+        return k;
+    }
 }

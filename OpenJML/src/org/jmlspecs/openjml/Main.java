@@ -322,6 +322,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     @Override
     public int compile(String[] args, Context context) {
         this.context = context;
+        setOptions(Options.instance(context)); // Make sure that the parent class's cached options are consistent
         int exit = 0;
         if (args.length == 0) {
             register(context);
@@ -337,19 +338,6 @@ public class Main extends com.sun.tools.javac.main.Main {
                 helpJML();
             }
         }
-//        JmlSpecs specs = JmlSpecs.instance(context); // This is just for debugging
-//        specs.printDatabase();
-//        {
-//            Log.instance(context).noticeWriter.println("OUTPUT: " + ((JmlCompiler)JmlCompiler.instance(context)).counter.classes + " classes");
-//            java.util.Iterator<java.util.Map.Entry<String,Integer>> iter =
-//                ((JmlCompiler)JmlCompiler.instance(context)).counter.iterator();
-//            for (int i = 0; i< 100 && iter.hasNext(); i++) {
-//                java.util.Map.Entry<String,Integer> e = iter.next();
-//                Log.instance(context).noticeWriter.println(e.getValue() + " : " + e.getKey());
-//            }
-//            
-//        }
-
         return exit;
     }
         
@@ -462,12 +450,6 @@ public class Main extends com.sun.tools.javac.main.Main {
             options.put(JmlOptionName.PROGRESS.optionName(),"");
         }
         
-        JmlSpecs.instance(context).initializeSpecsPath();
-        
-        if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALRUNTIME)) {
-            JmlSpecs.instance(context).appendRuntime();
-        }
-        
         if (options.get(JmlOptionName.JMLVERBOSE.optionName()) != null) {
             // ??? FIXME Utils.jmlverbose = true;
             options.put(JmlOptionName.PROGRESS.optionName(),"");
@@ -476,6 +458,13 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (options.get(JmlOptionName.PROGRESS.optionName()) != null) {
             if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
         }
+        
+        if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALRUNTIME)) {
+            JmlSpecs.instance(context).appendRuntime();
+        }
+        
+        JmlSpecs.instance(context).initializeSpecsPath();
+
         String cmd = options.get(JmlOptionName.COMMAND.optionName());
         utils.rac = "rac".equals(cmd) || (cmd == null && options.get(JmlOptionName.RAC.optionName()) != null);
         utils.esc = "esc".equals(cmd) || (cmd == null && options.get(JmlOptionName.ESC.optionName()) != null);

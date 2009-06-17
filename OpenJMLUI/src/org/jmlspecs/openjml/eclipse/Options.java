@@ -63,12 +63,6 @@ public class Options {
 
     // Options relating to JML
 
-    /** The name of the automatically created container for holding
-     * links to the items of the specification path within the Eclipse
-     * workspace.
-     */
-    public String specsProjectName;
-
     /** If true, then annotations beginning with +@ are processed as well
      * as those beginning with @ or -@.
      */
@@ -109,11 +103,10 @@ public class Options {
         debug = false;
         verbosity = 2;
 
-        classpath = System.getProperty("java.classpath","");
+        classpath = System.getProperty("java.classpath","");  // Is this the right default FIXME
         destination = "";
         source = "1.5";
 
-        specsProjectName = Env.defaultSpecsProjectName; // FIXME - do we use this?
         parsePlus = false;
         checkPurity = false;
         nonnullByDefault = true;

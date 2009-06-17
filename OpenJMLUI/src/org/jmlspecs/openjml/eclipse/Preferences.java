@@ -99,10 +99,6 @@ implements IWorkbenchPreferencePage {
 //    public AbstractPreference.StringOption classpath = 
 //      new AbstractPreference.StringOption(classpathKey,defaultOptions.classpath,"classpath","Classpath as used by Java");
 
-    /** The object controlling the preference store entry for the specsProjectName option. */
-    public AbstractPreference.StringOption specsProjectName = 
-      new AbstractPreference.StringOption(specsProjectNameKey,defaultOptions.specsProjectName,"Specs Project Name","Name of the container containing links to specification path folders and jar files");
-
     /** The object controlling the preference store entry for the parsePlus option. */
     public AbstractPreference.BooleanOption parsePlus = 
       new AbstractPreference.BooleanOption(parsePlusKey,defaultOptions.parsePlus,"Parse /*+@ comments","When on, comments beginning with +@ are JML comments, as well as those beginning with @");
@@ -149,7 +145,6 @@ implements IWorkbenchPreferencePage {
     options.source = poptions.source.getValue();
     options.destination = poptions.destination.getValue();
 //    options.classpath = poptions.classpath.getValue();
-    options.specsProjectName = poptions.specsProjectName.getValue();
     options.parsePlus = poptions.parsePlus.getValue();
     options.checkPurity = poptions.checkPurity.getValue();
     options.nonnullByDefault = poptions.nonnullByDefault.getValue();
@@ -185,8 +180,6 @@ implements IWorkbenchPreferencePage {
    * An array of the JML option widgets.
    */
   static final private PreferenceWidget[] jmlOptions = {
-    new PreferenceWidget.StringWidget(poptions.specsProjectName),
-    //new PreferenceWidget.StringWidget(poptions.specspath),
     new PreferenceWidget.BooleanWidget(poptions.parsePlus),
     new PreferenceWidget.BooleanWidget(poptions.checkPurity),
     new PreferenceWidget.BooleanWidget(poptions.nonnullByDefault),

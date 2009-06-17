@@ -401,25 +401,25 @@ public class Utils {
                 for (int i=0; i<suffixes.length; i++) fullnames[i] = name + suffixes[i];
                 String pname = t.getPackageFragment().getElementName();
                 pname = pname.replace('.','/');
-                List<File> roots = getInterface(t.getJavaProject()).specsPath;
-                File firstEditableLocation = null;
-                File match = null;
+                List<IResource> roots = getInterface(t.getJavaProject()).specsPath;
+                IFolder firstEditableLocation = null;
+                IFile match = null;
                 ZipFile jarfile = null;
                 ZipEntry jarentry = null;
-                outer: for (File f: roots) {
-                    if (f.isDirectory()) {
-                        File ff = new File(f,pname);
-                        if (!ff.exists()) continue;
-                        if (firstEditableLocation == null) firstEditableLocation = ff;
+                outer: for (IResource f: roots) {
+                    if (f instanceof IFolder) {
+                        IResource ff = ((IFolder)f).findMember(pname);
+                        if (ff == null || !ff.exists() || !(ff instanceof IFolder)) continue;
+                        if (firstEditableLocation == null) firstEditableLocation = (IFolder)ff;
                         for (String n: fullnames) {
-                            File fff = new File(ff,n);
-                            if (fff.exists()) { 
-                                match = fff; 
+                            IResource fff = ((IFolder)ff).findMember(n);
+                            if (fff != null && fff.exists() && fff instanceof IFile) { 
+                                match = (IFile)fff; 
                                 break outer; 
                             }
                         }
                     } else { // Jar file
-                        ZipFile jf = new ZipFile(f);
+                        ZipFile jf = new ZipFile(f.getLocation().toString());
                         ZipEntry je = jf.getEntry(pname);
                         if (je != null) {
                             for (String n: fullnames) {
@@ -435,32 +435,30 @@ public class Utils {
                 }
                 something = true;
                 if (match != null) {
-                    IFile f = root.getFileForLocation(new Path(match.toString()));
-                    launchJavaEditor(f);
+                    launchJavaEditor(match);
                 } else if (jarentry != null) {
                     InputStream is = jarfile.getInputStream(jarentry);
                     int size = (int)jarentry.getSize();
                     byte[] bytes = new byte[size];
                     is.read(bytes,0,size);
                     String s = new String(bytes);
-                    showMessage(shell,"JML - Spec Editor","Specification file for " + t.getFullyQualifiedName() + " in " + jarfile.getName() + " is not editable");
+                    showMessage(shell,"JML - Spec Editor","Specification file for " + t.getFullyQualifiedName() + " in " + jarfile.getName() + " is read-only");
                     String nm = jarentry.getName();
                     int k = nm.lastIndexOf('/');
                     if (k >= 0) nm = nm.substring(k+1);
                     launchJavaEditor(s,nm);
                 } else if (firstEditableLocation != null) {
-                    File f = new File(firstEditableLocation,name + ".jml");
-                    Log.log("Creating " + f);
+                    IFile newfile = firstEditableLocation.getFile(name + ".jml");
+                    Log.log("Creating " + newfile);
                     // FIXME - add default content
                     // FIXME - be able to decline to create, or to choose location
                     boolean b = MessageDialog.openConfirm(
-                            shell,"JML - Specs Editor","Creating " + f);
+                            shell,"JML - Specs Editor","Creating " + newfile);
                     if (b) {
-                        PrintWriter w = new PrintWriter(new FileWriter(f));
+                        PrintWriter w = new PrintWriter(new FileWriter(newfile.getLocation().toString()));
                         generateDefaultSpecs(w,t);
-                        IFile ifile = root.getFileForLocation(new Path(f.toString()));
-                        ifile.refreshLocal(IResource.DEPTH_ZERO,null);
-                        launchJavaEditor(ifile);
+                        newfile.refreshLocal(IResource.DEPTH_ZERO,null);
+                        launchJavaEditor(newfile);
                     }
 
                 } else {
@@ -494,11 +492,11 @@ public class Utils {
         } catch (JavaModelException e) {
             w.println("<Error in generating default content>");
         }
+        w.close();
+        ww.println("package " + t.getPackageFragment().getElementName() + ";");
         for (String s: imports) {
             ww.println("import " + s + ";");
         }
-        w.close();
-        ww.println("package " + t.getPackageFragment().getElementName() + ";");
         ww.println();
         ww.println(sw.toString());
         ww.close();
@@ -529,38 +527,38 @@ public class Utils {
         }
         w.println(" {");
         w.println();
-        w.println("  //@ requires true;");
-        w.println("  //@ ensures true;");
-        w.println("  //@ static_initalizer;");
-        w.println();
-        w.println("  //@ requires true;");
-        w.println("  //@ ensures true;");
-        w.println("  //@ initalizer;");
-        
-        for (IMethod m : t.getMethods()) {
-            w.println();
-            w.print("    ");
-            // FIXME - annotations
-            w.print(Flags.toString(m.getFlags()));
-            w.print(" ");
-            w.print(m.getReturnType());
-            w.print(" ");
-            w.print(m.getElementName());
-            w.print("(");
-            boolean isFirst2 = true;
-            String[] pn = m.getParameterNames();
-            String[] pt = m.getParameterTypes();
-            for (int i=0; i<pn.length; i++) {
-                if (isFirst2) isFirst2 = false; else w.print(", ");
-                // FIXME _ modifierse
-                w.print(pt[i]);
-                w.print(" ");
-                w.print(pn[i]);
-            }
-            w.print(")");
-            // FIXME - exceptions
-            w.print(";");
-        }
+//        w.println("  //@ requires true;");
+//        w.println("  //@ ensures true;");
+//        w.println("  //@ static_initalizer;");
+//        w.println();
+//        w.println("  //@ requires true;");
+//        w.println("  //@ ensures true;");
+//        w.println("  //@ initalizer;");
+//        
+//        for (IMethod m : t.getMethods()) {
+//            w.println();
+//            w.print("    ");
+//            // FIXME - annotations
+//            w.print(Flags.toString(m.getFlags()));
+//            w.print(" ");
+//            w.print(m.getReturnType());
+//            w.print(" ");
+//            w.print(m.getElementName());
+//            w.print("(");
+//            boolean isFirst2 = true;
+//            String[] pn = m.getParameterNames();
+//            String[] pt = m.getParameterTypes();
+//            for (int i=0; i<pn.length; i++) {
+//                if (isFirst2) isFirst2 = false; else w.print(", ");
+//                // FIXME _ modifierse
+//                w.print(pt[i]);
+//                w.print(" ");
+//                w.print(pn[i]);
+//            }
+//            w.print(")");
+//            // FIXME - exceptions
+//            w.print(";");
+//        }
         w.println();
         w.println("}");
     }
@@ -915,20 +913,20 @@ public class Utils {
         String notadded = "";
         boolean added = false;
         for (Object r: list) {
-            File f;
+            IResource f;
             if (r instanceof IJavaProject || r instanceof IProject) continue;
             if (r instanceof IPackageFragmentRoot) {
                 IPackageFragmentRoot pfr = (IPackageFragmentRoot)r;
-                f = pfr.getPath().toFile();
+                f = (IResource)pfr;
             } else if (r instanceof IFile && "jar".equals(((IFile)r).getFileExtension())) {
-                f = ((IFile)r).getLocation().toFile();
+                f = (IFile)r;
             } else if (!(r instanceof IFolder)) {
                 notadded = notadded + ((IResource)r).getName() + " " ;
                 continue;
             } else {
-                f = ((IFolder)r).getLocation().toFile();
+                f = (IFolder)r;
             }
-            List<File> specsPath = getInterface(jp).specsPath;
+            List<IResource> specsPath = getInterface(jp).specsPath;
             if (specsPath.contains(f)) {
                 showMessage(shell,"JML - Add to Specs Path","The specs path for " + jp.getElementName() + " already contains " + f);
             } else {
@@ -959,19 +957,19 @@ public class Utils {
         }
         IJavaProject jp = projects.iterator().next();
         List<Object> list = getSelectedElements(selection,window,shell);
-        List<File> specsPath = getInterface(jp).specsPath;
+        List<IResource> specsPath = getInterface(jp).specsPath;
         String notremoved = "";
         for (Object r: list) {
-            File f; String n;
+            IResource f; String n;
             if (r instanceof IProject || r instanceof IJavaProject) continue;
             if (r instanceof IPackageFragmentRoot) {
-                f =((IPackageFragmentRoot)r).getPath().toFile();
+                f = (IResource)r;
                 n = ((IPackageFragmentRoot)r).getElementName();
             } else if (r instanceof IFile && "jar".equals(((IFile)r).getFileExtension())) {
-                f = ((IFile)r).getLocation().toFile();
+                f = (IFile)r;
                 n = ((IFile)r).getName();
             } else if (r instanceof IFolder) {
-                f = ((IFolder)r).getLocation().toFile();
+                f = (IFolder)r;
                 n = ((IFolder)r).getName();
             } else continue;
             if (!specsPath.remove(f)) notremoved = notremoved + n + " ";
@@ -987,14 +985,21 @@ public class Utils {
         Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
         if (projects.size() == 0)  projects = getSelectedProjects(true,selection,window,shell);
         for (IJavaProject jp: projects) {
-            List<File> list = getInterface(jp).specsPath;
-            StringBuilder ss = new StringBuilder();
-            for (File s: list) { ss.append(s.toString()); ss.append("\n"); }
-            if (!Activator.options.noInternalSpecs) ss.append("<Using internal JML library specs>\n");
-            ss.append("----------------\n");
-            List<String> pdirs = getInterface(jp).getSpecsPath();
-            for (String s: pdirs) { ss.append(s); ss.append("\n"); }
-            showMessage(shell,"JML Specs path for project " + jp.getElementName(), ss.toString());
+            List<IResource> list = getInterface(jp).specsPath;
+//            StringBuilder ss = new StringBuilder();
+//            for (IFile s: list) { ss.append(s.toString()); ss.append("\n"); }
+//            if (!Activator.options.noInternalSpecs) ss.append("<Using internal JML library specs>\n");
+//            ss.append("----------------\n");
+//            List<String> pdirs = getInterface(jp).getSpecsPath();
+//            for (String s: pdirs) { ss.append(s); ss.append("\n"); }
+            //showMessage(shell,"JML Specs path for project " + jp.getElementName(), ss.toString());
+            Dialog d = new SpecsPathEditor(shell,jp,list);
+            d.open();
+            if (d.getReturnCode() == Dialog.OK) {
+                // Save the altered items to persistent storage
+                putSpecsPath(jp,list);
+                Preferences.poptions.noInternalSpecs.setValue(Activator.options.noInternalSpecs);
+            }
         }
     }
 
@@ -1331,30 +1336,49 @@ public class Utils {
     
     public final static QualifiedName SPECSPATH_ID = new QualifiedName(Activator.PLUGIN_ID,"specspath");
     
-    static public List<File> getSpecsPath(IJavaProject jp) {
+    static public List<IResource> getSpecsPath(IJavaProject jp) {
         try {
             String s = jp.getProject().getPersistentProperty(SPECSPATH_ID);
+            //Log.log("RETRIEVED SPECSPATH: " + s);
             if (s == null) s = "";
             String[] names = s.split(",");
-            List<File> files = new ArrayList<File>(names.length);
+            List<IResource> files = new ArrayList<IResource>(names.length);
             for (String n: names) {
-                if (n.length() > 0) files.add(new File(n));
+                if (n.length() > 0) {
+                    Path p = new Path(n);
+                    // We try a bunch of things, in order to do out best to read the
+                    // format of what is stored.  Ideally it is the 
+                    // toPortableString form of an IPath
+                    IResource f = ResourcesPlugin.getWorkspace().getRoot().findMember(p);
+                    if (f == null) f = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(p);
+                    if (f == null) f = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(p);
+                    p = new Path("C:"+n);
+                    if (f == null) f = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(p);
+                    if (f == null) f = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(p);
+                    if (f != null) {
+                        //Log.log("  IFILE " + f + " " + f.getFullPath() + " " + f.getFullPath().toPortableString());
+                        files.add(f);
+                    } else {
+                        Log.log("No such location in the workspace (ignoring): " + n);
+                    }
+                }
             }
             return files;
         } catch (CoreException e) {
             Log.log("CoreException happened: " + e);
-            return new ArrayList<File>();
+            return new ArrayList<IResource>();
         }
     }
 
-    static public void putSpecsPath(IJavaProject jp, List<File> files) {
+    static public void putSpecsPath(IJavaProject jp, List<IResource> files) {
         StringBuilder s = new StringBuilder();
         boolean isFirst = true;
-        for (File n: files) {
-            if (isFirst) isFirst = false; s.append(",");
-            s.append(n.toString());
+        for (IResource n: files) {
+            if (isFirst) isFirst = false; else s.append(",");
+            s.append(n.getFullPath().toPortableString());
         }
         try {
+            //Log.log("SAVED SPECSPATH: " + s.toString());
             jp.getProject().setPersistentProperty(SPECSPATH_ID,s.toString());
         } catch (CoreException e) {
             Log.log("CoreException happened: " + e);
