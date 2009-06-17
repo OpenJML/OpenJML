@@ -5,7 +5,7 @@ export TESTLOC=../releaseTests
 export CMD=$2
 
 echo TESTING ${TESTNAME}
-${CMD} | tr -d '\r' > ${TESTLOC}/${TESTNAME}/actual
+${CMD} | grep -v "Note: " | tr -d '\r' > ${TESTLOC}/${TESTNAME}/actual
 RES=1
 diff ${TESTLOC}/${TESTNAME}/actual ${TESTLOC}/${TESTNAME}/expected && echo ${TESTNAME} OK && RES=0 && rm -f ${TESTLOC}/${TESTNAME}/actual
 

@@ -2,12 +2,10 @@ package tests;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-import org.junit.Test;
-
-import com.sun.tools.javac.util.Options;
-
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
+
+import org.junit.Test;
 
 
 public class compiler extends TestCase {
@@ -22,8 +20,7 @@ public class compiler extends TestCase {
     boolean capture = true;
     
     protected void setUp() throws Exception {
-        //capture = false;
-        //print = true;
+        //capture = false; print = true;
         super.setUp();
         savederr = System.err;
         savedout = System.out;
@@ -32,6 +29,7 @@ public class compiler extends TestCase {
     }
     
     protected void tearDown() {
+        // Do this just in case the test fails without having reset the streams
         berr = null;
         bout = null;
         System.setErr(savederr);
@@ -45,7 +43,8 @@ public class compiler extends TestCase {
      *      2=command-line problems, 3=system errors, 4=abort)
      * @param all whether the expected output is all of (0) or just the prefix
      *      of (1) or a part of (2) the actual output
-     * @param output the expected output as one string
+     * @param output the expected output as one string; if there are two Strings,
+     * then they are the expected error and standard output 
      */
     public void helper(String[] args, int exitcode, int all, String ... output) {
         int e = org.jmlspecs.openjml.Main.execute(args);
@@ -53,6 +52,7 @@ public class compiler extends TestCase {
         System.out.flush();
         System.setErr(savederr);
         System.setOut(savedout);
+        if (berr == null) return;
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualOutput = berr.toString();
         //if (output.length <= 1 && actualOutput.length() == 0) actualOutput = bout.toString();
@@ -87,12 +87,15 @@ public class compiler extends TestCase {
         }
     }
 
+    /** Tests a null argument for the args */
     @Test
     public void testTopLevelCompiler() throws Exception {
         String failureMessage = "error: The main entry point org.jmlspecs.openjml.Main.main was called with a null argument" + eol;
         helper(null,2,-1,failureMessage);
     }
     
+    /** Test with no arguments at all (empty array for args), which should
+     * produce the help message. */
     @Test
     public void testNoArgs() throws Exception {
         String failureMessage = "Usage: jml <options> <source files>" + eol +
@@ -100,6 +103,7 @@ public class compiler extends TestCase {
         helper(new String[]{},2,1,"",failureMessage);
     }
     
+    /** Tests an unknown option */
     @Test
     public void testBadOption() throws Exception {
         String failureMessage = "openjml: invalid flag: -ZZZ" + eol +
@@ -129,6 +133,7 @@ public class compiler extends TestCase {
                   );
     }
     
+    /** Tests a recursive definition for the specspath */
     @Test
     public void testRecursiveCP() throws Exception {
         helper(new String[]
@@ -140,6 +145,7 @@ public class compiler extends TestCase {
     }
 
     // TODO: Environment specific - backslashes
+    /** Tests the lack of a runtime library */
     @Test
     public void testNoRuntime() throws Exception {
         helper(new String[]
@@ -154,6 +160,7 @@ public class compiler extends TestCase {
                           "");
     }
 
+    /** Test verbose with no specs used */
     @Test
     public void testDuplicateParse() throws Exception {
         helper(new String[]
@@ -171,6 +178,7 @@ public class compiler extends TestCase {
                           "");
     }
 
+    /** Test that specs in the java file are ignored */
     @Test
     public void testIgnoreJava() throws Exception {
         helper(new String[]
@@ -188,6 +196,7 @@ public class compiler extends TestCase {
                           "");
     }
 
+    /** Test that the source path is used to find input java files */
     @Test
     public void testSourcePath() throws Exception {
         helper(new String[]
@@ -202,24 +211,43 @@ public class compiler extends TestCase {
 
     /** Tests using source path but including java spec files - may encounter
      * compilation warnings in the spec files as they evolve.
+     * Uses source for classpath.
      * @throws Exception
-     */
-    // FIXME - get annotation type errors when use runtime (i.e. source files) instead of bin for specspath
+     */ // FIXME - clean up the unchecked casts
     @Test
     public void testSourcePathX() throws Exception {
         helper(new String[]
-                          { "-classpath","bin",
+                          { "-classpath","runtime",
                             "-sourcepath","testfiles/testNoErrors",
-                            "-specspath","bin",
-                            "-noPurityCheck",  "-Xlint:unchecked",
+                            "-specspath","runtime",
+                            "-noPurityCheck",  //"-Xlint:unchecked",
                             "testfiles/testNoErrors/A.java"
                           },0,0
-                          ,"",""
-                          //,"Note: Some input files use unchecked or unsafe operations."+eol+
-                          // "Note: Recompile with -Xlint:unchecked for details."+eol
+                          ,"Note: Arrays.jml uses unchecked or unsafe operations."+eol+
+                           "Note: Recompile with -Xlint:unchecked for details."+eol
                           );
     }
 
+    /** Tests using source path but including java spec files - may encounter
+     * compilation warnings in the spec files as they evolve.
+     * Uses bin for classpath.
+     * @throws Exception
+     */
+    @Test
+    public void testSourcePathXB() throws Exception {
+        helper(new String[]
+                          { "-classpath","bin",
+                            "-sourcepath","testfiles/testNoErrors",
+                            "-specspath","runtime",
+                            "-noPurityCheck",  //"-Xlint:unchecked",
+                            "testfiles/testNoErrors/A.java"
+                          },0,0
+                          ,"Note: Arrays.jml uses unchecked or unsafe operations."+eol+
+                           "Note: Recompile with -Xlint:unchecked for details."+eol
+                          );
+    }
+
+    /** Tests that specs files are not found with empty specs path */
     @Test
     public void testSourcePath3() throws Exception {
         helper(new String[]
@@ -234,6 +262,7 @@ public class compiler extends TestCase {
 
     // This test requires jmlruntime.jar to have been created - run the Makefile
     // in the OpenJML project
+    /** Tests using the runtime jar */
     @Test
     public void testSourcePath4() throws Exception {
         helper(new String[]
@@ -246,6 +275,7 @@ public class compiler extends TestCase {
                           "");
     }
 
+    /** Tests using class, source and specs path */
     @Test
     public void testSourcePath5() throws Exception {
         helper(new String[]
@@ -258,18 +288,19 @@ public class compiler extends TestCase {
                           "");
     }
 
-//    @Test   FIXME - odd error message
-//    public void testSourcePath2() throws Exception {
-//        helper(new String[]
-//                          { "-classpath","bin",
-//                            "-sourcepath","testfiles/testNoErrors",
-//                            "-specspath","runtime",
-//                            "-noInternalSpecs",
-//                            "testfiles/testNoErrors/A.java"
-//                          },1,0,"",  // FIXME - exit code should really be 0
-//                          "");
-//    }
+    @Test
+    public void testSourcePath2() throws Exception {
+        helper(new String[]
+                          { "-classpath","bin",
+                            "-sourcepath","testfiles/testNoErrors",
+                            "-specspath","runtime",
+                            "-noInternalSpecs",
+                            "testfiles/testNoErrors/A.java"
+                          },0,0,"",
+                          "");
+    }
 
+    /** Tests that super files are read and processed */
     @Test
     public void testSuperRead() { // TODO - file name is environment dependent
         helper(new String[]

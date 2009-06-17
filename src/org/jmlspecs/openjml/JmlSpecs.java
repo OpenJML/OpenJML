@@ -7,12 +7,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.jar.JarEntry;
 import java.util.zip.ZipFile;
 
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.annotations.NonNull;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
@@ -33,10 +33,8 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
-import org.jmlspecs.annotations.*;
 
 /** This class manages the specifications during a compilation.  There should be
  * just one instance per compilation Context, ensured by calling the preRegister
@@ -430,10 +428,12 @@ public class JmlSpecs {
                 log.noticeWriter.print(" ");
                 log.noticeWriter.print(s);
             }
+            Options options = Options.instance(context);
             log.noticeWriter.println("");
-            log.noticeWriter.println("sourcepath: " + Options.instance(context).get("-sourcepath"));
-            log.noticeWriter.println("classpath: " + Options.instance(context).get("-classpath"));
+            log.noticeWriter.println("sourcepath: " + options.get("-sourcepath"));
+            log.noticeWriter.println("classpath: " + options.get("-classpath"));
             log.noticeWriter.println("java.class.path: " + System.getProperty("java.class.path"));
+            log.noticeWriter.flush();
         }
     }
     
@@ -461,7 +461,7 @@ public class JmlSpecs {
                 }
                 if (d != null && d.exists()) {
                     found = true;
-                    log.noticeWriter.println("Using internal runtime " + s);
+                    if (verbose) log.noticeWriter.println("Using internal runtime " + s);
                     String sp = Options.instance(context).get("-classpath");
                     if (sp != null) Options.instance(context).put("-classpath",sp + java.io.File.pathSeparator + s);
                 }

@@ -14,17 +14,23 @@ import static org.jmlspecs.openjml.JmlToken.*;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotations.NonNull;
-import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.IJmlVisitor;
+import org.jmlspecs.openjml.JmlCompiler;
+import org.jmlspecs.openjml.JmlInternalError;
+import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.mirror.type.PrimitiveType;
 import com.sun.tools.javac.code.Flags;
@@ -38,13 +44,11 @@ import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.jvm.ClassReader;
-import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.JCTree.*;
@@ -98,10 +102,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Set from the options for user-requested verbosity */
     protected boolean verbose = false;
     
-    protected Name resultName;
+    /** A String used as the Java variable for \result, hopefully obfuscated
+     * enough that no one will ever actually use a Java variable with this name.
+     */
+    final static public String resultVarString = "_JML$$$result";
     
-    protected Name exceptionName;
-    protected Name exceptionCatchName;
+    /** A String used as the Java variable for \exception, hopefully obfuscated
+     * enough that no one will ever actually use a Java variable with this name.
+     */
+    final static public String exceptionVarString = "_JML$$$exception";
+    
+    /** The Name version of resultVarString in the current context */
+    final protected Name resultName;
+    
+    /** The Name version of exceptionVarString in the current context */
+    final protected Name exceptionName;
+
     protected Name postCheckName;
     protected Name signalsCheckName;
     
@@ -226,9 +242,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            LockSet.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("LockSet"), LockSet, syms.rootPackage);
         }
         
-        this.resultName = Names.instance(context).fromString("_JML$$$result");
-        this.exceptionName = Names.instance(context).fromString("_JML$$$exception");
-        this.exceptionCatchName = Names.instance(context).fromString("_JML$$$exceptionCatch");
+        this.resultName = Names.instance(context).fromString(resultVarString);
+        this.exceptionName = Names.instance(context).fromString(exceptionVarString);
         this.postCheckName = Names.instance(context).fromString("postCheck");
         this.signalsCheckName = Names.instance(context).fromString("signalsCheck");
         
@@ -554,6 +569,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitUnary(JCUnary tree) {
         super.visitUnary(tree);
         if (pureEnvironment) {
+            // FIXME - this and the next two happen in pure model methods - should probably treat them as pure methods and not pureEnvironments
+            if (tree.arg instanceof JCIdent && ((JCIdent)tree.arg).sym.owner.kind == Kinds.MTH) return;
             int op = tree.getTag();
             if (op == JCTree.PREINC || op == JCTree.POSTINC ||
                     op == JCTree.PREDEC || op == JCTree.POSTDEC)
@@ -564,6 +581,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitAssign(JCAssign tree) {
         super.visitAssign(tree);
         if (pureEnvironment) {
+            if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == Kinds.MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
         }
     }
@@ -571,6 +589,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitAssignop(JCAssignOp tree) {
         super.visitAssignop(tree);
         if (pureEnvironment) {
+            if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == Kinds.MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
         }
     }
@@ -637,6 +656,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JmlMethodDecl jmethod = (JmlMethodDecl)m;
             prevSource = log.useSource(jmethod.source());
             attribAnnotationTypes(m.mods.annotations,env); // This is needed at least for the spec files of binary classes
+            annotate.flush();
             for (JCAnnotation a : m.mods.annotations) a.type = a.annotationType.type;  // It seems we need this, but it seems this should happen while walking the tree - FIXME
             boolean prevRelax = relax;
             // FIXME - need a better test than this
@@ -792,6 +812,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // references against the environment present when the method is called.  For method specs this does not change since
                 // there are no introduced declarations, but it is convenient to use the same variable anyway.
                 // In this case we don't need to dup it because it does not change.
+                Env<AttrContext> prevEnv = enclosingMethodEnv;
                 enclosingMethodEnv = localEnv;
                 // Note: we cannot just cache the current value of env for use later.
                 // This is because the envs are presumed to be nested and share their
@@ -800,17 +821,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // not in an enclosing scope.  However, JML has the \old operator which gives
                 // access to the scope at method definition time from within other nestings.
                 boolean prevAllowJML = JmlResolve.setJML(context,true);
-                Env<AttrContext> prevEnv = env;
+                Env<AttrContext> prevEnv2 = env;
                 try {
                     env = localEnv;
                     JmlMethodSpecs sp = tree.methodSpecsCombined; // OR specs.getSpecs(env.enclMethod.sym); if we don't have a tree - FIXME
                     if (sp != null) sp.accept(this);
                     deSugarMethodSpecs(tree,tree.methodSpecsCombined);
                 } finally {
-                    env = prevEnv;
+                    env = prevEnv2;
                     JmlResolve.setJML(context,prevAllowJML);
+                    enclosingMethodEnv = prevEnv;
                 }
-                enclosingMethodEnv = null;
             }
             localEnv.info.scope.leave();
             result = tree.type = m.type;
@@ -1564,9 +1585,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlToken t = tree.token;
         for (JCTree.JCStatement stat: tree.stats) {
             if (stat instanceof JmlVariableDecl) {
+                int wasFlags = 0;
+                if (env.enclMethod.sym.isStatic()) {
+                    wasFlags = Flags.STATIC;  // old and forall decls are implicitly static for a static method
+                    ((JmlVariableDecl)stat).mods.flags |= Flags.STATIC;  // old and forall decls are implicitly static for a static method
+                }
                 forallOldEnv = true;
+                JmlCheck.instance(context).staticOldEnv = true;
                 stat.accept(this);
+                JmlCheck.instance(context).staticOldEnv = false;
                 forallOldEnv = false;
+                if (env.enclMethod.sym.isStatic()) {
+                    ((JmlVariableDecl)stat).mods.flags &= ~Flags.STATIC; 
+                }
                 JCTree.JCExpression init = ((JmlVariableDecl)stat).init;
                 if (t == JmlToken.FORALL) {
                     if (init != null) log.error(init.pos(),"jml.forall.no.init");
@@ -1574,7 +1605,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (init == null) log.error(((JmlVariableDecl)stat).pos,"jml.old.must.have.init");
                 }
                 JCModifiers mods = ((JmlVariableDecl)stat).mods;
-                if (utils.hasOnly(mods,0)!=0) log.error(tree.pos,"jml.no.java.mods.allowed","method specification declaration");
+                if (utils.hasOnly(mods,wasFlags)!=0) log.error(tree.pos,"jml.no.java.mods.allowed","method specification declaration");
                 // The annotations are already checked as part of the local variable declaration
                 //allAllowed(mods.annotations, JmlToken.typeModifiers, "method specification declaration");
             } else {
@@ -2098,12 +2129,32 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     /** This is overridden to check that if we are in a pure environment,
-     * the method is declared pure.
+     * the method is declared pure.  Also to make sure any specs are attributed.
      */
     @Override
     public void visitApply(JCTree.JCMethodInvocation tree) {
         // Otherwise this is just a Java method application
         super.visitApply(tree);
+        if (result.isErroneous()) return;
+        Type savedResult = result;
+        MethodSymbol methsym = null;
+        if (tree.meth instanceof JCFieldAccess) methsym = (MethodSymbol)((JCFieldAccess)tree.meth).sym;
+        else if (tree.meth instanceof JCIdent) methsym = (MethodSymbol)((JCIdent)tree.meth).sym;
+        else {
+            log.error("jml.incomplete.implementation","Alternative not implemented in JmlAttr.visitApply (A) for " + tree.meth.getClass());
+        }
+        if (methsym != null) {
+            // Make sure that the class that owns the method is attributed.
+            // Actually , we just need the class specs and the specs for this
+            // method, but we don't have a way to do part of the attribution 
+            // at present.
+            if (methsym.owner instanceof ClassSymbol) {
+                attribClass((ClassSymbol)methsym.owner);
+            } else {
+                log.warning("jml.incomplete.implementation","Alternative in JmlAttr.visitApply (B): " + (methsym.owner == null ? "null" : methsym.owner.getClass().toString()));
+            }
+        }
+        
         if (pureEnvironment && tree.meth.type != null && tree.meth.type.tag != TypeTags.ERROR) {
             // Check that the method being called is pure
             JCExpression m = tree.meth;
@@ -2125,6 +2176,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 else log.error("jml.internal.notsobad","Unexpected symbol type for method expression in JmlAttr.visitApply: ", sym.getClass());
             }
         }
+        result = savedResult;
     }
 
     /** This handles JML statements such as assert and assume and unreachable and hence_by. */
@@ -2140,6 +2192,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         currentClauseType = prevClauseType;
         pureEnvironment = prev;
         JmlResolve.setJML(context,prevAllowJML);
+        result = null; // No type returned
     }
 
     boolean savedSpecOK = false; // FIXME - never read
@@ -3104,7 +3157,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-        attribAnnotationTypes(that.mods.annotations,env);  // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
+        attribAnnotationTypes(that.mods.annotations,env); annotate.flush(); // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
         for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
         super.visitVarDef(that);
         checkVarMods(that);

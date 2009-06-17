@@ -75,7 +75,7 @@ alljars jmlspecs.jar openjml.jar:
 	##cp jars/openjml.jar ../OpenJMLUI
 	
 copy:
-	(cd ../OpenJMLUI; rm -rf specs16 runtime openjml specs java4 java5 java6 java7 ; )
+	(cd ../OpenJMLUI; rm -rf runtime openjml specs ; )
 	(cd ../OpenJMLUI; mkdir -p specs ;)
 	cp -rf ${SPECS}/java7 ../OpenJMLUI/specs
 	cp -rf ${SPECS}/java6 ../OpenJMLUI/specs
@@ -87,10 +87,10 @@ copy:
 	cp -r ${ROOT}/OpenJDK/bin/* ../OpenJMLUI/openjml
 	cp -r ${ROOT}/OpenJML/bin/* ../OpenJMLUI/openjml
 	rm -rf ../OpenJMLUI/openjml/tests
-	cp -r ${ROOT}/OpenJML/bin/org/jmlspecs/annotations ../OpenJMLUI/runtime/org/jmlspecs
-	cp -r ${ROOT}/OpenJML/bin/org/jmlspecs/lang ../OpenJMLUI/runtime/org/jmlspecs
-	cp -r ${ROOT}/OpenJML/bin/org/jmlspecs/models ../OpenJMLUI/runtime/org/jmlspecs
-	cp -r ${ROOT}/OpenJML/bin/org/jmlspecs/utils ../OpenJMLUI/runtime/org/jmlspecs
+	mv ${ROOT}/OpenJMLUI/openjml/org/jmlspecs/annotations ../OpenJMLUI/runtime/org/jmlspecs
+	mv ${ROOT}/OpenJMLUI/openjml/org/jmlspecs/lang ../OpenJMLUI/runtime/org/jmlspecs
+	mv ${ROOT}/OpenJMLUI/openjml/org/jmlspecs/models ../OpenJMLUI/runtime/org/jmlspecs
+	mv ${ROOT}/OpenJMLUI/openjml/org/jmlspecs/utils ../OpenJMLUI/runtime/org/jmlspecs
 	echo "Copy to OpenJMLUI complete"
 	
 ## Builds jmlruntime.jar
