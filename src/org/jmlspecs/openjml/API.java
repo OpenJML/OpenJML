@@ -449,17 +449,17 @@ public class API {
     
 
     
-    //@ requires isOpen;
-    //@ ensures isOpen;
-    static public void setLibrarySpecsPath(String[] dirs) {
-        JmlSpecs.externalDefaultSpecs = dirs;
-    }
-    
-    //@ requires isOpen;
-    //@ ensures isOpen;
-    public static void setExternalRuntime(@Nullable String[] paths) {
-        JmlSpecs.externalRuntime = paths;
-    }
+//    //@ requires isOpen;
+//    //@ ensures isOpen;
+//    static public void setLibrarySpecsPath(String[] dirs) {
+//        JmlSpecs.externalDefaultSpecs = dirs;
+//    }
+//    
+//    //@ requires isOpen;
+//    //@ ensures isOpen;
+//    public static void setExternalRuntime(@Nullable String[] paths) {
+//        JmlSpecs.externalRuntime = paths;
+//    }
     
     //@ requires isOpen;
     //@ ensures isOpen;
@@ -504,7 +504,7 @@ public class API {
     public String getBasicBlockProgram(MethodSymbol msym) {
         JmlMethodDecl tree = getJavaDecl(msym);
         JmlClassDecl cdecl = getJavaDecl((ClassSymbol)msym.owner);
-        BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, JmlSpecs.instance(context).getSpecs(msym).deSugared, cdecl);
+        BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, JmlSpecs.instance(context).getSpecs(msym).cases.deSugared, cdecl);
         return program.write("BASIC BLOCK PROGRAM FOR " + msym.owner.getQualifiedName() + "." + msym.toString() + "\n\n");
     }
     
@@ -552,14 +552,14 @@ public class API {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull JmlMethodSpecs getSpecs(@NonNull MethodSymbol sym) {
+    public @NonNull JmlSpecs.MethodSpecs getSpecs(@NonNull MethodSymbol sym) {
         return JmlSpecs.instance(context).getSpecs(sym);
     }
     
     //@ requires isOpen;
     //@ ensures isOpen;
-    public java.util.List<JmlMethodSpecs> getAllSpecs(@NonNull MethodSymbol msym) {
-        java.util.List<JmlMethodSpecs> tslist = new ArrayList<JmlMethodSpecs>();
+    public java.util.List<JmlSpecs.MethodSpecs> getAllSpecs(@NonNull MethodSymbol msym) {
+        java.util.List<JmlSpecs.MethodSpecs> tslist = new ArrayList<JmlSpecs.MethodSpecs>();
         if (msym.isStatic() || msym.isConstructor()) {
             tslist.add(getSpecs(msym));
             return tslist;

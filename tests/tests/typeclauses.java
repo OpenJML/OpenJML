@@ -610,6 +610,88 @@ public class typeclauses extends TCBase {
         );
     }
 
+    // OK
+    public void testMonitorsFor() {
+        helpTCF("A.java","public class A {A a; Object i,j,k; //@ monitors_for i = j,a.k,Object.class; \n }"
+        );
+    }
+    
+    public void testMonitorsFor1() {
+        helpTCF("A.java","public class A {Object i,j,k; int m; //@ monitors_for i = 5; \n }"
+                ,"/A.java:1: The expression in a monitors_for clause must have reference type",59
+        );
+    }
+    
+    public void testMonitorsFor2() {
+        helpTCF("A.java","public class A {Object i,j,k; int m; //@ monitors_for i <- m; \n }"
+                ,"/A.java:1: The expression in a monitors_for clause must have reference type",60
+        );
+    }
+    
+    // OK - static does not matter
+    public void testMonitorsFor3() {
+        helpTCF("A.java","public class A {Object i,j; static Object k;  //@ monitors_for k = i,A.k; \n }"
+        );
+    }
+    
+    public void testMonitorsFor4() {
+        helpTCF("A.java","public class A {Object i,j; static Object k;  //@ monitors_for k = Object; \n }"
+                ,"/A.java:1: cannot find symbol\n  symbol:   variable Object\n  location: class A",68
+        );
+    }
+    
+    public void testMonitorsFor5() {
+        helpTCF("A.java","public class A extends B {Object i,j; static Object k;  //@ monitors_for z = i; \n } class B { public Object z; }"
+                ,"/A.java:1: The identifier must be a member of the enclosing class: z is in B instead of A",74
+        );
+    }
+    
+    //OK
+    public void testReadable() {
+        helpTCF("A.java","public class A extends B {Object i,j; static Object k;  //@ readable j if i == null; writable j if i == null; \n } class B { public Object z; }"
+        );
+    }
+    
+    public void testReadable1() {
+        helpTCF("A.java","public class A extends B {Object i,j; static Object k;  //@ readable k if i == null; writable k if i == null; \n } class B { public Object z; }"
+                ,"/A.java:1: non-static variable i cannot be referenced from a static context",75
+                ,"/A.java:1: non-static variable i cannot be referenced from a static context",100
+        );
+    }
+    
+    public void testReadable2() {
+        helpTCF("A.java","public class A extends B {Object i,j; static Object k;  //@ readable z if i == null; writable z if i == null; \n } class B { public Object z; }"
+                ,"/A.java:1: The identifier must be a member of the enclosing class: z is in B instead of A",70
+                ,"/A.java:1: The identifier must be a member of the enclosing class: z is in B instead of A",95
+        );
+    }
 
+    //OK
+    public void testReadable3() {
+        helpTCF("A.java","public class A extends B {Object i,j; static Object k;  //@ readable k if k == null; writable k if k == null; \n } class B { public Object z; }"
+        );
+    }
+    
+    //OK
+    public void testReadable4() {
+        helpTCF("A.java","public class A extends B {Object i,j; static Object k;  //@ readable i if this == null; writable i if this == null; \n } class B { public Object z; }"
+        );
+    }
+    
+    public void testReadable5() {
+        helpTCF("A.java","public class A extends B {Object i,j; static Object k;  //@ readable k if this == null; writable k if this == null; \n } class B { public Object z; }"
+                ,"/A.java:1: non-static variable this cannot be referenced from a static context",75
+                ,"/A.java:1: non-static variable this cannot be referenced from a static context",103
+        );
+    }
+    
+    //OK
+    public void testReadable6() {
+        helpTCF("A.java","public class A extends B {Object i,j; static Object k;  //@ readable k if Object.class == null; writable k if Object.class == null; \n } class B { public Object z; }"
+        );
+    }
+    
+
+    
 }
 

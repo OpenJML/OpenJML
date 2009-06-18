@@ -244,9 +244,10 @@ public class Interactive extends Main {
                 else {
                     System.out.println("      " + tsp.methods.size() + " methods");
                     for (MethodSymbol m : tsp.methods.keySet()) {
-                        JmlMethodSpecs sp = tsp.methods.get(m);
+                        JmlSpecs.MethodSpecs sp = tsp.methods.get(m);
                         System.out.println("        " + m);
-                        System.out.println(sp);
+                        System.out.println(sp.mods);
+                        System.out.println(sp.cases);
                     }
                 }
                 if (tsp.fields == null) System.out.println("      No fields list");

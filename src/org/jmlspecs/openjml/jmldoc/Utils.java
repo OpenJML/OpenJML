@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.jmldoc;
 
 import org.jmlspecs.annotations.NonNull;
+import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 
 import com.sun.javadoc.ClassDoc;
@@ -86,9 +87,9 @@ public class Utils {
      * @param specs the object containing method specifications
      * @return true if there are specifications worth printing
      */
-    public static boolean hasSpecs(JmlMethodSpecs specs) {
+    public static boolean hasSpecs(JmlSpecs.MethodSpecs specs) {
         if (specs == null) return false;
-        if (!specs.cases.isEmpty()) return true;
+        if (!specs.cases.cases.isEmpty()) return true;
         return false;
     }
 

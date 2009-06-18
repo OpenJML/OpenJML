@@ -21,13 +21,45 @@ public class methodspecs extends TCBase {
                 );
     }
     
-    /** Tests multiple signals_only*/
+    /** Tests one signals_only*/
     public void testOneSignalsOnly() {
         helpTC(" class A { \n"
                 +"//@ requires true;\n"
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
+                );
+    }
+    
+    /** Tests bad signals_only*/
+    public void testBadSignalsOnly() {
+        helpTC(" class A { \n"
+                +"//@ requires true;\n"
+                +"//@ signals_only Object;\n"
+                +"int m() { return 0; }\n"
+                +"}"
+                ,"/TEST.java:3: incompatible types\n  required: java.lang.Exception\n  found:    java.lang.Object",18
+                );
+    }
+    
+    /** Tests signals_only \\nothing*/ // OK
+    public void testNothingSignalsOnly() {
+        helpTC(" class A { \n"
+                +"//@ requires true;\n"
+                +"//@ signals_only \\nothing;\n"
+                +"int m() { return 0; }\n"
+                +"}"
+                );
+    }
+    
+    /** Tests empty signals_only*/
+    public void testEmptySignalsOnly() {
+        helpTC(" class A { \n"
+                +"//@ requires true;\n"
+                +"//@ signals_only ;\n"
+                +"int m() { return 0; }\n"
+                +"}"
+                ,"/TEST.java:3: Use \\nothing to denote an empty list of exceptions in a signals_only clause",18
                 );
     }
     

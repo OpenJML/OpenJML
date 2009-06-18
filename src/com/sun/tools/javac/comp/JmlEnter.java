@@ -19,6 +19,7 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 
 import com.sun.tools.javac.code.Kinds;
@@ -162,7 +163,7 @@ public class JmlEnter extends Enter {
         this.utils = Utils.instance(context);
         this.specs = JmlSpecs.instance(context);
     }
-
+    
     /** This method visits the designated compilation unit; first it matches
      * class declarations in the specification files to class declarations in
      * Java; then it calls the super class visitTopLevel method to initiate

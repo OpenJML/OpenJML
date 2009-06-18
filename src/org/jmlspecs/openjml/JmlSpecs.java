@@ -1,5 +1,12 @@
 package org.jmlspecs.openjml;
 
+// TODO:
+// - document
+// - cleanup desugared specs
+// - clean up constructors and details of TypeSpecs
+// - clean up pretty printing and toString for debugging
+// - fix use of ZipArchive subdirectories
+
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -51,7 +58,7 @@ import com.sun.tools.javac.util.Options;
  * simple concept:
  * <UL>
  * <LI>1) ordinarily the specsPath is specified on the command-line as the option 
- * of -specsPath</LI>
+ * of -specspath</LI>
  * <LI>2) if there is no command-line argument, the value of the environment property 
  * org.jmlspecs.specspath is used</LI>
  * <LI>3) if that is not defined, the value of the sourcepath is used (specified 
@@ -104,11 +111,13 @@ import com.sun.tools.javac.util.Options;
  * <B>The specifications database</B>
  * This class also handles the database of specifications.  This database is
  * indexed by Symbol - either ClassSymbol, MethodSymbol or VarSymbol as 
- * appropriate.  The specifications for a Java element are also stored redundantly
- * as fields of the JmlClassDecl, JmlMethodDecl, and JmlVariableDecl AST nodes.
- * That is simply redundant information for classes which are parsed from source
- * files; however, Java classes which only have binaries or which have neither
- * source nor binary do not have an AST in which to place references.  Thus this
+ * appropriate.  Specifications for a Java element are also stored 
+ * as fields of the JmlClassDecl, JmlMethodDecl, and JmlVariableDecl AST nodes,
+ * but these are only the specs that are declared in that compilation unit.
+ * The database holds the combined specifications from all sources, e.g. all
+ * files in the specification sequence.
+ * Also, Java classes which do not have source available to the compiler
+ * do not have an AST in which to place references to specifications.  Thus this
  * database is used as the general mechanism for retrieving specs for a Java element.
  * 
  * @author David Cok
@@ -116,9 +125,27 @@ import com.sun.tools.javac.util.Options;
  */
 public class JmlSpecs {
     
-    static public String[] externalDefaultSpecs = null;
+//    static public String[] externalDefaultSpecs = null;
+//
+//    static public String[] externalRuntime = null;
 
-    static public String[] externalRuntime = null;
+    /** The name of the jar file that constitutes an openjml release. 
+     * The specs for Java version v are in a top-level directory named
+     * prefix + "v" for each version (e.g. in specs16 for Java 1.6)*/
+    private final static String releaseJar = "openjml.jar";
+    
+    /** The name of the jar file that contains a copy of the specs to use, as part of
+     * a release.  This is expected to be the specs for the version of Java 
+     * being used.  
+     */
+    private final static String specsJar = "jmlspecs.jar";
+    
+    /** The prefix of the top-level directory within the JML release jar file
+     * containing the specs for various versions of java (e.g. specs15 for 
+     * Java 1.5).
+     */
+    private final static String prefix = "specs1";
+    
 
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
@@ -126,6 +153,7 @@ public class JmlSpecs {
         new Context.Key<JmlSpecs>();
 
     /** A method that returns the unique instance of this class for the given Context
+     * (creating it if it does not already exist).
      * 
      * @param context the Context whose JmlSpecs instance is wanted
      * @return the singleton instance (per Context) of this class
@@ -139,13 +167,13 @@ public class JmlSpecs {
         return instance;
     }
 
-    /** Call this to register a singleton (per Context instance) object
+    /** Call this to register (a factory for) a singleton (per Context instance) object
      * of this class.
      * 
      * @param context The compilation context in which to register a JmlSpecs instance
      */
     // A factory is used so that the object is not created until needed.  This
-    // is important since various options are read (e.g. specsPath) at 
+    // is important since various options are read (e.g. specspath) at 
     // construction time.
     public static void preRegister(final Context context) {
         context.put(specsKey, new Context.Factory<JmlSpecs>() {
@@ -158,16 +186,19 @@ public class JmlSpecs {
 
     /** The Context in which this object was constructed */ 
     //@ non_null
-    protected Context context;
+    final protected Context context;
     
-    protected JmlAttr attr;
+    /** The Attr tool for this context */
+    final protected JmlAttr attr;
     
-    protected Log log;
+    /** The Log tool for this context */
+    final protected Log log;
     
-    protected Utils utils;
+    /** The Utils tool for this context */
+    final protected Utils utils;
     
     /** The map giving the accumulated specifications for a given type */
-    protected Map<ClassSymbol,TypeSpecs> specsmap = new HashMap<ClassSymbol,TypeSpecs>();
+    final protected Map<ClassSymbol,TypeSpecs> specsmap = new HashMap<ClassSymbol,TypeSpecs>();
     
     /** The specifications path, which is a sequence of directories in which to
      * find specification files; this is created by initializeSpecsPath().
@@ -198,10 +229,9 @@ public class JmlSpecs {
         if (s == null) s = Options.instance(context).get("-sourcepath");
         if (s == null) s = Options.instance(context).get("-classpath");
         if (s == null) s = System.getProperty("java.class.path");
-        if (s != null) setSpecsPath(s);
+        if (s == null) s = "";
+        setSpecsPath(s);
     }
-    
-    public final static String prefix = "specs1";
     
     /** This method looks for the internal specification directories and, if
      * found, appends them to the argument. 
@@ -222,31 +252,31 @@ public class JmlSpecs {
         }
         if (verbose) log.noticeWriter.println("Java version " + version);
 
-        // First use externalDefaultSpecs if it is there.  This is used
-        // when openjml is driven by an Eclipse plugin outside a development
-        // environment (and possibly in it as well).
-        // We could use eclipseSpecsProjectLocation but then we would
-        // have to represent all of these as strings and read them back in.
+//        // First use externalDefaultSpecs if it is there.  This is used
+//        // when openjml is driven by an Eclipse plugin outside a development
+//        // environment (and possibly in it as well).
+//        // We could use eclipseSpecsProjectLocation but then we would
+//        // have to represent all of these as strings and read them back in.
+//        
+//        if (externalDefaultSpecs != null) {
+//            for (String d: externalDefaultSpecs) {
+//                if (d != null) {
+//                    int i = d.indexOf("!");
+//                    if (i == -1) {
+//                        dirs.add(new FileSystemDir(d));
+//                    } else {
+//                        String n = d.substring(i+1);
+//                        String f = d.substring(0,i);
+//                        dirs.add(new JarDir(f,n));
+//                    }
+//                    if (verbose) log.noticeWriter.println("External: " + d);
+//                }
+//            }
+//            if (verbose) log.noticeWriter.println("Internal specs from plugin");
+//            return true;
+//        }
         
-        if (externalDefaultSpecs != null) {
-            for (String d: externalDefaultSpecs) {
-                if (d != null) {
-                    int i = d.indexOf("!");
-                    if (i == -1) {
-                        dirs.add(new FileSystemDir(d));
-                    } else {
-                        String n = d.substring(i+1);
-                        String f = d.substring(0,i);
-                        dirs.add(new JarDir(f,n));
-                    }
-                    if (verbose) log.noticeWriter.println("External: " + d);
-                }
-            }
-            if (verbose) log.noticeWriter.println("Internal specs from plugin");
-            return true;
-        }
-        
-        // Next look for a openjml.jar or jmlspecs.jar file on the classpath
+        // Look for a openjml.jar or jmlspecs.jar file on the classpath
         // If present, use it (and use the first one found).  
         // This happens in command-line mode.
         
@@ -257,14 +287,16 @@ public class JmlSpecs {
         String libToUse = prefix+version;
         
         for (String s: ss) {
-            if (s.endsWith("openjml.jar")) {
+            if (s.endsWith(releaseJar)) {
                 d = new JarDir(s,libToUse);
                 if (d.exists()) {
                     if (verbose) log.noticeWriter.println("Using internal specs " + d);
                     dirs.add(d);
                     return true;
                 }
-                d = new JarDir(s.replace("openjml.jar","jmlspecs.jar"),"");
+            }
+            if (s.endsWith(specsJar)) {
+                d = new JarDir(s,"");
                 if (d.exists()) {
                     if (verbose) log.noticeWriter.println("Using internal specs " + d);
                     dirs.add(d);
@@ -309,13 +341,13 @@ public class JmlSpecs {
                     found = true;
                 } else {
                     // We found some directories - the others ought to exist
-                    if (found) Log.instance(context).error("jml.internal.specs.dir.not.exist",dd);
+                    if (found) log.error("jml.internal.specs.dir.not.exist",dd);
                 }
             }
-            if (!found) Log.instance(context).error("jml.internal.specs.dir.not.exist",sy);
+            if (!found) log.error("jml.internal.specs.dir.not.exist",sy);
             return true;
         } else {
-            Log.instance(context).error("jml.internal.specs.dir.not.defined");
+            log.error("jml.internal.specs.dir.not.defined");
         }
         return false;
     }
@@ -330,8 +362,8 @@ public class JmlSpecs {
     /** Sets the specifications path according to the given string; the
      * string must be a sequence of directories, separated by the host
      * systems java.io.File.pathSeparator character.  The directories are
-     * given as absolute paths or as paths relative to the current working 
-     * directory. 
+     * given as absolute file system paths or as paths relative to the current  
+     * working directory. 
      * @param specsPath the string holding the specifications path
      */
     //@ modifies this.specsDirs;
@@ -345,6 +377,7 @@ public class JmlSpecs {
      * @param specsPathArray the string holding the new specifications path
      */
     //@ requires \nonnullelements(specsPathArray);
+    //@ assignable this.specsDirs;
     public void setSpecsPath(String[] specsPathArray) {
         boolean verbose = utils.jmldebug ||
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
@@ -373,20 +406,20 @@ public class JmlSpecs {
                 if (syIncluded) {
                     // If we are processing the last entry and it is a duplicate, just
                     // ignore it.
-                    if (!todo.isEmpty()) Log.instance(context).warning("jml.bad.sp.var","$SY");
+                    if (!todo.isEmpty()) log.warning("jml.bad.sp.var","$SY");
                 } else {
                     syIncluded = true;
                     String dirs = System.getProperty(Utils.systemSpecsLocationEnvironmentPropertyName);
                     if (dirs != null) pushback(dirs,todo);
                     else {
                         if (!appendInternalSpecs(verbose,specsDirs)) {
-                            Log.instance(context).warning("jml.no.internal.specs");
+                            log.warning("jml.no.internal.specs");
                         }
                     }
                 }
             } else if (dir.equals("$CP")) {
                 if (cpIncluded) {
-                    Log.instance(context).warning("jml.bad.sp.var","$CP");
+                    log.warning("jml.bad.sp.var","$CP");
                 } else {
                     cpIncluded = true;
                     String dirs = Options.instance(context).get("-classpath");
@@ -395,7 +428,7 @@ public class JmlSpecs {
                 }
             } else if (dir.equals("$ECP")) {
                 if (ecpIncluded) {
-                    Log.instance(context).warning("jml.bad.sp.var","$ECP");
+                    log.warning("jml.bad.sp.var","$ECP");
                 } else {
                     ecpIncluded = true;
                     String dirs = System.getProperty("java.class.path");
@@ -403,7 +436,7 @@ public class JmlSpecs {
                 }
             } else if (dir.equals("$SP")) {
                 if (spIncluded) {
-                    Log.instance(context).warning("jml.bad.sp.var","$SP");
+                    log.warning("jml.bad.sp.var","$SP");
                 } else {
                     spIncluded = true;
                     String dirs = Options.instance(context).get("-sourcepath");
@@ -413,12 +446,12 @@ public class JmlSpecs {
                 Dir d = make(dir);
                 if (d != null) {
                     if (checkDirectories && !d.exists()) { 
-                        Log.instance(context).warning("jml.specs.dir.not.exist",d);
+                        log.warning("jml.specs.dir.not.exist",d);
                     }
                     specsDirs.add(d);
                 } else {
                     // At present make always returns non-null
-                    Log.instance(context).error("jml.internal.notsobad","Failed to create a directory path entry from " + dir);
+                    log.error("jml.internal.notsobad","Failed to create a directory path entry from " + dir);
                 }
             }
         }
@@ -444,30 +477,30 @@ public class JmlSpecs {
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
             Options.instance(context).get("-verbose") != null;
         
-        // First see if an external runtime library has been specified by
-        // some external controller
-        
-        if (externalRuntime != null) {
-            boolean found = false;
-            for (String s: externalRuntime) {
-                File f = new File(s);
-                Dir d = null;
-                if (f.isDirectory()) {
-                    d = new FileSystemDir(f);
-                } else if (s.endsWith(".jar")) {
-                    d = new JarDir(s,"");
-                } else {
-                    // Ignored
-                }
-                if (d != null && d.exists()) {
-                    found = true;
-                    if (verbose) log.noticeWriter.println("Using internal runtime " + s);
-                    String sp = Options.instance(context).get("-classpath");
-                    if (sp != null) Options.instance(context).put("-classpath",sp + java.io.File.pathSeparator + s);
-                }
-            }
-            if (found) return;
-        }
+//        // First see if an external runtime library has been specified by
+//        // some external controller
+//        
+//        if (externalRuntime != null) {
+//            boolean found = false;
+//            for (String s: externalRuntime) {
+//                File f = new File(s);
+//                Dir d = null;
+//                if (f.isDirectory()) {
+//                    d = new FileSystemDir(f);
+//                } else if (s.endsWith(".jar")) {
+//                    d = new JarDir(s,"");
+//                } else {
+//                    // Ignored
+//                }
+//                if (d != null && d.exists()) {
+//                    found = true;
+//                    if (verbose) log.noticeWriter.println("Using internal runtime " + s);
+//                    String sp = Options.instance(context).get("-classpath");
+//                    if (sp != null) Options.instance(context).put("-classpath",sp + java.io.File.pathSeparator + s);
+//                }
+//            }
+//            if (found) return;
+//        }
         
         // Then look for something in the classpath itself
         
@@ -514,7 +547,7 @@ public class JmlSpecs {
             sp = Options.instance(context).get("-classpath");
             Options.instance(context).put("-classpath",(sp==null?"":(sp + java.io.File.pathSeparator)) + sss);
         } else {
-            Log.instance(context).warning("jml.no.internal.runtime");
+            log.warning("jml.no.internal.runtime");
         }
     }
     
@@ -537,7 +570,7 @@ public class JmlSpecs {
      * can function as files containing source or specifications but do not need
      * to be actually present in the file system.  Thus they are handy in testing.
      */
-    protected Map<String,JavaFileObject> mockFiles = new HashMap<String,JavaFileObject>();
+    final protected Map<String,JavaFileObject> mockFiles = new HashMap<String,JavaFileObject>();
     
     /** Adds a name and associated mock file to the database of files (for this
      * context).
@@ -550,7 +583,7 @@ public class JmlSpecs {
         mockFiles.put(name,jfo);
     }
     
-    /** Creates an appropriate kind of DIr object given the String format of
+    /** Creates an appropriate kind of Dir object given the String format of
      * the argument
      * @param dirName the directory as specified in the String format of the
      * specs path
@@ -646,7 +679,7 @@ public class JmlSpecs {
     /** This class represents conventional file system directories */
     public class FileSystemDir extends Dir {
         /** The java.io.File object for the directory */
-        File dir;
+        protected File dir;
         
         /** Creates a Dir object for the given directory; the existence of a
          * Dir object does not mean that the underlying directory actually
@@ -694,15 +727,16 @@ public class JmlSpecs {
         /** An object holding the path to the archive file (which may not actually
          * exist)
          */
-        ZipArchive zipArchive;
+        protected ZipArchive zipArchive;
         
         /** The subdirectory within the archive, with a trailing slash added to
          * the name, or an empty string if the directory desired is the top-level
          * of the archive.
          */
-        String internalDirSlash;
+        protected String internalDirSlash;
         
-        RelativePath.RelativeDirectory internalDir;
+        /** The directory path within the jar file */
+        protected RelativePath.RelativeDirectory internalDir;
         
         /** Creates a Dir object representing the content or a subdirectory of
          * a Jar file.
@@ -726,7 +760,7 @@ public class JmlSpecs {
             if (zipArchive == null) return false;
             for (RelativePath.RelativeDirectory f: zipArchive.getSubdirectories()) {
                 if (name.length() == 0) return true;
-                // TODO - check that this works correctly
+                // TODO - check that this works correctly // use contains?
                 if (f.getPath().startsWith(internalDir.getPath())) return true;
             }
             return false;
@@ -754,172 +788,6 @@ public class JmlSpecs {
         }
     }
     
-    /** A debugging method that prints the content of the specs database */
-    public void printDatabase() {
-        try {
-            for (Map.Entry<ClassSymbol,TypeSpecs> e : specsmap.entrySet()) {
-                String n = e.getKey().flatname.toString();
-                JavaFileObject f = e.getValue().file;
-                log.noticeWriter.println(n + " " + (f==null?"<NOFILE>":f.getName()));
-                ListBuffer<JmlTree.JmlTypeClause> clauses = e.getValue().clauses;
-                log.noticeWriter.println("  " + clauses.size() + " CLAUSES");
-                for (JmlTree.JmlTypeClause j: clauses) {
-                    // FIXME               log.noticeWriter.println("  " + j.token.internedName() + " " + j.expression.toString());
-                }
-                log.noticeWriter.println("  " + e.getValue().methods.size() + " METHODS");
-                for (MethodSymbol m: e.getValue().methods.keySet()) {
-                    JmlMethodSpecs sp = getSpecs(m);
-                    log.noticeWriter.println("  " + m.enclClass().toString() + " " + m.flatName());
-                    log.noticeWriter.print(JmlPretty.write(sp));
-                    //log.noticeWriter.println(sp.toString("     "));
-                }
-                log.noticeWriter.println("  " + e.getValue().fields.size() + " FIELDS");
-                for (VarSymbol m: e.getValue().fields.keySet()) {
-                    FieldSpecs sp = getSpecs(m);
-                    for (JmlTypeClause t: sp.list) {
-                    log.noticeWriter.println("  " + m.enclClass().toString() + " " + m.flatName());
-                    log.noticeWriter.print(JmlPretty.write(t));
-                    //log.noticeWriter.println(sp.toString("     "));
-                    }
-                }
-            }
-            log.noticeWriter.println("MOCK FILES");
-            for (String s: mockFiles.keySet()) {
-                log.noticeWriter.println(s + " :: " + mockFiles.get(s));
-            }
-        } catch (Exception e) {
-            log.noticeWriter.println("Exception occurred in printing the database: " + e);
-        }
-    }
-    
-    
-    /** Retrieves the specifications for a given type
-     * @param type the ClassSymbol of the type whose specs are wanted
-     * @return the specifications, or null if there are none in the database
-     */
-    //@ nullable 
-    public TypeSpecs get(ClassSymbol type) {
-        return specsmap.get(type);
-    }
-    
-    /** Retrieves the specifications for a given type, providing and registering
-     * a default if one is not there
-     * @param type the ClassSymbol of the type whose specs are wanted
-     * @return the specifications, or null if there are none in the database
-     */
-    //@ nullable
-    public TypeSpecs getSpecs(ClassSymbol type) {
-        TypeSpecs t = specsmap.get(type);
-        if (t == null) specsmap.put(type, t=new TypeSpecs(type));
-        return t;
-    }
-    
-    /** Deletes the specs for a given type, including all method and field
-     * specs for that type.
-     * @param type the type whose specs are to be deleted
-     */
-    public void deleteSpecs(ClassSymbol type) {
-        specsmap.put(type, null);
-    }
-    
-    
-    /** Adds the specs for a given type to the database, overwriting anything
-     * already there
-     * @param type the ClassSymbol of the type whose specs are provided
-     * @param spec the specs to associate with the type
-     */
-    public void putSpecs(ClassSymbol type, /*@ nullable */ TypeSpecs spec) {
-        spec.csymbol = type;
-        specsmap.put(type,spec);
-        if (utils.jmldebug) log.noticeWriter.println("PUTTING SPECS " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
-    }
-    
-    /** Adds the specs for a given method to the database, overwriting anything
-     * already there
-     * @param m the MethodSymbol of the method whose specs are provided
-     * @param spec the specs to associate with the method
-     */
-    public void putSpecs(MethodSymbol m, JmlMethodSpecs spec) {
-        if (utils.jmldebug) log.noticeWriter.println("            PUTTING METHOD SPECS " + m.enclClass() + " " + m);
-        specsmap.get(m.enclClass()).methods.put(m,spec);   // FIXME - what if the type is not present
-    }
-    
-    /** Adds the specs for a given method to the database, overwriting anything
-     * already there
-     * @param m the MethodSymbol of the method whose specs are provided
-     * @param spec the specs to associate with the method
-     */
-    public void putSpecs(ClassSymbol csym, JCTree.JCBlock m, JmlMethodSpecs spec) {
-        if (utils.jmldebug) log.noticeWriter.println("            PUTTING BLOCK SPECS " );
-        specsmap.get(csym).blocks.put(m,spec);   // FIXME - what if the type is not present
-    }
-    
-    /** Adds the specs for a given field to the database, overwriting anything
-     * already there
-     * @param m the VarSymbol of the method whose specs are provided
-     * @param spec the specs to associate with the method
-     */
-    public void putSpecs(VarSymbol m, FieldSpecs spec) {
-        if (utils.jmldebug) log.noticeWriter.println("            PUTTING FIELD SPECS " + m.enclClass() + " " + m);
-        specsmap.get(m.enclClass()).fields.put(m,spec);   // FIXME - what if the type is not present
-    }
-    
-    /** Retrieves the specs for a given method
-     * @param m the MethodSymbol of the method whose specs are wanted
-     * @return the specs of the method, or null if none are present
-     */
-    //@ nullable
-    public JmlMethodSpecs getSpecs(MethodSymbol m) {
-        TypeSpecs t = specsmap.get(m.enclClass());
-        return t == null ? null : t.methods.get(m);
-    }
-    
-    public JmlMethodSpecs getDenestedSpecs(MethodSymbol m) {
-        JmlMethodSpecs s = getSpecs(m);
-        if (s == null) return null;
-        if (s.deSugared == null) {
-            attr.deSugarMethodSpecs(s.decl,s);
-        }
-        return s.deSugared;
-    }
-    
-    
-    public static JmlMethodSpecs defaultSpecs(JmlMethodDecl m) {
-        JmlMethodSpecs ms = new JmlMethodSpecs();
-        ms.pos = m.pos;
-        ms.decl = m;
-        ms.deSugared = ms;
-        return ms;
-    }
-
-    public static JmlMethodSpecs defaultSpecs(int pos) {
-        JmlMethodSpecs ms = new JmlMethodSpecs();
-        ms.pos = pos;
-        ms.decl = null;
-        ms.deSugared = ms;
-        return ms;
-    }
-
-    /** Retrieves the specs for a given field
-     * @param m the VarSymbol of the field whose specs are wanted
-     * @return the specs of the field, or null if none are present
-     */
-    //@ nullable
-    public FieldSpecs getSpecs(VarSymbol m) {
-        TypeSpecs t = getSpecs(m.enclClass());
-        return t == null ? null : t.fields.get(m);
-    }
-    
-    /** Retrieves the specs for a given initializer block
-     * @param sym the class in which the block resides
-     * @param m the JCBlock of the block whose specs are wanted
-     * @return the specs of the block, or null if none are present
-     */
-    //@ nullable
-    public JmlMethodSpecs getSpecs(ClassSymbol sym, JCTree.JCBlock m) {
-        TypeSpecs t = specsmap.get(sym);
-        return t == null ? null : t.blocks.get(m);
-    }
     
     
     /** Finds the first specification file (if any) for the given class.  It
@@ -967,7 +835,186 @@ public class JmlSpecs {
         }
         return null;
     }
+ 
+    /////////////////////////////////////////////////////////////////////////
     
+    /** A debugging method that prints the content of the specs database */
+    public void printDatabase() {
+        try {
+            for (Map.Entry<ClassSymbol,TypeSpecs> e : specsmap.entrySet()) {
+                String n = e.getKey().flatname.toString();
+                JavaFileObject f = e.getValue().file;
+                log.noticeWriter.println(n + " " + (f==null?"<NOFILE>":f.getName()));
+                ListBuffer<JmlTree.JmlTypeClause> clauses = e.getValue().clauses;
+                log.noticeWriter.println("  " + clauses.size() + " CLAUSES");
+                for (JmlTree.JmlTypeClause j: clauses) {
+                    log.noticeWriter.println("  " + JmlPretty.write(j));
+                }
+                log.noticeWriter.println("  " + e.getValue().methods.size() + " METHODS");
+                for (MethodSymbol m: e.getValue().methods.keySet()) {
+                    MethodSpecs sp = getSpecs(m);
+                    log.noticeWriter.println("  " + JmlPretty.write(sp.mods));
+                    log.noticeWriter.println(" " + m.enclClass().toString() + " " + m.flatName());
+                    log.noticeWriter.print(JmlPretty.write(sp.cases));
+                    //log.noticeWriter.println(sp.toString("     "));
+                }
+                log.noticeWriter.println("  " + e.getValue().fields.size() + " FIELDS");
+                for (VarSymbol m: e.getValue().fields.keySet()) {
+                    FieldSpecs sp = getSpecs(m);
+                    log.noticeWriter.print("  " + JmlPretty.write(sp.mods));
+                    log.noticeWriter.println(" " + m.enclClass().toString() + " " + m.flatName());
+                    for (JmlTypeClause t: sp.list) {
+                        log.noticeWriter.print(JmlPretty.write(t));
+                        //log.noticeWriter.println(sp.toString("     "));
+                    }
+                }
+            }
+            log.noticeWriter.println("MOCK FILES");
+            for (String s: mockFiles.keySet()) {
+                log.noticeWriter.println(s + " :: " + mockFiles.get(s));
+            }
+        } catch (Exception e) {
+            log.noticeWriter.println("Exception occurred in printing the database: " + e);
+        }
+    }
+    
+    
+    /** Retrieves the specifications for a given type, or null if no specs are
+     * present for this type
+     * @param type the ClassSymbol of the type whose specs are wanted
+     * @return the specifications, or null if there are none in the database
+     */
+    //@ nullable 
+    public TypeSpecs get(ClassSymbol type) {
+        return specsmap.get(type);
+    }
+    
+    /** Retrieves the specifications for a given type, providing and registering
+     * a default if one is not there
+     * @param type the ClassSymbol of the type whose specs are wanted
+     * @return the specifications
+     */
+    //@ nullable
+    public TypeSpecs getSpecs(ClassSymbol type) {
+        TypeSpecs t = specsmap.get(type);
+        if (t == null) specsmap.put(type, t=new TypeSpecs(type));
+        return t;
+    }
+    
+    /** Deletes the specs for a given type, including all method and field
+     * specs for that type.
+     * @param type the type whose specs are to be deleted
+     */
+    public void deleteSpecs(ClassSymbol type) {
+        specsmap.put(type, null);
+    }
+    
+    
+    /** Adds the specs for a given type to the database, overwriting anything
+     * already there
+     * @param type the ClassSymbol of the type whose specs are provided
+     * @param spec the specs to associate with the type
+     */
+    public void putSpecs(ClassSymbol type, TypeSpecs spec) {
+        spec.csymbol = type;
+        specsmap.put(type,spec);
+        if (utils.jmldebug) log.noticeWriter.println("PUTTING SPECS " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
+    }
+    
+    /** Adds the specs for a given method to the database, overwriting anything
+     * already there.  There must already be a specs entry for the owning class
+     * @param m the MethodSymbol of the method whose specs are provided
+     * @param spec the specs to associate with the method
+     */
+    public void putSpecs(MethodSymbol m, MethodSpecs spec) {
+        if (utils.jmldebug) log.noticeWriter.println("            PUTTING METHOD SPECS " + m.enclClass() + " " + m);
+        specsmap.get(m.enclClass()).methods.put(m,spec);
+    }
+    
+    /** Adds the specs for a given initialization block to the database, overwriting anything
+     * already there.  The type must already have a spec supplied, to which this
+     * is added.
+     * @param csym the class to which the initialilzation block belongs
+     * @param m the Block whose specs are provided
+     * @param spec the specs to associate with the block
+     */
+    public void putSpecs(ClassSymbol csym, JCTree.JCBlock m, MethodSpecs spec) {
+        if (utils.jmldebug) log.noticeWriter.println("            PUTTING BLOCK SPECS " );
+        specsmap.get(csym).blocks.put(m,spec);
+    }
+    
+    /** Adds the specs for a given field to the database, overwriting anything
+     * already there.  The type must already have a specs supplied, to which
+     * this is added.
+     * @param m the VarSymbol of the method whose specs are provided
+     * @param spec the specs to associate with the method
+     */
+    public void putSpecs(VarSymbol m, FieldSpecs spec) {
+        if (utils.jmldebug) log.noticeWriter.println("            PUTTING FIELD SPECS " + m.enclClass() + " " + m);
+        specsmap.get(m.enclClass()).fields.put(m,spec);
+    }
+    
+    /** Retrieves the specs for a given method
+     * @param m the MethodSymbol of the method whose specs are wanted
+     * @return the specs of the method, or null if none are present
+     */
+    //@ nullable
+    public MethodSpecs getSpecs(MethodSymbol m) {
+        TypeSpecs t = specsmap.get(m.enclClass());
+        return t == null ? null : t.methods.get(m);
+    }
+    
+    // TODO - document
+    public JmlMethodSpecs getDenestedSpecs(MethodSymbol m) {
+        MethodSpecs s = getSpecs(m);
+        if (s == null) return null;
+        if (s.cases.deSugared == null) {
+            attr.deSugarMethodSpecs(s.cases.decl,s);
+        }
+        return s.cases.deSugared;
+    }
+    
+    // TODO - document
+    public static MethodSpecs defaultSpecs(JmlMethodDecl m) {
+        JmlMethodSpecs ms = new JmlMethodSpecs();
+        MethodSpecs mspecs = new MethodSpecs(m.mods,ms);
+        ms.pos = m.pos;
+        ms.decl = m;
+        ms.deSugared = ms;
+        return mspecs;
+    }
+
+    // TODO - document
+    public static MethodSpecs defaultSpecs(int pos) {
+        JmlMethodSpecs ms = new JmlMethodSpecs();
+        MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
+        ms.pos = pos;
+        ms.decl = null;
+        ms.deSugared = ms;
+        return mspecs;
+    }
+
+    /** Retrieves the specs for a given field
+     * @param m the VarSymbol of the field whose specs are wanted
+     * @return the specs of the field, or null if none are present
+     */
+    //@ nullable
+    public FieldSpecs getSpecs(VarSymbol m) {
+        TypeSpecs t = getSpecs(m.enclClass());
+        return t == null ? null : t.fields.get(m);
+    }
+    
+    /** Retrieves the specs for a given initializer block
+     * @param sym the class in which the block resides
+     * @param m the JCBlock of the block whose specs are wanted
+     * @return the specs of the block, or null if none are present
+     */
+    //@ nullable
+    public MethodSpecs getSpecs(ClassSymbol sym, JCTree.JCBlock m) {
+        TypeSpecs t = specsmap.get(sym);
+        return t == null ? null : t.blocks.get(m);
+    }
+   
     /** An ADT to hold the JML specifications for a Java class, including
      * clauses (e.g. invariant), JML modifiers of the class, model/ghost
      * declarations
@@ -984,9 +1031,10 @@ public class JmlSpecs {
          */
         public java.util.List<JmlClassDecl> refiningSpecDecls = new java.util.LinkedList<JmlClassDecl>();
         
-        /** The source file for the specifications */
+        /** The source file for the modifiers, not necessarily for the rest of the specs
+         * if these are the combined specs */
         //@ nullable   // may be null if there are no specs
-        public JavaFileObject file; // FIXME - these may come from different files
+        public JavaFileObject file;
 
         /** The JmlClassDecl from the specification */ // FIXME - this is probably better used as the decl of the Java file, if any
         //@ nullable   // may be null if there are no specs
@@ -1020,7 +1068,7 @@ public class JmlSpecs {
 
         /** A map from methods of the class to the specifications for the method. */
         /*@ non_null */
-        public Map<MethodSymbol,JmlMethodSpecs> methods = new HashMap<MethodSymbol,JmlMethodSpecs>();
+        public Map<MethodSymbol,MethodSpecs> methods = new HashMap<MethodSymbol,MethodSpecs>();
 
         /** A map from fields of the class to the specifications for the field. */
         /*@ non_null */
@@ -1028,7 +1076,7 @@ public class JmlSpecs {
         
         /** A map from initializer blocks of the class to the specifications for the initializers. */
         /*@ non_null */
-        public Map<JCTree.JCBlock,JmlMethodSpecs> blocks = new HashMap<JCTree.JCBlock,JmlMethodSpecs>();
+        public Map<JCTree.JCBlock,MethodSpecs> blocks = new HashMap<JCTree.JCBlock,MethodSpecs>();
 
         /** The spec associated with the initializer keyword, if any */
         /*@ nullable */ // will be null if there is no initializer specification
@@ -1056,7 +1104,7 @@ public class JmlSpecs {
             this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
         }
         
-        // FIXME - comment - only partially fills in the class - used for a binary file - I think everything is pretty much empty and null
+        // TODO - comment - only partially fills in the class - used for a binary file - I think everything is pretty much empty and null
         public TypeSpecs(JavaFileObject file, JCTree.JCModifiers mods, ListBuffer<JmlTree.JmlTypeClause> clauses) {
             this.file = file;
             this.decl = null;
@@ -1064,7 +1112,7 @@ public class JmlSpecs {
             this.clauses = clauses != null ? clauses : new ListBuffer<JmlTree.JmlTypeClause>();
         }
         
-        // FIXME - comment - only partially fills in the class
+        // TODO - comment - only partially fills in the class
         public TypeSpecs(JmlClassDecl decl) {
             this.file = decl.sourcefile;
             this.decl = decl;
@@ -1153,11 +1201,17 @@ public class JmlSpecs {
 
     }
     
-// For method specifications, use the JmlTree.JmlMethodSpecs class
-//    public static class MethodSpecs {
-//        public MethodSpecs(JmlMethodSpecs m) { methodSpecs = m; }
-//        public JmlMethodSpecs methodSpecs;
-//    }
+    /** An ADT to hold the specs for a method or block */
+    public static class MethodSpecs {
+        
+        public JCTree.JCModifiers mods;
+        public JmlMethodSpecs cases;
+        
+        public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs m) { 
+            this.mods = mods;
+            cases = m != null ? m : new JmlMethodSpecs(); 
+        }
+    }
 
     /** An ADT to hold the specs for a field declaration */
     public static class FieldSpecs {

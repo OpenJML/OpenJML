@@ -316,9 +316,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     JmlMethodDecl m = (JmlMethodDecl)t;
                     m.methodSpecsCombined = specs.getSpecs(m.sym);
                     if (m.methodSpecsCombined == null) {
-                        JmlMethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m);
+                        JmlSpecs.MethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m);
                         m.methodSpecsCombined = defaultSpecs;
-                        defaultSpecs.decl = m;
+                        defaultSpecs.cases.decl = m;
                         JmlSpecs.instance(context).putSpecs(m.sym, m.methodSpecsCombined);
                     }
                 }
@@ -339,9 +339,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         JmlMethodDecl m = (JmlMethodDecl)tcd.decl;
                         m.methodSpecsCombined = specs.getSpecs(m.sym);
                         if (m.methodSpecsCombined == null) {
-                            JmlMethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m.pos);
+                            JmlSpecs.MethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m.pos);
                             m.methodSpecsCombined = defaultSpecs;
-                            defaultSpecs.decl = m;
+                            defaultSpecs.cases.decl = m;
                             JmlSpecs.instance(context).putSpecs(m.sym, m.methodSpecsCombined);
                         }
                    }
@@ -557,11 +557,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             // FIXME - do we really want to completely ignore this method and its specs - it won't get type checked for example
         } else {
             
-            JmlMethodSpecs combinedSpecs = specsMethodDecl.methodSpecs;
-            if (combinedSpecs == null) {
-                combinedSpecs = JmlSpecs.defaultSpecs(specsMethodDecl);
+            JmlSpecs.MethodSpecs combinedSpecs;
+            if (specsMethodDecl == null) {
+                combinedSpecs = JmlSpecs.defaultSpecs(0);  // FIXME
+            } else {
+                combinedSpecs = new JmlSpecs.MethodSpecs(specsMethodDecl.mods,specsMethodDecl.cases);
             }
-            combinedSpecs.decl = specsMethodDecl;
 
             if (javaDecl != null) {
                 // TODO - is there a better way to find a declaration for a method symbol?
@@ -576,7 +577,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     // Cross link them:
                     javaMatch.specsDecl = specsMethodDecl;
                     javaMatch.methodSpecsCombined = combinedSpecs;
-                    combinedSpecs.decl = javaMatch;
+                    combinedSpecs.cases.decl = javaMatch;
                 } else {
                     // Lack of match already complained about in matchMethod
                     specsMethodDecl.methodSpecsCombined = combinedSpecs;
@@ -693,9 +694,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     JmlMethodDecl m = (JmlMethodDecl)t;
                     m.methodSpecsCombined = specs.getSpecs(m.sym);
                     if (m.methodSpecsCombined == null) {
-                        JmlMethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m);
+                        JmlSpecs.MethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m);
                         m.methodSpecsCombined = defaultSpecs;
-                        defaultSpecs.decl = m;
+                        defaultSpecs.cases.decl = m;
                         JmlSpecs.instance(context).putSpecs(m.sym, m.methodSpecsCombined);
                     }
                 }
@@ -716,9 +717,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         JmlMethodDecl m = (JmlMethodDecl)tcd.decl;
                         m.methodSpecsCombined = specs.getSpecs(m.sym);
                         if (m.methodSpecsCombined == null) {
-                            JmlMethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m.pos);
+                            JmlSpecs.MethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m.pos);
                             m.methodSpecsCombined = defaultSpecs;
-                            defaultSpecs.decl = m;
+                            defaultSpecs.cases.decl = m;
                             JmlSpecs.instance(context).putSpecs(m.sym, m.methodSpecsCombined);
                         }
                    }
@@ -1903,13 +1904,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     // checkMethodMatch already called in matchMethod via matchAndCombineMethodSpecs
                     //checkMethodMatch(msym,md,d.sym);
                     
-                    JmlMethodSpecs mdspecs = md.methodSpecs;
-                    JmlMethodSpecs mspecs = specs.getSpecs(msym);
+                    JmlMethodSpecs mdspecs = md.cases;
+                    JmlSpecs.MethodSpecs mspecs = specs.getSpecs(msym);
                     if (mspecs == null) {
-                        specs.putSpecs(msym, mspecs = mdspecs);
+                        specs.putSpecs(msym, mspecs = new JmlSpecs.MethodSpecs(md.mods,mdspecs));
                     } else {
-                        mspecs.decl = md;
-                        mspecs.cases = mdspecs != null ? mdspecs.cases : List.<JmlSpecificationCase>nil();
+                        mspecs.cases.decl = md;
+                        mspecs.cases.cases = mdspecs != null ? mdspecs.cases : List.<JmlSpecificationCase>nil();
                     }
 
                     // FIXME - attach specs to symbol
@@ -1969,8 +1970,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         visitMethodDef(vd);
                         
                         // Model methods have their own specs
-                        if (vd.methodSpecs== null) vd.methodSpecs = specs.defaultSpecs(vd);
-                        vd.methodSpecsCombined = vd.methodSpecs;
+                        if (vd.cases == null) vd.cases = specs.defaultSpecs(vd).cases;
+                        vd.methodSpecsCombined = new JmlSpecs.MethodSpecs(vd.mods,vd.cases);
                         specs.putSpecs(vd.sym,vd.methodSpecsCombined);
                     }
                 } else {

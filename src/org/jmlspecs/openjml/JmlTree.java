@@ -835,8 +835,8 @@ public class JmlTree {
     /** This class adds some JML specific information to the JCMethodDecl node. */
     public static class JmlMethodDecl extends JCTree.JCMethodDecl implements JmlSource {
         public JmlMethodDecl specsDecl;
-        public JmlMethodSpecs methodSpecs;
-        public JmlMethodSpecs methodSpecsCombined;
+        public JmlMethodSpecs cases;
+        public JmlSpecs.MethodSpecs methodSpecsCombined;
         public JmlClassDecl owner;
         public JavaFileObject sourcefile;
         public String docComment = null;

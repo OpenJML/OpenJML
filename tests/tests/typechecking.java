@@ -26,10 +26,12 @@ public class typechecking extends TCBase {
                 "/TEST.java:2: incompatible types\n  required: boolean\n  found:    int",12);
     }
 
-//    public void testTypeArgs() {  // FIXME - could wish for a better error message and recovery
-//        helpTC(" class A { int k; boolean b; void m() { int t = this.<Integer>mm(); \n//@ assert <Object>\\old(k);\n}}",
-//                "/TEST.java:2: A \\old expression must have an argument list",12);
-//    }
+    public void testTypeArgs() {
+        helpTC(" class A { int k; boolean b; <T> int mm() {} void m() { int t = this.<Integer>mm(); \n//@ assert <Object>\\old(k);\n}}"
+                ,"/TEST.java:2: illegal start of expression",20
+                ,"/TEST.java:2: Incorrectly formed or terminated assert statement near here",20
+                );
+    }
 
     public void testOld1() {
         helpTC(" class A { int k; boolean b; void m() { \n//@ assert \\old;\n}}",
@@ -274,11 +276,17 @@ public class typechecking extends TCBase {
     }
     
     public void testSubtype3() { // OK
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures t <: o.getClass();\nvoid m() {}}");
+        expectedExit = 0;
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures t <: o.getClass();\nvoid m() {}}"
+                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: getClass()",27
+                );
     }
     
     public void testSubtype4() { // OK
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures o.getClass() <: Object.class;\nvoid m() {}}");
+        expectedExit = 0;
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures o.getClass() <: Object.class;\nvoid m() {}}"
+                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: getClass()",22
+                );
     }
     
     public void testSubtype5() { // OK
@@ -303,6 +311,7 @@ public class typechecking extends TCBase {
     
     public void testSetComp() {
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ invariant new JMLSetType { Integer i | c.contains(i) && i<10}; \n \n }"
+                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",79
                 ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.lang.JMLSetType",55
 		);
     }
@@ -310,6 +319,7 @@ public class typechecking extends TCBase {
     // Testing scopes in method specs
     public void testSetCompA() {
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ requires new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
+                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",78
                 ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.lang.JMLSetType",54
                 );
     }
@@ -319,17 +329,45 @@ public class typechecking extends TCBase {
                 "/A.java:3: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",15);
     }
   
-    // FIXME - a problem with scopes in field initializers
-//    public void testSetCompB() {
-//        helpTCF("A.java","public class A {  \n java.util.Collection c; //@ ghost int k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
-//                ,"/A.java:2: incompatible types\nfound:    org.jmlspecs.lang.JMLSetType\nrequired: boolean",66
-//        );
-//    }
-//
-//    public void testQuantifierB() {
-//        helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(int k) { return false; }\n }",
-//                "/A.java:3: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",15);
-//    }
+    public void testSetCompB() {
+        helpTCF("A.java","public class A {  \n java.util.Collection c; //@ ghost int k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
+                ,"/A.java:2: incompatible types\n  required: int\n  found:    org.jmlspecs.lang.JMLSetType",59
+        );
+    }
+
+    public void testSetCompB3() {
+        helpTCF("A.java","public class A {  boolean p; \n java.util.Collection c; //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && p<10}; \n void m() {} \n }"
+                ,"/A.java:2: operator < cannot be applied to boolean,int",94
+        );
+    }
+
+    public void testSetCompB2() {
+        helpTCF("A.java","public class A {  \n java.util.Collection c; //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
+        );
+    }
+
+    public void testQuantifierB() {
+        helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(int k) { return false; }\n }",
+                "/A.java:2: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",24);
+    }
+  
+    public void testQuantifierB2() {
+        helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(boolean k) { return false; } boolean m(int p) { return false; }\n }"
+                );
+    }
+  
+    public void testQuantifierB3() {
+        helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(boolean k) { return false; } \n }"
+                ,"/A.java:2: method m in class A cannot be applied to given types\n  required: boolean\n  found: int",59
+                );
+    }
+  
+    // Looking for a name in the outer scope
+    public void testQuantifierB4() {
+        helpTCF("A.java","public class A { boolean p;  \n  //@ ghost boolean j = ( (\\exists int i; 0 < i && i <10; m(p)) ); \nboolean m(int k) { return false; } \n }"
+                ,"/A.java:2: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",59
+                );
+    }
   
     // testing scopes in local initializers
     public void testSetCompC() {
@@ -338,9 +376,31 @@ public class typechecking extends TCBase {
                 );
     }
 
+    public void testSetCompC3() {
+        helpTCF("A.java","public class A {  \n java.util.Collection c;  void m() { boolean p; //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && p<10}; \n} \n }"
+                ,"/A.java:2: operator < cannot be applied to boolean,int",117
+                );
+    }
+
+    public void testSetCompC2() {
+        helpTCF("A.java","public class A {  \n java.util.Collection c;  void m() { //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n} \n }"
+                );
+    }
+
     public void testQuantifierC() {
         helpTCF("A.java","public class A {  \n  boolean m(int k) { //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }",
                 "/A.java:2: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",43
+                );
+    }
+    
+    public void testQuantifierC2() {
+        helpTCF("A.java","public class A {  \n  boolean m(int k) { //@ ghost boolean j = ( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }"
+                );
+    }
+    
+    public void testQuantifierC3() {
+        helpTCF("A.java","public class A {  \n  boolean m(int k) { boolean p ; //@ ghost boolean j = ( (\\exists int i; 0 < i && i <10; m(p)) ); \n return false; }\n }",
+                "/A.java:2: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",90
                 );
     }
     

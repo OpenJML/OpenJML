@@ -97,7 +97,7 @@ public class MethodWriterJml extends MethodWriterImpl {
                 }
             }
             MethodSymbol newMethodSym = (MethodSymbol)e.sym;
-            JmlMethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(newMethodSym);
+            JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(newMethodSym);
             if (mspecs != null) {
                 writer.br(); // Need this if there is tag info, otherwise not // FIXME
                 String s = Utils.jmlAnnotations(newMethodSym);
@@ -105,7 +105,9 @@ public class MethodWriterJml extends MethodWriterImpl {
                     strong("JML Method Specifications: "); 
                     writer.print(s);
                     writer.preNoNewLine();
-                    writer.print(JmlPretty.write(mspecs,false));
+                    writer.print(JmlPretty.write(mspecs.mods,false));
+                    writer.print(" ");
+                    writer.print(JmlPretty.write(mspecs.cases,false));
                     writer.preEnd();
                 }
                 
@@ -118,7 +120,9 @@ public class MethodWriterJml extends MethodWriterImpl {
                             strong("JML Specifications inherited from " + c + ": "); 
                             writer.print(ss);
                             writer.preNoNewLine();
-                            writer.print(JmlPretty.write(mspecs,false));
+                            writer.print(JmlPretty.write(mspecs.mods,false));
+                            writer.print(" ");
+                            writer.print(JmlPretty.write(mspecs.cases,false));
                             writer.preEnd();
                         }
                     }

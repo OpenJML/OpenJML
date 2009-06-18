@@ -659,19 +659,19 @@ public class JmlParser extends EndPosParser {
                     tree = iter.next();
                     if (tree instanceof JmlMethodDecl) {
                         JmlMethodDecl mdecl = (JmlMethodDecl)tree;
-                        mdecl.methodSpecs = mspecs;
+                        mdecl.cases = mspecs;
                         newlist.append(mdecl);
                     } else if (tree instanceof JmlTypeClauseDecl &&
                             ((JmlTypeClauseDecl)tree).decl instanceof JmlMethodDecl) {
                         JmlMethodDecl mdecl = (JmlMethodDecl)((JmlTypeClauseDecl)tree).decl;
-                        mdecl.methodSpecs = mspecs;
+                        mdecl.cases = mspecs;
                         typeSpecs.clauses.append((JmlTypeClause)tree);
                     } else if (tree instanceof JmlTypeClauseInitializer) {
                         JmlTypeClauseInitializer tsp = (JmlTypeClauseInitializer)tree;
                         tsp.specs = mspecs;
                         checkInitializer(tsp,typeSpecs);
                     } else if (tree instanceof JCTree.JCBlock) {
-                        typeSpecs.blocks.put((JCTree.JCBlock)tree,mspecs);
+                        typeSpecs.blocks.put((JCTree.JCBlock)tree,new JmlSpecs.MethodSpecs(jmlF.Modifiers(0),mspecs));
                         newlist.append(tree);
                     } else {
                         log.error(mspecs.pos,"jml.misplaced.method.spec");

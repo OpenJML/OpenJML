@@ -409,7 +409,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     
     protected void checkFieldAssignable(JCFieldAccess assignee, int pos) {
         if (!(currentMethodDecl instanceof JmlMethodDecl)) return;
-        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.deSugared;
+        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.cases.deSugared;
         if (mspecs == null) return;
         for (JmlSpecificationCase c: mspecs.cases) {
             JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
@@ -466,7 +466,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     
     protected void checkArrayAssignable(JCArrayAccess assignee, int pos) {
         if (!(currentMethodDecl instanceof JmlMethodDecl)) return;
-        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.deSugared;
+        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.cases.deSugared;
         if (mspecs == null) return;
         for (JmlSpecificationCase c: mspecs.cases) {
             JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
@@ -527,7 +527,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     protected JCExpression checkIdentAssignable(JCIdent assignee, int pos) {
         JCExpression wrapped = assignee;
         if (!(currentMethodDecl instanceof JmlMethodDecl)) return wrapped;
-        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.deSugared;
+        JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.cases.deSugared;
         if (mspecs == null) return wrapped;
         for (JmlSpecificationCase c: mspecs.cases) {
             JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
@@ -860,13 +860,13 @@ public class JmlTranslator extends JmlTreeTranslator {
         JCMethodDecl prev = currentMethodDecl;
         currentMethodDecl = that;
         try {
-            JmlMethodSpecs mspecs = that.methodSpecsCombined;
+            JmlSpecs.MethodSpecs mspecs = that.methodSpecsCombined;
             ListBuffer<JmlSpecificationCase> newcases = new ListBuffer<JmlSpecificationCase>();
             if (mspecs != null) { // FIXME - why would this be null
-                for (JmlSpecificationCase c: mspecs.cases) {
+                for (JmlSpecificationCase c: mspecs.cases.cases) {
                     newcases.append(translate(c));
                 }
-                mspecs.cases = newcases.toList();
+                mspecs.cases.cases = newcases.toList();
             }
         } finally {
             currentMethodDecl = prev;  // FIXME - finally?

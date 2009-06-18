@@ -83,7 +83,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
                 e = e.sibling;
             }
             MethodSymbol newMethodSym = (MethodSymbol)e.sym;
-            JmlMethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(newMethodSym);
+            JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(newMethodSym);
             if (mspecs != null) {
                 writer.br(); // Need this if there is tag info, otherwise not // FIXME
                 String s = Utils.jmlAnnotations(newMethodSym);
@@ -91,7 +91,8 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
                     strong("JML Constructor Specifications: "); 
                     writer.print(s);
                     writer.preNoNewLine();
-                    writer.print(JmlPretty.write(mspecs,false));
+                    writer.print(JmlPretty.write(mspecs.mods,false));
+                    writer.print(JmlPretty.write(mspecs.cases,false));
                     writer.preEnd();
                 }
             }
