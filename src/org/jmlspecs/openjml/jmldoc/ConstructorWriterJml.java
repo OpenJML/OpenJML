@@ -91,7 +91,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
                     strong("JML Constructor Specifications: "); 
                     writer.print(s);
                     writer.preNoNewLine();
-                    writer.print(JmlPretty.write(mspecs.mods,false));
+                    //writer.print(JmlPretty.write(mspecs.mods,false));
                     writer.print(JmlPretty.write(mspecs.cases,false));
                     writer.preEnd();
                 }

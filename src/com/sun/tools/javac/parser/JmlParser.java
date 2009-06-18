@@ -866,6 +866,7 @@ public class JmlParser extends EndPosParser {
         } else {
             S.nextToken();
         }
+        if (mods == null) mods = jmlF.at(pos).Modifiers(0);
         JmlTypeClauseExpr tcl = to(jmlF.at(pos).JmlTypeClauseExpr(mods, jt,
                 e));
         tcl.source = log.currentSourceFile();
@@ -902,6 +903,7 @@ public class JmlParser extends EndPosParser {
         } else {
             S.nextToken();
         }
+        if (mods == null) mods = jmlF.at(pos).Modifiers(0);
         JmlTypeClauseRepresents tcl = to(jmlF.at(pos).JmlTypeClauseRepresents(mods, id,
                 suchThat, e));
         tcl.source = log.currentSourceFile();
@@ -933,6 +935,7 @@ public class JmlParser extends EndPosParser {
                 }
             }
         }
+        if (mods == null) mods = jmlF.at(pos).Modifiers(0);
         JmlTypeClauseConstraint tcl = to(jmlF.at(pos).JmlTypeClauseConstraint(mods, e,
                 sigs == null ? null : sigs.toList()));
         tcl.source = log.currentSourceFile();

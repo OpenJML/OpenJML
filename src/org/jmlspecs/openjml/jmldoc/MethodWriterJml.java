@@ -105,8 +105,8 @@ public class MethodWriterJml extends MethodWriterImpl {
                     strong("JML Method Specifications: "); 
                     writer.print(s);
                     writer.preNoNewLine();
-                    writer.print(JmlPretty.write(mspecs.mods,false));
-                    writer.print(" ");
+                    //writer.print(JmlPretty.write(mspecs.mods,false));
+                    //writer.print(" ");
                     writer.print(JmlPretty.write(mspecs.cases,false));
                     writer.preEnd();
                 }
@@ -120,8 +120,8 @@ public class MethodWriterJml extends MethodWriterImpl {
                             strong("JML Specifications inherited from " + c + ": "); 
                             writer.print(ss);
                             writer.preNoNewLine();
-                            writer.print(JmlPretty.write(mspecs.mods,false));
-                            writer.print(" ");
+                            //writer.print(JmlPretty.write(mspecs.mods,false));
+                            //writer.print(" ");
                             writer.print(JmlPretty.write(mspecs.cases,false));
                             writer.preEnd();
                         }
