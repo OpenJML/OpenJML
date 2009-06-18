@@ -166,6 +166,7 @@ public class Utils {
         for (JCTree.JCAnnotation a: mods.annotations) {
             Type t = a.annotationType.type;
             if (t != null) {
+                // FIXME - can this be done by comparing symbols rather than strings
                 if (((Symbol.ClassSymbol)t.tsym).fullname.equals(m)) return a; 
             } else {
                 // FIXME this is not going to work for unattributed and not-fully qualified annotations

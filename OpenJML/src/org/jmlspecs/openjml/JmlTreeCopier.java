@@ -488,8 +488,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlMethodDecl copy = (JmlMethodDecl)super.visitMethod(that,p);
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl;
-        copy.methodSpecs = copy(that.methodSpecs);
-        copy.methodSpecsCombined = copy(that.methodSpecsCombined);
+        copy.cases = copy(that.cases);
+        copy.methodSpecsCombined = new JmlSpecs.MethodSpecs(copy(that.methodSpecsCombined.mods),copy(that.methodSpecsCombined.cases));
         copy.type = that.type;
         return copy;
     }

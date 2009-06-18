@@ -223,8 +223,9 @@ public class compiler extends TestCase {
                             "-noPurityCheck",  //"-Xlint:unchecked",
                             "testfiles/testNoErrors/A.java"
                           },0,0
-                          ,"Note: Arrays.jml uses unchecked or unsafe operations."+eol+
-                           "Note: Recompile with -Xlint:unchecked for details."+eol
+                          ,""
+//                          ,"Note: Arrays.jml uses unchecked or unsafe operations."+eol+
+//                           "Note: Recompile with -Xlint:unchecked for details."+eol
                           );
     }
 
@@ -242,8 +243,9 @@ public class compiler extends TestCase {
                             "-noPurityCheck",  //"-Xlint:unchecked",
                             "testfiles/testNoErrors/A.java"
                           },0,0
-                          ,"Note: Arrays.jml uses unchecked or unsafe operations."+eol+
-                           "Note: Recompile with -Xlint:unchecked for details."+eol
+                          ,""
+//                          ,"Note: Arrays.jml uses unchecked or unsafe operations."+eol+
+//                           "Note: Recompile with -Xlint:unchecked for details."+eol
                           );
     }
 

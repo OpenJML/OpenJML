@@ -1786,7 +1786,7 @@ public class BasicBlocker extends JmlTreeScanner {
     // FIXME - when run standalone (not in Eclipse), this method is called with the Object constructor 
     // as its argument, but with method.sym == null - is this because it is Binary?  is it not seeing the specs?
     protected JmlMethodInfo computeMethodInfo(MethodSymbol msym) {
-        JmlMethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(msym);
+        JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(msym);
         if (mspecs == null) {
             // The specs may be null because none were ever written (and there
             // was not even a declaration of the method to which an empty spec
@@ -1797,7 +1797,7 @@ public class BasicBlocker extends JmlTreeScanner {
         // binary and no specs file was written (so there is no source code
         // declaration anywhere).
 
-        JmlMethodInfo mi = mspecs.decl == null ? new JmlMethodInfo(msym) : new JmlMethodInfo(mspecs.decl);
+        JmlMethodInfo mi = mspecs.cases.decl == null ? new JmlMethodInfo(msym) : new JmlMethodInfo(mspecs.cases.decl);
         JmlMethodSpecs denestedSpecs = msym == null ? null : specs.getDenestedSpecs(msym);
         if (JmlEsc.escdebug) log.noticeWriter.println("SPECS FOR " + msym.owner + " " + msym + " " + (denestedSpecs != null));
         if (JmlEsc.escdebug) log.noticeWriter.println(denestedSpecs == null ? "     No denested Specs" : denestedSpecs.toString("   "));
@@ -1806,7 +1806,7 @@ public class BasicBlocker extends JmlTreeScanner {
         newstatements = new LinkedList<JCStatement>();
         if (denestedSpecs != null) {
             // preconditions
-            JCExpression pre = denestedSpecs.cases.size() == 0 ? makeLiteral(true,mspecs.decl==null?0:mspecs.decl.pos) : null;
+            JCExpression pre = denestedSpecs.cases.size() == 0 ? makeLiteral(true,mspecs.cases.decl==null?0:mspecs.cases.decl.pos) : null;
             int num = 0;
             for (JmlSpecificationCase spc: denestedSpecs.cases) {
                 JCExpression spre = null;
@@ -3146,7 +3146,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 // If there is no declaration of the method in the spec file,
                 // then an empty JmlMethodSpecs structure will have been put 
                 // in the specs database.
-                mspecs = JmlSpecs.defaultSpecs(0);
+                mspecs = JmlSpecs.defaultSpecs(0).cases;
             } else {
                 decl = mspecs.decl;
             }    
@@ -3249,7 +3249,7 @@ public class BasicBlocker extends JmlTreeScanner {
             if (mspecs == null) {
                 // This happens for a binary class with no specs for the given method.
                 //log.noticeWriter.println("NO SPECS FOR METHOD CALL(A) " + sym.owner + "." + sym);
-                mspecs = JmlSpecs.defaultSpecs(pos);
+                mspecs = JmlSpecs.defaultSpecs(pos).cases;
             } //else 
             {
                 boolean isStaticCalled = methodSym.isStatic();
@@ -4467,7 +4467,7 @@ public class BasicBlocker extends JmlTreeScanner {
         try {
             
             Symbol.MethodSymbol sym = (MethodSymbol)that.constructor;
-            JmlMethodSpecs mspecs = specs.getSpecs(sym);
+            JmlSpecs.MethodSpecs mspecs = specs.getSpecs(sym);
             if (mspecs == null) {
                 mspecs = JmlSpecs.defaultSpecs(0); // FIXME - is this OK
 //                Log.instance(context).error("jml.internal","Unexpected failure to find specifications (even an empty spec) for method " + sym.owner + "." + sym);
@@ -4480,7 +4480,7 @@ public class BasicBlocker extends JmlTreeScanner {
             }
 
             // Evaluate all of the arguments and assign them to new variables
-            decl = mspecs.decl;
+            decl = mspecs.cases.decl;
             int dpos = decl == null ? pos : decl.pos;
             int i = 0;
             if (sym.params != null) for (VarSymbol vd  : sym.params) {
@@ -6053,10 +6053,10 @@ public class BasicBlocker extends JmlTreeScanner {
         
         public void scan(JCTree that) {
             super.scan(that);
-            if (that instanceof JCIdent &&
-                    ((JCIdent)that).sym != null &&
-                    ((JCIdent)that).sym.owner != null &&
-                    !((JCIdent)that).sym.isStatic()) return;  // These are maps that we don't handle for now - I think they just come up in HAVOC assumptions - FIXME
+//            if (that instanceof JCIdent &&
+//                    ((JCIdent)that).sym != null &&
+//                    ((JCIdent)that).sym.owner != null &&
+//                    !((JCIdent)that).sym.isStatic()) return;  // These are maps that we don't handle for now - I think they just come up in HAVOC assumptions - FIXME
             if (that instanceof JCExpression &&
                     !(that instanceof JCParens) &&
                     !(that instanceof JCLiteral)) request((JCExpression)that);
