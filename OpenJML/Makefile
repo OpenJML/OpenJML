@@ -47,11 +47,11 @@ tar:
 .PHONY: alljars
 alljars jmlspecs.jar openjml.jar:
 	echo `pwd`
-	rm -rf temp temp2
+	-rm -rf temp temp2
 	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/OpenJML-${VERSION}/ > version.properties )
 	cp src/com/sun/tools/javac/resources/version.properties bin/com/sun/tools/javac/resources/version.properties
 	echo "openjml OpenJML-${VERSION}" > releaseTests/testJmlVersion/expected
-	mkdir temp
+	mkdir -p temp
 	mkdir -p jars
 	rm -f jars/jmlspecs.jar jars/openjml.jar
 	(cd temp; for j in ${ROOT}/../OpenJML/otherlibs/* ; do jar xf $$j; echo $$j; done; rm -rf META-INF )
@@ -67,7 +67,7 @@ alljars jmlspecs.jar openjml.jar:
 	cp -r ${SPECS}/java6/* temp/specs16
 	find temp/specs16 -name .svn -exec rm -rf \{\} +
 	(cd temp/specs16; jar -cf ../../jars/jmlspecs.jar . )
-	mkdir temp2
+	mkdir -p temp2
 	echo "Manifest-Version: 1.0" > temp2/manifest
 	echo "Main-Class: org.jmlspecs.openjml.Main" >> temp2/manifest
 	rm -r temp/tests
@@ -95,21 +95,21 @@ copy:
 	
 ## Builds jmlruntime.jar
 jmlruntime.jar:
-	rm -rf temp
+	-rm -rf temp
 	mkdir -p temp/org/jmlspecs
 	mkdir -p jars
 	rm -f jars/jmlruntime.jar
 	cp -r bin/org/jmlspecs/annotations bin/org/jmlspecs/lang bin/org/jmlspecs/models bin/org/jmlspecs/utils temp/org/jmlspecs
 	(cd temp; jar -cf ../jars/jmlruntime.jar . ) 
 	##cp jars/jmlruntime.jar ../OpenJMLUI
-	rm -rf temp
+	-rm -rf temp
 
 ## Separate target for jmlspecs.jar, though it is normally built along with
 ## openjml.jar
 jmlspecs:
-	mkdir temp
+	mkdir -p temp
 	mkdir temp/specs14 temp/specs15 temp/specs16
-	mkdir jars
+	mkdir -p jars
 	rm -f jars/jmlspecs.jar
 	cp -r ${SPECS}/java4/* temp/specs14
 	find temp/specs14 -name .svn -exec rm -rf \{\} +
@@ -120,4 +120,4 @@ jmlspecs:
 	cp -r ${SPECS}/java6/* temp/specs16
 	find temp/specs16 -name .svn -exec rm -rf \{\} +
 	(cd temp; jar -cf ../jars/jmlspecs.jar specs16 specs15 specs14 )
-	rm -rf temp
+	-rm -rf temp

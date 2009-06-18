@@ -459,14 +459,14 @@ public class OpenJMLInterface {
      */
     public @NonNull String getAllSpecs(@NonNull IMethod method) {
         MethodSymbol msym = convertMethod(method);
-        List<JmlMethodSpecs> methodSpecs = api.getAllSpecs(msym);
+        List<JmlSpecs.MethodSpecs> methodSpecs = api.getAllSpecs(msym);
         try {
             StringBuilder sb = new StringBuilder();
-            for (JmlMethodSpecs ts: methodSpecs) {
-                sb.append("From " + ts.decl.sourcefile.getName() + "\n");
-                sb.append(api.prettyPrint(ts.decl.mods,false)); // FIXME - want the collected mods in the JmlMethodSpecs
+            for (JmlSpecs.MethodSpecs ts: methodSpecs) {
+                sb.append("From " + ts.cases.decl.sourcefile.getName() + "\n");
+                sb.append(api.prettyPrint(ts.mods,false)); // FIXME - want the collected mods in the JmlMethodSpecs
                 sb.append("\n");
-                sb.append(api.prettyPrint(ts,false));
+                sb.append(api.prettyPrint(ts.cases,false));
                 sb.append("\n");
             }
             return sb.toString();

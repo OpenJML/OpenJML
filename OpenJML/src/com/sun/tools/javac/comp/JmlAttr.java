@@ -1366,10 +1366,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             // invariant, axiom, initially
             Env<AttrContext> localEnv = env; // FIXME - here and in constraint, should we make a new local environment?
-            if ((tree.modifiers.flags & STATIC) != 0) localEnv.info.staticLevel++;
+            boolean isStatic = tree.modifiers != null && isStatic(tree.modifiers);
+            if (isStatic) localEnv.info.staticLevel++;
 
             attribExpr(tree.expression, localEnv, syms.booleanType);
-            if ((tree.modifiers.flags & STATIC) != 0) localEnv.info.staticLevel--;
+            if (isStatic) localEnv.info.staticLevel--;
             checkTypeClauseMods(tree,tree.modifiers,tree.token.internedName() + " clause",tree.token);
 
         } finally {
@@ -2746,7 +2747,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param mods the modifiers to check
      * @return true if the static modifier is present, false if not
      */
-    public boolean isStatic(/*@nullable*/JCModifiers mods) {
+    public boolean isStatic(JCModifiers mods) {
         return (mods.flags & Flags.STATIC)!=0;
     }
     
