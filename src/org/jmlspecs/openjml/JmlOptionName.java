@@ -29,7 +29,7 @@ public enum JmlOptionName implements OptionInterface {
         { public void process(Options options) { options.put(COMMAND.name,"compile"); }},
     SPECS("-specspath",true,"Specifies the directory path to search for specification files"),
     JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)"),
-    USEJAVACOMPILER("-useJavaCompiler",false,"When on, the tool uses only the underlying javac compiler (must be the first option)"),
+    USEJAVACOMPILER("-java",false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)"),
     NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored"),
     NOCHECKSPECSPATH("-noCheckSpecsPath",false,"When on, no warnings for non-existent specification path directories are issued"),
     NOPURITYCHECK("-noPurityCheck",false,"When on, no warnings for use of impure methods are issued"),

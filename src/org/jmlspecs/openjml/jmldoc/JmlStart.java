@@ -31,7 +31,7 @@ public class JmlStart extends Start {
                 JmlOptionName.NOCHECKSPECSPATH, 
                 JmlOptionName.DIRS,
                 JmlOptionName.DIR,
-//                JmlOptionName.ENDOPTIONS
+//                JmlOptionName.ENDOPTIONS  // FIXME - implement this or not?
                 };
         System.out.println();
         System.out.println("JMLDoc options:");

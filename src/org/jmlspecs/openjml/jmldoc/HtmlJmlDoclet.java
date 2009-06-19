@@ -54,6 +54,7 @@ public class HtmlJmlDoclet extends HtmlDoclet {
     @Override
     protected void generateClassFiles(RootDoc root, ClassTree classtree) {
         doJmlParsing(root);
+        // TODO - control with a flag?
 //        Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
 //        if (Log.instance(context).nerrors > 0) {
 //            throw new Messager.ExitJavadoc(); // Aborts Javadoc if there are any errors
@@ -97,6 +98,7 @@ public class HtmlJmlDoclet extends HtmlDoclet {
         }
 
         try {
+            // Javadoc is somewhat verbose - we'll add this message to it
             Log.instance(context).noticeWriter.println("Compiling with JML");
             JmlCompiler.instance(context).compile(list.toList(),List.<String>nil(),List.<Processor>nil());
         } catch (java.io.IOException e) {

@@ -24,6 +24,13 @@ import com.sun.tools.javac.util.Options;
 
 /** This class provides basic functionality for the JUnit tests for OpenJML.
  * It is expected that actual JUnit test suites will derive from this class.
+ * <P>
+ * It creates a DiagnosticListener that collects all of the error and warning
+ * messages from executing the test.  This class does not capture other messages
+ * (e.g. straight to std out), but some subclasses do.  The captured error and 
+ * warning messages are compared against test supplied text - for both the text
+ * of the message, which includes file name and line number - and the column 
+ * number.
  * 
  * @author David Cok
  *
@@ -35,14 +42,22 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     }
 
     final static public class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
+        /** Constructs a diagnostic listener that collects all of the diagnostics,
+         * with the ability to filter out the notes.
+         * @param filtered if true, no notes (only errors and warnings) are collected
+         */
         public FilteredDiagnosticCollector(boolean filtered) {
             this.filtered = filtered;
         }
+        
+        /** If true, no notes are collected. */
         boolean filtered;
         
+        /** The collection (in order) of diagnostics heard so far. */
         private java.util.List<Diagnostic<? extends S>> diagnostics =
             Collections.synchronizedList(new ArrayList<Diagnostic<? extends S>>());
 
+        /** The method called by the system when there is a diagnostic to report. */
         public void report(Diagnostic<? extends S> diagnostic) {
             diagnostic.getClass(); // null check
             if (!filtered || diagnostic.getKind() != Diagnostic.Kind.NOTE)
@@ -91,11 +106,8 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
      * set the options before we register most of the JML tools.
      */
     protected void setUp() throws Exception {
-        //super.setUp(); // Why commented out FIXME
         main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null);
         context = main.context();
-        //if (!noCollectDiagnostics) context.put(DiagnosticListener.class, collector);
-        //JavacFileManager.preRegister(context); // can't create it until Log has been set up
         options = Options.instance(context);
         if (jmldebug) { Utils.instance(context).jmldebug = true; options.put("-jmldebug", "");}
         print = false;
@@ -105,7 +117,6 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     /** Nulls out all the references visible in this class */
     @After
     protected void tearDown() throws Exception {
-        //super.tearDown();
         context = null;
         main = null;
         collector = null;
@@ -145,8 +156,8 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         assertEquals("Saw wrong number of errors ",errors.length,diags.size());
         assertEquals("Saw wrong number of columns ",cols.length,diags.size());
         for (int i = 0; i<diags.size(); ++i) {
-            assertEquals("Node type for token " + i,errors[i],noSource(diags.get(i)));
-            assertEquals("Column number for token " + i,cols[i],diags.get(i).getColumnNumber()); // Column number is 1-based
+            assertEquals("Message for item " + i,errors[i],noSource(diags.get(i)));
+            assertEquals("Column number for item " + i,cols[i],diags.get(i).getColumnNumber()); // Column number is 1-based
         }
     }
 
@@ -161,8 +172,8 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
             if (print || 2*diags.size() != a.length) printErrors();
             assertEquals("Saw wrong number of errors ",a.length,2*diags.size());
             for (int i = 0; i<diags.size(); ++i) {
-                assertEquals("Node type for token " + i,a[2*i].toString(),noSource(diags.get(i)));
-                assertEquals("Column number for token " + i,((Integer)a[2*i+1]).intValue(),diags.get(i).getColumnNumber()); // Column number is 1-based
+                assertEquals("Message for item " + i,a[2*i].toString(),noSource(diags.get(i)));
+                assertEquals("Column number for item " + i,((Integer)a[2*i+1]).intValue(),diags.get(i).getColumnNumber()); // Column number is 1-based
             }
         } catch (AssertionError ae) {
             if (!print && !noExtraPrinting) printErrors();
@@ -176,9 +187,6 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         assertEquals("Saw wrong number of errors ",0,collector.getDiagnostics().size());
     }
 
-
-    /* Just to avoid Junit framework complaints about no tests */
-//    public void test() {} 
 }
 
 

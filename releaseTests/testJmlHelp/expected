@@ -36,7 +36,7 @@ JML options:
   -compile                   Does a Java-only compiler - abbreviation for -command compile
   -specspath                 Specifies the directory path to search for specification files
   -jmldebug                  When on, the program emits lots of output (includes -progress)
-  -useJavaCompiler           When on, the tool uses only the underlying javac compiler (must be the first option)
+  -java                      When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)
   -noJML                     When on, the JML compiler is used, but all JML constructs are ignored
   -noCheckSpecsPath          When on, no warnings for non-existent specification path directories are issued
   -noPurityCheck             When on, no warnings for use of impure methods are issued
