@@ -1,9 +1,6 @@
 package org.jmlspecs.openjml.jmldoc;
 
-import java.io.IOException;
-
-import org.jmlspecs.annotations.*;
-import org.jmlspecs.openjml.JmlCompiler;
+import org.jmlspecs.annotations.NonNull;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree;
@@ -15,16 +12,8 @@ import com.sun.tools.doclets.formats.html.ConfigurationImpl;
 import com.sun.tools.doclets.internal.toolkit.util.ClassTree;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.comp.Attr;
-import com.sun.tools.javac.comp.AttrContext;
-import com.sun.tools.javac.comp.Enter;
-import com.sun.tools.javac.comp.Env;
-import com.sun.tools.javac.comp.JmlResolve;
-import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javadoc.ClassDocImpl;
@@ -52,63 +41,6 @@ public class ClassWriterJml extends ClassWriterImpl {
         super(classDoc,prevClass,nextClass,classTree);
     }
     
-    /** This makes sure that the JML specifications are instantiated for the
-     * given class, by re-parsing the class in a different context.
-     * @param newname the (fully-qualified) Name of the class in the new context
-     * @param oldsym the Symbol of the class in the old context
-     * @return the Symbol of the class in the new context
-     */
-    public @NonNull ClassSymbol instantiateClass(@NonNull Name newname, @NonNull ClassSymbol oldsym) {
-        Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
-        ClassReader.instance(context); // Instantiates the class reader, which needs to happen before the Symbol table
-        Symtab syms = Symtab.instance(context);
-        ClassSymbol newsym = syms.classes.get(newname);
-        if (newsym == null) {
-            if (oldsym.sourcefile != null) {
-                try {
-                    JmlCompiler.instance(context).compile(List.of(oldsym.sourcefile));
-                    newsym = syms.classes.get(newname);
-                } catch (Throwable e) {
-                    // FIXME - ???
-                }
-            }
-            if (newsym == null) {
-                Env<AttrContext> env = Enter.instance(context).getEnv(newsym);
-                JmlResolve.instance(context).loadClass(env,newname);
-                newsym = syms.classes.get(newname);
-                if (newsym == null) {
-                    JCTree.JCCompilationUnit jcu = ((JmlCompiler)JmlCompiler.instance(context)).parse(oldsym.sourcefile);
-                    JmlCompiler.instance(context).enterTrees(List.of(jcu));
-                    newsym = syms.classes.get(newname);
-                    newsym.complete();
-                }
-            }
-        }
-        instantiateSpecs(context, newsym);
-        return newsym;
-    }
-    
-    /** This method makes sure that the specs for a given class are parsed
-     * and read and loaded into the JmlSpecs database.
-     * @param context the compilation context to use
-     * @param newsym the class in that compilation context whose specs are wanted
-     */
-    public void instantiateSpecs(@NonNull Context context, @NonNull ClassSymbol newsym) {
-        // Make sure that superclasses are instantiated
-        com.sun.tools.javac.code.Type t = newsym.getSuperclass();
-        if (t.tsym != null) instantiateSpecs(context,(ClassSymbol)t.tsym);
-        // Make sure that superinterfaces are instantiated
-        List<com.sun.tools.javac.code.Type> interfaces = newsym.getInterfaces();
-        while (interfaces.tail != null) {
-            instantiateSpecs(context,(ClassSymbol)interfaces.head.tsym);
-            interfaces = interfaces.tail;
-        }
-        
-        TypeSpecs tspecs = JmlSpecs.instance(context).get(newsym);
-        if (tspecs == null) {
-            ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(null,newsym);
-        }
-    }
 
     /** This overrides the parent class method in order to append the JML specs
      * of a class (e.g. invariants) after the class description near the beginning
@@ -123,16 +55,12 @@ public class ClassWriterJml extends ClassWriterImpl {
             Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
             Name newname = Names.instance(context).fromString(oldsym.flatname.toString());
             newsym = Symtab.instance(context).classes.get(newname);
-            //newsym = instantiateClass(newname,oldsym);
             TypeSpecs tspecs = JmlSpecs.instance(context).get(newsym);
             String ss = Utils.jmlAnnotations(newsym);
             headerPrinted = false;
             boolean hsp = hasSpecsToPrint(tspecs);
             if (hsp || ss.length()!=0){
                 printSpecHeader("JML Specifications");
-//                bold("Specification sequence:");
-//                JmlClassDecl list = tspecs.decl;
-//                br();
                 if (ss.length()!=0) {
                     strong("Annotations:");
                     print(ss);
@@ -176,7 +104,6 @@ public class ClassWriterJml extends ClassWriterImpl {
     public void printInheritedSpecs(Context context, ClassSymbol csym) {
         TypeSpecs tspecs = JmlSpecs.instance(context).get(csym);
         if (hasSpecsToPrint(tspecs)){
-//            printSpecHeader("JML Specifications");
             strong("JML Specifications inherited from " + csym + ": ");
             printSpecs(tspecs);
         }

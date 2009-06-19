@@ -8,7 +8,12 @@ import org.jmlspecs.openjml.JmlTree.JmlRefines;
 import com.sun.tools.javac.tree.JCTree.*;
 
 
-
+/** Tests that the parser creates the correct tokens for some simple
+ * compilation unit tests, in particular for refines and import statements.
+ * @author David Cok
+ *
+ */
+// TODO - needs tests of model imports
 public class compilationUnit extends ParseBase {
 
     @Override
@@ -62,7 +67,7 @@ public class compilationUnit extends ParseBase {
     }
 
     /** Package and two refines clauses */
-    public void testRefines3() {  // TODO - could improve by having the second message first
+    public void testRefines3() {
         checkCompilationUnit("package t; /*@ refines \"A.xxx\"; */\n /*@ refines \"B.xxx\"; */ class A{}",
                 JmlCompilationUnit.class,0,
                 JCIdent.class, 8,

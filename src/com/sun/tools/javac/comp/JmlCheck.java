@@ -57,16 +57,20 @@ public class JmlCheck extends Check {
         return (JmlCheck)instance; // If the registered instance is only an Attr, something is catastrophically wrong
     }
     
-    boolean isInJml = false;
-    
+    /** Set externally in order to control errors about old variables needing to be static. */
     public boolean staticOldEnv = false;
     
+    /** Set by setInJml in order to avoid errors about generic casts.*/
+    boolean isInJml = false;
+    
+    /** public method to control the inJml flag */
     public boolean setInJml(Boolean inJml) {
         boolean b = isInJml;
         isInJml = inJml;
         return b;
     }
     
+    /** A warning object that issues no warnings.*/
     public static class NoWarningsAtAll extends Warner {
         public void warnUnchecked() {
         }
@@ -74,6 +78,8 @@ public class JmlCheck extends Check {
         }
     }
 
+    /** Overridden to avoid generic cast warnings in JML.
+     */
     @Override
     protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
         if (!isInJml) return super.checkCastable(pos,found,req);
@@ -89,6 +95,9 @@ public class JmlCheck extends Check {
         }
     }
     
+    /** Overridden to avoid errors about static-ness of old variables in 
+     * method specifications.
+     */
     @Override
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
         if (staticOldEnv) flags &= ~Flags.STATIC;

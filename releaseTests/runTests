@@ -150,6 +150,21 @@ rm -rf doc ../testfiles/jmldoc6/actual
 ${RTH} testJmldoc6 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java"
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc6/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc6/actual; }
 
+## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
+rm -rf doc ../testfiles/jmldoc7/actual
+${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck -dir ../testfiles/jmldoc3/data -dir ../testfiles/jmldoc3/data/tp"
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc7/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc7/actual; }
+
+## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
+rm -rf doc ../testfiles/jmldoc7/actual
+${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck -dirs ../testfiles/jmldoc3/data ../testfiles/jmldoc3/data/tp"
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc7/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc7/actual; }
+
+## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
+rm -rf doc ../testfiles/jmldoc7/actual
+${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -noPurityCheck -dirs ../testfiles/jmldoc3/data ../testfiles/jmldoc3/data/tp  -notimestamp"
+${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc7/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc7/actual; }
+
 if [[ ${RES} -eq 0 ]]; then echo "All tests succeeded"; else echo ${RES} tests failed  ; fi
 
 

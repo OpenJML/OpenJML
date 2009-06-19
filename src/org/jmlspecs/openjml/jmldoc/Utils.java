@@ -2,7 +2,6 @@ package org.jmlspecs.openjml.jmldoc;
 
 import org.jmlspecs.annotations.NonNull;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.tools.doclets.formats.html.AbstractMemberWriter;
@@ -25,6 +24,8 @@ public class Utils {
     @NonNull
     private final static String packageString = "org.jmlspecs.annotations";
 
+    // FIXME - this is not thread/context safe
+    
     /** An internal variable, lazily initialized, that holds the symbol for the
      * package representing 'org.jmlspecs.annotations', which holds all the 
      * JML annotation interfaces.
@@ -43,29 +44,6 @@ public class Utils {
         }
         return s;
     }
-//    
-//    /** A utility function that prints out any JML annotations as '@' symbols
-//     * followed by simple names.
-//     * @param writer the writer on which to write the output
-//     * @param annotations the list of (non-null) annotations from which to pick the JML ones
-//     */
-//    public static void printJmlAnnotations(
-//            @NonNull //@edu.umd.cs.findbugs.annotations.NonNull
-//            PrintWriter writer, 
-//            @NonNull //@edu.umd.cs.findbugs.annotations.NonNull
-//            List<JCAnnotation> annotations) {
-//        Symbol ap = annotationPackage();
-//        for (List<JCAnnotation> l = annotations; l.nonEmpty(); l = l.tail) {
-//            JCTree t = l.head.annotationType;
-//            if (t instanceof JCTree.JCIdent) {
-//                JCTree.JCIdent id = (JCTree.JCIdent)t;
-//                if (id.sym.owner == ap) {
-//                    writer.print("@" + t);
-//                }
-//            }
-//            writer.print(" ");
-//        }
-//    }
     
     /** A utility function that returns a String containing text version of the
      * JML annotations belonging to the given symbol.

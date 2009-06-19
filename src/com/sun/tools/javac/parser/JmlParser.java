@@ -482,9 +482,10 @@ public class JmlParser extends EndPosParser {
      *            the PrintStream on which to write the output
      */
     void printTree(JCTree t, PrintStream out) {
-        new TreePrinter(out, this).scan(t);
+        new TreePrinter(out, endPositions).scan(t);
     }
 
+    // FIXME - document; where used?
     public String docComment(JCTree tree) {
         return docComments.get(tree);
     }
@@ -635,7 +636,7 @@ public class JmlParser extends EndPosParser {
         JmlVariableDecl lastRecentVarDecl = null;
         
         // FIXME : also jml.no.var.match  jml.one.initializer.spec.only   jml.misplaced.method.specs  jml.initializer.block.allowed
-        loop: while (iter.hasNext()) {
+        while (iter.hasNext()) {
             JCTree tree = iter.next();
             lastRecentVarDecl = mostRecentVarDecl;
             mostRecentVarDecl = null;

@@ -6,8 +6,8 @@ import com.sun.tools.javadoc.Start;
 
 /**
  * This class is an alternate class to initiate the standard doclet. It simply
- * provides additional usage information for the command-line options. (It could
- * also specify an alternate doclet to use.)
+ * provides additional usage information for the command-line options. It 
+ * also specifies an alternate doclet to use.
  * 
  * @author David R. Cok
  */
@@ -18,7 +18,7 @@ public class JmlStart extends Start {
      * @param name name of application
      */
     public JmlStart(String name) {
-        super(name,"org.jmlspecs.openjml.jmldoc.HtmlJmlDoclet");  // If a different doclet is to be used, name it here with another argument
+        super(name,"org.jmlspecs.openjml.jmldoc.HtmlJmlDoclet");
     }
     
     /** Overrides the usage method to add information about jmldoc-specific options */
@@ -28,7 +28,10 @@ public class JmlStart extends Start {
                 JmlOptionName.SPECS, 
                 JmlOptionName.NOINTERNALSPECS, 
                 JmlOptionName.NOINTERNALRUNTIME, 
-                JmlOptionName.NOCHECKSPECSPATH 
+                JmlOptionName.NOCHECKSPECSPATH, 
+                JmlOptionName.DIRS,
+                JmlOptionName.DIR,
+//                JmlOptionName.ENDOPTIONS
                 };
         System.out.println();
         System.out.println("JMLDoc options:");

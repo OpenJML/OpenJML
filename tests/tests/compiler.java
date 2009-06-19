@@ -8,6 +8,9 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 
+/** Tests running the tool as if from the command-line (for typechecking);
+ * includes erroneous command-line argument combinations and combinations
+ * of class, soruce, and specs paths. */
 public class compiler extends TestCase {
 
     ByteArrayOutputStream berr;

@@ -30,11 +30,10 @@ where possible options include:
 
 JML options:
   -dir                       Process all files, recursively, within this directory
-  -dirs                      Process all files, recursively, within these directories (listed as separate arguments)
-  -command                   The command to execute (check,esc,rac,doc,compile)
+  -dirs                      Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)
+  -command                   The command to execute (check,esc,rac,compile)
   -check                     Does a JML syntax check - abbreviation for -command check
   -compile                   Does a Java-only compiler - abbreviation for -command compile
-  -doc                       Runs jmldoc - abbreviation for -command doc
   -specspath                 Specifies the directory path to search for specification files
   -jmldebug                  When on, the program emits lots of output (includes -progress)
   -useJavaCompiler           When on, the tool uses only the underlying javac compiler (must be the first option)
@@ -44,7 +43,6 @@ JML options:
   -showNotImplemented        When on, warnings about unimplemented constructs are issued
   -jmlverbose                Like -verbose, but only jml information and not as much (included in -verbose)
   -progress                  Shows progress through compilation phases, includes -jmlverbose
-  -i                         Must be first, starts interactive mode
   -stopIfParseErrors         When enabled, stops after parsing if any files have parsing errors
   -noInternalSpecs           Disables automatically appending the internal specs directory to the specification path
   -noInternalRuntime         Disables automatically appending the internal JML runtime library to the classpath

@@ -1,9 +1,12 @@
 package tests;
 
-import org.jmlspecs.openjml.esc.JmlEsc;
 
 
-
+/** Tests emitting counterexample information and tracing, though the text
+ * of the output is not actually checked - needs visual observation.
+ * @author David Cok
+ *
+ */
 public class counterexamples extends EscBase {
 
     protected void setUp() throws Exception {
@@ -274,7 +277,7 @@ public class counterexamples extends EscBase {
     
 
     /** Tests called method return */
-    public void testCE10() {  // FIXME - infinite loop concerning canonical representation
+    public void testCE10() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

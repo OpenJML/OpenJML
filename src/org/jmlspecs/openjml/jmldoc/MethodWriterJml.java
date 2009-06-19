@@ -105,8 +105,6 @@ public class MethodWriterJml extends MethodWriterImpl {
                     strong("JML Method Specifications: "); 
                     writer.print(s);
                     writer.preNoNewLine();
-                    //writer.print(JmlPretty.write(mspecs.mods,false));
-                    //writer.print(" ");
                     writer.print(JmlPretty.write(mspecs.cases,false));
                     writer.preEnd();
                 }
@@ -120,8 +118,6 @@ public class MethodWriterJml extends MethodWriterImpl {
                             strong("JML Specifications inherited from " + c + ": "); 
                             writer.print(ss);
                             writer.preNoNewLine();
-                            //writer.print(JmlPretty.write(mspecs.mods,false));
-                            //writer.print(" ");
                             writer.print(JmlPretty.write(mspecs.cases,false));
                             writer.preEnd();
                         }
@@ -218,7 +214,6 @@ loop:   while (e != null && e.sym != null) {
       for (JmlTypeClause tc: tspecs.clauses) {
           if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JmlMethodDecl) {
               JmlMethodDecl d = (JmlMethodDecl)((JmlTypeClauseDecl)tc).decl;
-              //boolean use = JmlAttr.instance(org.jmlspecs.openjml.jmldoc.Main.jmlContext).findMod(d.mods,JmlToken.MODEL) != null;
               if (!d.sym.isConstructor() && denv.shouldDocument(d.sym)) {
                   list.add(d);
               }
@@ -247,8 +242,6 @@ loop:   while (e != null && e.sym != null) {
           
           // tag info
           writeTags(md); // includes writeJmlSpecs(md);
-          // instead for now
-          //writer.dl(); writer.dlEnd(); writeJmlSpecs(md);
 
           // Method footer
           writeMethodFooter();
@@ -289,6 +282,8 @@ loop:   while (e != null && e.sym != null) {
         TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(csym);
         ArrayList<MethodDoc> list = new ArrayList<MethodDoc>();
         DocEnv denv = ((ClassDocImpl)classDoc).docenv();
+        
+        // collect the methods to be documented
         for (JmlTypeClause tc : tspecs.clauses) {
             if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JCTree.JCMethodDecl) {
                 JmlMethodDecl mdecl = (JmlMethodDecl)((JmlTypeClauseDecl)tc).decl;
@@ -301,6 +296,7 @@ loop:   while (e != null && e.sym != null) {
             }
         }
         
+        // If there are any, emit documentation
         if (!list.isEmpty()) {
             writer.br();
             writer.strong("Inherited JML model methods: ");
@@ -356,15 +352,10 @@ loop:   while (e != null && e.sym != null) {
     
     /** Writes the beginning of the HTML for a (model) method summary.
      * 
-     * @param classDoc
+     * @param classDoc the class whose methods are being documented
      */
     public void writeJmlMethodSummaryHeader(@NonNull ClassDoc classDoc) {
-        //printSummaryAnchor(cd);
         Utils.writeHeader(writer,this,classDoc,"JML Model Method Summary",2);
-//        writer.tableIndexSummary();
-//        writer.tableHeaderStart("#CCCCFF");
-//        writer.bold("JML Model Method Summary");
-//        writer.tableHeaderEnd();
     }
     
     /** This is overridden in order to include annotation information in the

@@ -30,6 +30,7 @@ import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 
 
+/** Tests the API class */
 public class api extends TestCase {
 
     ByteArrayOutputStream berr;

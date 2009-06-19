@@ -1,5 +1,6 @@
 package org.jmlspecs.openjml.jmldoc;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.util.LinkedList;
 
@@ -78,6 +79,7 @@ public class Main extends org.jmlspecs.openjml.Main {
                     jmlContext.put(IProgressReporter.class,new PrintProgressReporter(jmlContext,System.out));
                     Start jdoc = new JmlStart("jmldoc");//,"org.jmlspecs.openjml.jmldoc.StandardJml");
                     registerTools(jmlContext,new PrintWriter(System.out,true),null);
+                    Utils.instance(jmlContext).doc = true;
                     JavacFileManager.preRegister(jmlContext); // can't create it until Log has been set up - is it? FIXME
                     args = processArgs(args,jmlContext);
                     errorcode = jdoc.begin(args);
@@ -113,22 +115,51 @@ public class Main extends org.jmlspecs.openjml.Main {
         Options options = Options.instance(context);
         JmlOptionName n=null;
         LinkedList<String> newargs = new LinkedList<String>();
-        int cpindex = -1;
+        //int cpindex = -1;
         int i = 0;
         while (i < args.length) {
             String a = args[i];
             i++;
             n = JmlOptionName.find(a);
             if (n != null) {
-                if (n.hasArg()) {
-                    options.put(n.optionName(),args[i++]);
+                if (JmlOptionName.DIR.optionName().equals(a) || JmlOptionName.DIRS.optionName().equals(a)) {
+                    java.util.List<File> todo = new LinkedList<File>();
+                    if (i < args.length) todo.add(new File(args[i++]));
+                    if (JmlOptionName.DIRS.optionName().equals(a)) {
+                        while (i<args.length && args[i].length() > 0 && args[i].charAt(0) != '-') {
+                            todo.add(new File(args[i]));
+                            i++;
+                        }
+                    }
+                    while (!todo.isEmpty()) {
+                        File file = todo.remove(0);
+                        if (file.isDirectory()) {
+                            for (File ff: file.listFiles()) {
+                                todo.add(ff);
+                            }
+                        } else if (!file.isFile()) {
+                            System.out.println("Not a file or directory: " + file); // FIXME - make a warning?
+                        } else if (file.getName().endsWith(".java")) {
+                            newargs.add(file.toString());
+                        } else {
+                            // Just skip it
+                        }
+                    }
+                } else if (JmlOptionName.ENDOPTIONS.optionName().equals(a)) {
+                    i = args.length;
+                } else if (n.hasArg()) {
+                    if (i < args.length) {
+                        options.put(n.optionName(),args[i++]);
+                    } else {
+                        // error ? FIXME
+                    }
                 } else {
                     options.put(n.optionName(),"");
                 }
             } else if (a.equals("-classpath")) {
                 newargs.add(a);
                 options.put(a,args[i]);
-                cpindex = newargs.size();
+                //cpindex = newargs.size();
                 newargs.add(args[i++]);
             } else if (a.equals("-sourcepath")) {
                 newargs.add(a);

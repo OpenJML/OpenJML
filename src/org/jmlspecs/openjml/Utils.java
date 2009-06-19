@@ -65,7 +65,7 @@ public class Utils {
     /** Do Java compilation - set by Main.setupOptions */
     public boolean compile = false;
     
-    /** Do Jmldoc - set by Main.setupOptions */
+    /** Do Jmldoc  */
     public boolean doc = false;
     
     /** A bit that indicates that a declaration was declared within a JML annotation */

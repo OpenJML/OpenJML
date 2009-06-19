@@ -398,7 +398,11 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
             if (s.equals(helpOption)) options.put(s,"");
         } else if (o.hasArg()) {
-            res = args[i++];
+            if (i < args.length) {
+                res = args[i++];
+            } else {
+                // FIXME - error message
+            }
         }
         if (o == null) {
             remainingArgs.add(s);
@@ -406,7 +410,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             java.util.List<File> todo = new LinkedList<File>();
             todo.add(new File(res));
             if (JmlOptionName.DIRS.optionName().equals(s)) {
-                while (i<args.length && (res=args[i]).charAt(0) != '-') {
+                while (i<args.length && (res=args[i]).length() > 0 && res.charAt(0) != '-') {
                     todo.add(new File(res));
                     i++;
                 }
@@ -425,8 +429,12 @@ public class Main extends com.sun.tools.javac.main.Main {
                     // Just skip it
                 }
             }
-        } else if (JmlOptionName.ENDOPTIONS.optionName().equals(s)) {
-            i = args.length;
+            // This does not work to avoid scanning the remaining arguments because they all get sent
+            // to javadoc, which scans them anyway.  So it only means that any succeeeding JML
+            // options are ignored, which is jsut confusing
+//        } else if (JmlOptionName.ENDOPTIONS.optionName().equals(s)) {
+//            while (i < args.length) remainingArgs.add(args[i++]);
+//            i = args.length;
         } else {
             // An empty string is the value of the option if it takes no arguments
             // That is, for boolean options, "" is true, null is false
@@ -470,8 +478,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         utils.esc = "esc".equals(cmd) || (cmd == null && options.get(JmlOptionName.ESC.optionName()) != null);
         utils.check = "check".equals(cmd) || (cmd == null && options.get(JmlOptionName.CHECK.optionName()) != null);
         utils.compile = "compile".equals(cmd) || (cmd == null && options.get(JmlOptionName.COMPILE.optionName()) != null);
-        utils.doc = "doc".equals(cmd) || (cmd == null && options.get(JmlOptionName.DOC.optionName()) != null);
-        boolean picked = utils.rac||utils.esc||utils.check||utils.compile||utils.doc;
+        boolean picked = utils.rac||utils.esc||utils.check||utils.compile;
         if (!picked && cmd != null) {
             Log.instance(context).noticeWriter.println("Invalid argument to the -command option: " + cmd); // FIXME - change to a wanring
         }
@@ -488,8 +495,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     // @edu.umd.cs.findbugs.annotations.SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     @Override
     public List<File> processArgs(String[] args) {
-        Context context = this.context; // At least cache it here at the beginning
-        args = processJmlArgs(args,Options.instance(context));
+        args = processJmlArgs(args,Options.instance(this.context));
         List<File> files = super.processArgs(args);
         setupOptions();
         return files;

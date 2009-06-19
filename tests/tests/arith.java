@@ -2,7 +2,7 @@ package tests;
 
 import org.jmlspecs.openjml.JmlOptionName;
 
-
+// FIXME - needs documentation and more tests
 public class arith extends TCBase {
 
     static String testspecpath = "$A"+z+"$B"+z+"$SY";
