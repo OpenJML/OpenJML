@@ -22,7 +22,7 @@ import com.sun.tools.javadoc.Start;
  * See the material in the <A HREF="package-summary.html">package description</A> for use and design discussion. */
 public class Main extends org.jmlspecs.openjml.Main {
     
-    // THESE ARE NOT (YET?) USED  // FIXME
+    // THESE ARE NOT (YET?) USED  // TODO
     static public String JmlTableHeadingColor = "#FFCCCC";
     static public String JmlTableRowColor = "#FFFFCC";
 
@@ -55,8 +55,7 @@ public class Main extends org.jmlspecs.openjml.Main {
      */
     //@ requires \nonnullelements(args);
     public static int execute(@NonNull String[] args) {
-        new org.jmlspecs.openjml.jmldoc.ConfigurationJml();  // stores an instance in a static location
-        int errorcode = 1; //com.sun.tools.javac.main.Main.EXIT_ERROR;
+        int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
         try {
             if (args == null) {
                 Context context = new Context(); // This is a temporary context just for this error message.
@@ -64,17 +63,20 @@ public class Main extends org.jmlspecs.openjml.Main {
                 Log log = Log.instance(context);
                 JavacMessages.instance(context).add(Utils.messagesJML);
                 log.error("jmldoc.main.null.args","org.jmlspecs.openjml.jmldoc.Main");
-                errorcode = 2; // com.sun.tools.javac.main.Main.EXIT_CMDERR;
+                errorcode = com.sun.tools.javac.main.Main.EXIT_CMDERR; // 2
             } else {
                 // We have to interpret the -useJavaCompiler option before we start
                 // the compiler (which does the normal option processing).
                 // Since this is rare, we'll require that it be the first
                 // option.
                 boolean useJavaCompiler = args.length > 0 &&
-                args[0].equals(JmlOptionName.USEJAVACOMPILER.optionName());
+                            args[0].equals(JmlOptionName.USEJAVACOMPILER.optionName());
                 if (useJavaCompiler) {
-                    errorcode = com.sun.tools.javac.Main.compile(args);
+                    jmlContext = null;
+                    args = processArgs(args,jmlContext); // Have to filter out all of the JML options
+                    errorcode = com.sun.tools.javadoc.Main.execute(args);
                 } else {
+                    new org.jmlspecs.openjml.jmldoc.ConfigurationJml();  // stores an instance in a static location
                     jmlContext = new Context();
                     jmlContext.put(IProgressReporter.class,new PrintProgressReporter(jmlContext,System.out));
                     Start jdoc = new JmlStart("jmldoc");//,"org.jmlspecs.openjml.jmldoc.StandardJml");
@@ -83,7 +85,6 @@ public class Main extends org.jmlspecs.openjml.Main {
                     JavacFileManager.preRegister(jmlContext); // can't create it until Log has been set up - is it? FIXME
                     args = processArgs(args,jmlContext);
                     errorcode = jdoc.begin(args);
-                    if (Utils.instance(jmlContext).jmldebug || errorcode != 0) System.out.println("ENDING with exit code " + errorcode);
                 }
             }
         } catch (Exception e) {
@@ -96,8 +97,8 @@ public class Main extends org.jmlspecs.openjml.Main {
             Log log = Log.instance(context);
             JavacMessages.instance(context).add(Utils.messagesJML);
             log.error("jmldoc.toplevel.exception",e);
-            //e.printStackTrace(System.err); // FIXME - enable in verbose mode?
-            errorcode = 3; //com.sun.tools.javac.main.Main.EXIT_SYSERR;
+            e.printStackTrace(System.err);
+            errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
         }
         return errorcode;
     }
@@ -106,13 +107,14 @@ public class Main extends org.jmlspecs.openjml.Main {
      * jmldoc specific arguments.  This is called prior to the arguments being
      * processed by the Javadoc tool itself.
      * @param args the command-line arguments
-     * @param context the compiler context in which the arguments apply
+     * @param context the compiler context in which the arguments apply; null if
+     *  we want to skip an JML functionality
      * @return a reduced list of command-line arguments
      */
     //@ requires \nonnullelements(args);
     //@ ensures \nonnullelements(\result);
-    static public @NonNull String[] processArgs(@NonNull String[] args, @NonNull Context context) {
-        Options options = Options.instance(context);
+    static public @NonNull String[] processArgs(@NonNull String[] args, Context context) {
+        Options options = Options.instance(context == null ? new Context() : context);
         JmlOptionName n=null;
         LinkedList<String> newargs = new LinkedList<String>();
         //int cpindex = -1;
@@ -169,13 +171,12 @@ public class Main extends org.jmlspecs.openjml.Main {
                 newargs.add(a);
             }
         }
-        // FIXME - some cleanup needed here
-        //args = processJmlArgs(args,Options.instance(context));
-        //List<File> files = super.processArgs(args);
-        Utils.instance(context).jmldebug = Options.instance(context).get(JmlOptionName.JMLDEBUG.optionName()) != null; 
-        JmlSpecs.instance(context).initializeSpecsPath();
-        if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALRUNTIME)) {
-            JmlSpecs.instance(context).appendRuntime();
+        if (context != null) {
+            Utils.instance(context).jmldebug = Options.instance(context).get(JmlOptionName.JMLDEBUG.optionName()) != null; 
+            JmlSpecs.instance(context).initializeSpecsPath();
+            if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALRUNTIME)) {
+                JmlSpecs.instance(context).appendRuntime();
+            }
         }
         String[] result = newargs.toArray(new String[newargs.size()]);
         // append annotation definitions onto result[cpindex] - what if there is none - need to append it to classpath definition

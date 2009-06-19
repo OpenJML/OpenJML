@@ -262,7 +262,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull String[] args) {
         //System.out.println("STARTING");
-        int errorcode = 1; //com.sun.tools.javac.main.Main.EXIT_ERROR;
+        int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
         try {
             if (args == null) {
                 Context context = new Context(); // This is a temporary context just for this error message.
@@ -270,7 +270,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 Log log = Log.instance(context);
                 JavacMessages.instance(context).add(Utils.messagesJML);
                 log.error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
-                errorcode = 2; // com.sun.tools.javac.main.Main.EXIT_CMDERR;
+                errorcode = com.sun.tools.javac.main.Main.EXIT_CMDERR; // 2
             } else {
                 // We have to interpret the -useJavaCompiler option before we start
                 // the compiler (which does the normal option processing).
@@ -288,7 +288,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     Main compiler = new Main(applicationName, writer, diagListener, (String[])null);
                     lastRun = compiler;
                     errorcode = compiler.compile(args);
-                    if (errorcode != 0) writer.println("ENDING with exit code " + errorcode);
+                    if (errorcode != 0) writer.println("ENDING with exit code " + errorcode); // TODO - not sure we want this - but we'll need to change the tests
                 }
             }
         } catch (Exception e) {
@@ -302,7 +302,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             JavacMessages.instance(context).add(Utils.messagesJML);
             log.error("jml.toplevel.exception",e);
             e.printStackTrace(System.err);
-            errorcode = 3; //com.sun.tools.javac.main.Main.EXIT_SYSERR;
+            errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
         }
         return errorcode;
     }

@@ -66,7 +66,7 @@ public class Main {
 
     /** Result codes.
      */
-    static final int
+    public static final int  // DRC - change from package to public visiblity
         EXIT_OK = 0,        // Compilation completed with no errors.
         EXIT_ERROR = 1,     // Completed but reported errors.
         EXIT_CMDERR = 2,    // Bad command-line arguments

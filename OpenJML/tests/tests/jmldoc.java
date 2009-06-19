@@ -60,7 +60,7 @@ public class jmldoc extends TestCase {
         if (output.length <= 1 && actualOutput.length() == 0 && capture) actualOutput = bout.toString();
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (capture) try {
-            String tail = exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
+            String tail = ""; //exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
             if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + actualOutput);
             String expected = output[0];
             if (all==0) assertEquals("The error message is wrong",expected+tail,actualOutput);
@@ -116,27 +116,28 @@ public class jmldoc extends TestCase {
 //        helper(new String[]{"-ZZZ"},1,1,failureMessage,out);
 //    }
     
-//    /** Tests setting the specs path through the command-line option, by using non-existent 
-//     * directories that then get complaints
-//     * @throws Exception
-//     */
-//    @Test
-//    public void testSpecPath() throws Exception {
-//        helper(new String[]
-//                  {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","A.java"},
-//                  2,
-//                  0,
+    /** Tests setting the specs path through the command-line option, by using non-existent 
+     * directories that then get complaints
+     * @throws Exception
+     */
+    @Test
+    public void testSpecPath() throws Exception {
+        helper(new String[]
+                  {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","A.java"},
+                  1,
+                  0,
+                  // FIXME - do we want warnings about non-existent files?
 //                  "jml: file not found: A.java" + eol +
 //                  "Usage: jml <options> <source files>" + eol +
 //                  "use -help for a list of possible options" + eol +
-//                  "warning: A specification path directory does not exist: A" + eol +
-//                  "warning: A specification path directory does not exist: cpath" + eol +
-//                  "warning: A specification path directory does not exist: cpath2" + eol +
-//                  "warning: A specification path directory does not exist: spath" + eol +
-//                  "warning: A specification path directory does not exist: Z" + eol
-//                  );
-//    }
-//    
+                  "warning: A specification path directory does not exist: A" + eol +
+                  "warning: A specification path directory does not exist: cpath" + eol +
+                  "warning: A specification path directory does not exist: cpath2" + eol +
+                  "warning: A specification path directory does not exist: spath" + eol +
+                  "warning: A specification path directory does not exist: Z" + eol
+                  );
+    }
+    
 //    @Test
 //    public void testRecursiveCP() throws Exception {
 //        helper(new String[]

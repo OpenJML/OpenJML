@@ -1,5 +1,6 @@
 package tests;
 
+/** Does some rough tests of the TCBase test harness */
 public class harnesstests extends TCBase {
 
     @Override

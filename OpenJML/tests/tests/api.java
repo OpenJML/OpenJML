@@ -1,5 +1,6 @@
 package tests;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,6 +10,7 @@ import java.util.Map;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
+import org.jmlspecs.openjml.API;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -366,6 +368,36 @@ public class api extends TestCase {
         public void visitJmlClassDecl(JmlClassDecl node) {
             numberClasses++;
             super.visitJmlClassDecl(node); // Call this to scan child nodes
+        }
+    }
+    
+    public boolean deleteAll(File f) {
+        boolean b = true;
+        if (!f.isDirectory()) {
+            return f.delete();
+        }
+        for (File ff: f.listFiles()) {
+            b = deleteAll(ff) && b;
+        }
+        return b;
+    }
+    
+    /** Test jmldoc through the API */
+    public void testJmldoc() {
+        File f = new java.io.File("doc");
+        if (f.exists()) {
+            boolean b = deleteAll(f);
+            assertTrue(b);
+        }
+        try {
+            int exitcode = API.jmldoc(new String[]{"-d","doc","-notimestamp","-noPurityCheck","-dir","testfiles/jmldoc1/data"});
+            assertEquals(0,exitcode);
+            // FIXME - run the diff program successfully, or do it programmatically
+//            Process p = Runtime.getRuntime().exec("/usr/bin/diff",new String[]{"-r","-x",".svn","-x","package-tree.html","doc","../testfiles/jmldoc1/expected"});
+//            exitcode = p.exitValue();
+            assertEquals(0,exitcode);
+        } catch (Exception e) {
+            fail();
         }
     }
 
