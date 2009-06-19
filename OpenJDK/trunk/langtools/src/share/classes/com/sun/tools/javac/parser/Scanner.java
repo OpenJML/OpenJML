@@ -853,7 +853,7 @@ public class Scanner implements Lexer {
                         do {
                             scanCommentChar();
                         } while (ch != CR && ch != LF && bp < buflen);
-                        if (bp < buflen) {
+                        if (bp <= buflen) { // DRC - change < to <= to allow processing of line -comments that are terminated by end-of-file
                             endPos = bp;
                             processComment(CommentStyle.LINE);
                         }

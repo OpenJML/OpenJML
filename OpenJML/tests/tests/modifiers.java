@@ -113,18 +113,54 @@ public class modifiers extends TCBase {
                 );
     }
   
-    // FIXME - this does not work becuause the Java compiler thinks there is nothing to do
-//    @Test public void testOnlyModelClass() {
-//        helpTCF("A.java","public class A {}\n //@ public model class B{}",
-//                "/A.java:2: This JML modifier is not allowed for a type declaration", 13);
-////        checkMessages();
-//    }
+    @Test public void testOnlyModelClass() {
+        helpTCF("A.java","public class A {}\n //@ public model class B{}\n\n",
+                "/A.java:2: class B is public, should be declared in a file named B.java", 19);
+    }
     
+    @Test public void testOnlyModelClass1() {
+        helpTCF("A.java","public class A {}\n //@ class B{}\n\n",
+                "/A.java:2: A method or type declaration within a JML annotation must be model", 6);
+    }
+    
+    @Test public void testOnlyModelClass2() {
+        helpTCF("A.java","public class A {}\n public model class B{}",
+                "/A.java:2: class, interface, or enum expected", 9);
+    }
+
+    @Test public void testOnlyModelClass3() {
+        helpTCF("A.java","public class A {}\n //@ model class B{}\n\n"
+                );
+    }
+    
+    // This and the following test check that JML comments at the very end of a file
+    // are indeed processed.  There had been a bug in the OpenJDK scanner that 
+    // ignored comments at the end of a file.
+    @Test public void testOnlyModelClass4() {
+        helpTCF("A.java","public class A {}\n //@ public model class B{}",
+                "/A.java:2: class B is public, should be declared in a file named B.java", 19);
+    }
+    
+    @Test public void testOnlyModelClass5() {
+        helpTCF("A.java","public class A {}\n //@ public model class B{}\n",
+                "/A.java:2: class B is public, should be declared in a file named B.java", 19);
+    }
+    
+
     @Test public void testClassMods14c() {
         // Don't need the runtime path, since the @Ghost annotation is looked up on the classpath,
         // but this makes the compiler look for specs for Ghost as a binary class, and exercises a different
         // code path
         specs.setSpecsPath(new String[]{"$A","$B","$SY","./runtime"});
+        helpTCF("A.java","import org.jmlspecs.annotations.*;  \n public @Ghost class A{}",
+                "/A.java:2: This JML modifier is not allowed for a type declaration", 9);
+    }
+    
+    @Test public void testClassMods14d() {
+        // Don't need the runtime path, since the @Ghost annotation is looked up on the classpath,
+        // but this makes the compiler look for specs for Ghost as a binary class, and exercises a different
+        // code path
+        specs.setSpecsPath(new String[]{"$A","$B","$SY"});
         helpTCF("A.java","import org.jmlspecs.annotations.*;  \n public @Ghost class A{}",
                 "/A.java:2: This JML modifier is not allowed for a type declaration", 9);
     }
@@ -387,6 +423,7 @@ public class modifiers extends TCBase {
                 ,"/A.java:1: This JML modifier is not allowed for a type declaration",4
                 ,"/A.java:1: This JML modifier is not allowed for a type declaration",11
                 ,"/A.java:1: This JML modifier is not allowed for a type declaration",17
+                ,"/A.java:1: warning: There is no point to a declaration being both public and spec_public",17
         );
     }
     
@@ -400,16 +437,17 @@ public class modifiers extends TCBase {
                 ,"/A.java:1: This JML modifier is not allowed for a type declaration",4
                 ,"/A.java:1: This JML modifier is not allowed for a type declaration",11
                 ,"/A.java:1: This JML modifier is not allowed for a type declaration",17
+                ,"/A.java:1: warning: There is no point to a declaration being both public and spec_protected",17
         );
     }
     
     @Test public void testNestedClass() {
-        helpTCF("A.java","public class A{ /*@pure spec_public*/ public class B {}}"
+        helpTCF("A.java","public class A{ /*@pure spec_public*/ private class B {}}"
         );
     }
     
     @Test public void testNestedClass2() {
-        helpTCF("A.java","public class A{ /*@pure spec_protected*/ public class B {}}"
+        helpTCF("A.java","public class A{ /*@pure spec_protected*/ private class B {}}"
         );
     }
     
@@ -429,7 +467,7 @@ public class modifiers extends TCBase {
 //    }
     
     @Test public void testNestedClass4() {
-        helpTCF("A.java","public class A{ /*@spec_public spec_protected*/ public class B {}}"
+        helpTCF("A.java","public class A{ /*@spec_public spec_protected*/ private class B {}}"
                 ,"/A.java:1: A declaration may not be both spec_public and spec_protected",32
         );
     }
@@ -459,7 +497,7 @@ public class modifiers extends TCBase {
 //    }
     
     @Test public void testNestedInterface4() {
-        helpTCF("A.java","public class A{ /*@spec_public spec_protected*/ public interface B {}}"
+        helpTCF("A.java","public class A{ /*@spec_public spec_protected*/ private interface B {}}"
                 ,"/A.java:1: A declaration may not be both spec_public and spec_protected",32
                 ); 
     }
@@ -617,11 +655,10 @@ public class modifiers extends TCBase {
                 );
     }
      
-//    @Test public void testMethod3() {
-//        helpTCF("A.java","public class A{ /*@ query */ void m(){} }"
-//                ,"/A.java:1: This JML modifier is not allowed for a method declaration",21
-//                );
-//    }
+    @Test public void testMethod3() {
+        helpTCF("A.java","public class A{ /*@ query */ void m(){} }"
+                );
+    }
      
     @Test public void testMethod4() {
         helpTCF("A.java","public class A{ /*@ spec_public spec_protected */ void m(){} }"
@@ -1015,7 +1052,7 @@ public class modifiers extends TCBase {
     
     // FIXME - test initializers
     
-    @Test public void testBinaryMods() {  // FIXME - should complain on the second line of the spec file
+    @Test public void testBinaryMods() {
 //        options.put("-jmldebug","");
 //        options.put("-jmlverbose","");
 //        options.put("-progress","");
@@ -1025,6 +1062,8 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  boolean m() { return new Object().equals(null); } }"
                 ,"/$A/java/lang/Object.spec:2: A declaration may not be both spec_public and spec_protected",17
+                ,"/$A/java/lang/Object.spec:2: warning: There is no point to a declaration being both public and spec_protected",17
+                ,"/$A/java/lang/Object.spec:2: warning: There is no point to a declaration being both public and spec_public",5
                 ,"/$A/java/lang/Object.spec:1: This JML modifier is not allowed for a type declaration",5
                 );
     }
@@ -1032,7 +1071,7 @@ public class modifiers extends TCBase {
     @Test public void testQuery() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public class A{ @Query int m() { return 0; } }"
                 );
-//        checkMessages();
+        checkMessages();
     }
      
     @Test public void testSecret() {

@@ -34,7 +34,7 @@ test:
 	@echo Testing
 	##( source ~/mybin/java15.sh; releaseTests/runTests  ${NAME} ) 
 	( source ~/mybin/java16.sh; releaseTests/runTests  ${NAME} ) 
-	@echo Testing Complete
+	@echo Testing Complete `date`
 
 ## Builds a tar file of the release components
 .PHONY: tar
@@ -55,8 +55,8 @@ alljars jmlspecs.jar openjml.jar:
 	mkdir -p jars
 	rm -f jars/jmlspecs.jar jars/openjml.jar
 	(cd temp; for j in ${ROOT}/../OpenJML/otherlibs/* ; do jar xf $$j; echo $$j; done; rm -rf META-INF )
-	cp -r ${ROOT}/OpenJML/bin/* temp
 	cp -r ${ROOT}/OpenJDK/bin/* temp
+	cp -r ${ROOT}/OpenJML/bin/* temp
 	mkdir temp/specs14 temp/specs15 temp/specs16
 	cp -r ${SPECS}/java4/* temp/specs14
 	find temp/specs14 -name .svn -exec rm -rf \{\} +

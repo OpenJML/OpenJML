@@ -19,10 +19,11 @@ import com.sun.tools.javac.util.Log;
 
 import junit.framework.AssertionFailedError;
 
-
+/** These test the AST structure produced by parsing various expressions -
+ * checking the node type and position.
+ * @author David Cok
+ */
 public class expressions extends ParseBase {
-
-    
 
     protected void setUp() throws Exception {
         //noCollectDiagnostics = true;
@@ -46,12 +47,10 @@ public class expressions extends ParseBase {
     public void helpExpr(String s, Object... list) {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s));
-            //Scanner sc = sfac.newScanner(s);
             JmlParser p = ((JmlFactory)fac).newParser(s,false,true,true,true);
             if (jml && p instanceof JmlParser) {
                 p.getScanner().setJml(jml);
             }
-            //p.getScanner().nextToken(); // FIXME - why do we have to put this in - we did not have to before updating to b55
             JCTree.JCExpression e = p.parseExpression();
             List<JCTree> out = ParseTreeScanner.walk(e);
             int i = 0;
@@ -518,6 +517,7 @@ public class expressions extends ParseBase {
                 JCLiteral.class ,23);
     }
 
+    // Just a framework used for debugging and new tests
 //    public void testMisc() {
 //        print = true;
 //        helpExpr("(\\result==j) ==> \\typeof(o) <: \\type(oo) ",

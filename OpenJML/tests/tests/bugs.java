@@ -2,10 +2,10 @@ package tests;
 
 import org.jmlspecs.openjml.JmlOptionName;
 
-// This file contains miscellaneous cases that once were bugs.
-// I made tests to reproduce them and test the fixes.  I leave
-// them here just to make sure they do not reappear, though mostly
-// they are simple situations.
+/** This file contains miscellaneous cases that once were bugs.
+    I made tests to reproduce them and test the fixes.  I leave
+    them here just to make sure they do not reappear, though mostly
+    they are simple situations. */
 public class bugs extends TCBase {
 
     static String testspecpath = "$A"+z+"$B"+z+"$SY";

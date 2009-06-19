@@ -1,5 +1,6 @@
 package tests;
 
+/** Tests the parsing and type-checking of assignable clauses */
 public class assignable extends TCBase {
 
     @Override

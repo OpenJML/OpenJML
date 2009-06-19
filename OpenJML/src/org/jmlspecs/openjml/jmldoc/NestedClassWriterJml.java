@@ -35,8 +35,9 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
      */
     protected @NonNull ClassSymbol currentClassSym;
 
-    protected @NonNull ClassDoc currentClassDoc;
+//    protected @NonNull ClassDoc currentClassDoc;
     
+    /** The env corresponding to the input classdoc */
     protected @NonNull DocEnv currentDocEnv;
     
     /** The constructor for this kind of writer.
@@ -47,7 +48,7 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
     public NestedClassWriterJml(@NonNull SubWriterHolderWriter writer,
             @NonNull ClassDoc classdoc) {
         super(writer, classdoc);
-        currentClassDoc = classdoc;
+//        currentClassDoc = classdoc;
         currentClassSym = Utils.findNewClassSymbol(classdoc);
         currentDocEnv = ((ClassDocImpl)classdoc).docenv();
     }
@@ -90,14 +91,12 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
      * @param classDoc the super class whose members are being described as inherited from currentClassSym
      */
     public void writeJmlInheritedNestedClassSummaryFooter(@NonNull ClassDoc classDoc) {
-        ClassSymbol csym = currentClassSym;
         ClassSymbol nsym = Utils.findNewClassSymbol(classDoc);
         TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(nsym);
         ArrayList<ClassDoc> list = new ArrayList<ClassDoc>();
         // Find all the JML inherited nested classes to describe
         for (JmlClassDecl mdecl : tspecs.modelTypes) {
             ClassSymbol msym = mdecl.sym;
-            //if (!currentDocEnv.shouldDocument(msym)) continue;
             if (!shouldDocumentModel(currentDocEnv,msym)) continue;
             if (!Utils.isInherited(msym,currentClassSym)) continue;
             ClassDoc modelClass = new ClassDocImpl(((ClassDocImpl)classDoc).docenv(),msym,mdecl.docComment,mdecl,null);
@@ -116,6 +115,7 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
         }
     }
 
+    // FIXME - do we need this?
     /** check whether this class should be documented. */
     public boolean shouldDocument(ClassSymbol sym) {
         // special version of currentDocEnv.shouldDocument(msym)
@@ -125,14 +125,6 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
             //isVisible(sym);
     }
 
-//    protected boolean isVisible(ClassSymbol sym) {
-//        long mod = sym.flags_field;
-//        if (!showAccess.checkModifier(translateModifiers(mod))) {
-//            return false;
-//        }
-//        ClassSymbol encl = sym.owner.enclClass();
-//        return (encl == null || (mod & Flags.STATIC) != 0 || isVisible(encl));
-//    }
 
     /** This writes out information about JML directly nested classes,
      * including writing the header and footer.
@@ -144,7 +136,7 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
         TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(currentClassSym);
         for (JmlClassDecl cdecl : tspecs.modelTypes) {
             ClassSymbol msym = cdecl.sym;
-            //if (!denv.shouldDocument(msym)) continue;
+            //if (!denv.shouldDocument(msym)) continue; // FIXME - explain why the line below instead of this one
             if (!denv.isVisible(msym)) continue;
             ClassDoc modelClass = new ClassDocImpl(((ClassDocImpl)classDoc).docenv(),msym,cdecl.docComment,cdecl,null);
             list.add(modelClass);

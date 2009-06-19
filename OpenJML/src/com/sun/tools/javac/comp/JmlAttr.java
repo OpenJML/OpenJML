@@ -624,7 +624,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             log.error(tree.pos,"jml.ghost.model.on.java");
         } 
 
-        if (!isModel) checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
+        if (!isModel) {
+            JCTree.JCAnnotation a;
+            checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
+            if ((mods.flags & Flags.PROTECTED) != 0 &&
+                    (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
+                log.warning(a.pos(),"jml.visibility","protected","spec_protected");
+            }
+            if ((mods.flags & Flags.PUBLIC) != 0 &&
+                    (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
+                log.warning(a.pos(),"jml.visibility","public","spec_protected");
+            }
+            if ((mods.flags & Flags.PUBLIC) != 0 &&
+                    (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PUBLIC))) != null ) {
+                log.warning(a.pos(),"jml.visibility","public","spec_public");
+            }
+        }
         checkForConflict(mods,NON_NULL_BY_DEFAULT,NULLABLE_BY_DEFAULT);
         checkForConflict(mods,PURE,QUERY);
     }
@@ -732,9 +747,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Does the various checks of method/constructor modifiers */
     public void checkMethodModifiers(JmlMethodDecl tree) {
-        boolean inJML = utils.isJML(tree.mods);
-        boolean model = isModel(tree.mods);
-        boolean synthetic = (tree.mods.flags & Flags.SYNTHETIC) != 0;
+        JCModifiers mods = tree.mods;
+        boolean inJML = utils.isJML(mods);
+        boolean model = isModel(mods);
+        boolean synthetic = (mods.flags & Flags.SYNTHETIC) != 0;
         if (isInJmlDeclaration && model && !synthetic) {
             log.error(tree.pos,"jml.no.nested.model.type");
         } else if (inJML && !model  && !isInJmlDeclaration) {
@@ -745,28 +761,41 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree.getReturnType() != null) {
             if (tree.sym.enclClass().isInterface()) {
                 if (model) {
-                    allAllowed(tree.mods.annotations,allowedInterfaceModelMethodAnnotations,"interface model method declaration");
+                    allAllowed(mods.annotations,allowedInterfaceModelMethodAnnotations,"interface model method declaration");
                 } else {
-                    allAllowed(tree.mods.annotations,allowedInterfaceMethodAnnotations,"interface method declaration");
+                    allAllowed(mods.annotations,allowedInterfaceMethodAnnotations,"interface method declaration");
                 }
             } else {
                 if (model) {
-                    allAllowed(tree.mods.annotations,allowedModelMethodAnnotations,"model method declaration");
+                    allAllowed(mods.annotations,allowedModelMethodAnnotations,"model method declaration");
                 } else {
-                    allAllowed(tree.mods.annotations,allowedMethodAnnotations,"method declaration");
+                    allAllowed(mods.annotations,allowedMethodAnnotations,"method declaration");
                 }
             }
-            checkForConflict(tree.mods,NONNULL,NULLABLE);
-            checkForConflict(tree.mods,PURE,QUERY);
+            checkForConflict(mods,NONNULL,NULLABLE);
+            checkForConflict(mods,PURE,QUERY);
         } else { // Constructor
             if (model) {
-                allAllowed(tree.mods.annotations,allowedModelConstructorAnnotations,"model constructor declaration");
+                allAllowed(mods.annotations,allowedModelConstructorAnnotations,"model constructor declaration");
             } else {
-                allAllowed(tree.mods.annotations,allowedConstructorAnnotations,"constructor declaration");
+                allAllowed(mods.annotations,allowedConstructorAnnotations,"constructor declaration");
             }            
         }
         if (!model) {
-            checkForConflict(tree.mods,SPEC_PUBLIC,SPEC_PROTECTED);
+            JCTree.JCAnnotation a;
+            checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
+            if ((mods.flags & Flags.PROTECTED) != 0 &&
+                    (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
+                log.warning(a.pos(),"jml.visibility","protected","spec_protected");
+            }
+            if ((mods.flags & Flags.PUBLIC) != 0 &&
+                    (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
+                log.warning(a.pos(),"jml.visibility","public","spec_protected");
+            }
+            if ((mods.flags & Flags.PUBLIC) != 0 &&
+                    (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PUBLIC))) != null ) {
+                log.warning(a.pos(),"jml.visibility","public","spec_public");
+            }
         }
     }
     

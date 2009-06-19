@@ -62,6 +62,15 @@ public class JmlFactory extends ParserFactory {
                         // not within a JML comment
     }
 
+    /** Generates a new parser set to parse the given input, with parameters
+     * set to control various aspects of the parser.
+     * @param input    the input to parse
+     * @param keepDocComments  if true, javadoc comments are kept
+     * @param genEndPos   if true, AST node end position information is kept
+     * @param keepLineMap  if true, the mapping from position to line is kept
+     * @param enableJml   if true, JML comments are parsed
+     * @return the new parser, ready to go
+     */
     public JmlParser newParser(CharSequence input, boolean keepDocComments,
             boolean genEndPos, boolean keepLineMap, boolean enableJml) {
         JmlScanner lexer = (JmlScanner) scannerFactory.newScanner(input);

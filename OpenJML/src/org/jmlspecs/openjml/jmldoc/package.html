@@ -2,8 +2,13 @@
 <!--NewPage-->
 <HTML>
 <HEAD>
+<H2><CENTER>The JMLdoc tool</CENTER></H2>
+<H3>
+<CENTER>javadoc with JML specifications</CENTER>
+<CENTER>David R. Cok - June 2009</CENTER>
+</H3>
 <TITLE>
-JMLdoc tool
+JMLdoc tool for generating Javadoc with JML specifications
 </TITLE>
 
 <META NAME="date" CONTENT="2009-03-23">
@@ -43,20 +48,26 @@ files: </P>
       for the tool
   <LI><CODE>README.html</CODE> - this file, containing a description
       of the tool
+  <LI><CODE>OpenJDK-LICENSE-INFO</CODE> - the license under which the OpenJDK
+      is distributed and, by extension, applies to this jmldoc tool
 </UL>
 
 <H2>Use</H2>
 
 <UL>
 
-  <LI>The tool may be executed as a command-line tool.  The standard
-      Java main() entry point is in class
-      <CODE>org.jmlspecs.openjml.jmldoc.Main</CODE>.  So the tool can be
-      executed in the following ways: MORE.
+  <LI>The tool may be executed as a command-line tool.  The tool can be
+      executed as follows:
       <UL>
-        <LI><CODE>jmldoc </CODE><I> args...</I>
-        <LI>
+        <LI><CODE>java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main <I>options-and-files-and-package-names</I></CODE>
       </UL>
+  <LI>The options are given in the usual style of a option name (that starts with
+      a <CODE>-</CODE> character and may have an argument); the non-option
+      arguments are paths (absolute or relative to the current working directory)
+      of files or are names of packages that are rooted in one of the sourcepath
+      directories.
+  <LI>The tool parses source code conforming to Java 1.6 but can be executed
+       using Java 1.5 tools and runtime environment.
   <LI>The tool may be executed programmatically by calling the method 
       <CODE>org.jmlspecs.openjml.jmldoc.Main.execute</CODE>
   <LI>All of the options recognized by <CODE>javadoc</CODE> are valid for 
@@ -65,20 +76,28 @@ files: </P>
       <CODE>-help</CODE> option).
   <LI>FIXME - improve the description of how to handle runtime classes
       <UL>
-        <LI><CODE>-specs</CODE>: the argument to this option is the
+        <LI><CODE>-specspath</CODE>: the argument to this option is the
             path (in classpath form) in which to search for
             specification files.  The specification path is determined
             by the first of these that is present:
             <UL>
               <LI> CHECK THIS !!!!! FIXME
-              <LI>the <CODE>-specs</CODE> command-line option
+              <LI>the <CODE>-specspath</CODE> command-line option
               <LI>the <CODE>-Dorg.jmlspecs.specspath=</CODE> option to the java execution
               <LI>the <CODE>-sourcepath</CODE> command-line option
               <LI>the <CODE>-classpath</CODE> command-line option
               <LI>the <CODE>-Djava.class.path=</CODE> option to the java execution
               <LI>the value of the <CODE>CLASSPATH</CODE>
-                  environmental variable at the time the java execution begins
+                  environment variable at the time the java execution begins
             </UL>
+        <LI><CODE>-dir</CODE>: the argument to this option is a file-system path
+            to a directory; any java files found in this directory or its 
+            subdirectories (recursively) are included as if they had been
+            listed individually on the command-line (the argument may also be
+            a file name, in which case it is included as is)
+        <LI><CODE>-dirs</CODE>: this option indicates that the following 
+            command-line arguments are either file or directory names, up to
+            an argument that begins with a <CODE>-</CODE> sign
         <LI><CODE>-noInternalSpecs</CODE>: the jar file containing the
             executable also contains a basic set of specifications of
             core library classes (such as classes in
@@ -99,9 +118,21 @@ files: </P>
             issued if a directory on the specification path does not
             exist.  If the <CODE>-noCheckSpecsPath</CODE> option is
             given, non-existent directories on the specs path are
-            ignored.
+            silently ignored.
       </UL>
 </UL>
+
+<H2>License</H2>
+
+The JML extensions to the OpenJDK version of javadoc are (c) 2009 by David R. Cok.
+
+OpenJDK is licensed using the GPLv2.  You can find out more about OpenJDK at
+<A HREF="openjdk.java.net">the OpenJDK website</A>.
+
+Jmldoc is derived from OpenJDK and thus
+the GPLv2 applies to it also.  The sourcecode for jmldoc is available at
+<A href="http://jmlspecs.svn.sourceforge.net/viewvc/jmlspecs/OpenJML">
+the OpenJML subproject of the JML project at sourceforge.net</A>.
 
 <H2>Known Bugs</H2>
 
@@ -164,7 +195,8 @@ as model fields, methods, and classes.
 
 <P> The <CODE>Main</CODE> class that contains the entry points for the
 <CODE>jmldoc</CODE> tool could, corresponding to the discussion above,
-derive from either the <CODE>Main</CODE> class of openjml or of
+derive from either the <CODE>Main</CODE> class of openjml or the 
+<CODE>Main</CODE> class of
 javadoc.  Since openjml requires more tool initialization, it was more
 convenient to derive <CODE>jmldoc</CODE>'s <CODE>Main</CODE> from
 openjml's.  Command-line options that <CODE>jmldoc</CODE> adds to
@@ -240,7 +272,7 @@ provide a different (but largely duplicated) XML description file.  In
 order to do that, one would create a new doclet that referenced that
 new XML file; the <CODE>BuilderFactory</CODE> and various builders
 (e.g. <CODE>ClassBuilder</CODE>) would need to be extended with
-methods that reponsded to XML document items calling for JML
+methods that responded to XML document items calling for JML
 information to be generated.  However, one still would need to extend
 (though somewhat differently) the various Writers that were extended
 in the previous design.  Thus no work is saved by using the XML
