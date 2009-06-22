@@ -50,7 +50,7 @@ public class notspecified extends TCBase {
 
     }
         
-//    FIXME
+//    FIXME - no predicates allowed if not_specified is used
     public void testNotSpecified3() {
         helpTCF("A.java","public class A { //@ measured_by \\not_specified if true; working_space \\not_specified if false ; duration \\not_specified if true; \n public void m(boolean i) {}}"
                 );        // NOT OK

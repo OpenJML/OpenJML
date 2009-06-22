@@ -1952,9 +1952,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         // Is ghost or model ?
                         // Enter the field
                         visitVarDef(vd);
-                        // Model/ghost fields have their own specs
-                        vd.fieldSpecsCombined = vd.fieldSpecs;
-                        specs.putSpecs(vd.sym,vd.fieldSpecsCombined);
+                        // Model/ghost fields have their own specs - FIXME: move this into visitVarDef?
+                        if (vd.fieldSpecs == null) {
+                            vd.fieldSpecs = vd.fieldSpecsCombined = specs.getSpecs(vd.sym);
+                        } else {
+                            vd.fieldSpecsCombined = vd.fieldSpecs;
+                            specs.putSpecs(vd.sym,vd.fieldSpecsCombined);
+                        }
                     }
 
                 } else if (tcd.decl instanceof JmlMethodDecl) {

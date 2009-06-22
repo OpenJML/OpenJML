@@ -2192,6 +2192,7 @@ public class JmlTree {
         }
         
         public JCExpression selection;
+        public VarSymbol sym;
         
         public Kind getKind() { 
             return Kind.OTHER; // See note above

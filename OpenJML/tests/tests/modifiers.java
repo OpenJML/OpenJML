@@ -1081,7 +1081,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testSecret2() {
-        helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public class A{ @Secret(\"x\") int m() { return 0; } }"
+        helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public class A{ @Secret(\"x\") int m() { return 0; } //@ model secret int x;  }"
                 );
 //        checkMessages();
     }

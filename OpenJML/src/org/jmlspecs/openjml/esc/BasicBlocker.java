@@ -10,6 +10,7 @@ import java.util.*;
 
 import org.jmlspecs.openjml.JmlInternalError;
 import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
@@ -979,7 +980,7 @@ public class BasicBlocker extends JmlTreeScanner {
         if (classInfo == null) {
             throw new RuntimeException("UNEXPECTED NULL CLASSINFO FOR " + classDecl.name);
         }
-       this.classInfo = classInfo;
+        this.classInfo = classInfo;
         newdefs = new LinkedList<JCExpression>();
         background = new LinkedList<JCExpression>();
         blocksToDo = new LinkedList<BasicBlock>();
@@ -1246,6 +1247,7 @@ public class BasicBlocker extends JmlTreeScanner {
         try {
             // The axioms should perhaps be part of a class predicate?  // FIXME
             for (JmlTypeClauseExpr ax : cInfo.axioms) {
+                b.statements.add(comment(ax));
                 JCExpression e = ax.expression;
                 e = trSpecExpr(e,ax.source());
                 JmlStatementExpr asm = factory.JmlExpressionStatement(JmlToken.ASSUME,Label.INVARIANT,e);// FIXME pos
@@ -1945,18 +1947,22 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     public void visitJmlWhileLoop(JmlWhileLoop that)  { 
+        currentBlock.statements.add(comment(that.pos,"while..."));
         visitLoopWithSpecs(that, null, that.cond, null, that.body, that.loopSpecs);
     }
     
     public void visitWhileLoop(JCWhileLoop that) {
+        currentBlock.statements.add(comment(that.pos,"while..."));
         visitLoopWithSpecs(that, null, that.cond, null, that.body, null);
     }
     
     public void visitJmlForLoop(JmlForLoop that) {
+        currentBlock.statements.add(comment(that.pos,"for..."));
         visitLoopWithSpecs(that,that.init,that.cond,that.step,that.body,that.loopSpecs );
     }
     
     public void visitForLoop(JCForLoop that) { 
+        currentBlock.statements.add(comment(that.pos,"for..."));
         visitLoopWithSpecs(that,that.init,that.cond,that.step,that.body,null );
     }
     
@@ -2157,6 +2163,7 @@ public class BasicBlocker extends JmlTreeScanner {
         if (loopSpecs == null) return;
         for (JmlStatementLoop loopspec: loopSpecs) {
             if (loopspec.token == JmlToken.LOOP_INVARIANT) {
+                currentBlock.statements.add(comment(loopspec));
                 JCExpression e = trSpecExpr(loopspec.expression,log.currentSourceFile());
                 if (t == JmlToken.ASSUME) addAssume(label,e,currentBlock.statements,false);
                 else addAssert(label,e,loopspec.getStartPosition(),block.statements,usepos,log.currentSourceFile());
@@ -2168,6 +2175,7 @@ public class BasicBlocker extends JmlTreeScanner {
         if (loopSpecs == null) return;
         for (JmlStatementLoop loopspec: loopSpecs) {
             if (loopspec.token == JmlToken.LOOP_INVARIANT) {
+                currentBlock.statements.add(comment(loopspec));
                 JCExpression e = loopspec.expression;
                 if (t == JmlToken.ASSUME) addAssumeNoDefs(usepos,label,e,currentBlock.statements);
                 else addUntranslatedAssert(label,e,loopspec.getStartPosition(),block.statements,usepos,log.currentSourceFile());
@@ -2176,6 +2184,7 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
+        currentBlock.statements.add(comment(that.pos,"for..."));
         visitForeachLoopWithSpecs(that,that.loopSpecs);
     }
 
@@ -2247,10 +2256,12 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     public void visitDoLoop(JCDoWhileLoop that) {
+        currentBlock.statements.add(comment(that.pos,"do..."));
         visitDoLoopWithSpecs(that,null);
     }    
 
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
+        currentBlock.statements.add(comment(that.pos,"do..."));
         visitDoLoopWithSpecs(that,that.loopSpecs);
     }
 
@@ -2424,6 +2435,7 @@ public class BasicBlocker extends JmlTreeScanner {
     //          ....
     //     
     public void visitSwitch(JCSwitch that) { 
+        currentBlock.statements.add(comment(that.pos,"switch ..."));
         int pos = that.pos;
         JCExpression switchExpression = that.selector;
         int swpos = switchExpression.pos;
@@ -2576,6 +2588,8 @@ public class BasicBlocker extends JmlTreeScanner {
     //
     //
     public void visitTry(JCTry that) {
+        currentBlock.statements.add(comment(that.pos,"try..."));
+
         // Create an (unprocessed) block for everything that follows the
         // try statement
         int pos = that.pos;
@@ -2678,6 +2692,7 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     public void visitIf(JCIf that) {
+        currentBlock.statements.add(comment(that.pos,"if..."));
         int pos = that.pos;
         // Create a bunch of block names
         String thenName = blockPrefix + pos + "$then";
@@ -2724,6 +2739,7 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     public void visitExec(JCExpressionStatement that)    { 
+        currentBlock.statements.add(comment(that));
         // This includes assignments and stand-alone method invocations
         that.expr.accept(this);
         // ignore the result; any statements are already added
@@ -2732,6 +2748,7 @@ public class BasicBlocker extends JmlTreeScanner {
     protected java.util.List<JCStatement> breakStack = new java.util.LinkedList<JCStatement>();
     
     public void visitBreak(JCBreak that) { 
+        currentBlock.statements.add(comment(that));
         if (breakStack.isEmpty()) {
             // ERROR - FIXME
         } else if (breakStack.get(0) instanceof JCSwitch) {
@@ -2752,6 +2769,7 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     public void visitContinue(JCContinue that) {
+        currentBlock.statements.add(comment(that));
         if (that.label == null) {
             JCTree t = loopStack.get(0);
             String s = blockPrefix + t.pos + "$LoopContinue";
@@ -2763,7 +2781,8 @@ public class BasicBlocker extends JmlTreeScanner {
         }
     }
     
-    public void visitReturn(JCReturn that)               {
+    public void visitReturn(JCReturn that) {
+        currentBlock.statements.add(comment(that));
         if (that.getExpression() != null) {
             int p = that.getExpression().getStartPosition();
             JCExpression res = makeBinary(JCTree.EQ,resultVar,trJavaExpr(that.getExpression()),p);  // resultVar is not translated - shoudl be incase there are multiple returns executed FIXME
@@ -2787,6 +2806,7 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     public void visitThrow(JCThrow that) { 
+        currentBlock.statements.add(comment(that));
         
         // Capture the exception expression
         int p = that.getExpression().getStartPosition();
@@ -2826,6 +2846,7 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     public void visitAssert(JCAssert that) { // This is a Java assert statement
+        currentBlock.statements.add(comment(that));
         JCExpression cond = trJavaExpr(that.cond);
         JCExpression detail = trJavaExpr(that.detail);
         // FIXME - what to do with detail
@@ -3921,8 +3942,17 @@ public class BasicBlocker extends JmlTreeScanner {
         notImpl(that); // None of these are implemented as yet - FIXME
     }
     
+    public JmlStatementExpr comment(int pos, String s) {
+        return factory.at(pos).JmlExpressionStatement(JmlToken.COMMENT,null,factory.Literal(s));
+    }
+    
+    public JmlStatementExpr comment(JCTree t) {
+        return comment(t.pos,JmlPretty.write(t,false));
+    }
+    
     public void visitJmlStatementExpr(JmlStatementExpr that) { 
         JmlStatementExpr now = null;
+        if (that.token != JmlToken.COMMENT) currentBlock.statements.add(comment(that));
         if (that.token == JmlToken.ASSUME || that.token == JmlToken.ASSERT) {
             JCExpression expr = trSpecExpr(that.expression,that.source);
             JCExpression opt = trSpecExpr(that.optionalExpression,that.source);
@@ -3951,6 +3981,8 @@ public class BasicBlocker extends JmlTreeScanner {
             addAssert(Label.UNREACHABLE,expr,that.getStartPosition(),currentBlock.statements,that.getStartPosition(),log.currentSourceFile());
         } else if (that.token == JmlToken.HENCE_BY) {
             log.error("esc.not.implemented","hence_by is in BasicBlocker");
+        } else if (that.token == JmlToken.COMMENT) {
+            // skip
         } else {
             log.error("esc.internal.error","Unknown token in BasicBlocker: " + that.token.internedName());
         }
@@ -4028,6 +4060,7 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     public void visitJmlStatementDecls(JmlStatementDecls that) {
+        currentBlock.statements.add(comment(that));
         // This wraps local declarations within the body of a method:
         // ghost local variables and model local classes
         // Just treat them like Java local declarations  FIXME - check this - see also JmlVariableDecl
@@ -4390,6 +4423,7 @@ public class BasicBlocker extends JmlTreeScanner {
     }
 
     public void visitVarDef(JCVariableDecl that) { 
+        currentBlock.statements.add(comment(that));
         JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
         if (that.init != null) {
             // Create and store the new lhs incarnation before translating the
@@ -4766,9 +4800,9 @@ public class BasicBlocker extends JmlTreeScanner {
     public void visitLetExpr(LetExpr that)               { notImpl(that); }
     
     public void visitJmlVariableDecl(JmlVariableDecl that) {
+        currentBlock.statements.add(comment(that));
         // This includes ghost local declarations
-        // FIXME ??? ghost and model field declarations?
-        // FIXME ??? java declarations?
+        // FIXME ??? ghost and model field declarations? // FIXME ??? java declarations?
         // FIXME - need to add various field specs tests
         JCIdent vd = newIdentIncarnation(that,that.pos);
         if (that.init != null) {
@@ -5870,6 +5904,11 @@ public class BasicBlocker extends JmlTreeScanner {
                         sawFalseAssert = true;
                         return false;  // FIXME (do we want this?) - abrupt return here if we quit the trace reporting upon the first false assertion
                     }
+                } else if (s.token == JmlToken.COMMENT) {
+                    w.append(pos);
+                    w.append("Comment: // ");
+                    w.append(((JCLiteral)s.expression).value.toString());
+                    w.append("\n");
                 } else {
                     log.error(pos,"esc.internal.error","Incorrect token type in traceBlockStatements: " + s.token.internedName());
                 }

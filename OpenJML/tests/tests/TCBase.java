@@ -18,7 +18,16 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
 
-
+/** This is a base class for all tests that parse and typecheck a
+ * test string of source code.  Mock files are created (or real ones used)
+ * to simulate a set of input files.  Any diagnostics are captured with
+ * a listener and compared with the expected diagnostics.
+ * 
+ * FIXME - should we be checking the out and err outputs as well?
+ * 
+ * @author David R. Cok
+ *
+ */
 public abstract class TCBase extends JmlTestCase {
 
     static String z = java.io.File.pathSeparator;

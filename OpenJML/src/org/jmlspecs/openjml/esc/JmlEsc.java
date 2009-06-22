@@ -579,6 +579,8 @@ public class JmlEsc extends JmlTreeScanner {
                     e.type = syms.booleanType;
                     e.pos = as.expression.pos;
                     return e;
+                } else if (as.token == JmlToken.COMMENT) {
+                    // skip
                 } else {
                     log.error("esc.internal.error","An unexpected statement type in a BasicBlock: " + as.token.internedName());
                 }

@@ -2428,6 +2428,7 @@ public class ClassReader implements Completer {
     
     /** This method added for debugging information */
     public static boolean isClassAlreadyRead(Context context, Name flatname) {
-        return instance(context).classes.get(flatname) != null;
+        Symbol sym = instance(context).classes.get(flatname);
+        return  sym != null && sym.completer == null;
     }
 }

@@ -13,7 +13,7 @@ public class Utils {
     
     //@ public normal_behavior
     //@    ensures \result.size() == 0;
-    static public /*@non_null*/ <E> org.jmlspecs.lang.JMLList<E> defaultEmpty() {
+    static public /*@non_null pure */ <E> org.jmlspecs.lang.JMLList<E> defaultEmpty() {
         return null;
     }
     

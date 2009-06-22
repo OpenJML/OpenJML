@@ -350,6 +350,7 @@ public class JmlCompiler extends JavaCompiler {
         
         if (utils.esc) {
             new JmlTranslator(context).translate(env);
+            //log.noticeWriter.println(JmlPretty.write(env.tree));
             esc(env);
             
             // nothing put in results, so no further compilation phases are performed

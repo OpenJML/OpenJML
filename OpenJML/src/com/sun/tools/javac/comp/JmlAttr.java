@@ -127,6 +127,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     ClassSymbol utilsClass;
     JCIdent utilsClassIdent;
     
+    ClassSymbol datagroupClass;
+    
     /** The JmlSpecs instance for this context */
     @NonNull final protected JmlSpecs specs;
     
@@ -261,6 +263,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         utilsClassIdent.type = utilsClass.type;
         utilsClassIdent.sym = utilsClassIdent.type.tsym;
 
+        datagroupClass = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.JMLDataGroup"));
+        
         JMLSetType = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.JMLSetType")).type;
         JMLValuesType = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.JMLList")).type;
         JMLUtilsType = utilsClass.type;
@@ -703,6 +707,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // A warning is already given in JmlMemberEnter.checkMethodMatch
             }
             checkMethodModifiers(jmethod);
+            
         } finally {
             relax = oldrelax;
             if (prevSource != null) log.useSource(prevSource);
@@ -796,6 +801,139 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PUBLIC))) != null ) {
                 log.warning(a.pos(),"jml.visibility","public","spec_public");
             }
+        }
+        // Query
+        
+        // If no datagroup is named in a Query annotation, and the
+        // default datagroup does not exist for the method, then a datagroup
+        // is created for it.  However, if a datagroup is named in a Query annotation
+        // then it is not created if it does not exist, even if it is the
+        // name of the default datagroup.  The same rule applies to a 
+        // Secret annotation for the method - but in some cases the Query
+        // annotation will have created it, making for a bit of an anomaly.
+        // TODO: clarify what the behavior should be and implement here and in the tests
+        
+        JCAnnotation query = findMod(tree.mods,JmlToken.QUERY);
+        VarSymbol queryDatagroup = null;
+        if (query != null) {
+            List<JCExpression> args = query.getArguments();
+            Name datagroup = null;
+            int pos = 0;
+            if (args.isEmpty()) {
+                // No argument - use the name of the method
+                datagroup = tree.name;
+                pos = query.pos;
+            } else {
+                // The expression is an assignment of a Literal string to an identifier
+                // We only care about the literal string
+                // FIXME - what if the string is a qualified name?
+                JCExpression e = args.get(0);
+                pos = e.pos;
+                if (e instanceof JCAssign) {
+                    e = ((JCAssign)e).rhs;
+                } 
+                if (e instanceof JCLiteral) {
+                    JCLiteral lit = (JCLiteral)e;
+                    // Non-string cases will already have error messages
+                    if (lit.value instanceof String)
+                            datagroup = names.fromString(lit.value.toString());
+                }
+            }
+            if (datagroup != null) {
+                // Find the model field with that name
+                boolean prev = ((JmlResolve)rs).allowJML;
+                ((JmlResolve)rs).allowJML = true;
+                Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);
+                ((JmlResolve)rs).allowJML = prev;
+                if (v instanceof VarSymbol) {
+                    //OK
+                    queryDatagroup = (VarSymbol)v;
+                    if (!isModel(v)) {
+                        // TODO - ideally would like this to point to the declaration of the VarSymbol - but it might not exist and we have to find it
+                        log.error(pos,"jml.datagroup.must.be.model");
+                    }
+                } else if (args.size() == 0) {
+                    // Create a default: public model secret JMLDataGroup
+                    JmlTree.Maker maker = (JmlTree.Maker)JmlTree.Maker.instance(context);
+                    JCTree.JCModifiers nmods = maker.Modifiers(Flags.PUBLIC);
+                    JCTree.JCAnnotation a = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlToken.MODEL).type),List.<JCExpression>nil());
+                    JCTree.JCAnnotation aa = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlToken.SECRET).type),List.<JCExpression>nil());
+                    nmods.annotations = List.<JCAnnotation>of(a,aa);
+                    JCTree.JCExpression type = maker.Type(datagroupClass.type);
+                    JCTree.JCVariableDecl vd = maker.VarDef(nmods,datagroup,type,null);
+                    JmlMemberEnter.instance(context).memberEnter(vd,enclosingClassEnv);
+                    JmlTree.JmlTypeClauseDecl td = maker.JmlTypeClauseDecl(vd);
+                    utils.setJML(vd.mods);
+                    vd.accept(this); // attribute it
+                    queryDatagroup = vd.sym;
+                    specs.getSpecs(enclosingClassEnv.enclClass.sym).clauses.append(td);
+                } else {
+                    log.error(pos,"jml.no.such.model.field",datagroup);
+                }
+            }
+        }
+        // Secret
+        JCAnnotation secret = findMod(tree.mods,JmlToken.SECRET);
+        VarSymbol secretDatagroup = null;
+        if (secret != null) {
+            List<JCExpression> args = secret.getArguments();
+            int pos = 0;
+            Name datagroup = null;
+            if (args.isEmpty()) {
+                // No argument - use the name of the method
+                datagroup = tree.name;
+                pos = secret.pos;
+            } else {
+                // The expression is an assignment of a Literal string to an identifier
+                // We only care about the literal string
+                // FIXME - what if the string is a qualified name?
+                JCExpression e = args.get(0);
+                pos = e.pos;
+                if (e instanceof JCAssign) {
+                    e = ((JCAssign)e).rhs;
+                } 
+                if (e instanceof JCLiteral) {
+                    JCLiteral lit = (JCLiteral)e;
+                    // Non-string cases will already have error messages
+                    if (lit.value instanceof String)
+                        datagroup = names.fromString(lit.value.toString());
+                }
+            }
+            if (datagroup != null) {
+                // Find the model field with that name
+                boolean prev = ((JmlResolve)rs).allowJML;
+                ((JmlResolve)rs).allowJML = true;
+                Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);
+                ((JmlResolve)rs).allowJML = prev;
+                if (v instanceof VarSymbol) {
+                    secretDatagroup = (VarSymbol)v;
+                    //OK
+                    if (!isModel(v)) {
+                        // TODO - ideally would like this to point to the declaration of the VarSymbol - but it might not exist and we have to find it
+                        log.error(pos,"jml.datagroup.must.be.model");
+                    }
+                } else if (args.size() == 0) {
+                    // Create a default: public model secret JMLDataGroup
+                    JmlTree.Maker maker = (JmlTree.Maker)JmlTree.Maker.instance(context);
+                    JCTree.JCModifiers nmods = maker.Modifiers(Flags.PUBLIC);
+                    JCTree.JCAnnotation a = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlToken.MODEL).type),List.<JCExpression>nil());
+                    JCTree.JCAnnotation aa = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlToken.SECRET).type),List.<JCExpression>nil());
+                    nmods.annotations = List.<JCAnnotation>of(a,aa);
+                    JCTree.JCExpression type = maker.Type(datagroupClass.type);
+                    JCTree.JCVariableDecl vd = maker.VarDef(nmods,datagroup,type,null);
+                    JmlMemberEnter.instance(context).memberEnter(vd,enclosingClassEnv);
+                    JmlTree.JmlTypeClauseDecl td = maker.JmlTypeClauseDecl(vd);
+                    utils.setJML(vd.mods);
+                    vd.accept(this); // attribute it
+                    secretDatagroup = vd.sym;
+                    specs.getSpecs(enclosingClassEnv.enclClass.sym).clauses.append(td);
+                } else {
+                    log.error(pos,"jml.no.such.model.field",datagroup);
+                }
+            }
+        }
+        if (queryDatagroup != null && queryDatagroup.equals(secretDatagroup)) {
+            log.error(query.pos,"jml.not.both.query.and.secret");
         }
     }
     
@@ -1185,11 +1323,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         attribAnnotationTypes(tree.mods.annotations,env);  // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
         for (JCAnnotation a: tree.mods.annotations) a.type = a.annotationType.type;
         super.visitVarDef(tree);
-        if (tree instanceof JmlVariableDecl) checkVarMods((JmlVariableDecl)tree);
         // Anonymous classes construct synthetic members (constructors at least)
         // which are not JML nodes.
         FieldSpecs fspecs = specs.getSpecs(tree.sym);
         if (fspecs != null) for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
+
+        // Check the mods after the specs, because the modifier checks depend on
+        // the specification clauses being attributed
+        if (tree instanceof JmlVariableDecl) checkVarMods((JmlVariableDecl)tree);
     }
     
     // MAINTENANCE ISSUE - copied from super class
@@ -1310,7 +1451,46 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         
         checkForConflict(tree.mods,NONNULL,NULLABLE);
-    }
+        
+        // Secret
+        JCAnnotation secret = findMod(mods,JmlToken.SECRET);
+        VarSymbol secretDatagroup = null;
+        if (secret != null) {
+            List<JCExpression> args = secret.getArguments();
+            if (!args.isEmpty()) {
+                log.error(args.get(0).pos,"jml.no.arg.for.field.secret");
+            }
+        }
+        
+        // Note that method parameters, which belong to Methods, have
+        // null FieldSpecs
+        if (tree.sym.owner.kind == Kinds.TYP) {
+            // Check all datagroups that the field is in
+            JmlSpecs.FieldSpecs fspecs = specs.getSpecs(tree.sym);
+            for (JmlTypeClause tc: fspecs.list) {
+                if (tc.token == JmlToken.IN) {
+                    JmlTypeClauseIn tcin = (JmlTypeClauseIn)tc;
+                    for (JmlGroupName g: tcin.list) {
+                        if (g.sym == null) continue; // Happens if there was an error in finding g
+                        if (hasAnnotation(g.sym,JmlToken.SECRET) != (secret != null)) {
+                            if (secret != null) {
+                                log.error(tcin.pos,"jml.secret.field.in.nonsecret.datagroup");
+                            } else {
+                                log.error(tcin.pos,"jml.nonsecret.field.in.secret.datagroup");
+                            }
+                        }
+                    }
+                }
+            }
+            if (secret != null && fspecs.list.isEmpty()) {
+                // Not in any datagroups
+                // Had better be model itself
+                if (!isModel(fspecs.mods)) {
+                    log.error(tree.pos,"jml.secret.field.model.or.in.secret.datagroup");
+                }
+            }
+        }
+   }
     
     /** Overridden in order to be sure that the type specs are attributed. */
     Type attribType(JCTree tree, Env<AttrContext> env) { // FIXME _ it seems this will automatically happen - why not?
@@ -1331,12 +1511,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         else if (tree.selection instanceof JCIdent) sym = ((JCIdent)tree.selection).sym;
         else if (tree.selection instanceof JCFieldAccess) sym = ((JCFieldAccess)tree.selection).sym;
         else if (tree.selection instanceof JCErroneous) return;
+        if (!(sym instanceof VarSymbol)) {
+            // FIXME - does this happen?  emit errors
+            sym = null;
+        }
+        tree.sym = (VarSymbol)sym;
         if (sym == null) {
             log.error(tree.pos,"jml.internal","Unexpectedly did not find a resolution for this data group expression");
             return;
         }
         if (!isModel(sym)) {
-            log.error(tree.pos,"jml.datagroup.must.be.model");
+            log.error(tree.pos,"jml.datagroup.must.be.model.in.maps");
         }
         if (inVarDecl != null && sym.isStatic() && !inVarDecl.sym.isStatic()) {  // FIXME - isStatic is not correct for JML fields in interfaces - use isStatic(sym.flags()) ?
             log.error(tree.pos,"jml.instance.in.static.datagroup");
@@ -2481,9 +2666,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = check(that, result, VAL, pkind, pt);
     }
     
-    // TODO - note that this is not limited to boolean
+    /** Attributes a LBL expression.  Note that OpenJML allows an arbitrary
+     * type LBL expression, e.g.  (\lbl A expr) .  This should report for the
+     * label A the value of the expr, whatever its type.  For the standard
+     * lblpos and lblneg expressions, the expr must be boolean.
+     */
     public void visitJmlLblExpression(JmlLblExpression that) {
-        attribExpr(that.expression, env, Type.noType);
+        Type t = that.token == JmlToken.BSLBLANY ? Type.noType : syms.booleanType;
+        attribExpr(that.expression, env, t);
         result = check(that, that.expression.type, VAL, pkind, pt);
     }
     
@@ -2742,14 +2932,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param symbol the symbol to check
      * @return true if the symbol has a model annotation, false otherwise
      */
-    public boolean isModel(Symbol symbol) {
-//        if (modelAnnotationSymbol == null) {
-//            modelAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.Model"));
-//        }
-        return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.MODEL))!=null;
+    public boolean hasAnnotation(Symbol symbol, JmlToken t) {
+      return symbol.attribute(tokenToAnnotationSymbol.get(t)) != null;
 
-    }
-    
+  }
+  
+    /** Returns true if the given symbol has a model annotation 
+     * @param symbol the symbol to check
+     * @return true if the symbol has a model annotation, false otherwise
+     */
+    public boolean isModel(Symbol symbol) {
+//      if (modelAnnotationSymbol == null) {
+//          modelAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.Model"));
+//      }
+      return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.MODEL))!=null;
+
+  }
+  
     /** Returns true if the given symbol has a pure annotation 
      * @param symbol the symbol to check
      * @return true if the symbol has a model annotation, false otherwise
@@ -3244,11 +3443,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         attribAnnotationTypes(that.mods.annotations,env); annotate.flush(); // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
         for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
         super.visitVarDef(that);
-        checkVarMods(that);
         // Anonymous classes construct synthetic members (constructors at least)
         // which are not JML nodes.
         FieldSpecs fspecs = specs.getSpecs(that.sym);
         if (fspecs != null) for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
+
+        // Check the mods after the specs, because the modifier checks depend on
+        // the specification clauses being attributed
+        checkVarMods(that);
     }
 
     /** This is just here to do some checking for missing implementations */

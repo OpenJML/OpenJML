@@ -232,6 +232,16 @@ package java.io;
 openjml.jar(specs16/java/lang/Runnable.jml):21: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
+openjml.jar(specs16/org/jmlspecs/lang/JMLDataGroup.jml):22: package org.jmlspecs.annotations does not exist
+import org.jmlspecs.annotations.*;
+^
+openjml.jar(specs16/org/jmlspecs/lang/JMLDataGroup.jml):21: package org.jmlspecs.lang does not exist
+package org.jmlspecs.lang;
+^
+openjml.jar(specs16/org/jmlspecs/lang/JMLDataGroup.jml):31: cannot find symbol
+public @Pure final class JMLDataGroup implements Cloneable {
+        ^
+  symbol: class Pure
 openjml.jar(specs16/java/util/Iterator.jml):23: package org.jmlspecs.lang does not exist
 package java.util;
 ^
@@ -300,15 +310,6 @@ package java.lang;
 ^
 openjml.jar(specs16/java/lang/UnsupportedOperationException.jml):1: package org.jmlspecs.lang does not exist
 package java.lang;
-^
-openjml.jar(specs16/java/util/Arrays.jml):21: package org.jmlspecs.lang does not exist
-package java.util;
-^
-openjml.jar(specs16/java/util/List.jml):21: package org.jmlspecs.lang does not exist
-package java.util;
-^
-openjml.jar(specs16/java/util/ListIterator.jml):23: package org.jmlspecs.lang does not exist
-package java.util;
 ^
 100 errors
 ENDING with exit code 1

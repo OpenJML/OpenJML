@@ -58,7 +58,7 @@ public static @interface Annot {}
 
 /** Documentation for a model field */
 /*@
- public model int i;
+ public secret model int i;
  represents i = 0;
 */
 
@@ -75,11 +75,11 @@ public Object fboth;
 //@ maps a.i \into i;
 
 /*@ non_null */ @Secret
-public Object fannot_nodocs;
+public Object fannot_nodocs; //@ in i;
 
 protected Object fnone_nodocs;
 
-public Object fclauses_nodocs;
+public @Secret Object fclauses_nodocs;
 //@ in i;
 //@ maps a.i \into i;
 
