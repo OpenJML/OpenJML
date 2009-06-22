@@ -4,6 +4,8 @@ import org.jmlspecs.models.JMLByte;
 
 import junit.framework.TestCase;
 
+// TODO - why these?
+
 public class misctests extends TestCase {
 
     public void test1() {

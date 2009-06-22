@@ -382,7 +382,7 @@ public class api extends TestCase {
         return b;
     }
     
-    /** Test jmldoc through the API */
+    /** Test jmldoc through the API */ // FIXME - this and maybe others do not check for errors
     public void testJmldoc() {
         File f = new java.io.File("doc");
         if (f.exists()) {

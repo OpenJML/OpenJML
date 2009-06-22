@@ -14,7 +14,7 @@ import com.sun.tools.javac.util.Log;
  */
 public class prettyprinting extends ParseBase {
 
-    boolean precise = false;
+    boolean precise = true;
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -33,6 +33,9 @@ public class prettyprinting extends ParseBase {
             if (!precise) {
                 code = code.replaceAll("[ \t\r\n]+"," ");
                 out = out.replaceAll("[ \t\r\n]+"," ");
+            } else {
+                code = code.replaceAll("[\r]","");
+                out = out.replaceAll("[\r]","");
             }
             if (print || !code.equals(out)) {
                 System.out.println("IN:");
@@ -53,13 +56,15 @@ public class prettyprinting extends ParseBase {
     public void testSimpleClass() {
         helpPP(
                 eol +
-                "class A { }"
+                "class A {" + eol +
+                "}"
         );
     }
 
     public void testPackage() {
         helpPP(
                 "package t;" + eol + 
+                eol +
                 "class A {" + eol +
                 "}"
         );
@@ -68,7 +73,9 @@ public class prettyprinting extends ParseBase {
     public void testImport() {
         helpPP(
                 "package t;" + eol + 
+                eol +
                 "import java.io.File;" + eol +
+                eol +
                 "class A {" + eol +
                 "}"
         );
@@ -76,9 +83,9 @@ public class prettyprinting extends ParseBase {
 
     public void testImportStar() {
         helpPP(
-                "package t;" + eol + 
+                "package t;" + eol + eol +
                 "import java.io.File;" + eol +
-                "import java.io.*;" + eol +
+                "import java.io.*;" + eol + eol +
                 "class A {" + eol +
                 "}"
         );
@@ -86,9 +93,9 @@ public class prettyprinting extends ParseBase {
 
     public void testModelImport() {
         helpPP(
-                "package t;" + eol + 
+                "package t;" + eol + eol +
                 "//@ model import java.io.File;" + eol +
-                "//@ model import java.io.*;" + eol +
+                "//@ model import java.io.*;" + eol + eol +
                 "class A {" + eol +
                 "}"
         );
@@ -97,9 +104,9 @@ public class prettyprinting extends ParseBase {
     public void testRefines() {
         helpPP(
                 "package t;" + eol + 
-                "//@ refines \"A.jml\";" + eol + 
+                "//@ refines \"A.jml\";" + eol + eol + 
                 "//@ model import java.io.File;" + eol +
-                "//@ model import java.io.*;" + eol +
+                "//@ model import java.io.*;" + eol + eol + 
                 "class A {" + eol +
                 "}"
         );
@@ -116,7 +123,8 @@ public class prettyprinting extends ParseBase {
     public void testMethodDecl() {
         helpPP(
                 eol +
-                "public static final class A {" + eol + 
+                "public static final class A {" + eol +
+                "  " + eol + 
                 "  void m() {" + eol +
                 "  }" + eol +
                 "}"
@@ -127,6 +135,7 @@ public class prettyprinting extends ParseBase {
         helpPP(
                 eol + 
                 "class A {" + eol + 
+                "  " + eol + 
                 "  public static void m() {" + eol +
                 "  }" + eol +
                 "}"
@@ -139,6 +148,9 @@ public class prettyprinting extends ParseBase {
                 eol + 
                 "public static final class A {" + eol + 
                 "  " + eol + 
+                "  int p(int a, Object o) {" + eol +
+                "  }" + eol +
+                "  " + eol +
                 "  void m() {" + eol +
                 "    int a;" + eol +
                 "    a = 5;" + eol +
@@ -146,6 +158,8 @@ public class prettyprinting extends ParseBase {
                 "    a += 5;" + eol +
                 "    /*@ assume a == 6;*/" + eol +
                 "    /*@ assert a == 6;*/" + eol +
+                "    /*@ debug a = 6;*/" + eol +
+                "    /*@ set a = 6;*/" + eol +
                 "    a += 5;" + eol +
                 "    a -= 5;" + eol +
                 "    a *= 5;" + eol +
@@ -157,11 +171,20 @@ public class prettyprinting extends ParseBase {
                 "    a <<= 5;" + eol +
                 "    a >>= 5;" + eol +
                 "    a >>>= 5;" + eol +
+                "    m();" + eol +
+                "    for (int i = 0; i < 5; i++) {" + eol +
+                "    }" + eol +
+                "    for (int i : new int[6]) {" + eol +
+                "    }" + eol +
+                "    while (true) {" + eol +
+                "      do {" + eol +
+                "      }       while (true);" + eol + // FIXME - excess space
+                "    }" + eol +
                 "  }" + eol +
                 "}"
         );
     }
     
-    // FIXME - need to test every construct
+    // FIXME - need to test every construct (lots more) for pretty printing; also for with and without jml comments
    
 }

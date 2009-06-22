@@ -63,7 +63,7 @@ public class methodspecs extends TCBase {
                 );
     }
     
-    /** Tests multiple signals_only*/
+    /** Tests multiple signals_only in different cases*/
     public void testMultipleSignalsOnly2() {
         helpTC(" class A { \n"
                 +"//@ requires true;\n"
@@ -79,7 +79,7 @@ public class methodspecs extends TCBase {
                 );
     }
         
-    /** Tests multiple signals_only*/
+    /** Tests multiple signals_only in different cases */
     public void testMultipleSignalsOnly3() {
         helpTC(" class A { \n"
                 +"//@ requires true;\n"
@@ -194,6 +194,6 @@ public class methodspecs extends TCBase {
         );
     }
     
-    // FIXME - should test normal and exceptional examples and implies_that as well
+    // TODO - should test normal and exceptional examples and implies_that as well
     
 }

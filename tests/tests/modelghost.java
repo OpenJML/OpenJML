@@ -1,5 +1,10 @@
 package tests;
 
+/** These tests check various improper declarations of model and ghost
+ * methods and fields.
+ * @author David R. Cok
+ *
+ */
 public class modelghost extends TCBase {
 
 

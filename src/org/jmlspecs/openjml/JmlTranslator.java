@@ -1,5 +1,8 @@
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.code.Kinds.VAL;
+import static org.jmlspecs.openjml.JmlToken.REQUIRES;
+
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotations.NonNull;
@@ -971,9 +974,34 @@ public class JmlTranslator extends JmlTreeTranslator {
     }
 
 //    @Override
-//    public void visitJmlSingleton(JmlSingleton that) {
-//        // No override needed
-//    }
+    /** This handles expression constructs with no argument list such as \\result */
+    public void visitJmlSingleton(JmlSingleton that) {
+        JmlToken jt = that.token;
+        Type t = syms.errType;
+        switch (jt) {
+               
+            case BSINDEX:
+                break;
+                
+            case BSLOCKSET:
+            case BSVALUES:
+            case BSRESULT:
+            case BSSAME:
+            case BSNOTSPECIFIED:
+            case BSNOTHING:
+            case BSEVERYTHING:
+            case INFORMAL_COMMENT:
+                // skip
+                break;
+                
+            default:
+                t = syms.errType;
+                log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlSingleton");
+                break;
+        }
+        //result = check(that, t, VAL, pkind, pt);
+        result = that;
+    }
 
 //    @Override
 //    public void visitJmlSpecificationCase(JmlSpecificationCase that) {

@@ -267,7 +267,8 @@ Field Summary</CAPTION>
 </TR>
 <TR BGCOLOR="white" CLASS="TableRowColor">
 <TD ALIGN="right" VALIGN="top" WIDTH="1%"><FONT SIZE="-1">
-<CODE>&nbsp;java.lang.Object</CODE></FONT></TD>
+<CODE><FONT SIZE="-1">@Secret
+</FONT>&nbsp;java.lang.Object</CODE></FONT></TD>
 <TD><CODE><STRONG><A HREF="A.html#fclauses_nodocs">fclauses_nodocs</A></STRONG></CODE>
 
 <BR>
@@ -304,12 +305,23 @@ Field Summary</CAPTION>
 </TR>
 <TR BGCOLOR="white" CLASS="TableRowColor">
 <TD ALIGN="right" VALIGN="top" WIDTH="1%"><FONT SIZE="-1">
-<CODE><FONT SIZE="-1">@Model
+<CODE><FONT SIZE="-1">@Secret
+@Model
 </FONT>&nbsp;int</CODE></FONT></TD>
 <TD><CODE><STRONG><A HREF="A.html#i">i</A></STRONG></CODE>
 
 <BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Documentation for a model field</TD>
+</TR>
+<TR BGCOLOR="white" CLASS="TableRowColor">
+<TD ALIGN="right" VALIGN="top" WIDTH="1%"><FONT SIZE="-1">
+<CODE><FONT SIZE="-1">@Model
+@Secret
+</FONT>&nbsp;org.jmlspecs.lang.JMLDataGroup</CODE></FONT></TD>
+<TD><CODE><STRONG><A HREF="A.html#q">q</A></STRONG></CODE>
+
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
 </TR>
 </TABLE>
 &nbsp;
@@ -541,7 +553,8 @@ fannot_nodocs</H3>
 <FONT SIZE="-1">@Secret
 </FONT>public java.lang.Object <STRONG>fannot_nodocs</STRONG></PRE>
 <STRONG>JML Specifications: </STRONG> @NonNull @Secret<DL>
-<PRE></PRE>
+<PRE>    in i; 
+</PRE>
 </DL>
 <HR>
 
@@ -554,8 +567,9 @@ protected java.lang.Object <STRONG>fnone_nodocs</STRONG></PRE>
 <A NAME="fclauses_nodocs"><!-- --></A><H3>
 fclauses_nodocs</H3>
 <PRE>
-public java.lang.Object <STRONG>fclauses_nodocs</STRONG></PRE>
-<STRONG>JML Specifications: </STRONG><DL>
+<FONT SIZE="-1">@Secret
+</FONT>public java.lang.Object <STRONG>fclauses_nodocs</STRONG></PRE>
+<STRONG>JML Specifications: </STRONG> @Secret<DL>
 <PRE>    in i; 
     maps a.i \into i; 
 </PRE>
@@ -577,13 +591,28 @@ public int <STRONG>z_public</STRONG></PRE>
 <A NAME="i"><!-- --></A><H3>
 i</H3>
 <PRE>
-<FONT SIZE="-1">@Model
+<FONT SIZE="-1">@Secret
+@Model
 </FONT>public int <STRONG>i</STRONG></PRE>
 <DD>Documentation for a model field
 <P>
-<STRONG>JML Specifications: </STRONG> @Model<DL>
+<STRONG>JML Specifications: </STRONG> @Secret @Model<DL>
 <PRE>    represents i = 0; 
 </PRE>
+</DL>
+</DD>
+<HR>
+
+<A NAME="q"><!-- --></A><H3>
+q</H3>
+<PRE>
+<FONT SIZE="-1">@Model
+@Secret
+</FONT>public org.jmlspecs.lang.JMLDataGroup <STRONG>q</STRONG></PRE>
+<DD>&nbsp;
+<P>
+<STRONG>JML Specifications: </STRONG> @Model @Secret<DL>
+<PRE></PRE>
 </DL>
 </DD>
 <A NAME="JmlRepresentsClauses"><!-- --></A>

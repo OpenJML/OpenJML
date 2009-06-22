@@ -21,6 +21,7 @@ public enum JmlToken {
     // These are statement types
     ASSUME("assume"),  // Keep this one first of the method statement tokens
     ASSERT("assert"),
+    COMMENT("comment"), // For comments in BasicBlock programs
     HAVOC("havoc"), // Just used in ESC
     DEBUG("debug"),
     SET("set"),

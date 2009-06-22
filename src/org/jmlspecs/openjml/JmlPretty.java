@@ -68,12 +68,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
      * @return the resulting text
      */
     static public @NonNull String write(@NonNull JCTree tree) {
-        StringWriter sw = new StringWriter();
-        JmlPretty p = new JmlPretty(sw,true);
-        p.width = 2;
-        tree.accept(p);
-        return sw.toString();
-        //return write("","  ",tree);
+        return write(tree,true);
     }
     
     static public @NonNull String write(@NonNull JCTree tree, boolean source) {
@@ -273,6 +268,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlMethodSpecs(JmlMethodSpecs that) {
+        if (that.cases.isEmpty()) return;
         try {
             if (useJMLComments) { align(); print("/*@"); println(); }
             try { 
@@ -379,19 +375,24 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
 
+    /** debug and set statements */
     public void visitJmlStatement(JmlStatement that) {
-        that.statement.accept(this);
+        try { 
+            if (useJMLComments) print ("/*@ ");
+            print(that.token.internedName());
+            print(" ");
+            that.statement.accept(this);
+            if (useJMLComments) print("*/");
+        } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlStatementLoop(JmlStatementLoop that) {
         try { 
-            print("         ");
-            if (useJMLComments) print("  //@ ");
+            if (useJMLComments) print("//@ ");
             print(that.token.internedName());
             print(" ");
             that.expression.accept(this);
             print(";");
-            println();
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -401,17 +402,22 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStatementExpr(JmlStatementExpr that) {
         try { 
-            if (useJMLComments) print ("/*@ ");  // FIXME - this is needed in lots more places
-            print(that.token.internedName());
-            print(" ");
-            if (that.label != null && !sourceOutput) {
-                print(that.label);
+            if (that.token == JmlToken.COMMENT) {
+                print("// ");
+                print(((JCLiteral)that.expression).value);
+            } else {
+                if (useJMLComments) print ("/*@ ");  // FIXME - this is needed in lots more places
+                print(that.token.internedName());
                 print(" ");
+                if (that.label != null && !sourceOutput) {
+                    print(that.label);
+                    print(" ");
+                }
+                printExpr(that.expression); 
+                print(";");
+                if (useJMLComments) print("*/");
+                //println();
             }
-            printExpr(that.expression); 
-            print(";");
-            if (useJMLComments) print("*/");
-            //println();
         } catch (IOException e) { perr(that,e); }
         
     }
@@ -648,24 +654,40 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
-        for (JmlStatementLoop s: that.loopSpecs) {
-            s.accept(this);
-        }
-        super.visitForeachLoop(that);
+        try {
+            for (JmlStatementLoop s: that.loopSpecs) {
+                s.accept(this);
+                println();
+                align();
+            }
+            super.visitForeachLoop(that);
+        } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlForLoop(JmlForLoop that) {
-        if (that.loopSpecs != null) for (JmlStatementLoop s: that.loopSpecs) {
-            s.accept(this);
-        }
-        super.visitForLoop(that);
+        try {
+            if (that.loopSpecs != null) {
+                for (JmlStatementLoop s: that.loopSpecs) {
+                    s.accept(this);
+                    println();
+                    align();
+                }
+            }
+            super.visitForLoop(that);
+        } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlWhileLoop(JmlWhileLoop that) {
-        if (that.loopSpecs != null) for (JmlStatementLoop s: that.loopSpecs) {
-            s.accept(this);
-        }
-        super.visitWhileLoop(that);
+        try {
+            if (that.loopSpecs != null) {
+                for (JmlStatementLoop s: that.loopSpecs) {
+                    s.accept(this);
+                    println();
+                    align();
+                }
+            }
+            super.visitWhileLoop(that);
+        } catch (IOException e) { perr(that,e); }
     }
 
     JmlSpecs.TypeSpecs specsToPrint = null;
@@ -747,10 +769,13 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         if (that.methodSpecsCombined != null) {
-            that.methodSpecsCombined.mods.accept(this);
             that.methodSpecsCombined.cases.accept(this);
         }
         else if (that.cases != null) that.cases.accept(this);
+        // FIXME - visitMethodDef will print the Java modifiers
+        // We need the following to get the combined modifiers
+        // but we don't want both?
+        if (that.methodSpecsCombined != null) that.methodSpecsCombined.mods.accept(this);
         visitMethodDef(that);
     }
 

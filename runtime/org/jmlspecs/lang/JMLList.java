@@ -8,6 +8,7 @@ public class JMLList<E> {
     
     public static class Data {}
 
+    //@ ensures \result.size() == 0;
     @Pure @NonNull
     public JMLList<E> empty() { return null; }
     
@@ -20,6 +21,7 @@ public class JMLList<E> {
 //    //@    ensures get(size()-1) == item;
 //    void add(@Nullable E item);
     
+    //@ ensures \result.size() == this.size() + 1;
     @Pure @NonNull
     public JMLList<E> add(@Nullable E item) { return null; }
 
