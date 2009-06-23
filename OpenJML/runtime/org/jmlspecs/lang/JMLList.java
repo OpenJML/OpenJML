@@ -12,6 +12,7 @@ public class JMLList<E> {
     @Pure @NonNull
     public JMLList<E> empty() { return null; }
     
+    //@ ensures \result == _size;
     @Pure
     public int size() { return 0; }
     
