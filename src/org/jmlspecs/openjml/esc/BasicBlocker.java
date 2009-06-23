@@ -606,7 +606,7 @@ public class BasicBlocker extends JmlTreeScanner {
      * @return the new name
      */
     protected Name encodedName(MethodSymbol sym, int declpos, int incarnationPosition) {
-        return names.fromString(sym.getQualifiedName() + (declpos < 0 ? "$" : ("$" + declpos + "$")) + incarnationPosition + "$" + (unique++));
+        return names.fromString(sym.getQualifiedName() + (declpos < 0 ? "$" : ("$" + declpos + "$")) + incarnationPosition ); //+ "$" + (unique++));
     }
     
     /** Creates an identifier nodes for a new incarnation of the variable, that is,
