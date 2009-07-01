@@ -184,7 +184,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
     /** This class implements the action of popping up a dialog to
      * show the counterexample for a Java method.
      */
-    public static class ShowCounterexample extends PopupActions {
+    public static class ProofInformation extends PopupActions {
         @Override
         public void run(IAction action) {
             try {

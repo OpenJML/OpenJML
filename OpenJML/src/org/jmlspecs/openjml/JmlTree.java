@@ -29,6 +29,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
 
 // FIXME - the start and end positions are gotten from TreeInfo, which does not work for JML nodes
@@ -111,7 +112,7 @@ public class JmlTree {
         /** The factory keeps a reference to the context in which it was
          * created, for handy use later on.
          */
-        Context context;
+        protected Context context;
         
         /** A constructor for the factory
          * @param context the compilation context with which to associate this factory
@@ -179,6 +180,25 @@ public class JmlTree {
             return t;
         }
         
+        public JCExpression QualIdent(String... names) {
+            Names n = Names.instance(context);
+            JCExpression t = Ident(n.fromString(names[0]));
+            for (int i = 1; i < names.length; i++) {
+                t = Select(t,n.fromString(names[i]));
+            }
+            return t;
+        }
+        
+        public JCIdent Ident(String name) {
+            Names n = Names.instance(context);
+            return Ident(n.fromString(name));
+        }
+        
+        public Name Name(String name) {
+            Names n = Names.instance(context);
+            return n.fromString(name);
+        }
+        
         @Override
         public JCClassDecl ClassDef(JCModifiers mods,
                 Name name,
@@ -234,6 +254,17 @@ public class JmlTree {
                     m).setPos(pos).setType(mtype);
         }
 
+        @Override
+        public JCVariableDecl VarDef(VarSymbol v, JCExpression init) {
+            return 
+                (JCVariableDecl) new JmlVariableDecl(
+                Modifiers(v.flags(), Annotations(v.getAnnotationMirrors())),
+                v.name,
+                Type(v.type),
+                init,
+                v).setPos(pos).setType(v.type);
+        }
+
         
         @Override
         public JCVariableDecl VarDef(JCModifiers mods,
@@ -269,8 +300,8 @@ public class JmlTree {
             return new JmlImport(qualid, staticImport,isModel);
         }
         
-        public JCTree.JCImport Import(JCTree qualid, boolean staticImport) {
-            return JmlImport(qualid,staticImport);
+        public JmlTree.JmlImport Import(JCTree qualid, boolean staticImport) {
+            return JmlImport(qualid,staticImport,false);
         }
 
 //        public JmlFunction JmlFunction(JmlToken jt) {

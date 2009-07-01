@@ -26,7 +26,7 @@ public A(@org.jmlspecs.annotations.Nullable Object o, /*@ nullable*/ Object oo) 
 /** Documentation for a model constructor with no specs. */
 //@ model public A(int i,int j, @NonNull Object k , non_null Object m) {}
 
-//@ requires i >= 0;
+//@ requires j >= 0;
 //@ model public A(float nodocs ,int j , int k) {}
 
 // CLASS SPECS
@@ -59,7 +59,7 @@ public static @interface Annot {}
 /** Documentation for a model field */
 /*@
  public secret model int i;
- represents i = 0;
+ secret represents i = 0;
 */
 
 /** Documentatino for a ghost field and for fboth */
@@ -123,7 +123,7 @@ public int m(@NonNull Object o) { return 0; }
 /** Documentation of method m with specs. More info. */
 //@ requires true;
 //@ ensures \result == 0;
-//@ modifies i;
+//@ modifies a;
 //@ signals (java.io.FileNotFoundException e) true;
 //@ signals_only java.io.FileNotFoundException;
 public int mmod(@NonNull Object o) { return 57; }

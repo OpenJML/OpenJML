@@ -1205,6 +1205,8 @@ public class JmlSpecs {
     public static class MethodSpecs {
         
         public JCTree.JCModifiers mods;
+        public VarSymbol queryDatagroup;
+        public VarSymbol secretDatagroup;
         public JmlMethodSpecs cases;
         
         public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs m) { 

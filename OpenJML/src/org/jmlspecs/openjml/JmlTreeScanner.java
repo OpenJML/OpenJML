@@ -36,18 +36,20 @@ import com.sun.tools.javac.tree.TreeScanner;
  */
 public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
-    public final int AST_NO_MODEL_MODE = 0;
-    public final int AST_WITH_MODEL_MODE = 1; // FIXME ????
+    public final int AST_JAVA_MODE = 0;
+    public final int AST_JML_MODE = 1;
     public final int SPEC_MODE = 2;
     
     /** The mode in which subtrees are scanned:  <BR>
      * AST_MODE scans the tree as it
      * was parsed, ignoring convenience fields in which links to specs are
      * placed, and ignoring refinement sequence; <BR>
+     * AST_WITH_JML_MODE scans the tree as an individual compilation unit
+     * (no specs sequence, but including the specs that are part of that file)<BR>
      * SPEC_MODE ignores parsed specs and instead scans through the
      * summaries of specs (from all elements of the refinement sequence).
      */
-    public int scanMode = AST_NO_MODEL_MODE;
+    public int scanMode = AST_JML_MODE;
     
     public void scan(Iterable<? extends JCTree> list) {
         Iterator<? extends JCTree> iter = list.iterator();
@@ -254,9 +256,9 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.packageAnnotations);
         scan(that.pid);
         scan(that.refinesClause);
-        // scan - specs sequence, parsed model types, specs model types?  // FIXME
-        if (scanMode == AST_WITH_MODEL_MODE) scan(that.parsedTopLevelModelTypes);
         scan(that.defs);
+        if (scanMode == AST_JML_MODE) scan(that.parsedTopLevelModelTypes);
+        if (scanMode == SPEC_MODE) scan(that.specsTopLevelModelTypes);
     }
 
     public void visitJmlMethodDecl(JmlMethodDecl that) {
@@ -267,5 +269,56 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         // scan specsDecl, fieldSpecs?  // FIXME
         visitVarDef(that);
+    }
+    
+    @Override
+    public void visitClassDef(JCTree.JCClassDecl that) {
+        super.visitClassDef(that);
+        if (scanMode == SPEC_MODE) {
+            JmlClassDecl decl = (JmlClassDecl)that;
+            JmlSpecs.TypeSpecs ms = decl.typeSpecsCombined;
+            scan(ms.modifiers);
+            scan(ms.clauses);
+        }
+        if (scanMode == AST_JML_MODE) {
+            JmlClassDecl decl = (JmlClassDecl)that;
+            JmlSpecs.TypeSpecs ms = decl.typeSpecs;
+            // already done - scan(ms.modifiers);
+            scan(ms.clauses);
+        }
+    }
+    
+    @Override
+    public void visitMethodDef(JCTree.JCMethodDecl that) {
+        if (scanMode == SPEC_MODE) {
+            JmlMethodDecl decl = (JmlMethodDecl)that;
+            JmlSpecs.MethodSpecs ms = decl.methodSpecsCombined;
+            scan(ms.mods);
+            scan(ms.cases);
+        }
+        if (scanMode == AST_JML_MODE) {
+            JmlMethodDecl decl = (JmlMethodDecl)that;
+            scan(decl.cases);
+        }
+        super.visitMethodDef(that);
+    }
+    
+    @Override
+    public void visitVarDef(JCTree.JCVariableDecl that) {
+        if (scanMode == SPEC_MODE) {
+            JmlVariableDecl decl = (JmlVariableDecl)that;
+            if (decl.fieldSpecsCombined != null) {
+                scan(decl.fieldSpecsCombined.mods);
+                scan(decl.fieldSpecsCombined.list);
+            }
+        }
+        if (scanMode == AST_JML_MODE) {
+            JmlVariableDecl decl = (JmlVariableDecl)that;
+            if (decl.fieldSpecs != null) {
+                scan(decl.fieldSpecs.mods);
+                scan(decl.fieldSpecs.list);
+            }
+        }
+        super.visitVarDef(that);
     }
 }

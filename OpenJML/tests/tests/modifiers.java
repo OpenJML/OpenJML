@@ -1075,7 +1075,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testSecret() {
-        helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public class A{ @Secret int m() { return 0; } }"
+        helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public class A{ /*@ secret model int a; */ @Secret(\"a\") int m() { return 0; } }"
                 );
 //        checkMessages();
     }
@@ -1085,5 +1085,28 @@ public class modifiers extends TCBase {
                 );
 //        checkMessages();
     }
+    
+    @Test public void testAnnotations1() {
+        addMockFile("$A/A.spec","  public class A {}");
+        helpTCF("A.java","import org.jmlspecs.annotations.*;\n" +
+                "public @Pure class A{}",
+                "/$A/A.spec:1: The specification must include all the annotations that the Java declaration declares: @Pure", 3);
+    }
+
+    // FIXME - also need to test this for when a .class file has a JML annotation that the spec file does not - is that tested for Java m
+    // FIXME - these need implementing - error for the different in annotations
+//    @Test public void testAnnotations2() {
+//        addMockFile("$A/A.spec","public class A { Object f; }");
+//        helpTCF("A.java","import org.jmlspecs.annotations.*;\n" +
+//                "public class A{ @NonNull Object f; }",
+//                "/$A/A.spec:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
+//    }
+//     
+//    @Test public void testAnnotations3() {
+//        addMockFile("$A/A.spec","public class A { Object m(); }");
+//        helpTCF("A.java","import org.jmlspecs.annotations.*;\n" +
+//                "public class A{  @NonNull Object m() { return null: }}",
+//                "/$A/A.spec:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
+//    }
      
 }

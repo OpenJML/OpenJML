@@ -205,11 +205,11 @@
             nameFilter="*"
             id="JMLUI.contribution3K">
        <action
-               label="Show JML counterexample"
-               class="org.jmlspecs.openjml.eclipse.PopupActions$ShowCounterexample"
+               label="Show JML proof information"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$ProofInformation"
                menubarPath="JML"
                enablesFor="+"
-               id="JMLUI.showSpecsAction1K">
+               id="JMLUI.showProofInformation">
        </action>
     </objectContribution>
     <objectContribution
@@ -421,6 +421,14 @@
          </menu>
         
          <action
+               label="Show counterexample value"
+               tooltip="SHows the value of an expression in the counterexample"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$ShowCounterexampleValue"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ShowCounterexampleValue"
+                           definitionId="org.jmlspecs.eclipse.commands.ShowCounterexampleValue">
+         </action>
+         <action
                label="Generate JML doc"
                tooltip="Generates javadoc pages containing JML specifications"
                class="org.jmlspecs.openjml.eclipse.MenuActions$JmlDoc"
@@ -469,12 +477,12 @@
                            definitionId="org.jmlspecs.eclipse.commands.ShowSpecs">
          </action>
          <action
-               label="Show Counterexample"
-               tooltip="Shows the counterexample for the selected method"
-               class="org.jmlspecs.openjml.eclipse.MenuActions$ShowCounterexample"
+               label="Show Proof Information"
+               tooltip="Shows proof information for the selected method"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$ProofInformation"
                menubarPath="JMLMenu/JMLGroup"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.ShowCounterexample"
-                           definitionId="org.jmlspecs.eclipse.commands.ShowCounterexample">
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ProofInformation"
+                           definitionId="org.jmlspecs.eclipse.commands.ProofInformation">
          </action>
          <action
                label="Disable Auto JML Checking"
@@ -721,10 +729,16 @@
             id="org.jmlspecs.eclipse.commands.ShowSpecs">
       </command>
       <command
-            name="Show JML Counterexample"
-            description="Show the counterexample for the specified method"
+            name="Show JML Proof Information"
+            description="Show proof information for the specified method"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
-            id="org.jmlspecs.eclipse.commands.ShowCounterexample">
+            id="org.jmlspecs.eclipse.commands.ProofInformation">
+      </command>
+      <command
+            name="Show Counterexample Value"
+            description="Show value of expression in counterexample"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.ShowCounterexampleValue">
       </command>
       <command
             name="Edit JML specs path"

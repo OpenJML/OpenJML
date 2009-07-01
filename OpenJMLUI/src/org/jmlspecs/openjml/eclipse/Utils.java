@@ -611,6 +611,36 @@ public class Utils {
         }
     }
     
+    /** This method pops up an information window to show the value of an 
+     * expression in the current counterexample.  Uses the computational
+     * thread.
+     * @param selection the selection (multiple items may be selected)
+     * @param window   the current window
+     * @param shell    the current shell
+     */
+    public void showCEValueForTextSelection(ISelection selection, @Nullable IWorkbenchWindow window, Shell shell) {
+        ITextSelection selectedText = getSelectedText(selection);
+        if (selectedText == null) {
+            showMessage(shell,"JML","No text is selected");
+            return;
+        }
+        int pos = selectedText.getOffset();
+        int end = pos + selectedText.getLength() - 1;
+        if (end < pos) {
+            showMessage(shell,"JML","No text is selected");
+            return;
+        }
+        String s = selectedText.getText();
+        //showMessage(shell,"JML",pos + " " + end + " " + "Selected " + s);
+        IResource r = getSelectedResources(selection,window,shell).get(0);
+        // FIXME - need to do this in another thread. ?
+        String result = getInterface(JavaCore.create(r.getProject())).getCEValue(pos,end,s,r);
+        String msg = "This operation is not yet implemented\n\n" 
+            + "Seeking character range " + pos + " to " + end + " in " + r.getLocation().toString()
+            + "\n" + result;
+        showMessage(shell,"Counterexample value",msg);
+    }
+    
     /**
      * This method interprets the selection returning a List of IResources or
      * IJavaElements, and
@@ -1026,26 +1056,49 @@ public class Utils {
      * on the class path
      */
     @NonNull
-    List<String> getClasspath(@NonNull IJavaProject jproject) {
+    protected List<String> getClasspath(@NonNull IJavaProject jproject) {
+        return getClasspath(jproject,false);
+    }
+    
+    /** Gets the classpath of the given project, interpreting all Eclipse entries
+     * and converting them into file system paths to directories or jars.
+     * @param jproject the Java project whose class path is wanted
+     * @param onlyExported if true, only classpath entries that are marked as exported are added to the output list
+     * @return a List of Strings giving the paths to the files and directories 
+     * on the class path
+     */
+    @NonNull
+    protected List<String> getClasspath(@NonNull IJavaProject jproject, boolean onlyExported) {
         try {
+            IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
             IClasspathEntry[] entries = jproject.getResolvedClasspath(true);
             List<String> cpes = new LinkedList<String>();
             for (IClasspathEntry i: entries) {
+                if (onlyExported && !i.isExported()) continue;
                 //Log.log("ENTRY " +  i);
                 switch (i.getEntryKind()) {
                     case IClasspathEntry.CPE_CONTAINER:
                     case IClasspathEntry.CPE_SOURCE:
-                        IResource p = jproject.getProject().getParent().findMember(i.getPath());
+                        IResource p = root.getFolder(i.getPath());
                         String s = p.getLocation().toString();
-                        //Log.log("E: " + s );
                         cpes.add(s);
                         break;
                     case IClasspathEntry.CPE_LIBRARY:
-                        cpes.add(i.getPath().toString());
+                        IFile f = root.getFile(i.getPath());
+                        if (f == null || f.getLocation() == null) {
+                            cpes.add(i.getPath().toString());
+                        } else {
+                            cpes.add(f.getLocation().toString());
+                        }
+                        break;
+                    case IClasspathEntry.CPE_PROJECT:
+                        // FIXME - this has not been tested - pay attention to isExported?
+                        IProject proj = (IProject)root.getProject(i.getPath().toString());
+                        List<String> plist = getClasspath(JavaCore.create(proj),true);
+                        cpes.addAll(plist);
                         break;
                     case IClasspathEntry.CPE_VARIABLE:
                         // Variables and containers are already resolved
-                    case IClasspathEntry.CPE_PROJECT:
                     default:
                         Log.log("CPE NOT HANDLED" + i);  // FIXME - and better error message
                     break;
@@ -1336,7 +1389,7 @@ public class Utils {
     
     public final static QualifiedName SPECSPATH_ID = new QualifiedName(Activator.PLUGIN_ID,"specspath");
     
-    static public List<IResource> getSpecsPath(IJavaProject jp) {
+    public List<IResource> getSpecsPath(IJavaProject jp) {
         try {
             String s = jp.getProject().getPersistentProperty(SPECSPATH_ID);
             //Log.log("RETRIEVED SPECSPATH: " + s);
@@ -1359,7 +1412,7 @@ public class Utils {
                         //Log.log("  IFILE " + f + " " + f.getFullPath() + " " + f.getFullPath().toPortableString());
                         files.add(f);
                     } else {
-                        Log.log("No such location in the workspace (ignoring): " + n);
+                        Log.log("No such (open) location in the workspace (ignoring): " + n);
                     }
                 }
             }

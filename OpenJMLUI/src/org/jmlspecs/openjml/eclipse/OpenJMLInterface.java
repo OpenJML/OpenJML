@@ -143,7 +143,7 @@ public class OpenJMLInterface {
             }
             try {
                 setMonitor(monitor);
-                int ret = api.compile(args.toArray(new String[args.size()]));
+                int ret = api.exec(args.toArray(new String[args.size()]));
                 if (ret == 0) Log.log(Timer.getTimeString() + " Completed");
                 else if (ret == 1) Log.log(Timer.getTimeString() + " Completed with errors");
                 else if (ret >= 2) {
@@ -243,7 +243,7 @@ public class OpenJMLInterface {
                     args.add(rr.getLocation().toString());
                     PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener).getConsoleStream());
                     api = new API(w,new EclipseDiagnosticListener(preq));
-                    api.setProgressReporter(new UIProgressReporter(api.context,monitor,null));
+                    api.setProgressReporter(new UIProgressReporter(api.context(),monitor,null));
                 } else if (r instanceof IJavaElement) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
                     elements.add((IJavaElement)r);
                 } else Log.log("Ignoring " + r.getClass() + " " + r.toString());
@@ -258,7 +258,7 @@ public class OpenJMLInterface {
                 if (monitor != null) monitor.subTask("Executing openjml");
                 try {
                     if (monitor != null) monitor.setTaskName("ESC");
-                    int ret = api.compile(args.toArray(new String[args.size()]));
+                    int ret = api.exec(args.toArray(new String[args.size()]));
                     if (ret == 0) Log.log(Timer.getTimeString() + " Completed");
                     else if (ret == 1) Log.log(Timer.getTimeString() + " Completed with errors");
                     else if (ret >= 2) {
@@ -285,10 +285,12 @@ public class OpenJMLInterface {
             for (IJavaElement je: elements) {
                 if (je instanceof IMethod) {
                     MethodSymbol msym = convertMethod((IMethod)je);
-                    api.doEsc(msym);
+                    if (msym != null) api.doESC(msym);
+                    else {} // ERROR - FIXME
                 } else if (je instanceof IType) {
                     ClassSymbol csym = convertType((IType)je);
-                    api.doEsc(csym);
+                    if (csym != null) api.doESC(csym);
+                    else {} // ERROR - FIXME
                 }
             }
             if (monitor != null) {
@@ -311,13 +313,27 @@ public class OpenJMLInterface {
      * (e.g. the files have not been entered)
      */
     public @NonNull ClassSymbol convertType(IType type) throws Utils.OpenJMLException {
-        String className = type.getFullyQualifiedName();
-        ClassSymbol csym = api.getClassSymbol(className);
-        if (csym == null) {
-            String error = "No such class in OpenJML: " + className;
-            Log.errorlog(error,null);
-            throw new Utils.OpenJMLException(error);
+        String className = type.getFullyQualifiedName(); // FIXME - for files that are not actually Java files, the fully qualified name does not include the package ???
+        if (className.indexOf('.') == -1) {
+            // No dot in the name.  The class might be in the default package,
+            // but also if the IType came from a file that is not in a source
+            // folder, then the fullyQualifiedName does not include the package
+            // I don't know whether this a bug or whether it is the intended
+            // behavior for a non-real Java file such as a specification file.
+            // In any case, we try to make amends.
+            try {
+                System.out.println("NAME OF " + type.getElementName() + " " + className);
+                ICompilationUnit cu = type.getCompilationUnit();
+                String s = type.getTypeQualifiedName();
+                IPackageDeclaration[] pks = cu.getPackageDeclarations();
+                if (pks.length > 0) {
+                    // Not sure what we do with more than one
+                    String pname = pks[0].getElementName();
+                    className = pname + "." + className;
+                }
+            } catch (JavaModelException e) {}
         }
+        ClassSymbol csym = api.getClassSymbol(className);
         return csym;
     }
     
@@ -327,10 +343,11 @@ public class OpenJMLInterface {
      * @return OpenJML's MethodSymbol for the same method
      * @throws Utils.OpenJMLException if there is no match
      */
-    public MethodSymbol convertMethod(IMethod method) throws Utils.OpenJMLException {
+    public @Nullable MethodSymbol convertMethod(IMethod method) {
         ClassSymbol csym = convertType(method.getDeclaringType());
+        if (csym == null) return null;
         try {
-            com.sun.tools.javac.util.Name name = com.sun.tools.javac.util.Names.instance(api.context).fromString(
+            com.sun.tools.javac.util.Name name = com.sun.tools.javac.util.Names.instance(api.context()).fromString(
                     method.isConstructor() ? "<init>" : method.getElementName());
             Scope.Entry e = csym.members().lookup(name); // FIXME - Need to match types & number
             MethodSymbol firstsym = null;
@@ -405,13 +422,13 @@ public class OpenJMLInterface {
         return true;
     }
     
-    /** Returns the list of names of directories and jar files that constitute
-     * the current specspath in openjml.
-     * @return the current specspath
-     */
-    public @NonNull List<String> getSpecsPath() {
-        return api.getSpecsPath();
-    }
+//    /** Returns the list of names of directories and jar files that constitute
+//     * the current specspath in openjml.
+//     * @return the current specspath
+//     */
+//    public @NonNull List<String> getSpecsPath() {
+//        return api.getSpecsPath();
+//    }
     
     /** Return the specs of the given type, pretty-printed as a String.  This
      * may be an empty String if there are no specifications.
@@ -421,6 +438,9 @@ public class OpenJMLInterface {
     @NonNull
     public String getSpecs(IType type) throws Utils.OpenJMLException {
         ClassSymbol csym = convertType(type);
+        if (csym == null) {
+            return "Either JML checking has not been run or type " + type + " does not exist";
+        }
         try{
             TypeSpecs tspecs = api.getSpecs(csym);
             String smods = api.prettyPrint(tspecs.modifiers,false);
@@ -434,9 +454,9 @@ public class OpenJMLInterface {
      * @param type the Eclipse IType for the class whose specs are wanted
      * @return the corresponding specs, as a String
      */
-    @NonNull
-    public String getAllSpecs(@NonNull IType type) {
+    public @Nullable String getAllSpecs(@NonNull IType type) {
         ClassSymbol csym = convertType(type);
+        if (csym == null) return null;
         List<TypeSpecs> typeSpecs = api.getAllSpecs(csym);
         try {
             StringBuilder sb = new StringBuilder();
@@ -457,8 +477,9 @@ public class OpenJMLInterface {
      * @param type the Eclipse IMethod for the method whose specs are wanted
      * @return the corresponding specs, as a String
      */
-    public @NonNull String getAllSpecs(@NonNull IMethod method) {
+    public @Nullable String getAllSpecs(@NonNull IMethod method) {
         MethodSymbol msym = convertMethod(method);
+        if (msym == null) return null;
         List<JmlSpecs.MethodSpecs> methodSpecs = api.getAllSpecs(msym);
         try {
             StringBuilder sb = new StringBuilder();
@@ -476,19 +497,16 @@ public class OpenJMLInterface {
 
     /** Returns the specs of the given field as a String
      * @param field the Eclipse IField value denoting the field whose specs are wanted
-     * @return the specs of the field, as a String
+     * @return the specs of the field, as a String; or null, if specs not available
      */
-    // FIXME - this does not include annotations - classic or Java
     public @NonNull String getSpecs(@NonNull IField field) {
         String s = field.getDeclaringType().getFullyQualifiedName();
         ClassSymbol csym = api.getClassSymbol(s);
-        com.sun.tools.javac.util.Name name = com.sun.tools.javac.util.Names.instance(api.context).fromString(field.getElementName());
-        Symbol sym = csym.members().lookup(name).sym;
-        VarSymbol fsym = (VarSymbol)sym;
+        if (csym == null)  return null;
+        VarSymbol fsym = api.getVarSymbol(csym,field.getElementName());
         FieldSpecs fspecs = api.getSpecs(fsym);
         try { 
-            String smods = api.prettyPrint(fspecs.mods,false);
-            return smods + "\n" + fspecs.toString(); // FIXME - use proper eol
+            return fspecs.toString(); // FIXME - use proper eol
         } catch (Exception e) { return "<Exception>: " + e; }
     }
     
@@ -496,9 +514,10 @@ public class OpenJMLInterface {
         ClassSymbol csym = convertType(t);
         if (csym != null) {
             // FIXME go through API
-            JavaFileObject f = JmlSpecs.instance(api.context).findLeadingSpecFile(csym);
+            JavaFileObject f = JmlSpecs.instance(api.context()).findLeadingSpecFile(csym);
             return null;
         }
+        // FIXME - no check run?
         return null;
     }
 
@@ -576,6 +595,9 @@ public class OpenJMLInterface {
         return;
     }
 
+    public String getCEValue(int pos, int end, String text, IResource r) {
+        return api.getCEValue(pos,end,text,r.getLocation().toString());
+    }
 
     /** Instances of this class can be registered as DiagnosticListeners (that is,
      * listeners for errors from tools in the javac framework); they then convert
@@ -736,7 +758,7 @@ public class OpenJMLInterface {
      */
     public void setMonitor(@Nullable IProgressMonitor monitor) {
         if (monitor != null) {
-            api.setProgressReporter(new UIProgressReporter(api.context,monitor,null));
+            api.setProgressReporter(new UIProgressReporter(api.context(),monitor,null));
         } else {
             api.setProgressReporter(null);
         }

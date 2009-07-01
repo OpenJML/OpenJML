@@ -653,4 +653,10 @@ public class JmlResolve extends Resolve {
          }
          return false;
      }
+     
+     public boolean setAllowJML(boolean allowJML) {
+         boolean b = this.allowJML;
+         this.allowJML = allowJML;
+         return b;
+     }
 }

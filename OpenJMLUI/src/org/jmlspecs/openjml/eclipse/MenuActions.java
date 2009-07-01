@@ -243,24 +243,39 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     }
 
     /**
-     * This action pops up a dialog showing the prroof result for the selected
+     * This action pops up a dialog showing the proof result for the selected
      * Java element.
      * 
      * @author David Cok
      *
      */
-    static public class ShowCounterexample extends MenuActions {
-        // This is mostly done in the UI thread.  Gathering and formatting
-        // the specs for display should be fast, unless the specs actually
-        // need to be computed; that computation is done in a computation
-        // thread.  However, the display of specs has to wait for that to
-        // complete in any case.
+    static public class ProofInformation extends MenuActions {
+        // This is mostly done in the UI thread.  
         @Override
         public final void run(final IAction action) {
             try {
                 utils.showProofInfoForSelection(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ShowCounterexample",e);
+                utils.topLevelException(shell,"MenuActions.ShowProofInformation",e);
+            }
+        }
+    }
+
+    /**
+     * This action pops up a dialog showing the value of an expression in the
+     * current counterexample.
+     * 
+     * @author David Cok
+     *
+     */
+    static public class ShowCounterexampleValue extends MenuActions {
+        // This is not done in the UI thread.  
+        @Override
+        public final void run(final IAction action) {
+            try {
+                utils.showCEValueForTextSelection(selection,window,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.ShowCounterexampleValue",e);
             }
         }
     }

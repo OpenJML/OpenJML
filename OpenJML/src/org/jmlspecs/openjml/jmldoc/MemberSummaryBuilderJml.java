@@ -1,9 +1,8 @@
-package org.jmlspecs.openjml;
+package org.jmlspecs.openjml.jmldoc;
 
 import java.util.Iterator;
 import java.util.List;
 
-import org.jmlspecs.openjml.jmldoc.FieldWriterJml;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.tools.doclets.internal.toolkit.Configuration;
