@@ -35,6 +35,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
@@ -221,7 +222,7 @@ public class JmlParser extends EndPosParser {
             }
             s = super.classOrInterfaceOrEnumDeclaration(mods, dc);
             // Can also be a JCErroneous
-            if (s instanceof JmlClassDecl) filterTypeBodyDeclarations((JmlClassDecl)s);
+            if (s instanceof JmlClassDecl) filterTypeBodyDeclarations((JmlClassDecl)s,context);
             if (S.jmlToken == JmlToken.ENDJMLCOMMENT) {
                 S.nextToken();
             }
@@ -627,7 +628,11 @@ public class JmlParser extends EndPosParser {
      * @return revised list, with all JML declarations removed and put in specs
      * structures
      */
-    protected void filterTypeBodyDeclarations(JmlClassDecl decl) {
+    // This is static because we need it from JmlCompiler and we don't have 
+    // source for which to create a whole compiler  (TODO - perhaps we should not
+    // cache all this sorting of declarations)
+    static public void filterTypeBodyDeclarations(JmlClassDecl decl, Context context) {
+        Log log = Log.instance(context);
         List<JCTree> list = decl.defs;
         JmlSpecs.TypeSpecs typeSpecs = new JmlSpecs.TypeSpecs(decl);
         ListBuffer<JCTree> newlist = lb();
@@ -670,9 +675,9 @@ public class JmlParser extends EndPosParser {
                     } else if (tree instanceof JmlTypeClauseInitializer) {
                         JmlTypeClauseInitializer tsp = (JmlTypeClauseInitializer)tree;
                         tsp.specs = mspecs;
-                        checkInitializer(tsp,typeSpecs);
+                        checkInitializer(tsp,typeSpecs,context);
                     } else if (tree instanceof JCTree.JCBlock) {
-                        typeSpecs.blocks.put((JCTree.JCBlock)tree,new JmlSpecs.MethodSpecs(jmlF.Modifiers(0),mspecs));
+                        typeSpecs.blocks.put((JCTree.JCBlock)tree,new JmlSpecs.MethodSpecs(JmlTree.Maker.instance(context).Modifiers(0),mspecs));
                         newlist.append(tree);
                     } else {
                         log.error(mspecs.pos,"jml.misplaced.method.spec");
@@ -701,7 +706,7 @@ public class JmlParser extends EndPosParser {
                 }
                 if (tree != null) typeSpecs.clauses.append(tcd);
             } else if (tree instanceof JmlTypeClause) {
-                if (tree instanceof JmlTypeClauseInitializer) checkInitializer((JmlTypeClauseInitializer)tree,typeSpecs);
+                if (tree instanceof JmlTypeClauseInitializer) checkInitializer((JmlTypeClauseInitializer)tree,typeSpecs,context);
                 else typeSpecs.clauses.append((JmlTypeClause)tree);
             } else {
                 // presume that everything left is a valid Java declaration
@@ -721,7 +726,8 @@ public class JmlParser extends EndPosParser {
      * @param tspecs the typeSpecs structure for that class declaration
      */
     //@ modifies tspecs.initializerSpec, tspecs.staticInitializerSpec, log.errorOutput;
-    public void checkInitializer(JmlTypeClauseInitializer tsp, JmlSpecs.TypeSpecs tspecs) {
+    static public void checkInitializer(JmlTypeClauseInitializer tsp, JmlSpecs.TypeSpecs tspecs, Context context) {
+        Log log = Log.instance(context);
         if (tsp.token == JmlToken.INITIALIZER) {  // not static
             if (tspecs.initializerSpec != null) {
                 log.error(tsp.pos,"jml.one.initializer.spec.only");

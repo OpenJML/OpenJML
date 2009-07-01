@@ -258,7 +258,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         return execute(new PrintWriter(useStdErr ? System.err : System.out, true), null, args);
     }
     
-    public static Main lastRun = null;
+    //public static Main lastRun = null;
     
     public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull String[] args) {
         //System.out.println("STARTING");
@@ -286,7 +286,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     if (errorcode != 0) writer.println("ENDING with exit code " + errorcode); 
                 } else {
                     Main compiler = new Main(applicationName, writer, diagListener, (String[])null);
-                    lastRun = compiler;
+                    //lastRun = compiler;
                     errorcode = compiler.compile(args);
                     if (errorcode != 0) writer.println("ENDING with exit code " + errorcode); // TODO - not sure we want this - but we'll need to change the tests
                 }
@@ -604,7 +604,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** An empty array used simply to avoid repeatedly creating one. */
     private final @NonNull String[] emptyArgs = new String[]{};
     
-    public Context context() {
+    /** Returns a reference to the API's compilation context. */
+    public @Nullable Context context() {
         return context;
     }
     

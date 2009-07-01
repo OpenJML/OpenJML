@@ -597,7 +597,8 @@ i</H3>
 <DD>Documentation for a model field
 <P>
 <STRONG>JML Specifications: </STRONG> @Secret @Model<DL>
-<PRE>    represents i = 0; 
+<PRE>    @Secret 
+represents i = 0; 
 </PRE>
 </DL>
 </DD>
@@ -745,7 +746,7 @@ A</H3>
                int&nbsp;k)</PRE>
 
 <BR>
-<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE>    requires i >= 0; 
+<STRONG>JML Constructor Specifications: </STRONG> @Model<PRE>    requires j >= 0; 
 </PRE>
 
 <!-- ============ METHOD DETAIL ========== -->
@@ -820,7 +821,7 @@ public int <STRONG>mmod</STRONG>(<FONT SIZE="-1">@NonNull</FONT>
 <BR>
 <STRONG>JML Method Specifications: </STRONG><PRE>    requires true; 
     ensures \result == 0; 
-    assignable i; 
+    assignable a; 
     signals (java.io.FileNotFoundException e) true; 
     signals_only java.io.FileNotFoundException; 
 </PRE>

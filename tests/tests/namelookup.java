@@ -188,13 +188,13 @@ public class namelookup extends TCBase {
     public void testModelMethod2() {
         helpTCF("A.java",
                 " class A {   int k() { return 0; }\n" +
-                "   //@ model double k() { return 0; }\n" +
+                "   //@ model double k() { return 1; }\n" +
                 "   void m() {\n" +
                 "      boolean kk = k();\n" +
                 "   }\n" +
                 "}"
         ,"/A.java:2: k() is already defined in A",21
-        ,"/A.java:2: The return types of method A.k() are different in the specification and java files: double vs. int",14
+        //,"/A.java:2: The return types of method A.k() are different in the specification and java files: double vs. int",14
         ,"/A.java:4: incompatible types\n  required: boolean\n  found:    int", 21
         );
     }

@@ -172,6 +172,22 @@ public class Utils {
                 // FIXME this is not going to work for unattributed and not-fully qualified annotations
                 String s = a.annotationType.toString();
                 if (m.toString().equals(s)) return a;
+                if (m.toString().equals("org.jmlspecs.annotations."+s)) return a; // FIXME - fix attribution of annotations in MemberEnter
+            }
+        }
+        return null;
+    }
+    
+    public JCTree.JCAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */Symbol asym) {
+        if (mods == null) return null;
+        for (JCTree.JCAnnotation a: mods.annotations) {
+            Type t = a.annotationType.type;
+            if (t != null) {
+                if (t.tsym.equals(asym)) return a; 
+            } else {
+                // FIXME this is not going to work for unattributed and not-fully qualified annotations
+                String s = a.annotationType.toString();
+                if (asym.flatName().toString().equals(s)) return a;
             }
         }
         return null;

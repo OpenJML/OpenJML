@@ -2,38 +2,31 @@ package org.jmlspecs.openjml;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
-import javax.tools.JavaFileObject.Kind;
 
 import org.jmlspecs.annotations.NonNull;
 import org.jmlspecs.annotations.Nullable;
-import org.jmlspecs.openjml.JmlSpecs.Dir;
+import org.jmlspecs.annotations.Pure;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.esc.BasicBlocker;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
-import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
-
-import tests.TestJavaFileObject;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -45,10 +38,16 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.Enter;
+import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlEnter;
+import com.sun.tools.javac.comp.Todo;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.main.JavaCompiler.CompileState;
+import com.sun.tools.javac.parser.JmlFactory;
+import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Context;
@@ -61,7 +60,8 @@ import com.sun.tools.javac.util.Options;
 
 /** This class is a wrapper and publicly published API for the OpenJML tool 
  * functionality.  In principle, any external programmatic interaction with
- * openjml would go through methods in this class.
+ * openjml would go through methods in this class.  [In practice some internal
+ * classes are exposed as well.]
  * <P>
  * The class is used as follows.  The user creates a new API object and makes
  * calls to it; each distinct API object encapsulates a completely separate
@@ -75,50 +75,13 @@ import com.sun.tools.javac.util.Options;
  * a one-time processing of files, without making the classes and ASTs available,
  * just like a command-line execution would do.
  * <P>
- * Public API for tool actions:
- * <UL>
- * <LI>API -- TBD - one initializes, one does not
- * <LI>compile - compiles and typechecks a set of files, retaining ASTs and the like;
- *          the arguments are both the options and the files/directories
- * <LI>parseSingleFile - parses a single java or spec file, without parsing any
- *          other compilation units and without entering or checking any symbols
- * <LI>parseFiles - parses a set of java files and their specification files, if
- *          any, returning a list of ASTs; no symbol table entries or type
- *          checking is performed.
- * <LI>enterAndCheck - accepts a set of ASTs, entering types and other names into
- *          the symbol table, and typechecking the result
- * <LI>doEsc - performs ESC on the class or method corresponding to the given symbol
- * </UL>
- * Public API for various utility routines:
- * <UL>
- * <LI>getSpecs - returns an object holding the specs for the Type, Method, or 
- *          field denoted by the argument
- * <LI>getAllSpecs - returns all the (inherited) specs for the given type or method
- * <LI>getPackageSymbol - returns the symbol for a fully-qualified package name
- * <LI>getClassSymbol - returns a Type symbol given a String holding a fully
- *          qualified class name
- * <LI>getClassAST - returns the AST for the given class, denoted by a String
- * <LI>collectSuperMethods - returns a list of all the super types and interfaces
- *          of the argument (including the argument)
- * <LI>collectSuperMethods - returns a list of all the methods in classes and interfaces
- *          that this method overrides, including itself
- *          holding the fully qualified class name
- * <LI>prettyPrint - prints out a String representation of the argument
- * </UL>
- * @author David Cok
+ * The public API consists of the methods with public visibility in this 
+ * compilation unit.
  *
+ * @author David Cok
  */
 public class API {
     
-    public static enum Tool {
-        PARSE_ONLY, // parse specified files only (and not any referenced classes)
-        PARSE, // parse files and referenced classes only
-        CHECK, // typecheck
-        JMLDOC, // generate jmldoc for all specified classes
-        ESC, // do static checking on all specified files
-        RAC, // generate compiled .class files with JML runtime checks
-    }
-
     /** Returns the string describing the version of OpenJML that is this
      * set of classes.
      * @return the version of this instance of OpenJML
@@ -127,92 +90,72 @@ public class API {
         return JavaCompiler.version();
     }
     
+    /** Executes the command-line version of OpenJML, returning the exit code.
+     * All output and diagnostics are written to System.out.
+     * @param args the command-line arguments
+     * @return the exit code (0 is success; 1, 2, 3, 4 are various kinds of errors)
+     */
     public static int execute(@NonNull String ... args) {
         int ret = org.jmlspecs.openjml.Main.execute(args);
         return ret;
     }
     
-    public static int execute(PrintWriter writer, DiagnosticListener<JavaFileObject> diagListener, @NonNull String ... args) {
+    /** Executes the command-line version of OpenJML, returning the exit code.
+     * @param writer the PrintWriter to receive general output
+     * @param diagListener a listener to receive reports of diagnostics (e.g. parse or typechecking errors and warnings)
+     * @param args the command-line arguments
+     * @return the exit code (0 is success; 1, 2, 3, 4 are various kinds of errors)
+     */
+    public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull String ... args) {
         int ret = org.jmlspecs.openjml.Main.execute(writer,diagListener,args);
         return ret;
     }
     
-    public static int execute(@NonNull Tool tool, @NonNull String ... args) {
-        int ret = 5;
-        try {
-            switch (tool) {
-                case PARSE_ONLY:
-                    System.out.println(tool + " option not yet implemented");
-                    ret = 2;
-                    break;
-                case PARSE:
-                    System.out.println(tool + " option not yet implemented");
-                    ret = 2;
-                    break;
-                case CHECK:
-                    // FIXME - this does not yet stop after type-checking
-                    ret = org.jmlspecs.openjml.Main.execute(args);
-                    break;
-                case JMLDOC:
-                    ret = org.jmlspecs.openjml.jmldoc.Main.execute(args);
-                    break;
-                case ESC:
-                case RAC:
-                    System.out.println(tool + " option not yet implemented");
-                    ret = 2;
-                    break;
-            }
-        } catch (Exception e) {
-            System.out.println("Exception caught at the top-level: " + e);
-            e.printStackTrace(System.out);
-            return 3;
-        }
-        return ret;
+    
+    /** Executes the jmldoc tool on the given command-line arguments. */
+    static public int jmldoc(@NonNull String... args) {
+        return org.jmlspecs.openjml.jmldoc.Main.execute(args);
     }
+    
+    //////////////// Non-static API ////////////////////////////////
     
     /** The encapsulated org.jmlspecs.openjml.Main object */
     protected Main main = null;
-    
-    /** The encapsulated compilation context */
-    public Context context = null;
-    
-    /** The log (for the current compilation context) */
-    protected Log log;
-    
     //@ initially main != null;
     
-    /** Creates a new compilation context, initialized with given command-line arguments (no files or directories).
+    /** The encapsulated compilation context */
+    // protected invariant main != null ==> mail.context == context;
+    protected Context context = null;
+    
+    /** Creates a new compilation context, initialized with given command-line options
      * @param args the command-line options and initial set of files with which
      * to load the compilation environment
      */
     //@ ensures isOpen;
-    public API(@NonNull String ... args) throws Exception {
-        this(new PrintWriter(System.err),null,args);
+    public API(@NonNull String ... args) throws IOException {
+        this(new PrintWriter(System.out),null,args);
     }
-    
-    /** Creates an API, with all options set to default values, and
-     * set to send informational and diagnostic
-     * output to System.out.
-     */
-    //@ ensures isOpen;
-    public API() throws java.io.IOException {
-        this(new PrintWriter(System.err),null);
-    }
-    
-    /** Creates an uninitialized API that will send informational output to the
+        
+    /** Creates an API that will send informational output to the
      * given PrintWriter and diagnostic output to the given listener.
      * @param writer
      * @param listener
      */
     //@ ensures isOpen;
-    public API(PrintWriter writer, DiagnosticListener<? extends JavaFileObject> listener, String... args) throws java.io.IOException {
+    public API(@NonNull PrintWriter writer, 
+            @Nullable DiagnosticListener<? extends JavaFileObject> listener, 
+            @NonNull String... args) throws java.io.IOException {
         main = new Main(Main.applicationName,writer,listener,args);
         context = main.context;
         Log.instance(context).multipleErrors = true;
     }
     
-    /** The (possibly null) listener for progress reports. */
-    protected @Nullable Main.IProgressReporter delegate = null;
+    /** The compilation context for this API object */
+    //@ ensures \result == context;
+    @Pure
+    public @Nullable Context context() {
+        return context;
+    }
     
     /** Sets a progress listener that hears any progress reports (e.g. names of
      * files as they are parsed).  Any previous listener is forgotten (there is
@@ -220,69 +163,77 @@ public class API {
      * @param p The listener
      */
     public void setProgressReporter(@Nullable Main.IProgressReporter p) {
-        delegate = p;
         if (main.progressDelegate != null) main.progressDelegate.setDelegate(p);
     }
     
     /** Runs a compilation with the given command-line arguments.  This will
-     * delete the previous compilation context and create a new one.
+     * delete the previous compilation context, including its options, and create a new one.
      * @param args the command-line arguments (options and files)
      * @return a return code (0=success, 1,2,3 = various kinds of errors)
      */
+    // FIXME - does compile retain options???
     //@ requires isOpen && args != null && \nonnullarguments(args);
     //@ ensures isOpen;
-    public int compile(String[] args) {
+    public int exec(@NonNull String... args) {
         int ret = main.compile(args);
         context = main.context;
         return ret;
     }
     
-    static public int jmldoc(String[] args) {
-        return org.jmlspecs.openjml.jmldoc.Main.execute(args);
-    }
-    
-    /** Initializes the API object with the given command-line arguments.  The
-     * API object may not be already initialized
-     * @param args command-line options without files or directories
-     * @return this object
-     * @throws Exception
+    /** Enters and typechecks the provided compilation unit ASTs.  The elements
+     * of the list should all be JmlCompilationUnit nodes.
+     * @param list a list of the ASTs to be checked
+     * @return the number of errors encountered
+     * @throws IOException
      */
-    public API initialize(String[] args) throws Exception {
-        if (context != null) {
-            // FIXME - already initialized
-            return this;
-        }
-        main.initialize(args);
-        main.context = context;
-        log = Log.instance(context);
-        return this;
-    }
-    
-    public int enterAndCheck(JmlCompilationUnit... trees) throws IOException {
+    public int enterAndCheck(@NonNull JmlCompilationUnit... trees) throws IOException {
         if (context == null) {
-            // FIXME - error
-            return 1;
+            throw new NullPointerException("There is no valid compilation context");
+        }
+        if (trees == null) {
+            throw new IllegalArgumentException("Argument 'trees' of API.enterAndCheck is null");
         }
         ListBuffer<JCCompilationUnit> list = new ListBuffer<JCCompilationUnit>();
-        for (JmlCompilationUnit c: trees) list.append(c);
+        list.appendArray(trees);
         return enterAndCheck(list.toList());
     }
     
+    /** Enters and typechecks the provided compilation unit ASTs.
+     * @param list a list of the ASTs to be checked
+     * @return the number of errors encountered
+     * @throws IOException
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public int enterAndCheck(Collection<? extends JmlCompilationUnit> trees) throws java.io.IOException {
+    public int enterAndCheck(@NonNull Collection<? extends JmlCompilationUnit> trees) throws java.io.IOException {
         if (context == null) {
-            // FIXME - error
-            return 1;
+            throw new NullPointerException("There is no valid compilation context");
+        }
+        if (trees == null) {
+            throw new IllegalArgumentException("Argument 'trees' of API.enterAndCheck is null");
         }
         ListBuffer<JCCompilationUnit> list = new ListBuffer<JCCompilationUnit>();
-        for (JmlCompilationUnit c: trees) list.append(c);
+        list.addAll(trees);
         return enterAndCheck(list.toList());
     }
     
-    protected int enterAndCheck(List<JCCompilationUnit> list) throws IOException {
+    /** Enters and typechecks the provided compilation unit ASTs.  The elements
+     * of the list should all be JmlCompilationUnit nodes.
+     * @param list a list of the ASTs to be checked
+     * @return the number of errors encountered
+     * @throws IOException
+     */
+    protected int enterAndCheck(@NonNull List<JCCompilationUnit> list) throws IOException {
         JmlCompiler jcomp = (JmlCompiler)JmlCompiler.instance(context);
-        
+        for (JCCompilationUnit jcu: list) {
+            for (JCTree t: jcu.defs) {
+                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).typeSpecs == null) JmlParser.filterTypeBodyDeclarations((JmlClassDecl)t,context);
+            }
+            for (JmlClassDecl t: ((JmlCompilationUnit)jcu).parsedTopLevelModelTypes) {
+                if (t.typeSpecs == null) JmlParser.filterTypeBodyDeclarations(t,context);
+            }
+        }
+
         JavaCompiler dc =
             jcomp.processAnnotations(
                     jcomp.enterTrees(jcomp.stopIfError(CompileState.PARSE, list)),
@@ -295,8 +246,9 @@ public class API {
 
     /** Parses each java file and its specs returning a list of the ASTs corresponding
      * java files; the spec files are automatically found according to JML rules 
-     * (do not list them on the command line);  the ASTs of the spec files are contained in the 
-     * JmlCompilationUnit.specsSequence.  Error messages are reported separately;
+     * (do not include them in the arguments);  the ASTs of the spec files are contained in the 
+     * JmlCompilationUnit.specsSequence.  Error messages are reported separately
+     * through the diagnostic listener;
      * if there are errors, a parse tree may be incomplete.  The trees are not
      * type-checked and do not have any name resolution applied.
      * @param files the java.io.File objects of the input .java files
@@ -306,13 +258,61 @@ public class API {
     //@ requires isOpen;
     //@ ensures isOpen;
     //@ ensures files.length == \result.size();
-    //@ ensures (* output elements are non-null *); // FIXME - what about parse errors?
+    //@ ensures (* output elements are non-null *);
     public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull File... files) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
         c.inSequence = false;
         Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(files);
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
         for (JavaFileObject fileObject : fobjects)
+            trees.add((JmlCompilationUnit)c.parse(fileObject));
+        return trees;
+    }
+    
+    /** Parses each input, finding its specs returning a list of the ASTs corresponding
+     * java files; the spec files are automatically found according to JML rules 
+     * (do not include them in the arguments);  the ASTs of the spec files are contained in the 
+     * JmlCompilationUnit.specsSequence.  Error messages are reported separately
+     * through the diagnostic listener;
+     * if there are errors, a parse tree may be incomplete.  The trees are not
+     * type-checked and do not have any name resolution applied.
+     * @param files the JavaFileObjects to use as inputs
+     * @return a list of corresponding ASTs
+     */
+    //@ requires \nonnullelements(inputs);
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    //@ ensures inputs.length == \result.size();
+    //@ ensures (* output elements are non-null *);
+    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs) {
+        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        c.inSequence = false;
+        ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
+        for (JavaFileObject fileObject : inputs)
+            trees.add((JmlCompilationUnit)c.parse(fileObject));
+        return trees;
+    }
+    
+    /** Parses each input, finding its specs returning a list of the ASTs corresponding
+     * java files; the spec files are automatically found according to JML rules 
+     * (do not include them in the arguments);  the ASTs of the spec files are contained in the 
+     * JmlCompilationUnit.specsSequence.  Error messages are reported separately
+     * through the diagnostic listener;
+     * if there are errors, a parse tree may be incomplete.  The trees are not
+     * type-checked and do not have any name resolution applied.
+     * @param files the JavaFileObjects to use as inputs
+     * @return a list of corresponding ASTs
+     */
+    //@ requires \nonnullelements(inputs);
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    //@ ensures inputs.length == \result.size();
+    //@ ensures (* output elements are non-null *);
+    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull Collection<? extends JavaFileObject> inputs) {
+        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        c.inSequence = false;
+        ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
+        for (JavaFileObject fileObject : inputs)
             trees.add((JmlCompilationUnit)c.parse(fileObject));
         return trees;
     }
@@ -326,29 +326,37 @@ public class API {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public JmlCompilationUnit parseSingleFile(File file) {
+    public @NonNull JmlCompilationUnit parseSingleFile(@NonNull File file) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
         c.inSequence = true;
         Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(file);
         return ((JmlCompilationUnit)c.parse(fobjects.iterator().next()));
     }
     
+    // TODO: do we need a parseSingleFile for strings or JavaFileObject
     
-    /** Produces a parse tree for a single file without any specifications; the
-     * file may be either a .java or a specification file.  The trees are not
+    /** Produces a parse tree for the given text; the text must represent a
+     * compilation unit for each a .java file or a specification file.  The name 
+     * is the filename to associate with the text.  The trees are not
      * type-checked and do not have any name resolution applied and are not made
      * part of the compilation context.
-     * @param file the file to be parsed
+     * @param name the filename to associate with the text (but not the package)
+     * @param content the textual content to parse
      * @return the parse tree for the file
      */
+    // TODO: Would like to automatically set the filename, but can't since the
+    // JavaFileObject has to be created before parsing and it is immutable
+    //@ requires name.length() > 0;
     //@ requires isOpen;
     //@ ensures isOpen;
-    public JmlCompilationUnit parseString(@Nullable String name, @NonNull String content) throws Exception {
+    public @NonNull JmlCompilationUnit parseString(@NonNull String name, @NonNull String content) throws Exception {
+        if (name == null || name.length() == 0) throw new IllegalArgumentException();
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
-        JavaFileObject file = new StringJavaFileObject(name,content);
+        JavaFileObject file = makeJFOfromString(name,content);
         c.inSequence = true;  // true so that no searching for spec files happens
         Iterable<? extends JavaFileObject> fobjects = List.<JavaFileObject>of(file);
-        return ((JmlCompilationUnit)c.parse(fobjects.iterator().next()));
+        JmlCompilationUnit jcu = ((JmlCompilationUnit)c.parse(fobjects.iterator().next()));
+        return jcu;
     }
     
     /** Parses, creates symbol table symbols and typechecks the given set of files.
@@ -362,26 +370,18 @@ public class API {
     //@ ensures isOpen;
     public void parseAndCheck(File... files) throws java.io.IOException {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        main.setupOptions();
         c.inSequence = false;
         Iterable<? extends JavaFileObject> sourceFileObjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(files);
         ListBuffer<JavaFileObject> list = ListBuffer.<JavaFileObject>lb();
         for (JavaFileObject jfo : sourceFileObjects) list.append(jfo);
         c.processAnnotations(c.enterTrees(c.stopIfError(CompileState.PARSE,c.parseFiles(list.toList()))),
                 main.classnames.toList());
+        c.flow(c.attribute(c.todo));
     }
     
-    /** Retrieves the symbol table entry for a given name, based on files already
-     * parsed and present in the symbol table.
-     * @param qualifiedName the dot and dollar (for nested classes) separated 
-     * class name
-     * @return the class symbol or null if it is not found
-     */
-    //@ requires isOpen;
-    //@ ensures isOpen;
-    public @Nullable ClassSymbol getClassSymbol(@NonNull String qualifiedName) {
-        Name n = Names.instance(context).fromString(qualifiedName);
-        return Symtab.instance(context).classes.get(n);
-    }
+    // TODO: need an easier way to find out if there are errors from parseAndCheck or enterAndCheck
+    // TODO: do we need parseAndCheck for JavaFileObject arguments; for Collection arguments?
     
     /** Retrieves the symbol table entry for a given package name, based on files already
      * parsed and present in the symbol table.
@@ -394,32 +394,128 @@ public class API {
         Name n = Names.instance(context).fromString(qualifiedName);
         return Symtab.instance(context).packages.get(n);
     }
-    
-    /** Returns the type specs for the given class symbol
-     * 
-     * @param sym the class symbol whose specs are wanted
-     * @return the specs for that class
+
+    /** Retrieves the symbol table entry for a given Class name, based on files already
+     * parsed and present in the symbol table.
+     * @param qualifiedName the dot and dollar (for nested classes) separated 
+     * class name
+     * @return the class symbol or null if it is not found
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull TypeSpecs getSpecs(@NonNull ClassSymbol sym) {
-        return JmlSpecs.instance(context).get(sym);
+    public @Nullable ClassSymbol getClassSymbol(@NonNull String qualifiedName) {
+        Name n = Names.instance(context).fromString(qualifiedName);
+        return Symtab.instance(context).classes.get(n);
     }
     
-    //@ requires isOpen;
-    //@ ensures isOpen;
-    public java.util.List<TypeSpecs> getAllSpecs(@NonNull ClassSymbol sym) {
-        java.util.List<ClassSymbol> list = new ArrayList<ClassSymbol>();
-        collectSuperTypes(sym,list);
-        JmlSpecs specs = JmlSpecs.instance(context);
-        java.util.List<TypeSpecs> tslist = new ArrayList<TypeSpecs>();
-        for (ClassSymbol c: list) tslist.add(specs.get(c));
-        return tslist;
+    /** Retrieves the symbol table entry for a given class name as a member
+     * of the given class, based on files already
+     * parsed and present in the symbol table.
+     * @param csym the owning class
+     * @param name the (simple) name of the nested class
+     * @return the class symbol or null if it is not found
+     */
+    public @Nullable ClassSymbol getClassSymbol(@NonNull ClassSymbol csym, @NonNull String name) {
+        Scope.Entry e = csym.members().lookup(Names.instance(context).fromString(name));
+        if (e == null || e.sym == null) return null;
+        while (e.sym != null && e.sym.owner == csym) {
+            if (e.sym instanceof ClassSymbol) return (ClassSymbol)e.sym;
+            e = e.next();
+        }
+        return null;
     }
     
+    /** Retrieves the symbol table entry for a given method name as a member
+     * of the given class, based on files already
+     * parsed and present in the symbol table.
+     * @param csym the owning class
+     * @param name the (simple) name of the method
+     * @return the method symbol or null if it is not found
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public JmlMethodDecl getJavaDecl(MethodSymbol msym) {
+    public @Nullable MethodSymbol getMethodSymbol(@NonNull ClassSymbol csym, @NonNull String name) {
+        Scope.Entry e = csym.members().lookup(Names.instance(context).fromString(name));
+        if (e == null || e.sym == null) return null;
+        while (e.sym != null && e.sym.owner == csym) {
+            if (e.sym instanceof MethodSymbol) return (MethodSymbol)e.sym;
+            e = e.next();
+        }
+        return null;
+    } // FIXME - need a way to handle multiple methods with the same name
+    
+    /** Retrieves the symbol table entry for a given variable name as a member
+     * of the given class, based on files already
+     * parsed and present in the symbol table.
+     * @param csym the owning class
+     * @param name the (simple) name of the variable
+     * @return the variable symbol or null if it is not found
+     */
+    public @Nullable VarSymbol getVarSymbol(@NonNull ClassSymbol csym, @NonNull String name) {
+        Scope.Entry e = csym.members().lookup(Names.instance(context).fromString(name));
+        if (e == null || e.sym == null) return null;
+        while (e.sym != null && e.sym.owner == csym) {
+            if (e.sym instanceof VarSymbol) return (VarSymbol)e.sym;
+            e = e.next();
+        }
+        return null;
+    }
+    
+    /** Returns the symbol for a class declaration (if type checked)
+     * @param decl the type-checked ast node
+     * @return the corresponding symbol
+     */
+    public @Nullable ClassSymbol getSymbol(@NonNull JmlClassDecl decl) {
+        return decl.sym;
+    }
+    
+    /** Returns the symbol for a method declaration (if type checked)
+     * @param decl the type-checked ast node
+     * @return the corresponding symbol
+     */
+    public @Nullable MethodSymbol getSymbol(@NonNull JmlMethodDecl decl) {
+        return decl.sym;
+    }
+    
+    /** Returns the symbol for a variable declaration (if type checked)
+     * @param decl the type-checked ast node
+     * @return the corresponding symbol
+     */
+    public @Nullable VarSymbol getSymbol(@NonNull JmlVariableDecl decl) {
+        return decl.sym;
+    }
+    
+    /** Returns the AST for a given class (not compilation unit)
+     * 
+     * @param qualifiedName the fully-qualified name of the class whose AST is wanted
+     * @return the AST for that class
+     */
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    public @NonNull JmlClassDecl getClassDecl(@NonNull String qualifiedName) {
+        return getJavaDecl(getClassSymbol(qualifiedName));
+    }
+        
+    /** Returns the declaration (the AST) corresponding to the given
+     * class, if there is one.
+     * @param csym the class symbol
+     * @return the corresponding AST, or null
+     */
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    public JmlClassDecl getJavaDecl(ClassSymbol csym) {
+        JCTree tree = JmlEnter.instance(context).getClassEnv(csym).tree;
+        return (JmlClassDecl)tree;
+    }
+    
+    /** Returns the declaration (the AST) corresponding to the given
+     * method, if there is one.
+     * @param msym the method symbol
+     * @return the corresponding AST, or null
+     */
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    public @Nullable JmlMethodDecl getJavaDecl(MethodSymbol msym) {
         JmlClassDecl cdecl = getJavaDecl((ClassSymbol)msym.owner);
         for (JCTree t: cdecl.defs) {
             if (t instanceof JmlMethodDecl && ((JmlMethodDecl)t).sym == msym) {
@@ -429,76 +525,197 @@ public class API {
         return null;
     }
     
+    /** Returns the declaration (the AST) corresponding to the given
+     * field, if there is one.
+     * @param vsym the field symbol
+     * @return the corresponding AST, or null
+     */
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    public @Nullable JmlVariableDecl getJavaDecl(VarSymbol vsym) {
+        JmlClassDecl cdecl = getJavaDecl((ClassSymbol)vsym.owner);
+        for (JCTree t: cdecl.defs) {
+            if (t instanceof JmlVariableDecl && ((JmlVariableDecl)t).sym == vsym) {
+                return (JmlVariableDecl)t;
+            }
+        }
+        return null;
+    }
+    
+    /** Sets a command-line option to the given value 
+     * @param name the option name, including the leading - sign
+     * @param value the value to give the option
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
     public void setOption(String name, String value) {
         Options.instance(context).put(name,value);
+        main.setupOptions();
     }
-    
+
+    /** Sets a command-line option to true 
+     * @param name the option name, including the leading - sign
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
     public void setOption(String name) {
         Options.instance(context).put(name,"");
+        main.setupOptions();
     }
     
+    /** Removes a command-line option 
+     * @param name the option name, including the leading - sign
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
     public void removeOption(String name) {
         Options.instance(context).remove(name);
     }
     
-
-    
-//    //@ requires isOpen;
-//    //@ ensures isOpen;
-//    static public void setLibrarySpecsPath(String[] dirs) {
-//        JmlSpecs.externalDefaultSpecs = dirs;
-//    }
-//    
-//    //@ requires isOpen;
-//    //@ ensures isOpen;
-//    public static void setExternalRuntime(@Nullable String[] paths) {
-//        JmlSpecs.externalRuntime = paths;
-//    }
-    
+    /** Gets the value of a command-line option (null if not set)
+     * @param name the option name, including the leading - sign
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public java.util.List<String> getSpecsPath() {
-        java.util.List<Dir> list = JmlSpecs.instance(context).getSpecsPath();
-        java.util.List<String> out = new LinkedList<String>();
-        for (Dir d: list) out.add(d.name());
-        return out;
+    public @Nullable String getOption(String name) {
+        return Options.instance(context).get(name);
     }
     
+    
+    /** A cached object to search parse trees (not thread safe since static) */
+    static protected Finder finder = new Finder();
+    
+    /** A class that searches parse trees for nodes with a given position range */
+    protected static class Finder extends JmlTreeScanner {
+        /** Find the node within the given tree that encompasses the given
+         * start and end position.
+         * @param tree the root of the tree
+         * @param startpos the starting char position (from begining of file)
+         * @param endpos the ending position
+         * @return the best matching node
+         */
+        public JCTree find(JmlCompilationUnit tree, int startpos, int endpos) {
+            this.startpos = startpos;
+            this.endpos = endpos;
+            this.tree = tree;
+            this.scanMode = SPEC_MODE;
+            scan(tree);
+            return found;
+        }
+        
+        int startpos;
+        int endpos;
+        JmlCompilationUnit tree;
+        JCTree found = null;
+        JmlMethodDecl parentMethod = null;
+        
+        public void scan(JCTree node) {
+            if (node == null) return;
+            int sp = node.getStartPosition();
+            int ep = node.getEndPosition(tree.endPositions);
+            // Do this specially because the range of a MethodDecl node does not include the specs
+            if (node instanceof JmlMethodDecl) {
+                JCTree ftree = found;
+                super.scan(node);
+                if (found != ftree) parentMethod = (JmlMethodDecl)node;
+            } else if (node instanceof JmlVariableDecl) {
+                super.scan(node);
+            } else if (sp <= startpos && endpos <= ep) {
+                found = node;
+                //System.out.println(startpos + " " + endpos + " " + sp + " " + ep + " " + node.getClass());
+                super.scan(node);  // Call this to scan child nodes
+            } // If the desired range is not within the node's range, we
+              // don't even process the children
+        }
+    }
+
+    /** Finds a node in the AST that minimally includes the given character position range
+     * @param tree the compilation unit to search (must have endPositions set)
+     * @param startpos the starting character position
+     * @param endpos the ending character position
+     * @return the node identified
+     */
+    protected JCTree findNode(JmlCompilationUnit tree, int startpos, int endpos) {
+        // FIXME - in AST_JML_MODE - we look in the compilation unit, but that may not be where the spec text came from
+        // But in SPEC_MODE the pieces of the specs are scrambled up among different text files
+        return finder.find(tree,startpos,endpos);
+    }
+    
+    // TODO: document
+    protected MethodSymbol mostRecentProofMethod = null;
+    
+    // TODO: document
+    public String getCEValue(int pos, int end, String text, String fileLocation) {
+        fileLocation = fileLocation.replace('\\','/');
+        if (mostRecentProofMethod == null) {
+            return "No proof in which to evaluate the selection";
+        }
+        JmlCompilationUnit tree = (JmlCompilationUnit)Enter.instance(context).getEnv((TypeSymbol)mostRecentProofMethod.owner).toplevel;
+        if (!tree.sourcefile.toString().replace('\\','/').equals(fileLocation)) {
+            //System.out.println("Did not match " + tree.sourcefile.toString());
+            boolean found = false;
+            for (JmlCompilationUnit stree: tree.specsSequence) {
+                if (stree.sourcefile.toString().replace('\\','/').equals(fileLocation)) {
+                    tree = stree;
+                    found = true;
+                    break;
+                }
+                //System.out.println("Did not match " + stree.sourcefile.toString());
+            }
+            if (!found) {
+                System.out.println("No Match for " + fileLocation);
+            }
+        }
+        JCTree node = findNode(tree,pos,end);
+        JmlMethodDecl parentMethod = finder.parentMethod;
+        if (parentMethod.sym != mostRecentProofMethod) return "Selected text is not within the method of the most recent proof (which is " + mostRecentProofMethod + ")";
+        if (!(node instanceof JCTree.JCExpression)) return "Selected text is not an expression (" + node.getClass() + "): " + text;
+        return "Found expression node: " + node.toString();
+    }
+    
+    /** Executes static checking on the given method; assumes that all 
+     * relevant ASTs have been typechecked
+     * @param msym the method to check
+     * @return the result of the proof attempt
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public void doEsc(MethodSymbol msym) {
+    public IProverResult doESC(MethodSymbol msym) {
         JmlMethodDecl decl = getJavaDecl(msym);
         JmlEsc.instance(context).proveMethod(decl);
+        mostRecentProofMethod = msym;
+        return getProofResult(msym);
     }
     
+    /** Executes static checking on the methods of the given class; assumes that all 
+     * relevant ASTs have been typechecked
+     * @param csym the class to check
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public JmlClassDecl getJavaDecl(ClassSymbol csym) {
-        JCTree tree = JmlEnter.instance(context).getClassEnv(csym).tree;
-        return (JmlClassDecl)tree;
-    }
-    
-    //@ requires isOpen;
-    //@ ensures isOpen;
-    public void doEsc(ClassSymbol csym) {
-        
-        JCTree tree = JmlEnter.instance(context).getClassEnv(csym).tree;
+    public void doESC(ClassSymbol csym) {
+        mostRecentProofMethod = null;
+        Env<AttrContext> env = JmlEnter.instance(context).getEnv(csym);
+        JCTree tree = env.tree;
         JmlClassDecl decl = (JmlClassDecl)tree;
         JmlEsc.instance(context).visitClassDef(decl);
     }
     
+    /** The proof result of the most recent proof attempt for the given
+     * method, or null if there has been none.
+     * @param msym the method in question
+     * @return the proof result
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public IProverResult getProofResult(MethodSymbol msym) {
+    public @Nullable IProverResult getProofResult(MethodSymbol msym) {
         return JmlEsc.instance(context).proverResults.get(msym);
     }
     
+    /** Returns the basic block program for the given method
+     * @param msym the method in question
+     * @return the basic block program, (somewhat) pretty printed
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
     public String getBasicBlockProgram(MethodSymbol msym) {
@@ -508,6 +725,10 @@ public class API {
         return program.write("BASIC BLOCK PROGRAM FOR " + msym.owner.getQualifiedName() + "." + msym.toString() + "\n\n");
     }
     
+    /** Adds the given class and all its supertypes (recursively) to the given list.
+     * @param csym the class or interface in question
+     * @param list the list to add to
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
     public void collectSuperTypes(@NonNull ClassSymbol csym, java.util.List<ClassSymbol> list) {
@@ -525,6 +746,11 @@ public class API {
         list.add(csym);
     }
     
+    /** Adds the method and all the methods it overrides (in classes or interfaces)
+     * to the given list
+     * @param msym the method in question
+     * @param list the list to add the methods to
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
     public void collectSuperMethods(@NonNull MethodSymbol msym, java.util.List<MethodSymbol> list) {
@@ -545,6 +771,34 @@ public class API {
         }
     }
     
+    /** Returns the type specs for the given class symbol
+     * 
+     * @param sym the class symbol whose specs are wanted
+     * @return the specs for that class
+     */
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    public @NonNull TypeSpecs getSpecs(@NonNull ClassSymbol sym) {
+        return JmlSpecs.instance(context).get(sym);
+    }
+    
+    /** Returns the type specs for the given class symbol,
+     * including all inherited specs
+     * 
+     * @param sym the class symbol whose specs are wanted
+     * @return the specs for that class
+     */
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    public java.util.List<TypeSpecs> getAllSpecs(@NonNull ClassSymbol sym) {
+        java.util.List<ClassSymbol> list = new ArrayList<ClassSymbol>();
+        collectSuperTypes(sym,list);
+        JmlSpecs specs = JmlSpecs.instance(context);
+        java.util.List<TypeSpecs> tslist = new ArrayList<TypeSpecs>();
+        for (ClassSymbol c: list) tslist.add(specs.get(c));
+        return tslist;
+    }
+
     /** Returns the specs for a given method
      * 
      * @param sym the method symbol whose specs are wanted
@@ -556,6 +810,12 @@ public class API {
         return JmlSpecs.instance(context).getSpecs(sym);
     }
     
+    /** Returns the specs for a given method, including specs of all overridden
+     * methods
+     * 
+     * @param sym the method symbol whose specs are wanted
+     * @return the specs for that method
+     */
     //@ requires isOpen;
     //@ ensures isOpen;
     public java.util.List<JmlSpecs.MethodSpecs> getAllSpecs(@NonNull MethodSymbol msym) {
@@ -571,6 +831,7 @@ public class API {
         return tslist;
     }
     
+    // FIXME - should this be inherited specs; what about parameter name renaming?
     /** Returns the specs for a given method in denested form
      * 
      * @param sym the method symbol whose specs are wanted
@@ -592,22 +853,14 @@ public class API {
     public @NonNull FieldSpecs getSpecs(@NonNull VarSymbol sym) {
         return JmlSpecs.instance(context).getSpecs(sym);
     }
-    // FIXME - what about nested classes?  what separator?
-    /** Returns the AST for a given class (not compilation unit)
-     * 
-     * @param qualifiedName the fully-qualified name of the class whose AST is wanted
-     * @return the AST for that class
+    
+    /** Returns a node factory for the current compilation context.
+     * @return a node factory
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull JmlClassDecl getClassAST(@NonNull String qualifiedName) {
-        return getClassAST(getClassSymbol(qualifiedName));
-    }
-    
-    //@ requires isOpen;
-    //@ ensures isOpen;
-    public @NonNull JmlClassDecl getClassAST(@NonNull ClassSymbol sym) {
-        return (JmlClassDecl)JmlEnter.instance(context).getEnv(sym).tree;
+    public @NonNull JmlTree.Maker nodeFactory() {
+        return JmlTree.Maker.instance(context);
     }
     
     
@@ -664,22 +917,42 @@ public class API {
     public void close() {
         JmlCompiler.instance(context).close();
         context = null;
+        main.context = null;
         main = null;
     }
     
     //@ public model boolean isOpen; private represents isOpen = main != null;
 
+    /** Creates a JavaFileObject instance from a pseudo filename and given content
+     * @param name the name to give the 'file'
+     * @param content the content to give the file
+     * @return the resulting JavaFileObject
+     */
     public JavaFileObject makeJFOfromString(String name, String content) throws Exception {
         return new StringJavaFileObject(name,content);
     }
     
-    public JavaFileObject makeJFOfromFilename(String filename) {
+    /** Creates a JavaFileObject instance from a real file, by name
+     * @param filepath the path to the file
+     * @return the resulting JavaFileObject
+     */
+    public JavaFileObject makeJFOfromFilename(String filepath) {
         JavacFileManager dfm = (JavacFileManager)context.get(JavaFileManager.class);
-        return dfm.getFileForInput(filename);
+        return dfm.getFileForInput(filepath);
     }
+    
+    /** Creates a JavaFileObject instance from a File object
+     * @param file the file to wrap
+     * @return the resulting JavaFileObject
+     */
+    public JavaFileObject makeJFOfromFile(File file) {
+        JavacFileManager dfm = (JavacFileManager)context.get(JavaFileManager.class);
+        return dfm.getRegularFile(file);
+    }
+    
     /** This class encapsulates a String as a JavaFileObject, making it a pseudo-file
      */
-    public static class StringJavaFileObject extends SimpleJavaFileObject {
+    protected static class StringJavaFileObject extends SimpleJavaFileObject {
         
         /** The content of the mock file */
         //@ non_null

@@ -317,7 +317,6 @@ typechecked java.lang.IndexOutOfBoundsException
 typechecked java.lang.ArrayIndexOutOfBoundsException
 typechecking java.lang.NegativeArraySizeException
 typechecked java.lang.NegativeArraySizeException
-No specs for Array
 typechecking java.io.InputStream
 typechecked java.io.InputStream
 typechecking java.io.Serializable
