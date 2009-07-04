@@ -747,7 +747,6 @@ public class JmlTranslator extends JmlTreeTranslator {
                     newlist.append(translate(t));
                 }
             }
-            that.defs = newlist.toList();
 
             inSpecExpression = true;
             JmlSpecs.TypeSpecs tspecs = that.typeSpecsCombined;
@@ -759,7 +758,9 @@ public class JmlTranslator extends JmlTreeTranslator {
                             JCTree v = ((JmlTypeClauseDecl)d).decl;
                             if (v instanceof JCVariableDecl) {
                                 JCVariableDecl vv = (JCVariableDecl)translate(v);
-                                that.defs.append(vv);
+                                newlist.append(vv);
+                            } else {
+                                nlist.append(translate(d));
                             }
                         } else {
                             nlist.append(translate(d));
@@ -768,6 +769,7 @@ public class JmlTranslator extends JmlTreeTranslator {
                     tspecs.clauses = nlist;
                 }
             }
+            that.defs = newlist.toList();
 
         } finally {
             result = that;

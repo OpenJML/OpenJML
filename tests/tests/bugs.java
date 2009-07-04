@@ -124,6 +124,43 @@ public class bugs extends TCBase {
                 );
     }
 
+    // Checks a bug in Arr whereby an unresolved method symbol fails to have
+    // its tree.type field set
+    // Note the \t is a purposeful type - in the String it is a tab, though it
+    // was intended to be a \\t... - a backslash.  That occasions the unresolved
+    // method name ype
+    public void testCollect() {
+        helpTCF("A.java","\n"
+                +"public class A extends java.io.InputStream implements Comparable<A> { \n"
+                +"  //@ invariant mm() && \type(Short) <: \type(java.lang.Long);\n"
+                +"  public String m(java.lang.Integer i, Number b) {\n"
+                +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
+                +"    boolean bb = b instanceof Double ;\n"
+                +"    Object o = (Class<?>)v.getClass();\n"
+                +"    \n"
+                +"  } boolean mm() { return true; } \n"
+                +"}\n"
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable Short\n  location: class A",37
+                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",57
+                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",57
+              ); // TODO: A OpenJDK bug (DRC#1895 in Attr.java) does duplicate error messages in this case
+    }
+
+    public void testCollect2() {
+        helpTCF("A.java","\n"
+                +"public class A extends java.io.InputStream implements Comparable<A> { \n"
+                +"  //@ invariant m(java.lang.Long.TYPE) && m(java.lang.Long);\n"
+                +"  public boolean m(Object i) {\n"
+                +"  }  \n"
+                +"}\n"
+                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",49
+                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",49
+              ); // Duplicate error message as above.  Also can be confusing.
+                // java.lang does exist, but as an argument java.lang.Long must be
+                // a value, so java.lang must be a type, not a package.  Since no
+                // such package can be found, an error is reported, but it could
+                // have a clearer error message.
+    }
 
 
 }

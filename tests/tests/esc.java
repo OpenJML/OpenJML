@@ -10,14 +10,33 @@ public class esc extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-noPurityCheck","");
-        options.put("-nullableByDefault",""); // Because the tests were written this wasy
+        options.put("-nullableByDefault",""); // Because the tests were written this way
         //options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //options.put("-trace",   "");
         //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
+        org.jmlspecs.openjml.provers.YicesProver.showCommunication = 1;
     }
+ 
+    // FIXME - causes a prover failure
+//    public void testCollect() {
+//        options.put("-showbb","");
+//        helpTCX("tt.TestJava","package tt; \n"
+//                +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
+//                +"  //@ invariant \\type(Short) <: \\type(java.lang.Long);\n"
+//                +"  public String m(java.lang.Integer i, Number b) {\n"
+//                +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
+//                +"    boolean bb = b instanceof Double;\n"
+//                +"    Object o = (Class<?>)v.getClass();\n"
+//                +"    v.add(0,new Integer(0));\n"  // FIXME add(0,0) fails because of a lack of autoboxing
+//                +"    bb = v.elements().hasMoreElements();\n"
+//                +"    return null; \n"
+//                +"  }\n"
+//                +"}\n"
+//              );
+//    }
+
     
     // Just testing a binary method
     // It gave trouble because the specs were missing
@@ -569,11 +588,10 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1a",31
                 ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1b",31
                 ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1c",31
-                //,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1c",31
                 );
     }
     
-    // FIXME - test not_modified and old nested in each other; remember to test definedness            
+    // TODO - test not_modified and old nested in each other; remember to test definedness            
 
     public void testFresh() {
 //        print = true;
@@ -1304,34 +1322,40 @@ public class esc extends EscBase {
                 +"  //@initially binstance2;\n"
                 +"  //@constraint binstance2 == \\old(binstance2);\n"
                 +"  //@static constraint bstatic == \\old(bstatic);\n"
+                
                 +"  public static void main(/*@ non_null*/ String[] args) {  }\n"
+                
                 +"  //@ requires true;\n"
                 +"  //@ ensures \\result;\n"
                 +"  public static boolean b(boolean bb) { return true; }\n"
+                
                 +"  //@ requires false;\n"
                 +"  //@ ensures true;\n"
                 +"  public static int i(int ii) { return 0; }\n"
+                
                 +"  //@ requires ii == 10;\n"
                 +"  //@ ensures true;\n"
                 +"  public Object inst(int ii) { binstance = ii == 0; o = null; /*@ set oo = null;*/ return null; }\n"
+                
                 +"  //@ requires ii == 10;\n"
                 +"  //@ ensures true;\n"
                 +"  public Object insx(int ii) { binstance = ii == 0;           /*@ set oo = null;*/ return null; }\n"
                 +"}",
-                "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8,
+                "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8, // nothing sets bstatic true
                 "/tt/TestJava.java:8: warning: Associated declaration",23,
-                //"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8,
+                //"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8, // nothings sets binstance true
                 //"/tt/TestJava.java:9: warning: Associated declaration",16,
-                //"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",8,
+                //"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",8, // nothing sets binstance2 true
                 //"/tt/TestJava.java:10: warning: Associated declaration",16,
-                "/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method i(int)",21,
-                "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyNullReference) in method inst",55,
-                "/tt/TestJava.java:25: warning: The prover cannot establish an assertion (Invariant) in method insx",84,
+                "/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method i(int)",21, // precondition is false
+                "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyNullReference) in method inst",55,  // FIXME - incorrect error
+                "/tt/TestJava.java:25: warning: The prover cannot establish an assertion (Invariant) in method insx",84, // binstance is false
                 "/tt/TestJava.java:9: warning: Associated declaration",16
         );
     }
 
     public void testAssert() {
+//        options.put("-showbb","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
@@ -1441,8 +1465,8 @@ public class esc extends EscBase {
     }
 
     public void testOld2() {
-        options.put("-showbb","");
-        options.put("-trace","");
+//        options.put("-showbb","");
+//        options.put("-trace","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static int i;\n"
@@ -1535,7 +1559,7 @@ public class esc extends EscBase {
         );
     }
     
-    // FIXME - the non-null return postcondition error message is not very clear
+    // FIXME - the non-null return postcondition error message is not very clear (it is actually assigning null to a nonnull return value)
 
     public void testNonNull4() {
         options.put("-nullableByDefault",null);
@@ -1766,11 +1790,11 @@ public class esc extends EscBase {
         );
     }
 
-    // FIXME  need tests for for loops
-    // FIXME need tests for do loops
+    // TODO  need tests for for loops
+    // TODO need tests for do loops
 
-    // FIXME - more tests needed, and with specs
-    // FIXME - need a loop invariant to prove this
+    // TODO - more tests needed, and with specs
+    // FIXME (test disabled) - need a loop invariant to prove this
     public void _testForeachSpecs() { 
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
                 +"public class TestJava { \n"
@@ -1802,7 +1826,7 @@ public class esc extends EscBase {
         );
     }
 
-    public void _testDoWhileSpecs() { // FIXME - figure out this better  // FIXME - want error position at the right place
+    public void _testDoWhileSpecs() { // FIXME - figure out this better  // FIXME - want error position at the right place  // Note test is disabled
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst() { int i = 5; /*@ loop_invariant i>0; decreases i; */ do { i = i-1; } while (i>0); /*@ assert i == 0; */ }\n"
@@ -1920,7 +1944,7 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method inst3d",57,
                 "/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Assert) in method inst4b",47,
                 "/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method inst4d",57
-        ); // FIXME -  need %= <<= >>= >>>= &= |= ^=
+        ); // TODO -  need %= <<= >>= >>>= &= |= ^=
     }
 
     public void testConditional() {
@@ -2158,7 +2182,7 @@ public class esc extends EscBase {
         );
     }
 
-    public void testArith() {  // FIXME - need more arithmetic support
+    public void testArith() {  // TODO - need more arithmetic support
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
                 +"public class TestJava { \n"
                 +"  public static void m1(int a, int b) { /*@ assert a*2 == a + a; */ }\n"
@@ -2377,7 +2401,6 @@ public class esc extends EscBase {
         );
     }
 
-    // FIXME -flow checks turned off
     public void _testForwardInit() {
         expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
@@ -2586,7 +2609,7 @@ public class esc extends EscBase {
     }
 
     /** Tests whether the various kinds of undefined constructs are actually detected.
-     */  // FIXME - need pure method violating preconditions, bad array element assignment
+     */  // TODO - need pure method violating preconditions, bad array element assignment
     public void testUndefinedInSpec2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -2642,8 +2665,8 @@ public class esc extends EscBase {
     }
 
     /** Tests whether undefinedness is caught in various JML constructions */
-    // FIXME - loop invariants, variants,  represents,  signals, modifies 
-    // FIXME - old constructs, quantifications, set comprehension, pure methods - check other JMl expressions
+    // TODO - loop invariants, variants,  represents,  signals, modifies 
+    // TODO - old constructs, quantifications, set comprehension, pure methods - check other JMl expressions
     public void testUndefinedInSpec3() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
                 +"public class TestJava { \n"
@@ -2681,7 +2704,7 @@ public class esc extends EscBase {
         );   
     }
     /** Tests whether undefinedness is caught in various JML constructions */
-    // FIXME - readable writable, represents, assert, other clauses
+    // TODO - readable writable, represents, assert, other clauses
     public void testUndefinedInSpec4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -2750,7 +2773,7 @@ public class esc extends EscBase {
         );
     }
     
-    // FIXME - class initialization
+    // TODO - class initialization
     public void _testUndefinedInSpec5() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -2781,8 +2804,7 @@ public class esc extends EscBase {
                 +"  public void m5(TestJava o) { \n"
                 +"    assert t.j == 1 ? true : true; \n"
                 +"  }\n  "
-                // FIXME
-                // for, while, foreach, do, switch, case, if, throw, method call, index, conditional, 
+                // TODO for, while, foreach, do, switch, case, if, throw, method call, index, conditional, 
                 // annotation, binary, unary, conditional, new array, new class, return, synchronized
                 +"}",
                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1",14,
@@ -2793,7 +2815,7 @@ public class esc extends EscBase {
         );
     }
 
-    // FIXME - need tests within various Java constructs, including with short-circuits
+    // TODO - need tests within various Java constructs, including with short-circuits
 
     /** This test tests catch blocks */
     public void testCatch() {

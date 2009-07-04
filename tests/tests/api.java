@@ -146,6 +146,7 @@ public class api extends TestCase {
     String prettyprint =
         eol + 
         "public class A {" + eol +
+        "  // JML specifications" + eol +
         "  @Ghost " + eol +
         "  int i = 0;" + eol +
         "}" + eol +
@@ -153,6 +154,7 @@ public class api extends TestCase {
         "// Specification file: testfiles/testNoErrors/A.java" + eol +
         "" + eol +
         "public class A {" + eol +
+        "  // JML specifications" + eol +
         "  @Ghost " + eol +
         "  int i = 0;" + eol +
         "}" + eol;
@@ -160,6 +162,7 @@ public class api extends TestCase {
     String prettyprint2 =
         eol + 
         "public class A {" + eol +
+        "  // JML specifications" + eol +
         "  @Ghost " + eol +
         "  int i = 0;" + eol +
         "}";

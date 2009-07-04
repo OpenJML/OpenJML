@@ -2811,16 +2811,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // to know is that the operands are some type of Class.
                 // FIXME - what about subclasses of Class
                 attribExpr(that.lhs,env,Type.noType);
-                if (!that.lhs.type.equals(TYPE)) {
-                    if (!that.lhs.type.tsym.equals(syms.classType.tsym)) {
-                        log.error(that.lhs.pos(),"jml.subtype.arguments",that.lhs.type);
-                    }
+                Type t = that.lhs.type;
+                if (!t.isErroneous() && !t.equals(TYPE)
+                        && !t.tsym.equals(syms.classType.tsym)) {
+                    log.error(that.lhs.pos(),"jml.subtype.arguments",that.lhs.type);
                 }
                 attribExpr(that.rhs,env,Type.noType);
-                if (!that.rhs.type.equals(TYPE)) {
-                    if (!that.rhs.type.tsym.equals(syms.classType.tsym)) {
-                        log.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
-                    }
+                t = that.rhs.type;
+                if (!t.isErroneous() && !t.equals(TYPE)
+                        && !t.tsym.equals(syms.classType.tsym)) {
+                    log.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
                 }
                 result = that.type = syms.booleanType;
                 break;
@@ -2840,7 +2840,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlLblExpression(JmlLblExpression that) {
         Type t = that.token == JmlToken.BSLBLANY ? Type.noType : syms.booleanType;
         attribExpr(that.expression, env, t);
-        result = check(that, that.expression.type, VAL, pkind, pt);
+        Type resultType = that.expression.type;
+        if (resultType.constValue() != null) resultType = resultType.constType(null);
+        result = check(that, resultType, VAL, pkind, pt);
     }
     
     /** This makes a new local environment that allows adding new declarations,
@@ -2948,10 +2950,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitIdent(JCIdent tree) {
         super.visitIdent(tree);
+        // The above call erroneously does not set tree.type for method identifiers
+        // if the method failed to result, even though a symbol with an error
+        // type is set, so we patch that here.  See also the comment at visitSelect.
+        if (tree.type == null) tree.type = tree.sym.type;
+        
         Type saved = result;
         if (tree.sym instanceof VarSymbol) {
             checkSecretReadable(tree.pos(),(VarSymbol)tree.sym);
-        }// FIXME - what else could it be, besides an error?
+        }// Could also be a method call, and error, a package, a class...
         result = saved;
     }
     
@@ -3061,8 +3068,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitSelect(JCFieldAccess tree) {
-        if (tree.name != null) super.visitSelect(tree);
-        else {
+        if (tree.name != null) {
+            super.visitSelect(tree);
+            if (tree.type == null) tree.type = tree.sym.type; // Just so method call identifiers get an error type when 
+                    // the method is not resolved, since line 2083 of Attr.java does not:             if (pt.isErroneous()) return types.createErrorType(site);
+                    // see also visitIdent
+        } else {
             // This is a store-ref with a wild-card field
             super.visitSelect(tree);
             result = tree.type = Type.noType;
@@ -3737,7 +3748,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public Type attribExpr(JCTree tree, Env<AttrContext> env, Type pt) {
         Type type = super.attribExpr(tree,env,pt);
-        if (tree.type == null) log.noticeWriter.println("FAILED TO SET EXPRESSION TYPE " + tree.getClass());
+        if (tree.type == null) {
+            log.noticeWriter.println("FAILED TO SET EXPRESSION TYPE " + tree.getClass() + " " + tree);
+        }
         return type;
     }
 }

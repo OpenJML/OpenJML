@@ -80,7 +80,7 @@ public class typeclauses extends TCBase {
         helpTC(" class A { void m(int i) {} static Boolean bb; \n//@ static constraint bb ;\n}");
     }
 
-    // FIXME - the testConstraintM... tests are not implemented
+    // TODO - the testConstraintM... tests are not implemented
     public void testConstraintM() {
         helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for m;\n}");
     }

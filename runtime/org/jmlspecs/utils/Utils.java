@@ -1,7 +1,10 @@
 package org.jmlspecs.utils;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.sun.tools.javac.comp.JmlRac;
 
 /** 
  * This class contains utility methods used during runtime assertion
@@ -132,6 +135,66 @@ public class Utils {
     /** The map for storing runtime values */
     static HashMap<String,Object> map = new HashMap<String,Object>();
     
+    /** Saves a byte value under the given key
+     * @param key the name under which to store the value
+     * @param v the value to store
+     * @return the value of v
+     */
+    public static byte saveByte(String key, byte v) {
+        map.put(key,v);
+        return v;
+    }
+    
+    /** Saves a short value under the given key
+     * @param key the name under which to store the value
+     * @param v the value to store
+     * @return the value of v
+     */
+    public static short saveShort(String key, short v) {
+        map.put(key,v);
+        return v;
+    }
+    
+    /** Saves a char value under the given key
+     * @param key the name under which to store the value
+     * @param v the value to store
+     * @return the value of v
+     */
+    public static char saveChar(String key, char v) {
+        map.put(key,v);
+        return v;
+    }
+    
+    /** Saves a long value under the given key
+     * @param key the name under which to store the value
+     * @param v the value to store
+     * @return the value of v
+     */
+    public static long saveLong(String key, long v) {
+        map.put(key,v);
+        return v;
+    }
+    
+    /** Saves a float value under the given key
+     * @param key the name under which to store the value
+     * @param v the value to store
+     * @return the value of v
+     */
+    public static float saveFloat(String key, float v) {
+        map.put(key,v);
+        return v;
+    }
+    
+    /** Saves a double value under the given key
+     * @param key the name under which to store the value
+     * @param v the value to store
+     * @return the value of v
+     */
+    public static double saveDouble(String key, double v) {
+        map.put(key,v);
+        return v;
+    }
+    
     /** Saves a boolean value under the given key
      * @param key the name under which to store the value
      * @param v the value to store
@@ -160,6 +223,30 @@ public class Utils {
     public static Object saveObject(String key, Object v) {
         map.put(key,v);
         return v;
+    }
+    
+    static public void callClassInvariant(Object o, String fqClassName) {
+        try {
+            Class<?> clazz = Class.forName(fqClassName);
+            Method m = clazz.getMethod(JmlRac.invariantMethodString);
+            m.invoke(o);
+        } catch (Exception e) {
+            // If no class or method found, we ignore
+            //System.out.println("FAILED TO CALL INVARIANT FOR " + fqClassName);
+            //e.printStackTrace(System.out);
+        }
+    }
+    
+    static public void callStaticClassInvariant(String fqClassName) {
+        try {
+            Class<?> clazz = Class.forName(fqClassName);
+            Method m = clazz.getMethod(JmlRac.staticinvariantMethodString);
+            m.invoke(null);
+        } catch (Exception e) {
+            //System.out.println("FAILED TO CALL STATIC INVARIANT FOR " + fqClassName);
+            //e.printStackTrace(System.out);
+            // If no class or method found, we ignore
+        }
     }
     
     /** Deletes all values from the database */

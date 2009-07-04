@@ -4,6 +4,7 @@ import static com.sun.tools.javac.util.ListBuffer.lb;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Queue;
 
 import javax.annotation.processing.Processor;
@@ -33,6 +34,7 @@ import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.main.JavaCompiler.CompileState;
 import com.sun.tools.javac.parser.EndPosParser;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Context;
@@ -448,6 +450,8 @@ public class JmlCompiler extends JavaCompiler {
             while (t.head != null) {
                 if (t.head == env.tree) {
                     JCTree newtree = rac.translate(env.tree);
+//                    System.out.println("RAC TRANSLATION");
+//                    System.out.println(JmlPretty.writeJava((JCClassDecl)newtree,true));
                     env.tree = newtree;
                     t.head = newtree;
                     break;

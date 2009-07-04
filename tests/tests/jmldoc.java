@@ -126,7 +126,7 @@ public class jmldoc extends TestCase {
                   {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","A.java"},
                   1,
                   0,
-                  // FIXME - do we want warnings about non-existent files?
+                  // TODO - do we want warnings about non-existent files?
 //                  "jml: file not found: A.java" + eol +
 //                  "Usage: jml <options> <source files>" + eol +
 //                  "use -help for a list of possible options" + eol +

@@ -211,7 +211,7 @@ public class QueryPure extends TCBase {
         helpTCF("A.java",
                 "import org.jmlspecs.annotations.*;\n" +
                 "public class A { \n" +
-                "  @Secret Integer cache = null; \n" + // TODO - this requires allowing non-model fields to be datagroups
+                "  @Secret Integer cache = null; \n" + // Requires allowing non-model fields to be datagroups
                 "  @Pure public int compute() { return 0; }\n" +
                 "  //@ ensures \\result == compute();\n" +
                 "  @Query(\"cache\") public int value() { if (cache == null) cache = compute(); return cache; }\n" +
@@ -252,7 +252,7 @@ public class QueryPure extends TCBase {
                 "import org.jmlspecs.annotations.*;\n" +
                 "public class A { \n" +
                 "  @Secret Integer cache = null; //@ in value; \n" + 
-                "  //@ secret model Object value;\n" + // error? FIXME - forward reference
+                "  //@ secret model Object value;\n" + // we're allowing forward reference
                 "} \n"
         );
     }

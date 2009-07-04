@@ -988,6 +988,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         tsp.checkStaticInvariantDecl = ms;
         memberEnter(m,env);
         memberEnter(ms,env);
+        setDefaultCombinedMethodSpecs(m);
+        setDefaultCombinedMethodSpecs(ms);
         
         HashSet<Name> modelMethodNames = new HashSet<Name>();
         for (JmlTypeClause t : tsp.clauses) {
@@ -1005,6 +1007,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(),jmlF.Block(0,List.<JCStatement>nil()), null);
             mr.pos = vdecl.pos;
             memberEnter(mr,env);
+            setDefaultCombinedMethodSpecs(mr);
             JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
             tcd.pos = mr.pos;
             tcd.source = td.source;
@@ -1012,6 +1015,16 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             tsp.modelFieldMethods.append(tcd);
             tsp.clauses.append(tcd);
         }
+    }
+    
+    /** For synthetic methods or methods that do not have occasion to declare
+     * specs in a specification file, this sets the combined specs to be those
+     * that are associated with the method declaration itself.
+     * @param mdecl
+     */
+    protected void setDefaultCombinedMethodSpecs(JmlMethodDecl mdecl) {
+        mdecl.methodSpecsCombined = new JmlSpecs.MethodSpecs(mdecl.mods,mdecl.cases);
+        specs.putSpecs(mdecl.sym,mdecl.methodSpecsCombined);
     }
 
     protected void checkSameAnnotations(Symbol sym, JCModifiers mods) {
@@ -1690,6 +1703,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             // Check that the specification method has no body if it is not a .java file
             if (specMethodDecl.body != null && specMethodDecl.sourcefile.getKind() != Kind.SOURCE
                     && !((JmlAttr)attr).isModel(specMethodDecl.mods)
+                    && !inModelTypeDeclaration
                     && (specMethodDecl.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
                 log.error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.enclClass().fullname + "." + match.toString());
             }

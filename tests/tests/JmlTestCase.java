@@ -1,5 +1,6 @@
 package tests;
 import java.io.PrintWriter;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +37,11 @@ import com.sun.tools.javac.util.Options;
  *
  */
 public abstract class JmlTestCase extends junit.framework.TestCase {
+
+    /** A purposefully short abbreviation for the system path separator
+     * ( ; or : )
+     */
+    static String z = java.io.File.pathSeparator;
 
     static public interface DiagnosticListenerX<S> extends DiagnosticListener<S> {
         public List<Diagnostic<? extends S>> getDiagnostics();
@@ -186,6 +192,31 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         if (print || (!noExtraPrinting && 0 != 2*collector.getDiagnostics().size())) printErrors();
         assertEquals("Saw wrong number of errors ",0,collector.getDiagnostics().size());
     }
+
+    /** Used to add a pseudo file to the file system. Note that for testing, a 
+     * typical filename given here might be #B/A.java, where #B denotes a 
+     * mock directory on the specification path
+     * @param filename the name of the file, including leading directory components 
+     * @param content the String constituting the content of the pseudo-file
+     */
+    protected void addMockFile(/*@ non_null */ String filename, /*@ non_null */String content) {
+        try {
+            addMockFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
+        } catch (Exception e) {
+            fail("Exception in creating a URI: " + e);
+        }
+    }
+
+    /** Used to add a pseudo file to the file system. Note that for testing, a 
+     * typical filename given here might be #B/A.java, where #B denotes a 
+     * mock directory on the specification path
+     * @param filename the name of the file, including leading directory components 
+     * @param file the JavaFileObject to be associated with this name
+     */
+    protected void addMockFile(String filename, JavaFileObject file) {
+        specs.addMockFile(filename,file);
+    }
+
 
 }
 
