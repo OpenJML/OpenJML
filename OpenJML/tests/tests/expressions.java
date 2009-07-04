@@ -4,20 +4,29 @@ import java.util.List;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlTree.*;
+import junit.framework.AssertionFailedError;
+
+import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.Parser;
-import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
+import com.sun.tools.javac.tree.JCTree.JCConditional;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCParens;
+import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
-
-import junit.framework.AssertionFailedError;
 
 /** These test the AST structure produced by parsing various expressions -
  * checking the node type and position.

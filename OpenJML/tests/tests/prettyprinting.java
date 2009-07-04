@@ -10,7 +10,8 @@ import com.sun.tools.javac.util.Log;
 /** This set of tests test that the pretty printer outputs properly.  The test
  * checks this by comparing the input code to the output code; before comparison,
  * each sequence of white space is replaced by a single space, so that the 
- * output formatting does not have to precisely match the input.
+ * output formatting does not have to precisely match the input (unless
+ * precise is set true, which it currently is).
  */
 public class prettyprinting extends ParseBase {
 
@@ -23,6 +24,7 @@ public class prettyprinting extends ParseBase {
 
     public void helpPP(String code) {
         try {
+            //print = true;
             Log.instance(context).useSource(new TestJavaFileObject(code));
             Parser p = fac.newParser(code,false,true,true);
             //sc = ((JmlParser)p).getScanner();

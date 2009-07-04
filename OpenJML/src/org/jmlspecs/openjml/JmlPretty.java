@@ -13,10 +13,12 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -78,6 +80,15 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         tree.accept(p);
         return sw.toString();
         //return write("","  ",tree);
+    }
+    
+    static public String writeJava(JCClassDecl tree, boolean source) {
+        try { 
+            StringWriter sw = new StringWriter();
+            Pretty.instance(sw,true).visitClassDef(tree); 
+            return sw.toString();
+        } catch(Exception e) {}
+        return "<Exception>";
     }
     
     /** A method used for those pretty-printing methods that are not yet
@@ -706,7 +717,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         JmlSpecs.TypeSpecs toPrint = specsToPrint;
         specsToPrint = null;
         super.printStats(stats);
-        if (toPrint != null) {
+        if (toPrint != null && !toPrint.clauses.isEmpty()) {
+            align(); print("// JML specifications"); println();
             for (JmlTypeClause t: toPrint.clauses) {
                 align();
                 t.accept(this);
@@ -773,16 +785,46 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
         else if (that.cases != null) that.cases.accept(this);
         // FIXME - visitMethodDef will print the Java modifiers
-        // We need the following to get the combined modifiers
+        // and annotations that are on the Java declaration
+        // We need the following to get the combined annotations
         // but we don't want both?
-        if (that.methodSpecsCombined != null) that.methodSpecsCombined.mods.accept(this);
+        // if (that.methodSpecsCombined != null) that.methodSpecsCombined.mods.accept(this);
         visitMethodDef(that);
     }
 
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-        visitVarDef(that);  // FIXME - print field specs
+        visitVarDef(that);
     }
     
+    public void visitVarDef(JmlVariableDecl that) {
+        super.visitVarDef(that);
+        if (that.fieldSpecsCombined != null) printFieldSpecs(that.fieldSpecsCombined);
+        else if (that.fieldSpecs != null) printFieldSpecs(that.fieldSpecs);
+    }
+    
+    public void printFieldSpecs(JmlSpecs.FieldSpecs fspecs) {
+        // FIXME - may need to add a println at the beginning and omit one at the end
+        indent();
+        for (JmlTypeClause t: fspecs.list) {
+            try {
+                if (t.token == JmlToken.IN || t.token == JmlToken.MAPS) {
+                    align(); t.accept(this); println();
+                }
+            } catch (IOException e) {
+                perr(t,e);
+            }
+        }
+        for (JmlTypeClause t: fspecs.list) {
+            try{
+                if (t.token == JmlToken.IN || t.token == JmlToken.MAPS) continue;
+                align(); t.accept(this); println();
+            } catch (IOException e) {
+                perr(t,e);
+            }
+        }
+        undent();
+    }
+
     public void visitLiteral(JCLiteral that) {
         if (that.value instanceof Type) {
             try {

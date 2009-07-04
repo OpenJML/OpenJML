@@ -58,7 +58,7 @@ import com.sun.tools.javac.util.Log;
     }
    </PRE>
  *
- * Note that no errors are also reported if there is no specification file or 
+ * Note also that no errors are reported if there is no specification file or 
  * the class path is such that the spec file is not findable.
  * 
  * @author David Cok
@@ -79,6 +79,7 @@ import com.sun.tools.javac.util.Log;
 // flag.
 public class SpecsBase extends TCBase {
 
+    /** Enables or disables this suite of tests */
     static private boolean dotests = true;  // Change this to enable/disable tests
     
     /** If true, then a progress message is printed as each test is executed.*/
@@ -129,6 +130,7 @@ public class SpecsBase extends TCBase {
     /** Set to true if errors are found in any test in checkFiles */
     boolean foundErrors;
     
+    // FIXME _ seems to ignore expectedExit
     /** Helper method that executes a test 
      * 
      * @param filename name to use for the pseudo source file
@@ -164,8 +166,8 @@ public class SpecsBase extends TCBase {
         assertTrue(!foundErrors);
     }
 
-    /** The test to run - finds all system specs and runs tests on them that
-     * at least are sure that the specifications parse and typecheck.
+    /** The test to run - finds all system specs and runs tests on them in order
+     * to at least be sure that the specifications parse and typecheck.
      */
     public void _testFindFiles() {
         if (!dotests) {
@@ -185,7 +187,6 @@ public class SpecsBase extends TCBase {
      */
     static public SortedSet<String> findAllFiles(/*@ nullable*/ JmlSpecs specs) {
         System.out.println("JRE version " + System.getProperty("java.version"));
-        //Main m = new Main();
         try {
             if (specs == null) {
                 Context context = new Context();
@@ -202,8 +203,6 @@ public class SpecsBase extends TCBase {
         assertTrue ("Null specs path",dirs != null); 
         assertTrue ("No specs path",dirs.size() != 0); 
         
-//        assertTrue ("Null specs path",dirs != null); 
-//        assertTrue ("No specs path",dirs.size() != 0); 
         SortedSet<String> classes = new TreeSet<String>(); 
         for (Dir dir: dirs) {
             File d = new File(dir.toString());
@@ -273,6 +272,7 @@ public class SpecsBase extends TCBase {
     // FIXME - the above test template does not seem to trigger all the
     // modifier checking in attribute testing.
 
+    // TODO - what is this for
     public void testFileTemp() {
         helpTCF("A.java","public class A { java.util.Collection<Integer> f; }"
                 );

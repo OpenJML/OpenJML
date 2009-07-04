@@ -18,6 +18,7 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.esc.BasicBlocker.Counter;
@@ -43,12 +44,7 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.Attr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
 import com.sun.tools.javac.util.Log;
@@ -312,6 +308,7 @@ public class JmlEsc extends JmlTreeScanner {
         progress(1,2,"Starting proof of " + node.sym.owner.name + "." + node.name);
         Utils.Timer timer = new Utils.Timer();
         
+        
         //log.noticeWriter.println("Starting proof of " + node.sym.owner.name + "." + node.name);
         JmlMethodDecl tree = (JmlMethodDecl)node;
         //JmlClassDecl currentClassDecl = JmlSpecs.instance(context).get((ClassSymbol)node.sym.owner).decl;
@@ -321,7 +318,9 @@ public class JmlEsc extends JmlTreeScanner {
         // Change the log's source file to represent the source for this method
         JavaFileObject source = tree.sourcefile;
         JavaFileObject prev = log.useSource(source);
-        
+
+        ClassCollector.collect(currentClassDecl,tree);
+
         boolean ok = false;
             
         try {
@@ -1376,6 +1375,91 @@ public class JmlEsc extends JmlTreeScanner {
         }
         return null;
     }
+}
+
+class ClassCollector extends JmlTreeScanner {
     
+    public static ClassCollector collect(JmlClassDecl cd, JmlMethodDecl md) {
+        ClassCollector collector = new ClassCollector();
+        collector.doMethods = false;
+        //System.out.println("COLLECTING FOR CLASS " + cd.sym);
+        collector.scan(cd);
+        //System.out.println("COLLECTING FOR METHOD " + md.sym);
+        collector.doMethods = true;
+        collector.scan(md);
+        return collector;
+    }
     
+    boolean doMethods;
+    Set<ClassSymbol> classes = new HashSet<ClassSymbol>();
+    Collection<JCTree> literals = new ArrayList<JCTree>();
+    
+    public ClassCollector() {
+        scanMode = SPEC_MODE;
+    }
+    
+    @Override
+    public void visitClassDef(JCClassDecl tree) {
+        //System.out.println("ADDING-CD " + tree.sym);
+        classes.add(tree.sym);
+        super.visitClassDef(tree);
+    }
+    
+    @Override
+    public void visitMethodDef(JCMethodDecl tree) {
+        if (!doMethods) return;
+        super.visitMethodDef(tree);
+    }
+    
+    @Override
+    public void visitIdent(JCIdent tree) {
+        if (tree.sym instanceof ClassSymbol) {
+            ClassSymbol c = (ClassSymbol)tree.sym;
+            //System.out.println("ADDING-I " + c);
+            classes.add(c);
+        } else if (tree.sym instanceof VarSymbol) {
+            ClassSymbol c = (ClassSymbol)tree.type.tsym;
+            //System.out.println("ADDING-II " + c);
+            classes.add(c);
+        }
+        super.visitIdent(tree);
+    }
+    
+    @Override
+    public void visitSelect(JCFieldAccess tree) {
+        if (tree.sym instanceof ClassSymbol) {
+            ClassSymbol c = (ClassSymbol)tree.sym;
+            //System.out.println("ADDING-SC " + c);
+            classes.add(c);
+        } else if (tree.sym instanceof VarSymbol) {
+            ClassSymbol c = (ClassSymbol)tree.type.tsym;
+            //System.out.println("ADDING-SI " + c);
+            classes.add(c);
+        }
+        super.visitSelect(tree);
+    }
+    
+    @Override
+    public void visitIndexed(JCArrayAccess tree) {
+            ClassSymbol c = (ClassSymbol)tree.indexed.type.tsym;
+            //System.out.println("ADDING-A " + c);
+            classes.add(c);
+        super.visitIndexed(tree);
+    }
+    
+    @Override
+    public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
+        // FIXME - return types ?
+        super.visitJmlMethodInvocation(tree);
+    }
+    
+    @Override
+    public void visitApply(JCMethodInvocation tree) {
+        if (tree.type != null) {
+            ClassSymbol c = (ClassSymbol)tree.type.tsym;
+            //System.out.println("ADDING-M " + c);
+            classes.add(c);
+       }
+        super.visitApply(tree);
+    }
 }

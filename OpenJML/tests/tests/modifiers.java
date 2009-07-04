@@ -1044,13 +1044,13 @@ public class modifiers extends TCBase {
                 );
     }
      
-    // FIXME - test type parameters
-    // FIXME - test interaction between access and spec_public/protected
-    // FIXME - test instance and interaction with static
-    // FIXME - model methods in interfaces are not implicitly abstract and may be instance
-    // FIXME - non_null, nullable must have a return type
+    // TODO - test type parameters
+    // TODO - test interaction between access and spec_public/protected
+    // TODO - test instance and interaction with static
+    // TODO - model methods in interfaces are not implicitly abstract and may be instance
+    // TODO - non_null, nullable must have a return type
     
-    // FIXME - test initializers
+    // TODO - test initializers
     
     @Test public void testBinaryMods() {
 //        options.put("-jmldebug","");

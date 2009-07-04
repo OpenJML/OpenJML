@@ -27,32 +27,32 @@ public enum JmlOptionName implements OptionInterface {
         { public void process(Options options) { options.put(COMMAND.name,"check"); }},
     COMPILE("-compile",false,"Does a Java-only compiler - abbreviation for -command compile")
         { public void process(Options options) { options.put(COMMAND.name,"compile"); }},
-    SPECS("-specspath",true,"Specifies the directory path to search for specification files"),
-    JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)"),
+    RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks - abbreviation for -command rac")
+        { public void process(Options options) { options.put(COMMAND.name,"rac"); }},
+    ESC("-esc",false,"Enables static checking - abbreviation for -command esc")
+        { public void process(Options options) { options.put(COMMAND.name,"esc"); }},
     USEJAVACOMPILER("-java",false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)"),
     NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored"),
+    SPECS("-specspath",true,"Specifies the directory path to search for specification files"),
     NOCHECKSPECSPATH("-noCheckSpecsPath",false,"When on, no warnings for non-existent specification path directories are issued"),
     NOPURITYCHECK("-noPurityCheck",false,"When on, no warnings for use of impure methods are issued"),
     SHOW_NOT_IMPLEMENTED("-showNotImplemented",false,"When on, warnings about unimplemented constructs are issued"),
+    STOPIFERRORS("-stopIfParseErrors",true,"When enabled, stops after parsing if any files have parsing errors"),
+    NOINTERNALSPECS("-noInternalSpecs",false,"Disables automatically appending the internal specs directory to the specification path"),
+    NOINTERNALRUNTIME("-noInternalRuntime",false,"Disables automatically appending the internal JML runtime library to the classpath"),
+    NONNULLBYDEFAULT("-nonnullByDefault",false,"Makes references non_null by default")
+        { public void process(Options options) { options.put(NULLABLEBYDEFAULT.name,null); }},
+    NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default")
+        { public void process(Options options) { options.put(NONNULLBYDEFAULT.name,null); }},
     JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much (included in -verbose)")
         { public void process(Options options) { options.put(PROGRESS.name,""); }},
     PROGRESS("-progress",false,"Shows progress through compilation phases, includes -jmlverbose")
         { public void process(Options options) { options.put(JMLVERBOSE.name,""); }},
     //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove
-    STOPIFERRORS("-stopIfParseErrors",true,"When enabled, stops after parsing if any files have parsing errors"),
-    NOINTERNALSPECS("-noInternalSpecs",false,"Disables automatically appending the internal specs directory to the specification path"),
-    NOINTERNALRUNTIME("-noInternalRuntime",false,"Disables automatically appending the internal JML runtime library to the classpath"),
-    RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks - abbreviation for -command rac")
-        { public void process(Options options) { options.put(COMMAND.name,"rac"); }},
-    NONNULLBYDEFAULT("-nonnullByDefault",false,"Makes references non_null by default")
-        { public void process(Options options) { options.put(NULLABLEBYDEFAULT.name,null); }},
-    NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default")
-        { public void process(Options options) { options.put(NONNULLBYDEFAULT.name,null); }},
-    ESC("-esc",false,"Enables static checking - abbreviation for -command esc")
-        { public void process(Options options) { options.put(COMMAND.name,"esc"); }},
     TRACE("-trace",false,"ESC: Enables tracing of counterexamples"),
     COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample"),
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions"),
+    JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)"),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!"),
     ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files")
     ;

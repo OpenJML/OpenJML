@@ -1892,7 +1892,7 @@ public class Attr extends JCTree.Visitor {
         // Determine the symbol represented by the selection.
         env.info.varArgs = false;
         Symbol sym = selectSym(tree, site, env, pt, pkind);
-        if (sym.exists() && !isType(sym) && (pkind & (PCK | TYP)) != 0) {
+        if (sym.exists() && !isType(sym) && (pkind & (PCK | TYP)) != 0) {  // DRC#1895 - bug here - if sym is an error, then isType is false, and we go to find the symbol again resulting in duplicate error messages
             site = capture(site);
             sym = selectSym(tree, site, env, pt, pkind);
         }

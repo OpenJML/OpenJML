@@ -23,5 +23,7 @@ public class sysclasses extends TCBase {
         helpTCF("A.java"," class A { //@ public model JMLDataGroup streamState;\n}"
                 ); // Gives a symbol not found error if the org.jmlspecs.lang package is not loaded
     }
+    
+    // TODO _ adds checks on other system supplied classes that ought to be present
 
 }

@@ -1,5 +1,11 @@
 package tests;
 
+/** This tests that for_example and implies_that sections parse properly; 
+ * checks the proper use of keywords in them; checks restrictions on
+ * normal and exceptional spec cases
+ * @author David R. Cok
+ *
+ */
 public class redundant extends TCBase {
 
 
@@ -10,22 +16,27 @@ public class redundant extends TCBase {
         super.setUp();
     }
 
+    /** basic implies_that and for_example */
     public void testRedundant() {
         helpTCF("A.java","public class A { /*@ ensures true; implies_that  ensures false; for_example ensures true; */\n void m(){} }");
     }
 
+    /** implies_that and for_example with behavior, example */
     public void testRedundant1() {
         helpTCF("A.java","public class A { /*@ ensures true; implies_that behavior ensures false; for_example example ensures true; */\n void m(){} }");
     }
 
+    /** implies_that and for_example with normal_behavior, normal_example */
     public void testRedundant1a() {
         helpTCF("A.java","public class A { /*@ ensures true; implies_that normal_behavior ensures false; for_example normal_example ensures true; */\n void m(){} }");
     }
 
+    /** implies_that and for_example with exceptional_behavior, exceptional_example */
     public void testRedundant1b() {
         helpTCF("A.java","public class A { /*@ ensures true; implies_that exceptional_behavior signals_only Exception; for_example exceptional_example requires true; */\n void m(){} }");
     }
 
+    /** mixed up behavior and example */
     public void testRedundant2() {
         expectedExit = 0;
         helpTCF("A.java","public class A { /*@ ensures true; implies_that example ensures false; for_example behavior ensures true; */\n void m(){} }"
@@ -34,14 +45,35 @@ public class redundant extends TCBase {
             );
     }
 
+    /** mixed up normal_behavior and normal_example */
+    public void testRedundant2a() {
+        expectedExit = 0;
+        helpTCF("A.java","public class A { /*@ ensures true; implies_that normal_example ensures false; for_example normal_behavior ensures true; */\n void m(){} }"
+                ,"/A.java:1: warning: A normal_example specification case must appear in a for_example section",49
+                ,"/A.java:1: warning: A normal_behavior specification case must not appear in a for_example section",91
+            );
+    }
+
+    /** mixed up exceptional_behavior and exceptional_example */
+    public void testRedundant2b() {
+        expectedExit = 0;
+        helpTCF("A.java","public class A { /*@ ensures true; implies_that exceptional_example requires false; for_example exceptional_behavior requires true; */\n void m(){} }"
+                ,"/A.java:1: warning: A exceptional_example specification case must appear in a for_example section",49
+                ,"/A.java:1: warning: A exceptional_behavior specification case must not appear in a for_example section",97
+            );
+    }
+
+    /** also connectors */
     public void testRedundant3() {
         helpTCF("A.java","public class A { /*@ ensures true; implies_that  ensures false; also requires true; for_example ensures true; also normal_example ensures false; */\n void m(){} }");
     }
 
+    /** visibility */
     public void testRedundant4() {
         helpTCF("A.java","public class A { /*@ ensures true; implies_that public behavior ensures false; */\n void m(){} }");
     }
     
+    /** visibility */
     public void testRedundant4b() {
         helpTCF("A.java","public class A { /*@ ensures true; for_example public normal_example ensures false; */\n void m(){} }");
     }

@@ -4526,8 +4526,8 @@ public class BasicBlocker extends JmlTreeScanner {
             if (type.getTypeArguments() != null) {
                 pushTypeArgs();
                 Iterator<Type> arg = type.getTypeArguments().iterator();
-                Iterator<Type> param = sym.type.asMethodType().argtypes.iterator();
-                while (arg.hasNext()) {
+                Iterator<Type> param = sym.type.asMethodType().getTypeArguments().iterator();
+                while (arg.hasNext() && param.hasNext()) { // FIXME - look into this - for constructors at least there may not be any type arguments
                     typeargs.put(param.next().tsym,arg.next());
                 }
             }

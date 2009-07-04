@@ -4,14 +4,12 @@ import java.net.URI;
 import javax.tools.SimpleJavaFileObject;
 
 /** This class makes a mock JavaFileObject.  It holds a String as its content
- * and is given a filename to use, but does not represent an actual file in 
+ * and is given a pseudo-filename to use, but does not represent an actual file in 
  * the file system. 
  * <P>
- * Note that we use Kind.OTHER to designate non-.java specification files.
- * 
+ * Note that we use Kind.OTHER to designate specification (non-.java) files.
  * 
  * @author David Cok
- *
  */
 public class TestJavaFileObject extends SimpleJavaFileObject {
     
@@ -20,7 +18,7 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
     protected String content;
     
     /** A fake file name, used when the user does not want to be bothered
-     * supplying one.  We have to make and cache this because it is a pain to
+     * supplying one.  We make and cache this because it is a pain to
      * deal with exceptions in constructors.
      */
     //@ non_null
@@ -40,6 +38,8 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
     }
 
 
+    // TODO - will it be a problem if someone makes two of these objects in 
+    // the same test (since they will have the same name)?
     /** A constructor of a JavaFileObject of kind SOURCE,
      * with the given content and a made-up file name.
      * @param s The content of the file
@@ -83,9 +83,9 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
     }
     
     /** Overrides the parent method to allow name compatibility between 
-     * pseudo files of different kinds.
+     * pseudo files of different kinds.  TODO _ better description of what the system uses this for
      */
-    // Don't worry about whether the kinds match, just the file extension
+    // Don't worry about whether the kinds match, just the file prefix
     @Override
     public boolean isNameCompatible(String simpleName, Kind kind) {
         String s = uri.getPath();
@@ -114,6 +114,14 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
         // use that for the hashCode
         return uri.normalize().getPath().hashCode();
         // FIXME -0 this is not right, since if one is a suffix of the other they are equal and should have the same hashCode
+    }
+    
+    public String toString() {
+        //String s = super.toString(); // Something like file:///tt/TestJava.java from TestJavaFileObject
+        String s = getName();  // Something like tt/TestJava.java
+        // Note: in stack traces it appears that everything gets dropped up to and including
+        // the last /
+        return s;
     }
 
 }
