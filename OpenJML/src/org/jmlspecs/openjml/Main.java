@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 import javax.tools.DiagnosticListener;
@@ -472,7 +473,14 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         JmlSpecs.instance(context).initializeSpecsPath();
-
+        
+        String keysString = options.get(JmlOptionName.KEYS.optionName());
+        utils.commentKeys = new HashSet<Name>();
+        if (keysString != null) {
+            String[] keys = keysString.split(",");
+            for (String k: keys) utils.commentKeys.add(Names.instance(context).fromString(k));
+        }
+        
         String cmd = options.get(JmlOptionName.COMMAND.optionName());
         utils.rac = "rac".equals(cmd) || (cmd == null && options.get(JmlOptionName.RAC.optionName()) != null);
         utils.esc = "esc".equals(cmd) || (cmd == null && options.get(JmlOptionName.ESC.optionName()) != null);

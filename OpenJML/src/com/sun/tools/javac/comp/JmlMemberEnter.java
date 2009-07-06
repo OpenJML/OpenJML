@@ -1192,6 +1192,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
     
     public MethodSymbol matchMethod(JmlMethodDecl specMethod, ClassSymbol csym, Env<AttrContext> env, boolean complain) {
+//        if (csym.flatName().toString().equals("tt.TestJava")) {
+//            System.out.println(csym);
+//        }
         JCMethodDecl tree = specMethod;
 
         MethodSymbol msym = tree.sym;
@@ -1250,10 +1253,19 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         }
 
         // mark the method varargs, if necessary
-        boolean varargs = (lastParam != null && (lastParam.mods.flags & Flags.VARARGS) != 0);
+        //boolean varargs = (lastParam != null && (lastParam.mods.flags & Flags.VARARGS) != 0);
         //if (varargs) msym.flags_field |= Flags.VARARGS;
+        
+        // JmlResolve.findMethod is designed for matching a method call to some
+        // declaration.  Here however, we are trying to match to method signatures.
+        // We use this as a start, but then have to check that we have exact matches
+        // for parameter types.  Also, we make the match using varargs=false - 
+        // the parameter types themselves are already arrays if they were declared
+        // as varargs parameters.
 
-        Symbol s = JmlResolve.instance(context).findMethod(env,csym.asType(),tree.name,paramTypes.toList(),typaramTypes.toList(),false,varargs,false);
+        Symbol s = JmlResolve.instance(context).findMethod(env,csym.asType(),
+                tree.name,paramTypes.toList(),typaramTypes.toList(),
+                /*allowBoxing*/false,/*varargs*/false,/*is an operator*/false);
         if (s instanceof MethodSymbol) {
             match = (MethodSymbol)s;
             // Require exact type match [findMethod returns best matches ]

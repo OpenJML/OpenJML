@@ -1,11 +1,14 @@
 package com.sun.tools.javac.parser;
 
 import java.nio.CharBuffer;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOptionName;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.parser.Scanner.CommentStyle;
 import com.sun.tools.javac.util.Context;
@@ -13,6 +16,7 @@ import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.LayoutCharacters;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Options;
 
 /* FIXME - oddities in the Scanner class
  It seems that if the first character of a token is unicode, then pos is
@@ -99,12 +103,16 @@ public class JmlScanner extends DocCommentScanner {
          */
         @Override
         public Scanner newScanner(CharSequence input) {
+            JmlScanner sc;
             if (input instanceof CharBuffer) {
-                return new JmlScanner(this, (CharBuffer) input);
+                sc = new JmlScanner(this, (CharBuffer) input);
             } else {
                 char[] array = input.toString().toCharArray();
-                return newScanner(array, array.length);
+                sc = (JmlScanner)newScanner(array, array.length);
             }
+            sc.keys = Utils.instance(context).commentKeys;
+            
+            return sc;
         }
 
         /*
@@ -131,6 +139,9 @@ public class JmlScanner extends DocCommentScanner {
     /** Set to true internally while the scanner is within a JML comment */
     protected boolean      jml        = false;
 
+    /** The set of keys of identifying optional comments */
+    protected Set<Name> keys;
+    
     /**
      * When jml is true, then (non-backslash) JML keywords are recognized if
      * jmlkeyword is true and not if jmlkeyword is false; this is set by the
@@ -246,9 +257,63 @@ public class JmlScanner extends DocCommentScanner {
         // line
         int k = bp;
         scanChar();
-        if (ch == '+') { // Also accept //+@ as the beginning of a JML
+        if (ch == '+' || ch == '-') {   // FIXME - fix the following block to be robust against premature end-of-comment
+            // Also accept //+@ as the beginning of a JML
             // annotation
+            boolean someplus = ch == '+';
+            boolean someminus = ch == '-';
+            boolean foundplus = false;
             scanChar();
+            if (ch == '@') {
+                // no keys
+                if (someminus) { // FIXME - use someplus in conjunction with a parsePlus option?
+                    bp = bpend;
+                    ch = chend;
+                    super.processComment(style);
+                    return;
+                }
+            }
+            while (ch != '@') {
+                if (!Character.isJavaIdentifierStart(ch)) {
+                    // Not a valid JML comment - just return
+                    // Restart at the end
+                    bp = bpend;
+                    ch = chend;
+                    super.processComment(style);
+                    return;
+                }
+                // Check for keys
+                scanIdent();
+                Name key = name();
+                if (keys.contains(key)) {
+                    if (ch == '+') foundplus = true;
+                    else {
+                        // negative key found - return
+                        bp = bpend;
+                        ch = chend;
+                        super.processComment(style);
+                        return;
+                    }
+                }
+                if (ch != '+' && ch != '-') {
+                    // Not a valid JML comment - just return
+                    // Restart at the end
+                    bp = bpend;
+                    ch = chend;
+                    super.processComment(style);
+                    return;
+                }
+                if (ch == '+') someplus = true;
+                else if (ch == '-') someminus = true;
+                scanChar();
+            }
+            if (!foundplus && someplus && someminus) {
+                // Restart at the end
+                bp = bpend;
+                ch = chend;
+                super.processComment(style);
+                return;
+            }
         }
 
         // If there is not an '@' next, there is no JML comment
@@ -274,6 +339,8 @@ public class JmlScanner extends DocCommentScanner {
             // We are already in a JML comment - so we have an embedded comment.
             // The action is to just ignore the embedded comment start
             // characters.
+            
+            // FIXME - make sure this is the desired behavior - test it
             return;
         }
 

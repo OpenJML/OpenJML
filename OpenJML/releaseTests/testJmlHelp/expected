@@ -47,6 +47,7 @@ JML options:
   -noInternalRuntime         Disables automatically appending the internal JML runtime library to the classpath
   -nonnullByDefault          Makes references non_null by default
   -nullableByDefault         Makes references nullable by default
+  -keys                      Identifiers for optional JML comments
   -jmlverbose                Like -verbose, but only jml information and not as much (included in -verbose)
   -progress                  Shows progress through compilation phases, includes -jmlverbose
   -trace                     ESC: Enables tracing of counterexamples

@@ -102,6 +102,7 @@ jmlruntime.jar:
 	cp -r bin/org/jmlspecs/annotations bin/org/jmlspecs/lang bin/org/jmlspecs/models bin/org/jmlspecs/utils temp/org/jmlspecs
 	(cd temp; jar -cf ../jars/jmlruntime.jar . ) 
 	##cp jars/jmlruntime.jar ../OpenJMLUI
+	cp jars/jmlruntime.jar ${SPECS}/..
 	-rm -rf temp
 
 ## Separate target for jmlspecs.jar, though it is normally built along with

@@ -44,6 +44,7 @@ public enum JmlOptionName implements OptionInterface {
         { public void process(Options options) { options.put(NULLABLEBYDEFAULT.name,null); }},
     NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default")
         { public void process(Options options) { options.put(NONNULLBYDEFAULT.name,null); }},
+    KEYS("-keys",true,"Identifiers for optional JML comments"),
     JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much (included in -verbose)")
         { public void process(Options options) { options.put(PROGRESS.name,""); }},
     PROGRESS("-progress",false,"Shows progress through compilation phases, includes -jmlverbose")
