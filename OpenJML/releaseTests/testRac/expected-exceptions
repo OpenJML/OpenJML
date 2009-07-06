@@ -1,4 +1,4 @@
 START
-Exception in thread "main" org.jmlspecs.utils.Utils$JmlAssertionFailure: A.java:4: JML assertion is false
+Exception in thread "main" org.jmlspecs.utils.Utils$JmlAssertionError: A.java:4: JML assertion is false
 	at org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)
 	at A.main(A.java:4)

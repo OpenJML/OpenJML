@@ -197,7 +197,7 @@ public class rac extends RacBase {
                 +"        ensures k == 0; */\n"
                 +"  static void m(int i) { k = i; } " +
                 "}"
-                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionFailure: /tt/TestJava.java:10: JML postcondition is false"
+                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: /tt/TestJava.java:10: JML postcondition is false"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
                 ,"\tat tt.TestJava.m(TestJava.java:10)"
                 ,"\tat tt.TestJava.main(TestJava.java:5)"

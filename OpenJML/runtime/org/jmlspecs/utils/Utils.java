@@ -35,9 +35,9 @@ public class Utils {
      * @param message The message to report
      */
     public static void assertionFailure(String message) {
-        if (useExceptions) throw new JmlAssertionFailure(message);
+        if (useExceptions) throw new JmlAssertionError(message);
         System.out.println(message);
-        if (showStack) (new JmlAssertionFailure(message)).printStackTrace(System.out);
+        if (showStack) (new JmlAssertionError(message)).printStackTrace(System.out);
     }
     
     /** Reports a JML assertion failure with the given message if the second argument is null
@@ -119,12 +119,12 @@ public class Utils {
      * encountered (if exceptions are enabled using Utils.useExceptions)
      * @author David Cok
      */
-    public static class JmlAssertionFailure extends java.lang.Error {
+    public static class JmlAssertionError extends java.lang.Error {
         //private static final long serialVersionUID = 1L;
         /** The constructor with an informational message string
          * @param s the reason for the failure
          */
-        public JmlAssertionFailure(String s) {
+        public JmlAssertionError(String s) {
             super(s);
         }
     }

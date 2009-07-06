@@ -1,6 +1,6 @@
 START
 A.java:4: JML assertion is false
-org.jmlspecs.utils.Utils$JmlAssertionFailure: A.java:4: JML assertion is false
+org.jmlspecs.utils.Utils$JmlAssertionError: A.java:4: JML assertion is false
 	at org.jmlspecs.utils.Utils.assertionFailure(Utils.java:40)
 	at A.main(A.java:4)
 END
