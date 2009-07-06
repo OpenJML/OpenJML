@@ -1,5 +1,7 @@
 package org.jmlspecs.openjml;
 
+import java.util.Set;
+
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -67,6 +69,9 @@ public class Utils {
     
     /** Do Jmldoc  */
     public boolean doc = false;
+    
+    /** The set of keys that control the use of optional comments */
+    public Set<Name> commentKeys;
     
     /** A bit that indicates that a declaration was declared within a JML annotation */
     final public static long JMLBIT = 1L << 50; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.

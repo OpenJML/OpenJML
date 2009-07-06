@@ -437,7 +437,8 @@ public class JmlCompiler extends JavaCompiler {
         // We have to adjust the toplevel tree accordingly.  Presumably other
         // class declarations in the compilation unit will be translated on 
         // other calls.
-        context.get(Main.IProgressReporter.class).report(0,2,"rac " + todo.size() + " " + utils.envString(env));
+        context.get(Main.IProgressReporter.class).report(0,2,"rac " + utils.envString(env));
+        if (utils.jmldebug) log.noticeWriter.println("rac " + utils.envString(env));
         JmlRac rac = new JmlRac(context,env);  // FIXME - use a factory
         if (env.tree instanceof JCClassDecl) {
             // When we do the RAC translation, we create a new instance

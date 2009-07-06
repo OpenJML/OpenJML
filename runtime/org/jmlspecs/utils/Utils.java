@@ -23,12 +23,12 @@ public class Utils {
     /** Determines whether to report assertion failures as exceptions (true)
      * or error messages (false).
      */
-    public static boolean useExceptions = false;
+    public static boolean useExceptions = System.getProperty("org.jmlspecs.openjml.racexceptions") != null;
     
     /** If true, then error messages reporting assertion failures are 
      * accompanied with a stack trace to log.errorWriter.
      */
-    public static boolean showStack = false;
+    public static boolean showStack = System.getProperty("org.jmlspecs.openjml.racshowstack") != null;
     
     /** Reports a JML assertion (any JML precondition, postcondition, etc.)
      * failure with the given message.

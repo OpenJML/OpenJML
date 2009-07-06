@@ -52,6 +52,29 @@ echo "import org.jmlspecs.annotations.*; public class D { @Pure int m() { return
 ## Checks a valid file using java -jar
 ${RTH} testOK1 "java -jar openjml.jar -noPurityCheck -Xlint:unchecked -specspath . B.java" || RES=$(($RES+1))
 
+## rac
+rm -rf rac
+mkdir -p rac
+${RTH} testRac "java -jar openjml.jar -rac -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
+echo RAC-OK
+java -classpath "rac;jmlruntime.jar" A > racactual
+diff racactual ../releaseTests/testRac/expected-ok || { RES=$(($RES+1)); }
+echo RAC-SIMPLE
+java -classpath "rac;jmlruntime.jar" A 1 2 > racactual
+diff racactual ../releaseTests/testRac/expected-simple || { RES=$(($RES+1)); }
+echo RAC-EXC
+java -classpath "rac;jmlruntime.jar" -Dorg.jmlspecs.openjml.racexceptions A 1 2 > racactual  2>&1
+diff racactual ../releaseTests/testRac/expected-exceptions || { RES=$(($RES+1)); }
+cp racactual racactualx
+echo RAC-BOTH
+java -classpath "rac;jmlruntime.jar" -Dorg.jmlspecs.openjml.racexceptions -Dorg.jmlspecs.openjml.racshowstack A 1 2  > racactual  2>&1
+diff racactual ../releaseTests/testRac/expected-exceptions || { RES=$(($RES+1)); }
+cp racactual racactualxx
+echo RAC-ST
+java -classpath "rac;jmlruntime.jar" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
+diff racactual ../releaseTests/testRac/expected-stack || { RES=$(($RES+1)); }
+
+
 ## FIXME - uses unchecked calls
 ## Checks a valid file using java -classpath
 ${RTH} testOK2 "java -classpath openjml.jar org.jmlspecs.openjml.Main  -Xlint:unchecked -noPurityCheck -specspath . B.java" || RES=$(($RES+1))
@@ -116,6 +139,8 @@ ${RTH} testPath10 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/da
 ## Checks an invalid file
 ${RTH} testCheck1 "java -jar openjml.jar -noPurityCheck -specspath . A.java" || RES=$(($RES+1))
 
+
+
 export DIFFJMLDOC="diff -r "
 
 ### Note: package-tree.html is excluded because it is non-deterministic
@@ -169,6 +194,7 @@ ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc7/expected
 rm -rf doc ../testfiles/jmldoc7/actual
 ${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -noPurityCheck -dirs ../testfiles/jmldoc3/data ../testfiles/jmldoc3/data/tp  -notimestamp" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc7/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc7/actual; }
+
 
 if [[ ${RES} -eq 0 ]]; then echo "All tests succeeded"; else echo ${RES} tests failed  ; fi
 
