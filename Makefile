@@ -7,7 +7,7 @@
 ##	release - just build the release
 ##	test - just test the current release
 ROOT=..
-SPECS=../../../JMLspecs/trunk
+SPECS=../../../Specs/trunk
 VERSION:=$(shell date +%Y%m%d)
 NAME=openjml-${VERSION}.tar.gz
 

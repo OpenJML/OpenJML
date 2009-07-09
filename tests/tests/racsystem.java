@@ -12,7 +12,10 @@ public class racsystem extends RacBase {
      * RAC-compiled JDK library classes ahead of the regular Java libaray classes
      * in the boot class path. (This may not work on all platforms)
      */
+    // The bootclasspath here consists of the JDK library files (RAC-compiled) plus
+    // utilities that they depend on - the content of jmlruntime.jar.
     String[] sysrac = new String[]{jdk, "-Xbootclasspath/p:jdkbin;bin", "-classpath","bin"+z+"testdata",null};
+    //String[] sysrac = new String[]{jdk, "-Xbootclasspath/p:jdkbin;bin-runtime", "-classpath","bin"+z+"testdata",null};
 
     protected void setUp() throws Exception {
         rac = sysrac;

@@ -188,6 +188,10 @@ package java.util;
 openjml.jar(specs16/java/util/regex/Matcher.jml):21: package org.jmlspecs.lang does not exist
 package java.util.regex;
 ^
+openjml.jar(specs16/java/lang/Object.jml):56: cannot access org.jmlspecs.utils.IJMLTYPE
+      @   ensures \result == \typeof(this).erasure();
+                                          ^
+  class file for org.jmlspecs.utils.IJMLTYPE not found
 openjml.jar(specs16/java/lang/System.jml):21: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
@@ -305,11 +309,8 @@ openjml.jar(specs16/java/util/Properties.jml):15: package org.jmlspecs.annotatio
 openjml.jar(specs16/java/util/NoSuchElementException.jml):1: package org.jmlspecs.lang does not exist
 package java.util;
 ^
-openjml.jar(specs16/java/lang/ClassCastException.jml):1: package org.jmlspecs.lang does not exist
-package java.lang;
-^
-openjml.jar(specs16/java/lang/UnsupportedOperationException.jml):1: package org.jmlspecs.lang does not exist
-package java.lang;
+openjml.jar(specs16/org/jmlspecs/utils/IJMLTYPE.jml):3: package org.jmlspecs.annotations does not exist
+import org.jmlspecs.annotations.*;
 ^
 100 errors
 ENDING with exit code 1

@@ -145,6 +145,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The Names table from the compilation context, initialized in the constructor */
     @NonNull final protected Names names;
     
+    /** The tool used to read binary classes */
+    @NonNull final protected ClassReader classReader;
+    
     /** The factory used to create AST nodes, initialized in the constructor */
     @NonNull final protected JmlTree.Maker factory;
 
@@ -170,7 +173,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // type tags are out of range, so we cannot use the usual
     // initType call to initialize them.
     // FIXME - may need to revisit this for boxing and unboxing
-    protected Type TYPE; // This is a synonym for java.lang.Class
+    final protected Type TYPE;// = new Type(1000,null); 
     protected Type REAL;// = new Type(1001,null);
     protected Type BIGINT;// = new Type(1002,null);
     protected Type Lock;// = new Type(1003,null);
@@ -238,6 +241,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return (JmlAttr)instance; // If the registered instance is only an Attr, something is catastrophically wrong
     }
     
+    ClassSymbol createClass(String fqName) {
+        return classReader.enterClass(names.fromString(fqName));
+    }
+    
     /** Constructor of a JmlAttr tool for the given context
      * 
      * @param context the compilation context in which we are working
@@ -253,38 +260,39 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         this.specs = JmlSpecs.instance(context);
         this.factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
         this.names = Names.instance(context);
+        this.classReader = ClassReader.instance(context);
         initNames(context);
 
         // Caution, because of circular dependencies among constructors of the
         // various tools, it can happen that syms is not fully constructed at this
         // point and syms.classType will be null.
-        TYPE = syms.classType;
+        TYPE = createClass("org.jmlspecs.utils.IJMLTYPE").type; //syms.classType;
         if (TYPE == null) {
             System.err.println("INTERNAL FAILURE: A circular dependency among constructors has caused a failure to correctly construct objects.  Please report this internal problem.");
             new Exception().printStackTrace(System.err);
             throw new JmlInternalError();
         }
 
-        utilsClass = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.utils.Utils"));
-        utilsClassIdent = make.Ident(names.fromString("org.jmlspecs.utils.Utils"));
+        utilsClass = createClass("org.jmlspecs.utils.Utils");
+        utilsClassIdent = ((JmlTree.Maker)make).Ident("org.jmlspecs.utils.Utils");
         utilsClassIdent.type = utilsClass.type;
         utilsClassIdent.sym = utilsClassIdent.type.tsym;
 
-        datagroupClass = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.JMLDataGroup"));
+        datagroupClass = createClass("org.jmlspecs.lang.JMLDataGroup");
         
-        JMLSetType = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.JMLSetType")).type;
-        JMLValuesType = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.JMLList")).type;
+        JMLSetType = createClass("org.jmlspecs.lang.JMLSetType").type;
+        JMLValuesType = createClass("org.jmlspecs.lang.JMLList").type;
         JMLUtilsType = utilsClass.type;
-        JMLIterType = ClassReader.instance(context).enterClass(names.fromString("java.util.Iterator")).type;
+        JMLIterType = createClass("java.util.Iterator").type;
         REAL = syms.doubleType;
         BIGINT = syms.longType;
         Lock = syms.objectType;
         LockSet = JMLSetType;
-        nullablebydefaultAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.NullableByDefault"));
-        nonnullbydefaultAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.NonNullByDefault"));
+        nullablebydefaultAnnotationSymbol = createClass("org.jmlspecs.annotations.NullableByDefault");
+        nonnullbydefaultAnnotationSymbol = createClass("org.jmlspecs.annotations.NonNullByDefault");
         
+        if (TYPE.tsym == null) TYPE.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("TYPE"), TYPE, syms.rootPackage);
         if (REAL.tsym == null) {
-            //TYPE.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("TYPE"), TYPE, syms.rootPackage);  // Instead \TYPE is a complete synonym for java.lang.Class
 //            REAL.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("real"), REAL, syms.rootPackage);
 //            BIGINT.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("bigint"), BIGINT, syms.rootPackage);
 //            Lock.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("Lock"), Lock, syms.rootPackage);
@@ -2406,14 +2414,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (n != 1) {
                     log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
                 }
+                t = syms.errType;
                 if (n > 0) {
                     //attribTree(tree.args.get(0), localEnv, pkind, syms.classType); // FIXME - THIS DOES not work either
-                    if (!(tree.args.get(0).type.tsym == syms.classType.tsym)) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
+                    if (tree.args.get(0).type == TYPE) {
+                        t = this.TYPE;
+                    } else if (tree.args.get(0).type.tsym == syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
+                        t = syms.classType;
+                    } else {
                         log.error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
+                        t = this.TYPE;
                     }
                 }
                 // FIXME - need to check that argument is an array type - see comment above
-                t = this.TYPE;
                 result = check(tree, t, VAL, pkind, pt);
                 break;
 
@@ -2812,15 +2825,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // FIXME - what about subclasses of Class
                 attribExpr(that.lhs,env,Type.noType);
                 Type t = that.lhs.type;
-                if (!t.isErroneous() && !t.equals(TYPE)
+                boolean errorAlready = false;
+                if (t.isErroneous()) errorAlready = true;
+                else if (!t.equals(TYPE)
                         && !t.tsym.equals(syms.classType.tsym)) {
+                    errorAlready = true;
                     log.error(that.lhs.pos(),"jml.subtype.arguments",that.lhs.type);
                 }
                 attribExpr(that.rhs,env,Type.noType);
-                t = that.rhs.type;
-                if (!t.isErroneous() && !t.equals(TYPE)
-                        && !t.tsym.equals(syms.classType.tsym)) {
+                Type tt = that.rhs.type;
+                if (tt.isErroneous()) errorAlready = true;
+                else if (!tt.equals(TYPE)
+                        && !tt.tsym.equals(syms.classType.tsym)) {
+                    errorAlready = true;
                     log.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
+                }
+                if (t.equals(TYPE) != tt.equals(TYPE) && !errorAlready) {
+                    log.error(that.rhs.pos(),"jml.subtype.arguments.same",that.rhs.type);
                 }
                 result = that.type = syms.booleanType;
                 break;
@@ -3091,6 +3112,36 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             checkSecretReadable(tree.pos(),(VarSymbol)tree.sym);
         } // FIXME - what else could it be, besides an error?
         result = saved;
+    }
+    
+    @Override
+    public void visitTypeCast(JCTypeCast tree) {
+        if (tree.clazz instanceof JmlPrimitiveTypeTree) {
+            // FIXME - this needs to be expanded to include real and bigint and
+            // arrays of such
+            JmlToken t = ((JmlPrimitiveTypeTree)tree.clazz).token;
+            Type clazztype = attribType(tree.clazz, env);
+            if (t == JmlToken.BSTYPEUC) {
+                chk.validate(tree.clazz, env);
+                Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
+                // Only Class objects may be cast to TYPE
+                // Compare tsym instead of just the thpe because the
+                // exprtype is likely a Class<T> and syms.classType is a Class
+                // or Class<?>
+                if (exprtype.tsym == syms.classType.tsym) {
+                    result = check(tree, clazztype, VAL, pkind, pt);
+                } else {
+                    log.error(tree.expr.pos,"jml.only.class.cast.to.type",exprtype);
+                    result = tree.type = TYPE;
+                }
+            } else {
+                // For now do no checking // FIXME
+                Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
+                result = tree.type = clazztype;
+            }
+        } else {
+            super.visitTypeCast(tree);
+        }
     }
     
     /** Attrbutes an array-element-range (a[1 .. 2]) store-ref expression */
@@ -3733,6 +3784,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         attribAnnotationTypes(that.mods.annotations,env); annotate.flush(); // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
         for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
+        boolean prev = false;
+        if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(true);
         super.visitVarDef(that);
         // Anonymous classes construct synthetic members (constructors at least)
         // which are not JML nodes.
@@ -3742,6 +3795,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // Check the mods after the specs, because the modifier checks depend on
         // the specification clauses being attributed
         checkVarMods(that);
+        if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(prev);
     }
 
     /** This is just here to do some checking for missing implementations */
