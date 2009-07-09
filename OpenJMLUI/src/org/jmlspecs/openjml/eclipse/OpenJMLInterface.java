@@ -24,6 +24,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
@@ -772,10 +773,23 @@ public class OpenJMLInterface {
      * @return
      */
     public @NonNull List<String> getOptions(IJavaProject jproject, Cmd cmd) {
+        Options opt = Activator.options;
         List<String> opts = new LinkedList<String>();
         if (cmd == Cmd.ESC) opts.add(JmlOptionName.ESC.optionName());
-        if (cmd == Cmd.RAC) opts.add(JmlOptionName.RAC.optionName());
-        Options opt = Activator.options;
+        if (cmd == Cmd.RAC) {
+            opts.add(JmlOptionName.RAC.optionName());
+            opts.add("-d");
+            IFolder f = jproject.getProject().getFolder(opt.racbin);
+            if (!f.exists()) {
+                try {
+                    f.create(IResource.FORCE,true,null);
+                    f.refreshLocal(IResource.DEPTH_INFINITE,null);
+                } catch (CoreException e) {
+                    Log.errorlog("Exception in creating RAC output directory " + opt.racbin,e);
+                }
+            }
+            opts.add(f.getLocation().toString());
+        }
         boolean verbose = opt.verbosity >= 1;
         if (opt.debug) opts.add(JmlOptionName.JMLDEBUG.optionName());
         //if (opt.verbosity != 0)  { opts.add(JmlOptionName.JMLVERBOSE.optionName()); } //opts.add(Integer.toString(opt.verbosity)); }

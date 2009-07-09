@@ -322,8 +322,8 @@ public class rac extends RacBase {
                 " /*@ ensures (\\lblneg ENS \\result == 1); */ static int m(int i) { return i; } " +
                 "}"
                 ,"LABEL ENS = true"
-                ,"/tt/TestJava.java:2: JML postcondition is false"
                 ,"LABEL ENS = false"
+                ,"/tt/TestJava.java:2: JML postcondition is false"
                 ,"END"
         );        
     }
@@ -334,9 +334,9 @@ public class rac extends RacBase {
                 "}"
                 ,"LABEL RES = 1"
                 ,"LABEL ENS = true"
-                ,"/tt/TestJava.java:2: JML postcondition is false"
                 ,"LABEL RES = 0"
                 ,"LABEL ENS = false"
+                ,"/tt/TestJava.java:2: JML postcondition is false"
                 ,"END"
         );        
     }
@@ -345,10 +345,10 @@ public class rac extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures (\\lbl ENS \\old(k)) == k; */ static int m(int i) { k=i; return i; } " +
                 "}"
-                ,"/tt/TestJava.java:2: JML postcondition is false"
                 ,"LABEL ENS = 0"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
                 ,"LABEL ENS = 1"
+                ,"/tt/TestJava.java:2: JML postcondition is false"
                 ,"END"
         );        
     }
@@ -357,15 +357,15 @@ public class rac extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " static int m(int i) { //@ assert (\\lbl AST \\old(k)) == 0; \n k=i; //@ assert (\\lbl AST2 \\old(k)) == 0;\n //@ assert (\\lbl AST3 k) == 0; \n return i; } " +
                 "}"
-                ,"/tt/TestJava.java:4: JML assertion is false"
                 ,"LABEL AST = 0"
-                ,"LABEL AST3 = 1"
                 ,"LABEL AST2 = 0"
-                ,"/tt/TestJava.java:2: JML assertion is false"
-                ,"/tt/TestJava.java:3: JML assertion is false"
+                ,"LABEL AST3 = 1"
+                ,"/tt/TestJava.java:4: JML assertion is false"
                 ,"LABEL AST = 1"
-                ,"LABEL AST3 = 0"
+                ,"/tt/TestJava.java:2: JML assertion is false"
                 ,"LABEL AST2 = 1"
+                ,"/tt/TestJava.java:3: JML assertion is false"
+                ,"LABEL AST3 = 0"
                 ,"END"
         );        
     }
@@ -384,20 +384,20 @@ public class rac extends RacBase {
     public void testElemtype() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" 
                 +"Object o = new String[3]; Object oo = new int[5]; Object o3 = new Integer(4);\n"
-                +"//@ ghost nullable java.lang.Class t; \n"
-                +"//@ set t = (\\lbl A \\elemtype(\\typeof(o)));\n"
-                +"//@ set t = (\\lbl B \\elemtype(\\typeof(oo)));\n"
-                +"//@ set t = (\\lbl C \\elemtype(\\typeof(o3)));\n"
+                +"//@ ghost nullable java.lang.Class t; ghost nullable \\TYPE tt; \n"
+                +"//@ set tt = (\\lbl A \\elemtype(\\typeof(o)));\n"
+                +"//@ set tt = (\\lbl B \\elemtype(\\typeof(oo)));\n"
+                +"//@ set tt = (\\lbl C \\elemtype(\\typeof(o3)));\n"
                 +"//@ set t = (\\lbl D \\elemtype(java.lang.Class.class));\n"
                 +"//@ set t = (\\lbl E \\elemtype(java.lang.Boolean[].class));\n"
                 +"System.out.println(\"END\"); } \n"
                 +"}"
-                ,"END"
-                ,"LABEL D = null"
-                ,"LABEL E = class java.lang.Boolean"
                 ,"LABEL A = class java.lang.String"
                 ,"LABEL B = int"
                 ,"LABEL C = null"
+                ,"LABEL D = null"
+                ,"LABEL E = class java.lang.Boolean"
+                ,"END"
                 );
         
     }
@@ -406,17 +406,17 @@ public class rac extends RacBase {
     public void testTypeOf() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new Object()); m(new String()); m(Boolean.TRUE); System.out.println(\"END\"); } \n" +
-                " //@ requires (\\lbl CLS \\typeof(i)) == Object.class; \n" +
+                " //@ requires (\\lbl CLS \\typeof(i).erasure()) == Object.class; \n" +
                 " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
-                ,"CLASS class java.lang.Object"
                 ,"LABEL CLS = class java.lang.Object"
-                ,"/tt/TestJava.java:3: JML precondition is false"
-                ,"CLASS class java.lang.String"
+                ,"CLASS class java.lang.Object"
                 ,"LABEL CLS = class java.lang.String"
                 ,"/tt/TestJava.java:3: JML precondition is false"
-                ,"CLASS class java.lang.Boolean"
+                ,"CLASS class java.lang.String"
                 ,"LABEL CLS = class java.lang.Boolean"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class java.lang.Boolean"
                 ,"END"
                 );
         
@@ -425,15 +425,15 @@ public class rac extends RacBase {
     public void testTypeOf1() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new Object[1]); m(new String[2]); System.out.println(\"END\"); } \n" +
-                " //@ requires (\\lbl CLS \\typeof(i)) == Object.class; \n" +
+                " //@ requires (\\lbl CLS \\typeof(i)) == \\type(Object); \n" +
                 " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
-                ,"/tt/TestJava.java:3: JML precondition is false"
-                ,"CLASS class [Ljava.lang.Object;"
                 ,"LABEL CLS = class [Ljava.lang.Object;"
                 ,"/tt/TestJava.java:3: JML precondition is false"
-                ,"CLASS class [Ljava.lang.String;"
+                ,"CLASS class [Ljava.lang.Object;"
                 ,"LABEL CLS = class [Ljava.lang.String;"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class [Ljava.lang.String;"
                 ,"END"
                 );
         
@@ -442,7 +442,7 @@ public class rac extends RacBase {
     public void testTypeOf2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); System.out.println(\"END\"); } \n" +
-                " //@ requires (\\lbl CLS \\typeof(i)) == Object.class; \n" +
+                " //@ requires (\\lbl CLS \\typeof(i)) == \\type(Object); \n" +
                 " static void m(int i) { \n" +
                 "//@ assert (\\lbl AST \\typeof(true)) != null; \n" +
                 "//@ assert (\\lbl AST2 \\typeof((short)0)) != null; \n" +
@@ -454,16 +454,16 @@ public class rac extends RacBase {
                 "//@ assert (\\lbl AST8 \\typeof((double)0)) != null; \n" +
                 "} " +
                 "}"
-                ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"LABEL CLS = int"
+                ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"LABEL AST = boolean"
-                ,"LABEL AST7 = float"
-                ,"LABEL AST6 = class java.lang.String"
-                ,"LABEL AST8 = double"
-                ,"LABEL AST3 = long"
                 ,"LABEL AST2 = short"
-                ,"LABEL AST5 = char"
+                ,"LABEL AST3 = long"
                 ,"LABEL AST4 = byte"
+                ,"LABEL AST5 = char"
+                ,"LABEL AST6 = class java.lang.String"
+                ,"LABEL AST7 = float"
+                ,"LABEL AST8 = double"
                 ,"END"
                 );
         
@@ -477,8 +477,8 @@ public class rac extends RacBase {
                 "//@ assert (\\lbl AST10 \\typeof(5.0/0.0)) != null; \n" +
                 "} " +
                 "}"
-                ,"LABEL AST10 = double"
                 ,"LABEL AST9 = int"
+                ,"LABEL AST10 = double"
                 ,"END"
                 );
         
@@ -504,8 +504,8 @@ public class rac extends RacBase {
                 ,"LABEL ELEM = true"
                 ,"LABEL ELEM = true"
                 ,"LABEL ELEM = true"
-                ,"/tt/TestJava.java:13: JML assertion is false"
                 ,"LABEL ELEM = false"
+                ,"/tt/TestJava.java:13: JML assertion is false"
                 ,"/tt/TestJava.java:8: JML assertion is false"
                 ,"/tt/TestJava.java:10: JML assertion is false"
                 ,"END"
@@ -521,9 +521,9 @@ public class rac extends RacBase {
                 "//@ assert (\\lblpos ELEM \\nonnullelements((\\lbl O o))); \n" +
                 "} " +
                 "}"
-                ,"/tt/TestJava.java:5: JML assertion is false"
                 ,"LABEL O = null"
                 ,"LABEL ELEM = false"
+                ,"/tt/TestJava.java:5: JML assertion is false"
                 ,"END"
                 );
         
@@ -549,16 +549,17 @@ public class rac extends RacBase {
                 "//@ assert (\\lbl STRING \"abc\") != null; \n" +
                 "} " +
                 "}"
-                ,"/tt/TestJava.java:15: JML assertion is false"
-                ,"LABEL CHAR = a"
-                ,"LABEL DOUBLE = 6.0"
-                ,"LABEL BYTE = 3"
+                ,"LABEL STRING = def"
                 ,"LABEL SHORT = 1"
-                ,"LABEL BOOLEAN = false"
-                ,"LABEL FLOAT = 5.0"
-                ,"LABEL INT = 4"
-                ,"LABEL OBJECT = null"
                 ,"LABEL LONG = 2"
+                ,"LABEL BYTE = 3"
+                ,"LABEL INT = 4"
+                ,"LABEL FLOAT = 5.0"
+                ,"LABEL DOUBLE = 6.0"
+                ,"LABEL CHAR = a"
+                ,"LABEL BOOLEAN = false"
+                ,"/tt/TestJava.java:15: JML assertion is false"
+                ,"LABEL OBJECT = null"
                 ,"LABEL STRING = abc"
                 ,"END"
                 );
@@ -583,14 +584,14 @@ public class rac extends RacBase {
                 "//@ assert (\\lbl STRING \"abc\") != null; \n" +
                 "} " +
                 "}"
-                ,"LABEL CHAR = a"
-                ,"LABEL DOUBLE = 6.0"
-                ,"LABEL BYTE = 3"
-                ,"LABEL SHORT = 1"
-                ,"LABEL BOOLEAN = true"
-                ,"LABEL FLOAT = 5.0"
                 ,"LABEL INT = 4"
+                ,"LABEL SHORT = 1"
                 ,"LABEL LONG = 2"
+                ,"LABEL BYTE = 3"
+                ,"LABEL FLOAT = 5.0"
+                ,"LABEL DOUBLE = 6.0"
+                ,"LABEL CHAR = a"
+                ,"LABEL BOOLEAN = true"
                 ,"LABEL STRING = abc"
                 ,"END"
                 );
@@ -602,14 +603,14 @@ public class rac extends RacBase {
                 "m(); mm(); ma(); mg(); \n" +
                 "System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
-                "//@ ghost Class c; \n" +
+                "//@ ghost \\TYPE c; \n" +
                 "//@ set c = \\type(int); \n" +
                 "//@ set c = (\\lbl TYP1 c); \n" +
                 "//@ set c = \\type(boolean); \n" +
                 "//@ set c = (\\lbl TYP2 c); \n" +
                 "}\n" +
                 " static void mm() { \n" +
-                "//@ ghost Class c; \n" +
+                "//@ ghost \\TYPE c; \n" +
                 "//@ set c = \\type(java.lang.Object); \n" +
                 "//@ set c = (\\lbl TYP1 c); \n" +
                 "//@ set c = \\type(Object); \n" +
@@ -620,7 +621,7 @@ public class rac extends RacBase {
                 "//@ set c = (\\lbl TYP4 c); \n" +
                 "}\n" +
                 " static void ma() { \n" +
-                "//@ ghost Class c; \n" +
+                "//@ ghost \\TYPE c; \n" +
                 "//@ set c = \\type(java.lang.String[]); \n" +
                 "//@ set c = (\\lbl TYP1 c); \n" +
                 "//@ set c = \\type(String[]); \n" +
@@ -631,25 +632,25 @@ public class rac extends RacBase {
                 "//@ set c = (\\lbl TYP4 c); \n" +
                 "} " +
                 " static void mg() { \n" +
-                "//@ ghost Class c; \n" +
+                "//@ ghost \\TYPE c; \n" +
                 "//@ set c = \\type(java.lang.Class<Integer>); \n" +
                 "//@ set c = (\\lbl TYP1 c); \n" +
                 "//@ set c = \\type(Class<?>); \n" +
                 "//@ set c = (\\lbl TYP2 c); \n" +
                 "} " +
                 "}"
-                ,"LABEL TYP2 = boolean"
                 ,"LABEL TYP1 = int"
-                ,"LABEL TYP2 = class java.lang.Object"
+                ,"LABEL TYP2 = boolean"
                 ,"LABEL TYP1 = class java.lang.Object"
-                ,"LABEL TYP4 = class java.lang.String"
+                ,"LABEL TYP2 = class java.lang.Object"
                 ,"LABEL TYP3 = class java.lang.String"
-                ,"LABEL TYP2 = class [Ljava.lang.String;"
+                ,"LABEL TYP4 = class java.lang.String"
                 ,"LABEL TYP1 = class [Ljava.lang.String;"
-                ,"LABEL TYP4 = class [[Ljava.lang.String;"
+                ,"LABEL TYP2 = class [Ljava.lang.String;"
                 ,"LABEL TYP3 = class [[Ljava.lang.String;"
-                ,"LABEL TYP2 = class java.lang.Class"
+                ,"LABEL TYP4 = class [[Ljava.lang.String;"
                 ,"LABEL TYP1 = class java.lang.Class"
+                ,"LABEL TYP2 = class java.lang.Class"
                 ,"END"
                 );
         
@@ -691,15 +692,15 @@ public class rac extends RacBase {
                 "//@ set c = (\\lblpos TYP5 c); \n" +
                 "}\n" +
                 "}"
-                ,"LABEL TYP2 = true"
                 ,"LABEL TYP1 = true"
-                ,"LABEL TYP4 = true"
+                ,"LABEL TYP2 = true"
                 ,"LABEL TYP3 = false"
+                ,"LABEL TYP4 = true"
                 ,"LABEL TYP5 = false"
-                ,"LABEL TYP2 = false"
                 ,"LABEL TYP1 = false"
-                ,"LABEL TYP4 = true"
+                ,"LABEL TYP2 = false"
                 ,"LABEL TYP3 = false"
+                ,"LABEL TYP4 = true"
                 ,"LABEL TYP5 = false"
                 ,"END"
                 );
@@ -1213,7 +1214,6 @@ public class rac extends RacBase {
 //    }
 
     public void testNullAssignment() {
-        print = true;
         helpTCX("tt.A","package tt; import org.jmlspecs.annotations.*; @NullableByDefault public class A  { \n"
                 +"/*@non_null*/ static String o=\"\",oo=\"\"; static Object ooo;\n"
                 +"public static void main(String[] args) { \n"

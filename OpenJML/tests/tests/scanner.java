@@ -92,7 +92,7 @@ public class scanner extends JmlTestCase {
                 fail("Scanner not at EOF: " + sc.token());
             }
             if (collector.getDiagnostics().size() != numErrors) {
-                printErrors();
+                if (!noExtraPrinting) printErrors();
                 fail("Saw wrong number of errors: expected " + numErrors 
                         + " actual " + collector.getDiagnostics().size());
             }
@@ -172,6 +172,7 @@ public class scanner extends JmlTestCase {
     
     /** This tests that the test harness fails if wrong number of errors is given */
     @Test public void testHarness7() {
+        noExtraPrinting = true;
         helpFailure("Saw wrong number of errors: expected 1 actual 0",
                 "A",new Enum<?>[]{IDENTIFIER,EOF},new int[]{0,1,1,1},1);
     }

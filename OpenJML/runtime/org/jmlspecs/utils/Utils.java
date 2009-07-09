@@ -141,6 +141,7 @@ public class Utils {
      * @return the value of v
      */
     public static byte saveByte(String key, byte v) {
+        System.out.println("LABEL " + key + " = " + v);
         map.put(key,v);
         return v;
     }
@@ -151,6 +152,7 @@ public class Utils {
      * @return the value of v
      */
     public static short saveShort(String key, short v) {
+        System.out.println("LABEL " + key + " = " + v);
         map.put(key,v);
         return v;
     }
@@ -161,6 +163,7 @@ public class Utils {
      * @return the value of v
      */
     public static char saveChar(String key, char v) {
+        System.out.println("LABEL " + key + " = " + v);
         map.put(key,v);
         return v;
     }
@@ -171,6 +174,7 @@ public class Utils {
      * @return the value of v
      */
     public static long saveLong(String key, long v) {
+        System.out.println("LABEL " + key + " = " + v);
         map.put(key,v);
         return v;
     }
@@ -181,6 +185,7 @@ public class Utils {
      * @return the value of v
      */
     public static float saveFloat(String key, float v) {
+        System.out.println("LABEL " + key + " = " + v);
         map.put(key,v);
         return v;
     }
@@ -191,6 +196,7 @@ public class Utils {
      * @return the value of v
      */
     public static double saveDouble(String key, double v) {
+        System.out.println("LABEL " + key + " = " + v);
         map.put(key,v);
         return v;
     }
@@ -201,6 +207,7 @@ public class Utils {
      * @return the value of v
      */
     public static boolean saveBoolean(String key, boolean v) {
+        System.out.println("LABEL " + key + " = " + v);System.out.flush();
         map.put(key,v);
         return v;
     }
@@ -211,6 +218,7 @@ public class Utils {
      * @return the value of v
      */
     public static int saveInt(String key, int v) {
+        System.out.println("LABEL " + key + " = " + v);
         map.put(key,v);
         return v;
     }
@@ -221,6 +229,7 @@ public class Utils {
      * @return the value of v
      */
     public static Object saveObject(String key, Object v) {
+        System.out.println("LABEL " + key + " = " + v);
         map.put(key,v);
         return v;
     }
@@ -256,11 +265,12 @@ public class Utils {
     
     /** Prints all values in the database and then deletes them */
     public static void printValues() {
-        java.util.Iterator<Map.Entry<String,Object>> i = map.entrySet().iterator();
-        for ( ; i.hasNext(); ) {
-            Map.Entry<String,Object> e = i.next();
-            System.out.println("LABEL " + e.getKey() + " = " + e.getValue());
-        }
+//        java.util.Iterator<Map.Entry<String,Object>> i = map.entrySet().iterator();
+//        for ( ; i.hasNext(); ) {
+//            Map.Entry<String,Object> e = i.next();
+//            System.out.println("LABEL " + e.getKey() + " = " + e.getValue());
+//        }
+        System.out.flush();
         clearValues();
     }
 //    public static void printValues() {
@@ -269,4 +279,117 @@ public class Utils {
 //        }
 //        clearValues();
 //    }
+    
+    public static  IJMLTYPE makeTYPE(Class<?> base, IJMLTYPE... args) {
+        return JmlTypeRac.make(base,args);
+    }
+    
+    public static final IJMLTYPE[] emptyArgs = {};
+    
+    public static  IJMLTYPE makeTYPE0(Class<?> base) {
+        if (base == null) return null;
+        return JmlTypeRac.make(base,emptyArgs);
+    }
+    
+    public static  Class<?> erasure(IJMLTYPE t) {
+        return t.erasure();
+    }
+    
+    public static boolean isSubTypeOf(IJMLTYPE t, IJMLTYPE tt) {
+        try {
+            return tt.erasure().isAssignableFrom(t.erasure());
+        } catch (java.lang.IncompatibleClassChangeError e) {
+            System.err.println("ISTO: " + t.erasure() + " " + tt.erasure());
+            return false;
+        }
+    }
+    
+    private static class JmlTypeRac implements IJMLTYPE {
+
+        final private Class<?> base;
+        final private IJMLTYPE[] args;
+        final private static Map<IJMLTYPE,IJMLTYPE> internSet = new HashMap<IJMLTYPE,IJMLTYPE>();
+        
+        public static IJMLTYPE make(Class<?> base, IJMLTYPE... args) {
+            JmlTypeRac t = new JmlTypeRac(base,args);
+            return t.intern();
+        }
+        
+        public String toString() {
+            String s = base.toString();
+            if (args != null && args.length > 0) {
+                s = s + "<";
+                boolean first = true;
+                for (IJMLTYPE t: args) {
+                    if (first) first = false; else s = s + ",";
+                    s = s + t.toString();
+                }
+                s = s + ">";
+            }
+            return s;
+        }
+        
+        private IJMLTYPE intern() {
+            IJMLTYPE tt = internSet.get(this);
+            if (tt == null) {
+                tt = this;
+                internSet.put(this,this);
+            }
+            return tt;
+        }
+        
+        private JmlTypeRac(Class<?> base, IJMLTYPE... args) {
+            this.base = base;
+            this.args = args;
+        }
+
+        //JAVA16 @Override
+        public IJMLTYPE arg(int i) {
+            return args[i];
+        }
+
+        //JAVA16 @Override
+        public boolean equals(IJMLTYPE t) {
+            if (t == null) return false;
+            if (this == t) return true;
+            if (!(t instanceof JmlTypeRac)) return false;
+            JmlTypeRac tt = (JmlTypeRac)t;
+            if (erasure() != tt.erasure()) return false;
+            if (args.length != tt.args.length) return false;
+            for (int i=0; i<args.length; i++) {
+                if (!args[i].equals(tt.args[i])) return false;
+            }
+            return true;
+        }
+        
+        //JAVA16  @Override
+        public int hashCode() {
+            int i = base.hashCode();
+            int k = 0;
+            for (IJMLTYPE t: args) i = i + (t.hashCode()<< (++k));
+            return i;
+        }
+
+        //JAVA16 @Override
+        public Class<?> erasure() {
+            return base;
+        }
+
+        //JAVA16 @Override
+        public boolean isArray() {
+            return base.isArray();
+        }
+
+        //JAVA16 @Override
+        public boolean isSubtypeOf(IJMLTYPE t) {
+            return t.erasure().isAssignableFrom(this.base);
+        }
+
+        //JAVA16 @Override
+        public int numargs() {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+    }
 }

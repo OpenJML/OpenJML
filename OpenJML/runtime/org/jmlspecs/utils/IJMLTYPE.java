@@ -10,10 +10,14 @@ import org.jmlspecs.annotations.*;
  *
  */
 @Pure
-public interface IJMLType {
+public interface IJMLTYPE {
 
-    public boolean equals(IJMLType t);
+    public boolean equals(IJMLTYPE t);
     public boolean equals(Object t);
 
-    public boolean isSubtypeOf(IJMLType t);
+    public boolean isSubtypeOf(IJMLTYPE t);
+    public Class<?> erasure();
+    public int numargs();
+    public IJMLTYPE arg(int i);
+    public boolean isArray();
 }

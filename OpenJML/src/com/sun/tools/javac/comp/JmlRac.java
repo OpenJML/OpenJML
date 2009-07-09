@@ -211,7 +211,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         JCTree.JCFieldAccess f = make.Select(arg,names._class);
         f.type = syms.classType;
         f.sym = f.type.tsym;
-        result = translate(f);
+        result = methodCallUtilsExpression("makeTYPE0",translate(f));
     }
     
     // FIXME - what about generic types
@@ -254,19 +254,28 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
                 result = makePrimitiveClassLiteralExpression("java.lang.Boolean");
                 break;
         }
+        // Make a \TYPE from a Java class literal
+        result = methodCallUtilsExpression("makeTYPE0",(JCExpression)result);
     }
     
     public void translateElemtype(JCMethodInvocation tree) {
+        JCExpression arg = tree.args.head;
+        if (tree.type.equals(attr.TYPE)) {
+            arg = methodCallUtilsExpression("erasure",arg);
+        }
         Name n = names.fromString("getComponentType");
         Scope.Entry e = syms.classType.tsym.members().lookup(n);
         Symbol ms = e.sym;
-        JCFieldAccess m = make.Select(translate(tree.args.head),n);
+        JCFieldAccess m = make.Select(translate(arg),n);
         m.sym = ms;
         m.type = m.sym.type;
 
         JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
         c.setType(syms.classType);
         result = c;
+        if (tree.type.equals(attr.TYPE)) {
+            result = methodCallUtilsExpression("makeTYPE0",c);
+        }
     }
     
     public static class ClassInfo {
@@ -1021,6 +1030,15 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
             }
         }
     }
+    
+    public void visitTypeCast(JCTypeCast tree) {
+        if (tree.clazz.type.equals(attr.TYPE)) {
+            JCExpression e = translate(tree.expr);
+            result = methodCallUtilsExpression("makeTYPE0",e);
+        } else {
+            super.visitTypeCast(tree);
+        }
+    }
 
     public void visitVarDef(JCVariableDecl tree) {
         super.visitVarDef(tree);
@@ -1221,6 +1239,13 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         return c;
     }
     
+    public JCExpression methodCallUtilsExpression(String methodName, JCExpression translatedArg, JCExpression translatedArg2) {
+        JCFieldAccess m = findUtilsMethod(methodName);
+        JCExpression c = make.Apply(null,m,List.<JCExpression>of(translatedArg,translatedArg2));
+        c.setType(((Type.MethodType)m.type).restype);
+        return c;
+    }
+    
 //    public JCStatement methodCallThis(Name methodName) {
 //        JCIdent m = findThisMethod(methodName);
 //        JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
@@ -1378,16 +1403,26 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
                 break;
                 
             case SUBTYPE_OF:
-                Name n = names.fromString("isAssignableFrom");
-                Scope.Entry e = that.rhs.type.tsym.members().lookup(n);
-                Symbol ms = e.sym;
-                JCFieldAccess m = make.Select(rhs,n);
-                m.sym = ms;
-                m.type = m.sym.type;
+                if (that.lhs.type.equals(attr.TYPE)) {
+                    // \TYPE <: \TYPE
+                    JCExpression lhsTranslated = translate(that.lhs);
+                    JCExpression rhsTranslated = translate(that.rhs);
+                    JCExpression c = methodCallUtilsExpression("isSubTypeOf",lhsTranslated,rhsTranslated);
+                    c.setType(syms.booleanType);
+                    result = c;
+                } else {
+                    // Class <: Class - in case type checking allows it
+                    Name n = names.fromString("isAssignableFrom");
+                    Scope.Entry e = that.rhs.type.tsym.members().lookup(n);
+                    Symbol ms = e.sym;
+                    JCFieldAccess m = make.Select(rhs,n);
+                    m.sym = ms;
+                    m.type = m.sym.type;
 
-                JCExpression c = make.Apply(null,m,List.<JCExpression>of(lhs));
-                c.setType(syms.booleanType);
-                result = c;
+                    JCExpression c = make.Apply(null,m,List.<JCExpression>of(lhs));
+                    c.setType(syms.booleanType);
+                    result = c;
+                }
                 // FIXME - do we intend that <: is always false among pairs of primitive types (even the same)
                 break;
                 

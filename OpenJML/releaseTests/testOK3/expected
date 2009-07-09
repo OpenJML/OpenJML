@@ -391,6 +391,10 @@ typechecking java.util.MissingResourceException
 typechecked java.util.MissingResourceException
 typechecking java.util.regex.Matcher
 typechecked java.util.regex.Matcher
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/org/jmlspecs/utils/IJMLTYPE.jml
+entering (binary) org.jmlspecs.utils.IJMLTYPE
+typechecking org.jmlspecs.utils.IJMLTYPE
+typechecked org.jmlspecs.utils.IJMLTYPE
 typechecking java.util.Properties
 typechecking java.util.Hashtable
 typechecking java.util.Dictionary
@@ -452,13 +456,13 @@ typechecked java.lang.NumberFormatException
 typechecking java.lang.Byte
 typechecked java.lang.Byte
 No specs for int
+No specs for byte
 No specs for short
 No specs for long
+No specs for char
 No specs for float
 No specs for double
-No specs for char
 No specs for boolean
-No specs for byte
 No specs for void
 typechecking java.lang.IllegalStateException
 typechecked java.lang.IllegalStateException

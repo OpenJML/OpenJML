@@ -4,19 +4,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
-import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
@@ -134,6 +124,25 @@ public class JMLBuilder extends IncrementalProjectBuilder {
   protected void clean(IProgressMonitor monitor) throws CoreException {
     Log.log("Cleaning: " + getProject().getName());
     deleteMarkers(getProject(),true);
+    cleanRacbin(getProject());
+  }
+  
+  /** Deletes the contents of the RAC binary directory (at the location defined in the
+   * options) of the given project and refreshing it
+   * in the workspace.  All done in the UI thread.
+   * @param p the project whose RAC directory is to be cleaned
+   */  // FIXME - should this be done in a computational thread, with a progress monitor?
+  public void cleanRacbin(IProject p) {
+      try {
+          IPath path = new Path(Activator.options.racbin);
+          IFolder f = (IFolder)getProject().findMember(path);
+          for (IResource r: f.members()) {
+              r.delete(IResource.FORCE,null);
+          }
+          f.refreshLocal(IResource.DEPTH_INFINITE,null);
+      } catch (CoreException e) {
+          Log.errorlog("Exception while cleaning RAC directory",e);
+      }
   }
 
 
@@ -160,13 +169,13 @@ public class JMLBuilder extends IncrementalProjectBuilder {
    * @param resourcesToBuild the resources to build
    * @param monitor the monitor to record progress and cancellation
    */
-  static void doChecking(IJavaProject jproject, List<IResource> resourcesToBuild, IProgressMonitor monitor) {
+  protected static void doChecking(IJavaProject jproject, List<IResource> resourcesToBuild, IProgressMonitor monitor) {
     // We've already checked that this is a Java and a JML project
     // Also all the resources should be from this project, because the
     // builders work project by project
     Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.CHECK,resourcesToBuild, monitor);
   }
-  
+
 
   /** Called when a full build is requested on the current project. 
    * @param monitor the progress monitor to use
@@ -190,7 +199,9 @@ public class JMLBuilder extends IncrementalProjectBuilder {
     }
     ResourceVisitor v = new ResourceVisitor();
     project.accept(v);
+    // FIXME - doing double work here
     doChecking(jproject,v.resourcesToBuild,monitor);
+    Activator.getDefault().utils.doBuildRac(jproject,v.resourcesToBuild,monitor);
     v.resourcesToBuild.clear();
   }
 
@@ -230,6 +241,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
     DeltaVisitor v = new DeltaVisitor();
     delta.accept(v);  // collects all changed files and deletes markers
     doChecking(JavaCore.create(getProject()),v.resourcesToBuild,monitor);
+    Activator.getDefault().utils.doBuildRac(JavaCore.create(getProject()),v.resourcesToBuild,monitor);
     v.resourcesToBuild.clear(); // Empties the list
   }
   
@@ -279,13 +291,12 @@ public class JMLBuilder extends IncrementalProjectBuilder {
       try {
           boolean cancelled = doBuild(JavaCore.create(((IResource)resources.get(0)).getProject()),resources, monitor);  // FIXME - build everything or update?
           Log.log(Timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
-      } catch (CoreException e) {
-          Log.errorlog("CoreException occurred during JML check ",e);
+      } catch (Exception e) {
+          Log.errorlog("Exception occurred during JML check ",e);
       }
       return false;
   }
   
   // FIXME - timer is used here in background threads
-  // FIXME - should we call doBuild with groups of resources in the same project
   
 }

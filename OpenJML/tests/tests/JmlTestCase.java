@@ -175,7 +175,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         try {
             assertEquals("Wrong number of messages seen",a.length,2*collector.getDiagnostics().size());
             List<Diagnostic<? extends JavaFileObject>> diags = collector.getDiagnostics();
-            if (print || 2*diags.size() != a.length) printErrors();
+            if (print || (!noExtraPrinting && 2*diags.size() != a.length)) printErrors();
             assertEquals("Saw wrong number of errors ",a.length,2*diags.size());
             for (int i = 0; i<diags.size(); ++i) {
                 assertEquals("Message for item " + i,a[2*i].toString(),noSource(diags.get(i)));

@@ -344,6 +344,54 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
         }
     }
 
+    /**
+     * This action enables selected resources for RAC compilation.
+     * @author David Cok
+     */
+    static public class EnableForRAC extends MenuActions {
+        // This is done in the UI thread. 
+        @Override
+        public final void run(final IAction action) {
+            try {
+                utils.markForRac(true,selection,window,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.EnableForRac",e);
+            }
+        }
+    }
+
+    /**
+     * This action disables selected resources for RAC compilation.
+     * @author David Cok
+     */
+    static public class DisableForRAC extends MenuActions {
+        // This is done in the UI thread. 
+        @Override
+        public final void run(final IAction action) {
+            try {
+                utils.markForRac(false,selection,window,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.DisableForRac",e);
+            }
+        }
+    }
+
+    /**
+     * This action deletes RAC-compiled class files.
+     * @author David Cok
+     */
+    static public class ClearForRAC extends MenuActions {
+        // This is done in the UI thread. 
+        @Override
+        public final void run(final IAction action) {
+            try {
+                utils.clearForRac(selection,window,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.ClearForRac",e);
+            }
+        }
+    }
+
     /** A static helper method that can be called for PopupActions
      * as well - it puts up an informational dialog with specification
      * information about the object o.  This may spawn a computational

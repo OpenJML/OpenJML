@@ -277,4 +277,52 @@ abstract public class PopupActions implements IObjectActionDelegate {
         }
     }
 
+    /**
+     * This action enables selected resources for RAC compilation.
+     * @author David Cok
+     */
+    static public class EnableForRAC extends PopupActions {
+        // This is done in the UI thread. 
+        @Override
+        public final void run(final IAction action) {
+            try {
+                utils.markForRac(true,selection,null,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"PopupActions.EnableForRac",e);
+            }
+        }
+    }
+
+    /**
+     * This action disables selected resources from RAC compilation.
+     * @author David Cok
+     */
+    static public class DisableForRAC extends PopupActions {
+        // This is done in the UI thread. 
+        @Override
+        public final void run(final IAction action) {
+            try {
+                utils.markForRac(false,selection,null,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"PopupActions.DisableForRac",e);
+            }
+        }
+    }
+
+    /**
+     * This action deletes RAC-compiled class files.
+     * @author David Cok
+     */
+    static public class ClearForRAC extends PopupActions {
+        // This is done in the UI thread. 
+        @Override
+        public final void run(final IAction action) {
+            try {
+                utils.clearForRac(selection,null,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"PopupActions.ClearForRac",e);
+            }
+        }
+    }
+
 }

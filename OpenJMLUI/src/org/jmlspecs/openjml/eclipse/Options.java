@@ -90,6 +90,11 @@ public class Options {
      * any non-existent directories or non-directories on the path.
      */
     public boolean checkSpecsPath;
+    
+    /** The directory (subdirectory of the project) in which RAC-compiled
+     * class files are placed.
+     */
+    public String racbin;
 
     /** Creates an option structure with default settings. */
     public Options() { setDefaults(); }
@@ -115,6 +120,7 @@ public class Options {
         showNotExecutable = true;
         noInternalSpecs = false;
         noInternalRuntime = false;
+        racbin = "bin";
 
         return this;
     }

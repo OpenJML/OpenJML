@@ -118,82 +118,82 @@ public class typechecking extends TCBase {
     public void testType() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(A,k);\n}}"
                 ,"/A.java:2: More than one argument or otherwise ill-formed type expression as argument of \\type",19
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                 );
     }
 
     public void testType2() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type();\n}}"
                 ,"/A.java:2: illegal start of type",18
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                 );
     }
 
     public void testType3() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(b);\n}}"
                 ,"/A.java:2: cannot find symbol\n  symbol:   class b\n  location: class A",18
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                 );
     }
 
     public void testType4() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(true);\n}}"
                 ,"/A.java:2: illegal start of type",18
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                 );
     }
 
     public void testType5() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(int);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                                 );
     }
 
     public void testType6() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(int[][]);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                                 );
     }
 
     public void testType7() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(Object);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                                 );
     }
 
     public void testType8() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(java.lang.Object);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                                 );
     }
 
     public void testType9() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(java.lang.Object[][]);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                             );
     }
 
     public void testType10() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(A);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                 );
     }
 
     public void testType11() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(void);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                 );
     }
 
     public void testType12() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(Void);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",12
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",12
                 );
     }
 
     public void testTypeof() {
         helpTCF("A.java"," class A { int k; Boolean b; void m() { \n//@ assert \\typeof(b);\n}}",
-                "/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Class<T>",19);
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",19);
     }
 
     public void testResult() {
@@ -277,8 +277,7 @@ public class typechecking extends TCBase {
     
     public void testSubtype3() { // OK
         expectedExit = 0;
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures t <: o.getClass();\nvoid m() {}}"
-                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: getClass()",27
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures t <: \\typeof(o);\nvoid m() {}}"
                 );
     }
     
@@ -290,7 +289,7 @@ public class typechecking extends TCBase {
     }
     
     public void testSubtype5() { // OK
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures t <: c;\nvoid m() {}}");
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures t.erasure() <: c;\nvoid m() {}}");
     }
     
     public void testSubtype6() {

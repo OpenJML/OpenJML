@@ -250,6 +250,8 @@ public class JmlParser extends EndPosParser {
                 mods = modifiersOpt();  // read any additional modifiers (e.g. JML ones)
             }
             if (S.token() == CUSTOM) {
+                pushBackModifiers = mods;
+                mods = null;
                 JCStatement st = parseStatement();
                 list.append(st);
             } else {
@@ -412,6 +414,14 @@ public class JmlParser extends EndPosParser {
                         && (spc=parseSpecificationCase(null, false)) != null) {
                     st = jmlF.JmlModelProgramStatement(spc);
                     return st; // FIXME _ set jml keyuword?
+                } else if (isJmlTypeToken(jtoken)) {
+                    JCExpression t = parseType();
+                    st = variableDeclarator(pushBackModifiers,t,false,null);
+                    pushBackModifiers = null;
+                    S.setJmlKeyword(true); // FIXME - is this needed? or have we already  done this
+                    accept(SEMI);  // FIXME - does not allow multiple declarations
+                    utils.setJML(((JmlVariableDecl)st).mods);
+                    return st;
                 } else {
                     log.error(S.pos(), "jml.unknown.statement", jtoken
                             .internedName());
@@ -450,6 +460,10 @@ public class JmlParser extends EndPosParser {
         }
         JCStatement stt = super.parseStatement();
         return stt;
+    }
+    
+    public boolean isJmlTypeToken(JmlToken t) {
+        return t == JmlToken.BSTYPEUC || t == JmlToken.BSBIGINT || t == JmlToken.BSREAL;
     }
 
     public void parseChoose() {
@@ -536,7 +550,7 @@ public class JmlParser extends EndPosParser {
                                                // pushBackModifiers
             int pos = S.pos();
             JmlToken jt = S.jmlToken();
-            if (jt == null || jt == BSTYPEUC || jt == BSREAL || jt == BSBIGINT) {
+            if (jt == null || isJmlTypeToken(jt)) {
                 pushBackModifiers = mods; // This is used to pass the modifiers
                                           // into
                                           // super.classOrInterfaceBodyDeclaration
@@ -2006,6 +2020,9 @@ public class JmlParser extends EndPosParser {
     /** Parses a type expression */
     @Override
     public JCExpression parseType() {
+        if (isJmlTypeToken(S.jmlToken())) {
+            // FIXME?
+        }
         JCExpression t = super.parseType();
         boolean start = false;
         if (S.jmlToken == STARTJMLCOMMENT) {
@@ -2131,15 +2148,13 @@ public class JmlParser extends EndPosParser {
             JmlToken jt = S.jmlToken();
             int p = S.pos(); // Position of the keyword
 
+            if (isJmlTypeToken(jt)) {
+                t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt));
+                S.nextToken();
+                t = bracketsSuffix(bracketsOpt(t));
+                return t;
+            }
             switch (jt) {
-                case BSTYPEUC:
-                case BSREAL:
-                case BSBIGINT:
-                    t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt));
-                    S.nextToken();
-                    t = bracketsSuffix(bracketsOpt(t));
-                    return t;
-
                 case BSRESULT:
                 case BSINDEX:
                 case BSVALUES:
@@ -2194,8 +2209,9 @@ public class JmlParser extends EndPosParser {
                         } else
                             S.nextToken();
                         // FIXME - this should be a type literal
-                        return toP(jmlF.at(p).JmlMethodInvocation(jt,
+                        e = toP(jmlF.at(p).JmlMethodInvocation(jt,
                                 List.of(e)));
+                        return primarySuffix(e,null);
                     }
 
                 case BSNONNULLELEMENTS:

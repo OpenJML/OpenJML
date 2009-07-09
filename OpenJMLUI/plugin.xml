@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-
+        <!-- TODO: Things to be done:
+                - get RAC decorator working
+                - fix the enablement of the remaining popup menu items
+                - define a submenu for the popup menu items
+                - look into using org.eclipse.ui.menus, which has
+                replaced the menchanisms used here, since 3.3
+                - there are a bunch of FIXMEs
+          -->
+          
   <!-- This defines a builder used to do JML checking as part of the
 		Eclipse compilation process.  The unqualified id appears
 		to be implicitly prefixed by the plugin id as defined in
@@ -86,7 +94,29 @@
             adaptable="true"
             objectClass="java.lang.Object"
             nameFilter="*"
-            id="JMLUI.container0">
+            id="JMLUI.container">
+            <!-- The items in this first objectContribution need more specific enablements -->
+       <action
+               label="Clear for RAC"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$ClearForRAC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.clearForRAC">
+       </action>
+       <action
+               label="Disable for RAC"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$DisableForRAC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.disableForRAC">
+       </action>
+       <action
+               label="Mark for RAC"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$EnableForRAC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.enableForRAC">
+       </action>
        <action
                label="Generate JML doc pages"
                class="org.jmlspecs.openjml.eclipse.PopupActions$JmlDoc"
@@ -94,12 +124,6 @@
                enablesFor="+"
                id="JMLUI.jmldocAction">
        </action>
-    </objectContribution>
-    <objectContribution
-            adaptable="true"
-            objectClass="java.lang.Object"
-            nameFilter="*"
-            id="JMLUI.container1">
        <action
                label="Show JML classpath"
                class="org.jmlspecs.openjml.eclipse.PopupActions$ClassPath"
@@ -107,12 +131,6 @@
                enablesFor="+"
                id="JMLUI.classpathAction">
        </action>
-    </objectContribution>
-    <objectContribution
-            adaptable="true"
-            objectClass="java.lang.Object"
-            nameFilter="*"
-            id="JMLUI.container2">
        <action
                label="Edit JML specs path"
                class="org.jmlspecs.openjml.eclipse.PopupActions$SpecsPath"
@@ -120,12 +138,6 @@
                enablesFor="+"
                id="JMLUI.specspathAction">
        </action>
-    </objectContribution>
-    <objectContribution
-            adaptable="true"
-            objectClass="java.lang.Object"
-            nameFilter="*"
-            id="JMLUI.container3">
        <action
                label="Add to JML specs path"
                class="org.jmlspecs.openjml.eclipse.PopupActions$AddToSpecsPath"
@@ -133,12 +145,6 @@
                enablesFor="+"
                id="JMLUI.addspecspathAction">
        </action>
-    </objectContribution>
-    <objectContribution
-            adaptable="true"
-            objectClass="java.lang.Object"
-            nameFilter="*"
-            id="JMLUI.container4">
        <action
                label="Remove from JML specs path"
                class="org.jmlspecs.openjml.eclipse.PopupActions$RemoveFromSpecsPath"
@@ -421,6 +427,30 @@
          </menu>
         
          <action
+               label="Delete RAC class files"
+               tooltip="Deletes RAC-compiled class files for selected resources"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$ClearForRAC"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ClearForRac"
+                           definitionId="org.jmlspecs.eclipse.commands.ClearForRac">
+         </action>
+         <action
+               label="Disable for RAC"
+               tooltip="Disables selected resources from being compiled with runtime checks"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$DisableForRAC"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.DisableForRac"
+                           definitionId="org.jmlspecs.eclipse.commands.DisableForRac">
+         </action>
+         <action
+               label="Enable for RAC"
+               tooltip="Marks selected resources to be compiled with runtime checks"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$EnableForRAC"
+               menubarPath="JMLMenu/JMLGroup"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.EnableForRac"
+                           definitionId="org.jmlspecs.eclipse.commands.EnableForRac">
+         </action>
+         <action
                label="Show counterexample value"
                tooltip="SHows the value of an expression in the counterexample"
                class="org.jmlspecs.openjml.eclipse.MenuActions$ShowCounterexampleValue"
@@ -519,7 +549,7 @@
          <action
                label="RAC"
                tooltip="Compiles runtime checks in selected objects"
-               class="org.jmlspecs.openjml.eclipse.MenuActions$CheckJML"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$RAC"
                menubarPath="JMLMenu/JMLGroup"
                toolbarPath="Normal/build.ext"
                id="org.jmlspecs.openjml.eclipse.MenuActions.RAC"
@@ -711,10 +741,28 @@
             id="org.jmlspecs.eclipse.commands.CheckESC">
       </command>
       <command
-            name="Compile RAC"
+            name="RAC - compile"
             description="Compiles runtime checks on selected resources"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.RAC">
+      </command>
+      <command
+            name="RAC - enable file"
+            description="Marks files to be compiled with RAC"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.EnableForRAC">
+      </command>
+      <command
+            name="RAC - disable file"
+            description="Disables files from being compiled with RAC"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.DisableForRAC">
+      </command>
+      <command
+            name="RAC - delete all class files"
+            description="Delete all RAC-compiled class files"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.ClearForRAC">
       </command>
       <command
             name="Delete JML Markers"
@@ -806,6 +854,24 @@
             name="JML Editor"/>
    </extension>
 
+<!--
+<extension point="org.eclipse.ui.decorators"> 
+        <decorator
+            id="org.jmlspecs.openjml.eclipse.racDecorator" 
+            label="RAC" 
+            state="false" 
+            lightweight="true" 
+            icon="icons/JMLSmall.png" 
+            location="BOTTOM_RIGHT"> 
+            <enablement>
+                <and>
+                <objectClass name="org.eclipse.core.resources.IFile"/>
+                <objectState name="RAC" value="true"/>
+                </and> 
+            </enablement>
+        </decorator>
+    </extension>
+    --> 
  
    
 </plugin>
