@@ -624,17 +624,7 @@ public class QuerySecret extends TCBase {
         );
     }
 
-//    public void testRepresents4() {
-//        helpTCF("A.java",
-//                "import org.jmlspecs.annotations.*;\n" +
-//                "public class A { \n" + 
-//                "  //@ public model int i;\n" +
-//                "  //@ secret public represents i = 0; \n" +
-//                "} \n"
-//        );
-//    }
-
-    /** testing secret in non-recret represents expression */
+    /** testing secret in non-secret represents expression */
     public void testRepresents5() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotations.*;\n" +
@@ -647,26 +637,66 @@ public class QuerySecret extends TCBase {
         );
     }
 
-//    public void testRepresents6() {
-//        helpTCF("A.java",
-//                "import org.jmlspecs.annotations.*;\n" +
-//                "public class A { \n" + 
-//                "  //@ secret public model int j;\n" +
-//                "  //@ public model int i;\n" +
-//                "  //@ public represents i = j; \n" +
-//                "} \n"
-//        );
-//    }
+    /** no secret in invariant */
+    public void testInvariant() {
+        helpTCF("A.java",
+                "import org.jmlspecs.annotations.*;\n" +
+                "public class A { \n" + 
+                "  //@ secret public model int j;\n" +
+                "  //@ public invariant j == 0;\n" +
+                "  //@ public constraint j == 0;\n" +
+                "} \n"
+                ,"/A.java:4: Secret fields may not be read in non-secret context: j",24
+                ,"/A.java:5: Secret fields may not be read in non-secret context: j",25
+        );
+    }
 
-//    public void testRepresents7() {
-//        helpTCF("A.java",
-//                "import org.jmlspecs.annotations.*;\n" +
-//                "public class A { \n" + 
-//                "  //@ secret public model int j;\n" +
-//                "  //@ public model int i;\n" +
-//                "  //@ public represents i = j; \n" +
-//                "} \n"
-//        );
-//    }
+    public void testMethodCall() {
+        helpTCF("A.java",
+                "import org.jmlspecs.annotations.*;\n" +
+                "public class A { \n" + 
+                "  //@ public model int i;\n" +
+                "  //@ public model int j;\n" +
+                "  //@ @Query(\"i\") \n" +
+                "  public int nq() { \n" +
+                "     mq();\n" +  // OK
+                "     mqq();\n" +  // BAD
+                "     ms();\n" +  // OK
+                "     mo();\n" +  // BAD
+                "     mp();\n" +  // OK
+                "     mss(); return 0;\n" + // BAD
+                "  }\n" +
+                "  //@ @Secret(\"i\") \n" +
+                "  public int ns() { \n" +
+                "     mq();\n" +  // OK
+                "     mqq();\n" +  // BAD
+                "     ms();\n" +  // OK
+                "     mo();\n" +  // BAD
+                "     mss(); return 0;\n" + // BAD
+                "  }\n" +
+                "  public int no() { \n" +
+                "     mq();\n" +  // OK
+                "     mqq();\n" +  // OK
+                "     ms();\n" +  // BAD
+                "     mo();\n" +  // OK
+                "     mss(); return 0;\n" + // BAD
+                "  }\n" +
+                "  @Secret(\"i\") void ms() {}\n" +
+                "  @Secret(\"j\") void mss() {}\n" +
+                "  @Query(\"i\") void mq() {}\n" +
+                "  @Query(\"j\") void mqq() {}\n" +
+                "  void mo() {}\n" +
+                "  @Pure void mp() {}\n" +
+                "} \n"
+                ,"/A.java:8: A method called by a query or secret method must belong to the same datagroup",6
+                ,"/A.java:10: A method called by a query or secret method must belong to the same datagroup",6
+                ,"/A.java:12: A method called by a query or secret method must belong to the same datagroup",6
+                ,"/A.java:17: A method called by a query or secret method must belong to the same datagroup",6
+                ,"/A.java:19: A method called by a query or secret method must belong to the same datagroup",6
+                ,"/A.java:20: A method called by a query or secret method must belong to the same datagroup",6
+                ,"/A.java:25: A non-secret, non-query method may not call a secret method",6
+                ,"/A.java:27: A non-secret, non-query method may not call a secret method",6
+        );
+    }
 
 }

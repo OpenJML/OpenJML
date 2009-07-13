@@ -44,6 +44,26 @@ public class escgeneric extends EscBase {
                 );
     }
     
+    public void testTypeOf() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m(Integer i) {\n"
+                +"    //@ assert \\typeof(this) <: \\type(TestJava);\n"
+                +"  }\n"
+                +"  public void ma(Object o) {\n"
+                +"    //@ assume \\typeof(this) == \\type(Object);\n"
+                +"    //@ assert false;\n" // should not trigger
+                +"  }\n"
+                +"  public void mb(Object o) {\n"
+                +"    //@ assert \\typeof(this) == \\type(Object);\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:7: warning: An assumption appears to be infeasible in method ma(java.lang.Object)",9
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mb",9
+                );
+    }
+    
     public void testStatic() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

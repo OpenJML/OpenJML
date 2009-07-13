@@ -270,7 +270,10 @@ public class Utils {
 //            Map.Entry<String,Object> e = i.next();
 //            System.out.println("LABEL " + e.getKey() + " = " + e.getValue());
 //        }
-        System.out.flush();
+        // It turns out that with system-compiled RAC files, printValues() can get
+        // called before System.out is initialized (scary)
+        // FIXME - perhaps we do not need printValues any more since we are printing values as they happen
+        if (System.out!=null) System.out.flush();
         clearValues();
     }
 //    public static void printValues() {

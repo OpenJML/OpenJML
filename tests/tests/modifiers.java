@@ -8,6 +8,7 @@ public class modifiers extends TCBase {
       //noCollectDiagnostics = true;
       //jmldebug = true;
       super.setUp();
+      options.put("-noPurityCheck","");
     }
     
 

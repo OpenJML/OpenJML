@@ -10,7 +10,7 @@ import org.junit.Test;
 
 /** Tests running the tool as if from the command-line (for typechecking);
  * includes erroneous command-line argument combinations and combinations
- * of class, soruce, and specs paths. */
+ * of class, source, and specs paths. */
 public class compiler extends TestCase {
 
     ByteArrayOutputStream berr;
@@ -122,17 +122,18 @@ public class compiler extends TestCase {
     @Test
     public void testSpecPath() throws Exception {
         helper(new String[]
-                  {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","A.java"},
-                  2,
+                  {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","-noPurityCheck","testfiles/testNoErrors/A.java"},
                   0,
-                  "openjml: file not found: A.java" + eol +
-                  "Usage: openjml <options> <source files>" + eol +
-                  "use -help for a list of possible options" + eol +
+                  0,
+//                  "openjml: file not found: A.java" + eol +
+//                  "Usage: openjml <options> <source files>" + eol +
+//                  "use -help for a list of possible options" + eol +
                   "warning: A specification path directory does not exist: A" + eol +
                   "warning: A specification path directory does not exist: cpath" + eol +
                   "warning: A specification path directory does not exist: cpath2" + eol +
                   "warning: A specification path directory does not exist: spath" + eol +
-                  "warning: A specification path directory does not exist: Z" + eol
+                  "warning: A specification path directory does not exist: Z" + eol +
+                  "5 warnings" + eol
                   );
     }
     
@@ -170,7 +171,7 @@ public class compiler extends TestCase {
                           { "-classpath","testfiles/testNoErrors"+z+"bin",
                             "testfiles/testNoErrors/A.java", "-jmlverbose", "-noInternalSpecs" 
                           },0,2,"",
-                          "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.java" + eol +
+                          //"parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.java" + eol +
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.refines-java" + eol +
                           "entering A.java" + eol +
                           "  completed entering A.java" + eol +
@@ -184,11 +185,13 @@ public class compiler extends TestCase {
     /** Test that specs in the java file are ignored */
     @Test
     public void testIgnoreJava() throws Exception {
+        print = true;
         helper(new String[]
                           { "-classpath","testfiles/testJavaErrors"+z+"bin",
                             "testfiles/testJavaErrors/A.java", "-jmlverbose", "-noInternalSpecs"
                           },0,2,"",
-                          "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.java" + eol +
+                          //"parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.java" + eol +
+                          // stuff about specs path comes in here
                           "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.refines-java" + eol +
                           "entering A.java" + eol +
                           "  completed entering A.java" + eol +

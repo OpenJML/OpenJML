@@ -198,10 +198,12 @@ public class Utils {
         return null;
     }
     
-    /** A string giving the name of the package that JML annotations are in.
-     */
-    /*@ non_null*/
-    public static final String jmlAnnotationPackage = "org.jmlspecs.annotations";
+    public boolean hasValidSuffix(String filename) {
+        for (String s : suffixes) {
+            if (filename.endsWith(s)) return true;
+        }
+        return false;
+    }
     
     
     // The following are stored here globally (e.g., for all compilation
@@ -210,6 +212,11 @@ public class Utils {
 	// behavior of the tool if these are changed during processing.  They are
     // final for now - which could be changed if necessary.
 
+    /** A string giving the name of the package that JML annotations are in.
+     */
+    /*@ non_null*/
+    public static final String jmlAnnotationPackage = "org.jmlspecs.annotations";
+    
     /** This string is the fully-qualified name of the JML compiler messages file */
     /*@ non_null*/
     public static final String messagesJML = "org.jmlspecs.openjml.messages";
@@ -269,5 +276,15 @@ public class Utils {
         }
     }
     
+    /** This method is never actually executed.  It is here to provide a
+     * convenient signature for a method used by ESC - that maps each class
+     * to a distinct integer - not necessarily its hashCode (which are not
+     * necessarily unique).
+     * @param c
+     * @return
+     */
+    public int distinct(Class<?> c) {
+        return c.hashCode();
+    }
 
 }

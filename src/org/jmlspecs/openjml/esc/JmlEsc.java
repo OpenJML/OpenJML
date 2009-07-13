@@ -1,4 +1,6 @@
 package org.jmlspecs.openjml.esc;
+import static com.sun.tools.javac.util.JCDiagnostic.DiagnosticType.WARNING;
+
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.*;
@@ -34,6 +36,7 @@ import org.jmlspecs.openjml.provers.CVC3Prover;
 import org.jmlspecs.openjml.provers.SimplifyProver;
 import org.jmlspecs.openjml.provers.YicesProver;
 
+import com.sun.tools.javac.api.DiagnosticFormatter;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
@@ -47,10 +50,13 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.PropagatedException;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticType;
 
 /**
  * This class is the main driver for executing ESC on a Java/JML AST. It
@@ -135,6 +141,7 @@ public class JmlEsc extends JmlTreeScanner {
         this.showTrace = showCounterexample || JmlOptionName.isOption(context,JmlOptionName.TRACE) || showSubexpressions;
         this.checkAssumptions = !JmlOptionName.isOption(context,"-noCheckAssumptions");
         escdebug = Utils.instance(context).jmldebug;
+        this.cfInfo = JmlOptionName.isOption(context,"-crossRefAssociatedInfo");
     }
 
     /** Set to the currently owning class declaration while visiting JCClassDecl and its children. */
@@ -319,8 +326,6 @@ public class JmlEsc extends JmlTreeScanner {
         JavaFileObject source = tree.sourcefile;
         JavaFileObject prev = log.useSource(source);
 
-        ClassCollector.collect(currentClassDecl,tree);
-
         boolean ok = false;
             
         try {
@@ -383,7 +388,7 @@ public class JmlEsc extends JmlTreeScanner {
         } finally {
             log.useSource(prev);
         }
-        progress(1,1,"Completed proof of " + node.name + " [" + timer.elapsed()/1000. + "]");
+        progress(1,1,"Completed proof of " + node.sym.getQualifiedName() + " [" + timer.elapsed()/1000. + "]");
         return ok;
     }
  
@@ -1462,4 +1467,21 @@ class ClassCollector extends JmlTreeScanner {
        }
         super.visitApply(tree);
     }
+    
+//    static public class JmlDiagnostic extends JCDiagnostic {
+//        public JmlDiagnostic(DiagnosticFormatter<JCDiagnostic> formatter,
+//                       DiagnosticType dt,
+//                       boolean mandatory,
+//                       DiagnosticSource source,
+//                       DiagnosticPosition pos,
+//                       String key,
+//                       Object ... args) {
+//            super(formatter,dt,mandatory,source,pos,key,args);
+//        }
+//        
+//        static JmlDiagnostic warning(int pos, String key, Object ... args) {
+//            return new JmlDiagnostic(formatter, WARNING, false, source, pos, qualify(WARNING, key), args);
+//            
+//        }
+//    }
 }

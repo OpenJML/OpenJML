@@ -1,11 +1,11 @@
 Using internal runtime openjml.jar
+parsing /home/projects/OpenJML/trunk/OpenJML/temp/B.java
 Java version 6
 Using internal specs openjml.jar!specs16
 specspath: . openjml.jar!specs16
 sourcepath: null
 classpath: openjml.jar
 java.class.path: openjml.jar
-parsing /home/projects/OpenJML/trunk/OpenJML/temp/B.java
 entering B.java
   completed entering B.java
 typechecking B

@@ -871,6 +871,8 @@ public class JmlTree {
         public JmlClassDecl owner;
         public JavaFileObject sourcefile;
         public String docComment = null;
+        public VarSymbol _this = null; // The Symbol for 'this' inside the method, if not static
+                                        // valid after attribution
         
         public JmlMethodDecl(JCModifiers mods, Name name, JCExpression restype,
                 List<JCTypeParameter> typarams, List<JCVariableDecl> params,
