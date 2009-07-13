@@ -7,6 +7,7 @@ public class typechecking extends TCBase {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
+        options.put("-noPurityCheck", "");
     }
 
     /** Test something very simple with no errors*/
@@ -284,7 +285,7 @@ public class typechecking extends TCBase {
     public void testSubtype4() { // OK
         expectedExit = 0;
         helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures o.getClass() <: Object.class;\nvoid m() {}}"
-                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: getClass()",22
+                //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: getClass()",22
                 );
     }
     
@@ -310,7 +311,7 @@ public class typechecking extends TCBase {
     
     public void testSetComp() {
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ invariant new JMLSetType { Integer i | c.contains(i) && i<10}; \n \n }"
-                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",79
+                //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",79
                 ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.lang.JMLSetType",55
 		);
     }
@@ -318,7 +319,7 @@ public class typechecking extends TCBase {
     // Testing scopes in method specs
     public void testSetCompA() {
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ requires new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
-                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",78
+                //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",78
                 ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.lang.JMLSetType",54
                 );
     }

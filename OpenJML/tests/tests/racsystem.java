@@ -14,8 +14,7 @@ public class racsystem extends RacBase {
      */
     // The bootclasspath here consists of the JDK library files (RAC-compiled) plus
     // utilities that they depend on - the content of jmlruntime.jar.
-    String[] sysrac = new String[]{jdk, "-Xbootclasspath/p:jdkbin;bin", "-classpath","bin"+z+"testdata",null};
-    //String[] sysrac = new String[]{jdk, "-Xbootclasspath/p:jdkbin;bin-runtime", "-classpath","bin"+z+"testdata",null};
+    String[] sysrac = new String[]{jdk, "-Xbootclasspath/p:jdkbin"+z+"bin-runtime", "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
 
     protected void setUp() throws Exception {
         rac = sysrac;
@@ -32,7 +31,7 @@ public class racsystem extends RacBase {
 
     /** Testing with getting a stack trace */
     public void testFile2() {
-        expectedRACExit = 1;
+        expectedRACExit = 1; 
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"

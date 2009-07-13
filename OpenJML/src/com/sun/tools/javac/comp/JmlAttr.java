@@ -173,15 +173,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // type tags are out of range, so we cannot use the usual
     // initType call to initialize them.
     // FIXME - may need to revisit this for boxing and unboxing
-    final protected Type TYPE;// = new Type(1000,null); 
-    protected Type REAL;// = new Type(1001,null);
-    protected Type BIGINT;// = new Type(1002,null);
-    protected Type Lock;// = new Type(1003,null);
-    protected Type LockSet;// = new Type(1004,null);
-    protected Type JMLUtilsType;
-    protected Type JMLValuesType;
-    protected Type JMLIterType;
-    protected Type JMLSetType;
+    final public Type TYPE;// = new Type(1000,null); 
+    public Type REAL;// = new Type(1001,null);
+    public Type BIGINT;// = new Type(1002,null);
+    public Type Lock;// = new Type(1003,null);
+    public Type LockSet;// = new Type(1004,null);
+    public Type JMLUtilsType;
+    public Type JMLValuesType;
+    public Type JMLIterType;
+    public Type JMLSetType;
     
     /** When true, we are visiting subtrees that allow only pure methods and
      * pure operations */
@@ -269,7 +269,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         TYPE = createClass("org.jmlspecs.utils.IJMLTYPE").type; //syms.classType;
         if (TYPE == null) {
             System.err.println("INTERNAL FAILURE: A circular dependency among constructors has caused a failure to correctly construct objects.  Please report this internal problem.");
-            new Exception().printStackTrace(System.err);
+            // Stack trace is printed inside the constructor
             throw new JmlInternalError();
         }
 
@@ -543,6 +543,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 enclosingMethodEnv = env.dup(env.tree,a);
             }
             super.visitBlock(tree);
+            if (!isStatic(env.enclMethod.mods.flags)) {
+                ((JmlMethodDecl)env.enclMethod)._this = (VarSymbol)thisSym(tree.pos(),enclosingMethodEnv);
+            }
+            
             if (env.enclMethod != null &&
                     env.enclMethod.body == tree) {
                 // Note: we cannot just cache the current value of env for use later.
@@ -1713,9 +1717,34 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return null;
         }
         Name n = getAnnotationStringArg(secret);
+        boolean prev = ((JmlResolve)rs).setAllowJML(true);
         Symbol sym = rs.resolveIdent(secret.args.get(0).pos(),env,n,VAR);
+        ((JmlResolve)rs).setAllowJML(prev);
         if (sym instanceof VarSymbol) return (VarSymbol)sym;
         log.error(secret.pos(),"jml.no.such.field",n.toString());
+        return null;
+    }
+    
+    protected VarSymbol getQuerySymbol(JCMethodInvocation tree, JCModifiers mods) {
+        JCAnnotation query = findMod(mods,JmlToken.QUERY);
+        if (query == null) return null;
+        List<JCExpression> args = query.getArguments();
+        Name datagroup = null;
+        DiagnosticPosition pos = tree.meth.pos();
+        if (args.isEmpty()) {
+            // No argument - use the name of the method
+            if (tree.meth instanceof JCIdent) datagroup = ((JCIdent)tree.meth).name;
+            else if (tree.meth instanceof JCFieldAccess) datagroup = ((JCFieldAccess)tree.meth).name;
+            pos = query.pos();
+        } else {
+            datagroup = getAnnotationStringArg(query);
+            pos = args.get(0).pos();
+        }
+        boolean prev = ((JmlResolve)rs).setAllowJML(true);
+        Symbol sym = rs.resolveIdent(pos,env,datagroup,VAR);
+        ((JmlResolve)rs).setAllowJML(prev);
+        if (sym instanceof VarSymbol) return (VarSymbol)sym;
+        log.error(pos,"jml.no.such.field",datagroup.toString());
         return null;
     }
     
@@ -2591,17 +2620,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         super.visitApply(tree);
         if (result.isErroneous()) return;
         Type savedResult = result;
-        
+        MethodSymbol msym = null;
+        JCExpression m = tree.meth;
+        Symbol sym = (m instanceof JCIdent ? ((JCIdent)m).sym : m instanceof JCFieldAccess ? ((JCFieldAccess)m).sym : null);
+        if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
         if (pureEnvironment && tree.meth.type != null && tree.meth.type.tag != TypeTags.ERROR) {
             // Check that the method being called is pure
-            JCExpression m = tree.meth;
-            Symbol sym = (m instanceof JCIdent ? ((JCIdent)m).sym : m instanceof JCFieldAccess ? ((JCFieldAccess)m).sym : null);
-            if (sym instanceof MethodSymbol) {
-                MethodSymbol msym = (MethodSymbol)sym;
+            if (msym != null) {
                 // FIXME - test that this works if the purity annotation is in a specs file and not the java file
-                    boolean isPure = isPure(msym) || isPure(msym.enclClass());
-                    if (!isPure && !JmlOptionName.isOption(context,JmlOptionName.NOPURITYCHECK)) {
-                        log.warning(tree.pos,"jml.non.pure.method",msym);
+                boolean isPure = isPure(msym) || isPure(msym.enclClass());
+                if (!isPure && !JmlOptionName.isOption(context,JmlOptionName.NOPURITYCHECK)) {
+                    log.warning(tree.pos,"jml.non.pure.method",msym);
                 }
             } else {
                 // We are expecting that the expression that is the method
@@ -2610,7 +2639,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (sym == null) log.error("jml.internal.notsobad","Unexpected parse tree node for a method call in JmlAttr.visitApply: " + m.getClass());
                 else log.error("jml.internal.notsobad","Unexpected symbol type for method expression in JmlAttr.visitApply: ", sym.getClass());
             }
+            // FIXME - could be a super or this call
         }
+        if (msym != null) checkSecretCallable(tree,msym);
         result = savedResult;
     }
 
@@ -2994,6 +3025,67 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         // FIXME - forbid everything else?
         result = saved;
+    }
+    
+    protected void checkSecretCallable(JCMethodInvocation tree, MethodSymbol msym) {
+        DiagnosticPosition pos = tree.meth.pos();
+        if (tree.meth instanceof JCFieldAccess) {
+            // FIXME - really want this from pos to endpos, not from startpos to endpos
+            pos = ((JCFieldAccess)tree.meth).pos();
+        }
+        
+        JmlSpecs.MethodSpecs mspecs = specs.getSpecs(msym);
+        VarSymbol calledSecret = null;
+        VarSymbol calledQuery = null;
+        boolean calledPure = false;
+        if (mspecs != null) {
+            calledSecret = getSecretSymbol(mspecs.mods);
+            calledQuery = getQuerySymbol(tree,mspecs.mods);
+            calledPure = findMod(mspecs.mods,JmlToken.PURE) != null;
+        }
+        
+        if (currentQueryContext != null) {
+            // query method - may call query methods for a contained datagroup
+            //              - may call secret methods for a contained datagroup
+            //              - may call open pure method
+            if (calledSecret != null) {
+                if (!isContainedInDatagroup(calledSecret,currentQueryContext)) {
+                    log.error(pos,"jml.incorrect.datagroup");
+                }
+            }
+            if (calledQuery != null) {
+                if (!isContainedInDatagroup(calledQuery,currentQueryContext)) {
+                    log.error(pos,"jml.incorrect.datagroup");
+                }
+            }
+            if (calledSecret == null && calledQuery == null) {
+                if (!calledPure) {
+                    log.error(pos,"jml.incorrect.datagroup");
+                }
+            }
+        }
+        if (currentSecretContext != null && currentSecretContext != currentQueryContext) {
+            if (calledSecret != null) {
+                if (!isContainedInDatagroup(calledSecret,currentSecretContext)) {
+                    log.error(pos,"jml.incorrect.datagroup");
+                }
+            }
+            if (calledQuery != null) {
+                if (!isContainedInDatagroup(calledQuery,currentSecretContext)) {
+                    log.error(pos,"jml.incorrect.datagroup");
+                }
+            }
+            if (calledSecret == null && calledQuery == null) {
+                if (!calledPure) {
+                    log.error(pos,"jml.incorrect.datagroup");
+                }
+            }        }
+        if (currentQueryContext == null && currentSecretContext == null) {
+            // open method - may call query methods, but no secret methods
+            if (calledSecret != null) {
+                log.error(pos,"jml.open.may.not.call.secret");
+            }
+        }
     }
     
     protected void checkSecretReadable(DiagnosticPosition pos, VarSymbol vsym) {

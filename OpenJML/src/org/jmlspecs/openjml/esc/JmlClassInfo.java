@@ -8,6 +8,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
 
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 
 /** This class holds specification information about a given class.
@@ -21,6 +22,7 @@ public class JmlClassInfo {
     @Nullable JCClassDecl decl;
     /** The symbol for the class */
     @NonNull ClassSymbol csym;
+    
     /** The type specifications from the specs database */
     JmlSpecs.TypeSpecs typeSpecs = null; // Non-null once initialized
     /** The instance constraint clauses from typeSpecs */

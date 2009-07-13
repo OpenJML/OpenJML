@@ -134,7 +134,7 @@ public class BasicBlocker extends JmlTreeScanner {
         lengthIdent.type = syms.lengthVar.type;
         lengthSym = syms.lengthVar;
 
-        currentThisId = newAuxIdent(names._this,syms.objectType,0,false); // FIXME - object type?
+        //currentThisId = newAuxIdent(names._this,syms.objectType,0,false); // FIXME - object type?
     }
     
     static public final String ASSUMPTION_PREFIX = "$assumption";
@@ -952,6 +952,7 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     // characteristics of the method under study
+    JmlMethodDecl methodDecl;
     boolean isConstructor;
     boolean isStatic;
     boolean isHelper;
@@ -986,7 +987,8 @@ public class BasicBlocker extends JmlTreeScanner {
         blocksToDo = new LinkedList<BasicBlock>();
         blocksCompleted = new ArrayList<BasicBlock>();
         blockLookup = new java.util.HashMap<String,BasicBlock>();
-        thisId = newAuxIdent("this$",syms.objectType,pos,false); // FIXME - object type?
+        this.methodDecl = (JmlMethodDecl)methodDecl;
+        thisId = newAuxIdent("this$",methodDecl.sym.owner.type,pos,false);
         currentThisId = thisId;
         
 
@@ -1054,6 +1056,7 @@ public class BasicBlocker extends JmlTreeScanner {
             e = makeBinary(JCTree.NE,thisId,nullLiteral,methodDecl.body.pos);
             addAssume(methodDecl.body.pos,Label.SYN,e,startBlock.statements,false);
         }
+        addGlobalPreconditions(startBlock,(JmlMethodDecl)methodDecl,(JmlClassDecl)classDecl);
         addPreconditions(startBlock,methodDecl,denestedSpecs);
         checkAssumption(methodDecl.pos,Label.PRECONDITION);
         completed(startBlock);
@@ -1137,6 +1140,20 @@ public class BasicBlocker extends JmlTreeScanner {
         return symbol.attribute(helperAnnotationSymbol)!=null;
     }  // FIXME - isn't there a utility method somewhere else that does this
 
+    protected void addGlobalPreconditions(@NonNull BasicBlock b, @NonNull JmlMethodDecl tree,
+            @NonNull JmlClassDecl classDecl) {
+        ClassCollector collector = ClassCollector.collect(classDecl,tree);
+        int d = 0;
+//        MethodSymbol distinct = makeFunction(names.fromString("distinct"),syms.intType,syms.classType);
+//        for (ClassSymbol csym : collector.classes) {
+//            // each class symbol is distinct
+//            JCLiteral id = makeTypeLiteral(csym.type,0);
+//            JCExpression e = makeFunctionApply(0,distinct,id);
+//            e = makeBinary(JCTree.EQ,e,makeLiteral(++d,0),0);
+//            addAssume(Label.IMPLICIT_ASSUME,trExpr(e),b.statements,false); // FIXME - track?
+//        }
+
+    }
     
     /** Inserts assumptions corresponding to the preconditions into the given block.
      * Uses classInfo to get the class-level preconditions.
@@ -1149,6 +1166,16 @@ public class BasicBlocker extends JmlTreeScanner {
         
         addClassPreconditions(classInfo,b);
 
+        if (!tree.sym.isStatic()){
+            // \typeof(this) <: <currenttype>
+            int pos = 0;
+            JCExpression e = makeThis(pos);
+            e = makeTypeof(e);
+            JCLiteral lit = makeTypeLiteral(classInfo.csym.type,pos); // FIXME - not necessarily a literal
+            e = makeJmlBinary(JmlToken.SUBTYPE_OF,e,lit,pos);
+            addAssume(Label.IMPLICIT_ASSUME,trExpr(e),b.statements,false);
+        }
+        
         JCExpression expr = falseLiteral;
         MethodSymbol msym = tree.sym;
         JmlMethodInfo mi = getMethodInfo(msym);
@@ -1897,6 +1924,11 @@ public class BasicBlocker extends JmlTreeScanner {
         JCExpression typeof = factory.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,e);
         typeof.type = syms.classType;
         return typeof;
+    }
+    
+    /** Makes a Java this parse tree node (attributed) */
+    protected JCIdent makeThis(int pos) {
+        return makeIdent(methodDecl._this,pos);
     }
     
     /** Makes the equivalent of an instanceof operation: \typeof(e) <: \type(type) */
@@ -3328,7 +3360,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     // Presuming that isConstructor
                     // We are calling a this or super constructor
                     // static invariants have to hold
-                    if (!isHelperCalled) {
+                    if (!isHelperCalled && calledClassInfo != null) {
                         for (JmlTypeClauseExpr inv : calledClassInfo.staticinvariants) {
                             JCExpression e = inv.expression;
                             e = trSpecExpr(e,inv.source());
@@ -3476,7 +3508,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 if (isConstructorCalled) {
                     // Presuming that isConstructor
                     // Calling a super or this constructor
-                    if (!isHelperCalled) {
+                    if (!isHelperCalled && calledClassInfo != null) {
                         for (JmlTypeClauseExpr inv : calledClassInfo.staticinvariants) {
                             JCExpression e = inv.expression;
                             e = trSpecExpr(e,inv.source());
@@ -5338,6 +5370,7 @@ public class BasicBlocker extends JmlTreeScanner {
      * @return the corresponding JmlClassInfo structure, null if sym is null
      */
     @Nullable JmlClassInfo getClassInfo(@NonNull Symbol sym) {
+        if (sym == null) return null;
         ClassSymbol csym = (ClassSymbol)sym;
         JmlClassInfo mi = classInfoMap.get(sym);
         if (mi == null) {

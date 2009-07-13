@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -8,13 +9,17 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.zip.ZipFile;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotations.*;
+import org.jmlspecs.openjml.JmlSpecs.Dir;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
+import org.jmlspecs.openjml.JmlSpecs.JarDir;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -32,6 +37,8 @@ import com.sun.tools.javac.comp.JmlFlow;
 import com.sun.tools.javac.comp.JmlMemberEnter;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.file.JavacFileManager;
+import com.sun.tools.javac.file.RelativePath;
+import com.sun.tools.javac.file.ZipArchive;
 import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.main.JavaCompiler.CompileState;
@@ -360,12 +367,43 @@ public class Main extends com.sun.tools.javac.main.Main {
     //@ requires \nonnullelements(args);
     //@ ensures \result != null && \nonnullelements(\result);
     String[] processJmlArgs(@NonNull String [] args, @NonNull Options options) {
-        ArrayList<String> newargs = new ArrayList<String>();
+        java.util.List<String> newargs = new ArrayList<String>();
+        java.util.List<String> files = new ArrayList<String>();
         int i = 0;
         while (i<args.length) {
-            i = processJmlArg(args,i,options,newargs);
+            i = processJmlArg(args,i,options,newargs,files);
         }
+        
+        newargs.addAll(computeDependencyClosure(files));
+        
         return newargs.toArray(new String[newargs.size()]);
+    }
+    
+    public java.util.List<String> computeDependencyClosure(java.util.List<String> files) {
+        // fill out dependencies
+        java.util.List<String> newargs = new ArrayList<String>();
+        Dependencies d = Dependencies.instance(context);
+        Set<JavaFileObject> done = new HashSet<JavaFileObject>();
+        java.util.List<JavaFileObject> todo = new LinkedList<JavaFileObject>();
+        JavacFileManager jfm = (JavacFileManager)context.get(JavaFileManager.class);;
+        for (String s: files) {
+            // FIXME - don't hardcode this list of suffixes here
+            if (Utils.instance(context).hasValidSuffix(s)) {
+                todo.add(jfm.getFileForInput(s));
+            }
+        }
+        while (!todo.isEmpty()) {
+            JavaFileObject o = todo.remove(0);
+            if (done.contains(o)) continue;
+            done.add(o);
+            if (o.getName().endsWith(".java")) newargs.add("C:" + o.toUri().getPath()); // FIXME - a hack to get the full path
+            Set<JavaFileObject> affected = d.getAffected(o);
+            if (affected != null) {
+                todo.addAll(affected);
+                //Log.instance(context).noticeWriter.println("Adding " + affected.size() + " dependencies for " + o);
+            }
+        }
+        return newargs;
     }
     
     /** Processes a single JML command-line option and any arguments.
@@ -380,7 +418,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     //@ requires (* elements of remainingArgs are non-null *);
     //@ requires 0<= i && i< args.length;
     //@ ensures \result > i;
-    int processJmlArg(@NonNull String[] args, int i, @NonNull Options options, @NonNull java.util.List<String> remainingArgs ) {
+    int processJmlArg(@NonNull String[] args, int i, @NonNull Options options, @NonNull java.util.List<String> remainingArgs, @NonNull java.util.List<String> files ) {
         String res = "";
         String s = args[i++];
         OptionInterface o = JmlOptionName.find(s);
@@ -424,10 +462,10 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                 } else if (!file.isFile()) {
                     out.println("Not a file or directory: " + file); // FIXME - make a warning?
-                } else if (file.getName().endsWith(".java")) {
-                    remainingArgs.add(file.toString());
+//                } else if (file.getName().endsWith(".java")) {
+//                    remainingArgs.add(file.toString());
                 } else {
-                    // Just skip it
+                    files.add(file.toString());
                 }
             }
             // This does not work to avoid scanning the remaining arguments because they all get sent
@@ -451,6 +489,10 @@ public class Main extends com.sun.tools.javac.main.Main {
     // This should be able to be called without difficulty whenever any option
     // is changed
     public void setupOptions() {
+        // CAUTION: DO not initialize any of the tools in here
+        // If, for example, JmlSpecs gets initialized, then Target will
+        // get initialized and it will grab the current version of -target
+        // before all the options are set
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
 
@@ -468,11 +510,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
         }
         
-        if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALRUNTIME)) {
-            JmlSpecs.instance(context).appendRuntime();
-        }
-        
-        JmlSpecs.instance(context).initializeSpecsPath();
+        if (options.get(JmlOptionName.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);
         
         String keysString = options.get(JmlOptionName.KEYS.optionName());
         utils.commentKeys = new HashSet<Name>();
@@ -608,6 +646,104 @@ public class Main extends com.sun.tools.javac.main.Main {
         // FIXME - warn about ignored files? or process them?
         return this;
     }
+    
+    
+    /** Appends the internal runtime directory to the -classpath option.
+     */
+    static protected void appendRuntime(Context context) {
+        boolean verbose = Utils.instance(context).jmldebug ||
+            JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
+            Options.instance(context).get("-verbose") != null;
+        
+//        // First see if an external runtime library has been specified by
+//        // some external controller
+//        
+//        if (externalRuntime != null) {
+//            boolean found = false;
+//            for (String s: externalRuntime) {
+//                File f = new File(s);
+//                Dir d = null;
+//                if (f.isDirectory()) {
+//                    d = new FileSystemDir(f);
+//                } else if (s.endsWith(".jar")) {
+//                    d = new JarDir(s,"");
+//                } else {
+//                    // Ignored
+//                }
+//                if (d != null && d.exists()) {
+//                    found = true;
+//                    if (verbose) log.noticeWriter.println("Using internal runtime " + s);
+//                    String sp = Options.instance(context).get("-classpath");
+//                    if (sp != null) Options.instance(context).put("-classpath",sp + java.io.File.pathSeparator + s);
+//                }
+//            }
+//            if (found) return;
+//        }
+        
+        // Then look for something in the classpath itself
+        
+        String sp = System.getProperty("java.class.path");
+        String[] ss = sp.split(java.io.File.pathSeparator);
+        String sss = null;
+        for (String s: ss) {
+            if (s.endsWith("openjml.jar")) {
+                if (isDirInJar("org/jmlspecs/lang",s, context)) {
+                    sss = s;
+                    break;
+                }
+            }
+        }
+        if (sss == null) for (String s: ss) {
+            if (s.endsWith(".jar")) {
+                if (isDirInJar("org/jmlspecs/lang",s, context)) {
+                    sss = s;
+                    break;
+                }
+            }
+        }
+        if (sss == null) {
+            String sy = System.getProperty(Utils.eclipseProjectLocation);
+            // These are used in testing - sy should be the directory of the OpenJML project
+            if (sy != null) {
+                sss = sy + "/jars/jmlruntime.jar";
+                if (!(new File(sss)).exists()) sss = null;
+            }
+        }
+        if (sss == null) {
+            String sy = System.getProperty(Utils.eclipseProjectLocation);
+            // These are used in testing - sy should be the directory of the OpenJML project
+            // Note - if we use the source directory for the runtime files
+            // we get odd errors complaining that we are missing value= in the annotations
+            if (sy != null) {
+                sss = sy + "/bin";
+            }
+        }
+        if (sss != null) {
+            if (verbose) Log.instance(context).noticeWriter.println("Using internal runtime " + sss);
+            sp = Options.instance(context).get("-classpath");
+            Options.instance(context).put("-classpath",(sp==null?"":(sp + java.io.File.pathSeparator)) + sss);
+        } else {
+            Log.instance(context).warning("jml.no.internal.runtime");
+        }
+    }
+    
+    static public boolean isDirInJar(String dir, String zip, Context context) {
+        ZipArchive zipArchive;
+        try {
+            zipArchive = new ZipArchive(((JavacFileManager)context.get(JavaFileManager.class)),new ZipFile(zip));
+        } catch (IOException e) {
+            return false;
+        }
+        RelativePath.RelativeDirectory internalDir = new RelativePath.RelativeDirectory(dir);
+        String name = zip + (dir.length() == 0 ? dir : ("!" + dir));
+        if (name.length() == 0) return true;
+        for (RelativePath.RelativeDirectory f: zipArchive.getSubdirectories()) {
+            // TODO - check that this works correctly // use contains?
+            if (f.getPath().startsWith(internalDir.getPath())) return true;
+        }
+        return false;
+    }
+    
     
     /** An empty array used simply to avoid repeatedly creating one. */
     private final @NonNull String[] emptyArgs = new String[]{};

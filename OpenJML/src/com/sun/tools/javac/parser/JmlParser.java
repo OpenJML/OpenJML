@@ -45,7 +45,7 @@ public class JmlParser extends EndPosParser {
 
     /** The context this parser was created for */
     //@ non_null
-    protected Context       context;
+    public Context       context;
 
     /** Cached value of the utilities object */
     //@ non_null
@@ -96,6 +96,10 @@ public class JmlParser extends EndPosParser {
 
     public JmlScanner getScanner() {
         return S;
+    }
+    
+    public JmlTree.Maker maker() {
+        return jmlF;
     }
 
     /**
@@ -2242,10 +2246,10 @@ public class JmlParser extends EndPosParser {
                         return te;
                     }
 
+                case BSELEMTYPE:
+                case BSTYPEOF:
                 case BSOLD:
                 case BSPRE:
-                case BSTYPEOF:
-                case BSELEMTYPE:
                 case BSNOWARN:
                 case BSNOWARNOP:
                 case BSWARN:
@@ -2253,20 +2257,39 @@ public class JmlParser extends EndPosParser {
                 case BSBIGINT_MATH:
                 case BSSAFEMATH:
                 case BSJAVAMATH:
-                    S.nextToken();
-                    if (S.token() != Token.LPAREN) {
-                        if (jt == BSMAX) {
-                            return parseQuantifiedExpr(p, jt);
-                        }
-                        return syntaxError(p, null, "jml.args.required", jt
-                                .internedName());
+                    ExpressionExtension ne = ExpressionExtension.find(S.pos(),jt,context,this);
+                    if (ne == null) {
+                        log.error(S.pos(),"jml.no.such.extension",jt.internedName());
+                        return jmlF.at(S.pos()).Erroneous();
                     } else {
-                        // FIXME - check no typeargs
-                        int pp = S._pos;
-                        List<JCExpression> args = arguments();
-                        t = toP(jmlF.at(pp).JmlMethodInvocation(jt, args));
-                        return primarySuffix(t, typeArgs);
+                        return ne.parse(this,typeArgs);
                     }
+                    
+//                case BSELEMTYPE:
+//                case BSTYPEOF:
+//                case BSOLD:
+//                case BSPRE:
+//                case BSNOWARN:
+//                case BSNOWARNOP:
+//                case BSWARN:
+//                case BSWARNOP:
+//                case BSBIGINT_MATH:
+//                case BSSAFEMATH:
+//                case BSJAVAMATH:
+//                    S.nextToken();
+//                    if (S.token() != Token.LPAREN) {
+//                        if (jt == BSMAX) {
+//                            return parseQuantifiedExpr(p, jt);
+//                        }
+//                        return syntaxError(p, null, "jml.args.required", jt
+//                                .internedName());
+//                    } else {
+//                        //  - check no typeargs
+//                        int pp = S._pos;
+//                        List<JCExpression> args = arguments();
+//                        t = toP(jmlF.at(pp).JmlMethodInvocation(jt, args));
+//                        return primarySuffix(t, typeArgs);
+//                    }
 
                 case BSNOTMODIFIED:
                 case BSNOTASSIGNED:
@@ -2634,7 +2657,7 @@ public class JmlParser extends EndPosParser {
      * Skips up to a EOF or ENDJMLCOMMENT or up to and including a right
      * parenthesis
      */
-    protected void skipThroughRightParen() {
+    public void skipThroughRightParen() {
         while (S.token() != Token.RPAREN && S.token() != Token.EOF
                 && S.jmlToken() != JmlToken.ENDJMLCOMMENT)
             S.nextToken();
@@ -2642,7 +2665,7 @@ public class JmlParser extends EndPosParser {
             S.nextToken();
     }
 
-    protected JCErroneous syntaxError(int pos, List<JCTree> errs, String key,
+    public JCErroneous syntaxError(int pos, List<JCTree> errs, String key,
             Object... args) {
         setErrorEndPos(pos);
         reportSyntaxError(pos, key, args);

@@ -175,7 +175,7 @@ public class Main extends org.jmlspecs.openjml.Main {
             Utils.instance(context).jmldebug = Options.instance(context).get(JmlOptionName.JMLDEBUG.optionName()) != null; 
             JmlSpecs.instance(context).initializeSpecsPath();
             if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALRUNTIME)) {
-                JmlSpecs.instance(context).appendRuntime();
+                appendRuntime(context);
             }
         }
         String[] result = newargs.toArray(new String[newargs.size()]);

@@ -88,8 +88,8 @@ ${RTH} testOK4 "java -jar openjml.jar -specspath . B.java -noInternalSpecs" || R
 ## Checks a valid file with no internal runtime library - should fail to find annotations
 ${RTH} testRuntime1 "java -jar openjml.jar C.java -classpath . -noPurityCheck -noInternalRuntime" || RES=$(($RES+1))
 
-## Checks a valid file with an external runtime library - should be OK
-${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../bin -noInternalRuntime"  || RES=$(($RES+1))
+## Checks a valid file with an external binary runtime library - should be OK
+${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../bin-runtime -noInternalRuntime"  || RES=$(($RES+1))
 
 ## Checks a valid file with an external source runtime library - should be OK
 ${RTH} testRuntime3 "java -jar openjml.jar C.java -noPurityCheck -classpath ../runtime -noInternalRuntime" || RES=$(($RES+1))

@@ -55,7 +55,8 @@ public enum JmlOptionName implements OptionInterface {
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions"),
     JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)"),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!"),
-    ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files")
+    ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files"),
+    ASSOCINFO("-crossRefAssociatedInfo",false,">...")
     ;
     public void process(Options options) {}
     

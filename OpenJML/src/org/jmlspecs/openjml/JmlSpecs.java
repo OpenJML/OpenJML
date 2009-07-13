@@ -202,6 +202,7 @@ public class JmlSpecs {
     
     /** The specifications path, which is a sequence of directories in which to
      * find specification files; this is created by initializeSpecsPath().
+     * NOTE: This is lazily initialized, so call getSpecsPath() to obtain its value.
      */
     protected LinkedList<Dir> specsDirs = null;
     
@@ -356,6 +357,7 @@ public class JmlSpecs {
      * @return The current list of specification directories, in order.
      */
     public List<Dir> getSpecsPath() {
+        if (specsDirs == null) initializeSpecsPath();
         return specsDirs;
     }
     
@@ -412,7 +414,7 @@ public class JmlSpecs {
                     String dirs = System.getProperty(Utils.systemSpecsLocationEnvironmentPropertyName);
                     if (dirs != null) pushback(dirs,todo);
                     else {
-                        if (!appendInternalSpecs(verbose,specsDirs)) {
+                        if (!appendInternalSpecs(verbose,getSpecsPath())) {
                             log.warning("jml.no.internal.specs");
                         }
                     }
@@ -469,88 +471,7 @@ public class JmlSpecs {
             log.noticeWriter.flush();
         }
     }
-    
-    /** Appends the internal runtime directory to the -classpath option.
-     */
-    public void appendRuntime() {
-        boolean verbose = utils.jmldebug ||
-            JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
-            Options.instance(context).get("-verbose") != null;
-        
-//        // First see if an external runtime library has been specified by
-//        // some external controller
-//        
-//        if (externalRuntime != null) {
-//            boolean found = false;
-//            for (String s: externalRuntime) {
-//                File f = new File(s);
-//                Dir d = null;
-//                if (f.isDirectory()) {
-//                    d = new FileSystemDir(f);
-//                } else if (s.endsWith(".jar")) {
-//                    d = new JarDir(s,"");
-//                } else {
-//                    // Ignored
-//                }
-//                if (d != null && d.exists()) {
-//                    found = true;
-//                    if (verbose) log.noticeWriter.println("Using internal runtime " + s);
-//                    String sp = Options.instance(context).get("-classpath");
-//                    if (sp != null) Options.instance(context).put("-classpath",sp + java.io.File.pathSeparator + s);
-//                }
-//            }
-//            if (found) return;
-//        }
-        
-        // Then look for something in the classpath itself
-        
-        String sp = System.getProperty("java.class.path");
-        String[] ss = sp.split(java.io.File.pathSeparator);
-        String sss = null;
-        for (String s: ss) {
-            if (s.endsWith("openjml.jar")) {
-                Dir d = new JarDir(s,"org/jmlspecs/lang");
-                if (d.exists()) {
-                    sss = s;
-                    break;
-                }
-            }
-        }
-        if (sss == null) for (String s: ss) {
-            if (s.endsWith(".jar")) {
-                Dir d = new JarDir(s,"org/jmlspecs/lang");
-                if (d.exists()) {
-                    sss = s;
-                    break;
-                }
-            }
-        }
-        if (sss == null) {
-            String sy = System.getProperty(Utils.eclipseProjectLocation);
-            // These are used in testing - sy should be the directory of the OpenJML project
-            if (sy != null) {
-                sss = sy + "/jars/jmlruntime.jar";
-                if (!(new File(sss)).exists()) sss = null;
-            }
-        }
-        if (sss == null) {
-            String sy = System.getProperty(Utils.eclipseProjectLocation);
-            // These are used in testing - sy should be the directory of the OpenJML project
-            // Note - if we use the source directory for the runtime files
-            // we get odd errors complaining that we are missing value= in the annotations
-            if (sy != null) {
-                sss = sy + "/bin";
-            }
-        }
-        if (sss != null) {
-            if (verbose) log.noticeWriter.println("Using internal runtime " + sss);
-            sp = Options.instance(context).get("-classpath");
-            Options.instance(context).put("-classpath",(sp==null?"":(sp + java.io.File.pathSeparator)) + sss);
-        } else {
-            log.warning("jml.no.internal.runtime");
-        }
-    }
-    
+
     /** This method is used internally to parse the directory path given in the
      * first argument and to push them (in reverse order) onto the front of the
      * queue that is the second argument; in this way the contents of the
@@ -603,7 +524,7 @@ public class JmlSpecs {
     }
     
     /** An abstract class representing a directory element of the specs path. */
-    abstract public class Dir {
+    abstract static public class Dir {
         
         /** The human-readable name of the directory */
         protected String name;
@@ -814,7 +735,7 @@ public class JmlSpecs {
     //@ nullable
     public JavaFileObject findLeadingSpecFile(String className) {
         String s = className.replace('.','/');
-        for (Dir dir: specsDirs) {
+        for (Dir dir: getSpecsPath()) {
             JavaFileObject j = dir.findAnySuffixFile(s);
             if (j != null) return j;
         }
@@ -829,7 +750,7 @@ public class JmlSpecs {
      */
     //@ nullable
     public JavaFileObject findSpecFile(String filename) {
-        for (Dir dir: specsDirs) {
+        for (Dir dir: getSpecsPath()) {
             JavaFileObject j = dir.findFile(filename);
             if (j != null) return j;
         }

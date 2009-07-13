@@ -860,6 +860,7 @@ public class API {
     //@ requires isOpen;
     //@ ensures isOpen;
     public @NonNull JmlTree.Maker nodeFactory() {
+        JmlEnter.instance(context);  // Avoids circular tool registration problems
         return JmlTree.Maker.instance(context);
     }
     

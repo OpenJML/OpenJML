@@ -5,7 +5,11 @@ import static com.sun.tools.javac.util.ListBuffer.lb;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
 
 import javax.annotation.processing.Processor;
 import javax.tools.JavaFileObject;
@@ -149,6 +153,11 @@ public class JmlCompiler extends JavaCompiler {
                 for (JmlCompilationUnit jcu: jmlcu.specsSequence) {
                     if (jcu != cu) jcu.mode = JmlCompilationUnit.SPEC_FOR_SOURCE;
                 }
+            }
+            // Only need dependencies in interactive situations - Eclipse and programmatic api
+            if (false) for (JmlCompilationUnit jcu: jmlcu.specsSequence) {
+                //log.noticeWriter.println(jmlcu.sourcefile + " depends on " + jcu.sourcefile);
+                Dependencies.instance(context).dependsOn(jmlcu.sourcefile,jcu.sourcefile);
             }
         } else {
             log.error("jml.internal",
@@ -523,6 +532,7 @@ public class JmlCompiler extends JavaCompiler {
  //       JmlResolve.instance(context).loadClass(null,Symtab.instance(context).objectType.tsym.flatName());
 //        JmlResolve.instance(context).loadClass(null,Names.instance(context).fromString("org.jmlspecs.utils.utils"));
 //        JmlResolve.instance(context).loadClass(null,Names.instance(context).fromString("org.jmlspecs.lang.JMLList"));
+        
         super.compile(sourceFileObjects,classnames,processors);
     }
     

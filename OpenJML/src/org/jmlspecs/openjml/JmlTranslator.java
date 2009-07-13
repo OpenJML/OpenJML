@@ -1125,10 +1125,16 @@ public class JmlTranslator extends JmlTreeTranslator {
         boolean prev = inSpecExpression;
         if (utils.isJML(that.mods)) inSpecExpression = true;
         visitVarDef(that);
+        JCTree saved = result;
         inSpecExpression = true;
-        if (that.fieldSpecsCombined != null) translate(that.fieldSpecsCombined.list); // FIXME - check why this is sometimes null
-        if (that.fieldSpecs != null) translate(that.fieldSpecs.list); // FIXME - check why this is sometimes null
+        if (that.fieldSpecsCombined != null) {
+            that.fieldSpecsCombined.list = translate(that.fieldSpecsCombined.list); // FIXME - check why this is sometimes null
+        }
+        if (that.fieldSpecs != null) {
+            that.fieldSpecs.list = translate(that.fieldSpecs.list); // FIXME - check why this is sometimes null
+        }
         inSpecExpression = prev;
+        result = saved;
     }
 
     public void visitJmlWhileLoop(JmlWhileLoop that) {

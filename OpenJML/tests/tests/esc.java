@@ -2089,7 +2089,7 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method inst6a",118
                 ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method inst7a",242
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3c",-203
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method inst3c",-203
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method inst3c",-192
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method inst3d",216
         );
     }

@@ -13,7 +13,7 @@ public class rac extends RacBase {
      * brings in the currently compiled runtime classes (so we don't have
      * to build jmlruntime.jar)
      */
-    String[] ordrac = new String[]{jdk, "-classpath","bin;testdata",null};
+    String[] ordrac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
 
     protected void setUp() throws Exception {
         rac = ordrac;

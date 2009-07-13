@@ -57,6 +57,7 @@ alljars jmlspecs.jar openjml.jar:
 	(cd temp; for j in ${ROOT}/../OpenJML/otherlibs/* ; do jar xf $$j; echo $$j; done; rm -rf META-INF )
 	cp -r ${ROOT}/OpenJDK/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin/* temp
+	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
 	mkdir temp/specs14 temp/specs15 temp/specs16
 	cp -r ${SPECS}/java4/* temp/specs14
 	find temp/specs14 -name .svn -exec rm -rf \{\} +
@@ -70,7 +71,6 @@ alljars jmlspecs.jar openjml.jar:
 	mkdir -p temp2
 	echo "Manifest-Version: 1.0" > temp2/manifest
 	echo "Main-Class: org.jmlspecs.openjml.Main" >> temp2/manifest
-	rm -r temp/tests
 	(cd temp; jar -cfm ../jars/openjml.jar ../temp2/manifest . )
 	##cp jars/openjml.jar ../OpenJMLUI
 	
@@ -83,27 +83,18 @@ copy:
 	cp -rf ${SPECS}/java4 ../OpenJMLUI/specs
 	find ../OpenJMLUI/specs -name .svn -exec rm -rf \{\} +
 	mkdir -p ../OpenJMLUI/openjml
-	mkdir -p ../OpenJMLUI/runtime/org/jmlspecs
+	mkdir -p ../OpenJMLUI/runtime
 	cp -r ${ROOT}/OpenJDK/bin/* ../OpenJMLUI/openjml
 	cp -r ${ROOT}/OpenJML/bin/* ../OpenJMLUI/openjml
-	rm -rf ../OpenJMLUI/openjml/tests
-	mv ${ROOT}/OpenJMLUI/openjml/org/jmlspecs/annotations ../OpenJMLUI/runtime/org/jmlspecs
-	mv ${ROOT}/OpenJMLUI/openjml/org/jmlspecs/lang ../OpenJMLUI/runtime/org/jmlspecs
-	mv ${ROOT}/OpenJMLUI/openjml/org/jmlspecs/models ../OpenJMLUI/runtime/org/jmlspecs
-	mv ${ROOT}/OpenJMLUI/openjml/org/jmlspecs/utils ../OpenJMLUI/runtime/org/jmlspecs
+	cp -r ${ROOT}/OpenJML/bin-runtime/* ../OpenJMLUI/runtime
 	echo "Copy to OpenJMLUI complete"
 	
 ## Builds jmlruntime.jar
 jmlruntime.jar:
-	-rm -rf temp
-	mkdir -p temp/org/jmlspecs
 	mkdir -p jars
 	rm -f jars/jmlruntime.jar
-	cp -r bin/org/jmlspecs/annotations bin/org/jmlspecs/lang bin/org/jmlspecs/models bin/org/jmlspecs/utils temp/org/jmlspecs
-	(cd temp; jar -cf ../jars/jmlruntime.jar . ) 
-	##cp jars/jmlruntime.jar ../OpenJMLUI
-	cp jars/jmlruntime.jar ${SPECS}/..
-	-rm -rf temp
+	(cd bin-runtime; jar -cf ../jars/jmlruntime.jar . ) 
+	##cp jars/jmlruntime.jar ${SPECS}/..
 
 ## Separate target for jmlspecs.jar, though it is normally built along with
 ## openjml.jar
@@ -122,3 +113,6 @@ jmlspecs:
 	find temp/specs16 -name .svn -exec rm -rf \{\} +
 	(cd temp; jar -cf ../jars/jmlspecs.jar specs16 specs15 specs14 )
 	-rm -rf temp
+	
+jdkbin:
+	java -jar jars/openjml.jar -classpath "jdksrc;jars/openjml.jar" -d jdkbin -nullableByDefault -target 1.5 jdksrc/java/io/File.java -noPurityCheck -rac -specspath ${SPECS}/java5

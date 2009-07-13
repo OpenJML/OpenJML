@@ -150,8 +150,10 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
 
     //JAVA16 @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-        // TODO Auto-generated method stub
-        result = that;
+        visitMethodDef(that);
+        JCTree saved = result;
+        //that.methodSpecsCombined = translate(that.methodSpecsCombined); // FIXME ???
+        result = saved;
     }
 
     //JAVA16 @Override

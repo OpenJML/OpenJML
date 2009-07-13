@@ -34,6 +34,9 @@ public class Label {
     /** Used for explicit, user-provided JML assume statements */
     /*@ non_null*/ public final static Label EXPLICIT_ASSUME = new Label("Assume");
     
+    /** Used for implicit, miscellaneous JML assume statements */
+    /*@ non_null*/ public final static Label IMPLICIT_ASSUME = new Label("ImplicitAssume");
+    
     /** Used for basic assume statements generated from assignments */
     /*@ non_null*/ public final static Label ASSIGNMENT = new Label("Assignment");
     

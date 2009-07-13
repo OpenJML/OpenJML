@@ -1035,7 +1035,7 @@ public class JavacParser implements Parser {
     }
 
     // DRC - this method extracted from term3() in order to be used in derived classes
-    protected JCExpression primarySuffix(JCExpression t, List<JCExpression> typeArgs) {
+    public JCExpression primarySuffix(JCExpression t, List<JCExpression> typeArgs) {
       if (typeArgs != null) return illegal();
         loop: while (true) {
             int pos = S.pos();
@@ -1150,7 +1150,7 @@ public class JavacParser implements Parser {
 
     /** Arguments = "(" [Expression { COMMA Expression }] ")"
      */
-    List<JCExpression> arguments() {
+    public List<JCExpression> arguments() {  // DRC - changed from package to public
         ListBuffer<JCExpression> args = lb();
         if (S.token() == LPAREN) {
             S.nextToken();

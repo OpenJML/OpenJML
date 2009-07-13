@@ -56,4 +56,5 @@ JML options:
   -jmldebug                  When on, the program emits lots of output (includes -progress)
   -roots                     Enables the Reflective Object-Oriented Testing System---w00t!
   --                         Terminates option processing - all remaining arguments are files
+  -crossRefAssociatedInfo    >...
 ENDING with exit code 2
