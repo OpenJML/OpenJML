@@ -11,7 +11,7 @@ public class QuerySecret extends TCBase {
     
     public void testOK1() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(\"q\") int m() { return 0; } \n" +
@@ -21,7 +21,7 @@ public class QuerySecret extends TCBase {
     
     public void testBadParse() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(\"q\",\"r\") int m() { return 0; } \n" +
@@ -33,18 +33,18 @@ public class QuerySecret extends TCBase {
     
     public void testBadParse2() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(v=\"q\") int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: interface org.jmlspecs.annotations.Query",10
+                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: interface org.jmlspecs.annotation.Query",10
         );
     }
     
     public void testBadParse3() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(9) int m() { return 0; } \n" +
@@ -55,18 +55,18 @@ public class QuerySecret extends TCBase {
     
     public void testBadParse4() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(value=\"q\",value=\"r\") int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: duplicate annotation member value value in org.jmlspecs.annotations.Query",26
+                ,"/A.java:4: duplicate annotation member value value in org.jmlspecs.annotation.Query",26
         );
     }
     
     public void testconstantExpresion() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(value=\"q\"+\"r\") int m() { return 0; } \n" +
@@ -77,7 +77,7 @@ public class QuerySecret extends TCBase {
     
     public void testOKnamed() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(value=\"q\") int m() { return 0; } \n" +
@@ -87,7 +87,7 @@ public class QuerySecret extends TCBase {
     
     public void testNotModel() { 
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  JMLDataGroup q;\n" +
                 "  @Query(\"q\") int m() { return 0; } \n" +
@@ -98,7 +98,7 @@ public class QuerySecret extends TCBase {
     
     public void testSNotModel() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  JMLDataGroup q;\n" +
                 "  @Secret(\"q\") int m() { return 0; } \n" +
@@ -109,7 +109,7 @@ public class QuerySecret extends TCBase {
     
     public void testOtherDeclOK() { 
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ model int q;\n" +
                 "  @Query(\"q\") int m() { return 0; } \n" +
@@ -119,7 +119,7 @@ public class QuerySecret extends TCBase {
     
     public void testSOtherDeclOK() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ model int q;\n" +
                 "  @Secret(\"q\") int m() { return 0; } \n" +
@@ -130,7 +130,7 @@ public class QuerySecret extends TCBase {
     /** Can be query for an inherited deata group */
     public void testOK2() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "class B { /*@ public model JMLDataGroup q; */ }\n" +
                 "public class A extends B { \n" + 
                 "  @Query(\"q\") int m() { return 0; } \n" +
@@ -141,7 +141,7 @@ public class QuerySecret extends TCBase {
     /** A named data group must exist */
     public void testNoDG() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //JMLDataGroup q;\n" +
                 "  @Query(\"q\") int m() { return 0; } \n" +
@@ -153,7 +153,7 @@ public class QuerySecret extends TCBase {
     /** A named data group may not be in an enclosing class */
     public void testNoDG2() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A {\n" +
                 "  //@ public model JMLDataGroup q;\n" +
                 "  public class X { \n" + 
@@ -167,7 +167,7 @@ public class QuerySecret extends TCBase {
     /** A default existent datagroup */
     public void testOK3() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup m;\n" +
                 "  @Query int m() { return 0; } \n" +
@@ -178,7 +178,7 @@ public class QuerySecret extends TCBase {
     /** A default non-existent datagroup */
     public void testOK4() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  @Query int m() { return 0; } \n" +
                 "} \n"
@@ -187,7 +187,7 @@ public class QuerySecret extends TCBase {
 
     public void testSOK1() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(\"q\") int m() { return 0; } \n" +
@@ -197,7 +197,7 @@ public class QuerySecret extends TCBase {
     
     public void testSBadParse() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(\"q\",\"r\") int m() { return 0; } \n" +
@@ -210,18 +210,18 @@ public class QuerySecret extends TCBase {
     
     public void testSBadParse2() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(v=\"q\") int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: interface org.jmlspecs.annotations.Secret",11
+                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: interface org.jmlspecs.annotation.Secret",11
         );
     }
     
     public void testSBadParse3() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(9) int m() { return 0; } \n" +
@@ -232,19 +232,19 @@ public class QuerySecret extends TCBase {
     
     public void testSBadParse4() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(value=\"q\",value=\"r\") int m() { return 0; } \n" +
                 "} \n"
                 ,"/A.java:4: A secret annotation on a method must have exactly one argument",3
-                ,"/A.java:4: duplicate annotation member value value in org.jmlspecs.annotations.Secret",27
+                ,"/A.java:4: duplicate annotation member value value in org.jmlspecs.annotation.Secret",27
         );
     }
     
    public void testSOKnamed() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(value=\"q\") int m() { return 0; } \n" +
@@ -255,7 +255,7 @@ public class QuerySecret extends TCBase {
     /** Can be query for an inherited deata group */
     public void testSOK2() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "class B { /*@ public model JMLDataGroup q; */ }\n" +
                 "public class A extends B { \n" + 
                 "  @Secret(\"q\") int m() { return 0; } \n" +
@@ -266,7 +266,7 @@ public class QuerySecret extends TCBase {
     /** A named data group must exist */
     public void testSNoDG() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //JMLDataGroup q;\n" +
                 "  @Secret(\"q\") int m() { return 0; } \n" +
@@ -278,7 +278,7 @@ public class QuerySecret extends TCBase {
     /** A named data group may not be in an enclosing class */
     public void testSNoDG2() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A {\n" +
                 "  //@ public model JMLDataGroup q;\n" +
                 "  public class X { \n" + 
@@ -292,7 +292,7 @@ public class QuerySecret extends TCBase {
 //    /** A default existent datagroup */
 //    public void testSOK3() {
 //        helpTCF("A.java",
-//                "import org.jmlspecs.annotations.*;\n" +
+//                "import org.jmlspecs.annotation.*;\n" +
 //                "public class A { \n" + 
 //                "  //@ public model JMLDataGroup m;\n" +
 //                "  @Secret int m() { return 0; } \n" +
@@ -304,7 +304,7 @@ public class QuerySecret extends TCBase {
 //    /** A default non-existent datagroup */
 //    public void testSOK4() {
 //        helpTCF("A.java",
-//                "import org.jmlspecs.annotations.*;\n" +
+//                "import org.jmlspecs.annotation.*;\n" +
 //                "public class A { \n" + 
 //                "  @Query int m() { return 0; } \n" +
 //                "} \n"
@@ -314,7 +314,7 @@ public class QuerySecret extends TCBase {
     /** Same datagroup */
     public void testSameDG() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  @Query @Secret(\"m\") int m() { return 0; } \n" +
                 "} \n"
@@ -324,7 +324,7 @@ public class QuerySecret extends TCBase {
 
     public void testNoOuter() {
         helpTCF("Outer.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class Outer {   int p; \n" +
                 "static public class A { \n" + 
                 "  @Query @Secret(\"p\") int m() { return 0; } \n" +
@@ -340,7 +340,7 @@ public class QuerySecret extends TCBase {
 
     public void testSuper() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 " public class A extends B { \n" + 
                 "  @Query @Secret(\"p\") int m() { return 0; } \n" +
                 "}\n" +
@@ -352,7 +352,7 @@ public class QuerySecret extends TCBase {
 
     public void testInterface() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 " public class A implements B { \n" + 
                 "  @Query @Secret(\"p\") int m() { return 0; } \n" +
                 "}\n" +
@@ -366,7 +366,7 @@ public class QuerySecret extends TCBase {
 //    /** Same datagroup */
 //    public void testSameDG1() {
 //        helpTCF("A.java",
-//                "import org.jmlspecs.annotations.*;\n" +
+//                "import org.jmlspecs.annotation.*;\n" +
 //                "public class A { \n" + 
 //                "  @Secret @Query(\"m\") int m() { return 0; } \n" +
 //                "} \n"
@@ -377,7 +377,7 @@ public class QuerySecret extends TCBase {
     /** Same datagroup */
     public void testSameDG2() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  @Secret(\"m\") @Query int m() { return 0; } \n" +
                 "} \n"
@@ -388,7 +388,7 @@ public class QuerySecret extends TCBase {
     /** Same datagroup */
     public void testSameDG3() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  @Secret(\"m\") @Query(\"m\") int m() { return 0; } \n" +
                 "} \n"
@@ -400,7 +400,7 @@ public class QuerySecret extends TCBase {
     /** Same datagroup */
     public void testSameDGOK() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(\"q\") @Query int m() { return 0; } \n" +
@@ -411,7 +411,7 @@ public class QuerySecret extends TCBase {
     /** Same datagroup */
     public void testSameDGOK2() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup m;\n" +
                 "  //@ public model JMLDataGroup q;\n" +
@@ -423,7 +423,7 @@ public class QuerySecret extends TCBase {
     /** Same datagroup */
     public void testSameDGOK3() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q,r;\n" +
                 "  @Secret(\"r\") @Query(\"q\") int m() { return 0; } \n" +
@@ -434,7 +434,7 @@ public class QuerySecret extends TCBase {
     /** Same datagroup */
     public void testSameDG4() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(\"q\") @Query(\"q\") int m() { return 0; } \n" +
@@ -446,7 +446,7 @@ public class QuerySecret extends TCBase {
 
     public void testFOK1() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public secret model JMLDataGroup q;\n" +
                 "  @Secret int m; //@ in q; \n" +
@@ -457,7 +457,7 @@ public class QuerySecret extends TCBase {
     /** Secret, but not in a datagroup */
     public void testFNotIn() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret int m;  \n" +
@@ -469,7 +469,7 @@ public class QuerySecret extends TCBase {
     /** Secret, but not in a datagroup */
     public void testFInNonSecret() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret int m; //@ in q; \n" +
@@ -481,7 +481,7 @@ public class QuerySecret extends TCBase {
     /** Not secret but in a secret datagroup */
     public void testFInSecret() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public secret model JMLDataGroup q;\n" +
                 "  int m; //@ in q;  \n" +
@@ -493,7 +493,7 @@ public class QuerySecret extends TCBase {
     /** Not secret but in a secret datagroup */
     public void testFInSecret2() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public secret model JMLDataGroup q;\n" +
                 "  //@ model int m; //@ in q;  \n" +
@@ -505,7 +505,7 @@ public class QuerySecret extends TCBase {
     /** OK - model fields are their own datagroups */
     public void testFNotInButModel() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  //@ secret model int m;  \n" +
@@ -516,7 +516,7 @@ public class QuerySecret extends TCBase {
     /** Valid argument, but not for a field */
     public void testFBadParse() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  @Secret(\"q\") int m; \n" +
                 "} \n"
@@ -528,11 +528,11 @@ public class QuerySecret extends TCBase {
     /** Invalid argument, also not for field */
     public void testFBadParse2() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  @Secret(v=\"q\") int m; \n" +
                 "} \n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   method v()\n  location: interface org.jmlspecs.annotations.Secret",11
+                ,"/A.java:3: cannot find symbol\n  symbol:   method v()\n  location: interface org.jmlspecs.annotation.Secret",11
                 ,"/A.java:3: A secret declaration for a field may not have arguments",13
                 //,"/A.java:3: A secret field must be a model field or in a secret datagroup",22
         );
@@ -541,7 +541,7 @@ public class QuerySecret extends TCBase {
     /** Invalid argument, aslo not for field */
     public void testFBadParse3() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  @Secret(9) int m; \n" +
                 "} \n"
@@ -554,7 +554,7 @@ public class QuerySecret extends TCBase {
     /** Valid argument, but not for a field */
     public void testFBadParse4() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  @Secret(value=\"q\") int m; \n" +
                 "} \n"
@@ -566,7 +566,7 @@ public class QuerySecret extends TCBase {
     /** OK - standard use */
     public void testRepresents() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ secret public model int i;\n" +
                 "  //@ secret public model int j; in i; \n" +
@@ -578,7 +578,7 @@ public class QuerySecret extends TCBase {
     /** Differently secret expression */
     public void testRepresents0() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ secret public model int i;\n" +
                 "  //@ secret public model int j;\n" +
@@ -591,7 +591,7 @@ public class QuerySecret extends TCBase {
     /** Secret id with non-secret represents */
     public void testRepresents1() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ secret public model int i;\n" +
                 "  //@ public represents i = 0; \n" +
@@ -603,7 +603,7 @@ public class QuerySecret extends TCBase {
     /** Secret represents with non-secret id */
     public void testRepresents2() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model int i;\n" +
                 "  //@ secret public represents i = 0; \n" +
@@ -615,7 +615,7 @@ public class QuerySecret extends TCBase {
     /** Secret on represents may not have an argument */
     public void testRepresents3() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ secret public model int i;\n" +
                 "  //@ @Secret(\"i\") public represents i = 0; \n" +
@@ -627,7 +627,7 @@ public class QuerySecret extends TCBase {
     /** testing secret in non-secret represents expression */
     public void testRepresents5() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ secret public model int j;\n" +
                 "  //@ public model int i;\n" +
@@ -640,7 +640,7 @@ public class QuerySecret extends TCBase {
     /** no secret in invariant */
     public void testInvariant() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ secret public model int j;\n" +
                 "  //@ public invariant j == 0;\n" +
@@ -653,7 +653,7 @@ public class QuerySecret extends TCBase {
 
     public void testMethodCall() {
         helpTCF("A.java",
-                "import org.jmlspecs.annotations.*;\n" +
+                "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model int i;\n" +
                 "  //@ public model int j;\n" +

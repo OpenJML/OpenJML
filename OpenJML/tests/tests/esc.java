@@ -1507,7 +1507,7 @@ public class esc extends EscBase {
     }
 
     public void testNonNull() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ii == 10;\n"
                 +"  //@ ensures true;\n"
@@ -1526,7 +1526,7 @@ public class esc extends EscBase {
     public void testNonNull2() {
         options.put("-nullableByDefault",null);
         options.put("-nonnullByDefault","");
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ii == 10;\n"
                 +"  //@ ensures true;\n"
@@ -1543,7 +1543,7 @@ public class esc extends EscBase {
     }
 
     public void testNonNull3() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 +"  //@ requires ii == 10;\n"
                 +"  //@ ensures true;\n"
@@ -1563,7 +1563,7 @@ public class esc extends EscBase {
 
     public void testNonNull4() {
         options.put("-nullableByDefault",null);
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ii == 10;\n"
                 +"  //@ ensures true;\n"
@@ -1580,7 +1580,7 @@ public class esc extends EscBase {
     }
 
     public void testNonNullParam() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ ensures \\result != null;\n"
                 +"  public Object inst(boolean b, /*@ non_null */Object i, Object ii) { return i; }\n"
@@ -1601,7 +1601,7 @@ public class esc extends EscBase {
     public void testNonNullParam2() {
         options.put("-nullableByDefault",null);
         options.put("-nonnullByDefault","");
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ ensures \\result != null;\n"
                 +"  public /*@ nullable*/Object inst(boolean b,                Object i, /*@ nullable*/Object ii) { return i; }\n"
@@ -1621,7 +1621,7 @@ public class esc extends EscBase {
 
     public void testNonNullParam3() {
         options.put("-nullableByDefault",null);
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 +"  //@ ensures \\result != null;\n"
                 +"  public /*@ nullable*/Object inst(boolean b,                Object i, /*@ nullable*/Object ii) { return i; }\n"
@@ -1641,7 +1641,7 @@ public class esc extends EscBase {
 
     public void testNonNullParam4() {
         options.put("-nullableByDefault",null);
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ ensures \\result != null;\n"
                 +"  public /*@ nullable*/Object inst(boolean b,                Object i, /*@ nullable*/Object ii) { return i; }\n"
@@ -1660,7 +1660,7 @@ public class esc extends EscBase {
     }
 
     public void testMethodCall() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  static public int j;\n"
                 +"  //@ requires i>0;\n"
@@ -1688,7 +1688,7 @@ public class esc extends EscBase {
     }
 
     public void testMethodCall2() { // Had problems with static and non-static
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public int j;\n"
                 +"  //@ requires i>0;\n"
@@ -1716,7 +1716,7 @@ public class esc extends EscBase {
     }
 
     public void testMethodCallRet() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  static public int j;\n"
                 +"  //@ requires i>0;\n"
@@ -1736,7 +1736,7 @@ public class esc extends EscBase {
     }
 
     public void testMethodCallThis() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  static TestJava o;\n"
                 +"  static TestJava p;\n"
@@ -1796,7 +1796,7 @@ public class esc extends EscBase {
     // TODO - more tests needed, and with specs
     // FIXME (test disabled) - need a loop invariant to prove this
     public void _testForeachSpecs() { 
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst(int[] a) { \n"
                 +"    //@ assume a.length > 2 && a[0] == 1;\n"
@@ -1808,7 +1808,7 @@ public class esc extends EscBase {
     }
 
     public void testForLoopSpecs() {  // FIXME - want error position at the end of the statement that is the loop body
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst() { int n = 0; /*@ loop_invariant 0<=i && i<=5 && n==i; decreases 5-i; */ for (int i=0; i<5; i++) n++; /*@ assert n == 5; */ }\n"
                 +"  public void instb() { int n = 0; /*@ loop_invariant 0<=i && i<=5 && n==i; decreases 3-i; */ for (int i=0; i<5; i++) n++; /*@ assert n == 5; */ }\n"
@@ -1827,7 +1827,7 @@ public class esc extends EscBase {
     }
 
     public void _testDoWhileSpecs() { // FIXME - figure out this better  // FIXME - want error position at the right place  // Note test is disabled
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst() { int i = 5; /*@ loop_invariant i>0; decreases i; */ do { i = i-1; } while (i>0); /*@ assert i == 0; */ }\n"
                 +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i-2; */ do  i = i+1;  while (i>0); /*@ assert i == 0; */ }\n"
@@ -1849,7 +1849,7 @@ public class esc extends EscBase {
     }
 
     public void testWhileSpecs() { 
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
                 +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i-2; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
@@ -1867,7 +1867,7 @@ public class esc extends EscBase {
 
     // FIXME - need to sort out loop invariants for while loops with side effects
     //    public void testWhileSpecs2() {
-    //        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+    //        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
     //                +"public class TestJava { \n"
     //                +"  public void inst() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (--i > 0) { } /*@ assert i == 0; */ }\n"
     //                +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i-- >0) { } /*@ assert i == 0; */ }\n"
@@ -1879,7 +1879,7 @@ public class esc extends EscBase {
     //    }
 
     public void testIncDec() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst1() { int i = 5; i++; /*@ assert i == 6; */ }\n"
                 +"  public void inst1b() { int i = 5; i++; /*@ assert i == 5; */ }\n"
@@ -1898,7 +1898,7 @@ public class esc extends EscBase {
     }
 
     public void testIncDec2() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst1() { int i = 5; int j = i++; /*@ assert j == 5; */ }\n"
                 +"  public void inst1b() { int i = 5; int j = i++; /*@ assert j == 6; */ }\n"
@@ -1917,7 +1917,7 @@ public class esc extends EscBase {
     }
 
     public void testAssignOp() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst1() { int i = 5; i+=7; /*@ assert i == 12; */ }\n"
                 +"  public void inst1b() { int i = 5; i+=7; /*@ assert i == 5; */ }\n"
@@ -1948,7 +1948,7 @@ public class esc extends EscBase {
     }
 
     public void testConditional() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst1(int i) { int j = i<0?-i:i; /*@ assert j >= 0; */ }\n"
                 +"  public void inst1a(int i) { int j = i<0?-i:i; /*@ assert j == -1; */ }\n"
@@ -1958,7 +1958,7 @@ public class esc extends EscBase {
     }
 
     public void testLblx() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst1(int i) { /*@ assume i > 0; */ /*@ assert (\\lblpos ISP i>0); */}\n" // no report
                 +"  public void inst1a(int i) { /*@ assume i > 0; */ /*@ assert (\\lblneg ISN i<0); */}\n" // reported
@@ -1976,7 +1976,7 @@ public class esc extends EscBase {
     }
 
     public void testNewObject() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst1() { Object o = new Object(); Object oo = new Object(); /*@ assert o != oo;*/ }\n" 
                 +"  public void inst1a() { Object o = new Object(); Object oo = new Object(); /*@ assert o == oo;*/ }\n" 
@@ -1989,7 +1989,7 @@ public class esc extends EscBase {
     }
 
     public void testNewArray() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst1() { Object o = new int[5]; Object oo = new int[5]; /*@ assert o != oo;*/ }\n" 
                 +"  public void inst1a() { Object o = new int[5]; Object oo = new int[5]; /*@ assert o == oo;*/ }\n" // FALSE
@@ -2012,7 +2012,7 @@ public class esc extends EscBase {
     }
 
     public void testNewArrayMD() { 
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst0() { Object o = new int[2][3]; o = new int[2][]; o = new int[][] {{2}, {3,4,5}}; int[][] oo = {{1},{2,3}}; /*@ assert oo[0] != oo[1]; */}\n" 
                 +"  public void inst1() { Object o = new int[5][3]; Object oo = new int[5][3]; /*@ assert o != oo;*/ }\n" 
@@ -2036,7 +2036,7 @@ public class esc extends EscBase {
     }
 
     public void testArrays() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst2(/*@non_null*/int[] a) { /*@assume a.length == 10;*//*@ assume a[1] == 2; */  /*@ assert a[1] == 2; */ }\n" // OK
                 +"  public void inst2a(/*@non_null*/int[] a) { /*@assume a.length == 10;*//*@ assume a[1] == 2; */  /*@ assert a[1] == 3; */ }\n" // BAD
@@ -2062,7 +2062,7 @@ public class esc extends EscBase {
     }
     
     public void testArraysMD() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst2(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  /*@ assert a[1][2]; */ }\n" // OK
                 +"  public void inst2a(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  /*@ assert !a[1][2]; */ }\n" // BAD
@@ -2095,7 +2095,7 @@ public class esc extends EscBase {
     }
     
     public void testFields() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  int f; static int sf;\n"
                 +"  int g; static int sg;\n"
@@ -2135,7 +2135,7 @@ public class esc extends EscBase {
     }
 
     public void testSwitch() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  int f; static int sf;\n"
                 +"  int g; static int sg;\n"
@@ -2155,7 +2155,7 @@ public class esc extends EscBase {
     }
 
     public void testTry() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  static int i;\n"
                 +"  //@ ensures i == 2;\n"
@@ -2170,7 +2170,7 @@ public class esc extends EscBase {
 
 
     public void testMisc() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  static int i;\n"
                 +"  //@ requires i > 0;\n"
@@ -2183,7 +2183,7 @@ public class esc extends EscBase {
     }
 
     public void testArith() {  // TODO - need more arithmetic support
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public static void m1(int a, int b) { /*@ assert a*2 == a + a; */ }\n"
                 //+"  public static void m2(int a, int b) { /*@ assert a * b == a *(b-1) + a; */ }\n"
@@ -2198,7 +2198,7 @@ public class esc extends EscBase {
     }
 
     public void testPureMethodStatic() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ ensures \\result == i+1;\n"
                 +"  //@ pure \n"
@@ -2217,7 +2217,7 @@ public class esc extends EscBase {
     }
 
     public void testPureMethod() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ ensures \\result == i+1;\n"
                 +"  //@ pure \n"
@@ -2236,7 +2236,7 @@ public class esc extends EscBase {
     }
 
     public void testPureNonFunction() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  int z;\n"
                 +"  //@ ensures \\result == z+1;\n"
@@ -2256,7 +2256,7 @@ public class esc extends EscBase {
     }
 
     public void testPureNoArguments() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  static int z;\n"
                 +"  //@ ensures \\result == z+1;\n"
@@ -2273,7 +2273,7 @@ public class esc extends EscBase {
     }
 
     public void testInheritedPost() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"abstract class TestJavaA { \n"
                 +"  //@ requires iii > 0;\n"
                 +"  //@ ensures \\result > 0;\n"
@@ -2299,7 +2299,7 @@ public class esc extends EscBase {
     }
 
     public void testInheritedPostB() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"abstract class TestJavaA { \n"
                 +"  //@ requires iii > 0;\n"
                 +"  //@ ensures \\result > 0;\n"
@@ -2322,7 +2322,7 @@ public class esc extends EscBase {
     }
 
     public void testInheritedPre() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"abstract class TestJavaA { \n"
                 +"  //@ requires iii == 1;\n"
                 +"  //@ ensures \\result == iii;\n"
@@ -2668,7 +2668,7 @@ public class esc extends EscBase {
     // TODO - loop invariants, variants,  represents,  signals, modifies 
     // TODO - old constructs, quantifications, set comprehension, pure methods - check other JMl expressions
     public void testUndefinedInSpec3() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotations.*; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  int j = 1;\n"
                 +"  static @Nullable TestJava t;\n"

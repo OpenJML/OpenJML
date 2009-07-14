@@ -253,12 +253,12 @@ public class typechecking extends TCBase {
 
     /** Wrong position model or ghost modifier */
     public void testJmlTypes3() {
-        helpTCF("A.java","import org.jmlspecs.annotations.*; public class A {  @Ghost int i; } ",
-                "/A.java:1: A Java declaration (not within a JML annotation) may not be either ghost or model",65);
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A {  @Ghost int i; } ",
+                "/A.java:1: A Java declaration (not within a JML annotation) may not be either ghost or model",64);
     }
 
     public void testJmlTypes4() {
-        helpTCF("A.java","import org.jmlspecs.annotations.*; public class A {  /*@ @Ghost int i; */ } ");  //OK
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A {  /*@ @Ghost int i; */ } ");  //OK
     }
     public void testSubtype() { // OK
         helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */Class c;\n//@ensures t <: t;\nvoid m() {}}");

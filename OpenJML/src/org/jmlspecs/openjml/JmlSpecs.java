@@ -19,7 +19,7 @@ import java.util.zip.ZipFile;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotations.NonNull;
+import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
@@ -1109,12 +1109,12 @@ public class JmlSpecs {
     ClassSymbol nullableAnnotationSymbol = null;
     public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
         if (nonnullAnnotationSymbol == null) {
-            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.annotations.NonNull"));
+            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.annotation.NonNull"));
         }
         Attribute.Compound attr = symbol.attribute(nonnullAnnotationSymbol);
         if (attr!=null) return true;
         if (nullableAnnotationSymbol == null) {
-            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.annotations.Nullable"));
+            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.annotation.Nullable"));
         }
         attr = symbol.attribute(nullableAnnotationSymbol);
         if (attr!=null) return false;

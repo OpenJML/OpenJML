@@ -25,7 +25,7 @@ import org.jmlspecs.openjml.proverinterface.ProverException;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.jmlspecs.openjml.provers.YicesProver;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
@@ -1135,7 +1135,7 @@ public class BasicBlocker extends JmlTreeScanner {
     protected boolean isHelper(@NonNull Symbol symbol) {
         if (helperAnnotationSymbol == null) {
             helperAnnotationSymbol = ClassReader.instance(context).
-                enterClass(names.fromString("org.jmlspecs.annotations.Helper"));
+                enterClass(names.fromString("org.jmlspecs.annotation.Helper"));
         }
         return symbol.attribute(helperAnnotationSymbol)!=null;
     }  // FIXME - isn't there a utility method somewhere else that does this
@@ -6242,7 +6242,7 @@ public class BasicBlocker extends JmlTreeScanner {
     private ClassSymbol pureAnnotationSymbol = null;
     public boolean isPure(Symbol symbol) {
         if (pureAnnotationSymbol == null) {
-            pureAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.Pure"));
+            pureAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotation.Pure"));
         }
         return symbol.attribute(pureAnnotationSymbol)!=null;
     }

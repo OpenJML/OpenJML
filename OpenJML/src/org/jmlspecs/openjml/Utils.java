@@ -177,7 +177,7 @@ public class Utils {
                 // FIXME this is not going to work for unattributed and not-fully qualified annotations
                 String s = a.annotationType.toString();
                 if (m.toString().equals(s)) return a;
-                if (m.toString().equals("org.jmlspecs.annotations."+s)) return a; // FIXME - fix attribution of annotations in MemberEnter
+                if (m.toString().equals("org.jmlspecs.annotation."+s)) return a; // FIXME - fix attribution of annotations in MemberEnter
             }
         }
         return null;
@@ -215,7 +215,7 @@ public class Utils {
     /** A string giving the name of the package that JML annotations are in.
      */
     /*@ non_null*/
-    public static final String jmlAnnotationPackage = "org.jmlspecs.annotations";
+    public static final String jmlAnnotationPackage = "org.jmlspecs.annotation";
     
     /** This string is the fully-qualified name of the JML compiler messages file */
     /*@ non_null*/
@@ -251,6 +251,12 @@ public class Utils {
     /*@ non_null*/
     public static final String eclipseSpecsProjectLocation = "openjml.eclipseSpecsProjectLocation";
     
+    /** Set this to the name of a Java property that contains the default
+     * runtime classpath. 
+     */
+    /*@ non_null*/
+    public static final String defaultRuntimeClassPath = "openjml.defaultRuntimeClassPath";
+    
     /** A little class to encapsulate elapsed wall-clock time */
     public static class Timer {
         /** Time the object was constructed or reset */
@@ -276,6 +282,7 @@ public class Utils {
         }
     }
     
+    // FIXME - this is in the wrong class
     /** This method is never actually executed.  It is here to provide a
      * convenient signature for a method used by ESC - that maps each class
      * to a distinct integer - not necessarily its hashCode (which are not

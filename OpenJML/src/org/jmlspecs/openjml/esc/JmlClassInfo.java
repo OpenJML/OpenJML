@@ -2,7 +2,7 @@ package org.jmlspecs.openjml.esc;
 
 import java.util.LinkedList;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;

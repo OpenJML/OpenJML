@@ -1214,7 +1214,7 @@ public class rac extends RacBase {
 //    }
 
     public void testNullAssignment() {
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotations.*; @NullableByDefault public class A  { \n"
+        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; @NullableByDefault public class A  { \n"
                 +"/*@non_null*/ static String o=\"\",oo=\"\"; static Object ooo;\n"
                 +"public static void main(String[] args) { \n"
                 +"   oo = null;\n"
@@ -1231,7 +1231,7 @@ public class rac extends RacBase {
     }
 
     public void testNullAssignment2() {
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotations.*; @NullableByDefault public class A  { \n"
+        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; @NullableByDefault public class A  { \n"
                 +"/*@non_null*/ static Object o,oo; static Object ooo;\n"
                 +"public static void main(String[] args) { \n"
                 +"   A.oo = null;\n"

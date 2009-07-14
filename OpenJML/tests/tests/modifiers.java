@@ -61,7 +61,7 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testClassMods9() {
-        helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public /*@ pure */ @Pure class A{}",
+        helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}",
                 "/t/A.java:2: duplicate annotation", 21);
 //        checkMessages();
     }
@@ -108,7 +108,7 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testClassMods14b() {
-        helpTCF("A.java","import org.jmlspecs.annotations.*;\n //@  @Ghost class B{}\n public class A {}",
+        helpTCF("A.java","import org.jmlspecs.annotation.*;\n //@  @Ghost class B{}\n public class A {}",
                 "/A.java:2: This JML modifier is not allowed for a type declaration", 7
                 ,"/A.java:2: A method or type declaration within a JML annotation must be model",14
                 );
@@ -153,7 +153,7 @@ public class modifiers extends TCBase {
         // but this makes the compiler look for specs for Ghost as a binary class, and exercises a different
         // code path
         specs.setSpecsPath(new String[]{"$A","$B","$SY","./runtime"});
-        helpTCF("A.java","import org.jmlspecs.annotations.*;  \n public @Ghost class A{}",
+        helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @Ghost class A{}",
                 "/A.java:2: This JML modifier is not allowed for a type declaration", 9);
     }
     
@@ -162,19 +162,19 @@ public class modifiers extends TCBase {
         // but this makes the compiler look for specs for Ghost as a binary class, and exercises a different
         // code path
         specs.setSpecsPath(new String[]{"$A","$B","$SY"});
-        helpTCF("A.java","import org.jmlspecs.annotations.*;  \n public @Ghost class A{}",
+        helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @Ghost class A{}",
                 "/A.java:2: This JML modifier is not allowed for a type declaration", 9);
     }
     
     @Test public void testClassMods15() {
         specs.setSpecsPath(new String[]{"$A","$B","$SY","./runtime"});
-        helpTCF("A.java","import org.jmlspecs.annotations.*;  \n public @NullableByDefault class A{}"
+        helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @NullableByDefault class A{}"
                 );
     }
     
     @Test public void testClassMods15a() {
         specs.setSpecsPath(new String[]{"$A","$B","$SY","./runtime"});
-        helpTCF("A.java","import org.jmlspecs.annotations.*;  \n public @NonNullByDefault class A{}"
+        helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @NonNullByDefault class A{}"
                 );
     }
     
@@ -199,34 +199,34 @@ public class modifiers extends TCBase {
     
     @Test public void testClassMods15e() {
         specs.setSpecsPath(new String[]{"$A","$B","$SY","./runtime"});
-        helpTCF("A.java","import org.jmlspecs.annotations.*;  \n public @NonNullByDefault @NullableByDefault class A{}"
+        helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @NonNullByDefault @NullableByDefault class A{}"
                 ,"/A.java:2: A declaration may not be both non_null_by_default and nullable_by_default",27
                 );
     }
     
     
     @Test public void testCUMods() {
-        helpTCF("t/A.java","@Pure package t; import org.jmlspecs.annotations.*;  \n public /*@ pure */ @Pure class A{}",
+        helpTCF("t/A.java","@Pure package t; import org.jmlspecs.annotation.*;  \n public /*@ pure */ @Pure class A{}",
                 "/t/A.java:1: package annotations should be in file package-info.java",1,
                 "/t/A.java:2: duplicate annotation", 21);
     }
     
     @Test public void testCUMods2() {
-        helpTCF("t/A.java","/*@ pure */ package t; import org.jmlspecs.annotations.*;  \n public /*@ pure */ @Pure class A{}"
+        helpTCF("t/A.java","/*@ pure */ package t; import org.jmlspecs.annotation.*;  \n public /*@ pure */ @Pure class A{}"
                 ,"/t/A.java:1: class, interface, or enum expected", 13
                 ,"/t/A.java:2: duplicate annotation",21
                 );
     }
     
     @Test public void testCUMods3() {
-        helpTCF("t/A.java","package t; /*@ pure */ import org.jmlspecs.annotations.*; \n public /*@ pure */ @Pure class A{}"
+        helpTCF("t/A.java","package t; /*@ pure */ import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}"
                 ,"/t/A.java:1: class, interface, or enum expected", 24
                 ,"/t/A.java:2: duplicate annotation",21
                 );
     }
     
     @Test public void testCUMods4() {
-        helpTCF("t/A.java","package t; @Pure import org.jmlspecs.annotations.*; \n public /*@ pure */ @Pure class A{}"
+        helpTCF("t/A.java","package t; @Pure import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}"
                 ,"/t/A.java:1: class, interface, or enum expected", 18
                 ,"/t/A.java:2: duplicate annotation",21
                 );
@@ -918,7 +918,7 @@ public class modifiers extends TCBase {
     // FIXME - do we allow normal JML keywords in these contexts?
     
     @Test public void testQuantified() {
-        helpTCF("A.java","import org.jmlspecs.annotations.*; public class A{ A(int i) {} \n" +
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
 //                "  //@ invariant (\\exists nullable Object o; o == null); \n" +
 //                "  //@ invariant (\\exists non_null Object o; o == null); \n" +
                 "  //@ invariant (\\exists final Object o; o == null); \n" +
@@ -932,7 +932,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testSetComp() {
-        helpTCF("A.java","import org.jmlspecs.annotations.*; public class A{ A(int i) {} \n" +
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
 //                "  //@ invariant null != new Object { nullable Integer i | i < 10 }; \n" +
 //                "  //@ invariant null != new Object { non_null Integer i | i < 10 }; \n" +
                 "  //@ invariant null != new Object { final Integer i | i < 10 }; \n" +
@@ -946,7 +946,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testForall() {
-        helpTCF("A.java","import org.jmlspecs.annotations.*; public class A{ A(int i) {} \n" +
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
 //                "  //@ forall nullable Object o1; \n" +
 //                "  //@ forall non_null Object o2; \n" +
                 "  //@ forall \\readonly Object o3; \n" +
@@ -960,7 +960,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testOld() {
-        helpTCF("A.java","import org.jmlspecs.annotations.*; public class A{ A(int i) {} \n" +
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
 //                "  //@ old nullable Object o1 = null; \n" +
 //                "  //@ old non_null Object o2 = null; \n" +
                 "  //@ old \\readonly Object o3 = null; \n" +
@@ -974,7 +974,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testInvariant() {
-        helpTCF("A.java","import org.jmlspecs.annotations.*; public class A{ A(int i) {} \n" +
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
                 "  //@ invariant true; \n" +
                 "  //@ public invariant true; \n" +
                 "  //@ pure invariant true; \n" +
@@ -991,7 +991,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testConstraint() {
-        helpTCF("A.java","import org.jmlspecs.annotations.*; public class A{ A(int i) {} \n" +
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
                 "  //@ constraint true; \n" +
                 "  //@ public constraint true; \n" +
                 "  //@ pure constraint true; \n" +
@@ -1008,7 +1008,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testAxiom() {
-        helpTCF("A.java","import org.jmlspecs.annotations.*; public class A{ A(int i) {} \n" +
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
                 "  //@ axiom true; \n" +
                 "  //@ public axiom true; \n" +
                 "  //@ pure axiom true; \n" +
@@ -1027,7 +1027,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testInitially() {
-        helpTCF("A.java","import org.jmlspecs.annotations.*; public class A{ A(int i) {} \n" +
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
                 "  //@ initially true; \n" +
                 "  //@ public initially true; \n" +
                 "  //@ pure initially true; \n" +
@@ -1070,26 +1070,26 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testQuery() {
-        helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public class A{ @Query int m() { return 0; } }"
+        helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public class A{ @Query int m() { return 0; } }"
                 );
         checkMessages();
     }
      
     @Test public void testSecret() {
-        helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public class A{ /*@ secret model int a; */ @Secret(\"a\") int m() { return 0; } }"
+        helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public class A{ /*@ secret model int a; */ @Secret(\"a\") int m() { return 0; } }"
                 );
 //        checkMessages();
     }
      
     @Test public void testSecret2() {
-        helpTCF("t/A.java","package t; import org.jmlspecs.annotations.*; \n public class A{ @Secret(\"x\") int m() { return 0; } //@ model secret int x;  }"
+        helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public class A{ @Secret(\"x\") int m() { return 0; } //@ model secret int x;  }"
                 );
 //        checkMessages();
     }
     
     @Test public void testAnnotations1() {
         addMockFile("$A/A.spec","  public class A {}");
-        helpTCF("A.java","import org.jmlspecs.annotations.*;\n" +
+        helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
                 "public @Pure class A{}",
                 "/$A/A.spec:1: The specification must include all the annotations that the Java declaration declares: @Pure", 3);
     }
@@ -1098,14 +1098,14 @@ public class modifiers extends TCBase {
     // FIXME - these need implementing - error for the different in annotations
 //    @Test public void testAnnotations2() {
 //        addMockFile("$A/A.spec","public class A { Object f; }");
-//        helpTCF("A.java","import org.jmlspecs.annotations.*;\n" +
+//        helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
 //                "public class A{ @NonNull Object f; }",
 //                "/$A/A.spec:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
 //    }
 //     
 //    @Test public void testAnnotations3() {
 //        addMockFile("$A/A.spec","public class A { Object m(); }");
-//        helpTCF("A.java","import org.jmlspecs.annotations.*;\n" +
+//        helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
 //                "public class A{  @NonNull Object m() { return null: }}",
 //                "/$A/A.spec:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
 //    }

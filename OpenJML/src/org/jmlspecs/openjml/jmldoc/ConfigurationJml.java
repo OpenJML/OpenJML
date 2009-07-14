@@ -7,7 +7,7 @@ import java.util.Date;
 import com.sun.tools.doclets.formats.html.ConfigurationImpl;
 import com.sun.tools.doclets.internal.toolkit.WriterFactory;
 
-import org.jmlspecs.annotations.NonNull;
+import org.jmlspecs.annotation.NonNull;
 
 /**
  * This class extends the ConfigurationImpl class that is part of the javadoc

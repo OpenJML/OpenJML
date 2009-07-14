@@ -19,7 +19,7 @@
 
 
 package org.jmlspecs.genericmodels;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** A reflection of {@link java.lang.Character} that implements {@link
  * JMLType}.

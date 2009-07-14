@@ -1,5 +1,5 @@
 // This class tests that jmldoc knows how to print all kinds of expressions
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 public class PP extends QQ {
 

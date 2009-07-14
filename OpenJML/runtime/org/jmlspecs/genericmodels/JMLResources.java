@@ -20,7 +20,7 @@
 
 package org.jmlspecs.genericmodels;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** Model variables for reasoning &agrave; la Eric Hehner.
  *

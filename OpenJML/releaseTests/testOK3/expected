@@ -14,7 +14,7 @@ entering (binary) java.lang.Object
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/Array.jml
 entering (binary) java.lang.reflect.Array
 No specs for java.lang.annotation.Annotation
-No specs for org.jmlspecs.annotations.Pure
+No specs for org.jmlspecs.annotation.Pure
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/Serializable.jml
 entering (binary) java.io.Serializable
 No specs for java.lang.reflect.GenericDeclaration
@@ -24,8 +24,8 @@ parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/la
 entering (binary) java.lang.Class
 entering (binary) java.lang.Class.EnclosingMethodInfo
 entering (binary) java.lang.Class.MethodArray
-No specs for org.jmlspecs.annotations.NonNull
-No specs for org.jmlspecs.annotations.Nullable
+No specs for org.jmlspecs.annotation.NonNull
+No specs for org.jmlspecs.annotation.Nullable
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Throwable.jml
 entering (binary) java.lang.Throwable
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Exception.jml
@@ -45,8 +45,8 @@ parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/la
 entering (binary) java.lang.Cloneable
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/org/jmlspecs/lang/JMLDataGroup.jml
 entering (binary) org.jmlspecs.lang.JMLDataGroup
-No specs for org.jmlspecs.annotations.Model
-No specs for org.jmlspecs.annotations.Ghost
+No specs for org.jmlspecs.annotation.Model
+No specs for org.jmlspecs.annotation.Ghost
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/RuntimeException.jml
 entering (binary) java.lang.RuntimeException
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/IllegalArgumentException.jml
@@ -60,7 +60,7 @@ entering (binary) java.lang.NegativeArraySizeException
 No specs for java.io.Closeable
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/InputStream.jml
 entering (binary) java.io.InputStream
-No specs for org.jmlspecs.annotations.NullableByDefault
+No specs for org.jmlspecs.annotation.NullableByDefault
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ClassNotFoundException.jml
 entering (binary) java.lang.ClassNotFoundException
 No specs for java.lang.ClassLoader
@@ -100,7 +100,7 @@ parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io
 entering (binary) java.io.PrintWriter
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StackTraceElement.jml
 entering (binary) java.lang.StackTraceElement
-No specs for org.jmlspecs.annotations.Instance
+No specs for org.jmlspecs.annotation.Instance
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/IOException.jml
 entering (binary) java.io.IOException
 parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/UnsupportedEncodingException.jml
@@ -400,7 +400,7 @@ typechecking java.util.Hashtable
 typechecking java.util.Dictionary
 typechecked java.util.Dictionary
 typechecked java.util.Hashtable
-No specs for org.jmlspecs.annotations.SpecPublic
+No specs for org.jmlspecs.annotation.SpecPublic
 typechecked java.util.Properties
 typechecking java.lang.SecurityManager
 typechecked java.lang.SecurityManager

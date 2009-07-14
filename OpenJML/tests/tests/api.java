@@ -631,8 +631,8 @@ public class api extends TestCase {
             assertEquals("java.lang",psym.flatName().toString());
             psym = m.getPackageSymbol("org.jmlspecs.lang");
             assertEquals("org.jmlspecs.lang",psym.flatName().toString());
-            psym = m.getPackageSymbol("org.jmlspecs.annotations");
-            assertEquals("org.jmlspecs.annotations",psym.flatName().toString());
+            psym = m.getPackageSymbol("org.jmlspecs.annotation");
+            assertEquals("org.jmlspecs.annotation",psym.flatName().toString());
             psym = m.getPackageSymbol("");
             assertEquals("",psym.flatName().toString());
             psym = m.getPackageSymbol("ZZZ");

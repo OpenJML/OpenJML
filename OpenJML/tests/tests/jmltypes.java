@@ -75,6 +75,7 @@ public class jmltypes extends TCBase {
                 "public class A<T>  { \n" +
                 " void m() {\n" +
                 "  Class<?> c = Object.class; Object o = c; \n" +
+                "  //@ ghost \\TYPE w = \\type(B<Integer>);\n" +
                 "  //@ ghost \\TYPE t = \\type(B<T>);\n" +
                 "  //@ ghost \\TYPE v = \\type(T);\n" +
                 " }\n" +

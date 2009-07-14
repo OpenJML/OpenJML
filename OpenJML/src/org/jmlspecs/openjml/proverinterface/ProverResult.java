@@ -1,6 +1,6 @@
 package org.jmlspecs.openjml.proverinterface;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 import java.util.LinkedList;
 import java.util.List;

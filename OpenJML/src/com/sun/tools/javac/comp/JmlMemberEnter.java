@@ -2438,9 +2438,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     protected JCAnnotation tokenToAnnotationAST(JmlToken jt) {
         Class<?> c = jt.annotationType;
         if (c == null) return null;
+        // FIXME - this is also repeated code and rep[eated fixed strings
         JCExpression t = jmlF.Ident(names.fromString("org"));
         t = jmlF.Select(t, names.fromString("jmlspecs"));
-        t = jmlF.Select(t, names.fromString("annotations"));
+        t = jmlF.Select(t, names.fromString("annotation"));
         t = jmlF.Select(t, names.fromString(c.getSimpleName()));
         JCAnnotation ann = jmlF.Annotation(t, List.<JCExpression>nil());
         return ann;

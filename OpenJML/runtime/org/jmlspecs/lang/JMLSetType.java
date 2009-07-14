@@ -19,7 +19,7 @@
 
 package org.jmlspecs.lang;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** Common protocol for the JML set model types.  This is put in
  * org.jmlspecs.lang because the language creates sets using set

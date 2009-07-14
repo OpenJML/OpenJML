@@ -19,7 +19,7 @@
 
 
 package org.jmlspecs.genericmodels;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** This is an interface shared by all the immutable types of the model classes.
  * Immutable containers must contain immutable objects.

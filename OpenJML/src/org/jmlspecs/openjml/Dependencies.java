@@ -8,8 +8,8 @@ import java.util.Set;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotations.NonNull;
-import org.jmlspecs.annotations.Nullable;
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;

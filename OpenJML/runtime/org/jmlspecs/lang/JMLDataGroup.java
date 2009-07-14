@@ -19,7 +19,7 @@
 
 
 package org.jmlspecs.lang;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** A type with one element, for use in declaring "data groups".
  *  Note that there is only one equivalence class of objects of this type;

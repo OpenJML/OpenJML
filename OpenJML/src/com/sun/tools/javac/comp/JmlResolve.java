@@ -582,7 +582,7 @@ public class JmlResolve extends Resolve {
          // s may not exist because it is being tested whether such a type exists
          // (rather than a package) and is a legitimate workflow in this
          // architecture.  Hence no warning or error is given.
-         // This happens for example in the resolution of org.jmlspecs.annotations
+         // This happens for example in the resolution of org.jmlspecs.annotation
          if (!s.exists()) {
              return s;
          }

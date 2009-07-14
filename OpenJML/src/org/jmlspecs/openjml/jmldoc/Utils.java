@@ -1,6 +1,6 @@
 package org.jmlspecs.openjml.jmldoc;
 
-import org.jmlspecs.annotations.NonNull;
+import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlSpecs;
 
 import com.sun.javadoc.ClassDoc;
@@ -22,12 +22,12 @@ public class Utils {
     //FIXME _ is there a way to discover this?
     /** The fully-qualified name of the package the annotations are defined in. */
     @NonNull
-    private final static String packageString = "org.jmlspecs.annotations";
+    private final static String packageString = "org.jmlspecs.annotation";
 
     // FIXME - this is not thread/context safe
     
     /** An internal variable, lazily initialized, that holds the symbol for the
-     * package representing 'org.jmlspecs.annotations', which holds all the 
+     * package representing 'org.jmlspecs.annotation', which holds all the 
      * JML annotation interfaces.
      */
     private static Symbol annotationPackage = null;

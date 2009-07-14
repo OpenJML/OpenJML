@@ -155,6 +155,7 @@ public class JmlCompiler extends JavaCompiler {
                 }
             }
             // Only need dependencies in interactive situations - Eclipse and programmatic api
+            // Needs to be false for testing or we run out of memory
             if (false) for (JmlCompilationUnit jcu: jmlcu.specsSequence) {
                 //log.noticeWriter.println(jmlcu.sourcefile + " depends on " + jcu.sourcefile);
                 Dependencies.instance(context).dependsOn(jmlcu.sourcefile,jcu.sourcefile);
@@ -530,10 +531,14 @@ public class JmlCompiler extends JavaCompiler {
         //log.noticeWriter.println("    ....... Memory free=" + rt.freeMemory() + "  max="+rt.maxMemory() + "  total="+rt.totalMemory());
 // FIXME - do we keep these preloadings?
  //       JmlResolve.instance(context).loadClass(null,Symtab.instance(context).objectType.tsym.flatName());
-//        JmlResolve.instance(context).loadClass(null,Names.instance(context).fromString("org.jmlspecs.utils.utils"));
 //        JmlResolve.instance(context).loadClass(null,Names.instance(context).fromString("org.jmlspecs.lang.JMLList"));
         
         super.compile(sourceFileObjects,classnames,processors);
+        // The following class contains utility functions that have specs and implementations
+        // for built-in functionality, such as the behavior of JML expressions
+        // (e.g. \type or \typeof).  Here we make sure that Utils is loaded and
+        // its specs are read, so that they get typechecked along with everything else.
+        //JmlResolve.instance(context).loadClass(null,Names.instance(context).fromString("org.jmlspecs.utils.Utils"));
     }
     
     protected void compile2(CompilePolicy compPolicy) {

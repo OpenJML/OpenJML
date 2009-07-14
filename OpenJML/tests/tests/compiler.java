@@ -185,7 +185,6 @@ public class compiler extends TestCase {
     /** Test that specs in the java file are ignored */
     @Test
     public void testIgnoreJava() throws Exception {
-        print = true;
         helper(new String[]
                           { "-classpath","testfiles/testJavaErrors"+z+"bin",
                             "testfiles/testJavaErrors/A.java", "-jmlverbose", "-noInternalSpecs"
@@ -230,8 +229,6 @@ public class compiler extends TestCase {
                             "testfiles/testNoErrors/A.java"
                           },0,0
                           ,""
-//                          ,"Note: Arrays.jml uses unchecked or unsafe operations."+eol+
-//                           "Note: Recompile with -Xlint:unchecked for details."+eol
                           );
     }
 
@@ -250,8 +247,6 @@ public class compiler extends TestCase {
                             "testfiles/testNoErrors/A.java"
                           },0,0
                           ,""
-//                          ,"Note: Arrays.jml uses unchecked or unsafe operations."+eol+
-//                           "Note: Recompile with -Xlint:unchecked for details."+eol
                           );
     }
 

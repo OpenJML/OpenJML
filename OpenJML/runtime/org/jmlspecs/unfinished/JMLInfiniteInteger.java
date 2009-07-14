@@ -21,7 +21,7 @@
 package org.jmlspecs.unfinished;
 
 import java.math.BigInteger;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** Infinite precision integers with an plus and minus infinity.
  *

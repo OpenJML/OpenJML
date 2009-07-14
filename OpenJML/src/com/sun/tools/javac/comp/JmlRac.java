@@ -2,7 +2,7 @@ package com.sun.tools.javac.comp;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotations.Nullable;
+import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlOptionName;
 import org.jmlspecs.openjml.JmlSpecs;
@@ -867,11 +867,11 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 //    ClassSymbol nullableAnnotationSymbol = null;
 //    public boolean isNonNull(Symbol symbol) {
 //        if (nonnullAnnotationSymbol == null) {
-//            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.NonNull"));
+//            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotation.NonNull"));
 //        }
 //        if (symbol.attribute(nonnullAnnotationSymbol)!=null) return true;
 //        if (nullableAnnotationSymbol == null) {
-//            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.Nullable"));
+//            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotation.Nullable"));
 //        }
 //        if (symbol.attribute(nullableAnnotationSymbol)!=null) return false;
 //        return specs.defaultNullity(classInfo.typeSpecs.csymbol) == JmlToken.NONNULL;

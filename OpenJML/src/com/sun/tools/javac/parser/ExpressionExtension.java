@@ -4,8 +4,8 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jmlspecs.annotations.NonNull;
-import org.jmlspecs.annotations.Nullable;
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.ext.Elemtype;
 

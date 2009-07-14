@@ -1,6 +1,6 @@
 package org.jmlspecs.openjml.jmldoc;
 
-import org.jmlspecs.annotations.NonNull;
+import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree;

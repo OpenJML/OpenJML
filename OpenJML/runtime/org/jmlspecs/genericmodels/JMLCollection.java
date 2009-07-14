@@ -21,7 +21,7 @@
 package org.jmlspecs.genericmodels;
 
 import org.jmlspecs.lang.*;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** Common protocol of the JML model collection types.
  *

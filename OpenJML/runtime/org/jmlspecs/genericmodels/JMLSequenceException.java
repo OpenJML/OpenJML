@@ -19,7 +19,7 @@
 
 
 package org.jmlspecs.genericmodels;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** Index out of bounds exceptions from JML Sequence types.
  *

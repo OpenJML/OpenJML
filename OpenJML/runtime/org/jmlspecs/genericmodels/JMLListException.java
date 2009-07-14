@@ -19,7 +19,7 @@
 
 
 package org.jmlspecs.genericmodels;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** Exceptions from JML List types.
  *

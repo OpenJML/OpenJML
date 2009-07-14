@@ -1,0 +1,19 @@
+## Make a copy of this file as Makefile.local in the same directory, filling in
+## values of the symbols below.
+
+## Define the following symbols to be the locations of the various OpenJML
+## Eclipse projects in the local file system.  They must be
+## paths RELATIVE to the contents of the OpenJML project (that is, the
+## project that contains the Makefile and this Makefile.local).
+## This Makefile.local file should not be committed to SVN.
+
+## ROOT = the path to the directory containing OpenJML and OpenJDK
+##        (should be the parent of the current directory)
+##        [ On my system this is .. ]
+## SPECS = the path to the trunk directory of the Specs project [../../../Specs/trunk for me ]
+## ANNOTATIONS = the path to the trunk directory of the JMLAnnotations project
+##        [ e.g. ../../../JMLAnnotations/trunk for me ]
+
+ROOT=..
+ANNOTATIONS=../../../JMLAnnotations/trunk
+SPECS=../../../Specs/trunk
