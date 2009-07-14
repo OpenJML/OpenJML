@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import org.jmlspecs.annotations.NonNull;
+import org.jmlspecs.annotation.NonNull;
 
 public interface IProverResult {
 

@@ -22,7 +22,7 @@ import java.util.Set;
 import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlCompiler;
 import org.jmlspecs.openjml.JmlInternalError;
@@ -288,8 +288,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         BIGINT = syms.longType;
         Lock = syms.objectType;
         LockSet = JMLSetType;
-        nullablebydefaultAnnotationSymbol = createClass("org.jmlspecs.annotations.NullableByDefault");
-        nonnullbydefaultAnnotationSymbol = createClass("org.jmlspecs.annotations.NonNullByDefault");
+        nullablebydefaultAnnotationSymbol = createClass("org.jmlspecs.annotation.NullableByDefault");
+        nonnullbydefaultAnnotationSymbol = createClass("org.jmlspecs.annotation.NonNullByDefault");
         
         if (TYPE.tsym == null) TYPE.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("TYPE"), TYPE, syms.rootPackage);
         if (REAL.tsym == null) {
@@ -3377,7 +3377,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public boolean isModel(Symbol symbol) {
 //      if (modelAnnotationSymbol == null) {
-//          modelAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.Model"));
+//          modelAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotation.Model"));
 //      }
       return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.MODEL))!=null;
 
@@ -3389,7 +3389,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public boolean isPure(Symbol symbol) {
 //        if (pureAnnotationSymbol == null) {
-//            pureAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotations.Pure"));
+//            pureAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotation.Pure"));
 //        }
         if (symbol.attributes_field == null) return false;  // FIXME - should have the attributes - this is necessary but why?
 //        return symbol.attribute(pureAnnotationSymbol)!=null;

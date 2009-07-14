@@ -32,31 +32,31 @@ public enum JmlToken {
     UNREACHABLE("unreachable"), // Keep this one last of the method statement tokens
 
     // These are modifiers
-    PURE("pure",org.jmlspecs.annotations.Pure.class), // Keep this one the first of the modifiers (see the modifiers Map below)
+    PURE("pure",org.jmlspecs.annotation.Pure.class), // Keep this one the first of the modifiers (see the modifiers Map below)
     CODE_JAVA_MATH("code_java_math"),
     CODE_SAFE_MATH("code_safe_math"),
-    EXTRACT("extract",org.jmlspecs.annotations.Extract.class),
-    GHOST("ghost",org.jmlspecs.annotations.Ghost.class),
-    IMMUTABLE("immutable",org.jmlspecs.annotations.Immutable.class), // FIXME - this is an extension - comment
-    INSTANCE("instance",org.jmlspecs.annotations.Instance.class),
-    MODEL("model",org.jmlspecs.annotations.Model.class),
-    NONNULL("non_null",org.jmlspecs.annotations.NonNull.class),
-    NULLABLE("nullable",org.jmlspecs.annotations.Nullable.class),
-    NULLABLE_BY_DEFAULT("nullable_by_default",org.jmlspecs.annotations.NullableByDefault.class),
-    NON_NULL_BY_DEFAULT("non_null_by_default",org.jmlspecs.annotations.NonNullByDefault.class), // TODO: In some code, but not in JML
-    HELPER("helper",org.jmlspecs.annotations.Helper.class),
-    UNINITIALIZED("uninitialized",org.jmlspecs.annotations.Uninitialized.class),
-    MONITORED("monitored",org.jmlspecs.annotations.Monitored.class),
-    PEER("peer",org.jmlspecs.annotations.Peer.class),
-    QUERY("query",org.jmlspecs.annotations.Query.class),  // FIXME - this is an extension - comment
-    READONLY("readonly",org.jmlspecs.annotations.Readonly.class),
-    REP("rep",org.jmlspecs.annotations.Rep.class),
-    SECRET("secret",org.jmlspecs.annotations.Secret.class),  // FIXME - this is an extension - comment
+    EXTRACT("extract",org.jmlspecs.annotation.Extract.class),
+    GHOST("ghost",org.jmlspecs.annotation.Ghost.class),
+    IMMUTABLE("immutable",org.jmlspecs.annotation.Immutable.class), // FIXME - this is an extension - comment
+    INSTANCE("instance",org.jmlspecs.annotation.Instance.class),
+    MODEL("model",org.jmlspecs.annotation.Model.class),
+    NONNULL("non_null",org.jmlspecs.annotation.NonNull.class),
+    NULLABLE("nullable",org.jmlspecs.annotation.Nullable.class),
+    NULLABLE_BY_DEFAULT("nullable_by_default",org.jmlspecs.annotation.NullableByDefault.class),
+    NON_NULL_BY_DEFAULT("non_null_by_default",org.jmlspecs.annotation.NonNullByDefault.class), // TODO: In some code, but not in JML
+    HELPER("helper",org.jmlspecs.annotation.Helper.class),
+    UNINITIALIZED("uninitialized",org.jmlspecs.annotation.Uninitialized.class),
+    MONITORED("monitored",org.jmlspecs.annotation.Monitored.class),
+    PEER("peer",org.jmlspecs.annotation.Peer.class),
+    QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
+    READONLY("readonly",org.jmlspecs.annotation.Readonly.class),
+    REP("rep",org.jmlspecs.annotation.Rep.class),
+    SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
     SPEC_BIGINT_MATH("spec_bigint_math"),
     SPEC_JAVA_MATH("spec_java_math"),
     SPEC_SAFE_MATH("spec_safe_math"),
-    SPEC_PUBLIC("spec_public",org.jmlspecs.annotations.SpecPublic.class),
-    SPEC_PROTECTED("spec_protected",org.jmlspecs.annotations.SpecProtected.class),
+    SPEC_PUBLIC("spec_public",org.jmlspecs.annotation.SpecPublic.class),
+    SPEC_PROTECTED("spec_protected",org.jmlspecs.annotation.SpecProtected.class),
     CODE_BIGINT_MATH("code_bigint_math"), // Keep this one the last of the modifiers (see the modifiers Map below)
     
     // These are class/interface clause types

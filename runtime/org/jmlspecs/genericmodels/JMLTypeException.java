@@ -19,7 +19,7 @@
 
 
 package org.jmlspecs.genericmodels;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** An exception class used in bad formatting exceptions.
  *

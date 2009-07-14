@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.code.Type;
@@ -616,7 +616,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     /** This is the package name (including a terminating period) of the 
      * package that contains the JML annotation types (e.g. NonNull).
      */
-    static final String prefix = "org.jmlspecs.annotations.";
+    static final String prefix = "org.jmlspecs.annotation.";
     
     /** This is overridden simply to exclude the package name from JML annotations,
      * in order to conserve space. [FIXME - this will actually create illegal

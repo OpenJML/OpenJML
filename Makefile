@@ -6,8 +6,10 @@
 ## Other targets:
 ##	release - just build the release
 ##	test - just test the current release
-ROOT=..
-SPECS=../../../Specs/trunk
+
+## The following file defines ROOT, SPECS, ANNOTATIONS per the local file system
+include Makefile.local
+
 VERSION:=$(shell date +%Y%m%d)
 NAME=openjml-${VERSION}.tar.gz
 
@@ -58,6 +60,7 @@ alljars jmlspecs.jar openjml.jar:
 	cp -r ${ROOT}/OpenJDK/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
+	cp -r ${ANNOTATIONS}/bin/* temp
 	mkdir temp/specs14 temp/specs15 temp/specs16
 	cp -r ${SPECS}/java4/* temp/specs14
 	find temp/specs14 -name .svn -exec rm -rf \{\} +
@@ -87,14 +90,18 @@ copy:
 	cp -r ${ROOT}/OpenJDK/bin/* ../OpenJMLUI/openjml
 	cp -r ${ROOT}/OpenJML/bin/* ../OpenJMLUI/openjml
 	cp -r ${ROOT}/OpenJML/bin-runtime/* ../OpenJMLUI/runtime
+	cp -r ${ANNOTATIONS}/bin/* ../OpenJMLUI/runtime
 	echo "Copy to OpenJMLUI complete"
 	
 ## Builds jmlruntime.jar
 jmlruntime.jar:
+	mkdir -p temp2
 	mkdir -p jars
 	rm -f jars/jmlruntime.jar
-	(cd bin-runtime; jar -cf ../jars/jmlruntime.jar . ) 
-	##cp jars/jmlruntime.jar ${SPECS}/..
+	cp -r bin-runtime/* temp2
+	cp -r ${ANNOTATIONS}/bin/* temp2
+	(cd temp2; jar -cf ../jars/jmlruntime.jar . ) 
+	rm -rf temp2
 
 ## Separate target for jmlspecs.jar, though it is normally built along with
 ## openjml.jar

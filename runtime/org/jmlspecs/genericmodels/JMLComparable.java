@@ -19,7 +19,7 @@
 
 package org.jmlspecs.genericmodels;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** JMLTypes with an compareTo operation, as in {@link java.lang.Comparable}.
  *

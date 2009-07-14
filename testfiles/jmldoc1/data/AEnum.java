@@ -1,4 +1,4 @@
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** Documentation of class A */
 public class AEnum {

@@ -18,7 +18,7 @@
 // 02110-1301  USA.
 
 package org.jmlspecs.genericmodels;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** A reflection of {@link java.lang.Double} that implements {@link JMLType}.
  *

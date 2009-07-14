@@ -1,5 +1,5 @@
 package org.jmlspecs.lang;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** This is the counterpart for model types to Iterable<E>.
  * @author DRCok

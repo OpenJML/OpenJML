@@ -1,6 +1,5 @@
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.openjml.ext.ModifierExtension.ProgramLocation;
 
 import com.sun.tools.javac.util.Name;
 
@@ -11,7 +10,7 @@ public class PureModifier extends ModifierExtension {
     }
     
     public Class<?> javaAnnotation() {
-        return org.jmlspecs.annotations.Pure.class;
+        return org.jmlspecs.annotation.Pure.class;
     }
     
     static protected ProgramLocation[] locations = 

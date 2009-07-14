@@ -19,7 +19,7 @@
 
 
 package org.jmlspecs.genericmodels;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 import java.lang.Math; // FIXME - Necessary to avoid a warning that the link to java.lang.Math cannot be found.
 
 /** A JML class that implements methods equivalent to those available in

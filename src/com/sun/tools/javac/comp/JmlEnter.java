@@ -9,7 +9,7 @@ import java.util.Map;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 import org.jmlspecs.openjml.JmlInternalError;
 import org.jmlspecs.openjml.JmlSpecs;

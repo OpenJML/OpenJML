@@ -44,6 +44,7 @@ public class escgeneric extends EscBase {
                 );
     }
     
+    /** Tests that we can reason about the result of \\typeof */
     public void testTypeOf() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -59,6 +60,28 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\typeof(this) == \\type(Object);\n"
                 +"  }\n"
                 +"}\n"
+                ,"/tt/TestJava.java:7: warning: An assumption appears to be infeasible in method ma(java.lang.Object)",9
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mb",9
+                );
+    }
+    
+    public void _testGenericType() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T extends B> { \n"
+                
+                +"  public void m(Integer i) {\n"
+                +"    //@ assert \\type(TestJava<Integer>) != \\type(Object);\n"
+                +"    //@ assert \\type(TestJava<Integer>) != \\type(TestJava<Object>);\n"
+                +"  }\n"
+                +"  public void ma(Object o) {\n"
+                +"    //@ assert \\type(TestJava<Integer>) == \\type(TestJava<T>);\n"  // NO
+                +"  }\n"
+                +"  public void mb(Object o) {\n"
+                +"    //@ assert \\typeof(this) == \\type(Object);\n"
+                +"  }\n"
+                +"}\n"
+                +"class B {}\n"
+                +"class C {}\n"
                 ,"/tt/TestJava.java:7: warning: An assumption appears to be infeasible in method ma(java.lang.Object)",9
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mb",9
                 );

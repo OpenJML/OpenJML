@@ -167,12 +167,12 @@ public class compilationUnit extends ParseBase {
     
     /** Tests parsing an annotation */
     public void testAnnotation() {
-        checkCompilationUnit("@org.jmlspecs.annotations.Pure class A {}",
+        checkCompilationUnit("@org.jmlspecs.annotation.Pure class A {}",
                 JmlCompilationUnit.class, 0,
-                JmlClassDecl.class, 31,
-                JCModifiers.class, 31,
+                JmlClassDecl.class, 30,
+                JCModifiers.class, 30,
                 JCAnnotation.class, 0,
-                JCFieldAccess.class, 25,
+                JCFieldAccess.class, 24,
                 JCFieldAccess.class, 13,
                 JCFieldAccess.class, 4,
                 JCIdent.class, 1

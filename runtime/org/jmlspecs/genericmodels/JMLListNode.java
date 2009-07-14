@@ -1,8 +1,8 @@
 package org.jmlspecs.genericmodels;
 
-import org.jmlspecs.annotations.NonNull;
-import org.jmlspecs.annotations.Nullable;
-import org.jmlspecs.annotations.Pure;
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.annotation.Pure;
 
 /*@ pure spec_public @*/ abstract class JMLListNode<E> implements JMLType {
     

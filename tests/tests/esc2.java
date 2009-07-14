@@ -21,7 +21,7 @@ public class esc2 extends EscBase {
     
     public void testNNParam() {
         helpTCX("tt.TestJava","package tt; \n"
-        +" import org.jmlspecs.annotations.*; \n"
+        +" import org.jmlspecs.annotation.*; \n"
         +"public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
         +"     n1(o); \n"
@@ -64,7 +64,7 @@ public class esc2 extends EscBase {
 
     public void testNN2Param() {
         helpTCX("tt.TestJava","package tt; \n"
-        +" import org.jmlspecs.annotations.*; \n"
+        +" import org.jmlspecs.annotation.*; \n"
         +"@NullableByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
         +"     n1(o); \n"
@@ -107,7 +107,7 @@ public class esc2 extends EscBase {
 
     public void testNN3Param() {
         helpTCX("tt.TestJava","package tt; \n"
-        +" import org.jmlspecs.annotations.*; \n"
+        +" import org.jmlspecs.annotation.*; \n"
         +"@NonNullByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
         +"     n1(o); \n"
@@ -151,7 +151,7 @@ public class esc2 extends EscBase {
         options.put("-nullableByDefault",null);
         options.put("-nonnullByDefault","");
         helpTCX("tt.TestJava","package tt; \n"
-        +" import org.jmlspecs.annotations.*; \n"
+        +" import org.jmlspecs.annotation.*; \n"
         +"public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
         +"     n1(o); \n"
@@ -196,7 +196,7 @@ public class esc2 extends EscBase {
         options.put("-nullableByDefault",null);
         options.put("-nonnullByDefault","");
         helpTCX("tt.TestJava","package tt; \n"
-        +" import org.jmlspecs.annotations.*; \n"
+        +" import org.jmlspecs.annotation.*; \n"
         +"@NullableByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
         +"     n1(o); \n"
@@ -241,7 +241,7 @@ public class esc2 extends EscBase {
         options.put("-nullableByDefault",null);
         options.put("-nonnullByDefault","");
         helpTCX("tt.TestJava","package tt; \n"
-        +" import org.jmlspecs.annotations.*; \n"
+        +" import org.jmlspecs.annotation.*; \n"
         +"@NonNullByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
         +"     n1(o); \n"
@@ -284,7 +284,7 @@ public class esc2 extends EscBase {
 
     public void testNNAssign() {
         helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotations.*; \n"
+                +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1() {\n"
@@ -351,7 +351,7 @@ public class esc2 extends EscBase {
 
     public void testNNAssign2() {
         helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotations.*; \n"
+                +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
                 +"  public void m1() {\n"
@@ -422,7 +422,7 @@ public class esc2 extends EscBase {
 
     public void testNNAssign3() {
         helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotations.*; \n"
+                +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
                 
                 +"  public void m1() {\n"
@@ -488,7 +488,7 @@ public class esc2 extends EscBase {
     
     public void testNNAssignB() {
         helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotations.*; \n"
+                +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  public static class A {\n" 
@@ -531,7 +531,7 @@ public class esc2 extends EscBase {
         
     public void testNNAssignB1() {
         helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotations.*; \n"
+                +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
                 +"  public static class A {\n" // Tests whether this gets the enclosing class's annotation
@@ -576,7 +576,7 @@ public class esc2 extends EscBase {
     
     public void testNNAssignB2() {
         helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotations.*; \n"
+                +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
                 
                 +"  public static class A {\n" 
@@ -619,7 +619,7 @@ public class esc2 extends EscBase {
     
     public void testDZero() {
         helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotations.*; \n"
+                +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m() {\n"
@@ -676,7 +676,7 @@ public class esc2 extends EscBase {
 //    public void testDZero2() {
 ////        options.put("-showbb","");
 //        helpTCX("tt.TestJava","package tt; \n"
-//                +" import org.jmlspecs.annotations.*; \n"
+//                +" import org.jmlspecs.annotation.*; \n"
 //                +"public class TestJava { \n"
 //                
 //                +"  public void m1() {\n"
@@ -695,7 +695,7 @@ public class esc2 extends EscBase {
 
     public void testArrayAccess() {
         helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotations.*; \n"
+                +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
                 
                 +"  public void m1() {\n"
@@ -716,7 +716,7 @@ public class esc2 extends EscBase {
     
     public void testAssignable() {
         helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotations.*; \n"
+                +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
                 +"  public TestJava t;\n"

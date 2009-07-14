@@ -1,5 +1,5 @@
 package org.jmlspecs.lang;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 // FIXME - needs a real implementation for RAC
 public class JMLList<E> {

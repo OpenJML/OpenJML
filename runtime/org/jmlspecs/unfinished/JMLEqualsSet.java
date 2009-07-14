@@ -25,7 +25,7 @@ package org.jmlspecs.unfinished;
 import java.util.Enumeration;
 
 import org.jmlspecs.lang.*;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** Sets of objects.  This type uses ".equals" to
  * compare elements, and does not clone elements that are passed into and

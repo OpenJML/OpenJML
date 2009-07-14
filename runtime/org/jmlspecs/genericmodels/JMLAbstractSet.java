@@ -1,7 +1,7 @@
 package org.jmlspecs.genericmodels;
 
 import org.jmlspecs.lang.*;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 // FIXME - this should be in org.jmlspecs.lang if it exists at all.
 

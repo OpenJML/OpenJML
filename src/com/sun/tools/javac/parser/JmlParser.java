@@ -1966,9 +1966,10 @@ public class JmlParser extends EndPosParser {
         Class<?> c = jt.annotationType;
         if (c == null)
             return null;
+        // FIXME - I think this can be done in one step now.
         JCExpression t = to(F.at(position).Ident(names.fromString("org")));
         t = to(F.at(position).Select(t, names.fromString("jmlspecs")));
-        t = to(F.at(position).Select(t, names.fromString("annotations")));
+        t = to(F.at(position).Select(t, names.fromString("annotation")));
         t = to(F.at(position).Select(t, names.fromString(c.getSimpleName())));
         JCAnnotation ann = to(F.at(position).Annotation(t,
                 List.<JCExpression> nil()));

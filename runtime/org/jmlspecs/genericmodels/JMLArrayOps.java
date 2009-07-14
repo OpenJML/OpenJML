@@ -21,7 +21,7 @@
 
 package org.jmlspecs.genericmodels;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** Array Operations that are useful for specifications.
  *

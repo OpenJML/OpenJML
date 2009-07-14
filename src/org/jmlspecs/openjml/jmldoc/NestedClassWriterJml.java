@@ -3,7 +3,7 @@ package org.jmlspecs.openjml.jmldoc;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;

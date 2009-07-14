@@ -5,7 +5,7 @@ import static org.jmlspecs.openjml.JmlToken.REQUIRES;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotations.NonNull;
+import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 
@@ -36,6 +36,18 @@ import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 
+/** This translator mutates an AST to simplify it, in ways that are common
+ * to both RAC and ESC.  Any transformations must result in a fully-typechecked
+ * tree.  Thus the sym and type fields of new nodes must be filled in correctly.
+ * As typechecking is already completed, any errors in this regard may cause 
+ * unpredicatable and incorrect behavior in code and VC generation.
+ * 
+ * The following transformations are performed here:(TODO- document this)
+ * <BR>
+ * 
+ * @author David Cok
+ *
+ */
 public class JmlTranslator extends JmlTreeTranslator {
     
     /** The compilation context */
@@ -138,10 +150,31 @@ public class JmlTranslator extends JmlTreeTranslator {
         Name n = names.fromString(methodName);
         Scope.Entry e = utilsClass.members().lookup(n);
         Symbol ms = e.sym;
+        if (ms == null) {
+            throw new JmlInternalError("Method " + methodName + " not found in Utils");
+        }
         JCFieldAccess m = factory.Select(utilsClassIdent,n);
         m.sym = ms;
         m.type = m.sym.type;
         return m;
+    }
+    
+    public JCMethodInvocation makeUtilsMethodCall(int pos, String methodName, List<JCExpression> args) {
+        // presumes the arguments are all properly attributed
+        JCFieldAccess meth = findUtilsMethod(methodName);
+        ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+        for (JCExpression e: args) list.append(e);
+        JCMethodInvocation call = factory.at(pos).Apply(List.<JCExpression>nil(),meth,list.toList());
+        return call;
+    }
+
+    public JCMethodInvocation makeUtilsMethodCall(int pos, String methodName, JCExpression... args) {
+        // presumes the arguments are all properly attributed
+        JCFieldAccess meth = findUtilsMethod(methodName);
+        ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+        for (JCExpression e: args) list.append(e);
+        JCMethodInvocation call = factory.at(pos).Apply(List.<JCExpression>nil(),meth,list.toList());
+        return call;
     }
 
     
@@ -317,6 +350,13 @@ public class JmlTranslator extends JmlTreeTranslator {
         newv.type = that.type;
         newv.label = label;
         return newv;
+    }
+    
+    /** Makes an attributed JCTree for a class literal corresponding to the given type. */
+    protected JCExpression makeType(int pos, Type type) {
+        // factory.Type does produce an attributed tree - after all we start knowing the type
+        JCExpression tree = factory.at(pos).Type(type);
+        return tree;
     }
     
     protected JCExpression makeEqCheck(int pos, JCExpression obj, JCExpression that, String msg, Label label) {
@@ -913,7 +953,8 @@ public class JmlTranslator extends JmlTreeTranslator {
                 break;
 
             case BSTYPELC:
-//                translateTypelc(tree);
+                //translateTypelc(that);
+                //return;
                 break;
             
             case BSELEMTYPE:
@@ -951,6 +992,7 @@ public class JmlTranslator extends JmlTreeTranslator {
                 break;
         }
         result = that;
+        //that.args = translate(that.args);
         return;
     }
 
@@ -1140,5 +1182,27 @@ public class JmlTranslator extends JmlTreeTranslator {
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         visitWhileLoop(that);
         // FIXME - translate specs
+    }
+    
+    public void translateTypelc(JmlMethodInvocation that) {
+        // Presumes this is indeed a \type invocation and
+        // that the one argument is a Type
+        JCTree type = that.args.get(0);
+        if (type instanceof JCTypeApply) {
+            // Convert a literal generic type, e.g. Vector<String>
+            // into a function that creates type objects:
+            // Utils.makeType(Vector.class,\type(String));
+            ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
+            JCExpression t = ((JCTypeApply)type).clazz; 
+            // t.type is the actual Java type of the head (e.g. java.util.Vector)
+            // What we want is a Java class literal
+            t = makeType(that.pos,t.type);
+            args.append(t);
+            for (JCExpression tt: ((JCTypeApply)type).arguments) args.append(translate(tt));
+            result = makeUtilsMethodCall(that.pos,"makeTYPE",args.toList());
+        } else {
+            // no change
+            result = that;
+        }
     }
 }

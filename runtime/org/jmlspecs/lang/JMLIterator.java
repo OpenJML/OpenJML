@@ -20,7 +20,7 @@
 
 package org.jmlspecs.lang;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 
 /** A combination of JMLType and java.util.Iterator.

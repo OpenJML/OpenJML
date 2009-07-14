@@ -11,7 +11,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Warner;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** The Check class is specialized for JML in order to avoid unchecked-cast warnings
  * for uses of casts in JML expressions.  JML checks these logically.

@@ -20,7 +20,7 @@
 
 package org.jmlspecs.genericmodels;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** A reflection of {@link java.lang.Byte} that implements {@link JMLType}.
  *

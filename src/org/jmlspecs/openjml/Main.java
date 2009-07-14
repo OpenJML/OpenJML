@@ -16,7 +16,7 @@ import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 import org.jmlspecs.openjml.JmlSpecs.Dir;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.JarDir;
@@ -679,25 +679,39 @@ public class Main extends com.sun.tools.javac.main.Main {
 //            }
 //            if (found) return;
 //        }
+
+        // See if a default has been specified
         
+        String sss = null;
+        if (sss == null) {
+            String sy = System.getProperty(Utils.defaultRuntimeClassPath);
+            // These are used in testing - sy should be the directory of the OpenJML project
+            if (sy != null) {
+                sss = sy;
+            }
+        }
+
         // Then look for something in the classpath itself
         
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
-        String sss = null;
-        for (String s: ss) {
-            if (s.endsWith("openjml.jar")) {
-                if (isDirInJar("org/jmlspecs/lang",s, context)) {
-                    sss = s;
-                    break;
+        if (sss == null) {
+            for (String s: ss) {
+                if (s.endsWith("openjml.jar")) {
+                    if (isDirInJar("org/jmlspecs/lang",s, context)) {
+                        sss = s;
+                        break;
+                    }
                 }
             }
         }
-        if (sss == null) for (String s: ss) {
-            if (s.endsWith(".jar")) {
-                if (isDirInJar("org/jmlspecs/lang",s, context)) {
-                    sss = s;
-                    break;
+        if (sss == null) {
+            for (String s: ss) {
+                if (s.endsWith(".jar")) {
+                    if (isDirInJar("org/jmlspecs/lang",s, context)) {
+                        sss = s;
+                        break;
+                    }
                 }
             }
         }
@@ -715,7 +729,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             // Note - if we use the source directory for the runtime files
             // we get odd errors complaining that we are missing value= in the annotations
             if (sy != null) {
-                sss = sy + "/bin";
+                sss = sy + "/bin-runtime";
             }
         }
         if (sss != null) {

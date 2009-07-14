@@ -1,4 +1,4 @@
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** Documentation of class A */
 @Pure
@@ -11,7 +11,7 @@ public class A extends BB implements BInterface {
 public A() {}
 
 /** Documentation of a constructor without specs */
-public A(@org.jmlspecs.annotations.Nullable Object o, /*@ nullable*/ Object oo) {}
+public A(@org.jmlspecs.annotation.Nullable Object o, /*@ nullable*/ Object oo) {}
 
 /** Documentation for a model constructor with specs. */
 //@ requires i == 0;

@@ -19,7 +19,7 @@
 
 
 package org.jmlspecs.unfinished;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** An implementation class used in various models.  These are
  * singly-linked list nodes containing objects.  The empty

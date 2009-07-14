@@ -9,8 +9,8 @@ import java.util.regex.Pattern;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotations.NonNull;
-import org.jmlspecs.annotations.Nullable;
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlOptionName;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
