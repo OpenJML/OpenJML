@@ -1,6 +1,6 @@
 package org.jmlspecs.utils;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** This class is an interface for types within JML.  This could simply
  * encapsulate something like TypeMirror, but we want an implementation

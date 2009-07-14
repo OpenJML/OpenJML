@@ -7,8 +7,10 @@ import java.util.Map;
 import com.sun.tools.javac.comp.JmlRac;
 
 /** 
- * This class contains utility methods used during runtime assertion
- * checking.
+ * This class contains utility methods used in internal translations for both
+ * ESC and RAC.  In RAC, these functions are executed to provide the built-in
+ * functionality; in ESC, the specifications written here are used to provide
+ * background predicate logic for built-in functionality. 
  * @author David Cok
  *
  */
