@@ -12,6 +12,8 @@ include Makefile.local
 
 VERSION:=$(shell date +%Y%m%d)
 NAME=openjml-${VERSION}.tar.gz
+## Set LOCAL_SETUP yourself in Makefile.local if you need to setup your environment before running tests
+LOCAL_SETUP ?= echo -n
 
 ## Default - build and test the release
 .PHONY: release-and-test
@@ -19,23 +21,24 @@ release-and-test: release test
 
 ## Just build a release named ${NAME}
 .PHONY: release
-release: other alljars jmlruntime.jar tar copy
+release: alljars jmlruntime.jar tar 
 	@echo Release complete
 
 ${NAME}: release
 
+ui:	other copy
+
 other:
-	diff ../OpenJMLUI/plugin.xml ../OpenJML-DevUI/plugin.xml || echo "PLUGINS ARE DIFFERENT - RESOLVE!!!!!"
-	diff -r -x ".svn" ../OpenJMLUI/icons ../OpenJML-DevUI/icons || echo "ICON DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!"
-	diff -r -x ".svn" ../OpenJMLUI/html ../OpenJML-DevUI/html || echo "HTML DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!"
+	-diff ../OpenJMLUI/plugin.xml ../OpenJML-DevUI/plugin.xml || echo "PLUGINS ARE DIFFERENT - RESOLVE!!!!!"
+	-diff -r -x ".svn" ../OpenJMLUI/icons ../OpenJML-DevUI/icons || echo "ICON DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!"
+	-diff -r -x ".svn" ../OpenJMLUI/html ../OpenJML-DevUI/html || echo "HTML DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!"
 
 
 ## Test the release named ${NAME}
 .PHONY: test
 test: 
 	@echo Testing
-	##( source ~/mybin/java15.sh; releaseTests/runTests  ${NAME} ) 
-	( source ~/mybin/java16.sh; releaseTests/runTests  ${NAME} ) 
+	( ${LOCAL_SETUP}; releaseTests/runTests  ${NAME} ) 
 	@echo Testing Complete `date`
 
 ## Builds a tar file of the release components
@@ -44,7 +47,7 @@ tar:
 	(cd jars; cp ../README . ; tar -zcf ../${NAME} README openjml.jar jmlruntime.jar jmlspecs.jar )
 	##rm -rf jars  ## We don't delete them because some tests use them
 	
-## Builds the individual jar files that constitute the release
+## Builds two of the jar files that are in the release
 ## namely jmlspecs.jar and openjml.jar
 .PHONY: alljars
 alljars jmlspecs.jar openjml.jar:
