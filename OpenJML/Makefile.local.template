@@ -13,7 +13,10 @@
 ## SPECS = the path to the trunk directory of the Specs project [../../../Specs/trunk for me ]
 ## ANNOTATIONS = the path to the trunk directory of the JMLAnnotations project
 ##        [ e.g. ../../../JMLAnnotations/trunk for me ]
+## LOCAL_SETUP = a command to run to setup your local environment, if needed;
+##        omit it if you do not need any setup
 
 ROOT=..
 ANNOTATIONS=../../../JMLAnnotations/trunk
 SPECS=../../../Specs/trunk
+LOCAL_SETUP=echo -n
