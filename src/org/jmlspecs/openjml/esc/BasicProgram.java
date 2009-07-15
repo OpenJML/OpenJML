@@ -126,8 +126,8 @@ public class BasicProgram {
     
     /** Writes out the BasicProgram to the given Writer (e.g. log.noticeWriter) for diagnostics */
     public void write(Writer w) {
-        System.out.println("START = " + startId);
         try {
+            w.append("START = " + startId + "\n");
             JmlPretty pw = new JmlPretty(w,true);
             pw.useJMLComments = false;
             for (JCExpression e: background) {
@@ -145,6 +145,7 @@ public class BasicProgram {
             }
         } catch (java.io.IOException e) {
             System.out.println("EXCEPTION: " + e);
+            e.printStackTrace(System.out);
         }
     }
 

@@ -55,6 +55,7 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.jvm.ClassReader;
+import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.JCTree.*;
@@ -2435,28 +2436,30 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
 
             case BSELEMTYPE :
-                // Expect one argument of any array type, result type is \TYPE
-                // The argument expression may contain JML constructs
-                attribArgs(tree.args, localEnv);
-                attribTypes(tree.typeargs, localEnv);
-                n = tree.args.size();
-                if (n != 1) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
-                }
-                t = syms.errType;
-                if (n > 0) {
-                    //attribTree(tree.args.get(0), localEnv, pkind, syms.classType); // FIXME - THIS DOES not work either
-                    if (tree.args.get(0).type == TYPE) {
-                        t = this.TYPE;
-                    } else if (tree.args.get(0).type.tsym == syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
-                        t = syms.classType;
-                    } else {
-                        log.error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
-                        t = this.TYPE;
-                    }
-                }
-                // FIXME - need to check that argument is an array type - see comment above
-                result = check(tree, t, VAL, pkind, pt);
+                ExpressionExtension ext = ExpressionExtension.find(tree.pos,token,context,null);
+                Type ttt = ext.typecheck(this,(JCExpression)tree,localEnv);
+//                // Expect one argument of any array type, result type is \TYPE
+//                // The argument expression may contain JML constructs
+//                attribArgs(tree.args, localEnv);
+//                attribTypes(tree.typeargs, localEnv);
+//                n = tree.args.size();
+//                if (n != 1) {
+//                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+//                }
+//                t = syms.errType;
+//                if (n > 0) {
+//                    //attribTree(tree.args.get(0), localEnv, pkind, syms.classType); // FIXME - THIS DOES not work either
+//                    if (tree.args.get(0).type == TYPE) {
+//                        t = this.TYPE;
+//                    } else if (tree.args.get(0).type.tsym == syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
+//                        t = syms.classType;
+//                    } else {
+//                        log.error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
+//                        t = this.TYPE;
+//                    }
+//                }
+//                // FIXME - need to check that argument is an array type - see comment above
+                result = check(tree, ttt, VAL, pkind, pt);
                 break;
 
 
@@ -3889,8 +3892,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         checkVarMods(that);
         if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(prev);
     }
+    
+    // These are here mostly to make them visible to extensions
 
-    /** This is just here to do some checking for missing implementations */
+    /** This is here also to do some checking for missing implementations */
     @Override
     public Type attribExpr(JCTree tree, Env<AttrContext> env, Type pt) {
         Type type = super.attribExpr(tree,env,pt);
@@ -3899,4 +3904,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         return type;
     }
+    
+    /** Attribute the arguments in a method call, returning a list of types;
+     * the arguments themselves have their types recorded.
+     */
+    @Override 
+    public List<Type> attribArgs(List<JCExpression> trees, Env<AttrContext> env) {
+        return super.attribArgs(trees,env);
+    }
+    
+    /** Attribute the elements of a type argument list, returning a list of types;
+     * the type arguments themselves have their types recorded.
+     */
+    @Override 
+    public List<Type> attribTypes(List<JCExpression> trees, Env<AttrContext> env) {
+        return super.attribTypes(trees,env);
+    }
+
 }

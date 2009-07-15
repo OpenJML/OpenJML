@@ -1,10 +1,14 @@
 package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.List;
@@ -45,31 +49,29 @@ public class Elemtype extends ExpressionExtension {
 
     }
     
-//    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
-//        JmlMethodInvocation tree = (JmlMethodInvocation)expr;
-//        JmlToken token = tree.token;
-//        
-//        // Expect one argument of any array type, result type is \TYPE
-//        // The argument expression may contain JML constructs
-//        attr.attribArgs(tree.args, localEnv);
-//        attr.attribTypes(tree.typeargs, localEnv);
-//        int n = tree.args.size();
-//        if (n != 1) {
-//            Log.instance(context).error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
-//        }
-//        Type t = attr.syms.errType;
-//        if (n > 0) {
-//            //attribTree(tree.args.get(0), localEnv, pkind, syms.classType); // FIXME - THIS DOES not work either
-//            if (tree.args.get(0).type == attr.TYPE) {
-//                t = attr.TYPE;
-//            } else if (tree.args.get(0).type.tsym == attr.syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
-//                t = attr.syms.classType;
-//            } else {
-//                error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
-//                t = attr.TYPE;
-//            }
-//        }
-//        // FIXME - need to check that argument is an array type - see comment above
-//        return check(tree, t, VAL, pkind, pt);
-//    }
+    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
+        JmlMethodInvocation tree = (JmlMethodInvocation)expr;
+        JmlToken token = tree.token;
+        
+        // Expect one argument of any array type, result type is \TYPE
+        // The argument expression may contain JML constructs
+        attr.attribArgs(tree.args, localEnv);
+        attr.attribTypes(tree.typeargs, localEnv);
+        int n = tree.args.size();
+        if (n != 1) {
+            error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+        }
+        Type t = syms.errType;
+        if (n > 0) {
+            if (tree.args.get(0).type == attr.TYPE) {
+                t = attr.TYPE;
+            } else if (tree.args.get(0).type.tsym == syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
+                t = syms.classType;
+            } else {
+                error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
+                t = attr.TYPE;
+            }
+        }
+        return t;
+    }
 }
