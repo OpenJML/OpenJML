@@ -905,7 +905,12 @@ public class JmlParser extends EndPosParser {
         JCExpression id = (JCExpression) parseStoreRef(true);
         boolean suchThat;
         JCExpression e;
-        if (S.token() == Token.EQ || S.jmlToken() == JmlToken.LEFT_ARROW) {
+        if (S.token() == Token.EQ ) {
+            suchThat = false;
+            S.nextToken();
+            e = parseExpression();
+        } else if (S.jmlToken() == JmlToken.LEFT_ARROW) {
+            log.warning(S.pos(), "jml.deprecated.left.arrow.in.represents");
             suchThat = false;
             S.nextToken();
             e = parseExpression();

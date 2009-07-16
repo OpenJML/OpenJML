@@ -194,6 +194,7 @@ public class typeclauses extends TCBase {
 
     public void testRepresents1() {
         helpTCF("A.java","public class A {\n //@ model int i; represents i <- true;\n}"
+                ,"/A.java:2: warning: The left arrow is deprecated in represents clauses, use = instead",32
                 ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",35
                 );
     }
@@ -212,7 +213,7 @@ public class typeclauses extends TCBase {
     
     public void testRepresents4() {
         helpTCF("A.java","public class A {\n //@ model int i; represents i :0;\n}"
-                ,"/A.java:2: A represents clause must have a =, <- or \\such_that after the identifier",32
+                ,"/A.java:2: A represents clause must have a = or \\such_that after the identifier",32
                 );
     }
     
@@ -239,7 +240,7 @@ public class typeclauses extends TCBase {
     public void testRepresents8() {
         helpTCF("A.java","public class A {\n //@ model int i; represents x.* = 0\n}"
                 ,"/A.java:2: Expected an identifier after the dot in this context",32
-                ,"/A.java:2: A represents clause must have a =, <- or \\such_that after the identifier",37
+                ,"/A.java:2: A represents clause must have a = or \\such_that after the identifier",37
                 ,"/A.java:2: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",30
                 );
     }
@@ -314,6 +315,14 @@ public class typeclauses extends TCBase {
     public void testRepresents16a() {
         helpTCF("A.java","public class A {\n static int k; int j; //@ model static int i; static represents i = j;\n}"
                 ,"/A.java:2: non-static variable j cannot be referenced from a static context",69
+                );
+    }
+    
+    /** Check that warning that <- is deprecated */
+    public void testRepresents17() {
+        expectedExit = 0;
+        helpTCF("A.java","public class A {\n static int j; //@  model static int i; static represents i <- j;\n}"
+                ,"/A.java:2: warning: The left arrow is deprecated in represents clauses, use = instead",61
                 );
     }
     

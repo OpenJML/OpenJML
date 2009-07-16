@@ -9,14 +9,15 @@
 
 ## ROOT = the path to the directory containing OpenJML and OpenJDK
 ##        (should be the parent of the current directory)
-##        [ On my system this is .. ]
-## SPECS = the path to the trunk directory of the Specs project [../../../Specs/trunk for me ]
+## SPECS = the path to the trunk directory of the Specs project
 ## ANNOTATIONS = the path to the trunk directory of the JMLAnnotations project
-##        [ e.g. ../../../JMLAnnotations/trunk for me ]
 ## LOCAL_SETUP = a command to run to setup your local environment, if needed;
 ##        omit it if you do not need any setup
 
+## The following values work if you use the projectSet.psf file to setup 
+## your Eclipse workspace
+
 ROOT=..
-ANNOTATIONS=../../../JMLAnnotations/trunk
-SPECS=../../../Specs/trunk
+ANNOTATIONS=../JMLAnnotations
+SPECS=../Specs
 LOCAL_SETUP=echo -n

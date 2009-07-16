@@ -21,6 +21,7 @@ public class compiler extends TestCase {
     static String z = java.io.File.pathSeparator;
     boolean print = false;
     boolean capture = true;
+    String projHome = System.getProperty("openjml.eclipseProjectLocation").replace("C:","").replace("\\","/");
     
     protected void setUp() throws Exception {
         //capture = false; print = true;
@@ -64,7 +65,7 @@ public class compiler extends TestCase {
         if (capture) try {
             String tail = exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
             if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + actualOutput);
-            String expected = output[0];
+            String expected = output[0].replace("${PROJ}",projHome);
             if (all==0) assertEquals("The error message is wrong",expected+tail,actualOutput);
             else if (all == -1) assertEquals("The error message is wrong",expected,actualOutput);
             else if (all == 1 && !actualOutput.startsWith(expected)) {
@@ -73,7 +74,7 @@ public class compiler extends TestCase {
                 fail("Output does not end with: " + expected + eol + "Instead is: " + actualOutput);
             }
             if (output.length > 1) {
-                expected = output[1];
+                expected = output[1].replace("${PROJ}",projHome);
                 if (print) System.out.println("TEST: " + getName() + " STANDARD OUT: " + eol + bout.toString());
                 if (all == 0) {
                     assertEquals("The standard out is wrong",expected+tail,bout.toString());
@@ -171,8 +172,8 @@ public class compiler extends TestCase {
                           { "-classpath","testfiles/testNoErrors"+z+"bin",
                             "testfiles/testNoErrors/A.java", "-jmlverbose", "-noInternalSpecs" 
                           },0,2,"",
-                          //"parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.java" + eol +
-                          "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testNoErrors/A.refines-java" + eol +
+                          //"parsing ${PROJ}/testfiles/testNoErrors/A.java" + eol +
+                          "parsing ${PROJ}/testfiles/testNoErrors/A.refines-java" + eol +
                           "entering A.java" + eol +
                           "  completed entering A.java" + eol +
                           "typechecking A" + eol +
@@ -189,9 +190,9 @@ public class compiler extends TestCase {
                           { "-classpath","testfiles/testJavaErrors"+z+"bin",
                             "testfiles/testJavaErrors/A.java", "-jmlverbose", "-noInternalSpecs"
                           },0,2,"",
-                          //"parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.java" + eol +
+                          //"parsing ${PROJ}/testfiles/testJavaErrors/A.java" + eol +
                           // stuff about specs path comes in here
-                          "parsing /home/projects/OpenJML/trunk/OpenJML/testfiles/testJavaErrors/A.refines-java" + eol +
+                          "parsing ${PROJ}/testfiles/testJavaErrors/A.refines-java" + eol +
                           "entering A.java" + eol +
                           "  completed entering A.java" + eol +
                           "typechecking A" + eol +
