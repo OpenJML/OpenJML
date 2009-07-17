@@ -25,5 +25,5 @@
 <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value=""/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="OpenJML"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseProjectLocation=${project_loc:OpenJML} -Dopenjml.eclipseSpecsProjectLocation=${project_loc:JMLspecs} -Dopenjml.prover.yices=C:/home/mybin/yices.exe -Dopenjml.defaultRuntimeClassPath=&quot;${project_loc:JMLAnnotations}/bin;${project_loc:OpenJML}/bin-runtime&quot;"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseProjectLocation=${project_loc:OpenJML} -Dopenjml.eclipseSpecsProjectLocation=${project_loc:JMLspecs} -Dopenjml.prover.yices=C:/pkg/y/yices/bin/yices.exe -Dopenjml.defaultRuntimeClassPath=&quot;${project_loc:JMLAnnotations}/bin;${project_loc:OpenJML}/bin-runtime&quot;"/>
 </launchConfiguration>
