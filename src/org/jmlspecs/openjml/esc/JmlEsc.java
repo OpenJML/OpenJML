@@ -1121,6 +1121,16 @@ public class JmlEsc extends JmlTreeScanner {
             if (escdebug) log.noticeWriter.println("PROVER FAILURE: " + e.getClass() + " " + e);
             e.printStackTrace(log.noticeWriter);
         }
+        // FIXME - dmz: I added this extra kill to fix Yices processes hanging around
+        // on OS X and causing problems for unit tests ("resource not available"), but
+        // there should be some other way to just make sure that the process is always
+        // dead when we exit this method.
+        try {
+        	if (p != null) p.kill();
+        } catch (ProverException e) {
+        	log.warning("esc.internal.error", "Failed to kill process: " + e);
+        	// ignore any problems in killing
+        }
         return ok;
     }
 
