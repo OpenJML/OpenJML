@@ -68,25 +68,28 @@ public class JmlTranslator extends JmlTreeTranslator {
     /** Cached value of the utilities object */
     @NonNull protected Utils utils;
     
-    @NonNull protected Name nonNullName;
+    /** Cached value of the JmlTreeUtils object */
+    @NonNull protected JmlTreeUtils treeutils;
+    
+//    @NonNull protected Name nonNullName;
     
     /** The factory used to create AST nodes, initialized in the constructor */
     @NonNull protected JmlTree.Maker factory;
  
-    ClassSymbol utilsClass = null;
-    JCIdent utilsClassIdent;
-    
-    protected Symbol andSymbol;
+//    ClassSymbol utilsClass = null;
+//    JCIdent utilsClassIdent;
+//    
+//    protected Symbol andSymbol;
     protected Symbol orSymbol;
-    protected Symbol notSymbol;
+//    protected Symbol notSymbol;
     protected Symbol objecteqSymbol;
     protected Symbol booleqSymbol;
     protected Symbol boolneSymbol;
     protected JCLiteral trueLit;
     protected JCLiteral falseLit;
-    protected JCLiteral zero;
-    protected JCLiteral nulllit;
-    protected JCLiteral maxIntLit;
+//    protected JCLiteral zero;
+//    protected JCLiteral nulllit;
+//    protected JCLiteral maxIntLit;
 
     boolean dorac;
     boolean doesc;
@@ -100,23 +103,24 @@ public class JmlTranslator extends JmlTreeTranslator {
         this.names = Names.instance(context);
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
-        this.utilsClass = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.utils.Utils"));
-        utilsClassIdent = factory.Ident(names.fromString("org.jmlspecs.utils.Utils"));
-        utilsClassIdent.type = utilsClass.type;
-        utilsClassIdent.sym = utilsClassIdent.type.tsym;
-        dorac = Options.instance(context).get("-rac") != null;  // FIXME - fix these - proper call and names
-        doesc = Options.instance(context).get("-esc") != null;
-        andSymbol = syms.predefClass.members().lookup(names.fromString("&&")).sym;
+        this.treeutils = JmlTreeUtils.instance(context);
+//        this.utilsClass = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.utils.Utils"));
+//        utilsClassIdent = factory.Ident(names.fromString("org.jmlspecs.utils.Utils"));
+//        utilsClassIdent.type = utilsClass.type;
+//        utilsClassIdent.sym = utilsClassIdent.type.tsym;
+//        dorac = Options.instance(context).get("-rac") != null;  // FIXME - fix these - proper call and names
+//        doesc = Options.instance(context).get("-esc") != null;
+//        andSymbol = syms.predefClass.members().lookup(names.fromString("&&")).sym;
         orSymbol  = syms.predefClass.members().lookup(names.fromString("||")).sym;
-        notSymbol = syms.predefClass.members().lookup(names.fromString("!")).sym;
-        objecteqSymbol = findOpSymbol("==",syms.objectType);
-        booleqSymbol = findOpSymbol("==",syms.booleanType);
-        boolneSymbol = findOpSymbol("!=",syms.booleanType);
-        trueLit = makeLit(syms.booleanType,1);
-        falseLit = makeLit(syms.booleanType,0);
-        zero = makeLit(syms.intType,0);
-        nulllit = makeLit(syms.botType, null);
-        maxIntLit = makeLit(syms.intType,Integer.MAX_VALUE);
+//        notSymbol = syms.predefClass.members().lookup(names.fromString("!")).sym;
+        objecteqSymbol = treeutils.findOpSymbol("==",syms.objectType);
+        booleqSymbol = treeutils.findOpSymbol("==",syms.booleanType);
+        boolneSymbol = treeutils.findOpSymbol("!=",syms.booleanType);
+        trueLit = treeutils.trueLit;
+        falseLit = treeutils.falseLit;
+//        zero = makeLit(syms.intType,0);
+//        nulllit = makeLit(syms.botType, null);
+//        maxIntLit = makeLit(syms.intType,Integer.MAX_VALUE);
         
     }
     
@@ -136,131 +140,61 @@ public class JmlTranslator extends JmlTreeTranslator {
         return trees;
     }
 
-    public Symbol findOpSymbol(String name, Type argtype) {
-        Scope.Entry e = syms.predefClass.members().lookup(names.fromString(name));
-        while (e != null && e.sym != null) {
-            if (((MethodType)e.sym.type).argtypes.head.equals(argtype)) return e.sym;
-            e = e.next();
-        }
-        // FIXME - throw error
-        return null;
+    protected JCExpression makeNullCheck(int pos, JCExpression that, String msg, Label label) {
+        JavaFileObject jfo = currentClassDecl.sym.sourcefile;
+        String posDescription = position(jfo,pos);
+        
+        JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
+        JCFieldAccess m = treeutils.findUtilsMethod("nonNullCheck");
+        JCExpression trans = translate(that);  // Caution - translate resets the factory position
+        JmlMethodInvocation newv = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,trans));
+        newv.type = that.type;
+        newv.label = label;
+        return newv;
+    }
+
+    //that is presumed already translated
+    protected JCExpression makeTrueCheck(int pos, JCExpression condition, JCExpression that, String msg, Label label) {
+        JavaFileObject jfo = currentClassDecl.sym.sourcefile;
+        String posDescription = position(jfo,pos);
+        
+        JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
+        JCFieldAccess m = treeutils.findUtilsMethod("trueCheck");
+        JCExpression tcond = translate(condition);// Caution - translate resets the factory position
+        JCExpression trans = that;  
+        JmlMethodInvocation newv = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,tcond,trans));
+        newv.type = that.type;
+        newv.label = label;
+        return newv;
     }
     
-    public JCFieldAccess findUtilsMethod(String methodName) {
-        Name n = names.fromString(methodName);
-        Scope.Entry e = utilsClass.members().lookup(n);
-        Symbol ms = e.sym;
-        if (ms == null) {
-            throw new JmlInternalError("Method " + methodName + " not found in Utils");
-        }
-        JCFieldAccess m = factory.Select(utilsClassIdent,n);
-        m.sym = ms;
-        m.type = m.sym.type;
-        return m;
+    protected JCExpression makeEqCheck(int pos, JCExpression obj, JCExpression that, String msg, Label label) {
+        JavaFileObject jfo = currentClassDecl.sym.sourcefile;
+        String posDescription = position(jfo,pos);
+        
+        JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
+        JCFieldAccess m = treeutils.findUtilsMethod("eqCheck");
+        JmlMethodInvocation newv = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,obj,that));
+        newv.type = that.type;
+        newv.label = label;
+        return newv;
     }
     
-    public JCMethodInvocation makeUtilsMethodCall(int pos, String methodName, List<JCExpression> args) {
-        // presumes the arguments are all properly attributed
-        JCFieldAccess meth = findUtilsMethod(methodName);
-        ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
-        for (JCExpression e: args) list.append(e);
-        JCMethodInvocation call = factory.at(pos).Apply(List.<JCExpression>nil(),meth,list.toList());
-        return call;
+    protected JCExpression makeZeroCheck(int pos, JCExpression that, Label label) {
+        JCLiteral message = treeutils.makeStringLiteral("Divide by zero",pos); // end -position ??? FIXME
+        JCExpression newv = translate(that);
+//        if (that.type.tag == TypeTags.INT) {
+//            JCFieldAccess m = findUtilsMethod("zeroIntCheck");
+//            JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,newv));
+//            call.type = that.type;
+        //    call.label = label;
+        //newv = call;
+//        } else {
+//            // FIXME - no check bein done
+//        }
+        return newv;
     }
 
-    public JCMethodInvocation makeUtilsMethodCall(int pos, String methodName, JCExpression... args) {
-        // presumes the arguments are all properly attributed
-        JCFieldAccess meth = findUtilsMethod(methodName);
-        ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
-        for (JCExpression e: args) list.append(e);
-        JCMethodInvocation call = factory.at(pos).Apply(List.<JCExpression>nil(),meth,list.toList());
-        return call;
-    }
-
-    
-    public JCLiteral makeLiteral(boolean v, int pos) {
-        JCLiteral r = factory.at(pos).Literal(TypeTags.BOOLEAN,v?1:0);
-        r.type = syms.booleanType;
-        return r;
-    }
-
-    public JCLiteral makeStringLiteral(String s, int pos) {
-        JCLiteral r = factory.at(pos).Literal(TypeTags.CLASS,s);
-        r.type = syms.stringType;
-        return r;
-    }
-
-    /** Make an attributed tree representing a literal. This will be an
-     *  Ident node in the case of boolean literals, a Literal node in all
-     *  other cases.
-     *  @param type       The literal's type.
-     *  @param value      The literal's value.
-     */
-    JCLiteral makeLit(Type type, Object value) { // FIXME - needs pos
-        return factory.Literal(type.tag, value).setType(type.constType(value));
-    }
-
-    // FIXME - can we cache the && and || operators ?
-    /** Make an attributed binary expression.
-     *  @param optag    The operators tree tag.
-     *  @param lhs      The operator's left argument.
-     *  @param rhs      The operator's right argument.
-     */
-    JCExpression makeBinary(int pos, int optag, Symbol opSymbol, JCExpression lhs, JCExpression rhs) {
-//        if (optag == JCTree.OR && lhs == falseLit) return rhs;  // Lose position if we do this
-//        if (optag == JCTree.AND && lhs == trueLit) return rhs;
-        JCBinary tree = factory.at(pos).Binary(optag, lhs, rhs);
-        tree.operator = opSymbol != null ? opSymbol : optag == JCTree.AND ? andSymbol : optag == JCTree.OR ? orSymbol : null; // FIXME - report error
-        tree.type = tree.operator.type.getReturnType();
-        return tree;
-    }
-    
-    JCExpression makeAnd(int pos, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,JCTree.AND,andSymbol,lhs,rhs);
-    }
-
-    JCExpression makeOr(int pos, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,JCTree.OR,orSymbol,lhs,rhs);
-    }
-
-    JCExpression makeImplies(int pos, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,JCTree.OR,orSymbol,
-                makeUnary(pos,JCTree.NOT,lhs), rhs);
-    }
-
-    JCExpression makeEqObject(int pos, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,JCTree.EQ,objecteqSymbol,lhs, rhs);
-    }
-
-    // FIXME - can we cache the ! operator?
-    /** Make an attributed unary expression.
-     *  @param optag    The operators tree tag.
-     *  @param arg      The operator's argument.
-     */
-    JCExpression makeUnary(int pos, int optag, JCExpression arg) {
-        if (arg.equals(trueLit) && optag == JCTree.NOT) return falseLit;
-        if (arg.equals(falseLit) && optag == JCTree.NOT) return trueLit;
-        JCUnary tree = factory.at(pos).Unary(optag, arg);
-        tree.operator = optag == JCTree.NOT ? notSymbol : null; // FIXME - report error
-        tree.type = tree.operator.type.getReturnType();
-        return tree;
-    }
-    
-    JCExpression makeNot(int pos, JCExpression arg) {
-        return makeUnary(pos,JCTree.NOT,arg);
-    }
-    
-
-//    /** Make an attributed tree representing a literal. This will be an
-//     *  Ident node in the case of boolean literals, a Literal node in all
-//     *  other cases.
-//     *  @param type       The literal's type.
-//     *  @param value      The literal's value.
-//     */
-//    JCLiteral makeLit(Type type, Object value) {
-//        return make.Literal(type.tag, value).setType(type.constType(value));
-//    }
-    
  
     // We have to do something special here.  This translator only allows replacing
     // a tree by another tree - so a statement can only be replaced by a single 
@@ -324,67 +258,6 @@ public class JmlTranslator extends JmlTreeTranslator {
         }
     }
 
-    protected JCExpression makeNullCheck(int pos, JCExpression that, String msg, Label label) {
-        JavaFileObject jfo = currentClassDecl.sym.sourcefile;
-        String posDescription = position(jfo,pos);
-        
-        JCLiteral message = makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
-        JCFieldAccess m = findUtilsMethod("nonNullCheck");
-        JCExpression trans = translate(that);  // Caution - translate resets the factory position
-        JmlMethodInvocation newv = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,trans));
-        newv.type = that.type;
-        newv.label = label;
-        return newv;
-    }
-    
-    //that is presumed already translated
-    protected JCExpression makeTrueCheck(int pos, JCExpression condition, JCExpression that, String msg, Label label) {
-        JavaFileObject jfo = currentClassDecl.sym.sourcefile;
-        String posDescription = position(jfo,pos);
-        
-        JCLiteral message = makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
-        JCFieldAccess m = findUtilsMethod("trueCheck");
-        JCExpression tcond = translate(condition);// Caution - translate resets the factory position
-        JCExpression trans = that;  
-        JmlMethodInvocation newv = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,tcond,trans));
-        newv.type = that.type;
-        newv.label = label;
-        return newv;
-    }
-    
-    /** Makes an attributed JCTree for a class literal corresponding to the given type. */
-    protected JCExpression makeType(int pos, Type type) {
-        // factory.Type does produce an attributed tree - after all we start knowing the type
-        JCExpression tree = factory.at(pos).Type(type);
-        return tree;
-    }
-    
-    protected JCExpression makeEqCheck(int pos, JCExpression obj, JCExpression that, String msg, Label label) {
-        JavaFileObject jfo = currentClassDecl.sym.sourcefile;
-        String posDescription = position(jfo,pos);
-        
-        JCLiteral message = makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
-        JCFieldAccess m = findUtilsMethod("eqCheck");
-        JmlMethodInvocation newv = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,obj,that));
-        newv.type = that.type;
-        newv.label = label;
-        return newv;
-    }
-    
-    protected JCExpression makeZeroCheck(int pos, JCExpression that, Label label) {
-        JCLiteral message = makeStringLiteral("Divide by zero",pos); // end -position ??? FIXME
-        JCExpression newv = translate(that);
-//        if (that.type.tag == TypeTags.INT) {
-//            JCFieldAccess m = findUtilsMethod("zeroIntCheck");
-//            JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,newv));
-//            call.type = that.type;
-        //    call.label = label;
-        //newv = call;
-//        } else {
-//            // FIXME - no check bein done
-//        }
-        return newv;
-    }
 
     public void visitAnnotation(JCAnnotation tree) {
         // FIXME - translating gets us into trouble later, but we don't need to, I think.
@@ -458,7 +331,7 @@ public class JmlTranslator extends JmlTreeTranslator {
             JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
             for (JmlMethodClause m: c.clauses) {
                 if (m.token == JmlToken.REQUIRES) {
-                    precond = makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
+                    precond = treeutils.makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
                     continue;
                 }
                 if (m.token != JmlToken.ASSIGNABLE) continue;
@@ -487,9 +360,9 @@ public class JmlTranslator extends JmlTreeTranslator {
                         JCFieldAccess fa = (JCFieldAccess)e;
                         if (fa.sym == null || fa.sym.equals(assignee.sym)) {
                             // need to assert that assignee.selected and \old(fa.selected) are equal  // FIXME - need \old
-                            JCExpression ex = makeBinary(fa.pos,JCTree.EQ,objecteqSymbol,assignee.selected,fa.selected);
-                            ex = makeImplies(e.pos,precond,ex);
-                            cond = makeOr(e.pos,cond,ex);
+                            JCExpression ex = treeutils.makeBinary(fa.pos,JCTree.EQ,objecteqSymbol,assignee.selected,fa.selected);
+                            ex = treeutils.makeImplies(e.pos,precond,ex);
+                            cond = treeutils.makeOr(e.pos,cond,ex);
                         }
                     } else if (e instanceof JmlStoreRefArrayRange) {
                         // Not a match
@@ -500,7 +373,7 @@ public class JmlTranslator extends JmlTreeTranslator {
                 if (cond != trueLit) {
                     // assert that (precond ==> cond)
                     // this does no translation
-                    JCExpression e = makeImplies(precond.pos,precond,cond);
+                    JCExpression e = treeutils.makeImplies(precond.pos,precond,cond);
                     assignee.selected = makeTrueCheck(pos,e,assignee.selected,"assignable",Label.ASSIGNABLE);
                 }
             }
@@ -512,10 +385,10 @@ public class JmlTranslator extends JmlTreeTranslator {
         JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.cases.deSugared;
         if (mspecs == null) return;
         for (JmlSpecificationCase c: mspecs.cases) {
-            JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
+            JCExpression precond = treeutils.trueLit; // FIXME - need the assignable clauses precondition
             for (JmlMethodClause m: c.clauses) {
                 if (m.token == JmlToken.REQUIRES) {
-                    precond = makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
+                    precond = treeutils.makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
                     continue;
                 }
                 if (m.token != JmlToken.ASSIGNABLE) continue;
@@ -542,7 +415,7 @@ public class JmlTranslator extends JmlTreeTranslator {
                         JmlStoreRefArrayRange allowed = (JmlStoreRefArrayRange)e;
                         
                         // FIXME - this evaluates the array twice, and evaluates the index multiple times
-                        JCExpression sameArrays = makeEqObject(pos,assignee.indexed,allowed.expression);
+                        JCExpression sameArrays = treeutils.makeEqObject(pos,assignee.indexed,allowed.expression);
                         if (allowed.lo == null && allowed.hi == null) {
                             // any index allowed
                         } else if (allowed.lo == allowed.hi) {
@@ -552,7 +425,7 @@ public class JmlTranslator extends JmlTreeTranslator {
                         } else {
                             // requires allowed.lo <= assignee.index && assignee.index <= allowed.hi // FIXME
                         }
-                        cond = makeOr(pos,cond,sameArrays);
+                        cond = treeutils.makeOr(pos,cond,sameArrays);
                     } else {
                         // FIXME - bad option
                     }
@@ -560,7 +433,7 @@ public class JmlTranslator extends JmlTreeTranslator {
                 if (cond != trueLit) {
                     // assert that (precond ==> cond)
                     // this does no translation
-                    JCExpression e = makeImplies(precond.pos,precond,cond);
+                    JCExpression e = treeutils.makeImplies(precond.pos,precond,cond);
                     assignee.indexed = makeTrueCheck(pos,e,assignee.indexed,"assignable",Label.ASSIGNABLE);
                 }
             }
@@ -576,7 +449,7 @@ public class JmlTranslator extends JmlTreeTranslator {
             JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
             for (JmlMethodClause m: c.clauses) {
                 if (m.token == JmlToken.REQUIRES) {
-                    precond = makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
+                    precond = treeutils.makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
                     continue;
                 }
                 if (m.token != JmlToken.ASSIGNABLE) continue;
@@ -620,10 +493,10 @@ public class JmlTranslator extends JmlTreeTranslator {
                         // FIXME - bad option
                     }
                 }
-                if (cond != trueLit) {
+                if (cond != treeutils.trueLit) {
                     // assert that (precond ==> cond)
                     // this does no translation
-                    JCExpression e = makeImplies(precond.pos,precond,cond);
+                    JCExpression e = treeutils.makeImplies(precond.pos,precond,cond);
                     wrapped = makeTrueCheck(pos,e,wrapped,"target not assignable",Label.ASSIGNABLE);
                 }
             }
@@ -707,19 +580,19 @@ public class JmlTranslator extends JmlTreeTranslator {
         switch (that.op) {
             case IMPLIES:
                 // P ==> Q is equivalent to !P || Q (short-circuit operator)
-                result = makeBinary(that.pos,JCTree.OR,orSymbol,makeUnary(that.lhs.pos,JCTree.NOT,that.lhs),that.rhs);
+                result = treeutils.makeBinary(that.pos,JCTree.OR,orSymbol,treeutils.makeUnary(that.lhs.pos,JCTree.NOT,that.lhs),that.rhs);
                 break;
             case REVERSE_IMPLIES:
                 // P <== Q is equivalent to P || !Q (short-circuit operator)
-                result = makeBinary(that.pos,JCTree.OR,orSymbol,that.lhs,makeUnary(that.rhs.pos,JCTree.NOT,that.rhs));
+                result = treeutils.makeBinary(that.pos,JCTree.OR,orSymbol,that.lhs,treeutils.makeUnary(that.rhs.pos,JCTree.NOT,that.rhs));
                 break;
             case EQUIVALENCE:
                 // P <==> Q is equivalent to P == Q  - but we need a boolean ==
-                result = makeBinary(that.pos,JCTree.EQ,booleqSymbol,that.lhs,that.rhs);
+                result = treeutils.makeBinary(that.pos,JCTree.EQ,booleqSymbol,that.lhs,that.rhs);
                 break;
             case INEQUIVALENCE:
                 // P <=!=> Q is equivalent to P != Q  - but we need a boolean !=
-                result = makeBinary(that.pos,JCTree.EQ,boolneSymbol,that.lhs,that.rhs);
+                result = treeutils.makeBinary(that.pos,JCTree.EQ,boolneSymbol,that.lhs,that.rhs);
                 break;
             case SUBTYPE_OF:
             default:
@@ -1084,7 +957,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         if (that.token == JmlToken.UNREACHABLE) {
             // convert to assert
             JCExpression e = translate(that.optionalExpression);
-            if (e == null) e = makeLiteral(false,that.pos);
+            if (e == null) e = treeutils.makeLiteral(false,that.pos);
             JmlStatementExpr r = factory.at(that.pos).JmlExpressionStatement(JmlToken.ASSERT,Label.UNREACHABLE,e);
             r.source = that.source;
             r.line = that.line;
@@ -1196,10 +1069,10 @@ public class JmlTranslator extends JmlTreeTranslator {
             JCExpression t = ((JCTypeApply)type).clazz; 
             // t.type is the actual Java type of the head (e.g. java.util.Vector)
             // What we want is a Java class literal
-            t = makeType(that.pos,t.type);
+            t = treeutils.makeType(that.pos,t.type);
             args.append(t);
             for (JCExpression tt: ((JCTypeApply)type).arguments) args.append(translate(tt));
-            result = makeUtilsMethodCall(that.pos,"makeTYPE",args.toList());
+            result = treeutils.makeUtilsMethodCall(that.pos,"makeTYPE",args.toList());
         } else {
             // no change
             result = that;
