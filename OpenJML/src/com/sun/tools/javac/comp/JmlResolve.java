@@ -89,8 +89,8 @@ public class JmlResolve extends Resolve {
      * @param context the compilation context whose instance of Resolve is desired
      * @return
      */
-    public static Resolve instance(Context context) {
-        Resolve instance = context.get(resolveKey);
+    public static JmlResolve instance(Context context) {
+        JmlResolve instance = (JmlResolve)context.get(resolveKey);
         if (instance == null)
             instance = new JmlResolve(context);
         return instance;
@@ -170,7 +170,7 @@ public class JmlResolve extends Resolve {
      * removed.
      */
     @Override
-    protected Symbol resolveBinaryOperator(DiagnosticPosition pos,
+    public Symbol resolveBinaryOperator(DiagnosticPosition pos,
             int optag,
             Env<AttrContext> env,
             Type left,
@@ -654,6 +654,19 @@ public class JmlResolve extends Resolve {
          return false;
      }
      
+     /** This is declared in order to provide public visibility */
+     public Symbol resolveUnaryOperator(DiagnosticPosition pos, int optag, Env<AttrContext> env, Type arg) {
+         return super.resolveUnaryOperator(pos,optag,env,arg);
+     }
+
+     public Symbol resolveConstructor(DiagnosticPosition pos, Env<AttrContext> env,
+             Type site, List<Type> argtypes,
+             List<Type> typeargtypes,
+             boolean allowBoxing,
+             boolean useVarargs) {
+         return super.resolveConstructor(pos,env,site,argtypes,typeargtypes,allowBoxing,useVarargs);
+     }
+
      public boolean setAllowJML(boolean allowJML) {
          boolean b = this.allowJML;
          this.allowJML = allowJML;
