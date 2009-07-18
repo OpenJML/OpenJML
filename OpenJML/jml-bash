@@ -19,7 +19,7 @@ RT=$DIR/jmlruntime.jar
 SP=$DIR/jmlspecs.jar
 
 ## Use project specs files
-SPECSDIR=C:/home/projects/JMLspecs/trunk
+SPECSDIR=C:/home/projects/Specs/trunk
 #SP="${SPECSDIR}/java6;${SPECSDIR}/java5;${SPECSDIR}/java4"
 
 java -jar "$JR" -classpath "$RT;$CLASSPATH" "$SPC" "$SP" $@
