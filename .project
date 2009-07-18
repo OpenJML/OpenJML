@@ -3,7 +3,7 @@
 	<name>OpenJML</name>
 	<comment></comment>
 	<projects>
-		<project>JMLspecs</project>
+		<project>Specs</project>
 		<project>OpenJDK</project>
 	</projects>
 	<buildSpec>

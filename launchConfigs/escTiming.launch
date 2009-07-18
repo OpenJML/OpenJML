@@ -17,5 +17,5 @@
 <stringAttribute key="org.eclipse.jdt.junit.TEST_KIND" value="org.eclipse.jdt.junit.loader.junit3"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="tests.escTiming"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="OpenJML"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseProjectLocation=${project_loc:OpenJML} -Dopenjml.eclipseSpecsProjectLocation=${project_loc:JMLspecs} -Dopenjml.prover.yices=C:/home/mybin/yices.exe"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseProjectLocation=${project_loc:OpenJML} -Dopenjml.eclipseSpecsProjectLocation=${project_loc:Specs} -Dopenjml.prover.yices=C:/home/mybin/yices.exe"/>
 </launchConfiguration>

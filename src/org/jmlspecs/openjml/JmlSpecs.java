@@ -330,7 +330,7 @@ public class JmlSpecs {
         // is an environment variable that is set.
         
         String sy = System.getProperty(Utils.eclipseSpecsProjectLocation);
-        // These are used in testing - sy should be the trunk directory of the JMLspecs project
+        // These are used in testing - sy should be the trunk directory of the Specs project
         if (sy != null) {
             
             boolean found = false;
