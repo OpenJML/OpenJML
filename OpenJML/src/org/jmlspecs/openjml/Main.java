@@ -736,6 +736,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             if (verbose) Log.instance(context).noticeWriter.println("Using internal runtime " + sss);
             sp = Options.instance(context).get("-classpath");
             Options.instance(context).put("-classpath",(sp==null?"":(sp + java.io.File.pathSeparator)) + sss);
+            if (verbose) Log.instance(context).noticeWriter.println("Classpath: " + Options.instance(context).get("-classpath"));
         } else {
             Log.instance(context).warning("jml.no.internal.runtime");
         }
