@@ -1251,10 +1251,13 @@ public class JmlParser extends EndPosParser {
             JmlSpecificationCase j = parseModelProgram(mods, code, also);
             j.sourcefile = log.currentSourceFile();
             return j;
+        } else if (jt == null && S.jml && also != null) {
+            log.error(S.pos(),"jml.invalid.keyword.in.spec",S.stringVal());
+            skipThroughSemi();
+            // Call it lightweight
         } else {
             jt = null;
-            if (code)
-                log.warning(codePos, "jml.misplaced.code");
+            if (code) log.warning(codePos, "jml.misplaced.code");
             // lightweight
         }
 

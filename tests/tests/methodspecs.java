@@ -9,6 +9,44 @@ public class methodspecs extends TCBase {
         super.setUp();
     }
 
+    /** Tests bad keyword */
+    public void testBadKeyword() {
+        helpTC(" class A { \n"
+                +"//@ also\n"
+                +"//@ r equires true;\n"
+                +"//@ signals_only Exception;\n"
+                +"int m() { return 0; }\n"
+                +"}"
+                ,"/TEST.java:3: This is not a valid keyword in a method specification: r",5
+                );
+    }
+
+//    /** Tests bad keyword */
+//    public void testBadKeyword2() {
+//        helpTC(" class A { \n"
+//                +"//@ also\n"
+//                +"//@ requires true;\n"
+//                +"//@ s ignals_only Exception;\n"
+//                +"int m() { return 0; }\n"
+//                +"}"
+//                ,"/TEST.java:4: This is not a valid keyword in a method specification: s",5
+//                );
+//    }
+
+    // FIXME: We'd like to handle this and the above better - the r looks like a type and the
+    // equires like a variable, so this is parsed as a declaration in JML.  It
+    // does not check until later that there is no ghost or model.
+//    /** Tests bad keyword */
+//    public void testBadKeyword3() {
+//        helpTC(" class A { \n"
+//                +"//@ r equires true;\n"
+//                +"//@ signals_only Exception;\n"
+//                +"int m() { return 0; }\n"
+//                +"}"
+//                ,"/TEST.java:4: At most one signals_only clause is permitted in a specification case",5
+//                );
+//    }
+    
     /** Tests multiple signals_only*/
     public void testMultipleSignalsOnly() {
         helpTC(" class A { \n"
