@@ -20,8 +20,8 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.compiler.IProblem;
-import org.jmlspecs.annotations.Nullable;
-import org.jmlspecs.annotations.SpecPublic;
+import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.annotation.SpecPublic;
 
 // TODO - The plugin tool reports problems by directly calling an instance
 // of this IProblemRequestor.  The Eclipse framework actually uses
@@ -72,6 +72,8 @@ public class JmlProblemRequestor implements IProblemRequestor {
   public JmlProblemRequestor(@Nullable IJavaProject jp) {
       this.project = jp == null ? null : jp.getProject();
   }
+  
+  IProblem mostRecentProblem = null;
   
   /** Eclipse calls this when a problem is reported
    * @param p the reported problem
@@ -146,6 +148,7 @@ public class JmlProblemRequestor implements IProblemRequestor {
       } catch (Exception e) {
           Log.errorlog("Failed to make a marker " + e,e);
       }
+      mostRecentProblem = p;
   }
 
   /** What to accept: level == 2 ==> errors only; level == 1; errors and

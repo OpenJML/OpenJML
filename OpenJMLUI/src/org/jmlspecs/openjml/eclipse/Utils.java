@@ -48,12 +48,18 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
-import org.jmlspecs.annotations.NonNull;
-import org.jmlspecs.annotations.Nullable;
-import org.jmlspecs.annotations.Pure;
-import org.jmlspecs.annotations.Query;
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.annotation.Pure;
+import org.jmlspecs.annotation.Query;
 import org.jmlspecs.openjml.API;
 
+/** This class holds utility values and methods to support the Eclipse plugin
+ * for OpenJML.
+ * 
+ * @author David Cok
+ *
+ */
 public class Utils {
 
     /** This class is used to wrap arbitrary exceptions coming from OpenJML */
@@ -73,6 +79,9 @@ public class Utils {
 
     /** The ID of the marker, which must match that in the plugin file. */
     final public static @NonNull String JML_MARKER_ID = Activator.PLUGIN_ID + ".JMLProblem";
+
+    /** The ID of the marker, which must match that in the plugin file. */
+    final public static @NonNull String ESC_MARKER_ID = Activator.PLUGIN_ID + ".JMLESCProblem";
 
     /** A map relating java projects to the instance of OpenJMLInterface that
      * handles openjml stuff for that project.  we have a separate instance for
@@ -209,13 +218,17 @@ public class Utils {
         for (IResource r: resourcesToBuild) {
             if (enabledForRac.contains(r)) newlist.add(r);
         }
-        Log.log("Starting RAC " + newlist.size() + " files");
-        if (newlist.size() != 0) try {
-            getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.RAC,newlist,monitor);
-        } catch (Exception e) {
-            showMessageInUI(null,"OpenJML -",e.getMessage());
+        if (newlist.size() != 0) {
+            try {
+                Log.log("Starting RAC " + newlist.size() + " files");
+                getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.RAC,newlist,monitor);
+                Log.log("Completed RAC");
+            } catch (Exception e) {
+                showMessageInUI(null,"OpenJML -",e.getMessage());
+            }
+        } else {
+            Log.log("Nothing to RAC");
         }
-        Log.log("Completed RAC");
     }
     
 
@@ -1285,6 +1298,7 @@ public class Utils {
                 try {
                     Log.log("Deleting markers in " + resource.getName());
                     resource.deleteMarkers(JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
+                    resource.deleteMarkers(ESC_MARKER_ID, false, IResource.DEPTH_INFINITE);
                 } catch (CoreException e) {
                     String msg = "Failed to delete markers on " + resource.getProject();
                     Log.errorlog(msg, e);

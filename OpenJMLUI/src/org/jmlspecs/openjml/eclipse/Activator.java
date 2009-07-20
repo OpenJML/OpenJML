@@ -11,12 +11,12 @@ public class Activator extends AbstractUIPlugin {
   /** The plug-in ID, which must match the content of plugin.xml */
   public static final String PLUGIN_ID = "org.jmlspecs.OpenJMLUI";
 
-  /** The plug-in ID of the JMLspecs project plugin (containing specifications
+  /** The plug-in ID of the Specs project plugin (containing specifications
    * of Java library classes).  This must match the ID specified in the 
-   * plugin.xml file of the JMLspecs plugin.  Note that the presence of the
-   * JMLspecs plugin is optional, but we use it if it is there.
+   * plugin.xml file of the Specs plugin.  Note that the presence of the
+   * Specs plugin is optional, but we use it if it is there.
    */
-  public static final String SPECS_PLUGIN_ID = "org.jmlspecs.JMLspecs";
+  public static final String SPECS_PLUGIN_ID = "org.jmlspecs.Specs";
   
 
   /** The shared instance */

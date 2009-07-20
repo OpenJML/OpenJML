@@ -38,7 +38,7 @@ import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 import org.jmlspecs.openjml.API;
 import org.jmlspecs.openjml.JmlOptionName;
 import org.jmlspecs.openjml.JmlSpecs;
@@ -148,6 +148,15 @@ public class OpenJMLInterface {
                 if (ret == 0) Log.log(Timer.getTimeString() + " Completed");
                 else if (ret == 1) Log.log(Timer.getTimeString() + " Completed with errors");
                 else if (ret >= 2) {
+                    StringBuilder ss = new StringBuilder();
+                    for (String r: args) {
+                        ss.append(r);
+                        ss.append(" ");
+                    }
+                    Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
+                    Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + "\n" + ss);
+                }
+                else if (ret >= 3) {
                     StringBuilder ss = new StringBuilder();
                     for (String r: args) {
                         ss.append(r);
@@ -775,7 +784,10 @@ public class OpenJMLInterface {
     public @NonNull List<String> getOptions(IJavaProject jproject, Cmd cmd) {
         Options opt = Activator.options;
         List<String> opts = new LinkedList<String>();
-        if (cmd == Cmd.ESC) opts.add(JmlOptionName.ESC.optionName());
+        if (cmd == Cmd.ESC) {
+            opts.add(JmlOptionName.ESC.optionName());
+            opts.add("-crossRefAssociatedInfo");
+        }
         if (cmd == Cmd.RAC) {
             opts.add(JmlOptionName.RAC.optionName());
             opts.add("-d");
@@ -870,7 +882,7 @@ public class OpenJMLInterface {
                     for (String z: defspecs) {
                         if (z != null) {
                             somethingPresent = true;
-                            if (verbose) Log.log("Set library specspath defaults from JMLspecs plugin");
+                            if (verbose) Log.log("Set library specspath defaults from the Specs plugin");
                             break;
                         }
                     }

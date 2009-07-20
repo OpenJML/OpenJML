@@ -5,7 +5,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 /** This class implements the JML Nature that can be associated with Java Projects.
  *  The effects of this nature are to enable an additional decoration on Java

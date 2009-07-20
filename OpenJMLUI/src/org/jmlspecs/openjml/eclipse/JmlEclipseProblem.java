@@ -22,7 +22,7 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 
-import org.jmlspecs.annotations.*;
+import org.jmlspecs.annotation.*;
 
 // FIXME - perhaps should be using DefaultProblem.errorReportSource
 // instead of carting the lineStart and end positions around

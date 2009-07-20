@@ -608,6 +608,12 @@
          point="org.eclipse.ui.editors.annotationTypes"
          id="JMLAnnotation">
     <type
+            markerType="org.jmlspecs.OpenJMLUI.JMLESCProblem"
+            name="org.jmlspecs.OpenJMLUI.ESCProblemAnnotation"
+            markerSeverity="2"
+            >
+    </type>
+    <type
             markerType="org.jmlspecs.OpenJMLUI.JMLProblem"
             name="org.jmlspecs.OpenJMLUI.JMLProblemAnnotation"
             markerSeverity="2"
@@ -625,6 +631,12 @@
             markerSeverity="0"
                         >
     </type>
+    <type
+            markerType="org.jmlspecs.OpenJMLUI.ESCProblem"
+            name="org.jmlspecs.OpenJMLUI.ESCProblemAnnotation"
+            markerSeverity="2"
+            >
+    </type>
   </extension>
             <!--super="org.eclipse.ui.workbench.texteditor.error"-->
             <!--super="org.eclipse.ui.workbench.texteditor.warn"-->
@@ -637,6 +649,23 @@
   <!-- FIXME - there are a lot of options that ought to be considered here -->
   <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
+    <specification
+            icon="icons/esc_problem.gif"
+            annotationType="org.jmlspecs.OpenJMLUI.ESCProblemAnnotation"
+            label="JML Static Check Warning"
+            overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpeKey"
+            verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpeKey"
+            highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpeKey"
+            textPreferenceKey="org.jmlspecs.openjml.eclipse.trpeKey"
+            colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpeKey"
+            colorPreferenceValue="255,128,0"
+            textPreferenceValue="true"
+            overviewRulerPreferenceValue="true"
+            verticalRulerPreferenceValue="true"
+            highlightPreferenceValue="true"
+            presentationLayer="3"
+            >
+    </specification>
     <specification
             icon="icons/jml_problem.gif"
             annotationType="org.jmlspecs.OpenJMLUI.JMLProblemAnnotation"
@@ -663,7 +692,7 @@
             highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpwKey"
             textPreferenceKey="org.jmlspecs.openjml.eclipse.trpwKey"
             colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpwKey"
-            colorPreferenceValue="255,128,0"
+            colorPreferenceValue="255,255,0"
             textPreferenceValue="true"
             overviewRulerPreferenceValue="true"
             verticalRulerPreferenceValue="true"
