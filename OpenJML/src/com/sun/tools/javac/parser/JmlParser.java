@@ -1271,11 +1271,9 @@ public class JmlParser extends EndPosParser {
             if (jt != null) {
                 log.error(pos, "jml.empty.specification.case");
             }
-            if (also == null && !code)
-                return null;
+            if (also == null && !code) return null;
         }
-        if (jt == null && code)
-            code = false; // Already warned about this
+        if (jt == null && code) code = false; // Already warned about this
         JmlSpecificationCase j = toP(jmlF.at(pos).JmlSpecificationCase(mods,
                 code, jt, also, clauses.toList()));
         j.sourcefile = log.currentSourceFile();

@@ -145,7 +145,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         String posDescription = position(jfo,pos);
         
         JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
-        JCFieldAccess m = treeutils.findUtilsMethod("nonNullCheck");
+        JCFieldAccess m = treeutils.findUtilsMethod(pos,"nonNullCheck");
         JCExpression trans = translate(that);  // Caution - translate resets the factory position
         JmlMethodInvocation newv = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,trans));
         newv.type = that.type;
@@ -159,7 +159,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         String posDescription = position(jfo,pos);
         
         JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
-        JCFieldAccess m = treeutils.findUtilsMethod("trueCheck");
+        JCFieldAccess m = treeutils.findUtilsMethod(pos,"trueCheck");
         JCExpression tcond = translate(condition);// Caution - translate resets the factory position
         JCExpression trans = that;  
         JmlMethodInvocation newv = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,tcond,trans));
@@ -173,7 +173,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         String posDescription = position(jfo,pos);
         
         JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
-        JCFieldAccess m = treeutils.findUtilsMethod("eqCheck");
+        JCFieldAccess m = treeutils.findUtilsMethod(pos,"eqCheck");
         JmlMethodInvocation newv = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,obj,that));
         newv.type = that.type;
         newv.label = label;
@@ -957,7 +957,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         if (that.token == JmlToken.UNREACHABLE) {
             // convert to assert
             JCExpression e = translate(that.optionalExpression);
-            if (e == null) e = treeutils.makeLiteral(false,that.pos);
+            if (e == null) e = treeutils.makeBooleanLiteral(that.pos,false);
             JmlStatementExpr r = factory.at(that.pos).JmlExpressionStatement(JmlToken.ASSERT,Label.UNREACHABLE,e);
             r.source = that.source;
             r.line = that.line;
