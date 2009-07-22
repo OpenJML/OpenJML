@@ -658,6 +658,12 @@ public class JmlResolve extends Resolve {
      public Symbol resolveUnaryOperator(DiagnosticPosition pos, int optag, Env<AttrContext> env, Type arg) {
          return super.resolveUnaryOperator(pos,optag,env,arg);
      }
+     
+     public Symbol resolveUnaryOperator(DiagnosticPosition pos, int optag, Type arg) {
+         Scope.Entry e = syms.predefClass.members().lookup(treeinfo.operatorName(optag));
+         return e.sym;
+     }
+     
 
      public Symbol resolveConstructor(DiagnosticPosition pos, Env<AttrContext> env,
              Type site, List<Type> argtypes,
