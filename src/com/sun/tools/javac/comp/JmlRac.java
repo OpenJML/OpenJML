@@ -68,9 +68,9 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
     JCLiteral nulllit;
     JCLiteral maxIntLit;
     
-    static final public String invariantMethodString = "_JML$$$checkInvariant";
+    static final public String invariantMethodString = org.jmlspecs.utils.Utils.invariantMethodString;
     Name invariantMethodName;
-    static final public String staticinvariantMethodString = "_JML$$$checkStaticInvariant";
+    static final public String staticinvariantMethodString = org.jmlspecs.utils.Utils.staticinvariantMethodString;
     Name staticinvariantMethodName;
     
     public JmlRac(Context context, Env<AttrContext> env) {
@@ -101,7 +101,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         nulllit = treeutils.makeLit(0,syms.botType, null);
         maxIntLit = treeutils.makeLit(0,syms.intType,Integer.MAX_VALUE);
 
-        this.resultName = Names.instance(context).fromString("_JML$$$result");
+        this.resultName = treeutils.resultName;
         this.exceptionName = Names.instance(context).fromString("_JML$$$exception");
         this.exceptionCatchName = Names.instance(context).fromString("_JML$$$exceptionCatch");
 

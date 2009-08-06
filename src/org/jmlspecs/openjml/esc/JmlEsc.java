@@ -12,6 +12,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
@@ -54,6 +55,7 @@ import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.PropagatedException;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticType;
@@ -140,7 +142,7 @@ public class JmlEsc extends JmlTreeScanner {
         this.showSubexpressions = JmlOptionName.isOption(context,JmlOptionName.SUBEXPRESSIONS);
         this.showTrace = showCounterexample || JmlOptionName.isOption(context,JmlOptionName.TRACE) || showSubexpressions;
         this.checkAssumptions = !JmlOptionName.isOption(context,"-noCheckAssumptions");
-        escdebug = Utils.instance(context).jmldebug;
+        escdebug = escdebug || Utils.instance(context).jmldebug;
         this.cfInfo = JmlOptionName.isOption(context,"-crossRefAssociatedInfo");
     }
 
@@ -191,7 +193,11 @@ public class JmlEsc extends JmlTreeScanner {
         if (!doEsc) return;
 
         String name = node.sym.owner + "." + node.sym;
-//        Log.printLines(log.noticeWriter,"["+(++ord)+"] "+ "Checking method "+ name);
+
+        String methodToDo = Options.instance(context).get(JmlOptionName.METHOD.optionName());
+        if (methodToDo != null && !name.contains(methodToDo)) return ;  // TODO - pattern match? include class name?
+
+        //        Log.printLines(log.noticeWriter,"["+(++ord)+"] "+ "Checking method "+ name);
         
         Pattern doPattern = 
             null; 
@@ -331,6 +337,9 @@ public class JmlEsc extends JmlTreeScanner {
         try {
             String name = node.sym.owner + "." + node.sym;
             
+            if (JmlOptionName.isOption(context,"-showds") || escdebug) {
+                log.noticeWriter.println(JmlPretty.write(tree)); // print the input tree
+            }
             boolean doMetrics = false;
             VCmode = 0;
             if (timingTest > 0) doMetrics = false;
@@ -341,13 +350,13 @@ public class JmlEsc extends JmlTreeScanner {
                 boolean a = BasicBlocker.useAssertDefinitions;
                 boolean b = BasicBlocker.useAssumeDefinitions;
                 try {
-                BasicBlocker.useAssertDefinitions = false;
-                BasicBlocker.useAssumeDefinitions = false;
-                BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
-                metrics(node,program,name);
+                    BasicBlocker.useAssertDefinitions = false;
+                    BasicBlocker.useAssumeDefinitions = false;
+                    BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
+                    metrics(node,program,name);
                 } finally {
-                BasicBlocker.useAssertDefinitions = a;
-                BasicBlocker.useAssumeDefinitions = b;
+                    BasicBlocker.useAssertDefinitions = a;
+                    BasicBlocker.useAssumeDefinitions = b;
                 }
             }
             if (useTree) VCmode = 1;
@@ -358,7 +367,7 @@ public class JmlEsc extends JmlTreeScanner {
 
             try {
                 if (JmlOptionName.isOption(context,"-showbb") || escdebug) {
-                    program.write(log.noticeWriter); // print the basic block program // FIXME - the option
+                    program.write(log.noticeWriter); // print the basic block program
                 }
                 //if (showTimes) log.noticeWriter.println("    ... prep           " +  t.elapsed()/1000.);
                 //log.noticeWriter.println("\t\t" + program.blocks().size() + " blocks, " + program.definitions().size() + " definitions, " + program.background().size() + " axioms, " + BasicBlocker.Counter.count(program) + " nodes");
@@ -646,6 +655,7 @@ public class JmlEsc extends JmlTreeScanner {
      */
     public boolean prove(@NonNull JCMethodDecl methodDecl, @NonNull BasicProgram program) {
         String name = methodDecl.sym.owner + "." + methodDecl.sym;
+        
 //        log.noticeWriter.println(methodDecl.toString());
 //        log.noticeWriter.println(program.toString());
 
@@ -659,10 +669,13 @@ public class JmlEsc extends JmlTreeScanner {
             //String proverToUse = "cvc";
             //String proverToUse = "simplify";
             p = AbstractProver.getProver(context,proverToUse);
+
             if (useRetract && !p.supports().retract) { p.kill(); return true; }
             if (useCoreIds && !p.supports().unsatcore) { p.kill(); return true; }
             if (timingTest >= 15 && p instanceof CVC3Prover) { p.kill(); return true;}
             
+            Map<Integer,JCExpression> defexpr = new HashMap<Integer,JCExpression>();
+
             boolean showTimes = timingTest > 0;
             Utils.Timer timer = null;
             if (showTimes) timer = new Utils.Timer();
@@ -696,14 +709,15 @@ public class JmlEsc extends JmlTreeScanner {
 //                p.pop();
 //            }
             
-            // send negated start block id
+            // compute negated start block id
             
             JCExpression negateStart = null;
             if (!(p instanceof SimplifyProver)) {
                 JCIdent id = program.startBlock().id();
                 negateStart = factory.Unary(JCTree.NOT,id);
                 negateStart.type = syms.booleanType;
-                p.assume(negateStart);
+                Integer idd = p.assume(negateStart);
+                defexpr.put(idd,negateStart);
             }
 
             // send block equations
@@ -715,7 +729,8 @@ public class JmlEsc extends JmlTreeScanner {
                 e.pos = bl.id.pos;
                 e.type = syms.booleanType;
                 //log.noticeWriter.println("BLOCK " + bl.id + " " + Counter.countAST(e));
-                p.assume(e);
+                Integer assertionNumber = p.assume(e);
+                defexpr.put(assertionNumber,e);
             }
 
             // send any other axioms and definitions
@@ -723,12 +738,14 @@ public class JmlEsc extends JmlTreeScanner {
             int assertionNumber = 0;
             for (JCExpression expr: program.background()) {
                 assertionNumber = p.assume(expr);
+                defexpr.put(assertionNumber,expr);
             }
             
             Map<JCExpression,Integer> defnum = new HashMap<JCExpression,Integer>();
             for (JCExpression expr: program.definitions()) {
                 assertionNumber = p.assume(expr);
                 defnum.put(expr,assertionNumber);
+                defexpr.put(assertionNumber,expr);
             }
 
             if (checkAssumptions && usePush) p.push();
@@ -741,8 +758,10 @@ public class JmlEsc extends JmlTreeScanner {
                     e = factory.Binary(JCTree.EQ, program.assumeCheckVar, e);
                     e.type = syms.booleanType;
                     assumptionCheck = p.assume(e);
+                    defexpr.put(assumptionCheck,e);
                 } else {
                     assumptionCheck = p.assume(BasicBlocker.booleanAssumeCheck);
+                    defexpr.put(assumptionCheck,BasicBlocker.booleanAssumeCheck);
                 }
             }
 
@@ -770,7 +789,8 @@ public class JmlEsc extends JmlTreeScanner {
                 if (escdebug) log.noticeWriter.println("Method does NOT satisfy its specifications, it appears");
                 if (timingTest == 0) {
                     r.setOtherInfo(BasicBlocker.TracerBB.trace(context,program,r.counterexample(),p));
-                    displayCounterexampleInfo(methodDecl, program, p, r);
+                    String cexample = displayCounterexampleInfo(methodDecl, program, p, r);
+                    if (showCounterexample || escdebug) log.noticeWriter.println(cexample);
                 }
                 p.kill();
             } else if (r.result() == IProverResult.UNSAT && (timingTest == 10 || timingTest==9)) {
@@ -823,6 +843,7 @@ public class JmlEsc extends JmlTreeScanner {
                             }
                             
                             p = AbstractProver.getProver(context,proverToUse);
+                            defexpr = new HashMap<Integer,JCExpression>();
                             
 //                            for (BasicProgram.BasicBlock block : program.blocks()) {
 //                                p.define(block.id.toString(),syms.booleanType);
@@ -830,7 +851,11 @@ public class JmlEsc extends JmlTreeScanner {
 
                             // send negated start block id
 
-                            if (!(p instanceof SimplifyProver)) p.assume(negateStart);
+                            if (!(p instanceof SimplifyProver)) {
+                                Integer idd = p.assume(negateStart);
+                                defexpr.put(idd,negateStart);
+
+                            }
 
                             // send block equations
 
@@ -843,7 +868,9 @@ public class JmlEsc extends JmlTreeScanner {
                                 e.pos = bl.id.pos;
                                 e.type = syms.booleanType;
                                 //log.noticeWriter.println("BLOCK " + bl.id + " " + Counter.countAST(e));
-                                p.assume(e);
+                                Integer idd = p.assume(e);
+                                defexpr.put(idd,e);
+
                             }
 
                             // send any other axioms and definitions
@@ -851,12 +878,14 @@ public class JmlEsc extends JmlTreeScanner {
                             assertionNumber = 0;
                             for (JCExpression expr: program.background()) {
                                 assertionNumber = p.assume(expr);
+                                defexpr.put(assertionNumber,expr);
                             }
 
                             defnum = new HashMap<JCExpression,Integer>();
                             for (JCExpression expr: program.definitions()) {
                                 assertionNumber = p.assume(expr);
                                 defnum.put(expr,assertionNumber);
+                                defexpr.put(assertionNumber,expr);
                             }
 
                             if (BasicBlocker.insertAssumptionChecks) { // We have to include this unless no assumption encoding is done
@@ -865,12 +894,17 @@ public class JmlEsc extends JmlTreeScanner {
                                 e = factory.Binary(JCTree.EQ, program.assumeCheckVar, e);
                                 e.type = syms.booleanType;
                                 assumptionCheck = p.assume(e);
+                                defexpr.put(assumptionCheck,e);
                             }
 
-                            r = p.check(false);
+                            r = p.check(true);
+                            if (escdebug) log.noticeWriter.println("CHECKING " + assumptionCheck + " " + assertionNumber);
                             if (!r.isSat() && timingTest == 0) {
                                 reportAssumptionProblem(label,pos,methodDecl.sym.toString());
+                                if (escdebug) log.noticeWriter.println(label + " " + r.coreIds());
                                 r.result(IProverResult.INCONSISTENT);
+                            } else {
+                                
                             }
                             if (!r.isSat()) {
                                 numbad++;
@@ -943,6 +977,7 @@ public class JmlEsc extends JmlTreeScanner {
                     if (list.contains(ps)) continue;
                     if (timingTest == 0) {
                         reportAssumptionProblem(nm.substring(kk+1),ps,methodDecl.sym.toString());
+                        log.noticeWriter.println(nm.substring(kk+1) + " " + r.coreIds());
                         r.result(IProverResult.INCONSISTENT);
                     }
                 }
@@ -988,7 +1023,9 @@ public class JmlEsc extends JmlTreeScanner {
                             //                            if (escdebug || timingTest > 0) log.noticeWriter.println("ALREADY NOT IN MINIMAL CORE: " + pos + " " + label);
                             if (timingTest == 0) {
                                 reportAssumptionProblem(label,pos,methodDecl.sym.toString());
+                                if (escdebug) log.noticeWriter.println(label + " " + r.coreIds());
                                 r.result(IProverResult.INCONSISTENT);
+                                if (escdebug) minimize(p,defexpr, r.coreIds().coreIds(), assumptionCheck);
                             }
                             continue;
                         }
@@ -1000,7 +1037,7 @@ public class JmlEsc extends JmlTreeScanner {
                             r = p.check(true);
                         } else if (usePush) {
                             p.push();
-                            p.assume(exx);
+                            assumptionCheck = p.assume(exx);
                             r = p.check(true);
                             p.pop();
                         }
@@ -1064,11 +1101,11 @@ public class JmlEsc extends JmlTreeScanner {
                         if (useRetract) {
                             p.retract(assumptionCheck);
                             assumptionCheck = ((YicesProver)p).assumePlus(ex);
-                            r = p.check(false);
+                            r = p.check(true);
                         } else if (usePush) {
                             p.push();
-                            p.assume(ex);
-                            r = p.check(false);
+                            assumptionCheck = p.assume(ex);
+                            r = p.check(true);
                             p.pop();
                         }
                         //                      if (escdebug || timingTest > 0) {
@@ -1081,7 +1118,9 @@ public class JmlEsc extends JmlTreeScanner {
                         //                  }
                         if (!r.isSat() && timingTest == 0) {
                             reportAssumptionProblem(label,pos,methodDecl.sym.toString());
+                            if (escdebug) log.noticeWriter.println(label + " " + r.coreIds());
                             r.result(IProverResult.INCONSISTENT);
+                            minimize(p, defexpr, r.coreIds().coreIds(), assumptionCheck);
                         }
                         if (!r.isSat()) {
                             numbad++;
@@ -1132,6 +1171,55 @@ public class JmlEsc extends JmlTreeScanner {
         	// ignore any problems in killing
         }
         return ok;
+    }
+    
+    public void minimize(IProver prover, Map<Integer,JCExpression> defexpr, Collection<Integer> coreIds, int assumeCount) {
+        if (!escdebug) return;
+        Integer[] ids = coreIds.toArray(new Integer[coreIds.size()]);
+        Arrays.sort(ids);
+        try {
+            prover.push();
+            // Remove everything but
+            for (int i=1; i<=assumeCount; i++) {
+                int found = Arrays.binarySearch(ids,i);
+                if (found < 0) {
+                    prover.retract(i);
+                    log.noticeWriter.println("Retracted " + i);
+                }
+            }
+            IProverResult rr = prover.check(true);
+            if (rr.isSat()) {
+                log.noticeWriter.println("Redacted problem now satisfiable ??? ");
+                return;
+            }
+            log.noticeWriter.println("Redacted problem still unsatisfiable");
+            java.util.List<Integer> keepers = new LinkedList<Integer>();
+            for (int i: ids) {
+                prover.retract(i);
+                rr = prover.check(true);
+                log.noticeWriter.println("Retracted " + i + ": " + rr.result());
+                if (rr.isSat()) {
+                    JCExpression e = defexpr.get(i);
+                    prover.assume(e);
+                    keepers.add(i);
+                    log.noticeWriter.println("Restored and keeping " + i );
+                } else {
+                    log.noticeWriter.println("Continuing without restoring " + i );
+                }
+            }
+            log.noticeWriter.println("The following appear to be a contradictory core:");
+            for (Integer k: keepers) {
+                log.noticeWriter.print(k + "] ");
+                JmlPretty pw = new JmlPretty(log.noticeWriter,false);
+                defexpr.get(k).accept(pw);
+                log.noticeWriter.println("");
+            }
+            prover.pop();
+        } catch (ProverException e) {
+            log.noticeWriter.println("Could not retract " + e);
+        }
+        return;
+
     }
 
 

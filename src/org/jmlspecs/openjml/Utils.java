@@ -79,6 +79,9 @@ public class Utils {
     /** A bit that indicates that JML instrumentation has been added .... FIXME */
     final public static long JMLINSTRUMENTED = 1L << 51; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
+    /** A bit that indicates that a variable is local to an expression */
+    final public static long JMLEXPRLOCAL = 1L << 52; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+
 
     /** Tests whether the JML flag is set in the given modifiers object
      * @param mods the instance of JCModifiers to test
@@ -129,6 +132,21 @@ public class Utils {
     // FIXME - document
     public void setInstrumented(/*@ non_null */JCModifiers mods) {
         mods.flags |= JMLINSTRUMENTED;
+    }
+    
+    /** Returns true if the modifiers is marked as local to a JML expression */
+    public boolean isExprLocal(/*@ non_null */ JCModifiers mods) {
+        return (mods.flags & JMLEXPRLOCAL) != 0;
+    }
+    
+    /** Returns true if the modifiers is marked as local to a JML expression */
+    public boolean isExprLocal(long flags) {
+        return (flags & JMLEXPRLOCAL) != 0;
+    }
+    
+    /** Sets the modifiers as local to a JML expression */
+    public void setExprLocal(/*@ non_null */ JCModifiers mods) {
+        mods.flags |= JMLEXPRLOCAL;
     }
     
     /** Returns true if no standard modifiers or annotations have been set

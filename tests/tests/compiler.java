@@ -24,7 +24,7 @@ public class compiler extends TestCase {
     String projHome = System.getProperty("openjml.eclipseProjectLocation").replace("C:","").replace("\\","/");
     
     protected void setUp() throws Exception {
-        //capture = false; print = true;
+        capture = false; print = true;
         super.setUp();
         savederr = System.err;
         savedout = System.out;

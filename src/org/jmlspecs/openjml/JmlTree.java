@@ -2533,6 +2533,11 @@ public class JmlTree {
             this.expression = expression;
         }
         
+//        public JmlTypeClauseExpr clone() {
+//            JmlTypeClauseExpr copy = (JmlTypeClauseExpr)super.clone();
+//            return copy;
+//        }
+        
         public JCTree.JCExpression expression;
         
         public Kind getKind() { 

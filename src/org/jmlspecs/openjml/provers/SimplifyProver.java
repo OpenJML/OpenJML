@@ -80,18 +80,18 @@ public class SimplifyProver extends AbstractProver implements IProver {
         }
         
         private final static String[][] predefined = { 
-            { REF, "TYPE"},
-            { TYPE, "TYPE"},
+            { REF, "JAVATYPE"},
+            { TYPE, "JAVATYPE"},
             { NULL, REF },
 //            { "isType", "(-> REF bool)"},
-//            { TYPE, "(subtype (r::REF) (isType r))" },
+//            { JAVATYPE, "(subtype (r::REF) (isType r))" },
 //            { "isArray", "(-> REF bool)"},
 //            { ARRAY, "(subtype (r::REF) (isArray r))"},
 //            { ARRAYorNULL, "(subtype (r::REF) (or (= r NULL) (isArray r)))"},
-//            { "T$java.lang.Object$$A", TYPE},
-//            { TYPEOF, "(-> REF "+TYPE+")"},
-//            { SUBTYPE, "(-> "+TYPE+" "+TYPE+" bool)"},
-//            { CAST, "(-> REF "+TYPE+" REF)"},
+//            { "T$java.lang.Object$$A", JAVATYPE},
+//            { TYPEOF, "(-> REF "+JAVATYPE+")"},
+//            { JMLSUBTYPE, "(-> "+JAVATYPE+" "+JAVATYPE+" bool)"},
+//            { CAST, "(-> REF "+JAVATYPE+" REF)"},
 //            { "length", "(-> REF int)"},
 //            { "length$0", "(-> REF int)"},
 //            { "idiv", "(-> int int int)"},
@@ -138,11 +138,11 @@ public class SimplifyProver extends AbstractProver implements IProver {
 //            + "("+BASSERT+" (not (isArray NULL)))"
 //            + "("+BASSERT+" (forall (a::REF) (>= (length a) 0)))"
 //            + "("+BASSERT+" (= length length$0))"
-//            + "("+BASSERT+" (forall (r::REF t::"+TYPE+") (=> (and (/= r NULL) ("+SUBTYPE+" ("+TYPEOF+" r) t))  (= ("+CAST+" r t) r) ) ))"
-//            + "("+BASSERT+" (forall (t::"+TYPE+") (= ("+CAST+" NULL t) NULL) ))"
-//            + "("+BASSERT+" (forall (t::" + TYPE + ") ("+SUBTYPE + " t t)))"
-//            + "("+BASSERT+" (forall (t1::" + TYPE + " t2::" + TYPE + ") (= (and ("+SUBTYPE + " t1 t2) ("+SUBTYPE + " t2 t1)) (=  t1 t2)) ))"
-//            + "("+BASSERT+" (forall (t1::" + TYPE + " t2::" + TYPE + " t3::" + TYPE + ") (=> (and ("+SUBTYPE + " t1 t2)("+SUBTYPE + " t2 t3)) ("+SUBTYPE + " t1 t3)) ))"
+//            + "("+BASSERT+" (forall (r::REF t::"+JAVATYPE+") (=> (and (/= r NULL) ("+JMLSUBTYPE+" ("+TYPEOF+" r) t))  (= ("+CAST+" r t) r) ) ))"
+//            + "("+BASSERT+" (forall (t::"+JAVATYPE+") (= ("+CAST+" NULL t) NULL) ))"
+//            + "("+BASSERT+" (forall (t::" + JAVATYPE + ") ("+JMLSUBTYPE + " t t)))"
+//            + "("+BASSERT+" (forall (t1::" + JAVATYPE + " t2::" + JAVATYPE + ") (= (and ("+JMLSUBTYPE + " t1 t2) ("+JMLSUBTYPE + " t2 t1)) (=  t1 t2)) ))"
+//            + "("+BASSERT+" (forall (t1::" + JAVATYPE + " t2::" + JAVATYPE + " t3::" + JAVATYPE + ") (=> (and ("+JMLSUBTYPE + " t1 t2)("+JMLSUBTYPE + " t2 t3)) ("+JMLSUBTYPE + " t1 t3)) ))"
 //            + "("+BASSERT+" (forall (i::int j::int) (= (imul i j) (imul j i)) ))"
 //            + "("+BASSERT+" (forall (i::int) (and (= (imul i 0) 0) (= (imul 0 i) 0) (= (imul 1 i) i) (= (imul i 1) i) (= (imul -1 i) (- 0 i)) (= (imul i -1) (- 0 i)) )))"
 ////            + "("+BASSERT+" (forall (i::int j::int) (= (imul i (+ j 1)) (+ (imul i j) i) ) ))"
@@ -379,7 +379,7 @@ public class SimplifyProver extends AbstractProver implements IProver {
 //                declare(s,ss);
 //            } else {
 //                builder.append(s);
-//                builder.append(" : TYPE;\n");
+//                builder.append(" : JAVATYPE;\n");
 //                declare(s,null);
 //            }
 //            try {
@@ -394,7 +394,7 @@ public class SimplifyProver extends AbstractProver implements IProver {
         }
 
         public String defineType(String s, boolean array) throws ProverException {
-//            if (checkAndDefine(s,"TYPE")) return s; // DO nothing if already defined
+//            if (checkAndDefine(s,"JAVATYPE")) return s; // DO nothing if already defined
 //            builder.setLength(0);
 //            if (array) {
 //                String cs = s.substring("refA$".length());
@@ -402,7 +402,7 @@ public class SimplifyProver extends AbstractProver implements IProver {
 //                builder.append("(define-type " + s + " (subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))\n");
 //            } else {
 //                builder.append(s);
-//                builder.append(" : TYPE;\n");
+//                builder.append(" : JAVATYPE;\n");
 //            }
 //            try {
 //                send(builder.toString());

@@ -39,11 +39,14 @@ import com.sun.tools.javac.util.Context;
 public class YicesProver extends AbstractProver implements IProver {
     public final static String NULL = "NULL";
     public final static String REF = "REF";
+    public final static String JMLTYPE = "JMLTYPE$";
     public final static String ARRAY = "ARRAY";
     public final static String ARRAYorNULL = "ARRAYorNULL";
-    public static final String TYPE = "TYPE$";
+    public static final String JAVATYPE = "JAVATYPE$";
+    public static final String ERASEDTYPEOF = "etypeof$";
     public static final String TYPEOF = "typeof$";
-    public static final String SUBTYPE = "subtype$";
+    public static final String JMLSUBTYPE = "subtypeJML$";
+    public static final String JAVASUBTYPE = "subtypeJava$";
     public static final String CAST = "cast$";
 
     //    /** The process that is the actual prover */
@@ -105,16 +108,21 @@ public class YicesProver extends AbstractProver implements IProver {
 
     private final static String[][] predefined = { 
         { REF, null},
+       // { JMLTYPE, null },
         { NULL, REF },
         { "isType", "(-> REF bool)"},
-        { TYPE, "(subtype (r::REF) (isType r))" },
+        { "isJMLType", "(-> REF bool)"},
+        { JMLTYPE, "(subtype (r::REF) (isJMLType r))" },
+        { JAVATYPE, "(subtype (r::REF) (isType r))" },
         { "isArray", "(-> REF bool)"},
         { ARRAY, "(subtype (r::REF) (isArray r))"},
         { ARRAYorNULL, "(subtype (r::REF) (or (= r NULL) (isArray r)))"},
-        { "T$java.lang.Object$$A", TYPE},
-        { TYPEOF, "(-> REF "+TYPE+")"},
-        { SUBTYPE, "(-> "+TYPE+" "+TYPE+" bool)"},
-        { CAST, "(-> REF "+TYPE+" REF)"},
+        { "T$java.lang.Object$$A", JAVATYPE},
+        { TYPEOF, "(-> REF "+JMLTYPE+")"},
+        { ERASEDTYPEOF, "(-> REF "+JAVATYPE+")"},
+        { JMLSUBTYPE, "(-> "+JMLTYPE+" "+JMLTYPE+" bool)"},
+        { JAVASUBTYPE, "(-> "+JAVATYPE+" "+JAVATYPE+" bool)"},
+        { CAST, "(-> REF "+JAVATYPE+" REF)"},
         { "length", "(-> REF int)"},
         { "length$0", "(-> REF int)"},
         { "idiv", "(-> int int int)"},
@@ -123,15 +131,15 @@ public class YicesProver extends AbstractProver implements IProver {
         { "rmod", "(-> real real real)"},
         { "imul", "(-> int int int)"},
         { "rmul", "(-> real real real)"},
-        { "distinct$", "(-> "+TYPE+" int)"},
+        { "distinct$", "(-> "+JAVATYPE+" int)"},
         { "loc$", "(-> "+REF+" int)"},
     };
 
     // This lists names builtin to Yices
     private final static String[][] otherpredefined = {
-        { "bool", TYPE},
-        { "int", TYPE},
-        { "real", TYPE},
+        { "bool", JAVATYPE},
+        { "int", JAVATYPE},
+        { "real", JAVATYPE},
         { "div", "(-> int int int)"},
         { "mod", "(-> real real real)"},
         { "and", "(-> bool bool bool)"},
@@ -160,11 +168,14 @@ public class YicesProver extends AbstractProver implements IProver {
         + "("+BASSERT+" (not (isArray NULL)))"
         + "("+BASSERT+" (forall (a::REF) (>= (length a) 0)))"
         + "("+BASSERT+" (= length length$0))"
-        + "("+BASSERT+" (forall (r::REF t::"+TYPE+") (=> (and (/= r NULL) ("+SUBTYPE+" ("+TYPEOF+" r) t))  (= ("+CAST+" r t) r) ) ))"
-        + "("+BASSERT+" (forall (t::"+TYPE+") (= ("+CAST+" NULL t) NULL) ))"
-        + "("+BASSERT+" (forall (t::" + TYPE + ") ("+SUBTYPE + " t t)))"
-        + "("+BASSERT+" (forall (t1::" + TYPE + " t2::" + TYPE + ") (= (and ("+SUBTYPE + " t1 t2) ("+SUBTYPE + " t2 t1)) (=  t1 t2)) ))"
-        + "("+BASSERT+" (forall (t1::" + TYPE + " t2::" + TYPE + " t3::" + TYPE + ") (=> (and ("+SUBTYPE + " t1 t2)("+SUBTYPE + " t2 t3)) ("+SUBTYPE + " t1 t3)) ))"
+        //+ "("+BASSERT+" (forall (r::REF t::"+JAVATYPE+") (=> (and (/= r NULL) ("+JMLSUBTYPE+" ("+TYPEOF+" r) t))  (= ("+CAST+" r t) r) ) ))"
+        + "("+BASSERT+" (forall (t::"+JAVATYPE+") (= ("+CAST+" NULL t) NULL) ))"
+        + "("+BASSERT+" (forall (t::" + JAVATYPE + ") ("+ JAVASUBTYPE + " t t)))"
+        + "("+BASSERT+" (forall (t1::" + JAVATYPE + " t2::" + JAVATYPE + ") (= (and ("+JAVASUBTYPE + " t1 t2) ("+JAVASUBTYPE + " t2 t1)) (=  t1 t2)) ))"
+        + "("+BASSERT+" (forall (t1::" + JAVATYPE + " t2::" + JAVATYPE + " t3::" + JAVATYPE + ") (=> (and ("+JAVASUBTYPE + " t1 t2)("+JAVASUBTYPE + " t2 t3)) ("+JAVASUBTYPE + " t1 t3)) ))"
+        + "("+BASSERT+" (forall (t::" + JMLTYPE + ") ("+JMLSUBTYPE + " t t)))"
+        + "("+BASSERT+" (forall (t1::" + JMLTYPE + " t2::" + JMLTYPE + ") (= (and ("+JMLSUBTYPE + " t1 t2) ("+JMLSUBTYPE + " t2 t1)) (=  t1 t2)) ))"
+        + "("+BASSERT+" (forall (t1::" + JMLTYPE + " t2::" + JMLTYPE + " t3::" + JMLTYPE + ") (=> (and ("+JMLSUBTYPE + " t1 t2)("+JMLSUBTYPE + " t2 t3)) ("+JMLSUBTYPE + " t1 t3)) ))"
         + "("+BASSERT+" (forall (i::int j::int) (= (imul i j) (imul j i)) ))"
         + "("+BASSERT+" (forall (i::int) (and (= (imul i 0) 0) (= (imul 0 i) 0) (= (imul 1 i) i) (= (imul i 1) i) (= (imul -1 i) (- 0 i)) (= (imul i -1) (- 0 i)) )))"
         //        + "("+BASSERT+" (forall (i::int j::int) (= (imul i (+ j 1)) (+ (imul i j) i) ) ))"
@@ -172,6 +183,7 @@ public class YicesProver extends AbstractProver implements IProver {
         + "("+BASSERT+" (forall (i::int j::int) (=> (/= j 0) (= (imod (imul i j) j) 0)) ))"
         + "("+BASSERT+" (forall (i::int) (and (= (imod i 1) 0) (= (imod i -1) 0) )))"
         + "("+BASSERT+" (= (distinct$ T$java.lang.Object$$A) 99))"
+        + "("+BASSERT+" (forall (o::REF) (=> (/= o NULL) (/= ("+TYPEOF+" o) NULL))))"
         + "\n";
     }
 
@@ -352,6 +364,18 @@ public class YicesProver extends AbstractProver implements IProver {
                 //                    throw new ProverException("Excessive output: " + s.length() + " " + truncated);
                 //                }
 
+                if (truncated == 0 && JmlEsc.escdebug) {
+                    // Check that output assertion identifiers are correct
+                    String pat = "id: ";
+                    int k = s.lastIndexOf(pat)+ pat.length();
+                    int kk = s.indexOf("\n",k);
+                    if (k >= pat.length()) {
+                        k = Integer.valueOf(s.substring(k,kk));
+                        if (k != assumeCounter) {
+                            log.noticeWriter.println("Warning: prover returned id = " + k + " but assumeCounter is " + assumeCounter);
+                        }
+                    }
+                }
                 offset = 0;
                 if (errors.ready()) {
                     while (errors.ready()) {
@@ -431,7 +455,6 @@ public class YicesProver extends AbstractProver implements IProver {
     }
 
     public int assume(JCExpression tree) throws ProverException {
-        if (assertPlus) ++assumeCounter;
         try {
             String t = translator.toYices(tree);
             builder.setLength(0);
@@ -440,6 +463,7 @@ public class YicesProver extends AbstractProver implements IProver {
             builder.append(" ");
             builder.append(t);
             builder.append(")\n");
+            if (assertPlus) ++assumeCounter;
             send(builder.toString());
             eatPrompt(interactive);
         } catch (ProverException e) {
@@ -452,7 +476,6 @@ public class YicesProver extends AbstractProver implements IProver {
     }
 
     public int assumePlus(JCExpression tree) throws ProverException {
-        ++assumeCounter;
         try {
             String t = translator.toYices(tree);
             builder.setLength(0);
@@ -461,6 +484,7 @@ public class YicesProver extends AbstractProver implements IProver {
             builder.append(" ");
             builder.append(t);
             builder.append(")\n");
+            ++assumeCounter;
             send(builder.toString());
             eatPrompt(interactive);
         } catch (ProverException e) {
@@ -473,7 +497,6 @@ public class YicesProver extends AbstractProver implements IProver {
     }
 
     public int assume(JCExpression tree, int weight) throws ProverException {
-        if (assertPlus) ++assumeCounter;
         try {
             String t = translator.toYices(tree);
             builder.setLength(0);
@@ -484,6 +507,7 @@ public class YicesProver extends AbstractProver implements IProver {
             builder.append(" ");
             builder.append(weight);
             builder.append(")\n");
+            if (assertPlus) ++assumeCounter;
             send(builder.toString());
             eatPrompt(interactive);
         } catch (ProverException e) {
@@ -526,6 +550,7 @@ public class YicesProver extends AbstractProver implements IProver {
             //            }
             //log.noticeWriter.print("SENDING " + ss);
             log.noticeWriter.print("SENDING ["+assumeCounter+":" + s.length()+ "]" + ss);
+            log.noticeWriter.flush();
         }
         //log.noticeWriter.println("SENDING ["+assumeCounter+":" + s.length()+ "]");
         try {
@@ -624,6 +649,8 @@ public class YicesProver extends AbstractProver implements IProver {
             if (t instanceof ArrayType) {
                 t = ((ArrayType)t).getComponentType();
                 s = "refA$" + convertType(t);
+            } else if (t.tsym.flatName().toString().endsWith("IJMLTYPE")) {
+                s = YicesProver.JMLTYPE;
             } else {
                 s = REF;
             }
@@ -688,7 +715,7 @@ public class YicesProver extends AbstractProver implements IProver {
         if (t.tag == TypeTags.ARRAY) {
             Type ct = ((ArrayType)t).elemtype;
             if (ct instanceof ArrayType) defineType(ct);
-            String ss = "(subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A))";
+            String ss = "(subtype (a::ARRAY) (" + JAVASUBTYPE + " (" + ERASEDTYPEOF + " a) T$java.lang.Object$$A))";
             builder.append("(define-type " + s + " " + ss + ")\n");
             declare(s,ss);
         } else {
@@ -713,7 +740,7 @@ public class YicesProver extends AbstractProver implements IProver {
         if (array) {
             String cs = s.substring("refA$".length());
             defineType(cs,cs.startsWith("refA"));
-            builder.append("(define-type " + s + " (subtype (a::ARRAY) (subtype$ (typeof$ a) T$java.lang.Object$$A)))\n");
+            builder.append("(define-type " + s + " (subtype (a::ARRAY) (" + JAVASUBTYPE + " (" + ERASEDTYPEOF + " a) T$java.lang.Object$$A)))\n");
         } else {
             builder.append("(define-type ");
             builder.append(s);
@@ -1228,6 +1255,11 @@ public class YicesProver extends AbstractProver implements IProver {
 
         public void add(int i) {
             coreIds.add(i);
+        }
+        public String toString() {
+            StringBuilder ss = new StringBuilder();
+            for (Integer i: coreIds) { ss.append(" "); ss.append(i); }
+            return ss.toString();
         }
     }
 }

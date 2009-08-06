@@ -483,6 +483,17 @@ public class CVC3Expr extends JmlTreeScanner {
             return;
         }
         
+        if (that.op == JmlToken.JSUBTYPE_OF) {
+            System.out.println("NOT IMPLEMENTED");
+//            result.append(CVC3Prover.JSUBTYPE);  // FIXME
+//            result.append("(");
+//            that.lhs.accept(this);
+//            result.append(",");
+//            that.rhs.accept(this);
+//            result.append(")");
+            return;
+        }
+        
         result.append("(");
         that.lhs.accept(this);
         if (that.op == JmlToken.IMPLIES) {

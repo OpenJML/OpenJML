@@ -125,6 +125,7 @@ public class counterexamples extends EscBase {
     
     /** Tests loops */
     public void testCE6() {
+        //options.put("-showbb",""); options.put("-method","m1"); options.put("-showds","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -325,7 +326,7 @@ public class counterexamples extends EscBase {
                 +"  //@ signals (Exception) false;\n"
                 +"  public void m2(int i) {\n"
                 +"      int k = c(i);\n"
-                +"      //@ assert k != 9;\n"
+                +"      //@ assert true;\n"
                 +"  }\n"
                 
                 +"  //@ ensures \\result == i+10;\n"

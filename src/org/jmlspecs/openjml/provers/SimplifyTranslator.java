@@ -91,7 +91,7 @@ public class SimplifyTranslator extends JmlTreeScanner {
     int distinctCount = 100;
     protected boolean define(String name, String type) {
         try {
-            if (YicesProver.TYPE.equals(type)) {
+            if (YicesProver.JAVATYPE.equals(type)) {
                 boolean n = ((SimplifyProver)p).rawdefine(name,type);
                 if (n) return n;
                 String s = "(EQ ("+"distinct$"+" "+name+") " + (++distinctCount) +")";
@@ -185,7 +185,7 @@ public class SimplifyTranslator extends JmlTreeScanner {
                     s = s.replace("$","Z");
                     s = s.replace("_","Y");
                     s = "|" + s + "|";
-                    define(s,YicesProver.TYPE);
+                    define(s,YicesProver.JAVATYPE);
                     result.append(s);
                 } else {
                     result.append(that.toString());
@@ -534,7 +534,7 @@ public class SimplifyTranslator extends JmlTreeScanner {
             that.lhs.accept(this);
             result.append(")");
             return;
-        } else if (that.op == JmlToken.SUBTYPE_OF) {
+        } else if (that.op == JmlToken.SUBTYPE_OF) { // FIXME - needs JSUBTYPE_OF
             result.append(SimplifyProver.SUBTYPE);
             result.append(" ");
         } else {

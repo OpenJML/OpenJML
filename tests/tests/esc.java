@@ -16,7 +16,7 @@ public class esc extends EscBase {
         //options.put("-noInternalSpecs",   "");
         //options.put("-trace",   "");
         //JmlEsc.escdebug = true;
-        org.jmlspecs.openjml.provers.YicesProver.showCommunication = 1;
+        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
     }
  
     // FIXME - causes a prover failure
@@ -55,7 +55,8 @@ public class esc extends EscBase {
 
     public void testForEach() {
 //        options.put("-showbb","");
-//        options.put("-counterexample","");
+//        options.put("-trace","");
+//        options.put("-method","m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -171,6 +172,7 @@ public class esc extends EscBase {
     }
 
     public void testForEach1() {
+        //options.put("-showbb",""); options.put("-showds",""); options.put("-trace",""); options.put("-method","m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -196,85 +198,85 @@ public class esc extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 
-                +"  public TestJava() {}"
+                +"  public TestJava() {}\n"
                 
-//                +"  public void m3() {\n"  // Line 10
-//                +"    long[] a = { 1,2,3,4};\n"
-//                +"    for (long k: a) {\n"
-//                +"      //@ assert \\index >= 1;\n"  // BAD
-//                +"    }\n"
-//                +"  }\n"
-//                
-//                +"  public void m4() {\n"
-//                +"    long[] a = { 1,2,3,4};\n"
-//                +"    long[] b = { 1,2};\n"
-//                +"    for (long k: a) {\n"
-//                +"      //@ ghost int i = \\index;\n"  // OK
-//                +"      //@ assert \\index >= 0;\n"  // OK
-//                +"      for (long kk: b) {\n"
-//                +"         //@ assert \\index < 2;\n" // OK
-//                +"      }\n"
-//                +"      //@ assert \\index == i;\n"  // OK
-//                +"    }\n"
-//                +"  }\n"
-//                
-//                +"  public void m5() {\n"
-//                +"    long[] a = { 1,2,3,4};\n"
-//                +"    long[] b = { 1,2};\n" // Line 30
-//                +"    for (long k: a) {\n"
-//                +"      //@ ghost int i = \\index;\n"  
-//                +"      for (long kk: b) {\n"
-//                +"         //@ assert \\index == i;\n" // BAD
-//                +"      }\n"
-//                +"    }\n"
-//                +"  }\n"
-//                
-//                +"  public void m6() {\n"
-//                +"    long[] a = { 1,2,3,4};\n"
-//                +"    //@ loop_invariant \\index >= 0 && \\index <= a.length;\n" // OK
-//                +"    //@ decreases a.length - \\index;\n" // OK
-//                +"    for (long k: a) {\n"
-//                +"    }\n"
-//                +"  }\n"
-//                
-//                +"  public void m7() {\n"
-//                +"    long[] a = { 1,2,3,4};\n"
-//                +"    //@ decreases a.length - \\index -1;\n" // BAD // FIXME
-//                +"    for (long k: a) {\n"
-//                +"    }\n"
-//                +"  }\n"  // Line 50
-//                
-//                +"  public void m7a() {\n"
-//                +"    long[] a = { 1,2,3,4};\n"
-//                +"    //@ decreases \\index;\n" // BAD
-//                +"    for (long k: a) {\n"
-//                +"    }\n"
-//                +"  }\n"
-//                
-//                +"  public void m8() {\n"
-//                +"    long[] a = { 1,2,3,4};\n"
-//                +"    //@ loop_invariant \\index > 0 && \\index <= a.length;\n" // BAD - first time through loop
-//                +"    for (long k: a) {\n"
-//                +"    }\n"
-//                +"  }\n"
-//                
-//                +"  public void m9() {\n"
-//                +"    long[] a = { 1,2,3,4};\n"
-//                +"    //@ loop_invariant \\index >= 0 && \\index < a.length;\n" // BAD - last time through loop
-//                +"    for (long k: a) {\n"
-//                +"    }\n"
-//                +"  }\n"
+                +"  public void m3a() {\n"  // Line 23  // FIXME - fix error message when this is named m3
+                +"    long[] a = { 1,2,3,4};\n"
+                +"    for (long k: a) {\n"
+                +"      //@ assert \\index >= 1;\n"  // BAD
+                +"    }\n"
+                +"  }\n"
+                
+                +"  public void m4() {\n"
+                +"    long[] a = { 1,2,3,4};\n"
+                +"    long[] b = { 1,2};\n"
+                +"    for (long k: a) {\n"
+                +"      //@ ghost int i = \\index;\n"  // OK
+                +"      //@ assert \\index >= 0;\n"  // OK
+                +"      for (long kk: b) {\n"
+                +"         //@ assert \\index < 2;\n" // OK
+                +"      }\n"
+                +"      //@ assert \\index == i;\n"  // OK
+                +"    }\n"
+                +"  }\n"  // Line 40
+                
+                +"  public void m5() {\n"
+                +"    long[] a = { 1,2,3,4};\n"
+                +"    long[] b = { 1,2};\n" 
+                +"    for (long k: a) {\n"
+                +"      //@ ghost int i = \\index;\n"  
+                +"      for (long kk: b) {\n"
+                +"         //@ assert \\index == i;\n" // BAD
+                +"      }\n"
+                +"    }\n"
+                +"  }\n"  // Line 50
+                
+                +"  public void m6() {\n"
+                +"    long[] a = { 1,2,3,4};\n"
+                +"    //@ loop_invariant \\index >= 0 && \\index <= a.length;\n" // OK
+                +"    //@ decreases a.length - \\index;\n" // OK
+                +"    for (long k: a) {\n"
+                +"    }\n"
+                +"  }\n"
+                
+                +"  public void m7() {\n"
+                +"    long[] a = { 1,2,3,4};\n"
+                +"    //@ decreases a.length - \\index -1;\n" // BAD // FIXME // Line 60
+                +"    for (long k: a) {\n"
+                +"    }\n"
+                +"  }\n"  
+                
+                +"  public void m7a() {\n"
+                +"    long[] a = { 1,2,3,4};\n"
+                +"    //@ decreases \\index;\n" // BAD
+                +"    for (long k: a) {\n"
+                +"    }\n"
+                +"  }\n"
+                
+                +"  public void m8() {\n"  // Line 70
+                +"    long[] a = { 1,2,3,4};\n"
+                +"    //@ loop_invariant \\index > 0 && \\index <= a.length;\n" // BAD - first time through loop
+                +"    for (long k: a) {\n"
+                +"    }\n"
+                +"  }\n"
+                
+                +"  public void m9() {\n"
+                +"    long[] a = { 1,2,3,4};\n"
+                +"    //@ loop_invariant \\index >= 0 && \\index < a.length;\n" // BAD - last time through loop
+                +"    for (long k: a) {\n"
+                +"    }\n"
+                +"  }\n"
                 
                 +"}"
                 
-//                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",11
-//                ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Assert) in method m5",14
-//                ,"/tt/TestJava.java:54: warning: The prover cannot establish an assertion (LoopDecreases) in method m7a",21
-//                ,"/tt/TestJava.java:53: warning: Associated declaration",9
-//                ,"/tt/TestJava.java:60: warning: The prover cannot establish an assertion (LoopInvariant) in method m8",5
-//                ,"/tt/TestJava.java:59: warning: Associated declaration",9
-//                ,"/tt/TestJava.java:66: warning: The prover cannot establish an assertion (LoopInvariant) in method m9",21
-//                ,"/tt/TestJava.java:65: warning: Associated declaration",9
+                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assert) in method m3a",11
+                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (Assert) in method m5",14
+                ,"/tt/TestJava.java:68: warning: The prover cannot establish an assertion (LoopDecreases) in method m7a",5
+                ,"/tt/TestJava.java:66: warning: Associated declaration",9
+                ,"/tt/TestJava.java:73: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method m8",5
+                ,"/tt/TestJava.java:72: warning: Associated declaration",9
+                ,"/tt/TestJava.java:80: warning: The prover cannot establish an assertion (LoopInvariant) in method m9",5
+                ,"/tt/TestJava.java:78: warning: Associated declaration",9
                 );
     }
 
@@ -283,7 +285,7 @@ public class esc extends EscBase {
         helpTCX("tt.TestJava","package tt; import java.util.*; \n"
                 +"public class TestJava { \n"
                 
-//                +"  public void m1() {\n"
+//                +"  public void m1() {\n
 //                +"    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>();\n"
 //                +"    for (Map.Entry<String,String> k: a) {\n"
 //                +"    }\n"
@@ -905,7 +907,7 @@ public class esc extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m3a() {\n"
                 +"    //@ assume a[0] == 0;\n"
-                +"    c1(0);\n"
+                +"    c1(0);\n" // modifies everything
                 +"    //@ assert a[0] == 0;\n" // FAILS
                 +"  }\n"
                 
@@ -978,6 +980,7 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m2a",9
                 ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m3a",-17
                 ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",-17
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Assert) in method m3a",-9
                 ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m4a",-18
                 ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",-18
                 ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (Assert) in method m4a",-9
@@ -1716,6 +1719,7 @@ public class esc extends EscBase {
     }
 
     public void testMethodCallRet() {
+        //options.put("-showbb",""); options.put("-trace",""); options.put("-method","inst2");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  static public int j;\n"
@@ -1731,7 +1735,32 @@ public class esc extends EscBase {
                 +"  //@ modifies j;\n"
                 +"  //@ ensures \\result == \\old(i)+3;\n"
                 +"  public int inst2(boolean b, int i) { m(m(m(i))); return j; }\n"
+                +"  //@ requires i>1; \n"
+                +"  //@ modifies j;\n"
+                +"  //@ ensures \\result == 3*i+4;\n"
+                +"  //@ ensures j == i + 1;\n"
+                +"  public int inst3(boolean b, int i) { return m(m(i) + m(i)) + m(i); }\n"
+                +"  //@ requires i>1; \n"
+                +"  //@ modifies j;\n"
+                +"  //@ ensures \\result == \\old(i);\n"
+                +"  public int instx(boolean b, int i) { m(i); m(i); m(i); return j; }\n"
+                +"  //@ requires i>1; \n"
+                +"  //@ modifies j;\n"
+                +"  //@ ensures \\result == \\old(i)+4;\n"
+                +"  public int instx2(boolean b, int i) { m(m(m(i))); return j; }\n"
+                +"  //@ requires i>1; \n"
+                +"  //@ modifies j;\n"   // Line 30
+                +"  //@ ensures \\result == 3*i+4;\n"
+                +"  //@ ensures j == i + 2;\n"
+                +"  public int instx3(boolean b, int i) { return m(m(i) + m(i)) + m(i); }\n"
                 +"}"
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Postcondition) in method instx",58
+                ,"/tt/TestJava.java:23: warning: Associated declaration",15
+                ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method instx2",53
+                ,"/tt/TestJava.java:27: warning: Associated declaration",15
+                ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Postcondition) in method instx3",41
+                ,"/tt/TestJava.java:32: warning: Associated declaration",15
+
         );
     }
 
@@ -1848,10 +1877,11 @@ public class esc extends EscBase {
         );
     }
 
-    public void testWhileSpecs() { 
+    public void testWhileSpecs() {
+        //options.put("-showbb",""); options.put("-trace",""); options.put("-method","insta");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
-                +"  public void inst() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
+                +"  public void insta() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
                 +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i-2; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
                 +"  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }\n"
                 +"  public void instd() { int i = 5; /*@ loop_invariant i>0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
@@ -1869,7 +1899,7 @@ public class esc extends EscBase {
     //    public void testWhileSpecs2() {
     //        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
     //                +"public class TestJava { \n"
-    //                +"  public void inst() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (--i > 0) { } /*@ assert i == 0; */ }\n"
+    //                +"  public void insta() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (--i > 0) { } /*@ assert i == 0; */ }\n"
     //                +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i-- >0) { } /*@ assert i == 0; */ }\n"
     //                              +"}",
     //                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method instb",91,
@@ -2479,7 +2509,7 @@ public class esc extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int j;\n"
-                +"  public static void m(TestJava o) { \n"
+                +"  public static void m0(TestJava o) { \n"
                 +"    int i = o.j; \n"
                 +"  }\n"
                 +"  public static void m1(/*@non_null*/ TestJava o) { \n"
@@ -2515,11 +2545,109 @@ public class esc extends EscBase {
                 +"    boolean i = p(o) || o.j == 0; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m",14
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m0",14
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m6a",32
                 ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m7a",26
         );
     }
+    
+    /** Tests whether various ways of guarding a method call are successful in
+     * avoiding a failed assertion.
+     */
+    public void testUndefinedMInJava() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int j;\n"
+                +"  public static void m0(TestJava o) { \n"
+                +"    int i = o.z(); \n"
+                +"  }\n"
+                +"  public static void m1(/*@non_null*/ TestJava o) { \n"
+                +"    int i = o.z(); \n"
+                +"  }\n"
+                +"  //@ requires o != null;\n"
+                +"  public static void m2(TestJava o) { \n"
+                +"    int i = o.z(); \n"
+                +"  }\n"
+                +"  public static void m3(TestJava o) { \n"
+                +"    boolean i = o != null && o.z() == 1; \n"
+                +"  }\n"
+                +"  public static void m4(TestJava o) { \n"
+                +"    boolean i = o == null || o.z() == 1; \n"
+                +"  }\n"
+                +"  public static void m5(TestJava o) { \n"
+                +"    int i = ( o != null ? o.z() : 6); \n"
+                +"  }\n"
+                +"  public static void m6(TestJava o) { \n"
+                +"    int i = ( o == null ? 7 : o.z()); \n"
+                +"  }\n"
+                +"  public static void m6a(TestJava o) { \n"
+                +"    int i = ( o != null ? 7 : o.z()); \n"
+                +"  }\n"
+                +"  //@ public normal_behavior  ensures \\result == (oo != null);\n"
+                +"  public static boolean p(TestJava oo) { \n"
+                +"    return oo != null; \n"
+                +"  }\n"
+                +"  public static void m7(TestJava o) { \n"
+                +"    boolean i = p(o) && o.z() == 0; \n"
+                +"  }\n"
+                +"  public static void m7a(TestJava o) { \n"
+                +"    boolean i = p(o) || o.z() == 0; \n"
+                +"  }\n"
+                +"  public int z() { return 0; }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m0",14
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m6a",32
+                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m7a",26
+        );
+    }
+    
+    /** Tests whether various ways of guarding a method call are successful in
+     * avoiding a failed assertion.
+     */
+    public void testUndefinedSMInJava() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int j;\n"
+                +"  public static void m0(TestJava o) { \n"
+                +"    int i = o.z(); \n"
+                +"  }\n"
+                +"  public static void m1(/*@non_null*/ TestJava o) { \n"
+                +"    int i = o.z(); \n"
+                +"  }\n"
+                +"  //@ requires o != null;\n"
+                +"  public static void m2(TestJava o) { \n"
+                +"    int i = o.z(); \n"
+                +"  }\n"
+                +"  public static void m3(TestJava o) { \n"
+                +"    boolean i = o != null && o.z() == 1; \n"
+                +"  }\n"
+                +"  public static void m4(TestJava o) { \n"
+                +"    boolean i = o == null || o.z() == 1; \n"
+                +"  }\n"
+                +"  public static void m5(TestJava o) { \n"
+                +"    int i = ( o != null ? o.z() : 6); \n"
+                +"  }\n"
+                +"  public static void m6(TestJava o) { \n"
+                +"    int i = ( o == null ? 7 : o.z()); \n"
+                +"  }\n"
+                +"  public static void m6a(TestJava o) { \n"
+                +"    int i = ( o != null ? 7 : o.z()); \n"
+                +"  }\n"
+                +"  //@ public normal_behavior  ensures \\result == (oo != null);\n"
+                +"  public static boolean p(TestJava oo) { \n"
+                +"    return oo != null; \n"
+                +"  }\n"
+                +"  public static void m7(TestJava o) { \n"
+                +"    boolean i = p(o) && o.z() == 0; \n"
+                +"  }\n"
+                +"  public static void m7a(TestJava o) { \n"
+                +"    boolean i = p(o) || o.z() == 0; \n"
+                +"  }\n"
+                +"  public static int z() { return 0; }\n"
+                +"}"
+        );
+    }
+    
     /** Tests whether the various kinds of undefined constructs are actually detected.
      */ 
     public void testUndefinedInJava2() {
@@ -2611,6 +2739,9 @@ public class esc extends EscBase {
     /** Tests whether the various kinds of undefined constructs are actually detected.
      */  // TODO - need pure method violating preconditions, bad array element assignment
     public void testUndefinedInSpec2() {
+//        options.put("-showbb","");
+//        options.put("-trace","");
+//        options.put("-method","m6");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int j;\n"
@@ -2637,7 +2768,7 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"  public static void m6(RuntimeException r) { \n"
                 +"    Throwable t = r;\n"
-                +"    //@ assume ((Exception)t) != null ? true : true; \n"
+                +"    //@ assume ((Exception)t) != null ? true : true; \n"  // OK
                 +"  }\n"
                 +"  public static void m6a(Exception r) { \n"
                 +"    Throwable t = r;\n"
@@ -2697,10 +2828,10 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m",17,
                 "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1",17,
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m2",24,
-                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m3",33,
+                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3",33,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m4",19,
                 "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m5",18,
-                "/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m6",31
+                "/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m6",31
         );   
     }
     /** Tests whether undefinedness is caught in various JML constructions */
@@ -2849,9 +2980,12 @@ public class esc extends EscBase {
     }
     
     public void testCatch2() {
+//        options.put("-showbb","");
+//        options.put("-trace","");
+//        options.put("-method","mx");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  public void m() {\n"
+                +"  public void mx() {\n"
                 +"    int i = 0;\n"
                 +"    try {\n"
                 +"      throw new Exception();\n"
@@ -2985,6 +3119,9 @@ public class esc extends EscBase {
                 );
     }
     public void testTypes2() {
+//        options.put("-showbb","");
+//        options.put("-trace","");
+//        JmlEsc.escdebug = true;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1(/*@non_null*/TestJava o) {\n"
@@ -3026,9 +3163,15 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ ensures i>0;\n"
-                +"  //@ signals (RuntimeException e) i == 1;\n"
+                +"  //@ signals (Exception e) i == 0;\n"  // OK
                 +"  public void m2() throws Exception {\n"
                 +"    if (i==0) throw new Exception();\n"
+                +"  }\n"
+                +"  //@ requires i >= 0;\n"
+                +"  //@ ensures i>0;\n"
+                +"  //@ signals (RuntimeException e) i == 1;\n" // FAILS
+                +"  public void m2a() throws Exception {\n"
+                +"    if (i==0) throw new RuntimeException();\n"
                 +"  }\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ ensures i>0;\n"
@@ -3042,11 +3185,19 @@ public class esc extends EscBase {
                 +"  public void m3a() {\n"
                 +"    if (i==0) throw new RuntimeException();\n"
                 +"  }\n"
+                +"  //@ requires i >= 0;\n"
+                +"  //@ ensures i>0;\n"
+                +"  //@ signals (RuntimeException e) i == 1;\n" // OK because a RuntimeException is never thrown
+                +"  public void m4() throws Exception {\n"
+                +"    if (i==0) throw new Exception();\n"
+                +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1a",15
                 ,"/tt/TestJava.java:12: warning: Associated declaration",7
-                ,"/tt/TestJava.java:32: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3a",15
-                ,"/tt/TestJava.java:30: warning: Associated declaration",7
+                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2a",15
+                ,"/tt/TestJava.java:24: warning: Associated declaration",7
+                ,"/tt/TestJava.java:38: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3a",15
+                ,"/tt/TestJava.java:36: warning: Associated declaration",7
                 );
     }
 

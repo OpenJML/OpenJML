@@ -122,10 +122,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     final static public String exceptionVarString = "_JML$$$exception";
     
     /** The Name version of resultVarString in the current context */
-    final protected Name resultName;
+    final public Name resultName;
     
     /** The Name version of exceptionVarString in the current context */
-    final protected Name exceptionName;
+    final public Name exceptionName;
 
     protected Name postCheckName;
     protected Name signalsCheckName;
@@ -1657,6 +1657,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // invariant, axiom, initially
             Env<AttrContext> localEnv = env; // FIXME - here and in constraint, should we make a new local environment?
             boolean isStatic = tree.modifiers != null && isStatic(tree.modifiers);
+            //if (tree.token == JmlToken.AXIOM) isStatic = true; // FIXME - but have to sort out use of variables in axioms in general
             if (isStatic) localEnv.info.staticLevel++;
 
             if (tree.token == JmlToken.INVARIANT) {
@@ -2495,7 +2496,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     attribTree(tree.args.get(0), localEnv, TYP, Type.noType);
                 }
                 t = this.TYPE;
-                result = check(tree, t, VAL, pkind, pt);
+                Type saved = check(tree, t, VAL, pkind, pt);
+                Symbol cs = JmlResolve.instance(context).loadClass(localEnv,names.fromString("org.jmlspecs.utils.Utils"));
+                addTodo((ClassSymbol)cs);
+                result = saved;
                 break;
 
             case BSFRESH :
@@ -2877,6 +2881,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (t.equals(TYPE) != tt.equals(TYPE) && !errorAlready) {
                     log.error(that.rhs.pos(),"jml.subtype.arguments.same",that.rhs.type);
                 }
+                if (!t.equals(TYPE)) that.op = JmlToken.JSUBTYPE_OF; // Java subtyping
+                
                 result = that.type = syms.booleanType;
                 break;
                 
@@ -2927,6 +2933,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         boolean b = ((JmlMemberEnter)memberEnter).setInJml(true);
         for (JCVariableDecl decl: that.decls) {
+            JCModifiers mods = decl.getModifiers();
+            if (utils.hasOnly(mods,0)!=0) log.error(mods.pos,"jml.no.java.mods.allowed","quantified expression");
+            attribAnnotationTypes(mods.annotations,env);
+            allAllowed(mods.annotations, JmlToken.typeModifiers, "quantified expression");
+            utils.setExprLocal(mods);
             memberEnter.memberEnter(decl, localEnv);
             decl.type = decl.vartype.type; // FIXME not sure this is needed
         }
@@ -2962,12 +2973,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             default:
                 log.error(that.pos(),"jml.unknown.construct",that.op.internedName(),"JmlAttr.visitJmlQuantifiedExpr");
                 break;
-        }
-        for (JCVariableDecl decl: that.decls) {
-            JCModifiers mods = decl.getModifiers();
-            if (utils.hasOnly(mods,0)!=0) log.error(mods.pos,"jml.no.java.mods.allowed","quantified expression");
-            attribAnnotationTypes(mods.annotations,env);
-            allAllowed(mods.annotations, JmlToken.typeModifiers, "quantified expression");
         }
         result = check(that, resultType, VAL, pkind, pt);
         localEnv.info.scope.leave();
@@ -3704,7 +3709,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Replace the foreach loop for (T t: a) body;
             // by
             // int $$index = 0;
-            // JMLList $$values = Utils.<T'>defaultEmpty();
+            // final non_null JMLList $$values = Utils.<T'>defaultEmpty();
             // T t;
             // for (; $$index < a.length; $$index++, $$values.add(t') ) {
             //       check loop invariant
@@ -3779,9 +3784,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlForLoop jmlforstatement = factory.JmlForLoop(forstatement,tree.loopSpecs);
         {
             ListBuffer<JmlStatementLoop> list = new ListBuffer<JmlStatementLoop>();
-            if (tree.loopSpecs != null) list.appendList(tree.loopSpecs); // FIXME - is this right?
-            if (inv != null) list.append(inv);
             list.append(inv2);
+            if (inv != null) list.append(inv);
+            if (tree.loopSpecs != null) list.appendList(tree.loopSpecs);
             jmlforstatement.loopSpecs = list.toList();
         }
         stats.append(jmlforstatement);

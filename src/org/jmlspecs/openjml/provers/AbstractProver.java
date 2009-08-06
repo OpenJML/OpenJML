@@ -197,7 +197,7 @@ public abstract class AbstractProver implements IProver {
 
     /** A buffer to hold input */
     /*@ non_null */
-    protected char[] cbuf = new char[100000];
+    protected char[] cbuf = new char[300000];
 
     /** Returns the prover-specific prompt string that the eatPrompt method
      * should look for.  The string may not contain any CR/NL characters.
@@ -248,7 +248,7 @@ public abstract class AbstractProver implements IProver {
                     
                     if (endsWith(offset,prompt)) break;
                     if (offset > cbuf.length-1000) {
-                        if (s.length() > 180000) {
+                        if (s.length() > 280000) {
                             // excessive length
                             truncated += offset;
                         } else {
