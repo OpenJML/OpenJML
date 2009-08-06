@@ -57,4 +57,5 @@ JML options:
   -roots                     Enables the Reflective Object-Oriented Testing System---w00t!
   --                         Terminates option processing - all remaining arguments are files
   -crossRefAssociatedInfo    >...
+  -method                    The method name on which to run ESC
 ENDING with exit code 2

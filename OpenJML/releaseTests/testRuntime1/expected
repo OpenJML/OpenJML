@@ -192,6 +192,7 @@ openjml.jar(specs16/java/lang/Object.jml):56: cannot access org.jmlspecs.utils.I
       @   ensures \result == \typeof(this).erasure();
                                           ^
   class file for org.jmlspecs.utils.IJMLTYPE not found
+Could not find org.jmlspecs.utils.Utils type not found wrongSym=null explanation=null
 openjml.jar(specs16/java/lang/System.jml):21: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
@@ -273,6 +274,18 @@ package java.lang;
 openjml.jar(specs16/java/net/URISyntaxException.jml):1: package org.jmlspecs.lang does not exist
 package java.net;
 ^
+openjml.jar(specs16/org/jmlspecs/utils/Utils.jml):5: package org.jmlspecs.annotation does not exist
+import org.jmlspecs.annotation.*;
+^
+openjml.jar(specs16/org/jmlspecs/utils/Utils.jml):1: package org.jmlspecs.lang does not exist
+package org.jmlspecs.utils;
+^
+openjml.jar(specs16/java/util/AbstractMap.jml):22: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/util/HashMap.jml):1: package org.jmlspecs.lang does not exist
+package java.util;
+^
 openjml.jar(specs16/java/lang/Integer.jml):21: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
@@ -299,18 +312,6 @@ package java.lang;
 ^
 openjml.jar(specs16/java/lang/Short.jml):21: package org.jmlspecs.lang does not exist
 package java.lang;
-^
-openjml.jar(specs16/java/lang/Math.jml):21: package org.jmlspecs.lang does not exist
-package java.lang;
-^
-openjml.jar(specs16/java/util/Properties.jml):15: package org.jmlspecs.annotation does not exist
-    //@ spec_public
-        ^
-openjml.jar(specs16/java/util/NoSuchElementException.jml):1: package org.jmlspecs.lang does not exist
-package java.util;
-^
-openjml.jar(specs16/org/jmlspecs/utils/IJMLTYPE.jml):3: package org.jmlspecs.annotation does not exist
-import org.jmlspecs.annotation.*;
 ^
 100 errors
 ENDING with exit code 1

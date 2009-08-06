@@ -2498,7 +2498,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 t = this.TYPE;
                 Type saved = check(tree, t, VAL, pkind, pt);
                 Symbol cs = JmlResolve.instance(context).loadClass(localEnv,names.fromString("org.jmlspecs.utils.Utils"));
-                addTodo((ClassSymbol)cs);
+                if (cs instanceof ClassSymbol) addTodo((ClassSymbol)cs);
+                else log.noticeWriter.println("Could not find org.jmlspecs.utils.Utils " + cs); // FIXME - make into an internal error?
                 result = saved;
                 break;
 
