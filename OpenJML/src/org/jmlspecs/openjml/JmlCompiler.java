@@ -90,7 +90,7 @@ public class JmlCompiler extends JavaCompiler {
         this.verbose = JmlOptionName.isOption(context,"-verbose") ||
                         JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
                         utils.jmldebug;
-        this.resolver = (JmlResolve)JmlResolve.instance(context);
+        this.resolver = JmlResolve.instance(context);
     }
     
     /** A flag that controls whether to get specs during a parse or not (if false 
@@ -533,12 +533,13 @@ public class JmlCompiler extends JavaCompiler {
  //       JmlResolve.instance(context).loadClass(null,Symtab.instance(context).objectType.tsym.flatName());
 //        JmlResolve.instance(context).loadClass(null,Names.instance(context).fromString("org.jmlspecs.lang.JMLList"));
         
-        super.compile(sourceFileObjects,classnames,processors);
         // The following class contains utility functions that have specs and implementations
         // for built-in functionality, such as the behavior of JML expressions
         // (e.g. \type or \typeof).  Here we make sure that Utils is loaded and
         // its specs are read, so that they get typechecked along with everything else.
         //JmlResolve.instance(context).loadClass(null,Names.instance(context).fromString("org.jmlspecs.utils.Utils"));
+
+        super.compile(sourceFileObjects,classnames,processors);
     }
     
     protected void compile2(CompilePolicy compPolicy) {

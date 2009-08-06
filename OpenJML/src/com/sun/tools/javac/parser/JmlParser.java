@@ -2567,6 +2567,7 @@ public class JmlParser extends EndPosParser {
         if (token == CUSTOM) {
             // Caution: S may not be on the same token anymore
             if (S.jmlToken() != null && S.jmlToken() != JmlToken.SUBTYPE_OF
+                    && S.jmlToken() != JmlToken.JSUBTYPE_OF
                     && S.jmlToken() != JmlToken.LOCK_LT
                     && S.jmlToken() != JmlToken.LOCK_LE)
                 return -1; // For in/equivalence and reverse/implies

@@ -21,6 +21,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.Type.MethodType;
+import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Log;
@@ -90,7 +91,7 @@ public class YicesJCExpr extends JmlTreeScanner {
     int distinctCount = 100;
     protected boolean define(String name, String type) {
         try {
-            if (YicesProver.TYPE.equals(type)) {
+            if (YicesProver.JAVATYPE.equals(type)) {
                 boolean n = p.rawdefine(name,type);
                 if (n) return n;
                 String s = "(= ("+"distinct$"+" "+name+") " + (++distinctCount) +")";
@@ -123,9 +124,12 @@ public class YicesJCExpr extends JmlTreeScanner {
         } else if (t.tag == TypeTags.ARRAY) {
             defineArrayTypesIfNeeded(t);
             s =  BasicBlocker.encodeType(t);
+        } else if (t.toString().endsWith("IJMLTYPE")) {
+            s = YicesProver.JMLTYPE;
         } else {
             s = "REF"; // FIXME
         }
+        if (that.sym != null && that.sym.type instanceof TypeVar) return s; // Even though a TypeVar is not static, we don't make it a function of the object 
         if (that.sym != null && that.sym.owner instanceof Symbol.ClassSymbol && !that.sym.isStatic() ) { // FIXME - isStatis is not correct for JML fields in interfaces
             // If at this point s is a new type, it won't get defined  FIXME
             // FIXME - the translating of types is a MESS - some here some in YicesProver some in BasicBlocker
@@ -142,6 +146,8 @@ public class YicesJCExpr extends JmlTreeScanner {
 //                s = convertType(t);
 //                s = "(-> int " + s + ")";
                 s = "refA$" + convertExprType(t);
+            } else if (t.tsym.flatName().toString().endsWith("IJMLTYPE")) {
+                s = YicesProver.JMLTYPE;
             } else {
                 s = "REF";
             }
@@ -177,7 +183,7 @@ public class YicesJCExpr extends JmlTreeScanner {
                     s = s.replace("<","$_");
                     s = s.replace(",","..");
                     s = s.replace(">","_$");
-                    define(s,YicesProver.TYPE);
+                    define(s,YicesProver.JAVATYPE);
                     result.append(s);
                 } else {
                     result.append(that.toString());
@@ -201,18 +207,22 @@ public class YicesJCExpr extends JmlTreeScanner {
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         // Should have only one argument (an \old or \pre can get here)
         //log.noticeWriter.println("visit Apply: " + that.meth.getClass() + " " + that.meth);
-        switch (that.token) {
-            case BSTYPEOF:
-                result.append("(");
-                result.append(YicesProver.TYPEOF);
-                result.append(" ");
-                that.args.get(0).accept(this);
-                result.append(")");
+        if (that.token == null) {
+            visitApply(that);
+        } else {
+            switch (that.token) {
+                case BSTYPEOF:
+                    result.append("(");
+                    result.append(YicesProver.TYPEOF);
+                    result.append(" ");
+                    that.args.get(0).accept(this);
+                    result.append(")");
+                    break;
+                default:
+                    // FIXME
+                    System.out.println("Unknown token in YicsJCExpr.visitJmlMethodInvocation: " + that.token.internedName());
                 break;
-            default:
-                // FIXME
-                System.out.println("Unknown token in YicsJCExpr.visitJmlMethodInvocation: " + that.token.internedName());
-                break;
+            }
         }
     }
     
@@ -514,7 +524,10 @@ public class YicesJCExpr extends JmlTreeScanner {
             result.append(")");
             return;
         } else if (that.op == JmlToken.SUBTYPE_OF) {
-            result.append(YicesProver.SUBTYPE);
+            result.append(YicesProver.JMLSUBTYPE);
+            result.append(" ");
+        } else if (that.op == JmlToken.JSUBTYPE_OF) {
+            result.append(YicesProver.JAVASUBTYPE);
             result.append(" ");
         } else {
            throw new RuntimeException(new ProverException("Binary operator not implemented for Yices: " + that.getTag()));
@@ -569,7 +582,8 @@ public class YicesJCExpr extends JmlTreeScanner {
 //                p.eatPrompt();
 //            }
             String ty = "refA$" + comptype;
-            p.rawdefinetype(ty,"(subtype (a::ARRAYorNULL) (or (= a NULL) (subtype$ (typeof$ a) T$java.lang.Object$$A)))",YicesProver.ARRAY);
+            // FIXME _ mixed types?
+            p.rawdefinetype(ty,"(subtype (a::ARRAYorNULL) (or (= a NULL) (" + YicesProver.JAVASUBTYPE + " (typeof$ a) T$java.lang.Object$$A)))",YicesProver.ARRAY);
             for (String arr: ids) {
                 if (!p.isDefined(arr)) {
                     String arrty = "(-> " + ty + " (-> int "+comptype+"))";

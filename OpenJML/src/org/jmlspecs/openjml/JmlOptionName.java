@@ -56,7 +56,8 @@ public enum JmlOptionName implements OptionInterface {
     JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)"),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!"),
     ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files"),
-    ASSOCINFO("-crossRefAssociatedInfo",false,">...")
+    ASSOCINFO("-crossRefAssociatedInfo",false,">..."),
+    METHOD("-method",true,"The method name on which to run ESC")
     ;
     public void process(Options options) {}
     

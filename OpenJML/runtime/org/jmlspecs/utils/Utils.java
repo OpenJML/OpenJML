@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sun.tools.javac.comp.JmlRac;
 
 /** 
  * This class contains utility methods used in internal translations for both
@@ -32,6 +31,9 @@ public class Utils {
      */
     public static boolean showStack = System.getProperty("org.jmlspecs.openjml.racshowstack") != null;
     
+    static final public String invariantMethodString = "_JML$$$checkInvariant";
+    static final public String staticinvariantMethodString = "_JML$$$checkStaticInvariant";
+
     /** Reports a JML assertion (any JML precondition, postcondition, etc.)
      * failure with the given message.
      * @param message The message to report
@@ -68,6 +70,36 @@ public class Utils {
     }
     
     public static int zeroIntCheck(String message, int v) {
+        if (v == 0) assertionFailure(message);
+        return v;
+    }
+    
+    public static long zeroLongCheck(String message, long v) {
+        if (v == 0) assertionFailure(message);
+        return v;
+    }
+    
+    public static double zeroDoubleCheck(String message, double v) {
+        if (v == 0) assertionFailure(message);
+        return v;
+    }
+    
+    public static float zeroFloatCheck(String message, float v) {
+        if (v == 0) assertionFailure(message);
+        return v;
+    }
+    
+    public static short zeroFloatCheck(String message,short v) {
+        if (v == 0) assertionFailure(message);
+        return v;
+    }
+    
+    public static byte zeroByteCheck(String message,byte v) {
+        if (v == 0) assertionFailure(message);
+        return v;
+    }
+    
+    public static char zeroCharCheck(String message, char v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
@@ -239,7 +271,7 @@ public class Utils {
     static public void callClassInvariant(Object o, String fqClassName) {
         try {
             Class<?> clazz = Class.forName(fqClassName);
-            Method m = clazz.getMethod(JmlRac.invariantMethodString);
+            Method m = clazz.getMethod(invariantMethodString);
             m.invoke(o);
         } catch (Exception e) {
             // If no class or method found, we ignore
@@ -251,7 +283,7 @@ public class Utils {
     static public void callStaticClassInvariant(String fqClassName) {
         try {
             Class<?> clazz = Class.forName(fqClassName);
-            Method m = clazz.getMethod(JmlRac.staticinvariantMethodString);
+            Method m = clazz.getMethod(staticinvariantMethodString);
             m.invoke(null);
         } catch (Exception e) {
             //System.out.println("FAILED TO CALL STATIC INVARIANT FOR " + fqClassName);
@@ -294,6 +326,16 @@ public class Utils {
     public static  IJMLTYPE makeTYPE0(Class<?> base) {
         if (base == null) return null;
         return JmlTypeRac.make(base,emptyArgs);
+    }
+    
+    public static  IJMLTYPE makeTYPE1(Class<?> base, IJMLTYPE a0) {
+        if (base == null) return null;
+        return JmlTypeRac.make(base,new IJMLTYPE[]{a0});
+    }
+    
+    public static  IJMLTYPE makeTYPE2(Class<?> base, IJMLTYPE a0, IJMLTYPE a1) {
+        if (base == null) return null;
+        return JmlTypeRac.make(base,new IJMLTYPE[]{a0,a1});
     }
     
     public static  Class<?> erasure(IJMLTYPE t) {

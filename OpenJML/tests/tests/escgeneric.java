@@ -19,16 +19,19 @@ public class escgeneric extends EscBase {
         //options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
-        //JmlEsc.escdebug = true;
+        JmlEsc.escdebug = false;
     }
     
     // FIXME - disabled until we get generic types implemented better
-    public void _testConstructor() {
-        options.put("-showbb","");
+    public void testConstructor() {
+//        options.put("-showbb","");
+//        options.put("-trace","");
+//        options.put("-method","ma");
+        //JmlEsc.escdebug = true;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  public void m(Integer i) {\n"
+                +"  public void mx(Integer i) {\n"
                 +"    Object oo = new TestG<Integer>(i);\n"
                 +"  }\n"
                 +"  public void ma(Object o) {\n"
@@ -39,13 +42,15 @@ public class escgeneric extends EscBase {
                 +"  //@   requires \\type(E) != \\type(Integer) ;\n"
                 +"  public TestG(E i) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m",17
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method mx",17
                 ,"/tt/TestJava.java:12: warning: Associated declaration",10
                 );
     }
     
     /** Tests that we can reason about the result of \\typeof */
     public void testTypeOf() {
+//        options.put("-showbb","");
+//        options.put("-trace","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -65,36 +70,53 @@ public class escgeneric extends EscBase {
                 );
     }
     
-    public void _testGenericType() {
+    public void testGenericType() {
+//        options.put("-showbb","");
+//        options.put("-trace","");
+//        options.put("-method","mz1");
+//        JmlEsc.escdebug= true;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
                 +"  public void m(Integer i) {\n"
+                +"    //@ assert Object.class == java.lang.Object.class;\n"
                 +"    //@ assert \\type(TestJava<Integer>) != \\type(Object);\n"
                 +"    //@ assert \\type(TestJava<Integer>) != \\type(TestJava<Object>);\n"
+                +"  }\n"
+                +"  public void mz(Object o) {\n"
+                +"    //@ assert Object.class == \\type(T).erasure();\n"  // NO
                 +"  }\n"
                 +"  public void ma(Object o) {\n"
                 +"    //@ assert \\type(TestJava<Integer>) == \\type(TestJava<T>);\n"  // NO
                 +"  }\n"
                 +"  public void mb(Object o) {\n"
-                +"    //@ assert \\typeof(this) == \\type(Object);\n"
+                +"    //@ assert \\typeof(this) == \\type(Object);\n"  // NO
                 +"  }\n"
+                +"  public void mc(Object o) {\n"
+                +"    //@ assert \\type(TestJava<Integer>) == \\type(TestJava<Object>);\n"  // NO
+                +"  }\n"
+                +"  public void mz1(Object o) {\n"
+                +"    //@ assert Object.class != \\type(T).erasure();\n"  
+                +"  }\n"
+                +"  public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
                 +"class C {}\n"
-                ,"/tt/TestJava.java:7: warning: An assumption appears to be infeasible in method ma(java.lang.Object)",9
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mb",9
-                );
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mz",9
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method ma",9
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method mb",9
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method mc",9
+        );
     }
-    
+
     public void testStatic() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                
-                +"  public void m(Integer i) {\n"
+
+                +"  public void ma(Integer i) {\n"
                 +"    TestG.<Integer>mm(i);\n"
                 +"  }\n"
-                +"  public void ma(Object o) {\n"
+                +"  public void mb(Object o) {\n"
                 +"    TestG.<Object>mm(o);\n"
                 +"  }\n"
                 +"}\n"
@@ -102,20 +124,19 @@ public class escgeneric extends EscBase {
                 +"  //@   requires \\type(E) != \\type(Integer) ;\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m",22
-                ,"/tt/TestJava.java:11: warning: Associated declaration",18
-                );
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",22
+                ,"/tt/TestJava.java:11: warning: Associated declaration",24
+        );
     }
-    
-    // TODO - invariants are not yet added to the overall class predicate
-    public void _testInherit() {
+
+    public void testTypeParameter() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  public void m(TestG<Integer> i, Integer j) {\n"
+                +"  public void ma(/*@ non_null*/ TestG<Integer> i, Integer j) {\n"
                 +"    i.mm(j);\n"
                 +"  }\n"
-                +"  public void ma(TestG<Object> i, Object j) {\n"
+                +"  public void mb(/*@ non_null*/ TestG<Object> i, Object j) {\n"
                 +"    i.mm(j);\n"
                 +"  }\n"
                 +"}\n"
@@ -123,19 +144,22 @@ public class escgeneric extends EscBase {
                 +"    //@ requires \\type(E) != \\type(Integer);\n"
                 +"    public void mm(E t) {}\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m",22
-                ,"/tt/TestJava.java:11: warning: Associated declaration",18
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:11: warning: Associated declaration",24
                 );
     }
     
-    public void _testInherit2() {  // FIXME - disabled test
+    public void testTypeParameter2() {
+//        options.put("-showbb","");
+//        options.put("-trace","");
+//              options.put("-method","mb");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  public void m(TestG<Integer>.TestH i, Integer j) {\n"
+                +"  public void ma(/*@ non_null*/TestG<Integer>.TestH i, Integer j) {\n"
                 +"    i.mm(j);\n"
                 +"  }\n"
-                +"  public void ma(TestG<Object>.TestH i, Object j) {\n"
+                +"  public void mb(/*@ non_null*/TestG<Object>.TestH i, Object j) {\n"
                 +"    i.mm(j);\n"
                 +"  }\n"
                 +"}\n"
@@ -145,8 +169,8 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m",22
-                ,"/tt/TestJava.java:11: warning: Associated declaration",18
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:12: warning: Associated declaration",24
                 );
     }
     

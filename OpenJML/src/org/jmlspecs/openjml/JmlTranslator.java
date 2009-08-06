@@ -1,7 +1,6 @@
 package org.jmlspecs.openjml;
 
-import static com.sun.tools.javac.code.Kinds.VAL;
-import static org.jmlspecs.openjml.JmlToken.REQUIRES;
+import java.util.LinkedList;
 
 import javax.tools.JavaFileObject;
 
@@ -10,31 +9,21 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
-import com.sun.tools.javac.comp.JmlResolve;
-import com.sun.tools.javac.comp.Resolve;
-import com.sun.tools.javac.jvm.ClassReader;
-import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
-import com.sun.tools.javac.util.Options;
 
 /** This translator mutates an AST to simplify it, in ways that are common
  * to both RAC and ESC.  Any transformations must result in a fully-typechecked
@@ -71,63 +60,58 @@ public class JmlTranslator extends JmlTreeTranslator {
     /** Cached value of the JmlTreeUtils object */
     @NonNull protected JmlTreeUtils treeutils;
     
-//    @NonNull protected Name nonNullName;
-    
     /** The factory used to create AST nodes, initialized in the constructor */
     @NonNull protected JmlTree.Maker factory;
  
-//    ClassSymbol utilsClass = null;
-//    JCIdent utilsClassIdent;
-//    
-//    protected Symbol andSymbol;
-    protected Symbol orSymbol;
-//    protected Symbol notSymbol;
-    protected Symbol objecteqSymbol;
     protected Symbol booleqSymbol;
     protected Symbol boolneSymbol;
     protected JCLiteral trueLit;
     protected JCLiteral falseLit;
-//    protected JCLiteral zero;
-//    protected JCLiteral nulllit;
-//    protected JCLiteral maxIntLit;
 
-    boolean dorac;
-    boolean doesc;
     boolean inSpecExpression;
     
+    /** Current source */
+    protected JavaFileObject source;
+    
+    protected java.util.List<JavaFileObject> stack = new LinkedList<JavaFileObject>();
+    
+    public void pushSource(JavaFileObject jfo) {
+        stack.add(0,source);
+        source = jfo;
+    }
+    
+    public void popSource() {
+        source = stack.remove(0);
+    }
+
     public JmlTranslator(Context context) {
         this.context = context;
         this.utils = Utils.instance(context);
         this.log = Log.instance(context);
-        this.factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
+        this.factory = JmlTree.Maker.instance(context);
         this.names = Names.instance(context);
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
-//        this.utilsClass = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.utils.Utils"));
-//        utilsClassIdent = factory.Ident(names.fromString("org.jmlspecs.utils.Utils"));
-//        utilsClassIdent.type = utilsClass.type;
-//        utilsClassIdent.sym = utilsClassIdent.type.tsym;
-//        dorac = Options.instance(context).get("-rac") != null;  // FIXME - fix these - proper call and names
-//        doesc = Options.instance(context).get("-esc") != null;
-//        andSymbol = syms.predefClass.members().lookup(names.fromString("&&")).sym;
-        orSymbol  = syms.predefClass.members().lookup(names.fromString("||")).sym;
-//        notSymbol = syms.predefClass.members().lookup(names.fromString("!")).sym;
-        objecteqSymbol = treeutils.findOpSymbol("==",syms.objectType);
         booleqSymbol = treeutils.findOpSymbol("==",syms.booleanType);
         boolneSymbol = treeutils.findOpSymbol("!=",syms.booleanType);
         trueLit = treeutils.trueLit;
         falseLit = treeutils.falseLit;
-//        zero = makeLit(syms.intType,0);
-//        nulllit = makeLit(syms.botType, null);
-//        maxIntLit = makeLit(syms.intType,Integer.MAX_VALUE);
-        
+    }
+    
+    public static JmlTranslator instance(Context context) {
+        return new JmlTranslator(context);  // FIXME - store in context
     }
     
     public void translate(Env<AttrContext> env) {
         // env.tree or env.topLevel??? FIXME
         //log.noticeWriter.println((env.tree != null) + " " + (env.toplevel!= null));
-        env.tree = translate(env.tree);
+        pushSource(env.toplevel.sourcefile);
+        try {
+            env.tree = translate(env.tree);
+        } finally {
+            popSource();
+        }
     }
     
     /** Visitor method: translate a list of nodes.
@@ -141,8 +125,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     }
 
     protected JCExpression makeNullCheck(int pos, JCExpression that, String msg, Label label) {
-        JavaFileObject jfo = currentClassDecl.sym.sourcefile;
-        String posDescription = position(jfo,pos);
+        String posDescription = position(source,pos);
         
         JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
         JCFieldAccess m = treeutils.findUtilsMethod(pos,"nonNullCheck");
@@ -155,8 +138,7 @@ public class JmlTranslator extends JmlTreeTranslator {
 
     //that is presumed already translated
     protected JCExpression makeTrueCheck(int pos, JCExpression condition, JCExpression that, String msg, Label label) {
-        JavaFileObject jfo = currentClassDecl.sym.sourcefile;
-        String posDescription = position(jfo,pos);
+        String posDescription = position(source,pos);
         
         JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
         JCFieldAccess m = treeutils.findUtilsMethod(pos,"trueCheck");
@@ -169,8 +151,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     }
     
     protected JCExpression makeEqCheck(int pos, JCExpression obj, JCExpression that, String msg, Label label) {
-        JavaFileObject jfo = currentClassDecl.sym.sourcefile;
-        String posDescription = position(jfo,pos);
+        String posDescription = position(source,pos);
         
         JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
         JCFieldAccess m = treeutils.findUtilsMethod(pos,"eqCheck");
@@ -183,15 +164,41 @@ public class JmlTranslator extends JmlTreeTranslator {
     protected JCExpression makeZeroCheck(int pos, JCExpression that, Label label) {
         JCLiteral message = treeutils.makeStringLiteral("Divide by zero",pos); // end -position ??? FIXME
         JCExpression newv = translate(that);
-//        if (that.type.tag == TypeTags.INT) {
-//            JCFieldAccess m = findUtilsMethod("zeroIntCheck");
-//            JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,newv));
-//            call.type = that.type;
-        //    call.label = label;
-        //newv = call;
-//        } else {
-//            // FIXME - no check bein done
-//        }
+        JCFieldAccess m = null;
+        int tag = that.type.tag;
+        switch (tag) {
+            case TypeTags.INT:
+                m = treeutils.findUtilsMethod(pos,"zeroIntCheck");
+                break;
+            case TypeTags.LONG:
+                m = treeutils.findUtilsMethod(pos,"zeroLongCheck");
+                break;
+            case TypeTags.DOUBLE:
+                m = treeutils.findUtilsMethod(pos,"zeroDoubleCheck");
+                break;
+            case TypeTags.FLOAT:
+                m = treeutils.findUtilsMethod(pos,"zeroFloatCheck");
+                break;
+            case TypeTags.SHORT:
+                m = treeutils.findUtilsMethod(pos,"zeroShortCheck");
+                break;
+            case TypeTags.BYTE:
+                m = treeutils.findUtilsMethod(pos,"zeroByteCheck");
+                break;
+            case TypeTags.CHAR:
+                m = treeutils.findUtilsMethod(pos,"zeroCharCheck");
+                break;
+            default:
+                // these should not type check anyway
+                newv = that;
+                break;
+        }
+        if (m != null) {
+            JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,newv));
+            call.type = that.type.baseType();
+            call.label = label;
+            newv = call;
+        }
         return newv;
     }
 
@@ -220,19 +227,20 @@ public class JmlTranslator extends JmlTreeTranslator {
     }
     
     public List<JCStatement> expandableTranslate(List<JCStatement> trees) {
+        ListBuffer<JCStatement> newtrees = new ListBuffer<JCStatement>();
         for (List<JCStatement> l = trees; l.nonEmpty(); l = l.tail) {
             JCStatement r = translate(l.head);
             if (!(l.head instanceof JCBlock) && r instanceof JCBlock) {
                 // insert the statements of the block, without iterating
                 // over the new statements
-                List<JCStatement> newtrees = ((JCBlock)r).stats;
-                l.head = newtrees.head;
-                newtrees = newtrees.tail;
-                if (newtrees == null || newtrees.tail == null) continue;
-                List<JCStatement> last = newtrees;
+                List<JCStatement> anewtrees = ((JCBlock)r).stats;
+                l.head = anewtrees.head;
+                anewtrees = anewtrees.tail;
+                if (anewtrees == null || anewtrees.tail == null) continue;
+                List<JCStatement> last = anewtrees;
                 while (last.tail.tail != null) last = last.tail;
                 last.tail = l.tail;
-                l.tail = newtrees;
+                l.tail = anewtrees;
                 l = last;
             } else {
                 l.head = r;
@@ -247,14 +255,14 @@ public class JmlTranslator extends JmlTreeTranslator {
     public final static String NULL_SELECTION = "selecting a field of a null object";
     
     public String position(JavaFileObject source, int pos) {
-        JavaFileObject pr = log.currentSourceFile();
+        JavaFileObject prevSource = log.currentSourceFile();
         try {
             log.useSource(source);
             return (source==null?"":source.getName() + ":" + log.currentSource().getLineNumber(pos)) + ": JML ";
         } catch (UnsupportedOperationException e) {
             return (source==null?"":source.getName() + ": ? " ) + ": JML ";
         } finally {
-            log.useSource(pr);
+            log.useSource(prevSource);
         }
     }
 
@@ -360,7 +368,7 @@ public class JmlTranslator extends JmlTreeTranslator {
                         JCFieldAccess fa = (JCFieldAccess)e;
                         if (fa.sym == null || fa.sym.equals(assignee.sym)) {
                             // need to assert that assignee.selected and \old(fa.selected) are equal  // FIXME - need \old
-                            JCExpression ex = treeutils.makeBinary(fa.pos,JCTree.EQ,objecteqSymbol,assignee.selected,fa.selected);
+                            JCExpression ex = treeutils.makeEqObject(fa.pos,assignee.selected,fa.selected);
                             ex = treeutils.makeImplies(e.pos,precond,ex);
                             cond = treeutils.makeOr(e.pos,cond,ex);
                         }
@@ -507,7 +515,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     @Override
     public void visitAssignop(JCAssignOp that) {
         that.lhs = translate(that.lhs);
-        if (that.getTag() == JCTree.DIV_ASG || that.getTag() == JCTree.MOD_ASG) {
+        if (utils.rac && (that.getTag() == JCTree.DIV_ASG || that.getTag() == JCTree.MOD_ASG)) {
             if (that.rhs instanceof JCLiteral && ((JCLiteral)that.rhs).value.equals(Integer.valueOf(0))) {
                 log.noticeWriter.println("Explicit divide by zero");
             } else {
@@ -523,9 +531,11 @@ public class JmlTranslator extends JmlTreeTranslator {
     @Override
     public void visitBinary(JCBinary that) {
         that.lhs = translate(that.lhs);
-        if (that.getTag() == JCTree.DIV || that.getTag() == JCTree.MOD) {
+        if (utils.rac && (that.getTag() == JCTree.DIV || that.getTag() == JCTree.MOD)) {
+            // This translation puts in a runtime-check for divide by zero.  This test is put
+            // in logically in the BasicBlocker - that ought to be moved here eventually  TODO
             if (that.rhs instanceof JCLiteral && ((JCLiteral)that.rhs).value.equals(Integer.valueOf(0))) {
-                log.noticeWriter.println("Explicit divide by zero");
+                log.noticeWriter.println("Explicit divide by zero");   // FIXME
                 that.rhs = makeZeroCheck(that.pos,that.rhs,inSpecExpression ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0);
             } else {
                 that.rhs = makeZeroCheck(that.pos,that.rhs,inSpecExpression ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0);
@@ -568,8 +578,9 @@ public class JmlTranslator extends JmlTreeTranslator {
 //            return;
 //        }
 
-        that.selected = makeNullCheck(that.pos,that.selected,NULL_SELECTION,
+        if (utils.rac) that.selected = makeNullCheck(that.pos,that.selected,NULL_SELECTION,
                 inSpecExpression ? Label.UNDEFINED_NULL : Label.POSSIBLY_NULL);
+        else that.selected = translate(that.selected);
         result = that;
     }
     
@@ -580,11 +591,11 @@ public class JmlTranslator extends JmlTreeTranslator {
         switch (that.op) {
             case IMPLIES:
                 // P ==> Q is equivalent to !P || Q (short-circuit operator)
-                result = treeutils.makeBinary(that.pos,JCTree.OR,orSymbol,treeutils.makeUnary(that.lhs.pos,JCTree.NOT,that.lhs),that.rhs);
+                result = treeutils.makeOr(that.pos,treeutils.makeUnary(that.lhs.pos,JCTree.NOT,that.lhs),that.rhs);
                 break;
             case REVERSE_IMPLIES:
                 // P <== Q is equivalent to P || !Q (short-circuit operator)
-                result = treeutils.makeBinary(that.pos,JCTree.OR,orSymbol,that.lhs,treeutils.makeUnary(that.rhs.pos,JCTree.NOT,that.rhs));
+                result = treeutils.makeOr(that.pos,that.lhs,treeutils.makeUnary(that.rhs.pos,JCTree.NOT,that.rhs));
                 break;
             case EQUIVALENCE:
                 // P <==> Q is equivalent to P == Q  - but we need a boolean ==
@@ -595,6 +606,7 @@ public class JmlTranslator extends JmlTreeTranslator {
                 result = treeutils.makeBinary(that.pos,JCTree.EQ,boolneSymbol,that.lhs,that.rhs);
                 break;
             case SUBTYPE_OF:
+            case JSUBTYPE_OF:
             default:
                 // FIXME - what about the lock comparison operators
                 //ERROR - operator not handled FIXME
@@ -622,10 +634,12 @@ public class JmlTranslator extends JmlTreeTranslator {
     public void visitClassDef(JCClassDecl that) {
         JCClassDecl prev = currentClassDecl;
         currentClassDecl = that;
+        pushSource(that.sym.sourcefile);
         try {
             super.visitClassDef(that);
         } finally {
             currentClassDecl = prev;
+            popSource();
         }
     }
     
@@ -642,6 +656,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         JCClassDecl prev = currentClassDecl;
         boolean prevSpecExpression = inSpecExpression;
         currentClassDecl = that;
+        pushSource(that.sym.sourcefile);
         try {
 
             //visitClassDef(that);
@@ -688,6 +703,7 @@ public class JmlTranslator extends JmlTreeTranslator {
             result = that;
             currentClassDecl = prev;
             inSpecExpression = prevSpecExpression;
+            popSource();
         }
     }
 
@@ -701,13 +717,18 @@ public class JmlTranslator extends JmlTreeTranslator {
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
         // FIXME - should not care which tool si being used (or explain)
-        if (dorac) result = that;  // FIXME - trnaslate innards
-        else result = translate(((JmlEnhancedForLoop)that).implementation);
+        if (utils.rac) result = that;  // FIXME - trnaslate innards
+        else result = translate(that.implementation);
         //visitForeachLoop(that);
+//        JmlEnhancedForLoop copy = (JmlEnhancedForLoop)result;
+//        copy.loopSpecs = translate(copy.loopSpecs);
     }
 
     public void visitJmlForLoop(JmlForLoop that) {
         visitForLoop(that);
+        JmlForLoop copy = (JmlForLoop)result;
+        copy.loopSpecs = translate(copy.loopSpecs);
+        result = copy;
     }
 
     public void visitJmlGroupName(JmlGroupName that) {
@@ -719,6 +740,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     }
 
     public void visitJmlLblExpression(JmlLblExpression that) {
+        that.expression = translate(that.expression);
         result = that;
     }
 
@@ -733,7 +755,9 @@ public class JmlTranslator extends JmlTreeTranslator {
     }
 
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-        result = that;
+        JmlMethodClauseDecl copy = that;
+        copy.stats = translate(that.stats);
+        result = copy;
     }
 
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
@@ -777,6 +801,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         inSpecExpression = true;
         JCMethodDecl prev = currentMethodDecl;
         currentMethodDecl = that;
+        pushSource(that.source());
         try {
             JmlSpecs.MethodSpecs mspecs = that.methodSpecsCombined;
             ListBuffer<JmlSpecificationCase> newcases = new ListBuffer<JmlSpecificationCase>();
@@ -787,9 +812,10 @@ public class JmlTranslator extends JmlTreeTranslator {
                 mspecs.cases.cases = newcases.toList();
             }
         } finally {
-            currentMethodDecl = prev;  // FIXME - finally?
+            currentMethodDecl = prev;
             inSpecExpression = prevSpecExpression;
             result = that;
+            popSource();
         }
     }
 
@@ -826,9 +852,9 @@ public class JmlTranslator extends JmlTreeTranslator {
                 break;
 
             case BSTYPELC:
-                //translateTypelc(that);
-                //return;
-                break;
+                translateTypelc(that);
+                return;
+                //break;
             
             case BSELEMTYPE:
 //                translateElemtype(tree);
@@ -860,8 +886,10 @@ public class JmlTranslator extends JmlTreeTranslator {
                 break;
 
             default:
-                Log.instance(context).error(that.pos, "jml.unknown.construct",t.internedName(),"JmlRac.visitApply");
+                JavaFileObject prev = log.useSource(source);
+                log.error(that.pos, "jml.unknown.construct",t.internedName(),"JmlRac.visitApply");
             // FIXME - recovery possible?
+                log.useSource(prev);
                 break;
         }
         result = that;
@@ -879,7 +907,11 @@ public class JmlTranslator extends JmlTreeTranslator {
     }
 
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        result = that;
+        JmlQuantifiedExpr copy = that;
+        // FIXME - declartion?
+        copy.range = translate(copy.range);
+        copy.predicate = translate(copy.predicate);
+        result = copy;
     }
 
     public void visitJmlRefines(JmlRefines that) {
@@ -887,7 +919,10 @@ public class JmlTranslator extends JmlTreeTranslator {
     }
 
     public void visitJmlSetComprehension(JmlSetComprehension that) {
-        result = that;
+        JmlSetComprehension copy = that;
+        copy.predicate = translate(that.predicate);
+        // varia ble, newtype?  FIXME
+        result = copy;
     }
 
 //    @Override
@@ -913,17 +948,24 @@ public class JmlTranslator extends JmlTreeTranslator {
                 
             default:
                 t = syms.errType;
+                JavaFileObject prev = log.useSource(source);
                 log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlSingleton");
+                log.useSource(prev);
                 break;
         }
         //result = check(that, t, VAL, pkind, pt);
         result = that;
     }
 
-//    @Override
-//    public void visitJmlSpecificationCase(JmlSpecificationCase that) {
-//        // No override needed
-//    }
+    @Override
+    public void visitJmlSpecificationCase(JmlSpecificationCase that) {
+        pushSource(that.sourcefile);
+        try {
+            super.visitJmlSpecificationCase(that);
+        } finally {
+            popSource();
+        }
+    }
 
     public void visitJmlStatement(JmlStatement that) {
         boolean prev = inSpecExpression;
@@ -971,11 +1013,15 @@ public class JmlTranslator extends JmlTreeTranslator {
     }
 
     public void visitJmlStatementLoop(JmlStatementLoop that) {
-        result = that;
+        JmlStatementLoop copy = that;
+        copy.expression = translate(that.expression);
+        result = copy;
     }
 
     public void visitJmlStatementSpec(JmlStatementSpec that) {
-        result = that;
+        JmlStatementSpec copy = that;
+        copy.statementSpecs = translate(that.statementSpecs);
+        result = copy;
     }
 
 //    @Override
@@ -993,89 +1039,128 @@ public class JmlTranslator extends JmlTreeTranslator {
 //     // No overriding needed
 //    }
 
-//    @Override
-//    public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-//        // No overriding needed
-//    }
+    @Override
+    public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
+        pushSource(that.source);
+        try {
+            super.visitJmlTypeClauseConditional(that);
+        } finally {
+            popSource();
+        }
+    }
+    
+    @Override
+    public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
+        pushSource(that.source);
+        try {
+            super.visitJmlTypeClauseConstraint(that);
+        } finally {
+            popSource();
+        }
+    }
 
-//    @Override
-//    public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-//        // No overriding needed
-//    }
+    @Override
+    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
+        pushSource(that.source);
+        try {
+            super.visitJmlTypeClauseDecl(that);
+        } finally {
+            popSource();
+        }
+    }
 
-//    @Override
-//    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-//          // No overriding needed
-//    }
-
-//  @Override
-//    public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
-//      // No overriding needed
-//    }
+    @Override
+    public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
+        pushSource(that.source);
+        try {
+            super.visitJmlTypeClauseExpr(that);
+        } finally {
+            popSource();
+        }
+    }
 
     public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
-        result = that;
+        pushSource(that.source);
+        try {
+            super.visitJmlTypeClauseIn(that);
+        } finally {
+            popSource();
+        }
     }
 
-//    @Override
-//    public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
-//        // No override needed
-//    }
+    @Override
+    public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
+        pushSource(that.source);
+        try {
+            super.visitJmlTypeClauseInitializer(that);
+        } finally {
+            popSource();
+        }
+    }
 
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
-        result = that;
+        pushSource(that.source);
+        try {
+            super.visitJmlTypeClauseMaps(that);
+        } finally {
+            popSource();
+        }
     }
 
-//    @Override
-//    public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
-//        // No override needed
-//    }
+    @Override
+    public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
+        pushSource(that.source);
+        try {
+            super.visitJmlTypeClauseMonitorsFor(that);
+        } finally {
+            popSource();
+        }
+    }
 
-//    @Override
-//    public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
-//        // No override needed
-//    }
+    @Override
+    public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
+        pushSource(that.source);
+        try {
+            super.visitJmlTypeClauseRepresents(that);
+        } finally {
+            popSource();
+        }
+    }
 
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-        boolean prev = inSpecExpression;
-        if (utils.isJML(that.mods)) inSpecExpression = true;
-        visitVarDef(that);
-        JCTree saved = result;
-        inSpecExpression = true;
-        if (that.fieldSpecsCombined != null) {
-            that.fieldSpecsCombined.list = translate(that.fieldSpecsCombined.list); // FIXME - check why this is sometimes null
+        pushSource(that.sourcefile);
+        try {
+            boolean prev = inSpecExpression;
+            if (utils.isJML(that.mods)) inSpecExpression = true;
+            visitVarDef(that);
+            JCTree saved = result;
+            inSpecExpression = true;
+            if (that.fieldSpecsCombined != null) {
+                that.fieldSpecsCombined.list = translate(that.fieldSpecsCombined.list); // FIXME - check why this is sometimes null
+            }
+            if (that.fieldSpecs != null) {
+                that.fieldSpecs.list = translate(that.fieldSpecs.list); // FIXME - check why this is sometimes null
+            }
+            inSpecExpression = prev;
+            result = saved;
+        } finally {
+            popSource();
         }
-        if (that.fieldSpecs != null) {
-            that.fieldSpecs.list = translate(that.fieldSpecs.list); // FIXME - check why this is sometimes null
-        }
-        inSpecExpression = prev;
-        result = saved;
     }
 
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         visitWhileLoop(that);
-        // FIXME - translate specs
+        JmlWhileLoop copy = (JmlWhileLoop)result;
+        copy.loopSpecs = translate(copy.loopSpecs);
+        result = copy;
     }
     
     public void translateTypelc(JmlMethodInvocation that) {
         // Presumes this is indeed a \type invocation and
         // that the one argument is a Type
         JCTree type = that.args.get(0);
-        if (type instanceof JCTypeApply) {
-            // Convert a literal generic type, e.g. Vector<String>
-            // into a function that creates type objects:
-            // Utils.makeType(Vector.class,\type(String));
-            ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
-            JCExpression t = ((JCTypeApply)type).clazz; 
-            // t.type is the actual Java type of the head (e.g. java.util.Vector)
-            // What we want is a Java class literal
-            t = treeutils.makeType(that.pos,t.type);
-            args.append(t);
-            for (JCExpression tt: ((JCTypeApply)type).arguments) args.append(translate(tt));
-            result = treeutils.makeUtilsMethodCall(that.pos,"makeTYPE",args.toList());
-        } else {
-            // no change
-            result = that;
-        }
+        result = treeutils.trType(that.pos, type);
     }
+    
+    
 }

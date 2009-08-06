@@ -1,17 +1,26 @@
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.code.Flags.FINAL;
+import static com.sun.tools.javac.code.Flags.PUBLIC;
+import static com.sun.tools.javac.code.Flags.STATIC;
+
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.JmlTree.JmlBinary;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Type.ArrayType;
+import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.MethodType;
+import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -116,9 +125,9 @@ public class JmlTreeUtils {
         // an attempt to resolve an operator or name failed, and that would
         // be an openjml coding bug.
     ClassSymbol assertionFailureClass;
-    Name resultName;
-    Name exceptionName;
-    Name caughtException;
+    final public Name resultName;
+    final public Name exceptionName;
+    final public Name caughtException;
     
     /** Creates an instance in association with the given Context; 
      * do not call the constructor 
@@ -160,9 +169,9 @@ public class JmlTreeUtils {
         assertionFailureClass = reader.enterClass(names.fromString(utilsClassQualifiedName+"$JmlAssertionFailure"));
         integerType = reader.enterClass(names.fromString("java.lang.Integer")).type;
         
-        this.resultName = names.fromString("_JML$$$result");
-        this.exceptionName = names.fromString("_JML$$$exception");
-        this.caughtException = names.fromString("_JML$$$caughtException");
+        this.resultName = attr.resultName;
+        this.exceptionName = attr.exceptionName;
+        this.caughtException = names.fromString("_JML$$$caughtException");   // FIXME - do we need this?
         
     }
     
@@ -238,6 +247,45 @@ public class JmlTreeUtils {
     public JCLiteral makeLit(int pos, Type type, Object value) { // FIXME  I don't think it is correct for char literals
         return factory.at(pos).Literal(type.tag, value).setType(type.constType(value));
     }
+    
+    public JCLiteral makeIntLit(int pos, int value) {
+        return factory.at(pos).Literal(TypeTags.INT, value).setType(syms.intType.constType(value));
+    }
+
+//  protected JCLiteral makeLiteral(int value, int pos) {
+//  JCLiteral lit = factory.at(pos).Literal(TypeTags.INT,value);
+//  lit.type = syms.intType;
+//  return lit;
+//}
+
+protected JCLiteral makeTypeLiteral(Type type, int pos) {
+  JCLiteral lit = factory.at(pos).Literal(TypeTags.CLASS,type);
+  lit.type = syms.classType;
+  return lit;
+}
+
+///** Makes an boolean literal
+//* @param value the value of the literal
+//* @param pos the pseudo source code location of the node
+//* @return the new literal
+//*/
+//protected JCLiteral makeLiteral(boolean value, int pos) {
+//  JCLiteral lit = factory.at(pos).Literal(TypeTags.BOOLEAN,value?1:0);
+//  lit.type = syms.booleanType;
+//  return lit;
+//}
+
+///** Makes an identifier for a symbol, as in the AST prior to any translation
+//* by BasicBlocker.
+//* @param sym the variable to put in the AST
+//* @param pos the pseudo-position at which to place it
+//* @return a JCIdent node
+//*/
+//protected JCIdent makeIdent(VarSymbol sym, int pos) {
+//  JCIdent id = factory.at(pos).Ident(sym);
+//  id.type = sym.type;
+//  return id;
+//}
 
     
     /** Makes a constant boolean literal AST node.
@@ -348,9 +396,26 @@ public class JmlTreeUtils {
     public JCBinary makeBinary(int pos, int optag, @Nullable Symbol opSymbol, JCExpression lhs, JCExpression rhs) {
         JCBinary tree = factory.at(pos).Binary(optag, lhs, rhs);
         tree.operator = opSymbol;
-        tree.type = tree.operator.type.getReturnType();
+        tree.type = optag == JCTree.EQ ? syms.booleanType : tree.operator.type.getReturnType();
         return tree;
     }
+    
+    /** Makes a Jml binary operator node (with boolean result)
+     * @param pos the pseudo source code location of the node
+     * @param op the binary operator (producing a boolean result), e.g. JmlToken.IMPLIES
+     * @param lhs the left-hand expression
+     * @param rhs the right-hand expression
+     * @return the new node
+     */
+    public JmlBinary makeJmlBinary(int pos, JmlToken op, JCExpression lhs, JCExpression rhs) {
+        if (lhs == null) {
+            System.out.println("NULL");
+        }
+        JmlBinary e = factory.at(pos).JmlBinary(op,lhs,rhs);
+        e.type = syms.booleanType;
+        return e;
+    }
+
     
     /** Produces an Equality AST node.  The symbol is null, so this cannot be 
      * used for RAC.
@@ -597,6 +662,18 @@ public class JmlTreeUtils {
 //        return mdecl;
 //    }
 
+    public JCMethodInvocation makeMethodInvocation(int pos, JCExpression object, Name methodName) {
+        JCFieldAccess meth = factory.Select(object,methodName);
+        meth.pos = pos;
+        meth.sym = null; // FIXME
+        meth.type = null; // FIXME
+        JCMethodInvocation call = factory.Apply(List.<JCExpression>nil(), meth, List.<JCExpression>nil());
+        call.pos = pos;
+        call.type = syms.classType; // FIXME
+        return call;
+    }
+    
+    
     // FIXME _ document
     public JCMethodDecl makeMethodDefNoArg(JCModifiers mods, Name methodName, Type resultType, ClassSymbol ownerClass) {
 
@@ -691,5 +768,73 @@ public class JmlTreeUtils {
         return call;
     }
 
+    public JCExpression makeDotClass(int pos, Type type) {
+        if (type.tsym instanceof ClassSymbol) type = ((ClassSymbol)type.tsym).erasure(Types.instance(context));
+        JCExpression tt = makeType(pos,type);
+        JCFieldAccess result = factory.Select(tt,names._class);
+        result.pos = pos;
+        Type t = syms.classType;
+        List<Type> typeargs = List.of(type);
+        t = new ClassType(t.getEnclosingType(), typeargs, t.tsym);
+        result.sym = new VarSymbol(
+            STATIC | PUBLIC | FINAL, names._class, t, type.tsym);
+        result.type = result.sym.type;
+        return result;
+    }
+    public JCExpression trType(int pos, Type type) {
+        JCTree tree = factory.at(pos).Type(type);
+        return trType(pos,tree);
+    }
+    
+    public JCExpression trType(int pos, JCTree type) {
+        JCExpression result = null;
+        if (type instanceof JCTypeApply) {
+            // Convert a literal generic type, e.g. Vector<String>
+            // into a function that creates type objects:
+            // Utils.makeType(Vector.class,\type(String));
+            JCExpression headType = ((JCTypeApply)type).clazz; 
+            // t.type is the actual Java type of the head (e.g. java.util.Vector)
+            // What we want is a Java class literal
+            headType = makeDotClass(type.pos,headType.type);
+            ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
+            args.append(headType);
+            for (JCExpression tt: ((JCTypeApply)type).arguments) args.append(trType(tt.pos,tt));
+            int n = args.size()-1;
+            if (n <= 2) {
+                result = makeUtilsMethodCall(pos,"makeTYPE"+n,args.toList());
+            } else {
+                // FIXME - we need to make an array argument here.
+                result = makeUtilsMethodCall(pos,"makeTYPE",args.toList());
+            }
+        } else if (type instanceof JCIdent) {
+            if (type.type instanceof TypeVar) {
+                // This is a generic type variable
+                result = (JCIdent)type;
+                
+            } else {
+                JCExpression headType = (JCIdent)type; 
+                // t.type is the actual Java type of the head (e.g. java.util.Vector)
+                // What we want is a Java class literal
+                headType = makeDotClass(type.pos,headType.type);
+                result = makeUtilsMethodCall(pos,"makeTYPE0",headType);
+            }
+        } else if (type instanceof JCFieldAccess) {
+            JCExpression headType = (JCFieldAccess)type; 
+            // t.type is the actual Java type of the head (e.g. java.util.Vector)
+            // What we want is a Java class literal
+            headType = makeDotClass(type.pos,headType.type);
+            result = makeUtilsMethodCall(pos,"makeTYPE0",headType);
+        } else if (type instanceof JCArrayTypeTree) {
+            JCExpression headType = (JCArrayTypeTree)type; 
+            // t.type is the actual Java type of the head (e.g. java.util.Vector)
+            // What we want is a Java class literal
+            headType = makeDotClass(type.pos,headType.type);
+            result = makeUtilsMethodCall(pos,"makeTYPE0",headType);
+        } else {
+            log.noticeWriter.println("NOT IMPELEMNTED " + type.getClass());
+            // Unknown - FIXME - error
+        }
+        return result;
+    }
 
 }
