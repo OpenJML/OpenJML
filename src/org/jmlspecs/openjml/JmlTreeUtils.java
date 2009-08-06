@@ -94,6 +94,9 @@ public class JmlTreeUtils {
     /** The Resolve tool for this compilation context */
     @NonNull final protected JmlResolve rs;
 
+    /** The Types utilities object for this compilation context */
+    @NonNull final protected Types types;
+    
     /** The Env in which to do resolving */
     @NonNull protected Env<AttrContext> attrEnv;
         
@@ -145,6 +148,7 @@ public class JmlTreeUtils {
         this.names = Names.instance(context);
         this.rs = JmlResolve.instance(context);
         this.syms = Symtab.instance(context);
+        this.types = Types.instance(context);
 
         ClassReader reader = ClassReader.instance(context);
 
@@ -187,7 +191,8 @@ public class JmlTreeUtils {
     public Symbol findOpSymbol(String name, Type argtype) {
         Scope.Entry e = syms.predefClass.members().lookup(names.fromString(name));
         while (e != null && e.sym != null) {
-            if (((MethodType)e.sym.type).argtypes.head.equals(argtype)) return e.sym;
+            if (types.isSameType(((MethodType)e.sym.type).argtypes.head,argtype)) return e.sym;
+            //if (((MethodType)e.sym.type).argtypes.head.equals(argtype)) return e.sym;
             e = e.next();
         }
         if (argtype != syms.objectType && !argtype.isPrimitive()) return findOpSymbol(name,syms.objectType);
@@ -206,7 +211,8 @@ public class JmlTreeUtils {
         Name opName = TreeInfo.instance(context).operatorName(optag);
         Scope.Entry e = syms.predefClass.members().lookup(opName);
         while (e != null && e.sym != null) {
-            if (((MethodType)e.sym.type).argtypes.head.equals(argtype)) return e.sym;
+            if (types.isSameType(((MethodType)e.sym.type).argtypes.head,argtype)) return e.sym;
+            //if (((MethodType)e.sym.type).argtypes.head.equals(argtype)) return e.sym;
             e = e.next();
         }
         if (argtype != syms.objectType && !argtype.isPrimitive()) return findOpSymbol(optag,syms.objectType);

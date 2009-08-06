@@ -25,6 +25,7 @@ import com.sun.tools.doclets.internal.toolkit.util.DocFinder;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
@@ -142,16 +143,16 @@ public class MethodWriterJml extends MethodWriterImpl {
         if (mp.size() != mmp.size()) return false;
         while (mp.tail != null) {
             if (!mp.head.name.toString().equals(mmp.head.name.toString())) return false;
-            if (!mp.head.type.toString().equals(mmp.head.type.toString())) return false; // FIXME - is this how to compare types?
+            if (!mp.head.type.toString().equals(mmp.head.type.toString())) return false; 
             mp = mp.tail;
             mmp = mmp.tail;
         }
         return true;
     }
     
-    /** This mehtod finds a method, if any, in the given class with the same
+    /** This method finds a method, if any, in the given class with the same
      * signature as the given method - same name, same parameter types, same
-     * type arguments (the parameter names mahy be different).  
+     * type arguments (the parameter names may be different).  
      * The class and method are both in the JML compilation 
      * context, but the class may be a superclass or superinterface of the
      * method's owner.
@@ -171,6 +172,7 @@ loop:   while (e != null && e.sym != null) {
             List<VarSymbol> mmp = mm.params();
             if (mp.size() != mmp.size()) continue;
             while (mp.tail != null) {
+                //if (!Types.instance(Main.jmlContext).isSameType(mp.head.type,mmp.head.type)) continue loop;  // FIXME - should do this instead of the line below but test errors result
                 if (!mp.head.type.equals(mmp.head.type)) continue loop;
                 mp = mp.tail;
                 mmp = mmp.tail;
