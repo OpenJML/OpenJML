@@ -1345,13 +1345,13 @@ public class esc extends EscBase {
                 +"  public Object insx(int ii) { binstance = ii == 0;           /*@ set oo = null;*/ return null; }\n"
                 +"}",
                 "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8, // nothing sets bstatic true
-                "/tt/TestJava.java:8: warning: Associated declaration",23,
+                "/tt/TestJava.java:8: warning: Associated declaration",23,  // Only one error reported per method - could be any one of these
                 //"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8, // nothings sets binstance true
                 //"/tt/TestJava.java:9: warning: Associated declaration",16,
                 //"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",8, // nothing sets binstance2 true
                 //"/tt/TestJava.java:10: warning: Associated declaration",16,
                 "/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method i(int)",21, // precondition is false
-                "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyNullReference) in method inst",55,  // FIXME - incorrect error
+                "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method inst",55,
                 "/tt/TestJava.java:25: warning: The prover cannot establish an assertion (Invariant) in method insx",84, // binstance is false
                 "/tt/TestJava.java:9: warning: Associated declaration",16
         );

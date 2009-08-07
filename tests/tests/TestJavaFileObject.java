@@ -53,24 +53,24 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
      * filename extension
      * @param filename the filename to use (no leading slash) (null indicates to
      *          use the internal fabricated filename)
-     * @param s the content of the pseudo file
+     * @param content the content of the pseudo file
      * @throws Exception if a URI cannot be created
      */
-    public TestJavaFileObject(/*@ nullable */String filename, /*@ non_null */String s) throws Exception {
+    public TestJavaFileObject(/*@ nullable */String filename, /*@ non_null */String content) throws Exception {
         // This takes three slashes because the filename is supposed to be absolute.
         // In our case this is not a real file anyway, so we pretend it is absolute.
         super(filename == null ? uritest : new URI("file:///" + filename),
                 filename == null || filename.endsWith(".java") ? Kind.SOURCE : Kind.OTHER);
-        content = s;
+        this.content = content;
     }
 
     /** Constructs a new JavaFileObject
      * @param uri the URI to use
-     * @param s the content of the pseudo file
+     * @param content the content of the pseudo file
      */
-    public TestJavaFileObject(/*@ non_null */URI uri, /*@ non_null */String s) {
+    public TestJavaFileObject(/*@ non_null */URI uri, /*@ non_null */String content) {
         super(uri,uri.getPath().endsWith(".java") ? Kind.SOURCE : Kind.OTHER);
-        content = s;
+        this.content = content;
     }
 
     /** Overrides the parent to provide the content directly from the String

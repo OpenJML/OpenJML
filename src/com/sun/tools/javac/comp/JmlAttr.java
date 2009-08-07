@@ -702,7 +702,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override 
     public void visitMethodDef(JCMethodDecl m) {
-//        if (m.name.toString().equals("equals") && m.sym.owner.toString().equals("java.lang.Object")) {
+//        if (m.name.toString().equals("nonNullCheck") ){//&& m.sym.owner.toString().equals("java.lang.Object")) {
 //            log.noticeWriter.println(m.sym.owner + ":" + m.sym);
 //        }
         // Setting relax to true keeps super.visitMethodDef from complaining
