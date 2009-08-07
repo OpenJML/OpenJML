@@ -245,7 +245,7 @@ public class typeclauses extends TCBase {
                 );
     }
     
-    public void testRepresents9() {  // FIXME - needs better error messages and recovery
+    public void testRepresents9() {
         helpTCF("A.java","public class A {\n //@ model int i; represents x[*] = 0\n}"
                 ,"/A.java:2: illegal start of expression",32
                 ,"/A.java:2: illegal start of expression",33
@@ -548,7 +548,7 @@ public class typeclauses extends TCBase {
         );
     }
     
-    // FIXME - should have some tests checking recovery in maps clauses
+    // TODO - should have some tests checking recovery in maps clauses
     
     public void testInitializer() {
         helpTCF("A.java","public class A {\n //@initializer static_initializer \n}"

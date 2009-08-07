@@ -1166,7 +1166,8 @@ public class Attr extends JCTree.Visitor {
             } else if (tree.expr == null) {
                 log.error(tree.pos(), "missing.ret.val");
             } else {
-                attribExpr(tree.expr, env, m.type.getReturnType());
+                //attribExpr(tree.expr, env, m.type.getReturnType());  // DRC - changed this line to the one below - these are identical except in cases where the return type is a TypeVar
+                attribExpr(tree.expr, env, env.enclMethod.getReturnType().type);
             }
         }
         result = null;
@@ -1752,7 +1753,7 @@ public class Attr extends JCTree.Visitor {
         if ((pkind & VAR) == 0) owntype = capture(owntype);
         result = check(tree, owntype, VAR, pkind, pt);
     }
-
+    
     public void visitIdent(JCIdent tree) {
         Symbol sym;
         boolean varArgs = false;

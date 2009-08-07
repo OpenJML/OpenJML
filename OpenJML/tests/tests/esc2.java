@@ -341,10 +341,10 @@ public class esc2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1a",21
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2a",7
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3a",8
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m4a",7
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a",21
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
                 );
     }
     
@@ -408,14 +408,14 @@ public class esc2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1",12
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1a",21
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2",7
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2a",7
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3",7
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3a",8
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m4",7
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m4a",7
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1",12
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a",21
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",7
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3",7
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4",7
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
                 );
     }
     
@@ -479,10 +479,10 @@ public class esc2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1a",21
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2a",7
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3a",8
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m4a",7
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a",21
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
                 );
     }
     
@@ -524,8 +524,8 @@ public class esc2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1a",10
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2a",10
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
                 );
     }
         
@@ -567,10 +567,10 @@ public class esc2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1",9
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1a",10
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2",9
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2a",10
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1",9
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",9
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
                 );
     }
     
@@ -612,8 +612,8 @@ public class esc2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1a",10
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2a",10
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
                 );
     }
     

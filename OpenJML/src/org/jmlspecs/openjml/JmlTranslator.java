@@ -233,20 +233,22 @@ public class JmlTranslator extends JmlTreeTranslator {
             if (!(l.head instanceof JCBlock) && r instanceof JCBlock) {
                 // insert the statements of the block, without iterating
                 // over the new statements
-                List<JCStatement> anewtrees = ((JCBlock)r).stats;
-                l.head = anewtrees.head;
-                anewtrees = anewtrees.tail;
-                if (anewtrees == null || anewtrees.tail == null) continue;
-                List<JCStatement> last = anewtrees;
-                while (last.tail.tail != null) last = last.tail;
-                last.tail = l.tail;
-                l.tail = anewtrees;
-                l = last;
+//                List<JCStatement> anewtrees = ((JCBlock)r).stats;
+//                l.head = anewtrees.head;
+//                anewtrees = anewtrees.tail;
+//                if (anewtrees == null || anewtrees.tail == null) continue;
+//                List<JCStatement> last = anewtrees;
+//                while (last.tail.tail != null) last = last.tail;
+//                last.tail = l.tail;
+//                l.tail = anewtrees;
+//                l = last;
+                newtrees.appendList(((JCBlock)r).stats);
             } else {
-                l.head = r;
+                newtrees.append(r);
+//                l.head = r;
             }
         }
-        return trees;
+        return newtrees.toList();
     }
     
     public final static String NULL_ASSIGNMENT = "assignment of null to non_null";
@@ -300,7 +302,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         if (nonnull) {
             that.lhs = translate(that.lhs);
             that.rhs = makeNullCheck(that.pos,that.rhs,NULL_ASSIGNMENT,
-                    inSpecExpression ? Label.UNDEFINED_NULL : Label.POSSIBLY_NULL);
+                    Label.POSSIBLY_NULL_ASSIGNMENT);
         } else {
             that.lhs = translate(that.lhs);
             that.rhs = translate(that.rhs);
@@ -621,7 +623,7 @@ public class JmlTranslator extends JmlTreeTranslator {
             // FIXME _ fix this back at the declaration of $$values$...
             if (!that.getName().toString().startsWith("$$values$")) 
                 that.init = makeNullCheck(that.pos,that.init,NULL_INITIALIZATION + " " + that.getName(),
-                        inSpecExpression ? Label.UNDEFINED_NULL : Label.POSSIBLY_NULL);
+                        Label.POSSIBLY_NULL_INITIALIZATION);
         } else if (that.init != null) {
             that.init = translate(that.init);
         }

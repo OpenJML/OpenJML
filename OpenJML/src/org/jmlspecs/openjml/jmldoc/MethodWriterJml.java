@@ -4,13 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 
-import org.jmlspecs.annotation.*;
+import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 
@@ -22,7 +20,6 @@ import com.sun.javadoc.Tag;
 import com.sun.tools.doclets.formats.html.MethodWriterImpl;
 import com.sun.tools.doclets.formats.html.SubWriterHolderWriter;
 import com.sun.tools.doclets.internal.toolkit.util.DocFinder;
-import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Types;
@@ -164,7 +161,9 @@ public class MethodWriterJml extends MethodWriterImpl {
         Scope.Entry e = c.members().lookup(m.name);
 loop:   while (e != null && e.sym != null) {
             Symbol s = e.sym;
-            e = e.sibling;
+            e = e.sibling; // We use sibling instead of next() so that we stay 
+                // within the scope and do not look in enclosing scopes.  But then
+                // we do have to check that names match
             if (!(s instanceof MethodSymbol)) continue;
             MethodSymbol mm = (MethodSymbol)s;
             if (m.name != mm.name) continue;
@@ -172,8 +171,7 @@ loop:   while (e != null && e.sym != null) {
             List<VarSymbol> mmp = mm.params();
             if (mp.size() != mmp.size()) continue;
             while (mp.tail != null) {
-                //if (!Types.instance(Main.jmlContext).isSameType(mp.head.type,mmp.head.type)) continue loop;  // FIXME - should do this instead of the line below but test errors result
-                if (!mp.head.type.equals(mmp.head.type)) continue loop;
+                if (!Types.instance(Main.jmlContext).isSameType(mp.head.type,mmp.head.type)) continue loop;
                 mp = mp.tail;
                 mmp = mmp.tail;
             }
@@ -340,7 +338,7 @@ loop:   while (e != null && e.sym != null) {
                 //Inherit comments from overridden or implemented method if
                 //necessary.
                 DocFinder.Output inheritedDoc =
-                    DocFinder.search(new DocFinder.Input((MethodDoc) member));
+                    DocFinder.search(new DocFinder.Input(member));
                 if (inheritedDoc.holder != null &&
                         inheritedDoc.holder.firstSentenceTags().length > 0) {
                     firstSentenceTags = inheritedDoc.holder.firstSentenceTags();
