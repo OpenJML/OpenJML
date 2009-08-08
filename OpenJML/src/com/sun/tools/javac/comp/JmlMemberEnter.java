@@ -2486,7 +2486,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //    }
 //
 //    @Override
-//    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) {
+//    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
 //    }
 //
 //    @Override

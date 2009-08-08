@@ -14,7 +14,7 @@ import com.sun.tools.javac.tree.TreeInfo;
  * 
  * @author David Cok
  */
-public class TreePrinter extends JmlTreeScanner {
+public class JmlDebugTreePrinter extends JmlTreeScanner {
     
     /** The current indentation level */
     String indent = "";
@@ -29,7 +29,7 @@ public class TreePrinter extends JmlTreeScanner {
      * @param out where to write the output information
      * @param p the parser with the position information
      */
-    public TreePrinter(PrintStream out, Map<JCTree, Integer> endPositions) {
+    public JmlDebugTreePrinter(PrintStream out, Map<JCTree, Integer> endPositions) {
         this.out = out;
         this.endPositions = endPositions;
     }

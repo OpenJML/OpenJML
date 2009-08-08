@@ -1,32 +1,21 @@
 package org.jmlspecs.openjml;
 
+import java.util.ArrayList;
+
 import org.jmlspecs.openjml.JmlTree.*;
 
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.TreeTranslator;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Names;
-import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 /** This class translates a parse tree in-place, extending
- * TreeTranslator to include JML nodes
+ * TreeTranslator to include JML nodes.  However, it adds to 
+ * TreeTranslator the ability to make a deep copy of the input
+ * tree along with translating.
+ * 
  * @author David R. Cok
  */
-// FIXME - it needs extensive fixing
 public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
 
     protected boolean copy = false;
@@ -48,302 +37,437 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         }
     }
 
+    public <T extends JCTree> java.util.List<T> translate(java.util.List<T> trees) {
+        if (trees == null) return null;
+        java.util.List<T> newlist = new ArrayList<T>(trees.size());
+        for (T t : trees) newlist.add(translate(t));
+        return newlist;
+    }
+
     //@ ensures \typeof(result) <: \type(JmlBinary);
     //JAVA16 @Override
     public void visitJmlBinary(JmlBinary that) {
         JmlBinary r = copy ? new JmlBinary(that) : that;
         r.lhs = translate(that.lhs);
         r.rhs = translate(that.rhs);
-        // Not translating ops, type, op
+        // Not translating: op, opcode, operator
         result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
-        // TODO Auto-generated method stub
-        result = that;
+        visitClassDef(that);
+        JmlClassDecl r = (JmlClassDecl)result;
+        r.docComment = that.docComment;
+        r.toplevel = that.toplevel; // FIXME - need to adjust reference
+        r.typeSpecsCombined = that.typeSpecsCombined;
+        if (that.typeSpecsCombined != null) {
+            JmlSpecs.TypeSpecs rt = r.typeSpecsCombined;// = new JmlSpecs.TypeSpecs();
+            JmlSpecs.TypeSpecs tt = that.typeSpecsCombined;
+//            rt.blocks = (tt.blocks);
+//            rt.checkInvariantDecl = (tt.checkInvariantDecl);
+//            rt.checkStaticInvariantDecl = (tt.checkStaticInvariantDecl);
+//            rt.clauses = translate(tt.clauses);
+//            
+        }
+        // specsDecls, typeSpecs, env - FIXME
+        // Not translating: FIXME
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-        // TODO Auto-generated method stub
-        result = that;
+        visitTopLevel(that);
+        JmlCompilationUnit r = (JmlCompilationUnit)result;
+        r.refinesClause = translate(that.refinesClause);
+        r.parsedTopLevelModelTypes = translate(that.parsedTopLevelModelTypes);
+        //r.specsSequence
+        //r.specsTopLevelModelTypes - FIXME
+        // not translating: mode, FIXME
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
-        // TODO Auto-generated method stub
-        result = that;
+        visitDoLoop(that);
+        JmlDoWhileLoop r = (JmlDoWhileLoop)result;
+        r.loopSpecs = translate(that.loopSpecs);
+        result = r;
+        // Not translating: none
     }
 
     //JAVA16 @Override
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
-        // TODO Auto-generated method stub
-        result = that;
+        visitForeachLoop(that);
+        JmlEnhancedForLoop r = (JmlEnhancedForLoop)result;
+        r.loopSpecs = translate(that.loopSpecs);
+        result = r;
+        // Not translating: none
     }
 
     //JAVA16 @Override
     public void visitJmlForLoop(JmlForLoop that) {
-        // TODO Auto-generated method stub
-        result = that;
+        visitForLoop(that);
+        JmlForLoop r = (JmlForLoop)result;
+        r.loopSpecs = translate(that.loopSpecs);
+        result = r;
+        // Not translating: none
     }
 
     //JAVA16 @Override
     public void visitJmlGroupName(JmlGroupName that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlGroupName r = that;
+        r.selection = translate(that.selection);
+        result = r;
+        // Not translating: sym
     }
 
     //JAVA16 @Override
     public void visitJmlImport(JmlImport that) {
-        // TODO Auto-generated method stub
-        result = that;
+        visitImport(that);
+        // not translating: isModel, staticImport
     }
 
     //JAVA16 @Override
     public void visitJmlLblExpression(JmlLblExpression that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlLblExpression r = that;
+        r.expression = translate(that.expression);
+        result = r;
+        // Not translating: token, label
     }
 
     //JAVA16 @Override
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlMethodClauseConditional r = that;
+        r.expression = translate(that.expression);
+        r.predicate = translate(that.predicate);
+        result = r;
+        // Not translating: token
     }
 
     //JAVA16 @Override
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlMethodClauseDecl r = that;
+        r.decls = translate(that.decls);
+        result = r;
+        // Not translating: token, sourcefile
     }
 
     //JAVA16 @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlMethodClauseExpr r = that;
+        r.expression = translate(that.expression);
+        result = r;
+        // Not translating: token
     }
 
     //JAVA16 @Override
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlMethodClauseGroup r = that;
+        r.cases = translate(that.cases);
+        result = r;
+        // Not translating: token
     }
 
     //JAVA16 @Override
-    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) {
-        // TODO Auto-generated method stub
-        result = that;
+    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
+        JmlMethodClauseSignalsOnly r = that;
+        r.list = translate(that.list);
+        result = r;
+        // Not translating: token
     }
 
     //JAVA16 @Override
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlMethodClauseSignals r = that;
+        r.vardef = translate(that.vardef);
+        r.expression = translate(that.expression);
+        result = r;
+        // Not translating: token
     }
 
     //JAVA16 @Override
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlMethodClauseStoreRef r = that;
+        r.list = translate(that.list);
+        result = r;
+        // Not translating: token
     }
 
     //JAVA16 @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         visitMethodDef(that);
-        JCTree saved = result;
-        //that.methodSpecsCombined = translate(that.methodSpecsCombined); // FIXME ???
-        result = saved;
+        JmlMethodDecl r = (JmlMethodDecl)result;
+        r.defaultValue = translate(that.defaultValue); // Should be in visitMethodDef - TODO
+        r.methodSpecsCombined = that.methodSpecsCombined;
+        if (that.methodSpecsCombined != null) {
+            //r.methodSpecsCombined = new JmlSpecs.MethodSpecs(
+            r.methodSpecsCombined.mods = translate(that.methodSpecsCombined.mods);
+            r.methodSpecsCombined.cases = translate(that.methodSpecsCombined.cases);
+        }
+        // FIXME - cases, methodSpecs, specsDecl, owner, docComment, _this
+        result = r;
+        // Not translating: name, sym, ??? FIXME
     }
 
     //JAVA16 @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-        // TODO Auto-generated method stub
-        result = that;
+        visitApply(that);
+        JmlMethodInvocation r = (JmlMethodInvocation)result;
+        r.varargsElement = (that.varargsElement); // FIXME
+        r.typeargs = translate(that.typeargs);  // Should be in visitApply - TODO
+        result = r;
+        // Not translating: token, label
     }
 
     //JAVA16 @Override
     public void visitJmlMethodSpecs(JmlMethodSpecs that) {
-        translate(that.cases); // Presumes inplace translation
-        translate(that.impliesThatCases);
-        translate(that.forExampleCases);
-        // Don't translate that.decl or that.desugared - when is desugared created???? it shares pieces with the cases // FIXME
-        result = that;
+        // FIXME - decl, desugared
+        JmlMethodSpecs r = that;
+        r.cases = translate(that.cases);
+        r.impliesThatCases = translate(that.impliesThatCases);
+        r.forExampleCases = translate(that.forExampleCases);
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-        // TODO Auto-generated method stub
+        // nothing to translate
         result = that;
+        // Not translating: token
     }
 
     //JAVA16 @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlQuantifiedExpr r = that;
+        r.decls = translate(that.decls);
+        r.range = translate(that.range);
+        r.value = translate(that.value);
+        result = r;
+        // Not translating: op
     }
 
     //JAVA16 @Override
     public void visitJmlRefines(JmlRefines that) {
-        // TODO Auto-generated method stub
+        // nothing to translate
         result = that;
+        // Not translating: filename
     }
 
     //JAVA16 @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlSetComprehension r = that;
+        r.newtype = translate(that.newtype);
+        r.variable = translate(that.variable);
+        r.predicate = translate(that.predicate);
+        result = r;
+        // Not translating: none
     }
 
     //JAVA16 @Override
     public void visitJmlSingleton(JmlSingleton that) {
-        // Not translating: info, pos, symbol, token, type
         result = that;
+        // Not translating: info, symbol, token, (pos, type)
     }
 
     //JAVA16 @Override
     public void visitJmlSpecificationCase(JmlSpecificationCase that) {
-        if (that.clauses != null) for (JmlMethodClause c : that.clauses) {
-            translate(c);  // Presumes in place
-        }
-        result = that;
+        JmlSpecificationCase r = that;
+        r.modifiers = translate(that.modifiers);
+        r.clauses = translate(that.clauses);
+        r.block = translate(that.block);
+        result = r;
+        // Not translating: token, also, code, sourcefile
     }
 
     //JAVA16 @Override
     public void visitJmlStatement(JmlStatement that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlStatement r = that;
+        r.statement = translate(that.statement);
+        result = r;
+        // Not translating: token
     }
 
     //JAVA16 @Override
     public void visitJmlStatementDecls(JmlStatementDecls that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlStatementDecls r = that;
+        r.list = translate(that.list);
+        result = r;
+        // Not translating: token
     }
 
     //JAVA16 @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlStatementExpr r = that;
+        r.expression = translate(that.expression);
+        r.optionalExpression = translate(that.optionalExpression);
+        result = r;
+        // Not translating: token, line, source, label, declPos - FIXME
     }
 
     //JAVA16 @Override
     public void visitJmlStatementLoop(JmlStatementLoop that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlStatementLoop r = that;
+        r.expression = translate(that.expression);
+        result = r;
+        // Not translating: token, line, source - FIXME
     }
 
     //JAVA16 @Override
     public void visitJmlStatementSpec(JmlStatementSpec that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlStatementSpec r = that;
+        r.statementSpecs = translate(that.statementSpecs);
+        result = r;
+        // Not translating: none
     }
 
     //JAVA16 @Override
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-        that.expression = translate(that.expression);
-        that.hi = translate(that.hi);
-        that.lo = translate(that.lo);
-        // Not translating pos, type
-        result = that;
+        JmlStoreRefArrayRange r = that;
+        r.expression = translate(that.expression);
+        r.hi = translate(that.hi);
+        r.lo = translate(that.lo);
+        result = r;
+        // Not translating: ( pos, type)
     }
 
     //JAVA16 @Override
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-        // Not translating pos, token, type
+        // Not translating: token, ( pos, type )
         result = that;
     }
 
     //JAVA16 @Override
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
-        that.list = translate(that.list);
+        JmlStoreRefListExpression r = that;
+        r.list = translate(that.list);
         // Not translating pos, token, type
-        result = that;
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-        that.expression = translate(that.expression);
-        that.modifiers = translate(that.modifiers);
-        that.identifier = translate(that.identifier);
-        // No change to source, token, pos, type
-        result = that;
+        JmlTypeClauseConditional r = that;
+        r.modifiers = translate(that.modifiers);
+        r.identifier = translate(that.identifier);
+        r.expression = translate(that.expression);
+        // Not translating: source, token, pos, type
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-        that.expression = translate(that.expression);
-        that.modifiers = translate(that.modifiers);
-        that.sigs = translate(that.sigs);
-        // No change to source, token, pos, type
-        result = that;
+        JmlTypeClauseConstraint r = that;
+        r.modifiers = translate(that.modifiers);
+        r.expression = translate(that.expression);
+        r.sigs = translate(that.sigs);
+        // Not translating: source, token, pos, type
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-        that.modifiers = translate(that.modifiers);
-        that.decl = translate(that.decl);
+        JmlTypeClauseDecl r = that;
+        r.modifiers = translate(that.modifiers);
+        r.decl = translate(that.decl);
         // No change to source, token, pos, type
-        result = that;
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
-        that.expression = translate(that.expression);
-        that.modifiers = translate(that.modifiers);
+        JmlTypeClauseExpr r = that;
+        r.modifiers = translate(that.modifiers);
+        r.expression = translate(that.expression);
         // No change to source, token, pos, type
-        result = that;
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlTypeClauseIn r = that;
+        // r.modifiers is a reference FIXME
+        r.list = translate(that.list);
+        result = r;
+        // Not translating: source token
     }
 
     //JAVA16 @Override
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
-        // TODO Auto-generated method stub
-        that.modifiers = translate(that.modifiers);
-        that.specs = translate(that.specs);
+        JmlTypeClauseInitializer r = that;
+        r.modifiers = translate(that.modifiers);
+        r.specs = translate(that.specs);
         // Not translating pos, source, token, type
-        result = that;
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
-        // TODO Auto-generated method stub
-        result = that;
+        JmlTypeClauseMaps r = that;
+        // r.modifiers FIXME
+        r.expression = translate(that.expression);
+        r.list = translate(that.list);
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
-        that.identifier = translate(that.identifier);
-        that.list = translate(that.list);
-        that.modifiers = translate(that.modifiers);
+        JmlTypeClauseMonitorsFor r = that;
+        r.modifiers = translate(that.modifiers);
+        r.identifier = translate(that.identifier);
+        r.list = translate(that.list);
         // Not translating pos, source, token, type
-        result = that;
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
-        that.expression = translate(that.expression);
-        that.modifiers = translate(that.modifiers);
-        that.ident = translate(that.ident);
+        JmlTypeClauseRepresents r = that;
+        r.modifiers = translate(that.modifiers);
+        r.ident = translate(that.ident);
+        r.expression = translate(that.expression);
         // Not translating pos, source, token, type, suchthat
-        result = that;
+        result = r;
     }
 
     //JAVA16 @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-        // TODO Auto-generated method stub
-        result = that;
+        visitVarDef(that);
+        JmlVariableDecl r = (JmlVariableDecl)result;
+        if (that.fieldSpecsCombined == null) {
+            r.fieldSpecsCombined = null;
+        } else {
+            // r.fieldSpecsCombined.mods = ??? FIXME
+            // fieldSpecs???
+            r.fieldSpecsCombined.mods = that.fieldSpecsCombined.mods;
+            r.fieldSpecsCombined.list = translate(that.fieldSpecsCombined.list);
+        }
+        // FIXME - specsDecl, fieldSpecs, mods
+        result = r;
+        // Not translating: sourcefile, docComment, name, sym
     }
 
     //JAVA16 @Override
     public void visitJmlWhileLoop(JmlWhileLoop that) {
-        // TODO Auto-generated method stub
-        result = that;
+        visitWhileLoop(that);
+        JmlWhileLoop r = (JmlWhileLoop)result;
+        r.loopSpecs = translate(that.loopSpecs);
+        result = r;
+        // Not translating: none
+    }
+
+    public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
+        JmlConstraintMethodSig r = that;
+        r.argtypes = translate(that.argtypes);
+        r.expression = translate(that.expression);
+        result = r;
+        // Not translating: none
+    }
+
+    public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
+        JmlModelProgramStatement r = that;
+        r.item = translate(that.item);
+        result = r;
     }
 
 }

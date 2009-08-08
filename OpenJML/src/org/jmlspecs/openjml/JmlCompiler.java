@@ -472,8 +472,10 @@ public class JmlCompiler extends JavaCompiler {
         } else {
             env.toplevel = rac.translate(env.toplevel);
         }
-//        log.noticeWriter.println("TRANSLATED RAC");
-//        log.noticeWriter.println(env.tree);
+        if (JmlOptionName.isOption(context,"-showrac")) {
+            log.noticeWriter.println("TRANSLATED RAC");
+            log.noticeWriter.println(env.tree);
+        }
         //flow(env);  // FIXME - give a better explanation if this produces errors.
                 // IF it does, it is because we have done the RAC translation wrong.
         return env;

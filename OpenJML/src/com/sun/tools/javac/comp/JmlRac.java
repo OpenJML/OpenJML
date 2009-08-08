@@ -670,7 +670,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
                             signalsChecks.append(st);
                         } else if (c.token == JmlToken.SIGNALS_ONLY) {
                             hasSignalsOnly = true;
-                            JmlMethodClauseSigOnly sig = (JmlMethodClauseSigOnly)c;
+                            JmlMethodClauseSignalsOnly sig = (JmlMethodClauseSignalsOnly)c;
                             JCExpression e = falseLit;
                             for (JCExpression t: sig.list) {
                                 JCIdent id = treeutils.makeIdent(t.pos,signalsEx.sym);
@@ -1193,6 +1193,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
                 result = treeutils.makeBinary(that.pos,JCTree.OR,lhs,treeutils.makeUnary(that.pos,JCTree.NOT,rhs));
                 break;
                 
+            case JSUBTYPE_OF:
             case SUBTYPE_OF:
                 if (that.lhs.type.equals(attr.TYPE)) {
                     // \TYPE <: \TYPE
@@ -1300,7 +1301,7 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
         
     }
 
-    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) {
+    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
         // TODO Auto-generated method stub
         
     }
@@ -1619,6 +1620,16 @@ public class JmlRac extends TreeTranslator implements IJmlVisitor {
 
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);  // FIXME
+    }
+
+    public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
+        // TODO Auto-generated method stub
+        
     }
 
 //    public void visitAuxVarDSA(AuxVarDSA that) {

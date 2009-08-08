@@ -618,19 +618,19 @@ public class CVC3Expr extends JmlTreeScanner {
                 p.declare(id,ytype);
             }
 
-            if (that.predicate instanceof JmlQuantifiedExpr) {
-                that = (JmlQuantifiedExpr)that.predicate;
+            if (that.value instanceof JmlQuantifiedExpr) {
+                that = (JmlQuantifiedExpr)that.value;
             } else break;
         } while (true);
         
         result.append(") ");
         if (that.range == null) {
-            that.predicate.accept(this);
+            that.value.accept(this);
         } else {
             result.append("(=> ");
             that.range.accept(this);
             result.append(" ");
-            that.predicate.accept(this);
+            that.value.accept(this);
             result.append(")");
         }
         result.append(")");

@@ -3,6 +3,7 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.tools.Diagnostic;
@@ -85,6 +86,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     Main main;
     Options options;
     JmlSpecs specs; // initialized in derived classes
+    LinkedList<JavaFileObject> mockFiles;
     
     /** Normally false, but set to true in tests of the test harness itself, to
      * avoid printing out diagnostic messages when a test fails.
@@ -117,6 +119,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         options = Options.instance(context);
         if (jmldebug) { Utils.instance(context).jmldebug = true; options.put("-jmldebug", "");}
         print = false;
+        mockFiles = new LinkedList<JavaFileObject>();
         //System.out.println("JUnit: Testing " + getName());
     }
 
@@ -214,6 +217,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
      * @param file the JavaFileObject to be associated with this name
      */
     protected void addMockFile(String filename, JavaFileObject file) {
+        mockFiles.add(file);
         specs.addMockFile(filename,file);
     }
 

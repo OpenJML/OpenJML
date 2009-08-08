@@ -59,7 +59,11 @@ public class Pretty extends JCTree.Visitor {
         cachedInstance = new Pretty(null,false); 
     }
 
-    /** Get the JavaCompiler instance for this context. */
+    /** Get the Pretty instance for this context. 
+     * @param out the Writer to which to send output
+     * @param sourceOutput if true, makes compilable source code
+     * @return a new pretty-printer
+     * */
     public static Pretty instance(Writer out, boolean sourceOutput) {
         // guard this because legacy tools might not preRegister
         if (cachedInstance == null)
@@ -67,11 +71,22 @@ public class Pretty extends JCTree.Visitor {
         return cachedInstance.inst(out,sourceOutput);
     }
     
+    /** Returns a new pretty printer of the dynamic type but with
+     * reset parameters
+     * @param out the Writer to which to send output
+     * @param sourceOutput if true, makes compilable source code
+     * @return a new pretty-printer
+     */
     protected Pretty inst(Writer out, boolean sourceOutput) {
         return new Pretty(out,sourceOutput);
     }
 
-    public Pretty(Writer out, boolean sourceOutput) {
+    /** Constructor - not to be called directly - use the instance
+     * method instead
+     * @param out where to send output
+     * @param sourceOutput
+     */
+    protected Pretty(Writer out, boolean sourceOutput) {
         this.out = out;
         this.sourceOutput = sourceOutput;
     }
@@ -81,11 +96,11 @@ public class Pretty extends JCTree.Visitor {
      *  the output even though that detail would not be valid java
      *  source.
      */
-    private final boolean sourceOutput;
+    protected final boolean sourceOutput; // DRC - changed from private to protected
 
     /** The output stream on which trees are printed.
      */
-    Writer out;
+    protected Writer out; // DRC - changed from default to protected
 
     /** Indentation width (can be reassigned from outside).
      */

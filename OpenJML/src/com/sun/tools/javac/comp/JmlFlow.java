@@ -189,7 +189,7 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     }
 
     //JAVA16 @Override
-    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) {
+    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
         // TODO Auto-generated method stub
         
     }
@@ -372,5 +372,15 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         // TODO Auto-generated method stub
         visitWhileLoop(that);
+    }
+
+    public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
+        // TODO Auto-generated method stub
+        
     }
 }

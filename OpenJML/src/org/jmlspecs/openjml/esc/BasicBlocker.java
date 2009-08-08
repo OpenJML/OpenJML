@@ -1860,7 +1860,7 @@ public class BasicBlocker extends JmlTreeScanner {
         JmlMethodInfo mi = mspecs.cases.decl == null ? new JmlMethodInfo(msym) : new JmlMethodInfo(mspecs.cases.decl);
         JmlMethodSpecs denestedSpecs = msym == null ? null : specs.getDenestedSpecs(msym);
         if (JmlEsc.escdebug) log.noticeWriter.println("SPECS FOR " + msym.owner + " " + msym + " " + (denestedSpecs != null));
-        if (JmlEsc.escdebug) log.noticeWriter.println(denestedSpecs == null ? "     No denested Specs" : denestedSpecs.toString("   "));
+        if (JmlEsc.escdebug) log.noticeWriter.println(denestedSpecs == null ? "     No denested Specs" : ("   " + denestedSpecs.toString())); // FIXME - bad indenting
 
         List<JCStatement> prev = newstatements;
         newstatements = new LinkedList<JCStatement>();
@@ -1874,14 +1874,14 @@ public class BasicBlocker extends JmlTreeScanner {
                 for (JmlMethodClause c: spc.clauses) {
                     if (c.token == JmlToken.FORALL) {
                         JmlMethodClauseDecl d = (JmlMethodClauseDecl)c;
-                        for (JCStatement stat: d.stats) {
-                            JCVariableDecl newstat = (JCVariableDecl)treetrans.translate(stat);
+                        for (JCVariableDecl stat: d.decls) {
+                            JCVariableDecl newstat = treetrans.translate(stat);
                             mi.foralls.add(newstat);
                         }
                     } else if (c.token == JmlToken.OLD) {
                         JmlMethodClauseDecl d = (JmlMethodClauseDecl)c;
-                        for (JCStatement stat: d.stats) {
-                            JCVariableDecl newstat = (JCVariableDecl)treetrans.translate(stat);
+                        for (JCVariableDecl stat: d.decls) {
+                            JCVariableDecl newstat = treetrans.translate(stat);
                             mi.olds.append(newstat);
                         }
                     }
@@ -1960,7 +1960,7 @@ public class BasicBlocker extends JmlTreeScanner {
                         p.sourcefile = c.source();
                         mi.divergesPredicates.add(p);
                     } else if (c.token == JmlToken.SIGNALS_ONLY) {
-                        JCExpression post = makeSignalsOnly((JmlMethodClauseSigOnly)c);
+                        JCExpression post = makeSignalsOnly((JmlMethodClauseSignalsOnly)c);
                         JmlMethodClauseExpr p = factory.at(post.pos).JmlMethodClauseExpr(JmlToken.SIGNALS,post);
                         p.sourcefile = c.source();
                         mi.sigPredicates.add(p);
@@ -2017,7 +2017,7 @@ public class BasicBlocker extends JmlTreeScanner {
         return e;
     }
     
-    protected JCExpression makeSignalsOnly(JmlMethodClauseSigOnly clause) {
+    protected JCExpression makeSignalsOnly(JmlMethodClauseSignalsOnly clause) {
         JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
         JCExpression id = factory.at(0).JmlSingleton(JmlToken.BSEXCEPTION);
         for (JCExpression typetree: clause.list) {
@@ -5194,7 +5194,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 }
                 JCExpression range = trExpr(that.range);
                 condition = range == null ? condition : treeutils.makeBinary(condition.pos,JCTree.AND,condition,range);
-                JCExpression predicate = trExpr(that.predicate);
+                JCExpression predicate = trExpr(that.value);
                 JmlQuantifiedExpr now = factory.at(that.pos).JmlQuantifiedExpr(op,decls,range,predicate);
                 now.type = that.type;
                 result = now;
@@ -5263,7 +5263,7 @@ public class BasicBlocker extends JmlTreeScanner {
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) { notImpl(that); }
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) { notImpl(that); }
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) { notImpl(that); }
-    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) { notImpl(that); }
+    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) { notImpl(that); }
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) { notImpl(that); }
     public void visitJmlSpecificationCase(JmlSpecificationCase that){ notImpl(that); }
     public void visitJmlMethodSpecs(JmlMethodSpecs that)           {  } // FIXME - IGNORE NOT SURE WHY THIS IS ENCOUNTERED IN CLASS.defs

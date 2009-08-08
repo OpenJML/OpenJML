@@ -836,8 +836,14 @@ protected JCLiteral makeTypeLiteral(Type type, int pos) {
             // What we want is a Java class literal
             headType = makeDotClass(type.pos,headType.type);
             result = makeUtilsMethodCall(pos,"makeTYPE0",headType);
+        } else if (type instanceof JCPrimitiveTypeTree) {
+            // FIXME - this does not work
+            JCExpression headType = (JCPrimitiveTypeTree)type;
+            headType = makeDotClass(type.pos,headType.type);
+            result = makeUtilsMethodCall(pos,"makeTYPE0",headType);
         } else {
-            log.noticeWriter.println("NOT IMPELEMNTED " + type.getClass());
+            log.noticeWriter.println("NOT IMPLEMENTED (JmlTreeUtils) - " + type.getClass());
+            //result = type;
             // Unknown - FIXME - error
         }
         return result;

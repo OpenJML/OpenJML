@@ -1138,9 +1138,14 @@ public class JmlSpecs {
 
     /** An ADT to hold the specs for a field declaration */
     public static class FieldSpecs {
-        /** A list of the specs for the field, i.e. the in and maps clauses */
+        
+        /** Modifiers pertinent to this fields specifications */
         public JCTree.JCModifiers mods;
+        
+        /** A list of the clauses pertinent to this field (e.g. in, maps) */
         public ListBuffer<JmlTree.JmlTypeClause> list = new ListBuffer<JmlTree.JmlTypeClause>();
+        
+        
         public FieldSpecs(JCTree.JCModifiers mods) { 
             this.mods = mods;
         }

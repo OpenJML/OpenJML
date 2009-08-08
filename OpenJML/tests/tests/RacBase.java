@@ -129,10 +129,10 @@ public abstract class RacBase extends JmlTestCase {
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     public void helpTCX(String classname, String s, Object... list) {
-        helpTCX(new String[]{classname},s,list);
-    }
-    public void helpTCX(String[] classnames, String s, Object... list) {
-        if (true) {
+//        helpTCX(new String[]{classname},s,list);
+//    }
+//    public void helpTCX(String[] classnames, String s, Object... list) {
+        if (this.getClass() == racsystem.class) {
             System.out.println("racsystem tests disabled");
             return;  // FIXME - turnin off these tests for now
         }
@@ -140,11 +140,18 @@ public abstract class RacBase extends JmlTestCase {
         BufferedReader rerr = null;
         try {
             ListBuffer<JavaFileObject> files = new ListBuffer<JavaFileObject>();
-            for (String classname: classnames) {
-                String filename = classname.replace(".","/")+".java";
-                JavaFileObject f = new TestJavaFileObject(filename,s);
-                files.append(f);
+            String filename = classname.replace(".","/")+".java";
+            JavaFileObject f = new TestJavaFileObject(filename,s);
+            files.append(f);
+            for (JavaFileObject ff: mockFiles) {
+                if (ff.toString().endsWith(".java")) files.append(ff);
             }
+//            boolean first = true;
+//            for (String classname: classnames) {
+//                String filename = classnames[0].replace(".","/")+".java";
+//                JavaFileObject f = new TestJavaFileObject(filename,s);
+//                files.append(f);
+//            }
             Log.instance(context).useSource(files.first());
             int ex = main.compile(new String[]{"-target","1.5"}, context, files.toList(), null);
             
@@ -158,7 +165,7 @@ public abstract class RacBase extends JmlTestCase {
             if (ex != 0) return;
             
             if (rac == null) rac = defrac;
-            rac[rac.length-1] = classnames[0];
+            rac[rac.length-1] = classname;
             Process p = Runtime.getRuntime().exec(rac);
             // Give the process some time to get started and generate output
             Thread.sleep(100);  // If we use p.waitFor() we sometimes get a process that locks up - esp. if it has errors
