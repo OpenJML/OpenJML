@@ -296,7 +296,7 @@ end
 
 class_chart JML_TREE_PRINTER
   indexing
-    refines_to: "com.sun.tools.javac.parser.TreePrinter";
+    refines_to: "com.sun.tools.javac.parser.JmlDebugTreePrinter";
     review: "No comment.";
   explanation
     "Prints out the AST for a JML-annotated Java program."

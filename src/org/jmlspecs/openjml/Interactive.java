@@ -21,7 +21,7 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.parser.TreePrinter;
+import com.sun.tools.javac.parser.JmlDebugTreePrinter;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -161,7 +161,7 @@ public class Interactive extends Main {
         for (String f: files) {
             JavaFileObject j = fileManager.getRegularFile(new File(f));
             JmlCompilationUnit cu = (JmlCompilationUnit)JmlCompiler.instance(context).parse(j);
-            cu.accept(new TreePrinter(System.out,null));
+            cu.accept(new JmlDebugTreePrinter(System.out,null)); // FIXME - this prints debug information - is that what we want?
         }
         return 0;
     }

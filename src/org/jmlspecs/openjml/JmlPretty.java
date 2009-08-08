@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 
-import org.jmlspecs.annotation.*;
+import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.code.Type;
@@ -18,7 +18,6 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -38,19 +37,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     
-    /** The Writer to which this pretty printer prints, initialized in the
-     * constructor
-     */
-    /*@ non_null*/ protected Writer out;
+//    /** The Writer to which this pretty printer prints, initialized in the
+//     * constructor
+//     */
+//    /*@ non_null*/ protected Writer out;
     
-    protected boolean sourceOutput;
+//    protected boolean sourceOutput;
     
+    /** If true, then wrap JML statements in JML comments */
     public boolean useJMLComments;
     
-    //public String indent = "";
-    
-    //public String indentx = "  ";
-        
     /** Instantiates a pretty-printer for Jml nodes with default indentation
      * @param out the Write to which output is to be put
      * @param sourceOutput whether to produce output that is equivalent to source code
@@ -60,7 +56,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         super(out, sourceOutput);
         this.out = out;
         this.width = 2;
-        this.sourceOutput = sourceOutput;
         this.useJMLComments = sourceOutput;
     }
     
@@ -73,15 +68,27 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         return write(tree,true);
     }
     
+    /** Writes out a tree in pretty-printed fashion, with two-character indentation
+     * 
+     * @param tree the tree to print
+     * @param source if true then put out compilable source
+     * @return the resulting text
+     */
     static public @NonNull String write(@NonNull JCTree tree, boolean source) {
         StringWriter sw = new StringWriter();
         JmlPretty p = new JmlPretty(sw,source);
         p.width = 2;
         tree.accept(p);
         return sw.toString();
-        //return write("","  ",tree);
     }
     
+    /** Writes out a tree in pretty-printed fashion, with two-character indentation,
+     * but ignoring any JML.
+     * 
+     * @param tree the tree to print
+     * @param source if true then put out compilable source
+     * @return the resulting text
+     */
     static public String writeJava(JCClassDecl tree, boolean source) {
         try { 
             StringWriter sw = new StringWriter();
@@ -89,6 +96,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             return sw.toString();
         } catch(Exception e) {}
         return "<Exception>";
+    }
+    
+    protected void indentAndPrint() throws IOException {
+        indent();
+        for (int i=width; i>0; --i) print(" ");
     }
     
     /** A method used for those pretty-printing methods that are not yet
@@ -111,6 +123,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         System.err.println(e.getClass() + " error in JMLPretty: " + that.getClass());
         e.printStackTrace(System.err);
     }
+    
+    //-------------- VISITOR METHODS -------------------------------------------
     
     public void visitJmlBinary(JmlBinary that) {
         try {
@@ -197,7 +211,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
         try { 
-            for (JCTree.JCStatement s: that.stats) {
+            for (JCTree.JCVariableDecl s: that.decls) {
                 print(that.token.internedName());
                 print(" ");
                 s.accept(this);
@@ -228,7 +242,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
 
-    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) {
+    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
         try { 
             print(that.token.internedName());
             print(" ");
@@ -313,7 +327,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print("; ");
             if (that.range != null) that.range.accept(this);
             print("; ");
-            that.predicate.accept(this);
+            that.value.accept(this);
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -374,7 +388,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             }
             try {
                 // Note - the output is already aligned, so we have to bump up the alignment
-                indent(); print("  "); // FIXME - this should print the indent width
+                indentAndPrint(); print("  ");
                 boolean first = true;
                 for (JmlMethodClause c: that.clauses) {
                     if (first) first = false; else { println(); align(); }
@@ -666,7 +680,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
         try {
-            for (JmlStatementLoop s: that.loopSpecs) {
+            if (that.loopSpecs != null) for (JmlStatementLoop s: that.loopSpecs) {
                 s.accept(this);
                 println();
                 align();
@@ -859,5 +873,15 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         indent(); indent(); indent(); indent();  // indent
         super.visitNewClass(tree);
         undent(); undent(); undent(); undent();  // indent
+    }
+
+    public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
+        try { notImpl(that);  // FIXME
+        } catch (IOException e) { perr(that,e); }
+    }
+
+    public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
+        try { notImpl(that);  // FIXME
+        } catch (IOException e) { perr(that,e); }
     }
 }

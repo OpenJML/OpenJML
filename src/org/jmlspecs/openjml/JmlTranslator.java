@@ -569,11 +569,13 @@ public class JmlTranslator extends JmlTreeTranslator {
 //                return;
 //            }
 //        }
-        if (that.selected instanceof JCFieldAccess) {
-            if (((JCFieldAccess)that.selected).sym instanceof PackageSymbol) {
-               // log.noticeWriter.println("PACKAGE");
-               return;
-            }
+        if (that.selected instanceof JCFieldAccess && ((JCFieldAccess)that.selected).sym instanceof PackageSymbol) {
+            // log.noticeWriter.println("PACKAGE");
+            return;
+        }
+        if (that.selected instanceof JCIdent && ((JCIdent)that.selected).sym instanceof PackageSymbol) {
+            // log.noticeWriter.println("PACKAGE");
+            return;
         }
 //        if (that.selected instanceof JCPrimitiveTypeTree) {
 //            log.noticeWriter.println("PRIM TYPE");
@@ -758,7 +760,7 @@ public class JmlTranslator extends JmlTreeTranslator {
 
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
         JmlMethodClauseDecl copy = that;
-        copy.stats = translate(that.stats);
+        copy.decls = translate(that.decls);
         result = copy;
     }
 
@@ -771,7 +773,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         result = that;
     }
 
-    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly that) {
+    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
         result = that;
     }
 
@@ -912,7 +914,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         JmlQuantifiedExpr copy = that;
         // FIXME - declartion?
         copy.range = translate(copy.range);
-        copy.predicate = translate(copy.predicate);
+        copy.value = translate(copy.value);
         result = copy;
     }
 

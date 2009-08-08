@@ -2064,33 +2064,33 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Attributes for and old clauses within the specs of a method */
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
         JmlToken t = tree.token;
-        for (JCTree.JCStatement stat: tree.stats) {
-            if (stat instanceof JmlVariableDecl) {
+        for (JCTree.JCVariableDecl decl: tree.decls) {
+            if (decl instanceof JmlVariableDecl) {
                 int wasFlags = 0;
                 if (env.enclMethod.sym.isStatic()) {
                     wasFlags = Flags.STATIC;  // old and forall decls are implicitly static for a static method
-                    ((JmlVariableDecl)stat).mods.flags |= Flags.STATIC;  // old and forall decls are implicitly static for a static method
+                    ((JmlVariableDecl)decl).mods.flags |= Flags.STATIC;  // old and forall decls are implicitly static for a static method
                 }
                 forallOldEnv = true; // FIXME - should we stack this?
                 JmlCheck.instance(context).staticOldEnv = true;
-                stat.accept(this);
+                decl.accept(this);
                 JmlCheck.instance(context).staticOldEnv = false;
                 forallOldEnv = false;
                 if (env.enclMethod.sym.isStatic()) {
-                    ((JmlVariableDecl)stat).mods.flags &= ~Flags.STATIC; 
+                    ((JmlVariableDecl)decl).mods.flags &= ~Flags.STATIC; 
                 }
-                JCTree.JCExpression init = ((JmlVariableDecl)stat).init;
+                JCTree.JCExpression init = ((JmlVariableDecl)decl).init;
                 if (t == JmlToken.FORALL) {
                     if (init != null) log.error(init.pos(),"jml.forall.no.init");
                 } else {
-                    if (init == null) log.error(((JmlVariableDecl)stat).pos,"jml.old.must.have.init");
+                    if (init == null) log.error(((JmlVariableDecl)decl).pos,"jml.old.must.have.init");
                 }
-                JCModifiers mods = ((JmlVariableDecl)stat).mods;
+                JCModifiers mods = ((JmlVariableDecl)decl).mods;
                 if (utils.hasOnly(mods,wasFlags)!=0) log.error(tree.pos,"jml.no.java.mods.allowed","method specification declaration");
                 // The annotations are already checked as part of the local variable declaration
                 //allAllowed(mods.annotations, JmlToken.typeModifiers, "method specification declaration");
             } else {
-                log.error(stat.pos(),"jml.internal.notsobad","Unexpected " + stat.getClass() + " object type in a JmlMethodClauseDecl list");
+                log.error(decl.pos(),"jml.internal.notsobad","Unexpected " + decl.getClass() + " object type in a JmlMethodClauseDecl list");
             }
         }
     }
@@ -2175,7 +2175,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * a signals_only method specification clause
      * @param tree the method specification clause being attributed
      */
-    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSigOnly tree) {
+    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
         for (JCExpression e: tree.list) {
             e.type = attribTree(e, env, TYP, syms.exceptionType);
         }
@@ -2950,25 +2950,25 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         switch (that.op) {
             case BSEXISTS:
             case BSFORALL:
-                attribExpr(that.predicate, localEnv, syms.booleanType);
+                attribExpr(that.value, localEnv, syms.booleanType);
                 resultType = syms.booleanType;
                 break;
                 
             case BSNUMOF:
-                attribExpr(that.predicate, localEnv, syms.booleanType);
+                attribExpr(that.value, localEnv, syms.booleanType);
                 resultType = syms.intType; // FIXME - int? long? bigint?
                 break;
                 
             case BSMAX:
             case BSMIN:
-                attribExpr(that.predicate, localEnv, syms.longType); // FIXME - int? long? numeric? bigint? double?
-                resultType = that.predicate.type;
+                attribExpr(that.value, localEnv, syms.longType); // FIXME - int? long? numeric? bigint? double?
+                resultType = that.value.type;
                 break;
 
             case BSSUM:
             case BSPRODUCT:
-                attribExpr(that.predicate, localEnv, syms.longType); // FIXME - int? long? numeric? bigint? double?
-                resultType = that.predicate.type;
+                attribExpr(that.value, localEnv, syms.longType); // FIXME - int? long? numeric? bigint? double?
+                resultType = that.value.type;
                 break;
                 
             default:
@@ -3925,6 +3925,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override 
     public List<Type> attribTypes(List<JCExpression> trees, Env<AttrContext> env) {
         return super.attribTypes(trees,env);
+    }
+
+    public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
+        // TODO Auto-generated method stub
+        
     }
 
 }
