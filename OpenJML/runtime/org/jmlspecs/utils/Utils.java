@@ -34,7 +34,7 @@ public class Utils {
     static final public String invariantMethodString = "_JML$$$checkInvariant";
     static final public String staticinvariantMethodString = "_JML$$$checkStaticInvariant";
 
-    /** Reports a JML assertion (any JML precondition, postcondition, etc.)
+    /** Reports aJML assertion (any JML precondition, postcondition, etc.)
      * failure with the given message.
      * @param message The message to report
      */
@@ -44,67 +44,88 @@ public class Utils {
         if (showStack) (new JmlAssertionError(message)).printStackTrace(System.out);
     }
     
-    /** Reports a JML assertion failure with the given message if the second argument is null
+    /** Reports aJML assertion failure with the given message if the second argument is null
      * @param message the message to report if the second argument is null
      * @param v value to be tested 
-     * @return the object which is the second argument
+     * @return the object which is the last argument
      */
     public static <T> T nonNullCheck(String message, T v) {
         if (v == null) assertionFailure(message);
         return v;
     }
     
+    /** Reports aJML assertion failure with the given message if the second argument is null
+     * @param message the message to report if the second argument is null
+     * @param b value to be tested 
+     * @param v value to be returned 
+     * @return the object which is the last argument
+     */
     public static <T> T trueCheck(String message, boolean b, T v) {
         if (!b) assertionFailure(message);
         return v;
     }
     
+    /** Reports aJML assertion failure with the given message if the second argument 
+     * is not equal to the third
+     * @param message the message to report if the second argument and third arguments are not equal
+     * @param o value to be tested 
+     * @param v value to be returned 
+     * @return the object which is the last argument
+     */
     public static <T> T eqCheck(String message, Object o, T v) {
         if (o != v) assertionFailure(message);
         return v;
     }
     
+    // TODO - document
     public static int intRangeCheck(String message, int low, int high, int v) {
         if (low <= v && v <= high) assertionFailure(message);
         return v;
     }
     
+    // TODO - document
     public static int zeroIntCheck(String message, int v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
+    // TODO - document
     public static long zeroLongCheck(String message, long v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
+    // TODO - document
     public static double zeroDoubleCheck(String message, double v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
+    // TODO - document
     public static float zeroFloatCheck(String message, float v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
-    public static short zeroFloatCheck(String message,short v) {
+    // TODO - document
+    public static short zeroShortCheck(String message, short v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
-    public static byte zeroByteCheck(String message,byte v) {
+    // TODO - document
+    public static byte zeroByteCheck(String message, byte v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
+    // TODO - document
     public static char zeroCharCheck(String message, char v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
-    /** Reports a JML assertion failure with optional additional information
+    /** Reports aJML assertion failure with optional additional information
      * @param message the message to report
      * @param optMessage possibly null additional information
      */
@@ -113,10 +134,10 @@ public class Utils {
         assertionFailure(message);
     }
     
-    /** Tests that all the elements of the array are non-null 
+    /** Tests that an array and all the elements of the array are non-null 
      * @param array the array to test
      * @return true if all elements are not null, false if at least one is
-     */
+     */  // FIXME - this is a different style from the others - it emits no message
     public static boolean nonnullElementCheck(Object[] array) {
         if (array == null) return false;
         for (Object o: array) {
@@ -163,119 +184,110 @@ public class Utils {
         }
     }
     
-    // The remaining declarations provide a mechanism for saving and reporting
+    // The remaining declarations provide a mechanism for reporting
     // values encountered during execution.
-    
-    /** The map for storing runtime values */
-    static HashMap<String,Object> map = new HashMap<String,Object>();
-    
-    /** Saves a byte value under the given key
-     * @param key the name under which to store the value
-     * @param v the value to store
+
+    /** Reports a byte value under the given key
+     * @param key the identifier for the value
+     * @param v the value to report
      * @return the value of v
      */
-    public static byte saveByte(String key, byte v) {
+    public static byte reportByte(String key, byte v) {
         System.out.println("LABEL " + key + " = " + v);
-        map.put(key,v);
         return v;
     }
-    
-    /** Saves a short value under the given key
-     * @param key the name under which to store the value
-     * @param v the value to store
+
+    /** Reports a short value under the given key
+     * @param key the identifier for the value
+     * @param v the value to report
      * @return the value of v
      */
-    public static short saveShort(String key, short v) {
+    public static short reportShort(String key, short v) {
         System.out.println("LABEL " + key + " = " + v);
-        map.put(key,v);
         return v;
     }
-    
-    /** Saves a char value under the given key
-     * @param key the name under which to store the value
-     * @param v the value to store
+
+    /** Reports a char value under the given key
+     * @param key the identifier for the value
+     * @param v the value to report
      * @return the value of v
      */
-    public static char saveChar(String key, char v) {
+    public static char reportChar(String key, char v) {
         System.out.println("LABEL " + key + " = " + v);
-        map.put(key,v);
         return v;
     }
-    
-    /** Saves a long value under the given key
-     * @param key the name under which to store the value
-     * @param v the value to store
+
+    /** Reports a long value under the given key
+     * @param key the identifier for the value
+     * @param v the value to report
      * @return the value of v
      */
-    public static long saveLong(String key, long v) {
+    public static long reportLong(String key, long v) {
         System.out.println("LABEL " + key + " = " + v);
-        map.put(key,v);
         return v;
     }
-    
-    /** Saves a float value under the given key
-     * @param key the name under which to store the value
-     * @param v the value to store
+
+    /** Reports a float value under the given key
+     * @param key the identifier for the value
+     * @param v the value to report
      * @return the value of v
      */
-    public static float saveFloat(String key, float v) {
+    public static float reportFloat(String key, float v) {
         System.out.println("LABEL " + key + " = " + v);
-        map.put(key,v);
         return v;
     }
-    
-    /** Saves a double value under the given key
-     * @param key the name under which to store the value
-     * @param v the value to store
+
+    /** Reports a double value under the given key
+     * @param key the identifier for the value
+     * @param v the value to report
      * @return the value of v
      */
-    public static double saveDouble(String key, double v) {
+    public static double reportDouble(String key, double v) {
         System.out.println("LABEL " + key + " = " + v);
-        map.put(key,v);
         return v;
     }
-    
-    /** Saves a boolean value under the given key
-     * @param key the name under which to store the value
-     * @param v the value to store
+
+    /** Reports a boolean value under the given key
+     * @param key the identifier for the value
+     * @param v the value to report
      * @return the value of v
      */
-    public static boolean saveBoolean(String key, boolean v) {
+    public static boolean reportBoolean(String key, boolean v) {
         System.out.println("LABEL " + key + " = " + v);System.out.flush();
-        map.put(key,v);
         return v;
     }
-    
-    /** Saves a int value under the given key
-     * @param key the name under which to store the value
-     * @param v the value to store
+
+    /** Reports a int value under the given key
+     * @param key the identifier for the value
+     * @param v the value to report
      * @return the value of v
      */
-    public static int saveInt(String key, int v) {
+    public static int reportInt(String key, int v) {
         System.out.println("LABEL " + key + " = " + v);
-        map.put(key,v);
         return v;
     }
-    
-    /** Saves a Object value under the given key
-     * @param key the name under which to store the value
-     * @param v the value to store
+
+    /** Reports a Object value under the given key
+     * @param key the identifier for the value
+     * @param v the value to report
      * @return the value of v
      */
-    public static Object saveObject(String key, Object v) {
+    public static Object reportObject(String key, Object v) {
         System.out.println("LABEL " + key + " = " + v);
-        map.put(key,v);
         return v;
     }
-    
+
+
     static public void callClassInvariant(Object o, String fqClassName) {
+        String ms = "???";
         try {
             Class<?> clazz = Class.forName(fqClassName);
-            Method m = clazz.getMethod(invariantMethodString);
+            ms = invariantMethodString + "$$" + fqClassName.replace(".","$");
+            Method m = clazz.getMethod(ms);
             m.invoke(o);
         } catch (Exception e) {
             // If no class or method found, we ignore
-            //System.out.println("FAILED TO CALL INVARIANT FOR " + fqClassName);
+            //System.out.println("FAILED TO CALL INVARIANT FOR " + ms + " " + e.getMessage());
             //e.printStackTrace(System.out);
         }
     }
@@ -292,31 +304,32 @@ public class Utils {
         }
     }
     
-    /** Deletes all values from the database */
-    public static void clearValues() {
-        map = new HashMap<String,Object>();
-    }
-    
-    /** Prints all values in the database and then deletes them */
-    public static void printValues() {
-//        java.util.Iterator<Map.Entry<String,Object>> i = map.entrySet().iterator();
-//        for ( ; i.hasNext(); ) {
-//            Map.Entry<String,Object> e = i.next();
-//            System.out.println("LABEL " + e.getKey() + " = " + e.getValue());
-//        }
-        // It turns out that with system-compiled RAC files, printValues() can get
-        // called before System.out is initialized (scary)
-        // FIXME - perhaps we do not need printValues any more since we are printing values as they happen
-        if (System.out!=null) System.out.flush();
-        clearValues();
-    }
+//    /** Deletes all values from the database */
+//    public static void clearValues() {
+//        map = new HashMap<String,Object>();
+//    }
+//    
+//    /** Prints all values in the database and then deletes them */
+//    public static void printValues() {
+////        java.util.Iterator<Map.Entry<String,Object>> i = map.entrySet().iterator();
+////        for ( ; i.hasNext(); ) {
+////            Map.Entry<String,Object> e = i.next();
+////            System.out.println("LABEL " + e.getKey() + " = " + e.getValue());
+////        }
+//        // It turns out that with system-compiled RAC files, printValues() can get
+//        // called before System.out is initialized (scary)
+//        // FIXME - perhaps we do not need printValues any more since we are printing values as they happen
+//        if (System.out!=null) System.out.flush();
+//        clearValues();
+//    }
 //    public static void printValues() {
 //        for (Map.Entry<String,Object> e : map.entrySet()) {
 //            System.out.println("LABEL " + e.getKey() + " = " + e.getValue());
 //        }
 //        clearValues();
 //    }
-    
+
+    // TODO - document - this and following
     public static  IJMLTYPE makeTYPE(Class<?> base, IJMLTYPE... args) {
         return JmlTypeRac.make(base,args);
     }
@@ -351,6 +364,7 @@ public class Utils {
         }
     }
     
+    // TODO - document this and following
     private static class JmlTypeRac implements IJMLTYPE {
 
         final private Class<?> base;

@@ -968,7 +968,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if ((sym.flags() & Flags.INTERFACE) != 0) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
         JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(sym);
         JCExpression vd = jmlF.Type(syms.voidType);
-        JmlTree.JmlMethodDecl m = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),names.fromString(JmlRac.invariantMethodString),vd,
+//            JCExpression ex = jmlF.Ident(names._super);
+//            ex = jmlF.Select(ex,names.fromString(JmlRac.invariantMethodString));
+//            ex = jmlF.Apply(List.<JCExpression>nil(),ex,List.<JCExpression>nil());
+//            JCStatement st = jmlF.Exec(ex);
+        //JCVariableDecl tp = jmlF.VarDef(jmlF.Modifiers(0),names.fromString("_JML$$this"),jmlF.Type(sym.type),null);
+        JmlTree.JmlMethodDecl m = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),names.fromString(JmlRac.invariantMethodString + "$$" + sym.flatName().toString().replace(".","$")),vd,
                 List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(),jmlF.Block(0,List.<JCStatement>nil()), null);
         m.specsDecl = m;
         JmlTree.JmlMethodDecl ms = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(Flags.PUBLIC|Flags.STATIC|Flags.SYNTHETIC),names.fromString(JmlRac.staticinvariantMethodString),vd,
@@ -998,9 +1003,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (!(td.decl instanceof JCVariableDecl)) continue;
             JCVariableDecl vdecl = (JCVariableDecl)td.decl;
             if (!JmlAttr.instance(context).isModel(vdecl.mods)) continue;  // FIXME -check for model on the symbol?
-            long flags = Flags.PUBLIC | Flags.SYNTHETIC; // FIXME - should this match the access mods of the target field? with spec_ factored in?
-            if ((vdecl.mods.flags & Flags.STATIC) != 0) flags |= Flags.STATIC;
-            
+            long flags = Flags.SYNTHETIC;
+            flags |= (vdecl.mods.flags & (Flags.STATIC|Flags.AccessFlags));
             modelMethodNames.add(vdecl.name);
             Name name = names.fromString("_JML$model$" + vdecl.name);
             JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name,vdecl.vartype,

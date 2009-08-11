@@ -86,7 +86,7 @@ public class Pretty extends JCTree.Visitor {
      * @param out where to send output
      * @param sourceOutput
      */
-    protected Pretty(Writer out, boolean sourceOutput) {
+    public Pretty(Writer out, boolean sourceOutput) {  // DRC changed to public
         this.out = out;
         this.sourceOutput = sourceOutput;
     }

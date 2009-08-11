@@ -89,10 +89,12 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
      * @param source if true then put out compilable source
      * @return the resulting text
      */
-    static public String writeJava(JCClassDecl tree, boolean source) {
+    static public String writeJava(JCTree tree, boolean source) {
         try { 
+            // Here we use the Pretty constructor because we specifically
+            // want only Java, not any JML
             StringWriter sw = new StringWriter();
-            Pretty.instance(sw,true).visitClassDef(tree); 
+            tree.accept(new Pretty(sw,true)); 
             return sw.toString();
         } catch(Exception e) {}
         return "<Exception>";

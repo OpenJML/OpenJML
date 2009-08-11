@@ -365,7 +365,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         pureEnvironment = false;  
         try {
             super.attribClass(c);
-
+            
             // FIXME - do we still need this?
             // Binary files with specs had entries put in the Env map so that the
             // specs had environments against which to be attributed.  However, the
@@ -379,6 +379,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //                if (true || !JmlOptionName.isOption(context,JmlOptionName.RAC)) {
                 //                    new JmlTranslator(context).translate(e.tree);
                 //                }
+                
+                if (e.tree != null) {
+                    ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
+                    //((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
+                }
+
                 if (e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
                     // If not a .java file
                     enter.typeEnvs.remove(c);

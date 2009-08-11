@@ -17,6 +17,9 @@ import com.sun.tools.javac.util.ListBuffer;
  * @author David R. Cok
  */
 public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
+    // FIXME - TreeTranslator uses some specialized translate routines, e.g.
+    // translateTypeParams, trnaslateVarDefs - find others and make sure that
+    // Jml methods below use them as appropriate
 
     protected boolean copy = false;
     

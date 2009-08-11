@@ -531,7 +531,6 @@ public class rac extends RacBase {
     public void testLbl() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
-                "org.jmlspecs.utils.Utils.printValues();\n"+
                 "System.out.println(\"END\"); } \n" +
                 "static int i = 0; static String n = \"asd\";\n" +
                 " static void m(/*@nullable*/ Object o) { \n" +
@@ -557,7 +556,7 @@ public class rac extends RacBase {
                 ,"LABEL DOUBLE = 6.0"
                 ,"LABEL CHAR = a"
                 ,"LABEL BOOLEAN = false"
-                ,"/tt/TestJava.java:15: JML assertion is false"
+                ,"/tt/TestJava.java:14: JML assertion is false"
                 ,"LABEL OBJECT = null"
                 ,"LABEL STRING = abc"
                 ,"END"
@@ -568,7 +567,6 @@ public class rac extends RacBase {
     public void testLblConst() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
-                "org.jmlspecs.utils.Utils.printValues();\n"+
                 "System.out.println(\"END\"); } static int i = 0; \n" +
                 " static void m(/*@nullable*/ Object o) { \n" +
                 "//@ assert (\\lbl OBJECT null) == null; \n" + // const null arguments get optimized away
@@ -708,17 +706,23 @@ public class rac extends RacBase {
 
     public void testUndefined() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(0); m(1); System.out.println(\"END\"); } \n" +
-                " //@ requires 10/i == 0; \n" +
-                " //@ ensures 10/i == 0; \n" +
+                "m(0); m(1); m(2); System.out.println(\"END\"); } \n" +
+                " //@ requires 10/i != 0; \n" +
+                " //@ ensures 10/(i-1) == 0; \n" +
                 " static void m(int i) { \n" +
+                "   System.out.println(\"VALUE \" + i); \n" +
                 "} " +
                 "}"
-                ,"Divide by zero" // FIXME - location niformation
+                ,"/tt/TestJava.java:3: JML Division by zero"
                 ,"/tt/TestJava.java:3: JML precondition is undefined - exception thrown"
-                ,"Divide by zero"
+                ,"VALUE 0"
+                ,"/tt/TestJava.java:3: JML Division by zero"
                 ,"/tt/TestJava.java:4: JML postcondition is undefined - exception thrown"
-                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"VALUE 1"
+                ,"/tt/TestJava.java:4: JML Division by zero"
+                ,"/tt/TestJava.java:4: JML postcondition is undefined - exception thrown"
+                ,"VALUE 2"
+                ,"/tt/TestJava.java:4: JML postcondition is false"
                 ,"END"
                 );
         
@@ -1110,6 +1114,29 @@ public class rac extends RacBase {
 
     }
     
+    public void testModelFieldST() {
+        expectedErrors = 1;
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"static int j = 5; \n "
+                +"//@ static model int i; \n "
+                +"//@ static represents i \\such_that i==j+1; \n "
+                +"//@ static represents i =j+1; \n "
+                +"public static void main(String[] args) { \n"
+                +"//@ debug System.out.println(\"A \" + i); \n"
+                +" j = 10; \n"
+                +"//@ debug System.out.println(\"A \" + i); \n"
+                +"System.out.println(\"END\"); "
+                +"}"
+                +"//@ static ghost int ii; \n "
+                +"}"
+                ,"/tt/A.java:4: warning: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",13
+                ,"A 6"
+                ,"A 11"
+                ,"END"
+                );
+
+    }
+    
     /** Duplicate represents */
     public void testModelField1() {
         expectedExit = 1;
@@ -1138,7 +1165,7 @@ public class rac extends RacBase {
     public void testModelField3() {
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
                 +" int j = 5; \n "
-                +"//@  represents i = j+1; \n "
+                +"//@  represents this.i = j+1; \n "
                 +"public static void main(String[] args) { \n"
                 +"PA a = new PA();\n"
                 +"PB b = new PB();\n"
@@ -1156,6 +1183,30 @@ public class rac extends RacBase {
                 );
 
     }
+
+    /** Represents with super model field */
+    public void testModelField3a() {
+        helpTCX("tt.PA","package tt; public class PA extends PB { \n"
+                +" int j = 5; \n "
+                +"//@  represents super.i = j+1; \n "
+                +"public static void main(String[] args) { \n"
+                +"PA a = new PA();\n"
+                +"PB b = new PB();\n"
+                +"//@ debug System.out.println(\"A \" + a.i); \n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"b = new PA();\n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"System.out.println(\"END\"); "
+                +"}} class PB { //@ model protected int i; \n}"
+                ,"A 6"
+                ,"/tt/PA.java:11: JML model field is not implemented: i"
+                ,"B 0"
+                ,"B 6"
+                ,"END"
+                );
+
+    }
+
 
     /** Represents with super model field */
     public void testModelField4() {
@@ -1286,11 +1337,73 @@ public class rac extends RacBase {
 
     }
     
-    // FIXME - does not do inherited invariant checking
+    // FIXME - duplicate errors for constraint (one per method)
+    // check readable, writable, monitors for
+    // check modifiers?
+    // check more method clauses
+    // check other expression types
+    // what about assignable
+    // check any problems with grouped clauses
+    public void testNotImplemented() {
+        expectedErrors = 20;
+        helpTCX("tt.A","package tt; public class A  { \n"
+                +"//@ axiom true;\n"
+                +"//@ invariant \\duration(true) == 0;\n"
+                +"//@ model long i;\n"
+                +"//@ represents i =  \\duration(true);\n"
+                +"//@ constraint \\duration(true) == 0;\n"
+                +"//@ initially \\duration(true) == 0;\n"
+                +"public static void main(String[] args) { \n"
+                +"    //@ hence_by true; \n"
+                +"    //@ assert \\duration(true) == 0;\n"
+                +"    //@ assume \\duration(true) == 0;\n"
+                +"    //@ ghost long k = \\duration(true);\n"
+                +"    //@ set k = \\duration(true);\n"
+                +"    //@ debug k = \\duration(true);\n"
+                +"    System.out.println(\"END\"); "
+                +"}\n"
+                +"//@ ghost long z = \\duration(true);\n"
+                +"//@ ghost long[] zz = { \\duration(true) } ;\n"
+                +"//@ requires \\duration(true) == 0;\n"
+                +"//@ ensures \\duration(true) == 0;\n"
+                +"//@ signals (Exception ex) \\duration(true) == 0;\n"
+                +"//@ signals_only RuntimeException;\n"
+                +"//@ diverges \\duration(true) == 0;\n"
+                +"//@ duration  \\duration(true);\n"
+                +"//@ working_space \\duration(true);\n"
+                +"int ma() { return 0; }\n"
+                +"int mb() { return 0; }\n"
+                +"}"
+                ,"/tt/A.java:2: warning: Not implemented for runtime assertion checking: axiom",5
+                ,"/tt/A.java:7: warning: Not implemented for runtime assertion checking: initially clause containing \\duration expression",5
+                ,"/tt/A.java:5: warning: Not implemented for runtime assertion checking: represents clause containing \\duration expression",5
+                ,"/tt/A.java:9: warning: Not implemented for runtime assertion checking: hence_by statement",9
+                ,"/tt/A.java:10: warning: Not implemented for runtime assertion checking: assert statement containing \\duration expression",9
+                ,"/tt/A.java:11: warning: Not implemented for runtime assertion checking: assume statement containing \\duration expression",9
+                ,"/tt/A.java:12: warning: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",20
+                ,"/tt/A.java:13: warning: Not implemented for runtime assertion checking: set statement containing \\duration expression",9
+                ,"/tt/A.java:14: warning: Not implemented for runtime assertion checking: debug statement containing \\duration expression",9
+                ,"/tt/A.java:18: warning: Not implemented for runtime assertion checking: requires clause containing \\duration expression",5
+                ,"/tt/A.java:19: warning: Not implemented for runtime assertion checking: ensures clause containing \\duration expression",5
+                ,"/tt/A.java:20: warning: Not implemented for runtime assertion checking: signals clause containing \\duration expression",5
+                ,"/tt/A.java:6: warning: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",5
+                ,"/tt/A.java:22: warning: Not implemented for runtime assertion checking: diverges clause",5
+                ,"/tt/A.java:23: warning: Not implemented for runtime assertion checking: duration clause",5
+                ,"/tt/A.java:24: warning: Not implemented for runtime assertion checking: working_space clause",5
+                ,"/tt/A.java:6: warning: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",5
+                ,"/tt/A.java:16: warning: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",16
+                ,"/tt/A.java:17: warning: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",18
+                ,"/tt/A.java:3: warning: Not implemented for runtime assertion checking: invariant clause containing \\duration expression",5
+                ,"END"
+                );
+
+    }
+    
+    // FIXME - does not do inherited invariant checking when super classes are not public
     public void testSuperInvariant() {
         //print = true; options.put("-showrac","");
         helpTCX("tt.A","package tt; public class A  extends B { \n"
-                +" //@ invariant i == 1; \n"
+                +" public void m() {} //@ invariant i == 1; \n"
                 +"public static void main(String[] args) { \n"
                 +"   new A().m(); \n"
                 +"System.out.println(\"MID\"); \n"
@@ -1301,20 +1414,72 @@ public class rac extends RacBase {
                 +"}} \n"
                 +"class B extends C { //@ invariant i == 2; \n}\n"
                 +"class C { Object o = this; int i=0; public void m() {} //@ invariant i == 3; \n}\n"
-                ,"/tt/A.java:2: JML invariant is false"  // invariant in A - after C constructor, after B constructor, after A constructor, before and after m
+                ,"/tt/A.java:13: JML invariant is false"  // invariant in A - after C constructor, after B constructor, after A constructor, before and after m
+                ,"/tt/A.java:11: JML invariant is false"
                 ,"/tt/A.java:2: JML invariant is false"
+              //  ,"/tt/A.java:13: JML invariant is false" // entering A.m
+               // ,"/tt/A.java:11: JML invariant is false"
                 ,"/tt/A.java:2: JML invariant is false"
-                ,"/tt/A.java:2: JML invariant is false"
+               // ,"/tt/A.java:13: JML invariant is false" // leaving A.m
+               // ,"/tt/A.java:11: JML invariant is false"
                 ,"/tt/A.java:2: JML invariant is false"
                 ,"MID"
-                ,"/tt/A.java:11: JML invariant is false"  // invariant in B - after C constructor, after B constructor, before and after m
+                ,"/tt/A.java:13: JML invariant is false"  // invariant in B - after C constructor, after B constructor, before and after m
                 ,"/tt/A.java:11: JML invariant is false"
-                ,"/tt/A.java:11: JML invariant is false"
-                ,"/tt/A.java:11: JML invariant is false"
+                ,"/tt/A.java:13: JML invariant is false"
+                ,"/tt/A.java:13: JML invariant is false"
                 ,"MID"
                 ,"/tt/A.java:13: JML invariant is false" // invariant in C - once after constructor, then before and after m
                 ,"/tt/A.java:13: JML invariant is false"
                 ,"/tt/A.java:13: JML invariant is false"
+                ,"END"
+                );
+    }
+
+    // FIXME - does not do inherited invariant checking
+    public void testSuperInvariantB() {
+        //print = true; options.put("-showrac","");
+        addMockFile("$A/tt/B.java","package tt; public class B extends tt.C { \n"
+                +"//@  invariant i == 2; \n"
+                +"}\n"
+                );
+        addMockFile("$A/tt/C.java","package tt; public class C { \n"
+                +"Object o = this; int i=0; public void m() {} \n"
+                +"//@  invariant i == 3; \n"
+                +"}\n"
+                );
+        helpTCX("tt.A","package tt; public class A  extends B { \n"
+                +" public void m() {} //@ invariant i == 1; \n"
+                +"public static void main(String[] args) { \n"
+                +"   new A().m(); \n"
+                +"System.out.println(\"MID\"); \n"
+                +"   new B().m(); \n"
+                +"System.out.println(\"MID\"); \n"
+                +"   new C().m(); \n"
+                +"System.out.println(\"END\"); \n"
+                +"}} \n"
+                ,"/$A/tt/C.java:3: JML invariant is false"  // C constructor
+                ,"/$A/tt/C.java:3: JML invariant is false" // after B constructor
+                ,"/$A/tt/B.java:2: JML invariant is false"
+                ,"/$A/tt/C.java:3: JML invariant is false" // after A constructor
+                ,"/$A/tt/B.java:2: JML invariant is false"
+                ,"/tt/A.java:2: JML invariant is false"
+                ,"/$A/tt/C.java:3: JML invariant is false" // entering A.m
+                ,"/$A/tt/B.java:2: JML invariant is false"
+                ,"/tt/A.java:2: JML invariant is false"
+                ,"/$A/tt/C.java:3: JML invariant is false" // leaving A.m
+                ,"/$A/tt/B.java:2: JML invariant is false"
+                ,"/tt/A.java:2: JML invariant is false"
+                ,"MID"
+                ,"/$A/tt/C.java:3: JML invariant is false" // after C constructor
+                ,"/$A/tt/C.java:3: JML invariant is false" // after B constructor
+                ,"/$A/tt/B.java:2: JML invariant is false"
+                ,"/$A/tt/C.java:3: JML invariant is false" // entering B.m (C.m)
+                ,"/$A/tt/C.java:3: JML invariant is false" // leaving B.m (C.m)
+                ,"MID"
+                ,"/$A/tt/C.java:3: JML invariant is false" // after C constructor
+                ,"/$A/tt/C.java:3: JML invariant is false" // entering C.m
+                ,"/$A/tt/C.java:3: JML invariant is false" // leaving C.m
                 ,"END"
                 );
     }
@@ -1324,12 +1489,14 @@ public class rac extends RacBase {
                 +"//@ static invariant i == 2; \n"
                 +"}\n"
                 );
-        addMockFile("$A/tt/C.java","package tt; public class C { Object o = this; static int i=0; static public void m() {} \n"
+        addMockFile("$A/tt/C.java","package tt; public class C { \n"
+                +"Object o = this; static int i=0; static public void m() {} \n"
                 +"//@ static invariant i == 3; \n"
                 +"}\n"
                 );
         helpTCX("tt.A","package tt; public class A  extends tt.B { \n"
                 +" //@ static invariant i == 1; \n"
+                +" static public void m() {}\n"
                 +"public static void main(String[] args) { \n"
                 +"System.out.println(\"A\"); \n"
                 +"   A.m(); \n"  // m is in tt.C
@@ -1339,17 +1506,25 @@ public class rac extends RacBase {
                 +"   tt.C.m(); \n"
                 +"System.out.println(\"END\"); \n"
                 +"}} \n"
+                ,"/$A/tt/C.java:3: JML static invariant is false"
+                ,"/$A/tt/B.java:2: JML static invariant is false"
                 ,"/tt/A.java:2: JML static invariant is false" // checking invariant on main
                 ,"A"
-                ,"/$A/tt/C.java:2: JML static invariant is false"
-                ,"/$A/tt/C.java:2: JML static invariant is false"
+                ,"/$A/tt/C.java:3: JML static invariant is false" // entering A.m
+                ,"/$A/tt/B.java:2: JML static invariant is false"
+                ,"/tt/A.java:2: JML static invariant is false"
+                ,"/$A/tt/C.java:3: JML static invariant is false" // leaving A.m
+                ,"/$A/tt/B.java:2: JML static invariant is false"
+                ,"/tt/A.java:2: JML static invariant is false"
                 ,"B"
-                ,"/$A/tt/C.java:2: JML static invariant is false"
-                ,"/$A/tt/C.java:2: JML static invariant is false"
+                ,"/$A/tt/C.java:3: JML static invariant is false" // entering C.m
+                ,"/$A/tt/C.java:3: JML static invariant is false" // leaving C.m
                 ,"C"
-                ,"/$A/tt/C.java:2: JML static invariant is false"
-                ,"/$A/tt/C.java:2: JML static invariant is false"
+                ,"/$A/tt/C.java:3: JML static invariant is false" // entering C.m
+                ,"/$A/tt/C.java:3: JML static invariant is false" // leaving C.m
                 ,"END"
+                ,"/$A/tt/C.java:3: JML static invariant is false" // leaving main
+                ,"/$A/tt/B.java:2: JML static invariant is false"
                 ,"/tt/A.java:2: JML static invariant is false" // checking invariant on main
                 );
     }
