@@ -818,6 +818,12 @@ public class JmlTree {
          */
         public Env<AttrContext> env;
         
+        /** Set during attribution, used during RAC - the value in Enter is 
+         * removed by then.
+         */
+        public VarSymbol thisSymbol;
+        public VarSymbol superSymbol;
+        
         public JmlClassDecl(JCModifiers mods, Name name,
                 List<JCTypeParameter> typarams, JCTree extending,
                 List<JCExpression> implementing, List<JCTree> defs,

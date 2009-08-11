@@ -3,23 +3,18 @@ package org.jmlspecs.openjml;
 import java.util.Set;
 
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
-import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 /** This class holds a number of utility methods.  They could often be
  * static, but we make this a registerable tool, so that it can be 
@@ -51,7 +46,12 @@ public class Utils {
      */
     protected Utils(Context context) {
         context.put(utilsKey, this);
+        log = Log.instance(context);
     }
+    
+    /** The error and warning log */
+    public final Log log;
+    
     /** Global utility value that enables printing of debugging information. */
     public boolean jmldebug = false;
 
@@ -310,6 +310,12 @@ public class Utils {
      */
     public int distinct(Class<?> c) {
         return c.hashCode();
+    }
+    
+    public void notImplemented(DiagnosticPosition pos, String feature) {
+        // FIXME - control with an option
+        if (rac) log.warning(pos,"jml.not.implemented.rac",feature);
+        else if (esc) log.warning(pos,"jml.not.implemented.esc",feature);
     }
 
 }

@@ -368,7 +368,6 @@ public class JmlCompiler extends JavaCompiler {
             // nothing put in results, so no further compilation phases are performed
         }
         if (utils.rac) {
-            new JmlTranslator(context).translate(env);
             JCTree t = env.tree;
             env = rac(env);
             if (env == null) return;
@@ -420,11 +419,7 @@ public class JmlCompiler extends JavaCompiler {
 
     protected boolean unconditionallyStop = false;
     
-    int oldsize = -1;
-    
     /** Does the RAC processing on the argument. */
-    // FIXME - the argument is probably a class, not a CU; are we going to get
-    // an env for each class if there are more than one in a CU?
     protected Env<AttrContext> rac(Env<AttrContext> env) {
         JCTree tree = env.tree;
 //        if (!JmlCompilationUnit.isJava(((JmlCompilationUnit)env.toplevel).mode)) {
@@ -470,11 +465,12 @@ public class JmlCompiler extends JavaCompiler {
                 t = t.tail;
             }
         } else {
+            // FIXME - does this happen?
             env.toplevel = rac.translate(env.toplevel);
         }
         if (JmlOptionName.isOption(context,"-showrac")) {
             log.noticeWriter.println("TRANSLATED RAC");
-            log.noticeWriter.println(env.tree);
+            log.noticeWriter.println(JmlPretty.writeJava(env.tree,true));
         }
         //flow(env);  // FIXME - give a better explanation if this produces errors.
                 // IF it does, it is because we have done the RAC translation wrong.
