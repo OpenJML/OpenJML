@@ -2336,7 +2336,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                 } else if (n == 1) {
                     // old with no label
-                    if (!oldNoLabelTokens.contains(currentClauseType)) {
+                    if (currentClauseType == null) {
+                        // OK
+                    } else if (!oldNoLabelTokens.contains(currentClauseType)) {
                         log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", currentClauseType.internedName());
                         t = syms.errType;
                     }

@@ -52,7 +52,7 @@ public abstract class AbstractLog {
      */
     public JavaFileObject useSource(JavaFileObject file) {
         JavaFileObject prev = (source == null ? null : source.getFile());
-        source = getSource(file);
+        if (file != prev) source = getSource(file);  // DRC - added the test to speed up useSOurce when there is no change in file
         return prev;
     }
 

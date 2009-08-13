@@ -588,11 +588,20 @@
     <attribute name="declarationInfo"/>
   </extension>
 
+  <extension
+         id="JMLESCProblem"
+         name="JML Problem"
+         point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.jdt.core.problem"/>
+    <persistent value="true"/>
+    <attribute name="declarationInfo"/>
+  </extension>
+
 <!-- FIXME - is the declarationInfo attribute actually used ? -->
 	
   <!-- This connects the JML markers to editor annotations  -->
   <!--  NOTE: Per the code in JMLBuilder the marker type must
-        be PLUGIN_ID + ".JMLProblem"
+        be PLUGIN_ID + ".JMLProblem" or PLUGIN_ID + ".JMLESCProblem"
   -->
   <!-- Note: The type declarations used to have an attribute
   			super="org.eclipse.ui.workbench.texteditor.error"
@@ -610,7 +619,7 @@
     <type
             markerType="org.jmlspecs.OpenJMLUI.JMLESCProblem"
             name="org.jmlspecs.OpenJMLUI.ESCProblemAnnotation"
-            markerSeverity="2"
+            markerSeverity="1"
             >
     </type>
     <type
@@ -631,12 +640,6 @@
             markerSeverity="0"
                         >
     </type>
-    <type
-            markerType="org.jmlspecs.OpenJMLUI.ESCProblem"
-            name="org.jmlspecs.OpenJMLUI.ESCProblemAnnotation"
-            markerSeverity="2"
-            >
-    </type>
   </extension>
             <!--super="org.eclipse.ui.workbench.texteditor.error"-->
             <!--super="org.eclipse.ui.workbench.texteditor.warn"-->
@@ -646,11 +649,10 @@
   <!-- Provides the image for the annotations  -->
   <!-- NOTE: the annotationType must match the name, not the id, of the
   		annotationType defined above -->
-  <!-- FIXME - there are a lot of options that ought to be considered here -->
   <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
     <specification
-            icon="icons/esc_problem.gif"
+            icon="icons/jml_orange.gif"
             annotationType="org.jmlspecs.OpenJMLUI.ESCProblemAnnotation"
             label="JML Static Check Warning"
             overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpeKey"
@@ -701,7 +703,7 @@
             >
     </specification>
     <specification
-            icon="icons/jml_note.gif"
+            icon="icons/jml_blue.gif"
             annotationType="org.jmlspecs.OpenJMLUI.JMLNoteAnnotation"
             label="JML Note"
             overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpnKey"
@@ -709,11 +711,11 @@
             highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpnKey"
             textPreferenceKey="org.jmlspecs.openjml.eclipse.trpnKey"
             colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpnKey"
-            colorPreferenceValue="0,255,255"
+            colorPreferenceValue="0,0,255"
             textPreferenceValue="true"
             overviewRulerPreferenceValue="true"
             verticalRulerPreferenceValue="true"
-            highlightPreferenceValue="false"
+            highlightPreferenceValue="true"
             presentationLayer="3"
             >
     </specification>

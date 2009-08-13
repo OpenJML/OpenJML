@@ -137,7 +137,6 @@ public class JMLNature implements IProjectNature {
                   natures.length - i - 1);
           description.setNatureIds(newNatures);
           project.setDescription(description, null);
-          //project.deleteMarkers(Utils.JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
 
           Log.log("JML Nature removed from " + project.getName());
           return;

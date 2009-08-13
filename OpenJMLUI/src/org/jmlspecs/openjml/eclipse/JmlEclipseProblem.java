@@ -95,7 +95,14 @@ public class JmlEclipseProblem extends DefaultProblem {
     sourceText = source;
     this.lineStart = lineStart;
     this.lineEnd = lineEnd;
+    this.severity = severity;
   }
+  
+  /** The severity of the problem.  This duplicates a private field in the 
+   * suepr class, but we have to because isError() just returns the opposite of
+   * isWarning(), and we cannot get at other severities.
+   */
+  final public int severity;
   
   /** An identifier for the JML category of problems.  This is a randomly chosen
    * number that needs to be different than the numbers defined in

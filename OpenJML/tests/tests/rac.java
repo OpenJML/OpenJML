@@ -369,6 +369,35 @@ public class rac extends RacBase {
         );        
     }
     
+    public void testOld3() {
+        //print = true; options.put("-showrac","");
+        helpTCX("tt.TestJava","package tt; public class TestJava { \n"
+                + "public static void main(String[] args) { \n"
+                + "  m(1); m(0); \n"
+                + "  System.out.println(\"END\"); "
+                + "} \n"
+                + "static int k = 0; \n"
+                + "static int m(int i) { \n"
+                + "  //@ ghost int p = (\\lbl AST \\old(k)); \n"
+                + "  k=i; \n"
+                + "  lab: k = 9+i; \n"
+                + "  //@ ghost int kk =  (\\lbl AST2 \\old(k));\n "
+                + "  //@ set kk = (\\lbl AST3 k); \n "
+                + "  //@ set kk = (\\lbl AST4 \\old(k,lab)); \n "
+                + "  return i; } "
+                + "}"
+                ,"LABEL AST = 0"
+                ,"LABEL AST2 = 0"
+                ,"LABEL AST3 = 10"
+                ,"LABEL AST4 = 1"
+                ,"LABEL AST = 10"
+                ,"LABEL AST2 = 10"
+                ,"LABEL AST3 = 9"
+                ,"LABEL AST4 = 0"
+                ,"END"
+        );        
+    }
+    
     public void testInformal() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " static int m(int i) { System.out.println(i); //@ assert (i==0) <==> (* informal *); \n return i; } " +
@@ -716,8 +745,6 @@ public class rac extends RacBase {
                 ,"/tt/TestJava.java:3: JML Division by zero"
                 ,"/tt/TestJava.java:3: JML precondition is undefined - exception thrown"
                 ,"VALUE 0"
-                ,"/tt/TestJava.java:3: JML Division by zero"
-                ,"/tt/TestJava.java:4: JML postcondition is undefined - exception thrown"
                 ,"VALUE 1"
                 ,"/tt/TestJava.java:4: JML Division by zero"
                 ,"/tt/TestJava.java:4: JML postcondition is undefined - exception thrown"
@@ -1399,7 +1426,32 @@ public class rac extends RacBase {
 
     }
     
-    // FIXME - does not do inherited invariant checking when super classes are not public
+    public void testNotImplemented2() {
+        expectedErrors = 3;
+        helpTCX("tt.A","package tt; public class A  { \n"
+                +"public static void main(String[] args) { \n"
+                +"    m();\n"
+                +"    System.out.println(\"END\"); "
+                +"}\n"
+                +"//@   requires \\duration(true) == 0;\n"
+                +"//@   ensures true;\n"
+                +"//@ also\n"
+                +"//@   requires \\duration(true) == 0;\n"
+                +"//@   signals (Exception ex) true;\n"
+                +"//@ also\n"
+                +"//@   requires \\duration(true) == 0;\n"
+                +"//@   signals_only RuntimeException;\n"
+                +"//@ also\n"
+                +"//@   ensures true;\n"
+                +"static int m() { return 0; }\n"
+                +"}"
+                ,"/tt/A.java:5: warning: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
+                ,"/tt/A.java:8: warning: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
+                ,"/tt/A.java:11: warning: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
+                ,"END"
+                );
+    }
+     // FIXME - does not do inherited invariant checking when super classes are not public
     public void testSuperInvariant() {
         //print = true; options.put("-showrac","");
         helpTCX("tt.A","package tt; public class A  extends B { \n"

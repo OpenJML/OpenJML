@@ -1010,6 +1010,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name,vdecl.vartype,
                     List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(),jmlF.Block(0,List.<JCStatement>nil()), null);
             mr.pos = vdecl.pos;
+            utils.setJML(mr.mods);
             memberEnter(mr,env);
             setDefaultCombinedMethodSpecs(mr);
             JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);

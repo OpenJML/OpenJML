@@ -390,7 +390,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             }
             try {
                 // Note - the output is already aligned, so we have to bump up the alignment
-                indentAndPrint(); print("  ");
+                indentAndPrint();
                 boolean first = true;
                 for (JmlMethodClause c: that.clauses) {
                     if (first) first = false; else { println(); align(); }

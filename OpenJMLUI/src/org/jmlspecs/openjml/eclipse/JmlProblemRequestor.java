@@ -121,16 +121,23 @@ public class JmlProblemRequestor implements IProblemRequestor {
           final int finalOffset = p.getSourceStart() + ((JmlEclipseProblem)p).lineStart;
           final int finalEnd = p.getSourceEnd() + 1 + ((JmlEclipseProblem)p).lineStart;
           final String finalErrorMessage = p.getMessage();
+          int severity = ((JmlEclipseProblem)p).severity;
+          final boolean staticCheckWarning = 
+              // The 64 is ProblemSeverities.SecondaryError, which has discouraged access
+              severity == 64 || finalErrorMessage.contains("The prover") 
+                              || finalErrorMessage.contains("Associated declaration");
           final int finalSeverity = 
-              p.isError() ? IMarker.SEVERITY_ERROR :
-                  p.isWarning() ? IMarker.SEVERITY_WARNING :
+              staticCheckWarning ? IMarker.SEVERITY_WARNING :
+              p.isWarning() ? IMarker.SEVERITY_WARNING :
+              severity > 0  ? IMarker.SEVERITY_ERROR :
                       IMarker.SEVERITY_INFO;
 
           // Eclipse recommends that things that modify the resources
           // in a workspace be performed in a IWorkspaceRunnable
           IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
               public void run(IProgressMonitor monitor) throws CoreException {
-                  IMarker marker = r.createMarker(Utils.JML_MARKER_ID);
+                  IMarker marker = r.createMarker(
+                          staticCheckWarning ? Utils.ESC_MARKER_ID : Utils.JML_MARKER_ID);
                   marker.setAttribute(IMarker.LINE_NUMBER, 
                           finalLineNumber >= 1? finalLineNumber : 1);
                   if (column >= 0) {

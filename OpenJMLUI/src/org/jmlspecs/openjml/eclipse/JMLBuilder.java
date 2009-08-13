@@ -257,8 +257,10 @@ public class JMLBuilder extends IncrementalProjectBuilder {
    */
   static public void deleteMarkers(IResource resource, boolean recursive) {
     try {
-      resource.deleteMarkers(Utils.JML_MARKER_ID, false, 
-              recursive? IResource.DEPTH_INFINITE :IResource.DEPTH_ZERO);
+        resource.deleteMarkers(Utils.JML_MARKER_ID, false, 
+                recursive? IResource.DEPTH_INFINITE :IResource.DEPTH_ZERO);
+        resource.deleteMarkers(Utils.ESC_MARKER_ID, false, 
+                recursive? IResource.DEPTH_INFINITE :IResource.DEPTH_ZERO);
     } catch (CoreException e) {
       Log.errorlog("Failed to delete markers on " + resource.getName(), e);
     }

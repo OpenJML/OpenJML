@@ -1,6 +1,8 @@
 package com.sun.tools.javac.comp;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 import javax.tools.JavaFileObject;
 
@@ -299,7 +301,10 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         boolean resultUsed = false;
         JCExpression exceptionDecl;
         VarSymbol exceptionLocal;
+        Map<JmlSpecificationCase,JCVariableDecl> preconditionDecls = new HashMap<JmlSpecificationCase,JCVariableDecl>();
         ListBuffer<JCVariableDecl> olds = new ListBuffer<JCVariableDecl>();
+        Map<Name,JCLabeledStatement> labels = new HashMap<Name,JCLabeledStatement>();
+        Map<JCLabeledStatement,ListBuffer<JCStatement>> labelDecls = new HashMap<JCLabeledStatement,ListBuffer<JCStatement>>();
         JCStatement preCheck;
         JCStatement postCheck;
         int variableDefs = 0;
@@ -496,12 +501,14 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.cases.deSugared;
         if (mspecs == null) return;
         for (JmlSpecificationCase c: mspecs.cases) {
-            JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
+            JCVariableDecl vd = currentMethodInfo.preconditionDecls.get(c);
+            JCExpression precond = vd == null ? trueLit : treeutils.makeIdent(c.pos,vd.sym);
+            //JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
             for (JmlMethodClause m: c.clauses) {
-                if (m.token == JmlToken.REQUIRES) {
-                    precond = treeutils.makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
-                    continue;
-                }
+//                if (m.token == JmlToken.REQUIRES) {
+//                    precond = treeutils.makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
+//                    continue;
+//                }
                 if (m.token != JmlToken.ASSIGNABLE) continue;
                 // if precond is true, then one of the items in the following list must match
                 JCExpression cond = falseLit;
@@ -554,12 +561,14 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.cases.deSugared;
         if (mspecs == null) return;
         for (JmlSpecificationCase c: mspecs.cases) {
-            JCExpression precond = treeutils.trueLit; // FIXME - need the assignable clauses precondition
+            JCVariableDecl vd = currentMethodInfo.preconditionDecls.get(c);
+            JCExpression precond = vd == null ? trueLit : treeutils.makeIdent(c.pos,vd.sym);
+//            JCExpression precond = treeutils.trueLit; // FIXME - need the assignable clauses precondition
             for (JmlMethodClause m: c.clauses) {
-                if (m.token == JmlToken.REQUIRES) {
-                    precond = treeutils.makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
-                    continue;
-                }
+//                if (m.token == JmlToken.REQUIRES) {
+//                    precond = treeutils.makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
+//                    continue;
+//                }
                 if (m.token != JmlToken.ASSIGNABLE) continue;
                 // if precond is true, then one of the items in the following list must match
                 JCExpression cond = falseLit;
@@ -616,12 +625,14 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.cases.deSugared;
         if (mspecs == null) return wrapped;
         for (JmlSpecificationCase c: mspecs.cases) {
-            JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
+            JCVariableDecl vd = currentMethodInfo.preconditionDecls.get(c);
+            JCExpression precond = vd == null ? trueLit : treeutils.makeIdent(c.pos,vd.sym);
+//            JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
             for (JmlMethodClause m: c.clauses) {
-                if (m.token == JmlToken.REQUIRES) {
-                    precond = treeutils.makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
-                    continue;
-                }
+//                if (m.token == JmlToken.REQUIRES) {
+//                    precond = treeutils.makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
+//                    continue;
+//                }
                 if (m.token != JmlToken.ASSIGNABLE) continue;
                 // if precond is true, then one of the items in the following list must match
                 JCExpression cond = falseLit;
@@ -1033,6 +1044,17 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         List<JCStatement> trees = (tree.stats);
         if (trees == null) return; // FIXME - I would think that we should return result=tree in this case, but that gives an Exception - FIXME
         tree.stats = expandableTranslate(trees);
+        
+        // Put in any label stuff
+        ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
+        for (JCStatement s: tree.stats) {
+            if (s instanceof JCLabeledStatement) {
+                ListBuffer<JCStatement> stats = currentMethodInfo.labelDecls.get(s);
+                newlist.appendList(stats);
+            }
+            newlist.append(s);
+        }
+        tree.stats = newlist.toList();
         result = tree;
     }
 
@@ -1567,44 +1589,114 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         result = make.Block(0,stats.toList());
     }
 
-    // FIXME - check this
-    @Override
-    public void visitJmlSingleton(JmlSingleton that) {
-        result = that;
-        switch (that.token) {
-            case BSRESULT:
-                JCIdent id = make.Ident(attr.resultName); // Why is this in attr?
-                id.sym = currentMethodInfo.resultDecl.sym;
-                id.type = currentMethodInfo.resultDecl.type;
-                result = id;
-                break;
+    // FIXME - mark which of the type clauses are not implemented
     
-            case INFORMAL_COMMENT:
-                result = trueLit;
-                break;
-                
-            case BSINDEX:
-            case BSVALUES:
-                result = that; // FIXME ???
-                break;
-                
-            case BSLOCKSET:
-            case BSSAME:
-            case BSNOTSPECIFIED:
-            case BSNOTHING:
-            case BSEVERYTHING:
-                Log.instance(context).error(that.pos, "jml.unimplemented.construct",that.token.internedName(),"JmlRac.visitJmlSingleton");
-                // FIXME - recovery possible?
-                break;
-    
-            default:
-                JavaFileObject prev = log.useSource(source);
-                log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlSingleton");
-                log.useSource(prev);
-                result = that;
-                break;
-        }
+    public void visitJmlGroupName(JmlGroupName that) {
+        // source and position ?   FIXME
+        log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlGroupName");
     }
+
+    public void visitJmlImport(JmlImport that) {
+        result = that; // Nothing else to do
+    }
+
+    public void visitJmlLblExpression(JmlLblExpression that) {
+        JCExpression lit = treeutils.makeStringLiteral(that.label.toString(),that.pos);
+        JCFieldAccess m = null;
+        int tag = that.expression.type.tag;
+        switch (tag) {
+            case TypeTags.INT:
+                m = findUtilsMethod("reportInt");
+                break;
+            case TypeTags.BOOLEAN:
+                m = findUtilsMethod("reportBoolean");
+                break;
+            case TypeTags.CLASS:
+            case TypeTags.ARRAY:
+                m = findUtilsMethod("reportObject");
+                break;
+            case TypeTags.LONG:
+                m = findUtilsMethod("reportLong");
+                break;
+            case TypeTags.SHORT:
+                m = findUtilsMethod("reportShort");
+                break;
+            case TypeTags.CHAR:
+                m = findUtilsMethod("reportChar");
+                break;
+            case TypeTags.BYTE:
+                m = findUtilsMethod("reportByte");
+                break;
+            case TypeTags.FLOAT:
+                m = findUtilsMethod("reportFloat");
+                break;
+            case TypeTags.DOUBLE:
+                m = findUtilsMethod("reportDouble");
+                break;
+            default:
+                // Silently ignores
+                result = translate(that.expression);
+                return;
+        }
+        JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit,translate(that.expression)));
+        c.pos = that.pos;
+        c.setType(that.type.baseType());
+        result = c;
+    }
+
+    //    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
+    //        // TODO Auto-generated method stub
+    //        
+    //    }
+    //
+    //    public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
+    //        // TODO Auto-generated method stub
+    //        
+    //    }
+    //
+    //    public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
+    //        // TODO Auto-generated method stub
+    //        
+    //    }
+    //
+    //    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
+    //        // TODO Auto-generated method stub
+    //        
+    //    }
+    //
+    //    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
+    //        // TODO Auto-generated method stub
+    //        
+    //    }
+    //
+    //    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
+    //        // TODO Auto-generated method stub
+    //        
+    //    }
+    //
+    //    public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
+    //        // TODO Auto-generated method stub
+    //        
+    //    }
+    //
+    //    public void visitJmlMethodSpecs(JmlMethodSpecs that) {
+    //        // TODO Auto-generated method stub
+    //        
+    //    }
+    //
+    //    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
+    //        // TODO Auto-generated method stub
+    //        
+    //    }
+    //
+    //    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+    //        // FIXME - implement
+    //        
+    //    }
+    //
+        public void visitJmlRefines(JmlRefines that) {
+            log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlRefines");
+        }
 
     // FIXME - check this
     public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
@@ -1622,6 +1714,17 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 String s = "_JML$$$old_" + n;
                 Name nm = names.fromString(s);
                 JCVariableDecl v = treeutils.makeVarDef(arg.type,nm,currentMethodInfo.owner,arg);
+                if (tree.args.size() > 1) {
+                    JCExpression init = v.init;
+                    v.init = treeutils.makeZeroEquivalentLit(tree.pos,tree.type);
+                    make.at(tree.pos);
+                    JCIdent var = make.Ident(v.sym);
+                    JCExpressionStatement stat = make.Exec(make.Assign(var,init));
+                    stat.expr.type = var.type;
+                    JCIdent id = (JCIdent)tree.args.get(1);
+                    JCLabeledStatement statement = currentMethodInfo.labels.get(id.name);
+                    currentMethodInfo.labelDecls.get(statement).append(stat);
+                }
                 currentMethodInfo.olds.append(v);
                 JCIdent r = make.Ident(nm);
                 r.sym = v.sym;
@@ -1681,6 +1784,45 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 break;
         }
         return;
+    }
+
+    // FIXME - check this
+    @Override
+    public void visitJmlSingleton(JmlSingleton that) {
+        result = that;
+        switch (that.token) {
+            case BSRESULT:
+                JCIdent id = make.Ident(attr.resultName); // Why is this in attr?
+                id.sym = currentMethodInfo.resultDecl.sym;
+                id.type = currentMethodInfo.resultDecl.type;
+                result = id;
+                break;
+    
+            case INFORMAL_COMMENT:
+                result = trueLit;
+                break;
+                
+            case BSINDEX:
+            case BSVALUES:
+                result = that; // FIXME ???
+                break;
+                
+            case BSLOCKSET:
+            case BSSAME:
+            case BSNOTSPECIFIED:
+            case BSNOTHING:
+            case BSEVERYTHING:
+                Log.instance(context).error(that.pos, "jml.unimplemented.construct",that.token.internedName(),"JmlRac.visitJmlSingleton");
+                // FIXME - recovery possible?
+                break;
+    
+            default:
+                JavaFileObject prev = log.useSource(source);
+                log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlSingleton");
+                log.useSource(prev);
+                result = that;
+                break;
+        }
     }
 
     public void translateNonnullelements(JCMethodInvocation tree) {
@@ -2089,6 +2231,16 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         }
         super.visitIdent(tree);
     }
+    
+    @Override
+    public void visitLabelled(JCLabeledStatement tree) {
+        super.visitLabelled(tree);
+        ListBuffer<JCStatement> list = new ListBuffer<JCStatement>();
+        currentMethodInfo.labels.put(tree.label,tree);
+        currentMethodInfo.labelDecls.put(tree,list);
+        result = tree;
+    }
+
 
     @Override
     public void visitMethodDef(JCMethodDecl tree) {
@@ -2102,6 +2254,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 
         try {
             pushSource(source);
+            ListBuffer<JCStatement> newbody = new ListBuffer<JCStatement>();
             
             // FIXME - why might tree.sym be null - aren't things attributed? but annotations have null symbol, constructors?
             boolean doRac = tree.sym != null && ((methodSpecs=specs.getDenestedSpecs(tree.sym)) != null || currentClassInfo.invariantDecl != null || currentClassInfo.staticinvariantDecl != null);
@@ -2128,7 +2281,9 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                     JCExpression pre = methodSpecs.cases.size() == 0 ? trueLit : falseLit;
                     int num = 0;
                     String position = null;
+                    ListBuffer<JCStatement> preconditionEvaluations = new ListBuffer<JCStatement>();
                     for (JmlSpecificationCase spc: methodSpecs.cases) {
+                        pushSource(spc.sourcefile);
                         JCExpression spre = trueLit;
                         for (JmlMethodClause c: spc.clauses) {
                             if (c.token == JmlToken.REQUIRES) {
@@ -2141,15 +2296,27 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                                 }
                             }
                         }
-                        pre = treeutils.makeOr(pre.pos,spre,pre);
+                        popSource();
+                        Name preName = names.fromString("_JML$$$PRE"+spc.hashCode());
+                        JCVariableDecl vd = treeutils.makeVarDef(syms.booleanType,preName,currentMethodInfo.decl.sym,falseLit);
+                        vd.pos = spc.pos;
+                        currentMethodInfo.preconditionDecls.put(spc,vd);
+                        newbody.append(vd);
+                        spre = make.Assign(treeutils.makeIdent(spc.pos,vd.sym),spre);
+                        spre.type = vd.sym.type;
+                        spre.pos = spc.pos;
+                        JCExpressionStatement ex = make.at(spre.pos).Exec(spre);
+                        preconditionEvaluations.append(ex);
+                        pre = treeutils.makeOr(pre.pos,pre,treeutils.makeIdent(spc.pos,vd.sym));
                     }
                     if (num > 1) position = position(source,tree.pos);
                     if (pre != trueLit) {
                         JCIf ifstat = make.If(treeutils.makeUnary(pre.pos,JCTree.NOT,pre),methodCallPre(position,pre),null);
                         ifstat.pos = pre.pos;
+                        preconditionEvaluations.append(ifstat);
                         currentMethodInfo.preCheck = undefinedCheck(currentMethodInfo.owner,
                                 position+"precondition",
-                                ifstat);
+                                make.at(pre.pos).Block(0,preconditionEvaluations.toList()));
                     }
                 }
 
@@ -2160,11 +2327,14 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 ListBuffer<JCStatement> postChecks = new ListBuffer<JCStatement>();
                 if (methodSpecs != null) {
                     for (JmlSpecificationCase spc: methodSpecs.cases) {
-                        JCExpression spre = trueLit;
-                        for (JmlMethodClause c: spc.clauses) {  // Note - do not translate the preconditions over again - they were translated in place
-                            // FIXME - we are not skipping the unimplemented ones
-                            if (c.token == JmlToken.REQUIRES) spre = treeutils.makeBinary(c.pos,JCTree.AND,spre,(((JmlMethodClauseExpr)c).expression));
-                        }
+                        //JCExpression spre = trueLit;
+                        JCVariableDecl vd = currentMethodInfo.preconditionDecls.get(spc);
+                        JCExpression spre = vd == null ? trueLit : treeutils.makeIdent(spc.pos,vd.sym);
+//                        Name preName = names.fromString("_JML$$$PRE"+spc.hashCode());
+//                        for (JmlMethodClause c: spc.clauses) {  // Note - do not translate the preconditions over again - they were translated in place
+//                            // FIXME - we are not skipping the unimplemented ones
+//                            if (c.token == JmlToken.REQUIRES) spre = treeutils.makeBinary(c.pos,JCTree.AND,spre,(((JmlMethodClauseExpr)c).expression));
+//                        }
                         for (JmlMethodClause c: spc.clauses) {
                             if (c.token == JmlToken.ENSURES) {
                                 try {
@@ -2188,11 +2358,13 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 ListBuffer<JCStatement> signalsChecks = new ListBuffer<JCStatement>();
                 if (methodSpecs != null) {
                     for (JmlSpecificationCase spc: methodSpecs.cases) {
-                        JCExpression spre = trueLit;
-                        for (JmlMethodClause c: spc.clauses) {  // Note - do not translate the preconditions over again - they were translated in place
-                            // FIXME - we are not skipping the unimplemented ones
-                            if (c.token == JmlToken.REQUIRES) spre = treeutils.makeBinary(c.pos,JCTree.AND,spre,(((JmlMethodClauseExpr)c).expression));
-                        }
+                        JCVariableDecl vd = currentMethodInfo.preconditionDecls.get(spc);
+                        JCExpression spre = vd == null ? trueLit : treeutils.makeIdent(spc.pos,vd.sym);
+//                        JCExpression spre = trueLit;
+//                        for (JmlMethodClause c: spc.clauses) {  // Note - do not translate the preconditions over again - they were translated in place
+//                            // FIXME - we are not skipping the unimplemented ones
+//                            if (c.token == JmlToken.REQUIRES) spre = treeutils.makeBinary(c.pos,JCTree.AND,spre,(((JmlMethodClauseExpr)c).expression));
+//                        }
                         boolean hasSignalsOnly = false;
                         for (JmlMethodClause c: spc.clauses) {
                             make.at(c.pos);
@@ -2363,7 +2535,6 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 JCTry tryBlock = make.Try(bl,catchers.toList(),finalBlock); // FIXME - needs position
                 tryBlock.type = Type.noType;
 
-                ListBuffer<JCStatement> newbody = new ListBuffer<JCStatement>();
                 if (!isConstructor) {
                     if (currentMethodInfo.preCheck != null) newbody.append(currentMethodInfo.preCheck);
                     if (!isHelper) {
@@ -2458,113 +2629,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         }
     }
 
-    public void visitJmlGroupName(JmlGroupName that) {
-        // source and position ?   FIXME
-        log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlGroupName");
-    }
-
-    public void visitJmlImport(JmlImport that) {
-        result = that; // Nothing else to do
-    }
-
-    public void visitJmlLblExpression(JmlLblExpression that) {
-        JCExpression lit = treeutils.makeStringLiteral(that.label.toString(),that.pos);
-        JCFieldAccess m = null;
-        int tag = that.expression.type.tag;
-        switch (tag) {
-            case TypeTags.INT:
-                m = findUtilsMethod("reportInt");
-                break;
-            case TypeTags.BOOLEAN:
-                m = findUtilsMethod("reportBoolean");
-                break;
-            case TypeTags.CLASS:
-            case TypeTags.ARRAY:
-                m = findUtilsMethod("reportObject");
-                break;
-            case TypeTags.LONG:
-                m = findUtilsMethod("reportLong");
-                break;
-            case TypeTags.SHORT:
-                m = findUtilsMethod("reportShort");
-                break;
-            case TypeTags.CHAR:
-                m = findUtilsMethod("reportChar");
-                break;
-            case TypeTags.BYTE:
-                m = findUtilsMethod("reportByte");
-                break;
-            case TypeTags.FLOAT:
-                m = findUtilsMethod("reportFloat");
-                break;
-            case TypeTags.DOUBLE:
-                m = findUtilsMethod("reportDouble");
-                break;
-            default:
-                // Silently ignores
-                result = translate(that.expression);
-                return;
-        }
-        JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit,translate(that.expression)));
-        c.pos = that.pos;
-        c.setType(that.type.baseType());
-        result = c;
-    }
-
-//    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//
-//    public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//
-//    public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//
-//    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//
-//    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//
-//    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//
-//    public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//
-//    public void visitJmlMethodSpecs(JmlMethodSpecs that) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//
-//    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//
-//    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-//        // FIXME - implement
-//        
-//    }
-//
-    public void visitJmlRefines(JmlRefines that) {
-        log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlRefines");
-    }
-//
+    //
 //    public void visitJmlSetComprehension(JmlSetComprehension that) {
 //        // FIXME - implement
 //        
@@ -2704,7 +2769,9 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
     
     public void notImplemented(DiagnosticPosition pos, String feature) {
         // FIXME - control with an option
-        log.warning(pos,"jml.not.implemented.rac",feature);
+        JavaFileObject prev = log.useSource(source);
+        log.note(pos,"jml.not.implemented.rac",feature);
+        log.useSource(prev);
     }
 
 

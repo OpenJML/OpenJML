@@ -651,12 +651,25 @@ public class OpenJMLInterface {
             String message = diagnostic.getMessage(null); // uses default locale
             int id = 0; // FIXME
             Diagnostic.Kind kind = diagnostic.getKind();
+            // Here the Diagnostic.Kind is the categorization of errors from OpenJDK
+            //  We use: ERROR - compilation and JML typechecking errors
+            //          WARNING - less serious JML typechecking errors (e.g. deprecated syntax)
+            //          NOTE - informational - e.g. features not implemented and hence ignored
+            //          OTHER - used for static checking warnings
+            // The ProblemSeverities are Eclipse's categorization of errors
+            //          There are various kinds of errors, of which we only use Error (e.g. also Fatal, Abort, ...)
+            //          As you see we map  ERROR -> Error, WARNING -> Warning,
+            //                             NOTE -> Ignore, OTHER (static check warnings) -> SecondaryError
+            // Static check warnings could be mapped to Warning, but we want to 
+            // distinguish them from Errors and Warnings.  This is a little problem 
+            // prone.  Also, I think that some compiler options might turn off
+            // the NOTE/Ignore markers - check this - TODO
             int severity = 
                 kind == Diagnostic.Kind.ERROR ? ProblemSeverities.Error :
                     kind == Diagnostic.Kind.WARNING ? ProblemSeverities.Warning :
-                        kind == Diagnostic.Kind.MANDATORY_WARNING ? ProblemSeverities.Error : // FIXME - should we be able to screen these out?
-                            kind == Diagnostic.Kind.NOTE ? ProblemSeverities.Warning : // FIXME - would like this to be a different kind
-                                kind == Diagnostic.Kind.OTHER ? ProblemSeverities.Warning : // FIXME - would like this to be a different kind
+                        kind == Diagnostic.Kind.MANDATORY_WARNING ? ProblemSeverities.Error : 
+                            kind == Diagnostic.Kind.NOTE ? ProblemSeverities.Ignore : 
+                                kind == Diagnostic.Kind.OTHER ? ProblemSeverities.SecondaryError : 
                                     ProblemSeverities.Error; // There should not be anything else, but we'll call it an error just in case.
 
             long pos = diagnostic.getPosition();
