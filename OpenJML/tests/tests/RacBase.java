@@ -70,7 +70,7 @@ public abstract class RacBase extends JmlTestCase {
         // Use the default specs path for tests
         testspecpath = testspecpath1;
         // Define a new collector that filters out the notes
-        collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
+        collector = new FilteredDiagnosticCollector<JavaFileObject>(false);
         super.setUp();
         
         // Setup the options

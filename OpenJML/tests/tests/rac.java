@@ -1115,7 +1115,7 @@ public class rac extends RacBase {
                 +"System.out.println(\"END\"); "
                 +"}"
                 +"}"
-                ,"/tt/A.java:4: warning: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",13
+                ,"/tt/A.java:4: Note: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",13
                 ,"END"
                 );
 
@@ -1156,7 +1156,7 @@ public class rac extends RacBase {
                 +"}"
                 +"//@ static ghost int ii; \n "
                 +"}"
-                ,"/tt/A.java:4: warning: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",13
+                ,"/tt/A.java:4: Note: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",13
                 ,"A 6"
                 ,"A 11"
                 ,"END"
@@ -1401,26 +1401,26 @@ public class rac extends RacBase {
                 +"int ma() { return 0; }\n"
                 +"int mb() { return 0; }\n"
                 +"}"
-                ,"/tt/A.java:2: warning: Not implemented for runtime assertion checking: axiom",5
-                ,"/tt/A.java:7: warning: Not implemented for runtime assertion checking: initially clause containing \\duration expression",5
-                ,"/tt/A.java:5: warning: Not implemented for runtime assertion checking: represents clause containing \\duration expression",5
-                ,"/tt/A.java:9: warning: Not implemented for runtime assertion checking: hence_by statement",9
-                ,"/tt/A.java:10: warning: Not implemented for runtime assertion checking: assert statement containing \\duration expression",9
-                ,"/tt/A.java:11: warning: Not implemented for runtime assertion checking: assume statement containing \\duration expression",9
-                ,"/tt/A.java:12: warning: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",20
-                ,"/tt/A.java:13: warning: Not implemented for runtime assertion checking: set statement containing \\duration expression",9
-                ,"/tt/A.java:14: warning: Not implemented for runtime assertion checking: debug statement containing \\duration expression",9
-                ,"/tt/A.java:18: warning: Not implemented for runtime assertion checking: requires clause containing \\duration expression",5
-                ,"/tt/A.java:19: warning: Not implemented for runtime assertion checking: ensures clause containing \\duration expression",5
-                ,"/tt/A.java:20: warning: Not implemented for runtime assertion checking: signals clause containing \\duration expression",5
-                ,"/tt/A.java:6: warning: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",5
-                ,"/tt/A.java:22: warning: Not implemented for runtime assertion checking: diverges clause",5
-                ,"/tt/A.java:23: warning: Not implemented for runtime assertion checking: duration clause",5
-                ,"/tt/A.java:24: warning: Not implemented for runtime assertion checking: working_space clause",5
-                ,"/tt/A.java:6: warning: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",5
-                ,"/tt/A.java:16: warning: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",16
-                ,"/tt/A.java:17: warning: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",18
-                ,"/tt/A.java:3: warning: Not implemented for runtime assertion checking: invariant clause containing \\duration expression",5
+                ,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom",5
+                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration expression",5
+                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration expression",5
+                ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
+                ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration expression",9
+                ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration expression",9
+                ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",20
+                ,"/tt/A.java:13: Note: Not implemented for runtime assertion checking: set statement containing \\duration expression",9
+                ,"/tt/A.java:14: Note: Not implemented for runtime assertion checking: debug statement containing \\duration expression",9
+                ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration expression",5
+                ,"/tt/A.java:19: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration expression",5
+                ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: signals clause containing \\duration expression",5
+                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",5
+                ,"/tt/A.java:22: Note: Not implemented for runtime assertion checking: diverges clause",5
+                ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: duration clause",5
+                ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: working_space clause",5
+                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",5
+                ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",16
+                ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",18
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration expression",5
                 ,"END"
                 );
 
@@ -1445,9 +1445,9 @@ public class rac extends RacBase {
                 +"//@   ensures true;\n"
                 +"static int m() { return 0; }\n"
                 +"}"
-                ,"/tt/A.java:5: warning: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
-                ,"/tt/A.java:8: warning: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
-                ,"/tt/A.java:11: warning: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
+                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
+                ,"/tt/A.java:8: Note: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
+                ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
                 ,"END"
                 );
     }

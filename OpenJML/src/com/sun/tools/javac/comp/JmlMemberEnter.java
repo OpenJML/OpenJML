@@ -1002,7 +1002,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             JmlTypeClauseDecl td = (JmlTypeClauseDecl)t;
             if (!(td.decl instanceof JCVariableDecl)) continue;
             JCVariableDecl vdecl = (JCVariableDecl)td.decl;
-            if (!JmlAttr.instance(context).isModel(vdecl.mods)) continue;  // FIXME -check for model on the symbol?
+            JCAnnotation modelAnnotation = JmlAttr.instance(context).findMod(vdecl.mods,JmlToken.MODEL);
+            if (modelAnnotation == null) continue;  // FIXME -check for model on the symbol?
             long flags = Flags.SYNTHETIC;
             flags |= (vdecl.mods.flags & (Flags.STATIC|Flags.AccessFlags));
             modelMethodNames.add(vdecl.name);
@@ -1011,6 +1012,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(),jmlF.Block(0,List.<JCStatement>nil()), null);
             mr.pos = vdecl.pos;
             utils.setJML(mr.mods);
+            mr.mods.annotations = List.<JCAnnotation>of(modelAnnotation);
             memberEnter(mr,env);
             setDefaultCombinedMethodSpecs(mr);
             JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);

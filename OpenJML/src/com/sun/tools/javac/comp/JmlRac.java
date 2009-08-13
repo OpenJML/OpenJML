@@ -1950,7 +1950,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 
                 case HENCE_BY:
                     result = factory.Skip();
-                    utils.notImplemented(that.pos(),"hence_by statement");
+                    notImplemented(that.pos(),"hence_by statement");
                     break;
 
                 default:
@@ -2005,7 +2005,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 
                 case HENCE_BY:
                     result = factory.at(tree.pos).Skip();
-                    utils.notImplemented(tree.pos(),"hence_by statement");
+                    notImplemented(tree.pos(),"hence_by statement");
                     break;
 
                 default:
