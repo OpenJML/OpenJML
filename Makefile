@@ -21,7 +21,7 @@ release-and-test: release test
 
 ## Just build a release named ${NAME}
 .PHONY: release
-release: alljars jmlruntime.jar tar 
+release: alljars jmlruntime.jar tar ui
 	@echo Release complete
 
 ${NAME}: release
@@ -104,6 +104,7 @@ jmlruntime.jar:
 	cp -r bin-runtime/* temp2
 	cp -r ${ANNOTATIONS}/bin/* temp2
 	(cd temp2; jar -cf ../jars/jmlruntime.jar . ) 
+	cp jars/jmlruntime.jar ${SPECS}
 	rm -rf temp2
 
 ## Separate target for jmlspecs.jar, though it is normally built along with
