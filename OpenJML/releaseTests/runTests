@@ -109,6 +109,7 @@ ${RTH} testRuntime4 "java -jar openjml.jar C.java -noPurityCheck " || RES=$(($RE
 ## Checks using annotations with normal use - should be OK
 ${RTH} testRuntime5 "java -jar openjml.jar D.java -noPurityCheck " || RES=$(($RES+1))
 
+export SWITCHSLASH=YES
 ## Checks using no paths - fails to find super class, uses specs in java file
 ${RTH} testPath1 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java " || RES=$(($RES+1))
 
@@ -138,6 +139,8 @@ ${RTH} testPath9 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/dat
 
 ## Checks using class path and specs path - uses specs file, finds super class
 ${RTH} testPath10 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
+
+export SWITCHSLASH=
 
 ## FIXME - this gives an odd error message.  The presence/absence of rt.jar makes no difference
 ##   adding additional spec files or removing -noInternalSpecs gets past this error, but not sure why
