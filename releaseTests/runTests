@@ -152,8 +152,8 @@ export SWITCHSLASH=
 ${RTH} testCheck1 "java -jar openjml.jar -noPurityCheck -specspath . A.java" || RES=$(($RES+1))
 
 if [[ "${COMSPEC}" == "" ]]; then
-    echo NOT Exiting tests early because the OS is not Windows
-    ##exit
+    echo Exiting tests early because the OS is not Windows
+    exit
 fi
 
 export DIFFJMLDOC="diff -r "
