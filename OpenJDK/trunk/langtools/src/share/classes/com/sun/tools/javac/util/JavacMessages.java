@@ -114,7 +114,7 @@ public class JavacMessages implements Messages {
                     ResourceBundle rb = ResourceBundle.getBundle(bundleName, locale);
                     bundleList = bundleList.prepend(rb);
                 } catch (MissingResourceException e) {
-                    throw new InternalError("Cannot find javac resource bundle for locale " + locale);
+                    throw new InternalError("Cannot find javac resource bundle for locale " + locale + " " + bundleName); // DRC - added bundleName to message
                 }
             }
             bundleCache.put(locale, new SoftReference<List<ResourceBundle>>(bundleList));
