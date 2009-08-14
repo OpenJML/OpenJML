@@ -5,7 +5,12 @@ export TESTLOC=../releaseTests
 export CMD=$2
 
 echo TESTING ${TESTNAME}
+if [[ "${COMSPEC}" != "" ]] ; then
 ${CMD} | grep -v "Note: " | tr -d '\r' > ${TESTLOC}/${TESTNAME}/actual
+else
+${CMD} | grep -v "Note: " | tr -d '\r' | tr '/' '\\' > ${TESTLOC}/${TESTNAME}/actual
+fi
+
 LRES=1
 diff ${TESTLOC}/${TESTNAME}/actual ${TESTLOC}/${TESTNAME}/expected && echo ${TESTNAME} OK && LRES=0 && rm -f ${TESTLOC}/${TESTNAME}/actual
 

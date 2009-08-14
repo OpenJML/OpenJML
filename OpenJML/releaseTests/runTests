@@ -9,6 +9,11 @@
 ## This path is going to be platform dependent
 source Makefile.local
 
+Z=:
+if [[ "$COMSPECS" != "" ]] ; then
+Z=';'
+fi
+
 REL=$1
 if [[ "$REL" == "" ]] ; then REL=`ls -t *gz | head -1` ; fi
 echo Testing $REL in `pwd`
@@ -140,7 +145,10 @@ ${RTH} testPath10 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/da
 ## Checks an invalid file
 ${RTH} testCheck1 "java -jar openjml.jar -noPurityCheck -specspath . A.java" || RES=$(($RES+1))
 
-
+if [[ "${COMSPEC}" == "" ]]; then
+    -echo Exiting tests early because the OS is not Windows
+    exit
+fi
 
 export DIFFJMLDOC="diff -r "
 
