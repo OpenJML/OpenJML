@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 ## This file tests a release of the OpenJML tool
 ## This is just a quick "smoke" test to make sure that 
