@@ -56,7 +56,6 @@ public class Main extends org.jmlspecs.openjml.Main {
      */
     //@ requires \nonnullelements(args);
     public static int execute(@NonNull String[] args) {
-        Locale.setDefault(new Locale("en","US")); // This needed for tests on Hudson, in Ireland, since the en_GB resources cannot be found (TODO)
         int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
         try {
             if (args == null) {
