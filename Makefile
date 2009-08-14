@@ -29,10 +29,16 @@ ${NAME}: release
 ui:	other copy
 
 other:
-	-diff ../OpenJMLUI/plugin.xml ../OpenJML-DevUI/plugin.xml || echo "PLUGINS ARE DIFFERENT - RESOLVE!!!!!"
-	-diff -r -x ".svn" ../OpenJMLUI/icons ../OpenJML-DevUI/icons || echo "ICON DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!"
-	-diff -r -x ".svn" ../OpenJMLUI/html ../OpenJML-DevUI/html || echo "HTML DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!"
-
+	@-if [[ -d ../OpenJML-DevUI ]]; then if [[ -d ../OpenJMLUI ]]; then \
+	echo Comparing icons and plugins ;\
+	diff ../OpenJMLUI/plugin.xml ../OpenJML-DevUI/plugin.xml || echo "PLUGINS ARE DIFFERENT - RESOLVE!!!!!" ;\
+	diff -r -x ".svn" ../OpenJMLUI/icons ../OpenJML-DevUI/icons || echo "ICON DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!" ;\
+	diff -r -x ".svn" ../OpenJMLUI/html ../OpenJML-DevUI/html || echo "HTML DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!" ;\
+	else echo "No ../OpenJMLUI to compare" ;\
+	fi; \
+	else echo "No ../OpenJML-DevUI to compare" ;\
+	fi
+	@echo Checked icons and plugins
 
 ## Test the release named ${NAME}
 .PHONY: test
