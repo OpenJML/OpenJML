@@ -216,3 +216,4 @@ if [[ ${RES} -eq 0 ]]; then echo "All tests succeeded"; else echo ${RES} tests f
 
 cd ..
 ##rm -rf temp
+exit ${RES}
