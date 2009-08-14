@@ -153,7 +153,7 @@ ${RTH} testCheck1 "java -jar openjml.jar -noPurityCheck -specspath . A.java" || 
 
 if [[ "${COMSPEC}" == "" ]]; then
     echo Exiting tests early because the OS is not Windows
-    exit
+    exit 1
 fi
 
 export DIFFJMLDOC="diff -r "
