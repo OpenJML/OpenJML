@@ -110,7 +110,6 @@ public class JavacMessages implements Messages {
         if (bundleList == null) {
             bundleList = List.nil();
             for (String bundleName : bundleNames) {
-                System.out.println("BUNDLE :" + bundleName + ":");
                 try {
                     ResourceBundle rb = ResourceBundle.getBundle(bundleName, locale);
                     bundleList = bundleList.prepend(rb);
