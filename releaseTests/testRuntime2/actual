@@ -1,0 +1,319 @@
+warning: A specification path directory does not exist: ../bin-runtime:../../../../JMLAnnotations/trunk/bin
+C.java:1: package org.jmlspecs.annotation does not exist
+import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }
+                              ^
+C.java:1: package org.jmlspecs.lang does not exist
+import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }
+^
+C.java:1: cannot find symbol
+import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }
+                                                       ^
+  symbol:   class Pure
+  location: class C
+openjml.jar(specs16/java/lang/Object.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/Object.jml):59: package org.jmlspecs.annotation does not exist
+    public /*@ pure @*/ final /*@non_null*/ Class<?> getClass();
+                                 ^
+openjml.jar(specs16/java/lang/Object.jml):95: package org.jmlspecs.annotation does not exist
+    public /*@ pure @*/ boolean equals(/*@\readonly*//*@nullable*/ Object obj);
+                                                        ^
+openjml.jar(specs16/java/lang/Object.jml):35: cannot find symbol
+    //@ public non_null model JMLDataGroup objectState;
+                              ^
+  symbol:   class JMLDataGroup
+  location: class java.lang.Object
+openjml.jar(specs16/java/lang/Object.jml):38: cannot find symbol
+    //@ public non_null model JMLDataGroup privateState; in objectState;
+                              ^
+  symbol:   class JMLDataGroup
+  location: class java.lang.Object
+openjml.jar(specs16/java/lang/reflect/Array.jml):22: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+openjml.jar(specs16/java/lang/Object.jml):35: package org.jmlspecs.annotation does not exist
+    //@ public non_null model JMLDataGroup objectState;
+                        ^
+openjml.jar(specs16/java/lang/Object.jml):44: package org.jmlspecs.annotation does not exist
+    //@ ghost public nullable Object owner;
+        ^
+openjml.jar(specs16/java/io/Serializable.jml):3: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/lang/Class.jml):20: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/Class.jml):27: package org.jmlspecs.annotation does not exist
+//@ pure nullable_by_default
+         ^
+openjml.jar(specs16/java/lang/Throwable.jml):37: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/Exception.jml):26: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/CloneNotSupportedException.jml):3: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/Comparable.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/CharSequence.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/CharSequence.jml):29: package org.jmlspecs.annotation does not exist
+    //@ public instance model non_null char[] charArray;
+               ^
+openjml.jar(specs16/java/lang/String.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/InterruptedException.jml):3: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/RuntimeException.jml):26: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/IllegalArgumentException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/IndexOutOfBoundsException.jml):3: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/ArrayIndexOutOfBoundsException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/NegativeArraySizeException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/io/InputStream.jml):22: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/io/InputStream.jml):35: cannot find symbol
+    //@ public model JMLDataGroup streamState; in objectState;
+                     ^
+  symbol:   class JMLDataGroup
+  location: class java.io.InputStream
+openjml.jar(specs16/java/lang/ClassNotFoundException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/InstantiationException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/IllegalAccessException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/Package.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/reflect/Field.jml):1: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+openjml.jar(specs16/java/lang/SecurityException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/reflect/Method.jml):1: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+openjml.jar(specs16/java/lang/reflect/Constructor.jml):1: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+openjml.jar(specs16/java/lang/NoSuchFieldException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/NoSuchMethodException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/io/OutputStream.jml):21: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/io/OutputStream.jml):36: cannot find symbol
+    //@ public model JMLDataGroup output; in objectState;
+                     ^
+  symbol:   class JMLDataGroup
+  location: class java.io.OutputStream
+openjml.jar(specs16/java/io/FilterOutputStream.jml):4: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/io/PrintStream.jml):21: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/io/Writer.jml):3: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/io/PrintWriter.jml):2: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/lang/StackTraceElement.jml):22: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/io/IOException.jml):3: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/io/UnsupportedEncodingException.jml):3: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/lang/Cloneable.jml):3: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/util/Locale.jml):22: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/util/regex/Pattern.jml):21: package org.jmlspecs.lang does not exist
+package java.util.regex;
+^
+openjml.jar(specs16/java/util/Comparator.jml):1: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/lang/NullPointerException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/StringIndexOutOfBoundsException.jml):3: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/StringBuffer.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/reflect/InvocationTargetException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+openjml.jar(specs16/java/lang/Number.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/math/BigInteger.jml):21: package org.jmlspecs.lang does not exist
+package java.math;
+^
+openjml.jar(specs16/java/util/MissingResourceException.jml):1: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/util/regex/Matcher.jml):21: package org.jmlspecs.lang does not exist
+package java.util.regex;
+^
+openjml.jar(specs16/java/lang/Object.jml):56: cannot access org.jmlspecs.utils.IJMLTYPE
+      @   ensures \result == \typeof(this).erasure();
+                                          ^
+  class file for org.jmlspecs.utils.IJMLTYPE not found
+Could not find org.jmlspecs.utils.Utils type not found wrongSym=null explanation=null
+openjml.jar(specs16/java/lang/System.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/util/Dictionary.jml):1: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/util/Map.jml):19: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/util/Hashtable.jml):19: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/util/Properties.jml):1: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/lang/SecurityManager.jml):14: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/util/Enumeration.jml):26: package org.jmlspecs.lang does not exist
+//@ model import org.jmlspecs.lang.JMLDataGroup;
+                                  ^
+openjml.jar(specs16/java/util/Enumeration.jml):24: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/lang/Iterable.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/util/Collection.jml):24: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/util/Collection.jml):36: cannot find symbol
+    //@ public model instance JMLDataGroup localState; in objectState;
+                              ^
+  symbol:   class JMLDataGroup
+  location: interface java.util.Collection<E>
+openjml.jar(specs16/java/util/Set.jml):23: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/io/File.jml):4: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/lang/Runnable.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/org/jmlspecs/lang/JMLDataGroup.jml):22: package org.jmlspecs.annotation does not exist
+import org.jmlspecs.annotation.*;
+^
+openjml.jar(specs16/org/jmlspecs/lang/JMLDataGroup.jml):21: package org.jmlspecs.lang does not exist
+package org.jmlspecs.lang;
+^
+openjml.jar(specs16/org/jmlspecs/lang/JMLDataGroup.jml):31: cannot find symbol
+public @Pure final class JMLDataGroup implements Cloneable {
+        ^
+  symbol: class Pure
+openjml.jar(specs16/java/util/Iterator.jml):23: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/lang/ArrayStoreException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/net/URI.jml):22: package org.jmlspecs.lang does not exist
+package java.net;
+^
+openjml.jar(specs16/java/net/MalformedURLException.jml):1: package org.jmlspecs.lang does not exist
+package java.net;
+^
+openjml.jar(specs16/java/io/FileFilter.jml):3: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/io/FilenameFilter.jml):7: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/io/ObjectStreamException.jml):1: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs16/java/lang/Character.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/net/URISyntaxException.jml):1: package org.jmlspecs.lang does not exist
+package java.net;
+^
+openjml.jar(specs16/org/jmlspecs/utils/Utils.jml):5: package org.jmlspecs.annotation does not exist
+import org.jmlspecs.annotation.*;
+^
+openjml.jar(specs16/org/jmlspecs/utils/Utils.jml):1: package org.jmlspecs.lang does not exist
+package org.jmlspecs.utils;
+^
+openjml.jar(specs16/java/util/AbstractMap.jml):22: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/util/HashMap.jml):1: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs16/java/lang/Integer.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/NumberFormatException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/Byte.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/IllegalStateException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/Boolean.jml):22: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/Long.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/Float.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/Double.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs16/java/lang/Short.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+100 errors
+1 warning
+ENDING with exit code 1
