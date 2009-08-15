@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: OpenJMLUI Plug-in
+Bundle-Name: OpenJMLUI
 Bundle-SymbolicName: org.jmlspecs.OpenJMLUI;singleton:=true
-Bundle-Version: 0.1.10
+Bundle-Version: 0.1.13
 Bundle-ClassPath: bin/,
  openjml/,
  runtime/

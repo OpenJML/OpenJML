@@ -2,7 +2,7 @@
 <feature
       id="org.jmlspecs.OpenJMLFeature"
       label="OpenJML"
-      version="0.1.10"
+      version="0.1.13"
       provider-name="David R. Cok">
 
    <description>
@@ -32,6 +32,20 @@
          id="org.jmlspecs.OpenJMLUI"
          download-size="0"
          install-size="0"
-         version="0.1.10"/>
+         version="0.1.13"/>
+
+   <plugin
+         id="org.jmlspecs.annotation"
+         download-size="0"
+         install-size="0"
+         version="0.1.13"
+         unpack="false"/>
+
+   <plugin
+         id="org.jmlspecs.Specs"
+         download-size="0"
+         install-size="0"
+         version="0.1.13"
+         unpack="false"/>
 
 </feature>
