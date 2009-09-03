@@ -1,9 +1,6 @@
 package tests;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
-import java.net.URI;
 
 import javax.tools.JavaFileObject;
 
@@ -12,9 +9,6 @@ import junit.framework.AssertionFailedError;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Utils;
 
-import tests.JmlTestCase.FilteredDiagnosticCollector;
-
-import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 
@@ -129,15 +123,11 @@ public abstract class RacBase extends JmlTestCase {
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     public void helpTCX(String classname, String s, Object... list) {
-//        helpTCX(new String[]{classname},s,list);
-//    }
-//    public void helpTCX(String[] classnames, String s, Object... list) {
+
         if (this.getClass() == racsystem.class) {
             System.out.println("racsystem tests disabled");
-            return;  // FIXME - turnin off these tests for now
+            return;  // FIXME - turning off these tests for now
         }
-        BufferedReader r = null;
-        BufferedReader rerr = null;
         try {
             ListBuffer<JavaFileObject> files = new ListBuffer<JavaFileObject>();
             String filename = classname.replace(".","/")+".java";
@@ -146,12 +136,7 @@ public abstract class RacBase extends JmlTestCase {
             for (JavaFileObject ff: mockFiles) {
                 if (ff.toString().endsWith(".java")) files.append(ff);
             }
-//            boolean first = true;
-//            for (String classname: classnames) {
-//                String filename = classnames[0].replace(".","/")+".java";
-//                JavaFileObject f = new TestJavaFileObject(filename,s);
-//                files.append(f);
-//            }
+
             Log.instance(context).useSource(files.first());
             int ex = main.compile(new String[]{"-target","1.5"}, context, files.toList(), null);
             
@@ -167,36 +152,37 @@ public abstract class RacBase extends JmlTestCase {
             if (rac == null) rac = defrac;
             rac[rac.length-1] = classname;
             Process p = Runtime.getRuntime().exec(rac);
-            // Give the process some time to get started and generate output
-            Thread.sleep(100);  // If we use p.waitFor() we sometimes get a process that locks up - esp. if it has errors
-            r = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            rerr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            
+            StreamGobbler out = new StreamGobbler(p.getInputStream());
+            StreamGobbler err = new StreamGobbler(p.getErrorStream());
+            out.start();
+            err.start();
+            if (timeout(p,10000)) { // 10 second timeout
+                fail("Process did not complete within the timeout period");
+            }
+            
+            String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
+            
             int i = expectedErrors*2;
-            boolean done = false;
-            boolean edone = false;
-            while (!done || !edone) {
-                // DO we read the output or the error?  Every test is supposed to
-                // generate output if it is successful.  If it fails to run (which
-                // it should not), only error output may be generated.  We hope that
-                // rerr is ready at this point (hence the delay above) if there is
-                // only error output, otherwise we block on the readLine call.
-                // (we did not used to have this problem??) (TODO: adjust to using java.nio?)
-                while (!done && !rerr.ready()) {
-                    String ss = r.readLine();
-                    if (ss == null) { done = true; break; }
-                    if (print || i >= list.length) { System.out.println("OUT: " + ss); }
-                    if (!print && i < list.length) assertEquals("Output line " + i, list[i], ss);
-                    i++;
-                }
-
-                while (!edone && !r.ready()) {
-                    String ss = rerr.readLine();
-                    if (ss == null) { edone = true; break; }
-                    if (print || i >= list.length) { System.out.println("ERR: " + ss); }
-                    if (!print && i < list.length) assertEquals("Output line " + i, list[i], ss);
+            String data = out.input();
+            if (data.length() > 0) {
+                String[] lines = data.split(term);
+                for (String line: lines) {
+                    if (print) { System.out.println("OUT: " + line); }
+                    if (!print && i < list.length) assertEquals("Output line " + i, list[i], line);
                     i++;
                 }
             }
+            data = err.input();
+            if (data.length() > 0) {
+                String[] lines = data.split(term);
+                for (String line: lines) {
+                    if (print) { System.out.println("ERR: " + line); }
+                    if (!print && i < list.length) assertEquals("Output line " + i, list[i], line);
+                    i++;
+                }
+            }
+
             if (i> list.length) fail("More output than specified: " + i + " vs. " + list.length + " lines");
             if (i< list.length) fail("Less output than specified: " + i + " vs. " + list.length + " lines");
             if (p.exitValue() != expectedRACExit) fail("Exit code was " + p.exitValue());
@@ -207,16 +193,16 @@ public abstract class RacBase extends JmlTestCase {
             if (!print && !noExtraPrinting) printErrors();
             throw e;
         } finally {
-            if (r != null) 
-                try { r.close(); } 
-                catch (java.io.IOException e) { 
-                    // Give up if there is an exception
-                }
-            if (rerr != null) 
-                try { rerr.close(); } 
-                catch (java.io.IOException e) {
-                    // Give up if there is an exception
-                }
+//            if (r != null) 
+//                try { r.close(); } 
+//                catch (java.io.IOException e) { 
+//                    // Give up if there is an exception
+//                }
+//            if (rerr != null) 
+//                try { rerr.close(); } 
+//                catch (java.io.IOException e) {
+//                    // Give up if there is an exception
+//                }
         }
     }
 

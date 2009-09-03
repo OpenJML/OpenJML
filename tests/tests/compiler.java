@@ -60,7 +60,7 @@ public class compiler extends TestCase {
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualOutput = berr.toString();
         //if (output.length <= 1 && actualOutput.length() == 0) actualOutput = bout.toString();
-        if (actualOutput.length() == 0) actualOutput = bout.toString();
+        if (actualOutput.length() == 0) actualOutput = bout.toString().replace("\\","/");
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (capture) try {
             String tail = exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
@@ -149,7 +149,6 @@ public class compiler extends TestCase {
                           + "1 warning" + eol);
     }
 
-    // TODO: Environment specific - backslashes
     /** Tests the lack of a runtime library */
     @Test
     public void testNoRuntime() throws Exception {
@@ -158,7 +157,7 @@ public class compiler extends TestCase {
                             "-classpath","testfiles/testNoErrors",
                             "testfiles/testNoErrors/A.java",  
                           },1,0,
-                          "testfiles\\testNoErrors\\A.java:1: package org.jmlspecs.lang does not exist"+eol+
+                          "testfiles/testNoErrors/A.java:1: package org.jmlspecs.lang does not exist"+eol+
                           "public class A {" +eol+
                           "^"+eol+
                           "1 error" + eol+
@@ -306,7 +305,7 @@ public class compiler extends TestCase {
 
     /** Tests that super files are read and processed */
     @Test
-    public void testSuperRead() { // TODO - file name is environment dependent
+    public void testSuperRead() { // TODO - .refines-java is deprecated
         helper(new String[]
                           { "-classpath","bin", 
                             "-sourcepath","testfiles",
@@ -315,7 +314,7 @@ public class compiler extends TestCase {
                             "testfiles/testSuperRead/A.java"
                           },1,1
                           ,""
-                          ,"testfiles\\testSuperRead\\B.refines-java:3: This JML modifier is not allowed for a type declaration"
+                          ,"testfiles/testSuperRead/B.refines-java:3: This JML modifier is not allowed for a type declaration"
                           );
     }
     
