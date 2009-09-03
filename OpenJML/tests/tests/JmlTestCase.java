@@ -22,6 +22,9 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.util.Options;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
+import java.io.*;
 
 
 /** This class provides basic functionality for the JUnit tests for OpenJML.
@@ -42,7 +45,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     /** A purposefully short abbreviation for the system path separator
      * ( ; or : )
      */
-    static String z = java.io.File.pathSeparator;
+    static final public String z = java.io.File.pathSeparator;
 
     static public interface DiagnosticListenerX<S> extends DiagnosticListener<S> {
         public List<Diagnostic<? extends S>> getDiagnostics();
@@ -79,6 +82,64 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         public java.util.List<Diagnostic<? extends S>> getDiagnostics() {
             return Collections.unmodifiableList(diagnostics);
         }
+    }
+    
+    public static class StreamGobbler extends Thread
+    {
+        private InputStream is;
+        private StringBuffer input = new StringBuffer();
+        
+        public StreamGobbler(InputStream is) {
+            this.is = is;
+        }
+        
+        public String input() {
+            return input.toString();
+        }
+        
+        public void run() {
+            try {
+                char[] cbuf = new char[10000];
+                InputStreamReader isr = new InputStreamReader(is);
+                BufferedReader br = new BufferedReader(isr);
+                int n;
+                while ((n = br.read(cbuf)) != -1) {
+                    input.append(cbuf,0,n);
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();  
+            }
+        }
+    }
+    
+    private class InterruptScheduler extends TimerTask {
+        Thread target = null;
+        
+        public InterruptScheduler(Thread target) {
+            this.target = target;
+        }
+        
+        @Override
+        public void run() {
+            target.interrupt();
+        }
+    }
+    
+    public boolean timeout(Process p, long milliseconds) {
+        // Set a timer to interrupt the process if it does not return within the timeout period
+        Timer timer = new Timer();
+        timer.schedule(new InterruptScheduler(Thread.currentThread()), new Date(System.currentTimeMillis()+milliseconds));
+        try {
+            p.waitFor();
+        } catch (InterruptedException e) {
+            // Stop the process from running
+            p.destroy();
+            return true;
+        } finally {
+            // Stop the timer
+            timer.cancel();
+        }
+        return false;
     }
 
     // References to various tools needed in testing
