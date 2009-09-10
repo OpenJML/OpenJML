@@ -1,6 +1,0 @@
-package javax.swing.event;
-
-public abstract class MouseInputAdapter extends java.awt.event.MouseAdapter implements javax.swing.event.MouseInputListener{
-    public MouseInputAdapter();
-}
-
