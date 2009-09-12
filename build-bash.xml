@@ -26,7 +26,7 @@
 	<target name="test">
 		<echo message="Running tests ${openjml.localSetup} "/>
 		<chmod file="releaseTests/runTests" perm="ugo+x"/>
-		<chmod file="releaseTests/runTestHelper" perm="ugo+x"/>
+		<chmod file="releaseTests/releaseTestHelper" perm="ugo+x"/>
 		<exec executable="${basedir}/releaseTests/runTests" 
 			osfamily="unix"
 			failonerror="true">
