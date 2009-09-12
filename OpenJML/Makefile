@@ -8,17 +8,23 @@
 ##	test - just test the current release
 
 ## The following file defines ROOT, SPECS, ANNOTATIONS per the local file system
+
 include Makefile.local
+
 
 VERSION:=$(shell date +%Y%m%d)
 NAME=openjml-${VERSION}.tar.gz
 ## Set LOCAL_SETUP yourself in Makefile.local if you need to setup your environment before running tests
-LOCAL_SETUP ?= echo -n
+LOCAL_SETUP ?= printf ""
 
 ## Default - build and test the release
 .PHONY: release-and-test
 release-and-test: release test
 
+Makefile.local: Makefile.local.template
+	cp Makefile.local.template Makefile.local
+	@echo EDIT THE GENERATED Makefile.local FILE TO MATCH YOUR INSTALLATION
+	
 ## Just build a release named ${NAME}
 .PHONY: release
 release: alljars jmlruntime.jar tar ui
@@ -44,13 +50,17 @@ other:
 .PHONY: test
 test: 
 	@echo Testing
-	( ${LOCAL_SETUP}; releaseTests/runTests  ${NAME} ) 
+	( ${LOCAL_SETUP}; java -version; chmod +x releaseTests/runTests releaseTests/releaseTestHelper; releaseTests/runTests  ${NAME} ) 
 	@echo Testing Complete `date`
 
 ## Builds a tar file of the release components
 .PHONY: tar
 tar:
-	(cd jars; cp ../README . ; tar -zcf ../${NAME} README openjml.jar jmlruntime.jar jmlspecs.jar )
+	cp openjml-system.properties jars
+	cp openjml-template.properties jars
+	(cd jars; \
+	cp ../README . ; \
+	tar -zcf ../${NAME} README openjml.jar jmlruntime.jar jmlspecs.jar *.properties )
 	##rm -rf jars  ## We don't delete them because some tests use them
 	
 ## Builds two of the jar files that are in the release

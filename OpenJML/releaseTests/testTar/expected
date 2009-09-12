@@ -2,3 +2,5 @@ README
 openjml.jar
 jmlruntime.jar
 jmlspecs.jar
+openjml-system.properties
+openjml-template.properties

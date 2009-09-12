@@ -1,4 +1,6 @@
-#! /bin/bash
+#! /bin/bash 
+
+printenv
 
 ## This file tests a release of the OpenJML tool
 ## This is just a quick "smoke" test to make sure that 
@@ -6,13 +8,20 @@
 ## It is intended to be run with the OpenJML project directory as its 
 ## current working directory, but does its work in a temporary subdirectory
 
-## This path is going to be platform dependent
-source Makefile.local
+## Execute any local setup
+if [[ -n "${LOCAL_SETUP}" ]]; then
+    echo Executing local setup ${LOCAL_SETUP}
+	source ${LOCAL_SETUP}
+fi
+
+java -version
+which java
 
 Z=:
 if [[ "$COMSPEC" != "" ]] ; then
 Z=';'
 fi
+
 
 REL=$1
 if [[ "$REL" == "" ]] ; then REL=`ls -t *gz | head -1` ; fi
@@ -27,9 +36,6 @@ TESTLOC=../releaseTests
 
 export RTH=../releaseTests/releaseTestHelper
 RES=0
-
-## Reports the version of Java being used
-java -version
 
 ## Checks the contents of the release tar file
 ${RTH} testTar "tar ztf *gz" || RES=$(($RES+1))
@@ -98,10 +104,10 @@ ${RTH} testOK4 "java -jar openjml.jar -specspath . B.java -noInternalSpecs" || R
 ${RTH} testRuntime1 "java -jar openjml.jar C.java -classpath . -noPurityCheck -noInternalRuntime" || RES=$(($RES+1))
 
 ## Checks a valid file with an external binary runtime library - should be OK
-${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../bin-runtime${Z}../${ANNOTATIONS}/bin -noInternalRuntime"  || RES=$(($RES+1))
+${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../bin-runtime${Z}${ANNOTATIONS}/bin -noInternalRuntime"  || RES=$(($RES+1))
 
 ## Checks a valid file with an external source runtime library - should be OK
-${RTH} testRuntime3 "java -jar openjml.jar C.java -noPurityCheck -classpath ../runtime${Z}../${ANNOTATIONS}/src -noInternalRuntime" || RES=$(($RES+1))
+${RTH} testRuntime3 "java -jar openjml.jar C.java -noPurityCheck -classpath ../runtime${Z}${ANNOTATIONS}/src -noInternalRuntime" || RES=$(($RES+1))
 
 ## Checks using annotations with normal use - should be OK
 ${RTH} testRuntime4 "java -jar openjml.jar C.java -noPurityCheck " || RES=$(($RES+1))
