@@ -92,7 +92,9 @@ tr -d '\r' < racactual |  diff - ../releaseTests/testRac/expected-stack || { RES
 ## Checks a valid file using java -classpath
 ${RTH} testOK2 "java -classpath openjml.jar org.jmlspecs.openjml.Main  -Xlint:unchecked -noPurityCheck -specspath . B.java" || RES=$(($RES+1))
 
-if [[ "$COMSPEC" != "" ]] ; then
+## This checks verbose output - which changes too often to put in the 
+## regular test suite
+if [[ "$COKENV" != "" ]] ; then
 ## Checks a valid file with jmlverbose
 ${RTH} testOK3 "java -jar openjml.jar -noPurityCheck -specspath . B.java -jmlverbose" || RES=$(($RES+1))
 fi
@@ -179,8 +181,10 @@ ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc1/expected
 
 ## jmldoc - checking the -java flag; uses the jmldoc3 input data
 rm -rf doc ../testfiles/jmldoc2/actual
+export NOSTDDOCLET=1
 ${RTH} testJmldoc2 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -java -d doc -public -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc2/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc2/actual; }
+export NOSTDDOCLET=
 
 ## jmldoc - checking the -public flag
 rm -rf doc ../testfiles/jmldoc3/actual

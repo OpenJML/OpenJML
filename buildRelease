@@ -15,7 +15,8 @@ NAME=openjml-${VERSION}.tar.gz
 	mkdir -p temp
 	mkdir -p jars
 	rm -f jars/jmlspecs.jar jars/openjml.jar
-	(cd temp; for j in ${ROOT}/OpenJML/otherlibs/* ; do jar xf $j; done; rm -rf META-INF )
+	echo "   " Copying files
+	(cd temp; for j in ../otherlibs/* ; do jar xf $j; done; rm -rf META-INF )
 	cp -r ${ROOT}/OpenJDK/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
@@ -29,8 +30,10 @@ NAME=openjml-${VERSION}.tar.gz
 	cp -r temp/specs15/* temp/specs16
 	cp -r ${SPECS}/java6/* temp/specs16
 	find temp/specs16 -name .svn -exec rm -rf \{\} +
+	echo "   " Creating jmlspecs.jar
 	(cd temp/specs16; jar -cf ../../jars/jmlspecs.jar . )
 	mkdir -p temp2
+	echo "   " Creating openjml.jar
 	echo "Manifest-Version: 1.0" > temp2/manifest
 	echo "Main-Class: org.jmlspecs.openjml.Main" >> temp2/manifest
 	(cd temp; jar -cfm ../jars/openjml.jar ../temp2/manifest . )
