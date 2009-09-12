@@ -8,17 +8,36 @@
 <target name="release-test" depends="release,test">
 </target>
 
-<target name="release">
-	<echo message="Building release"/>
-	<exec executable="./buildRelease" failonerror="true">
-	</exec>
-</target>
+	<target name="release">
+		<echo message="Building release"/>
+		<chmod file="buildRelease" perm="ugo+x"/>
+		<exec executable="${basedir}/buildRelease" 
+			failonerror="true"
+			osfamily="unix">
+		</exec>
+		<exec executable="bash" 
+			failonerror="true"
+			osfamily="windows">
+			<arg value="${basedir}/buildRelease"/>
+		</exec>
+	</target>
 
-<target name="test">
-	<echo message="Running tests ${openjml.localSetup} "/>
-	<exec executable="releaseTests/runTests" failonerror="true">
-		<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
-	</exec>
-</target>
+
+	<target name="test">
+		<echo message="Running tests ${openjml.localSetup} "/>
+		<chmod file="releaseTests/runTests" perm="ugo+x"/>
+		<chmod file="releaseTests/runTestHelper" perm="ugo+x"/>
+		<exec executable="${basedir}/releaseTests/runTests" 
+			osfamily="unix"
+			failonerror="true">
+			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
+		</exec>
+		<exec executable="bash" 
+			osfamily="windows"
+			failonerror="true">
+			<arg value="${basedir}/releaseTests/runTests"/>
+			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
+		</exec>
+	</target>
 
 </project>
