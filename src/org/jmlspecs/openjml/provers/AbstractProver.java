@@ -53,15 +53,15 @@ public abstract class AbstractProver implements IProver {
             } else {
                 c = map.get(prover);
                 if (c == null) {
-                    Log.instance(context).noticeWriter.println("NO SUCH PROVER: " + prover);
-                    c = org.jmlspecs.openjml.provers.YicesProver.class;
+                    Log.instance(context).error("esc.no.prover",prover);
+                    return null;
                 }
             }
             // FIXME Constructor<?> cn = c.getConstructor(com.sun.tools.javac.util.Context.class);
             //return (IProver)cn.newInstance(context);
             return new YicesProver(context);
         } catch (Exception e) {
-            Log.instance(context).noticeWriter.println("COULD NOT MAKE A PROVER");
+            Log.instance(context).error("esc.create.prover.exception",prover,e.getMessage());
             return null;
         }
     }

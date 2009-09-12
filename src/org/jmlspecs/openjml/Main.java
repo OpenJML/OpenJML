@@ -1,6 +1,9 @@
 package org.jmlspecs.openjml;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -9,9 +12,12 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.zip.ZipFile;
 
+import javax.annotation.processing.Processor;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -203,7 +209,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         super(name,out);
         this.out = out;  // FIXME - would not need this if the super class declared out protected
         this.diagListener = diagListener;
-        if (args != null) initialize(args);
+        initialize(args);
     }
 
     /** The external entry point - simply calls compiler(args) and exits with the
@@ -314,7 +320,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         return errorcode;
     }
-
 
     /** This method is overwritten so that the JML compiler can register its
      *  own tools for the various phases.  This fits in just the right place in 
@@ -638,10 +643,19 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (args == null) args = emptyArgs;
         context = new Context();
         JavacFileManager.preRegister(context); // can't create it until Log has been set up
-        setOptions(Options.instance(context));
+        Options options = Options.instance(context);
+        setOptions(options);
         filenames = new ListBuffer<File>();
         classnames = new ListBuffer<String>();
         register(context);
+        findProperties();
+        for (Map.Entry<Object,Object> entry: System.getProperties().entrySet()) {
+            String key = entry.getKey().toString();
+            if (key.startsWith("openjml.option.")) {
+                key = key.substring("openjml.option.".length());
+                options.put(key, entry.getValue().toString());
+            }
+        }
         processArgs(CommandLine.parse(args));
         // FIXME - warn about ignored files? or process them?
         return this;
@@ -766,6 +780,87 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** Returns a reference to the API's compilation context. */
     public @Nullable Context context() {
         return context;
+    }
+    
+    public void findProperties() {
+        String releaseJar = "openjml.jar";
+        String sp = System.getProperty("java.class.path");
+        String[] ss = sp.split(java.io.File.pathSeparator);
+        Properties properties = new Properties();
+        
+        String rootdir = null;
+        
+        for (String s: ss) {
+            if (s.endsWith(releaseJar)) {
+                s = s.substring(0,s.length()-releaseJar.length());
+                if (s.length() == 0) s = ".";
+                rootdir = s;
+                break;
+            }
+        }
+        
+        if (rootdir == null) { // Perhaps this is Eclipse JUnit tests
+            for (String s: ss) {
+                if (s.endsWith("bin-runtime")) {
+                    s = s.substring(0,s.length()-"bin-runtime".length());
+                    if (s.length() == 0) s = ".";
+                    rootdir = s;
+                    break;
+                }
+            }
+        }
+        
+        if (rootdir == null) {
+            Log.instance(context()).error("jml.internal.notsobad", "Installation directory not found - openjml system and local properties not read");
+        } else {
+            String s = rootdir + "/openjml-system.properties";
+            readProps(properties,s);
+            s = rootdir + "/openjml.properties";
+            File props = new File(s);
+            if (!props.exists()) {
+                File in = new File(rootdir + "/openjml-template.properties");
+                if (in.exists()) {
+                    try {
+                        char[] buf = new char[10000];
+                        int k = new FileReader(in).read(buf);
+                        if (k == buf.length) {
+                            Log.instance(context()).error("jml.internal.notsobad", "Failed to copy openjml-template.properties - buffer not large enough");
+                        } else {
+                            // FIXME - need to check that everything is read
+                            FileWriter fw = new FileWriter(props);
+                            fw.write(buf,0,k);
+                            fw.close();
+                        }
+                    } catch (IOException e) {
+                        Log.instance(context()).error("jml.internal.notsobad","Failed to copy openjml-template.properties");
+                    }
+                }
+            }
+            readProps(properties,s);
+        }
+        
+        String s = System.getProperty("user.home") + "/openjml.properties";
+        readProps(properties,s);
+//        for (Map.Entry<Object,Object> entry: properties.entrySet()) {
+//            System.out.println("PROP " + entry.getKey() + " = " + entry.getValue());
+//        }
+        System.getProperties().putAll(properties);
+        //System.out.println("SYS " + "openjml.prover.yices = " + System.getProperty("openjml.prover.yices"));
+    }
+    
+    public static void readProps(Properties properties, String filename) {
+        File f = new File(filename);
+        // No option settings are set yet
+        //System.out.println("Exists? " + filename + " " + f.exists());
+        if (f.exists()) {
+            try {
+                properties.load(new FileInputStream(f));
+            } catch (java.io.IOException e) {
+                // log is not yet set up
+                System.out.println("Failed to read property file " + filename);
+            }
+        }
+
     }
     
 

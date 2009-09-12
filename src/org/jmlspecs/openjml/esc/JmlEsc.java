@@ -665,10 +665,16 @@ public class JmlEsc extends JmlTreeScanner {
         try {
 
             // Pick a prover to use
-            String proverToUse = "yices";
+            String proverToUse = System.getProperty("openjml.defaultProver");
+            if (proverToUse == null) proverToUse = "yices";
             //String proverToUse = "cvc";
             //String proverToUse = "simplify";
             p = AbstractProver.getProver(context,proverToUse);
+            if (p == null) {
+                // Error is already reported
+                //log.error("esc.no.prover",proverToUse);
+                return false;
+            }
 
             if (useRetract && !p.supports().retract) { p.kill(); return true; }
             if (useCoreIds && !p.supports().unsatcore) { p.kill(); return true; }

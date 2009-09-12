@@ -140,6 +140,10 @@ public abstract class RacBase extends JmlTestCase {
             Log.instance(context).useSource(files.first());
             int ex = main.compile(new String[]{"-target","1.5"}, context, files.toList(), null);
             
+//            if (getName().equals("testPostcondition3") || getName().equals("testStaticInvariant")) {
+//                System.out.println("TP3: " + print + " " + expectedErrors);
+//                print = true;
+//            }
             if (print || collector.getDiagnostics().size()!=expectedErrors) printErrors();
             assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
             for (int i=0; i<expectedErrors; i++) {

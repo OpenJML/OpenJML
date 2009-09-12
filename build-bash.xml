@@ -1,0 +1,24 @@
+<project name="OpenJML" default="release-test" basedir=".">
+	<description>
+	</description>
+
+<loadproperties srcFile="openjml.properties"/>
+
+
+<target name="release-test" depends="release,test">
+</target>
+
+<target name="release">
+	<echo message="Building release"/>
+	<exec executable="./buildRelease" failonerror="true">
+	</exec>
+</target>
+
+<target name="test">
+	<echo message="Running tests ${openjml.localSetup} "/>
+	<exec executable="releaseTests/runTests" failonerror="true">
+		<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
+	</exec>
+</target>
+
+</project>
