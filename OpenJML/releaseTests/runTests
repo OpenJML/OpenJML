@@ -1,7 +1,5 @@
 #! /bin/bash 
 
-printenv
-
 ## This file tests a release of the OpenJML tool
 ## This is just a quick "smoke" test to make sure that 
 ## the tool runs on simple inputs
