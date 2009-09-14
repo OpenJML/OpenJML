@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <psf version="2.0">
 <provider id="org.tigris.subversion.subclipse.core.svnnature">
+<project reference="0.9.3,https://jmlspecs.svn.sourceforge.net/svnroot/jmlspecs/Specs/trunk,Specs"/>
 <project reference="0.9.3,https://jmlspecs.svn.sourceforge.net/svnroot/jmlspecs/JMLAnnotations/trunk,JMLAnnotations"/>
 <project reference="0.9.3,https://jmlspecs.svn.sourceforge.net/svnroot/jmlspecs/OpenJML/trunk/OpenJDK,OpenJDK"/>
 <project reference="0.9.3,https://jmlspecs.svn.sourceforge.net/svnroot/jmlspecs/OpenJML/trunk/OpenJML,OpenJML"/>
 <project reference="0.9.3,https://jmlspecs.svn.sourceforge.net/svnroot/jmlspecs/OpenJML/trunk/OpenJMLUI,OpenJMLUI"/>
-<project reference="0.9.3,https://jmlspecs.svn.sourceforge.net/svnroot/jmlspecs/Specs/trunk,Specs"/>
 </provider>
 </psf>
