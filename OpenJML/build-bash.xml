@@ -2,13 +2,23 @@
 	<description>
 	</description>
 
-<loadproperties srcFile="openjml.properties"/>
 
 
-<target name="release-test" depends="release,test">
-</target>
 
-	<target name="release">
+	
+	<condition property="openjml.properties.exists">
+		<available file="openjml.properties"/>
+	</condition>
+
+	<target name="release-test" depends="release,test"/>
+		
+	<target name="props" unless="openjml.properties.exists">
+		<copyfile src="openjml-template.properties" dest="openjml.properties"/>
+		<echo message="Default openjml.properties file created - edit it for your local settings"/>
+	</target>
+
+	<target name="release" depends="props">
+		<loadproperties srcFile="openjml.properties"/>
 		<echo message="Building release"/>
 		<chmod file="buildRelease" perm="ugo+x"/>
 		<exec executable="${basedir}/buildRelease" 
@@ -23,8 +33,9 @@
 	</target>
 
 
-	<target name="test">
+	<target name="test" depends="props">
 		<echo message="Running tests ${openjml.localSetup} "/>
+		<loadproperties srcFile="openjml.properties"/>
 		<chmod file="releaseTests/runTests" perm="ugo+x"/>
 		<chmod file="releaseTests/releaseTestHelper" perm="ugo+x"/>
 		<exec executable="${basedir}/releaseTests/runTests" 
