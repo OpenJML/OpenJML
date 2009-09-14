@@ -2,6 +2,22 @@
 
 ## This script builds releases
 
+## DO not know why this is necessary.  ROOT, ANNOTATIONS, and
+## SPECS are set from Eclipse project locations, but under
+## Windows/Cygwin, the cp commands below fail with those settings.
+## So we reset them here to the most common relative paths
+## for those env. variables.  (FIXME)
+if [[ "${COMSPEC}" != "" ]]; then
+if [[ "${COKENV}" == "" ]]; then
+	ROOT=..
+	if [[ -e ../JMLAnnotations ]]; then
+		ANNOTATIONS=../JMLAnnotations
+	fi
+	if [[ -e ../Specs ]]; then
+		SPECS=../Specs
+	fi
+fi
+fi
 
 VERSION=`date +%Y%m%d`
 NAME=openjml-${VERSION}.tar.gz
