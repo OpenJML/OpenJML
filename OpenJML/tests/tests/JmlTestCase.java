@@ -112,7 +112,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         }
     }
     
-    private class InterruptScheduler extends TimerTask {
+    private static class InterruptScheduler extends TimerTask {
         Thread target = null;
         
         public InterruptScheduler(Thread target) {
@@ -125,7 +125,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         }
     }
     
-    public boolean timeout(Process p, long milliseconds) {
+    public static boolean timeout(Process p, long milliseconds) {
         // Set a timer to interrupt the process if it does not return within the timeout period
         Timer timer = new Timer();
         timer.schedule(new InterruptScheduler(Thread.currentThread()), new Date(System.currentTimeMillis()+milliseconds));

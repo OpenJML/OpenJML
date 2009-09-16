@@ -7,6 +7,8 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
+import tests.JmlTestCase.StreamGobbler;
+
 
 /** Tests running the tool as if from the command-line (for typechecking);
  * includes erroneous command-line argument combinations and combinations
@@ -266,9 +268,46 @@ public class compiler extends TestCase {
     // This test requires jmlruntime.jar to have been created - run the Makefile
     // in the OpenJML project
     /** Tests using the runtime jar */
-    @Test
+    //@Test  // FIXME - this requires jmlruntime.jar - don't want to require running the release build before
+    // running the JUnit tests, so we'll disable this for not - not having success building the jmlruntime.jar
+    // library programmatically
     public void testSourcePath4() throws Exception {
-        helper(new String[]
+        if (!new java.io.File("jars/jmlruntime.jar").exists()) {
+            System.setErr(savederr);
+            System.setOut(savedout);
+            System.out.println("Starting");
+
+//            org.eclipse.ant.core.AntRunner runner = new AntRunner();
+//            //runner.setBuildFileLocation("C:/home/eclipse-workspace2/OpenJML/build-bash.xml");
+//            runner.setBuildFileLocation("build-bash.xml");
+//            System.out.println("Running? " + AntRunner.isBuildRunning());
+//            runner.setArguments("-Dmessage=Building -verbose");
+//            runner.setExecutionTargets(new String[]{"jmlruntime.jar"});
+//            try {
+//                runner.run();
+//            } catch (Exception e) {
+//                System.out.println("Exception " + e);
+//                e.printStackTrace(System.out);
+//            }
+
+            //Process p = Runtime.getRuntime().exec("C:/home/apps/ant/apache-ant-1.7.1/bin/ant.cmd",new String[]{"-f","build-bash.xml","jmlruntime.jar"});
+            //Process p = Runtime.getRuntime().exec("bash",new String[]{"C:/home/projects/OpenJML/trunk/OpenJML/buildRuntimelib"});
+            //Process p = Runtime.getRuntime().exec("bash",new String[]{"buildRuntimelib"});
+            //Process p = Runtime.getRuntime().exec("./buildRuntimelib");
+//            System.out.println("Waiting");
+//            StreamGobbler out = new StreamGobbler(p.getInputStream());
+//            StreamGobbler err = new StreamGobbler(p.getErrorStream());
+//            out.start(); err.start();
+//            System.out.println("Waiting more");
+//            boolean timedout = JmlTestCase.timeout(p,10000);
+//            System.out.println("Timedout " + timedout);
+//            if (!timedout) {
+//                int e = p.waitFor();
+//                System.out.println("Exit " + e);
+//            }
+            System.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars direcctory.  It will not be run until a release has been built.");
+        } else {
+            helper(new String[]
                           { "-classpath","jars/jmlruntime.jar",
                             "-sourcepath","testfiles/testNoErrors",
                             "-specspath","",
@@ -276,6 +315,7 @@ public class compiler extends TestCase {
                             "testfiles/testNoErrors/A.java",  
                           },0,0,"",
                           "");
+        }
     }
 
     /** Tests using class, source and specs path */
