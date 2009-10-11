@@ -107,6 +107,7 @@ ${RTH} testRuntime1 "java -jar openjml.jar C.java -classpath . -noPurityCheck -n
 ## OpenJML/temp so if absolute we want ${ANNOTATIONS}, if relative we want ../${ANNOTATIONS}
 
 if [ -e ${ANNOTATIONS} ]; then
+echo Using ${ANNOTATIONS}
 
 ## Checks a valid file with an external binary runtime library - should be OK
 ${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../bin-runtime${Z}${ANNOTATIONS}/bin -noInternalRuntime"  || RES=$(($RES+1))
@@ -115,6 +116,9 @@ ${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../b
 ${RTH} testRuntime3 "java -jar openjml.jar C.java -noPurityCheck -classpath ../runtime${Z}${ANNOTATIONS}/src -noInternalRuntime" || RES=$(($RES+1))
 
 else 
+
+echo Using ../${ANNOTATIONS}
+ls -R ../${ANNOTATIONS}/bin
 
 ## Checks a valid file with an external binary runtime library - should be OK
 ${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../bin-runtime${Z}$../${ANNOTATIONS}/bin -noInternalRuntime"  || RES=$(($RES+1))
