@@ -82,7 +82,7 @@ alljars jmlspecs.jar openjml.jar:
 	cp -r ${ANNOTATIONS}/bin/* temp
 	mkdir temp/specs14 temp/specs15 temp/specs16
 	cp -r ${SPECS}/java4/* temp/specs14
-	find temp/specs14 -name .svn -exec rm -rf \{\} +
+	find temp/specs14 -name .svn -exec rm -rf \{\} + 
 	cp -r temp/specs14/* temp/specs15
 	cp -r ${SPECS}/java5/* temp/specs15
 	find temp/specs15 -name .svn -exec rm -rf \{\} +
@@ -121,6 +121,7 @@ jmlruntime.jar:
 	cp -r ${ANNOTATIONS}/bin/* temp2
 	(cd temp2; jar -cf ../jars/jmlruntime.jar . ) 
 	cp jars/jmlruntime.jar ${SPECS}
+	chmod u+rwx ${SPECS}/jmlruntime.jar
 	rm -rf temp2
 
 ## Separate target for jmlspecs.jar, though it is normally built along with
