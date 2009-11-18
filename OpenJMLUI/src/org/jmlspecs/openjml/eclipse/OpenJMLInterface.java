@@ -191,7 +191,7 @@ public class OpenJMLInterface {
     public int generateJmldoc(IJavaProject p) {
         List<String> args = getOptions(p,Cmd.JMLDOC);
         args.add("-d");
-        args.add(p.getProject().getLocation().toString() + "/docx");
+        args.add(p.getProject().getLocation().toString() + File.pathSeparator + "docx");
         //args.add(JmlOptionName.DIRS.optionName());
         try {
             for (IPackageFragmentRoot pfr : p.getPackageFragmentRoots()) {
@@ -887,7 +887,7 @@ public class OpenJMLInterface {
                         int i = 0;
                         for (int v = version; v >=4; --v) {
                             File f = new File(root,"java"+v);
-                            if (f.exists()) defspecs[i++] = root + "/java" + v;
+                            if (f.exists()) defspecs[i++] = root + File.pathSeparator + "java" + v;
                         }
                     } else {
                         if (verbose) Log.log("Expected contents (javaN subdirectories) not found in specs bundle at " + root);
@@ -912,7 +912,7 @@ public class OpenJMLInterface {
                             int i = 0;
                             if (root.isDirectory()) {
                                 for (int v = version; v >=4; --v) {
-                                    File f = new File(root,"../specs/java"+v);
+                                    File f = new File(root,".." + File.pathSeparator + "specs" + File.pathSeparator + "java" + v);
                                     if (f.exists()) defspecs[i++] = f.toString();
                                 }
                             } else {
@@ -962,7 +962,7 @@ public class OpenJMLInterface {
                     if (url != null) {
                         File root = new File(url.toURI());
                         if (root.isDirectory()) {
-                            File f = new File(root,"../runtime");
+                            File f = new File(root,".." + File.pathSeparator + "runtime");
                             if (f.exists()) {
                                 //API.setExternalRuntime(new String[]{ f.toString() });
                                 ss.append(java.io.File.pathSeparator);
