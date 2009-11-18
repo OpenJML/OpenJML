@@ -1,7 +1,8 @@
-#! /bin/bash
+#!/bin/bash
 
 ## This script builds releases
 
+umask 022
 ## DO not know why this is necessary.  ROOT, ANNOTATIONS, and
 ## SPECS are set from Eclipse project locations, but under
 ## Windows/Cygwin, the cp commands below fail with those settings.
@@ -24,20 +25,22 @@ NAME=openjml-${VERSION}.tar.gz
 
 ###### Build jmlspecs.jar openjml.jar:
 	echo Building ${NAME} in `pwd`
-	rm -rf temp temp2
+	test -d temp && chmod -R u+rwx,a+rx temp || rm -rf temp
+	test -d temp2 && chmod -R u+rwx,a+rx temp2 || rm -rf temp2
 	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/OpenJML-${VERSION}/ > version.properties )
 	cp src/com/sun/tools/javac/resources/version.properties bin/com/sun/tools/javac/resources/version.properties
 	echo "openjml OpenJML-${VERSION}" > releaseTests/testJmlVersion/expected
-	mkdir -p temp
-	mkdir -p jars
+	mkdir -p temp; chmod -R u+rwx,go+rx temp
+	mkdir -p jars; chmod -R u+rwx,go+rx jars
 	rm -f jars/jmlspecs.jar jars/openjml.jar
 	echo "   " Copying files
 	(cd temp; for j in ../otherlibs/* ; do jar xf $j; done; rm -rf META-INF )
+	chmod -R a+rwx,go+rx ${ROOT}/OpenJDK/bin ${ROOT}/OpenJML/bin*
 	cp -r ${ROOT}/OpenJDK/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
 	cp -r ${ANNOTATIONS}/bin/* temp
-	mkdir temp/specs14 temp/specs15 temp/specs16
+	mkdir -p temp/specs14 temp/specs15 temp/specs16; chmod -R u+rwx,a+rx temp
 	cp -r ${SPECS}/java4/* temp/specs14
 	find temp/specs14 -name .svn -exec rm -rf \{\} +
 	cp -r temp/specs14/* temp/specs15
@@ -48,7 +51,7 @@ NAME=openjml-${VERSION}.tar.gz
 	find temp/specs16 -name .svn -exec rm -rf \{\} +
 	echo "   " Creating jmlspecs.jar
 	(cd temp/specs16; jar -cf ../../jars/jmlspecs.jar . )
-	mkdir -p temp2
+	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
 	echo "   " Creating openjml.jar
 	echo "Manifest-Version: 1.0" > temp2/manifest
 	echo "Main-Class: org.jmlspecs.openjml.Main" >> temp2/manifest
@@ -57,8 +60,8 @@ NAME=openjml-${VERSION}.tar.gz
 	echo "   " jmlspecs.jar openjml.jar created
 
 ##### Build jmlruntime.jar
-	mkdir -p temp2
-	mkdir -p jars
+	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
+	mkdir -p jars; chmod -R u+rwx,a+rx jars
 	rm -f jars/jmlruntime.jar
 	cp -r bin-runtime/* temp2
 	cp -r ${ANNOTATIONS}/bin/* temp2
@@ -91,22 +94,23 @@ NAME=openjml-${VERSION}.tar.gz
 	echo "   " Checked icons and plugins
 
 ##### Copy stuff to the ui
-	(cd ../OpenJMLUI; rm -rf runtime openjml specs ; )
-	(cd ../OpenJMLUI; mkdir -p specs ;)
+	(cd ../OpenJMLUI; chmod -R u+rwx runtime openjml specs;
+	 rm -rf runtime openjml specs ; )
+	(cd ../OpenJMLUI; mkdir -p specs; chmod -R u+rwx,a+rx specs;)
 	cp -rf ${SPECS}/java7 ../OpenJMLUI/specs
 	cp -rf ${SPECS}/java6 ../OpenJMLUI/specs
 	cp -rf ${SPECS}/java5 ../OpenJMLUI/specs
 	cp -rf ${SPECS}/java4 ../OpenJMLUI/specs
 	find ../OpenJMLUI/specs -name .svn -exec rm -rf \{\} +
-	mkdir -p ../OpenJMLUI/openjml
-	mkdir -p ../OpenJMLUI/runtime
+	mkdir -p ../OpenJMLUI/openjml; chmod -R u+rwx,a+rx ../OpenJMLUI/openjml
+	mkdir -p ../OpenJMLUI/runtime; chmod -R u+rwx,a+rx ../OpenJMLUI/runtime
 	cp -r ${ROOT}/OpenJDK/bin/* ../OpenJMLUI/openjml
 	cp -r ${ROOT}/OpenJML/bin/* ../OpenJMLUI/openjml
 	cp -r ${ROOT}/OpenJML/bin-runtime/* ../OpenJMLUI/runtime
+	chmod -R u+rwx,a+rx ${ANNOTATIONS}/bin/*
 	cp -r ${ANNOTATIONS}/bin/* ../OpenJMLUI/runtime
 	echo "   " "Copy to OpenJMLUI complete"
 
 
 ##### End	
 	echo Release complete
-
