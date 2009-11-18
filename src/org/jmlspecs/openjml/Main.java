@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -378,7 +379,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         while (i<args.length) {
             i = processJmlArg(args,i,options,newargs,files);
         }
-        
         newargs.addAll(computeDependencyClosure(files));
         
         return newargs.toArray(new String[newargs.size()]);
@@ -401,7 +401,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             JavaFileObject o = todo.remove(0);
             if (done.contains(o)) continue;
             done.add(o);
-            if (o.getName().endsWith(".java")) newargs.add("C:" + o.toUri().getPath()); // FIXME - a hack to get the full path
+//            if (o.getName().endsWith(".java")) newargs.add("C:" + o.toUri().getPath()); // FIXME - a hack to get the full path
+            newargs.add(o.toUri().getPath()); // FIXME FOR REAL - this needs to be made sane
             Set<JavaFileObject> affected = d.getAffected(o);
             if (affected != null) {
                 todo.addAll(affected);
@@ -814,8 +815,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             Log.instance(context()).error("jml.internal.notsobad", "Installation directory not found - openjml system and local properties not read");
         } else {
             String s = rootdir + "/openjml-system.properties";
-            readProps(properties,s);
-            s = rootdir + "/openjml.properties";
+//            readProps(properties,s);
+//            s = rootdir + "/openjml.properties";
             File props = new File(s);
             if (!props.exists()) {
                 File in = new File(rootdir + "/openjml-template.properties");
