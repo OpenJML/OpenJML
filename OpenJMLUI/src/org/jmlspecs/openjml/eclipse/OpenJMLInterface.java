@@ -70,6 +70,25 @@ import com.sun.tools.javac.util.Context;
  */
 public class OpenJMLInterface {
 
+    /** The separator slash; this is platform-dependent, but we
+     * can't just use File.pathSeparator because it needs to _not_
+     * be a ":" on Mac OS X to be used in CLASSPATH and such.
+     */
+    private static final String SLASH;
+    
+    /** initializer for the separator slash **/
+    
+    static 
+    {
+      if (File.pathSeparator.equals("\\"))
+      {
+        SLASH = "\\";
+      }
+      else
+      {
+        SLASH = "/";
+      }
+    }
     /** The API object corresponding to this Interface class. */
     @NonNull
     protected API api;
@@ -191,7 +210,7 @@ public class OpenJMLInterface {
     public int generateJmldoc(IJavaProject p) {
         List<String> args = getOptions(p,Cmd.JMLDOC);
         args.add("-d");
-        args.add(p.getProject().getLocation().toString() + File.pathSeparator + "docx");
+        args.add(p.getProject().getLocation().toString() + SLASH + "docx");
         //args.add(JmlOptionName.DIRS.optionName());
         try {
             for (IPackageFragmentRoot pfr : p.getPackageFragmentRoots()) {
@@ -887,7 +906,7 @@ public class OpenJMLInterface {
                         int i = 0;
                         for (int v = version; v >=4; --v) {
                             File f = new File(root,"java"+v);
-                            if (f.exists()) defspecs[i++] = root + File.pathSeparator + "java" + v;
+                            if (f.exists()) defspecs[i++] = root + SLASH + "java" + v;
                         }
                     } else {
                         if (verbose) Log.log("Expected contents (javaN subdirectories) not found in specs bundle at " + root);
@@ -912,14 +931,14 @@ public class OpenJMLInterface {
                             int i = 0;
                             if (root.isDirectory()) {
                                 for (int v = version; v >=4; --v) {
-                                    File f = new File(root,".." + File.pathSeparator + "specs" + File.pathSeparator + "java" + v);
+                                    File f = new File(root,".." + SLASH + "specs" + SLASH + "java" + v);
                                     if (f.exists()) defspecs[i++] = f.toString();
                                 }
                             } else {
                                 JarFile j = new JarFile(root);
                                 for (int v = version; v >=4; --v) {
-                                    JarEntry f = j.getJarEntry("specs/java"+v);
-                                    if (f != null) defspecs[i++] = root + "!specs/java" + v;
+                                    JarEntry f = j.getJarEntry("specs" + SLASH + "java" + v);
+                                    if (f != null) defspecs[i++] = root + "!specs" + SLASH + "java" + v;
                                 }
                             }
                             if (i > 0) somethingPresent = true;
@@ -962,7 +981,7 @@ public class OpenJMLInterface {
                     if (url != null) {
                         File root = new File(url.toURI());
                         if (root.isDirectory()) {
-                            File f = new File(root,".." + File.pathSeparator + "runtime");
+                            File f = new File(root,"../runtime");
                             if (f.exists()) {
                                 //API.setExternalRuntime(new String[]{ f.toString() });
                                 ss.append(java.io.File.pathSeparator);
