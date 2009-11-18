@@ -402,7 +402,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             if (done.contains(o)) continue;
             done.add(o);
 //            if (o.getName().endsWith(".java")) newargs.add("C:" + o.toUri().getPath()); // FIXME - a hack to get the full path
-            if (o.getName().endsWith(".java") || o.getName().endsWith(".jml")) newargs.add(o.toUri().getPath()); // FIXME FOR REAL - this needs to be made sane
+            if (o.getName().endsWith(".java")) newargs.add(o.toUri().getPath()); // FIXME FOR REAL - this needs to be made sane
             Set<JavaFileObject> affected = d.getAffected(o);
             if (affected != null) {
                 todo.addAll(affected);
