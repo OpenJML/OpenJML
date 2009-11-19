@@ -6,6 +6,8 @@ package org.jmlspecs.openjml.eclipse;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -799,6 +801,7 @@ public class OpenJMLInterface {
         if (cmd == Cmd.ESC) {
             opts.add(JmlOptionName.ESC.optionName());
             opts.add("-crossRefAssociatedInfo");
+            setYicesLocation();
         }
         if (cmd == Cmd.RAC) {
             opts.add(JmlOptionName.RAC.optionName());
@@ -994,6 +997,26 @@ public class OpenJMLInterface {
         // specs , classpath , sourcepath, stopiferrors
         // Java options, Jmldoc options
         return opts;
+    }
+
+    /**
+     * Update the value of the property openjml.prover.yices, using
+     * the value given by prover editor.
+     */
+    public static void setYicesLocation() {
+      Bundle yicesBundle = Platform.getBundle("yices.editor");
+      try {
+        Class<?> editor = yicesBundle.loadClass("mobius.prover.yices.YicesEditor");
+        Method meth = editor.getMethod("getYicesLocation");
+        String loc = (String) meth.invoke(null);
+        System.setProperty("openjml.prover.yices", loc);
+      } catch (ClassNotFoundException e) {
+      } catch (SecurityException e) {
+      } catch (NoSuchMethodException e) {
+      } catch (IllegalArgumentException e) {
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      }
     }
     
     /** Sets the value of a command-line option in the OpenJml object
