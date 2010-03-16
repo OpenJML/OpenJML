@@ -1,10 +1,6 @@
 <project name="OpenJML" default="release-test" basedir=".">
 	<description>
 	</description>
-
-
-
-
 	
 	<condition property="openjml.properties.exists">
 		<available file="openjml.properties"/>
@@ -32,7 +28,6 @@
 		</exec>
 	</target>
 
-
 	<target name="test" depends="props">
 		<echo message="Running tests ${openjml.localSetup} "/>
 		<loadproperties srcFile="openjml.properties"/>
@@ -49,6 +44,14 @@
 			<arg value="${basedir}/releaseTests/runTests"/>
 			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
 		</exec>
+	</target>
+
+	<target name="clean">
+		<delete dir="${basedir}/temp" />
+		<delete dir="${basedir}/jars" />
+		<delete>
+			<fileset dir="." includes="openjml-*.tar.gz"/>
+		</delete>
 	</target>
 
 </project>
