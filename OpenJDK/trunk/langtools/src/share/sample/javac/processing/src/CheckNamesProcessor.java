@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -12,7 +12,7 @@
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
  *
- *   - Neither the name of Sun Microsystems nor the names of its
+ *   - Neither the name of Oracle nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -138,7 +138,7 @@ public class CheckNamesProcessor extends AbstractProcessor {
     public SourceVersion getSupportedSourceVersion() {
         /*
          * Return latest source version instead of a fixed version
-         * like RELEASE_6.  To return a fixed version, this class
+         * like RELEASE_7.  To return a fixed version, this class
          * could be annotated with a SupportedSourceVersion
          * annotation.
          *
@@ -190,7 +190,7 @@ public class CheckNamesProcessor extends AbstractProcessor {
         /**
          * Visitor to implement name checks.
          */
-        private class NameCheckScanner extends ElementScanner6<Void, Void> {
+        private class NameCheckScanner extends ElementScanner7<Void, Void> {
             // The visitor could be enhanced to return true/false if
             // there were warnings reported or a count of the number
             // of warnings.  This could be facilitated by using
@@ -312,7 +312,7 @@ public class CheckNamesProcessor extends AbstractProcessor {
             @Override
             public Void visitUnknown(Element e, Void p) {
                 // This method will be called if a kind of element
-                // added after JDK 6 is visited.  Since as of this
+                // added after JDK 7 is visited.  Since as of this
                 // writing the conventions for such constructs aren't
                 // known, issue a warning.
                 messager.printMessage(WARNING,

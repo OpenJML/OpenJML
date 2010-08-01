@@ -1,12 +1,12 @@
 /*
- * Copyright 2005-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.api;
@@ -35,6 +35,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
+import javax.tools.Diagnostic;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 
@@ -54,6 +55,7 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.MemberEnter;
 import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.model.JavacElements;
+import com.sun.tools.javac.processing.JavacMessager;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.tree.JCTree;
@@ -61,6 +63,7 @@ import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Pair;
@@ -68,7 +71,7 @@ import com.sun.tools.javac.util.Pair;
 /**
  * Provides an implementation of Trees.
  *
- * <p><b>This is NOT part of any API supported by Sun Microsystems.
+ * <p><b>This is NOT part of any supported API.
  * If you write code that depends on this, you do so at your own
  * risk.  This code and its internal interfaces are subject to change
  * or deletion without notice.</b></p>
@@ -335,5 +338,55 @@ public class JavacTrees extends Trees {
         }
 
         return com.sun.tools.javac.code.Type.noType;
+    }
+
+    /**
+     * Prints a message of the specified kind at the location of the
+     * tree within the provided compilation unit
+     *
+     * @param kind the kind of message
+     * @param msg  the message, or an empty string if none
+     * @param t    the tree to use as a position hint
+     * @param root the compilation unit that contains tree
+     */
+    public void printMessage(Diagnostic.Kind kind, CharSequence msg,
+            com.sun.source.tree.Tree t,
+            com.sun.source.tree.CompilationUnitTree root) {
+        JavaFileObject oldSource = null;
+        JavaFileObject newSource = null;
+        JCDiagnostic.DiagnosticPosition pos = null;
+
+        newSource = root.getSourceFile();
+        if (newSource != null) {
+            oldSource = log.useSource(newSource);
+            pos = ((JCTree) t).pos();
+        }
+
+        try {
+            switch (kind) {
+            case ERROR:
+                boolean prev = log.multipleErrors;
+                try {
+                    log.error(pos, "proc.messager", msg.toString());
+                } finally {
+                    log.multipleErrors = prev;
+                }
+                break;
+
+            case WARNING:
+                log.warning(pos, "proc.messager", msg.toString());
+                break;
+
+            case MANDATORY_WARNING:
+                log.mandatoryWarning(pos, "proc.messager", msg.toString());
+                break;
+
+            default:
+                log.note(pos, "proc.messager", msg.toString());
+            }
+        } finally {
+            if (oldSource != null)
+                log.useSource(oldSource);
+        }
     }
 }

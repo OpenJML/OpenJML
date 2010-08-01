@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.code;
@@ -42,8 +42,8 @@ import static com.sun.tools.javac.code.Flags.*;
  *  fields. This makes it possible to work in multiple concurrent
  *  projects, which might use different class files for library classes.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -119,6 +119,9 @@ public class Symtab {
     public final Type stringBuilderType;
     public final Type cloneableType;
     public final Type serializableType;
+    public final Type methodHandleType;
+    public final Type polymorphicSignatureType;
+    public final Type invokeDynamicType;
     public final Type throwableType;
     public final Type errorType;
     public final Type illegalArgumentExceptionType;
@@ -191,7 +194,7 @@ public class Symtab {
 
     public void initType(Type type, String name, String bname) {
         initType(type, name);
-        boxedName[type.tag] = names.fromString("java.lang." + bname);
+            boxedName[type.tag] = names.fromString("java.lang." + bname);
     }
 
     /** The class symbol that owns all predefined symbols.
@@ -405,6 +408,9 @@ public class Symtab {
         cloneableType = enterClass("java.lang.Cloneable");
         throwableType = enterClass("java.lang.Throwable");
         serializableType = enterClass("java.io.Serializable");
+        methodHandleType = enterClass("java.dyn.MethodHandle");
+        polymorphicSignatureType = enterClass("java.dyn.MethodHandle$PolymorphicSignature");
+        invokeDynamicType = enterClass("java.dyn.InvokeDynamic");
         errorType = enterClass("java.lang.Error");
         illegalArgumentExceptionType = enterClass("java.lang.IllegalArgumentException");
         exceptionType = enterClass("java.lang.Exception");
@@ -441,10 +447,12 @@ public class Symtab {
 
         synthesizeEmptyInterfaceIfMissing(cloneableType);
         synthesizeEmptyInterfaceIfMissing(serializableType);
+        synthesizeEmptyInterfaceIfMissing(polymorphicSignatureType);
         synthesizeBoxTypeIfMissing(doubleType);
         synthesizeBoxTypeIfMissing(floatType);
+        synthesizeBoxTypeIfMissing(voidType);
 
-        // Enter a synthetic class that is used to mark Sun
+        // Enter a synthetic class that is used to mark internal
         // proprietary classes in ct.sym.  This class does not have a
         // class file.
         ClassType proprietaryType = (ClassType)enterClass("sun.Proprietary+Annotation");

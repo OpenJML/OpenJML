@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.tree;
@@ -40,8 +40,8 @@ import static com.sun.tools.javac.code.Flags.*;
 
 /** Prints out a tree as an indented Java source program.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -261,6 +261,15 @@ public class Pretty extends JCTree.Visitor {
             printStat(l.head);
             println();
             align();
+        }
+    }
+
+    public void printTypeAnnotations(List<JCTypeAnnotation> trees) throws IOException {
+        if (trees.nonEmpty())
+            print(" ");
+        for (List<JCTypeAnnotation> l = trees; l.nonEmpty(); l = l.tail) {
+            printExpr(l.head);
+            print(" ");
         }
     }
 
@@ -499,6 +508,10 @@ public class Pretty extends JCTree.Visitor {
                 print(" throws ");
                 printExprs(tree.thrown);
             }
+            if (tree.defaultValue != null) {
+                print(" default ");
+                printExpr(tree.defaultValue);
+            }
             if (tree.body != null) {
                 print(" ");
                 printStat(tree.body);
@@ -520,6 +533,20 @@ public class Pretty extends JCTree.Visitor {
                 print("/*public static final*/ ");
                 print(tree.name);
                 if (tree.init != null) {
+                    if (sourceOutput && tree.init.getTag() == JCTree.NEWCLASS) {
+                        print(" /*enum*/ ");
+                        JCNewClass init = (JCNewClass) tree.init;
+                        if (init.args != null && init.args.nonEmpty()) {
+                            print("(");
+                            print(init.args);
+                            print(")");
+                        }
+                        if (init.def != null && init.def.defs != null) {
+                            print(" ");
+                            printBlock(init.def.defs);
+                        }
+                        return;
+                    }
                     print(" /* = ");
                     printExpr(tree.init);
                     print(" */");
@@ -890,21 +917,33 @@ public class Pretty extends JCTree.Visitor {
         try {
             if (tree.elemtype != null) {
                 print("new ");
+                printTypeAnnotations(tree.annotations);
                 JCTree elem = tree.elemtype;
-                if (elem instanceof JCArrayTypeTree)
-                    printBaseElementType((JCArrayTypeTree) elem);
-                else
-                    printExpr(elem);
+                printBaseElementType(elem);
+                boolean isElemAnnoType = elem instanceof JCAnnotatedType;
+                int i = 0;
+                List<List<JCTypeAnnotation>> da = tree.dimAnnotations;
                 for (List<JCExpression> l = tree.dims; l.nonEmpty(); l = l.tail) {
+                    if (da.size() > i) {
+                        printTypeAnnotations(da.get(i));
+                    }
                     print("[");
+                    i++;
                     printExpr(l.head);
                     print("]");
                 }
+                if (tree.elems != null) {
+                    if (isElemAnnoType) {
+                        printTypeAnnotations(((JCAnnotatedType)tree.elemtype).annotations);
+                    }
+                    print("[]");
+                }
+                if (isElemAnnoType)
+                    elem = ((JCAnnotatedType)elem).underlyingType;
                 if (elem instanceof JCArrayTypeTree)
                     printBrackets((JCArrayTypeTree) elem);
             }
             if (tree.elems != null) {
-                if (tree.elemtype != null) print("[]");
                 print("{");
                 printExprs(tree.elems);
                 print("}");
@@ -1152,14 +1191,8 @@ public class Pretty extends JCTree.Visitor {
     }
 
     // Prints the inner element type of a nested array
-    private void printBaseElementType(JCArrayTypeTree tree) throws IOException {
-        JCTree elem = tree.elemtype;
-        while (elem instanceof JCWildcard)
-            elem = ((JCWildcard) elem).inner;
-        if (elem instanceof JCArrayTypeTree)
-            printBaseElementType((JCArrayTypeTree) elem);
-        else
-            printExpr(elem);
+    private void printBaseElementType(JCTree tree) throws IOException {
+        printExpr(TreeInfo.innermostType(tree));
     }
 
     // prints the brackets of a nested array in reverse order
@@ -1167,8 +1200,13 @@ public class Pretty extends JCTree.Visitor {
         JCTree elem;
         while (true) {
             elem = tree.elemtype;
+            if (elem.getTag() == JCTree.ANNOTATED_TYPE) {
+                JCAnnotatedType atype = (JCAnnotatedType) elem;
+                printTypeAnnotations(atype.annotations);
+                elem = atype.underlyingType;
+            }
             print("[]");
-            if (!(elem instanceof JCArrayTypeTree)) break;
+            if (elem.getTag() != JCTree.TYPEARRAY) break;
             tree = (JCArrayTypeTree) elem;
         }
     }
@@ -1179,6 +1217,14 @@ public class Pretty extends JCTree.Visitor {
             print("<");
             printExprs(tree.arguments);
             print(">");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public void visitTypeDisjoint(JCTypeDisjoint tree) {
+        try {
+            printExprs(tree.components, " | ");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -1253,6 +1299,15 @@ public class Pretty extends JCTree.Visitor {
         }
     }
 
+    public void visitAnnotatedType(JCAnnotatedType tree) {
+        try {
+            printTypeAnnotations(tree.annotations);
+            printExpr(tree.underlyingType);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public void visitTree(JCTree tree) {
         try {
             print("(UNKNOWN: " + tree + ")");
@@ -1261,4 +1316,5 @@ public class Pretty extends JCTree.Visitor {
             throw new UncheckedIOException(e);
         }
     }
+
 }

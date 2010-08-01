@@ -1,12 +1,12 @@
 /*
- * Copyright 2005-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2005, 2009, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,13 +18,12 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.processing;
-
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -50,15 +49,16 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.DiagnosticListener;
 
+import com.sun.source.util.AbstractTypeProcessor;
 import com.sun.source.util.TaskEvent;
 import com.sun.source.util.TaskListener;
 import com.sun.tools.javac.api.JavacTaskImpl;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.*;
-import com.sun.tools.javac.file.Paths;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.jvm.*;
 import com.sun.tools.javac.main.JavaCompiler;
+import com.sun.tools.javac.main.JavaCompiler.CompileState;
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.model.JavacTypes;
 import com.sun.tools.javac.parser.*;
@@ -66,6 +66,7 @@ import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Abort;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Convert;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -80,7 +81,7 @@ import static javax.tools.StandardLocation.*;
  * Objects of this class hold and manage the state needed to support
  * annotation processing.
  *
- * <p><b>This is NOT part of any API supported by Sun Microsystems.
+ * <p><b>This is NOT part of any supported API.
  * If you write code that depends on this, you do so at your own risk.
  * This code and its internal interfaces are subject to change or
  * deletion without notice.</b>
@@ -94,6 +95,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
     private final boolean lint;
     private final boolean procOnly;
     private final boolean fatalErrors;
+    private boolean foundTypeProcessors;
 
     private final JavacFiler filer;
     private final JavacMessager messager;
@@ -134,6 +136,8 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
      */
     Source source;
 
+    private ClassLoader processorClassLoader;
+
     /**
      * JavacMessages object used for localization
      */
@@ -154,6 +158,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             options.get("-Xprint") != null;
         fatalErrors = options.get("fatalEnterError") != null;
         platformAnnotations = initPlatformAnnotations();
+        foundTypeProcessors = false;
 
         // Initialize services before any processors are initialzied
         // in case processors use them.
@@ -180,7 +185,6 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
     }
 
     private void initProcessorIterator(Context context, Iterable<? extends Processor> processors) {
-        Paths paths = Paths.instance(context);
         Log   log   = Log.instance(context);
         Iterator<? extends Processor> processorIterator;
 
@@ -201,7 +205,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             JavaFileManager fileManager = context.get(JavaFileManager.class);
             try {
                 // If processorpath is not explicitly set, use the classpath.
-                ClassLoader processorCL = fileManager.hasLocation(ANNOTATION_PROCESSOR_PATH)
+                processorClassLoader = fileManager.hasLocation(ANNOTATION_PROCESSOR_PATH)
                     ? fileManager.getClassLoader(ANNOTATION_PROCESSOR_PATH)
                     : fileManager.getClassLoader(CLASS_PATH);
 
@@ -211,9 +215,9 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                  * provider mechanism to create the processor iterator.
                  */
                 if (processorNames != null) {
-                    processorIterator = new NameProcessIterator(processorNames, processorCL, log);
+                    processorIterator = new NameProcessIterator(processorNames, processorClassLoader, log);
                 } else {
-                    processorIterator = new ServiceIterator(processorCL, log);
+                    processorIterator = new ServiceIterator(processorClassLoader, log);
                 }
             } catch (SecurityException e) {
                 /*
@@ -283,11 +287,12 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         // The to-be-wrapped iterator.
         private Iterator<?> iterator;
         private Log log;
+        private Class<?> loaderClass;
+        private boolean jusl;
+        private Object loader;
 
         ServiceIterator(ClassLoader classLoader, Log log) {
-            Class<?> loaderClass;
             String loadMethodName;
-            boolean jusl;
 
             this.log = log;
             try {
@@ -320,6 +325,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                 // For java.util.ServiceLoader, we have to call another
                 // method to get the iterator.
                 if (jusl) {
+                    loader = result; // Store ServiceLoader to call reload later
                     Method m = loaderClass.getMethod("iterator");
                     result = m.invoke(result); // serviceLoader.iterator();
                 }
@@ -360,6 +366,18 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
 
         public void remove() {
             throw new UnsupportedOperationException();
+        }
+
+        public void close() {
+            if (jusl) {
+                try {
+                    // Call java.util.ServiceLoader.reload
+                    Method reloadMethod = loaderClass.getMethod("reload");
+                    reloadMethod.invoke(loader);
+                } catch(Exception e) {
+                    ; // Ignore problems during a call to reload.
+                }
+            }
         }
     }
 
@@ -548,7 +566,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
      * been discoverd so far as well as the means to discover more, if
      * necessary.  A single iterator should be used per round of
      * annotation processing.  The iterator first visits already
-     * discovered processors then fails over to the service provided
+     * discovered processors then fails over to the service provider
      * mechanism if additional queries are made.
      */
     class DiscoveredProcessors implements Iterable<ProcessorState> {
@@ -620,6 +638,16 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             this.processorIterator = processorIterator;
             this.procStateList = new ArrayList<ProcessorState>();
         }
+
+        /**
+         * Free jar files, etc. if using a service loader.
+         */
+        public void close() {
+            if (processorIterator != null &&
+                processorIterator instanceof ServiceIterator) {
+                ((ServiceIterator) processorIterator).close();
+            }
+        }
     }
 
     private void discoverAndRunProcs(Context context,
@@ -662,16 +690,19 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             ProcessorState ps = psi.next();
             Set<String>  matchedNames = new HashSet<String>();
             Set<TypeElement> typeElements = new LinkedHashSet<TypeElement>();
-            for (String unmatchedAnnotationName : unmatchedAnnotations.keySet()) {
+
+            for (Map.Entry<String, TypeElement> entry: unmatchedAnnotations.entrySet()) {
+                String unmatchedAnnotationName = entry.getKey();
                 if (ps.annotationSupported(unmatchedAnnotationName) ) {
                     matchedNames.add(unmatchedAnnotationName);
-                    TypeElement te = unmatchedAnnotations.get(unmatchedAnnotationName);
+                    TypeElement te = entry.getValue();
                     if (te != null)
                         typeElements.add(te);
                 }
             }
 
             if (matchedNames.size() > 0 || ps.contributed) {
+                foundTypeProcessors = foundTypeProcessors || (ps.processor instanceof AbstractTypeProcessor);
                 boolean processingResult = callProcessor(ps.processor, typeElements, renv);
                 ps.contributed = true;
                 ps.removeSupportedOptions(unmatchedProcessorOptions);
@@ -714,7 +745,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
      * Leave class public for external testing purposes.
      */
     public static class ComputeAnnotationSet extends
-        ElementScanner6<Set<TypeElement>, Set<TypeElement>> {
+        ElementScanner7<Set<TypeElement>, Set<TypeElement>> {
         final Elements elements;
 
         public ComputeAnnotationSet(Elements elements) {
@@ -761,15 +792,12 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                                      List<JCCompilationUnit> roots,
                                      List<ClassSymbol> classSymbols,
                                      Iterable<? extends PackageSymbol> pckSymbols)
-    throws IOException {
+        throws IOException {
 
         log = Log.instance(context);
         // Writer for -XprintRounds and -XprintProcessorInfo data
         PrintWriter xout = context.get(Log.outKey);
         TaskListener taskListener = context.get(TaskListener.class);
-
-
-        AnnotationCollector collector = new AnnotationCollector();
 
         JavaCompiler compiler = JavaCompiler.instance(context);
         compiler.todo.clear(); // free the compiler's resources
@@ -844,34 +872,29 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
 
                     JavaFileManager fileManager = currentContext.get(JavaFileManager.class);
 
-                    List<JavaFileObject> fileObjects = List.nil();
-                    for (JavaFileObject jfo : filer.getGeneratedSourceFileObjects() ) {
-                        fileObjects = fileObjects.prepend(jfo);
-                    }
-
-
                     compiler = JavaCompiler.instance(currentContext);
-                    List<JCCompilationUnit> parsedFiles = compiler.parseFiles(fileObjects);
-                    roots = cleanTrees(roots).reverse();
-
-
-                    for (JCCompilationUnit unit : parsedFiles)
-                        roots = roots.prepend(unit);
-                    roots = roots.reverse();
+                    List<JCCompilationUnit> parsedFiles = sourcesToParsedFiles(compiler);
+                    roots = cleanTrees(roots).appendList(parsedFiles);
 
                     // Check for errors after parsing
-                    if (compiler.parseErrors()) {
+                    if (log.unrecoverableError) {
                         errorStatus = true;
                         break runAround;
                     } else {
-                        ListBuffer<ClassSymbol> classes = enterNewClassFiles(currentContext);
+                        List<ClassSymbol> newClasses = enterNewClassFiles(currentContext);
                         compiler.enterTrees(roots);
 
                         // annotationsPresentInSource =
                         // collector.findAnnotations(parsedFiles);
-                        classes.appendList(getTopLevelClasses(parsedFiles));
-                        topLevelClasses  = classes.toList();
-                        packageInfoFiles = getPackageInfoFiles(parsedFiles);
+                        ListBuffer<ClassSymbol> tlc = new ListBuffer<ClassSymbol>();
+                        tlc.appendList(getTopLevelClasses(parsedFiles));
+                        tlc.appendList(getTopLevelClassesFromClasses(newClasses));
+                        topLevelClasses  = tlc.toList();
+
+                        ListBuffer<PackageSymbol> pif = new ListBuffer<PackageSymbol>();
+                        pif.appendList(getPackageInfoFiles(parsedFiles));
+                        pif.appendList(getPackageInfoFilesFromClasses(newClasses));
+                        packageInfoFiles = pif.toList();
 
                         annotationsPresent = new LinkedHashSet<TypeElement>();
                         for (ClassSymbol classSym : topLevelClasses)
@@ -885,11 +908,16 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                     break runAround; // No new files
             }
         }
-        runLastRound(xout, roundNumber, errorStatus, taskListener);
+        roots = runLastRound(xout, roundNumber, errorStatus, compiler, roots, taskListener);
+        // Set error status for any files compiled and generated in
+        // the last round
+        if (log.unrecoverableError)
+            errorStatus = true;
 
         compiler.close(false);
         currentContext = contextForNextRound(currentContext, true);
         compiler = JavaCompiler.instance(currentContext);
+
         filer.newRound(currentContext, true);
         filer.warnIfUnclosedFiles();
         warnIfUnmatchedOptions();
@@ -905,7 +933,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         * second to last round; errorRaised() gives the error status
         * of the last round.
         */
-       errorStatus = errorStatus || messager.errorRaised();
+        errorStatus = errorStatus || messager.errorRaised();
 
 
         // Free resources
@@ -918,12 +946,16 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             compiler.log.nerrors += messager.errorCount();
             if (compiler.errorCount() == 0)
                 compiler.log.nerrors++;
-        } else if (procOnly) {
+        } else if (procOnly && !foundTypeProcessors) {
             compiler.todo.clear();
         } else { // Final compilation
             compiler.close(false);
             currentContext = contextForNextRound(currentContext, true);
+            this.context = currentContext;
+            updateProcessingState(currentContext, true);
             compiler = JavaCompiler.instance(currentContext);
+            if (procOnly && foundTypeProcessors)
+                compiler.shouldStopPolicy = CompileState.FLOW;
 
             if (true) {
                 compiler.enterTrees(cleanTrees(roots));
@@ -939,10 +971,22 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         return compiler;
     }
 
+    private List<JCCompilationUnit> sourcesToParsedFiles(JavaCompiler compiler)
+        throws IOException {
+        List<JavaFileObject> fileObjects = List.nil();
+        for (JavaFileObject jfo : filer.getGeneratedSourceFileObjects() ) {
+            fileObjects = fileObjects.prepend(jfo);
+        }
+
+       return compiler.parseFiles(fileObjects);
+    }
+
     // Call the last round of annotation processing
-    private void runLastRound(PrintWriter xout,
-                              int roundNumber,
-                              boolean errorStatus,
+    private List<JCCompilationUnit> runLastRound(PrintWriter xout,
+                                                 int roundNumber,
+                                                 boolean errorStatus,
+                                                 JavaCompiler compiler,
+                                                 List<JCCompilationUnit> roots,
                               TaskListener taskListener) throws IOException {
         roundNumber++;
         List<ClassSymbol> noTopLevelClasses = List.nil();
@@ -963,6 +1007,15 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             if (taskListener != null)
                 taskListener.finished(new TaskEvent(TaskEvent.Kind.ANNOTATION_PROCESSING_ROUND));
         }
+
+        // Add any sources generated during the last round to the set
+        // of files to be compiled.
+        if (moreToDo()) {
+            List<JCCompilationUnit> parsedFiles = sourcesToParsedFiles(compiler);
+            roots = cleanTrees(roots).appendList(parsedFiles);
+        }
+
+        return roots;
     }
 
     private void updateProcessingState(Context currentContext, boolean lastRound) {
@@ -993,28 +1046,42 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         }
     }
 
-    private ListBuffer<ClassSymbol> enterNewClassFiles(Context currentContext) {
+    private List<ClassSymbol> enterNewClassFiles(Context currentContext) {
         ClassReader reader = ClassReader.instance(currentContext);
         Names names = Names.instance(currentContext);
-        ListBuffer<ClassSymbol> list = new ListBuffer<ClassSymbol>();
+        List<ClassSymbol> list = List.nil();
 
         for (Map.Entry<String,JavaFileObject> entry : filer.getGeneratedClasses().entrySet()) {
             Name name = names.fromString(entry.getKey());
             JavaFileObject file = entry.getValue();
             if (file.getKind() != JavaFileObject.Kind.CLASS)
                 throw new AssertionError(file);
-            ClassSymbol cs = reader.enterClass(name, file);
-            list.append(cs);
+            ClassSymbol cs;
+            if (isPkgInfo(file, JavaFileObject.Kind.CLASS)) {
+                Name packageName = Convert.packagePart(name);
+                PackageSymbol p = reader.enterPackage(packageName);
+                if (p.package_info == null)
+                    p.package_info = reader.enterClass(Convert.shortName(name), p);
+                cs = p.package_info;
+                if (cs.classfile == null)
+                    cs.classfile = file;
+            } else
+                cs = reader.enterClass(name, file);
+            list = list.prepend(cs);
         }
-        return list;
+        return list.reverse();
     }
 
     /**
      * Free resources related to annotation processing.
      */
-    public void close() {
+    public void close() throws IOException {
         filer.close();
+        if (discoveredProcs != null) // Make calling close idempotent
+            discoveredProcs.close();
         discoveredProcs = null;
+        if (processorClassLoader != null && processorClassLoader instanceof Closeable)
+            ((Closeable) processorClassLoader).close();
     }
 
     private List<ClassSymbol> getTopLevelClasses(List<? extends JCCompilationUnit> units) {
@@ -1029,16 +1096,42 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         return classes.reverse();
     }
 
+    private List<ClassSymbol> getTopLevelClassesFromClasses(List<? extends ClassSymbol> syms) {
+        List<ClassSymbol> classes = List.nil();
+        for (ClassSymbol sym : syms) {
+            if (!isPkgInfo(sym)) {
+                classes = classes.prepend(sym);
+            }
+        }
+        return classes.reverse();
+    }
+
     private List<PackageSymbol> getPackageInfoFiles(List<? extends JCCompilationUnit> units) {
         List<PackageSymbol> packages = List.nil();
         for (JCCompilationUnit unit : units) {
-            boolean isPkgInfo = unit.sourcefile.isNameCompatible("package-info",
-                                                                 JavaFileObject.Kind.SOURCE);
-            if (isPkgInfo) {
+            if (isPkgInfo(unit.sourcefile, JavaFileObject.Kind.SOURCE)) {
                 packages = packages.prepend(unit.packge);
             }
         }
         return packages.reverse();
+    }
+
+    private List<PackageSymbol> getPackageInfoFilesFromClasses(List<? extends ClassSymbol> syms) {
+        List<PackageSymbol> packages = List.nil();
+        for (ClassSymbol sym : syms) {
+            if (isPkgInfo(sym)) {
+                packages = packages.prepend((PackageSymbol) sym.owner);
+            }
+        }
+        return packages.reverse();
+    }
+
+    private boolean isPkgInfo(JavaFileObject fo, JavaFileObject.Kind kind) {
+        return fo.isNameCompatible("package-info", kind);
+    }
+
+    private boolean isPkgInfo(ClassSymbol sym) {
+        return isPkgInfo(sym.classfile, JavaFileObject.Kind.CLASS) && (sym.packge().package_info == sym);
     }
 
     private Context contextForNextRound(Context context, boolean shareNames)
@@ -1122,45 +1215,6 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         }
 
         return false;
-    }
-
-    private class AnnotationCollector extends TreeScanner {
-        List<JCTree> path = List.nil();
-        static final boolean verbose = false;
-        List<JCAnnotation> annotations = List.nil();
-
-        public List<JCAnnotation> findAnnotations(List<? extends JCTree> nodes) {
-            annotations = List.nil();
-            scan(nodes);
-            List<JCAnnotation> found = annotations;
-            annotations = List.nil();
-            return found.reverse();
-        }
-
-        public void scan(JCTree node) {
-            if (node == null)
-                return;
-            Symbol sym = TreeInfo.symbolFor(node);
-            if (sym != null)
-                path = path.prepend(node);
-            super.scan(node);
-            if (sym != null)
-                path = path.tail;
-        }
-
-        public void visitAnnotation(JCAnnotation node) {
-            annotations = annotations.prepend(node);
-            if (verbose) {
-                StringBuilder sb = new StringBuilder();
-                for (JCTree tree : path.reverse()) {
-                    System.err.print(sb);
-                    System.err.println(TreeInfo.symbolFor(tree));
-                    sb.append("  ");
-                }
-                System.err.print(sb);
-                System.err.println(node);
-            }
-        }
     }
 
     private static <T extends JCTree> List<T> cleanTrees(List<T> nodes) {
@@ -1260,115 +1314,62 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         return specifiedPackages;
     }
 
-    // Borrowed from DocletInvoker and apt
-    // TODO: remove from apt's Main
-    /**
-     * Utility method for converting a search path string to an array
-     * of directory and JAR file URLs.
-     *
-     * @param path the search path string
-     * @return the resulting array of directory and JAR file URLs
-     */
-    public static URL[] pathToURLs(String path) {
-        StringTokenizer st = new StringTokenizer(path, File.pathSeparator);
-        URL[] urls = new URL[st.countTokens()];
-        int count = 0;
-        while (st.hasMoreTokens()) {
-            URL url = fileToURL(new File(st.nextToken()));
-            if (url != null) {
-                urls[count++] = url;
-            }
-        }
-        if (urls.length != count) {
-            URL[] tmp = new URL[count];
-            System.arraycopy(urls, 0, tmp, 0, count);
-            urls = tmp;
-        }
-        return urls;
-    }
-
-    /**
-     * Returns the directory or JAR file URL corresponding to the specified
-     * local file name.
-     *
-     * @param file the File object
-     * @return the resulting directory or JAR file URL, or null if unknown
-     */
-    private static URL fileToURL(File file) {
-        String name;
-        try {
-            name = file.getCanonicalPath();
-        } catch (IOException e) {
-            name = file.getAbsolutePath();
-        }
-        name = name.replace(File.separatorChar, '/');
-        if (!name.startsWith("/")) {
-            name = "/" + name;
-        }
-        // If the file does not exist, then assume that it's a directory
-        if (!file.isFile()) {
-            name = name + "/";
-        }
-        try {
-            return new URL("file", "", name);
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("file");
-        }
-    }
-
-
-
     private static final Pattern allMatches = Pattern.compile(".*");
+    public static final Pattern noMatches  = Pattern.compile("(\\P{all})+");
 
-    private static final Pattern noMatches  = Pattern.compile("(\\P{all})+");
     /**
-     * Convert import-style string to regex matching that string.  If
-     * the string is a valid import-style string, return a regex that
-     * won't match anything.
+     * Convert import-style string for supported annotations into a
+     * regex matching that string.  If the string is a valid
+     * import-style string, return a regex that won't match anything.
      */
-    // TODO: remove version in Apt.java
-    public static Pattern importStringToPattern(String s, Processor p, Log log) {
+    private static Pattern importStringToPattern(String s, Processor p, Log log) {
+        if (isValidImportString(s)) {
+            return validImportStringToPattern(s);
+        } else {
+            log.warning("proc.malformed.supported.string", s, p.getClass().getName());
+            return noMatches; // won't match any valid identifier
+        }
+    }
+
+    /**
+     * Return true if the argument string is a valid import-style
+     * string specifying claimed annotations; return false otherwise.
+     */
+    public static boolean isValidImportString(String s) {
+        if (s.equals("*"))
+            return true;
+
+        boolean valid = true;
+        String t = s;
+        int index = t.indexOf('*');
+
+        if (index != -1) {
+            // '*' must be last character...
+            if (index == t.length() -1) {
+                // ... any and preceding character must be '.'
+                if ( index-1 >= 0 ) {
+                    valid = t.charAt(index-1) == '.';
+                    // Strip off ".*$" for identifier checks
+                    t = t.substring(0, t.length()-2);
+                }
+            } else
+                return false;
+        }
+
+        // Verify string is off the form (javaId \.)+ or javaId
+        if (valid) {
+            String[] javaIds = t.split("\\.", t.length()+2);
+            for(String javaId: javaIds)
+                valid &= SourceVersion.isIdentifier(javaId);
+        }
+        return valid;
+    }
+
+    public static Pattern validImportStringToPattern(String s) {
         if (s.equals("*")) {
             return allMatches;
         } else {
-            String t = s;
-            boolean star = false;
-
-            /*
-             * Validate string from factory is legal.  If the string
-             * has more than one asterisks or the asterisks does not
-             * appear as the last character (preceded by a period),
-             * the string is not legal.
-             */
-
-            boolean valid = true;
-            int index = t.indexOf('*');
-            if (index != -1) {
-                // '*' must be last character...
-                if (index == t.length() -1) {
-                     // ... and preceeding character must be '.'
-                    if ( index-1 >= 0 ) {
-                        valid = t.charAt(index-1) == '.';
-                        // Strip off ".*$" for identifier checks
-                        t = t.substring(0, t.length()-2);
-                    }
-                } else
-                    valid = false;
-            }
-
-            // Verify string is off the form (javaId \.)+ or javaId
-            if (valid) {
-                String[] javaIds = t.split("\\.", t.length()+2);
-                for(String javaId: javaIds)
-                    valid &= SourceVersion.isIdentifier(javaId);
-            }
-
-            if (!valid) {
-                log.warning("proc.malformed.supported.string", s, p.getClass().getName());
-                return noMatches; // won't match any valid identifier
-            }
-
-            String s_prime = s.replaceAll("\\.", "\\\\.");
+            String s_prime = s.replace(".", "\\.");
 
             if (s_prime.endsWith("*")) {
                 s_prime =  s_prime.substring(0, s_prime.length() - 1) + ".+";
@@ -1379,7 +1380,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
     }
 
     /**
-     * For internal use by Sun Microsystems only.  This method will be
+     * For internal use only.  This method will be
      * removed without warning.
      */
     public Context getContext() {

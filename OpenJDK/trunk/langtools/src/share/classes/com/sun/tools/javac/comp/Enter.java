@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.comp;
@@ -82,8 +82,8 @@ import static com.sun.tools.javac.code.Kinds.*;
  *                                              (only for toplevel classes)
  *  </pre>
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -100,6 +100,7 @@ public class Enter extends JCTree.Visitor {
     MemberEnter memberEnter;
     Types types;
     Lint lint;
+    Names names;
     JavaFileManager fileManager;
 
     private final Todo todo;
@@ -123,6 +124,7 @@ public class Enter extends JCTree.Visitor {
         types = Types.instance(context);
         annotate = Annotate.instance(context);
         lint = Lint.instance(context);
+        names = Names.instance(context);
 
         predefClassDef = make.ClassDef(
             make.Modifiers(PUBLIC),
@@ -268,6 +270,7 @@ public class Enter extends JCTree.Visitor {
         return ts.toList();
     }
 
+    @Override
     public void visitTopLevel(JCCompilationUnit tree) {
         JavaFileObject prev = log.useSource(tree.sourcefile);
         boolean addEnv = false;
@@ -287,13 +290,13 @@ public class Enter extends JCTree.Visitor {
             tree.packge = syms.unnamedPackage;
         }
         tree.packge.complete(); // Find all classes in package.
-        Env<AttrContext> env = topLevelEnv(tree);
+        Env<AttrContext> topEnv = topLevelEnv(tree);
 
         // Save environment of package-info.java file.
         if (isPkgInfo) {
             Env<AttrContext> env0 = typeEnvs.get(tree.packge);
             if (env0 == null) {
-                typeEnvs.put(tree.packge, env);
+                typeEnvs.put(tree.packge, topEnv);
             } else {
                 JCCompilationUnit tree0 = env0.toplevel;
                 if (!fileManager.isSameFile(tree.sourcefile, tree0.sourcefile)) {
@@ -304,16 +307,29 @@ public class Enter extends JCTree.Visitor {
                     if (addEnv || (tree0.packageAnnotations.isEmpty() &&
                                    tree.docComments != null &&
                                    tree.docComments.get(tree) != null)) {
-                        typeEnvs.put(tree.packge, env);
+                        typeEnvs.put(tree.packge, topEnv);
                     }
                 }
             }
+
+            for (Symbol q = tree.packge; q != null && q.kind == PCK; q = q.owner)
+                q.flags_field |= EXISTS;
+
+            Name name = names.package_info;
+            ClassSymbol c = reader.enterClass(name, tree.packge);
+            c.flatname = names.fromString(tree.packge + "." + name);
+            c.sourcefile = tree.sourcefile;
+            c.completer = null;
+            c.members_field = new Scope(c);
+            tree.packge.package_info = c;
         }
         for (JCTree def: tree.defs) {
             classEnter(def,env);
         }
+// TODO: The b103 used the following call instead of the loop above - look into why
+        //classEnter(tree.defs, topEnv);
         if (addEnv) {
-            todo.append(env);
+            todo.append(topEnv);
         }
         log.useSource(prev);
         result = null;
@@ -328,6 +344,7 @@ public class Enter extends JCTree.Visitor {
     }
     
 
+    @Override
     public void visitClassDef(JCClassDecl tree) {
         Symbol owner = env.info.scope.owner;
         Scope enclScope = enterScope(env);
@@ -433,6 +450,7 @@ public class Enter extends JCTree.Visitor {
      *  Enter a symbol for type parameter in local scope, after checking that it
      *  is unique.
      */
+    @Override
     public void visitTypeParameter(JCTypeParameter tree) {
         TypeVar a = (tree.type != null)
             ? (TypeVar)tree.type
@@ -446,6 +464,7 @@ public class Enter extends JCTree.Visitor {
 
     /** Default class enter visitor method: do nothing.
      */
+    @Override
     public void visitTree(JCTree tree) {
         result = null;
     }
@@ -487,10 +506,8 @@ public class Enter extends JCTree.Visitor {
                 for (JCCompilationUnit tree : trees) {
                     if (tree.starImportScope.elems == null) {
                         JavaFileObject prev = log.useSource(tree.sourcefile);
-                        Env<AttrContext> env = typeEnvs.get(tree);
-                        if (env == null)
-                            env = topLevelEnv(tree);
-                        memberEnter.memberEnter(tree, env);
+                        Env<AttrContext> topEnv = topLevelEnv(tree);
+                        memberEnter.memberEnter(tree, topEnv);
                         log.useSource(prev);
                     }
                 }

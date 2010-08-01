@@ -1,12 +1,12 @@
 /*
- * Copyright 1998-2009 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1998, 2009, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javadoc;
@@ -81,7 +81,7 @@ public class DocletInvoker {
         cpString = appendPath(System.getProperty("env.class.path"), cpString);
         cpString = appendPath(System.getProperty("java.class.path"), cpString);
         cpString = appendPath(docletPath, cpString);
-        URL[] urls = pathToURLs(cpString);
+        URL[] urls = com.sun.tools.javac.file.Paths.pathToURLs(cpString);
         if (docletParentClassLoader == null)
             appClassLoader = new URLClassLoader(urls, getDelegationClassLoader(docletClassName));
         else
@@ -155,10 +155,8 @@ public class DocletInvoker {
     public boolean start(RootDoc root) {
         Object retVal;
         String methodName = "start";
-        Class<?>[] paramTypes = new Class<?>[1];
-        Object[] params = new Object[1];
-        paramTypes[0] = RootDoc.class;
-        params[0] = root;
+        Class<?>[] paramTypes = { RootDoc.class };
+        Object[] params = { root };
         try {
             retVal = invoke(methodName, null, paramTypes, params);
         } catch (DocletInvokeException exc) {
@@ -181,10 +179,8 @@ public class DocletInvoker {
     public int optionLength(String option) {
         Object retVal;
         String methodName = "optionLength";
-        Class<?>[] paramTypes = new Class<?>[1];
-        Object[] params = new Object[1];
-        paramTypes[0] = option.getClass();
-        params[0] = option;
+        Class<?>[] paramTypes = { String.class };
+        Object[] params = { option };
         try {
             retVal = invoke(methodName, new Integer(0), paramTypes, params);
         } catch (DocletInvokeException exc) {
@@ -208,12 +204,8 @@ public class DocletInvoker {
         String options[][] = optlist.toArray(new String[optlist.length()][]);
         String methodName = "validOptions";
         DocErrorReporter reporter = messager;
-        Class<?>[] paramTypes = new Class<?>[2];
-        Object[] params = new Object[2];
-        paramTypes[0] = options.getClass();
-        paramTypes[1] = DocErrorReporter.class;
-        params[0] = options;
-        params[1] = reporter;
+        Class<?>[] paramTypes = { String[][].class, DocErrorReporter.class };
+        Object[] params = { options, reporter };
         try {
             retVal = invoke(methodName, Boolean.TRUE, paramTypes, params);
         } catch (DocletInvokeException exc) {
@@ -312,59 +304,5 @@ public class DocletInvoker {
             } finally {
                 Thread.currentThread().setContextClassLoader(savedCCL);
             }
-    }
-
-    /**
-     * Utility method for converting a search path string to an array
-     * of directory and JAR file URLs.
-     *
-     * @param path the search path string
-     * @return the resulting array of directory and JAR file URLs
-     */
-    static URL[] pathToURLs(String path) {
-        StringTokenizer st = new StringTokenizer(path, File.pathSeparator);
-        URL[] urls = new URL[st.countTokens()];
-        int count = 0;
-        while (st.hasMoreTokens()) {
-            URL url = fileToURL(new File(st.nextToken()));
-            if (url != null) {
-                urls[count++] = url;
-            }
-        }
-        if (urls.length != count) {
-            URL[] tmp = new URL[count];
-            System.arraycopy(urls, 0, tmp, 0, count);
-            urls = tmp;
-        }
-        return urls;
-    }
-
-    /**
-     * Returns the directory or JAR file URL corresponding to the specified
-     * local file name.
-     *
-     * @param file the File object
-     * @return the resulting directory or JAR file URL, or null if unknown
-     */
-    static URL fileToURL(File file) {
-        String name;
-        try {
-            name = file.getCanonicalPath();
-        } catch (IOException e) {
-            name = file.getAbsolutePath();
-        }
-        name = name.replace(File.separatorChar, '/');
-        if (!name.startsWith("/")) {
-            name = "/" + name;
-        }
-        // If the file does not exist, then assume that it's a directory
-        if (!file.isFile()) {
-            name = name + "/";
-        }
-        try {
-            return new URL("file", "", name);
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("file");
-        }
     }
 }

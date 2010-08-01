@@ -1,12 +1,12 @@
 /*
- * Copyright 2009 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.code;
@@ -40,8 +40,16 @@ import static com.sun.tools.javac.code.Flags.*;
 /**
  * A combined type/symbol visitor for generating non-trivial localized string
  * representation of types and symbols.
+ *
+ * <p><b>This is NOT part of any supported API.
+ * If you write code that depends on this, you do so at your own risk.
+ * This code and its internal interfaces are subject to change or
+ * deletion without notice.</b>
  */
 public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Visitor<String, Locale> {
+
+    List<Type> seenCaptured = List.nil();
+    static final int PRIME = 997;  // largest prime less than 1000
 
     /**
      * This method should be overriden in order to provide proper i18n support.
@@ -54,7 +62,18 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
     protected abstract String localize(Locale locale, String key, Object... args);
 
     /**
-     * Create a printer with default i18n support provided my Messages.
+     * Maps a captured type into an unique identifier.
+     *
+     * @param t the captured type for which an id is to be retrieved
+     * @param locale locale settings
+     * @return unique id representing this captured type
+     */
+    protected abstract String capturedVarId(CapturedType t, Locale locale);
+
+    /**
+     * Create a printer with default i18n support provided by Messages. By default,
+     * captured types ids are generated using hashcode.
+     *
      * @param messages Messages class to be used for i18n
      * @return printer visitor instance
      */
@@ -63,6 +82,11 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
             @Override
             protected String localize(Locale locale, String key, Object... args) {
                 return messages.getLocalizedString(locale, key, args);
+            }
+
+            @Override
+            protected String capturedVarId(CapturedType t, Locale locale) {
+                return (t.hashCode() & 0xFFFFFFFFL) % PRIME + "";
         }};
     }
 
@@ -120,9 +144,20 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
 
     //JAVA16 @Override
     public String visitCapturedType(CapturedType t, Locale locale) {
-        return localize(locale, "compiler.misc.type.captureof",
-            (t.hashCode() & 0xFFFFFFFFL) % Type.CapturedType.PRIME,
-            visit(t.wildcard, locale));
+        if (seenCaptured.contains(t))
+            return localize(locale, "compiler.misc.type.captureof.1",
+                capturedVarId(t, locale));
+        else {
+            try {
+                seenCaptured = seenCaptured.prepend(t);
+                return localize(locale, "compiler.misc.type.captureof",
+                    capturedVarId(t, locale),
+                    visit(t.wildcard, locale));
+            }
+            finally {
+                seenCaptured = seenCaptured.tail;
+            }
+        }
     }
 
     //JAVA16 @Override

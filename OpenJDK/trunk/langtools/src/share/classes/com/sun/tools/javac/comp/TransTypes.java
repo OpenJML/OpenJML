@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,14 +18,16 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.comp;
 
 import java.util.*;
+
+import javax.lang.model.element.ElementKind;
 
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.*;
@@ -41,8 +43,8 @@ import static com.sun.tools.javac.code.TypeTags.*;
 
 /** This pass translates Generic Java to conventional Java.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -67,6 +69,7 @@ public class TransTypes extends TreeTranslator {
     private boolean allowEnums;
     private Types types;
     private final Resolve resolve;
+    private final TypeAnnotations typeAnnotations;
 
     /**
      * Flag to indicate whether or not to generate bridge methods.
@@ -88,6 +91,7 @@ public class TransTypes extends TreeTranslator {
         types = Types.instance(context);
         make = TreeMaker.instance(context);
         resolve = Resolve.instance(context);
+        typeAnnotations = TypeAnnotations.instance(context);
     }
 
     /** A hashtable mapping bridge methods to the methods they override after
@@ -435,12 +439,14 @@ public class TransTypes extends TreeTranslator {
     }
 
     public void visitClassDef(JCClassDecl tree) {
+        typeAnnotations.taFillAndLift(tree, true);
         translateClass(tree.sym);
         result = tree;
     }
 
     JCMethodDecl currentMethod = null;
     public void visitMethodDef(JCMethodDecl tree) {
+        tree.sym.typeAnnotations = tree.sym.typeAnnotations;
         JCMethodDecl previousMethod = currentMethod;
         try {
             currentMethod = tree;
@@ -601,10 +607,12 @@ public class TransTypes extends TreeTranslator {
     public void visitNewArray(JCNewArray tree) {
         tree.elemtype = translate(tree.elemtype, null);
         translate(tree.dims, syms.intType);
-        tree.elems = translate(tree.elems,
-                               (tree.type == null) ? null
-                               : erasure(types.elemtype(tree.type)));
-        tree.type = erasure(tree.type);
+        if (tree.type != null) {
+            tree.elems = translate(tree.elems, erasure(types.elemtype(tree.type)));
+            tree.type = erasure(tree.type);
+        } else {
+            tree.elems = translate(tree.elems, null);
+        }
 
         result = tree;
     }
@@ -623,7 +631,7 @@ public class TransTypes extends TreeTranslator {
     }
 
     public void visitAssignop(JCAssignOp tree) {
-        tree.lhs = translate(tree.lhs, tree.operator.type.getParameterTypes().head);
+        tree.lhs = translate(tree.lhs, null);
         tree.rhs = translate(tree.rhs, tree.operator.type.getParameterTypes().tail.head);
         tree.type = erasure(tree.type);
         result = tree;
@@ -726,8 +734,8 @@ public class TransTypes extends TreeTranslator {
     /** Visitor method for parameterized types.
      */
     public void visitTypeApply(JCTypeApply tree) {
-        // Delete all type parameters.
-        result = translate(tree.clazz, null);
+        JCTree clazz = translate(tree.clazz, null);
+        result = clazz;
     }
 
 /**************************************************************************
