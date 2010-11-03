@@ -712,16 +712,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         String[] ss = sp.split(java.io.File.pathSeparator);
         if (sss == null) {
             for (String s: ss) {
-                if (s.endsWith("openjml.jar")) {
-                    if (isDirInJar("org/jmlspecs/lang",s, context)) {
-                        sss = s;
-                        break;
-                    }
-                }
-            }
-        }
-        if (sss == null) {
-            for (String s: ss) {
                 if (s.endsWith(".jar")) {
                     if (isDirInJar("org/jmlspecs/lang",s, context)) {
                         sss = s;
@@ -784,19 +774,35 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     public void findProperties() {
-        String releaseJar = "openjml.jar";
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
         Properties properties = new Properties();
         
         String rootdir = null;
         
+        // find the jar that contains OpenJML classes
         for (String s: ss) {
-            if (s.endsWith(releaseJar)) {
-                s = s.substring(0,s.length()-releaseJar.length());
-                if (s.length() == 0) s = ".";
-                rootdir = s;
-                break;
+            if (s.endsWith(".jar")) {
+                if (isDirInJar("org/jmlspecs/openjml",s, context)) {
+                    if (s.contains(File.separator)) {
+                        s = s.substring(0, s.lastIndexOf(File.separator));
+                    }
+                    if (!s.contains(File.separator)) {
+                        s = ".";
+                    }
+                    rootdir = s;
+                    break;
+                }
+            }
+            else { // s is not a jar file
+                File f = new File(s + File.separator + "org" + 
+                                  File.separator + "jmlspecs" + 
+                                  File.separator + "openjml");
+                if (f.isDirectory()) {
+                    // s is the path to org.jmlspecs.openjml
+                    rootdir = s;
+                    break;
+                }
             }
         }
         
