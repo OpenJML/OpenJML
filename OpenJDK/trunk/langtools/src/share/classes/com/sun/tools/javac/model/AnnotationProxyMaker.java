@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2005-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,16 +18,14 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javac.model;
 
 import com.sun.tools.javac.util.*;
-import java.io.ObjectInputStream;
-import java.io.IOException;
 import java.lang.annotation.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -50,8 +48,8 @@ import com.sun.tools.javac.code.Type.ArrayType;
  * <p> The "dynamic proxy return form" of an annotation element value is
  * the form used by sun.reflect.annotation.AnnotationInvocationHandler.
  *
- * <p><b>This is NOT part of any supported API.
- * If you write code that depends on this, you do so at your own risk.
+ * <p><b>This is NOT part of any API supported by Sun Microsystems.  If
+ * you write code that depends on this, you do so at your own risk.
  * This code and its internal interfaces are subject to change or
  * deletion without notice.</b>
  */
@@ -181,16 +179,16 @@ public class AnnotationProxyMaker {
         }
 
         public void visitArray(Attribute.Array a) {
-            Name elemName = ((ArrayType) a.type).elemtype.tsym.getQualifiedName();
+            Name elemName = ((ArrayType) a.type).elemtype.tsym.name;
 
-            if (elemName.equals(elemName.table.names.java_lang_Class)) {   // Class[]
+            if (elemName == elemName.table.names.java_lang_Class) {   // Class[]
                 // Construct a proxy for a MirroredTypesException
-                ListBuffer<TypeMirror> elems = new ListBuffer<TypeMirror>();
+                List<TypeMirror> elems = List.nil();
                 for (Attribute value : a.values) {
                     Type elem = ((Attribute.Class) value).type;
-                    elems.append(elem);
+                    elems.add(elem);
                 }
-                value = new MirroredTypesExceptionProxy(elems.toList());
+                value = new MirroredTypesExceptionProxy(elems);
 
             } else {
                 int len = a.values.length;
@@ -270,10 +268,10 @@ public class AnnotationProxyMaker {
      * The toString, hashCode, and equals methods foward to the underlying
      * type.
      */
-    private static final class MirroredTypeExceptionProxy extends ExceptionProxy {
+    private static class MirroredTypeExceptionProxy extends ExceptionProxy {
         static final long serialVersionUID = 269;
 
-        private transient TypeMirror type;
+        private transient final TypeMirror type;
         private final String typeString;
 
         MirroredTypeExceptionProxy(TypeMirror t) {
@@ -298,13 +296,6 @@ public class AnnotationProxyMaker {
         protected RuntimeException generateException() {
             return new MirroredTypeException(type);
         }
-
-        // Explicitly set all transient fields.
-        private void readObject(ObjectInputStream s)
-            throws IOException, ClassNotFoundException {
-            s.defaultReadObject();
-            type = null;
-        }
     }
 
 
@@ -313,10 +304,10 @@ public class AnnotationProxyMaker {
      * The toString, hashCode, and equals methods foward to the underlying
      * types.
      */
-    private static final class MirroredTypesExceptionProxy extends ExceptionProxy {
+    private static class MirroredTypesExceptionProxy extends ExceptionProxy {
         static final long serialVersionUID = 269;
 
-        private transient List<TypeMirror> types;
+        private transient final List<TypeMirror> types;
         private final String typeStrings;
 
         MirroredTypesExceptionProxy(List<TypeMirror> ts) {
@@ -341,13 +332,6 @@ public class AnnotationProxyMaker {
 
         protected RuntimeException generateException() {
             return new MirroredTypesException(types);
-        }
-
-        // Explicitly set all transient fields.
-        private void readObject(ObjectInputStream s)
-            throws IOException, ClassNotFoundException {
-            s.defaultReadObject();
-            types = null;
         }
     }
 }

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2003, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2003-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,15 +18,16 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javac.code;
 
-import java.lang.ref.SoftReference;
 import java.util.*;
+
+import com.sun.tools.javac.api.Messages;
 
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.List;
@@ -58,7 +59,7 @@ import static com.sun.tools.javac.util.ListBuffer.lb;
  * <dd>A second list of types should be named ss.</dd>
  * </dl>
  *
- * <p><b>This is NOT part of any supported API.
+ * <p><b>This is NOT part of any API supported by Sun Microsystems.
  * If you write code that depends on this, you do so at your own risk.
  * This code and its internal interfaces are subject to change or
  * deletion without notice.</b>
@@ -342,14 +343,6 @@ public class Types {
         if (s.tag >= firstPartialTag)
             return isSuperType(s, t);
 
-        if (s.isCompound()) {
-            for (Type s2 : interfaces(s).prepend(supertype(s))) {
-                if (!isSubtype(t, s2, capture))
-                    return false;
-            }
-            return true;
-        }
-
         Type lower = lowerBound(s);
         if (s != lower)
             return isSubtype(capture ? capture(t) : t, lower, false);
@@ -588,21 +581,10 @@ public class Types {
                 case BYTE: case CHAR: case SHORT: case INT: case LONG: case FLOAT:
                 case DOUBLE: case BOOLEAN: case VOID: case BOT: case NONE:
                     return t.tag == s.tag;
-                case TYPEVAR: {
-                    if (s.tag == TYPEVAR) {
-                        //type-substitution does not preserve type-var types
-                        //check that type var symbols and bounds are indeed the same
-                        return t.tsym == s.tsym &&
-                                visit(t.getUpperBound(), s.getUpperBound());
-                    }
-                    else {
-                        //special case for s == ? super X, where upper(s) = u
-                        //check that u == t, where u has been set by Type.withTypeVar
-                        return s.isSuperBound() &&
-                                !s.isExtendsBound() &&
-                                visit(t, upperBound(s));
-                    }
-                }
+                case TYPEVAR:
+                    return s.isSuperBound()
+                        && !s.isExtendsBound()
+                        && visit(t, upperBound(s));
                 default:
                     throw new AssertionError("isSameType " + t.tag);
                 }
@@ -1258,18 +1240,14 @@ public class Types {
 
             @Override
             public Boolean visitClassType(ClassType t, Void ignored) {
-                if (t.isCompound())
-                    return false;
-                else {
-                    if (!t.isParameterized())
-                        return true;
-
-                    for (Type param : t.allparams()) {
-                        if (!param.isUnbound())
-                            return false;
-                    }
+                if (!t.isParameterized())
                     return true;
+
+                for (Type param : t.allparams()) {
+                    if (!param.isUnbound())
+                        return false;
                 }
+                return true;
             }
 
             @Override
@@ -1456,7 +1434,7 @@ public class Types {
         return (sym.flags() & STATIC) != 0
             ? sym.type
             : memberType.visit(t, sym);
-        }
+    }
     // where
         private SimpleVisitor<Type,Symbol> memberType = new SimpleVisitor<Type,Symbol>() {
 
@@ -1566,7 +1544,7 @@ public class Types {
             return t; /* fast special case */
         else
             return erasure.visit(t, recurse);
-        }
+    }
     // where
         private SimpleVisitor<Type, Boolean> erasure = new SimpleVisitor<Type, Boolean>() {
             public Type visitType(Type t, Boolean recurse) {
@@ -1861,16 +1839,13 @@ public class Types {
 
     /**
      * Same as {@link #setBounds(Type.TypeVar,List,Type)}, except that
-     * third parameter is computed directly, as follows: if all
-     * all bounds are interface types, the computed supertype is Object,
-     * otherwise the supertype is simply left null (in this case, the supertype
-     * is assumed to be the head of the bound list passed as second argument).
-     * Note that this check might cause a symbol completion. Hence, this version of
+     * third parameter is computed directly.  Note that this test
+     * might cause a symbol completion.  Hence, this version of
      * setBounds may not be called during a classfile read.
      */
     public void setBounds(TypeVar t, List<Type> bounds) {
         Type supertype = (bounds.head.tsym.flags() & INTERFACE) != 0 ?
-            syms.objectType : null;
+            supertype(bounds.head) : null;
         setBounds(t, bounds, supertype);
         t.rank_field = -1;
     }
@@ -1961,45 +1936,6 @@ public class Types {
     public boolean overrideEquivalent(Type t, Type s) {
         return hasSameArgs(t, s) ||
             hasSameArgs(t, erasure(s)) || hasSameArgs(erasure(t), s);
-    }
-
-    private WeakHashMap<MethodSymbol, SoftReference<Map<TypeSymbol, MethodSymbol>>> implCache_check =
-            new WeakHashMap<MethodSymbol, SoftReference<Map<TypeSymbol, MethodSymbol>>>();
-
-    private WeakHashMap<MethodSymbol, SoftReference<Map<TypeSymbol, MethodSymbol>>> implCache_nocheck =
-            new WeakHashMap<MethodSymbol, SoftReference<Map<TypeSymbol, MethodSymbol>>>();
-
-    public MethodSymbol implementation(MethodSymbol ms, TypeSymbol origin, Types types, boolean checkResult) {
-        Map<MethodSymbol, SoftReference<Map<TypeSymbol, MethodSymbol>>> implCache = checkResult ?
-            implCache_check : implCache_nocheck;
-        SoftReference<Map<TypeSymbol, MethodSymbol>> ref_cache = implCache.get(ms);
-        Map<TypeSymbol, MethodSymbol> cache = ref_cache != null ? ref_cache.get() : null;
-        if (cache == null) {
-            cache = new HashMap<TypeSymbol, MethodSymbol>();
-            implCache.put(ms, new SoftReference<Map<TypeSymbol, MethodSymbol>>(cache));
-        }
-        MethodSymbol impl = cache.get(origin);
-        if (impl == null) {
-            for (Type t = origin.type; t.tag == CLASS || t.tag == TYPEVAR; t = types.supertype(t)) {
-                while (t.tag == TYPEVAR)
-                    t = t.getUpperBound();
-                TypeSymbol c = t.tsym;
-                for (Scope.Entry e = c.members().lookup(ms.name);
-                     e.scope != null;
-                     e = e.next()) {
-                    if (e.sym.kind == Kinds.MTH) {
-                        MethodSymbol m = (MethodSymbol) e.sym;
-                        if (m.overrides(ms, origin, types, checkResult) &&
-                            (m.flags() & SYNTHETIC) == 0) {
-                            impl = m;
-                            cache.put(origin, m);
-                            return impl;
-                        }
-                    }
-                }
-            }
-        }
-        return impl;
     }
 
     /**
@@ -2518,7 +2454,7 @@ public class Types {
             }
             @Override
             public int hashCode() {
-                return 127 * Types.hashCode(t1) + Types.hashCode(t2);
+                return 127 * Types.this.hashCode(t1) + Types.this.hashCode(t2);
             }
             @Override
             public boolean equals(Object obj) {
@@ -2934,14 +2870,6 @@ public class Types {
     /**
      * Capture conversion as specified by JLS 3rd Ed.
      */
-
-    public List<Type> capture(List<Type> ts) {
-        List<Type> buf = List.nil();
-        for (Type t : ts) {
-            buf = buf.prepend(capture(t));
-        }
-        return buf.reverse();
-    }
     public Type capture(Type t) {
         if (t.tag != CLASS)
             return t;
@@ -3389,7 +3317,7 @@ public class Types {
             this.t = t;
         }
         public int hashCode() {
-            return Types.hashCode(t);
+            return Types.this.hashCode(t);
         }
         public boolean equals(Object obj) {
             return (obj instanceof SingletonType) &&

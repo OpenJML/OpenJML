@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.doclets.internal.toolkit.builders;
@@ -30,6 +30,7 @@ import com.sun.tools.doclets.internal.toolkit.*;
 import com.sun.javadoc.*;
 import java.io.*;
 import java.util.*;
+import java.lang.reflect.*;
 
 /**
  * Builds the Constants Summary Page.
@@ -108,6 +109,20 @@ public class ConstantsSummaryBuilder extends AbstractBuilder {
     /**
      * {@inheritDoc}
      */
+    public void invokeMethod(String methodName, Class<?>[] paramClasses,
+            Object[] params)
+    throws Exception {
+        if (DEBUG) {
+            configuration.root.printError("DEBUG: " + this.getClass().getName()
+                + "." + methodName);
+        }
+        Method method = this.getClass().getMethod(methodName, paramClasses);
+        method.invoke(this, params);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public void build() throws IOException {
         if (writer == null) {
             //Doclet does not support this output.
@@ -129,29 +144,29 @@ public class ConstantsSummaryBuilder extends AbstractBuilder {
      * @param elements the list of elements describing constant summary
      *                 documentation.
      */
-    public void buildConstantSummary(XMLNode node) throws Exception {
-        buildChildren(node);
+    public void buildConstantSummary(List<?> elements) throws Exception {
+        build(elements);
         writer.close();
     }
 
     /**
      * Build the header.
      */
-    public void buildHeader(XMLNode node) {
+    public void buildHeader() {
         writer.writeHeader();
     }
 
     /**
      * Build the footer.
      */
-    public void buildFooter(XMLNode node) {
+    public void buildFooter() {
         writer.writeFooter();
     }
 
     /**
      * Build the table of contents.
      */
-    public void buildContents(XMLNode node) {
+    public void buildContents() {
         writer.writeContentsHeader();
         PackageDoc[] packages = configuration.packages;
         printedPackageHeaders = new HashSet<String>();
@@ -171,14 +186,14 @@ public class ConstantsSummaryBuilder extends AbstractBuilder {
      * @param elements the XML elements that represent the components
      *                 of documentation for each package.
      */
-    public void buildConstantSummaries(XMLNode node) {
+    public void buildConstantSummaries(List<?> elements) {
         PackageDoc[] packages = configuration.packages;
         printedPackageHeaders = new HashSet<String>();
         for (int i = 0; i < packages.length; i++) {
             if (hasConstantField(packages[i])) {
                 currentPackage = packages[i];
                 //Build the documentation for the current package.
-                buildChildren(node);
+                build(elements);
             }
         }
     }
@@ -189,8 +204,8 @@ public class ConstantsSummaryBuilder extends AbstractBuilder {
      * @param elements the list of XML elements that make up package
      *                 documentation.
      */
-    public void buildPackageConstantSummary(XMLNode node) {
-        buildChildren(node);
+    public void buildPackageConstantSummary(List<?> elements) {
+        build(elements);
     }
 
     /**
@@ -199,7 +214,7 @@ public class ConstantsSummaryBuilder extends AbstractBuilder {
      * @param elements the list of XML elements that make up the class
      *                 constant summary.
      */
-    public void buildClassConstantSummary(XMLNode node) {
+    public void buildClassConstantSummary(List<?> elements) {
         ClassDoc[] classes = currentPackage.name().length() > 0 ?
             currentPackage.allClasses() :
             configuration.classDocCatalog.allClasses(
@@ -212,14 +227,14 @@ public class ConstantsSummaryBuilder extends AbstractBuilder {
             }
             currentClass = classes[i];
             //Build the documentation for the current class.
-            buildChildren(node);
+            build(elements);
         }
     }
 
     /**
      * Build the header for the given class.
      */
-    public void buildPackageHeader(XMLNode node) {
+    public void buildPackageHeader() {
         String parsedPackageName = parsePackageName(currentPackage.name());
         if (! printedPackageHeaders.contains(parsedPackageName)) {
             writer.writePackageName(currentPackage,
@@ -231,7 +246,7 @@ public class ConstantsSummaryBuilder extends AbstractBuilder {
     /**
      * Build the header for the given class.
      */
-    public void buildClassHeader(XMLNode node) {
+    public void buildClassHeader() {
         writer.writeConstantMembersHeader(currentClass);
     }
 
@@ -239,14 +254,14 @@ public class ConstantsSummaryBuilder extends AbstractBuilder {
      * Print summary of constant members in the
      * class.
      */
-    public void buildConstantMembers(XMLNode node) {
-        new ConstantFieldBuilder(currentClass).buildMembersSummary(node);
+    public void buildConstantMembers() {
+        new ConstantFieldBuilder(currentClass).buildMembersSummary();
     }
 
     /**
      * Build the footer for the given class.
      */
-    public void buildClassFooter(XMLNode node) {
+    public void buildClassFooter() {
         writer.writeConstantMembersFooter(currentClass);
     }
 
@@ -347,7 +362,7 @@ public class ConstantsSummaryBuilder extends AbstractBuilder {
         /**
          * Builds the table of constants for a given class.
          */
-        protected void buildMembersSummary(XMLNode node) {
+        protected void buildMembersSummary() {
             List<FieldDoc> members = new ArrayList<FieldDoc>(members());
             if (members.size() > 0) {
                 Collections.sort(members);

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2005, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2005-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,24 +18,34 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javac.file;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.lang.ref.SoftReference;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -53,13 +63,18 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 
+import com.sun.tools.javac.code.Source;
 import com.sun.tools.javac.file.RelativePath.RelativeFile;
 import com.sun.tools.javac.file.RelativePath.RelativeDirectory;
+import com.sun.tools.javac.main.JavacOption;
 import com.sun.tools.javac.main.OptionName;
-import com.sun.tools.javac.util.BaseFileManager;
+import com.sun.tools.javac.main.RecognizedOptions;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Options;
 
 import static javax.tools.StandardLocation.*;
 import static com.sun.tools.javac.main.OptionName.*;
@@ -67,13 +82,8 @@ import static com.sun.tools.javac.main.OptionName.*;
 /**
  * This class provides access to the source, class and other files
  * used by the compiler and related tools.
- *
- * <p><b>This is NOT part of any supported API.
- * If you write code that depends on this, you do so at your own risk.
- * This code and its internal interfaces are subject to change or
- * deletion without notice.</b>
  */
-public class JavacFileManager extends BaseFileManager implements StandardJavaFileManager {
+public class JavacFileManager implements StandardJavaFileManager {
 
     boolean useZipFileIndex;
 
@@ -84,9 +94,16 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
             return buffer.toString().toCharArray();
     }
 
+    /**
+     * The log to be used for error reporting.
+     */
+    protected Log log;
+
     /** Encapsulates knowledge of paths
      */
     private Paths paths;
+
+    private Options options;
 
     private FSInfo fsInfo;
 
@@ -111,6 +128,11 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
     protected boolean ignoreSymbolFile;
 
     /**
+     * User provided charset (through javax.tools).
+     */
+    protected Charset charset;
+
+    /**
      * Register a Context.Factory to create a JavacFileManager.
      */
     public static void preRegister(final Context context) {
@@ -126,18 +148,18 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
      * it as the JavaFileManager for that context.
      */
     public JavacFileManager(Context context, boolean register, Charset charset) {
-        super(charset);
         if (register)
             context.put(JavaFileManager.class, this);
+        byteBufferCache = new ByteBufferCache();
+        this.charset = charset;
         setContext(context);
     }
 
     /**
      * Set the context for JavacFileManager.
      */
-    @Override
     public void setContext(Context context) {
-        super.setContext(context);
+        log = Log.instance(context);
         if (paths == null) {
             paths = Paths.instance(context);
         } else {
@@ -146,6 +168,7 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
             paths.setContext(context);
         }
 
+        options = Options.instance(context);
         fsInfo = FSInfo.instance(context);
 
         useZipFileIndex = System.getProperty("useJavaUtilZip") == null;// TODO: options.get("useJavaUtilZip") == null;
@@ -179,6 +202,17 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
 
     public Iterable<? extends JavaFileObject> getJavaFileObjects(String... names) {
         return getJavaFileObjectsFromStrings(Arrays.asList(nullCheck(names)));
+    }
+
+    protected JavaFileObject.Kind getKind(String extension) {
+        if (extension.equals(JavaFileObject.Kind.CLASS.extension))
+            return JavaFileObject.Kind.CLASS;
+        else if (extension.equals(JavaFileObject.Kind.SOURCE.extension))
+            return JavaFileObject.Kind.SOURCE;
+        else if (extension.equals(JavaFileObject.Kind.HTML.extension))
+            return JavaFileObject.Kind.HTML;
+        else
+            return JavaFileObject.Kind.OTHER;
     }
 
     private static boolean isValidName(String name) {
@@ -260,7 +294,7 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
                     archive = openArchive(directory);
                 } catch (IOException ex) {
                     log.error("error.reading.file",
-                       directory, getMessage(ex));
+                       directory, ex.getLocalizedMessage());
                     return;
                 }
             }
@@ -315,7 +349,9 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
     }
 
     private boolean isValidFile(String s, Set<JavaFileObject.Kind> fileKinds) {
-        JavaFileObject.Kind kind = getKind(s);
+        int lastDot = s.lastIndexOf(".");
+        String extn = (lastDot == -1 ? s : s.substring(lastDot));
+        JavaFileObject.Kind kind = getKind(extn);
         return fileKinds.contains(kind);
     }
 
@@ -392,7 +428,6 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
             return Collections.emptySet();
         }
 
-        @Override
         public String toString() {
             return "MissingArchive[" + zipFileName + "]";
         }
@@ -489,7 +524,7 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
                 archive = new MissingArchive(zipFileName);
             } catch (IOException ex) {
                 if (zipFileName.exists())
-                    log.error("error.reading.file", zipFileName, getMessage(ex));
+                    log.error("error.reading.file", zipFileName, ex.getLocalizedMessage());
                 archive = new MissingArchive(zipFileName);
             }
 
@@ -518,6 +553,18 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
         }
     }
 
+    CharBuffer getCachedContent(JavaFileObject file) {
+        SoftReference<CharBuffer> r = contentCache.get(file);
+        return (r == null ? null : r.get());
+    }
+
+    void cache(JavaFileObject file, CharBuffer cb) {
+        contentCache.put(file, new SoftReference<CharBuffer>(cb));
+    }
+
+    private final Map<JavaFileObject, SoftReference<CharBuffer>> contentCache
+            = new HashMap<JavaFileObject, SoftReference<CharBuffer>>();
+
     private String defaultEncodingName;
     private String getDefaultEncodingName() {
         if (defaultEncodingName == null) {
@@ -525,6 +572,161 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
                 new OutputStreamWriter(new ByteArrayOutputStream()).getEncoding();
         }
         return defaultEncodingName;
+    }
+
+    protected String getEncodingName() {
+        String encName = options.get(OptionName.ENCODING);
+        if (encName == null)
+            return getDefaultEncodingName();
+        else
+            return encName;
+    }
+
+    protected Source getSource() {
+        String sourceName = options.get(OptionName.SOURCE);
+        Source source = null;
+        if (sourceName != null)
+            source = Source.lookup(sourceName);
+        return (source != null ? source : Source.DEFAULT);
+    }
+
+    /**
+     * Make a byte buffer from an input stream.
+     */
+    ByteBuffer makeByteBuffer(InputStream in)
+        throws IOException {
+        int limit = in.available();
+        if (mmappedIO && in instanceof FileInputStream) {
+            // Experimental memory mapped I/O
+            FileInputStream fin = (FileInputStream)in;
+            return fin.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, limit);
+        }
+        if (limit < 1024) limit = 1024;
+        ByteBuffer result = byteBufferCache.get(limit);
+        int position = 0;
+        while (in.available() != 0) {
+            if (position >= limit)
+                // expand buffer
+                result = ByteBuffer.
+                    allocate(limit <<= 1).
+                    put((ByteBuffer)result.flip());
+            int count = in.read(result.array(),
+                position,
+                limit - position);
+            if (count < 0) break;
+            result.position(position += count);
+        }
+        return (ByteBuffer)result.flip();
+    }
+
+    void recycleByteBuffer(ByteBuffer bb) {
+        byteBufferCache.put(bb);
+    }
+
+    /**
+     * A single-element cache of direct byte buffers.
+     */
+    private static class ByteBufferCache {
+        private ByteBuffer cached;
+        ByteBuffer get(int capacity) {
+            if (capacity < 20480) capacity = 20480;
+            ByteBuffer result =
+                (cached != null && cached.capacity() >= capacity)
+                ? (ByteBuffer)cached.clear()
+                : ByteBuffer.allocate(capacity + capacity>>1);
+            cached = null;
+            return result;
+        }
+        void put(ByteBuffer x) {
+            cached = x;
+        }
+    }
+
+    private final ByteBufferCache byteBufferCache;
+
+    CharsetDecoder getDecoder(String encodingName, boolean ignoreEncodingErrors) {
+        Charset charset = (this.charset == null)
+            ? Charset.forName(encodingName)
+            : this.charset;
+        CharsetDecoder decoder = charset.newDecoder();
+
+        CodingErrorAction action;
+        if (ignoreEncodingErrors)
+            action = CodingErrorAction.REPLACE;
+        else
+            action = CodingErrorAction.REPORT;
+
+        return decoder
+            .onMalformedInput(action)
+            .onUnmappableCharacter(action);
+    }
+
+    /**
+     * Decode a ByteBuffer into a CharBuffer.
+     */
+    CharBuffer decode(ByteBuffer inbuf, boolean ignoreEncodingErrors) {
+        String encodingName = getEncodingName();
+        CharsetDecoder decoder;
+        try {
+            decoder = getDecoder(encodingName, ignoreEncodingErrors);
+        } catch (IllegalCharsetNameException e) {
+            log.error("unsupported.encoding", encodingName);
+            return (CharBuffer)CharBuffer.allocate(1).flip();
+        } catch (UnsupportedCharsetException e) {
+            log.error("unsupported.encoding", encodingName);
+            return (CharBuffer)CharBuffer.allocate(1).flip();
+        }
+
+        // slightly overestimate the buffer size to avoid reallocation.
+        float factor =
+            decoder.averageCharsPerByte() * 0.8f +
+            decoder.maxCharsPerByte() * 0.2f;
+        CharBuffer dest = CharBuffer.
+            allocate(10 + (int)(inbuf.remaining()*factor));
+
+        while (true) {
+            CoderResult result = decoder.decode(inbuf, dest, true);
+            dest.flip();
+
+            if (result.isUnderflow()) { // done reading
+                // make sure there is at least one extra character
+                if (dest.limit() == dest.capacity()) {
+                    dest = CharBuffer.allocate(dest.capacity()+1).put(dest);
+                    dest.flip();
+                }
+                return dest;
+            } else if (result.isOverflow()) { // buffer too small; expand
+                int newCapacity =
+                    10 + dest.capacity() +
+                    (int)(inbuf.remaining()*decoder.maxCharsPerByte());
+                dest = CharBuffer.allocate(newCapacity).put(dest);
+            } else if (result.isMalformed() || result.isUnmappable()) {
+                // bad character in input
+
+                // report coding error (warn only pre 1.5)
+                if (!getSource().allowEncodingErrors()) {
+                    log.error(new SimpleDiagnosticPosition(dest.limit()),
+                              "illegal.char.for.encoding",
+                              charset == null ? encodingName : charset.name());
+                } else {
+                    log.warning(new SimpleDiagnosticPosition(dest.limit()),
+                                "illegal.char.for.encoding",
+                                charset == null ? encodingName : charset.name());
+                }
+
+                // skip past the coding error
+                inbuf.position(inbuf.position() + result.length());
+
+                // undo the flip() to prepare the output buffer
+                // for more translation
+                dest.position(dest.limit());
+                dest.limit(dest.capacity());
+                dest.put((char)0xfffd); // backward compatible
+            } else {
+                throw new AssertionError(result);
+            }
+        }
+        // unreached
     }
 
     public ClassLoader getClassLoader(Location location) {
@@ -540,8 +742,8 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
                 throw new AssertionError(e);
             }
         }
-
-        return getClassLoader(lb.toArray(new URL[lb.size()]));
+        return new URLClassLoader(lb.toArray(new URL[lb.size()]),
+            getClass().getClassLoader());
     }
 
     public Iterable<JavaFileObject> list(Location location,
@@ -591,6 +793,38 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
         return a.equals(b);
     }
 
+    public boolean handleOption(String current, Iterator<String> remaining) {
+        for (JavacOption o: javacFileManagerOptions) {
+            if (o.matches(current))  {
+                if (o.hasArg()) {
+                    if (remaining.hasNext()) {
+                        if (!o.process(options, current, remaining.next()))
+                            return true;
+                    }
+                } else {
+                    if (!o.process(options, current))
+                        return true;
+                }
+                // operand missing, or process returned false
+                throw new IllegalArgumentException(current);
+            }
+        }
+
+        return false;
+    }
+    // where
+        private static JavacOption[] javacFileManagerOptions =
+            RecognizedOptions.getJavacFileManagerOptions(
+            new RecognizedOptions.GrumpyHelper());
+
+    public int isSupportedOption(String option) {
+        for (JavacOption o : javacFileManagerOptions) {
+            if (o.matches(option))
+                return o.hasArg() ? 1 : 0;
+        }
+        return -1;
+    }
+
     public boolean hasLocation(Location location) {
         return getLocation(location) != null;
     }
@@ -617,7 +851,7 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
         nullCheck(location);
         // validatePackageName(packageName);
         nullCheck(packageName);
-        if (!isRelativeUri(relativeName))
+        if (!isRelativeUri(URI.create(relativeName))) // FIXME 6419701
             throw new IllegalArgumentException("Invalid relative name: " + relativeName);
         RelativeFile name = packageName.length() == 0
             ? new RelativeFile(relativeName)
@@ -671,7 +905,7 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
         nullCheck(location);
         // validatePackageName(packageName);
         nullCheck(packageName);
-        if (!isRelativeUri(relativeName))
+        if (!isRelativeUri(URI.create(relativeName))) // FIXME 6419701
             throw new IllegalArgumentException("relativeName is invalid");
         RelativeFile name = packageName.length() == 0
             ? new RelativeFile(relativeName)
@@ -691,7 +925,7 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
             } else {
                 File siblingDir = null;
                 if (sibling != null && sibling instanceof RegularFileObject) {
-                    siblingDir = ((RegularFileObject)sibling).file.getParentFile();
+                    siblingDir = ((RegularFileObject)sibling).f.getParentFile();
                 }
                 return new RegularFileObject(this, new File(siblingDir, fileName.basename()));
             }
@@ -810,15 +1044,6 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
         return first != '.' && first != '/';
     }
 
-    // Convenience method
-    protected static boolean isRelativeUri(String u) {
-        try {
-            return isRelativeUri(new URI(u));
-        } catch (URISyntaxException e) {
-            return false;
-        }
-    }
-
     /**
      * Converts a relative file name to a relative URI.  This is
      * different from File.toURI as this method does not canonicalize
@@ -833,28 +1058,50 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
     public static String getRelativeName(File file) {
         if (!file.isAbsolute()) {
             String result = file.getPath().replace(File.separatorChar, '/');
-            if (isRelativeUri(result))
+            if (JavacFileManager.isRelativeUri(URI.create(result))) // FIXME 6419701
                 return result;
         }
         throw new IllegalArgumentException("Invalid relative path: " + file);
     }
 
-    /**
-     * Get a detail message from an IOException.
-     * Most, but not all, instances of IOException provide a non-null result
-     * for getLocalizedMessage().  But some instances return null: in these
-     * cases, fallover to getMessage(), and if even that is null, return the
-     * name of the exception itself.
-     * @param e an IOException
-     * @return a string to include in a compiler diagnostic
-     */
-    public static String getMessage(IOException e) {
-        String s = e.getLocalizedMessage();
-        if (s != null)
-            return s;
-        s = e.getMessage();
-        if (s != null)
-            return s;
-        return e.toString();
+    @SuppressWarnings("deprecation") // bug 6410637
+    public static String getJavacFileName(FileObject file) {
+        if (file instanceof BaseFileObject)
+            return ((BaseFileObject)file).getPath();
+        URI uri = file.toUri();
+        String scheme = uri.getScheme();
+        if (scheme == null || scheme.equals("file") || scheme.equals("jar"))
+            return uri.getPath();
+        else
+            return uri.toString();
+    }
+
+    @SuppressWarnings("deprecation") // bug 6410637
+    public static String getJavacBaseFileName(FileObject file) {
+        if (file instanceof BaseFileObject)
+            return ((BaseFileObject)file).getName();
+        URI uri = file.toUri();
+        String scheme = uri.getScheme();
+        if (scheme == null || scheme.equals("file") || scheme.equals("jar")) {
+            String path = uri.getPath();
+            if (path == null)
+                return null;
+            if (scheme != null && scheme.equals("jar"))
+                path = path.substring(path.lastIndexOf('!') + 1);
+            return path.substring(path.lastIndexOf('/') + 1);
+        } else {
+            return uri.toString();
+        }
+    }
+
+    private static <T> T nullCheck(T o) {
+        o.getClass(); // null check
+        return o;
+    }
+
+    private static <T> Iterable<T> nullCheck(Iterable<T> it) {
+        for (T t : it)
+            t.getClass(); // null check
+        return it;
     }
 }

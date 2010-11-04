@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2004, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2004-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.apt.comp;
@@ -60,12 +60,11 @@ import static com.sun.tools.apt.mirror.declaration.DeclarationMaker.isJavaIdenti
 /**
  * Apt compiler phase.
  *
- *  <p><b>This is NOT part of any supported API.
+ *  <p><b>This is NOT part of any API supported by Sun Microsystems.
  *  If you write code that depends on this, you do so at your own
  *  risk.  This code and its internal interfaces are subject to change
  *  or deletion without notice.</b>
  */
-@SuppressWarnings("deprecation")
 public class Apt extends ListBuffer<Env<AttrContext>> {
     java.util.Set<String> genSourceFileNames = new java.util.LinkedHashSet<String>();
     public java.util.Set<String> getSourceFileNames() {
@@ -201,7 +200,7 @@ public class Apt extends ListBuffer<Env<AttrContext>> {
                     computeAnnotationSet(param, annotationSet);
 
             if (symbol.members() != null) {
-                for(Scope.Entry e = symbol.members().elems; e != null; e = e.sibling)
+                for(Scope.Entry e: symbol.members().table)
                     computeAnnotationSet(e.sym, annotationSet);
             }
         }
@@ -457,10 +456,8 @@ public class Apt extends ListBuffer<Env<AttrContext>> {
                 throw new UsageMessageNeededException();
 
             try {
-                for(Map.Entry<AnnotationProcessorFactory, Set<AnnotationTypeDeclaration>> entry :
-                        factoryToAnnotation.entrySet()) {
-                    AnnotationProcessorFactory  apFactory = entry.getKey();
-                    AnnotationProcessor processor = apFactory.getProcessorFor(entry.getValue(),
+                for(AnnotationProcessorFactory apFactory: factoryToAnnotation.keySet()) {
+                    AnnotationProcessor processor = apFactory.getProcessorFor(factoryToAnnotation.get(apFactory),
                                                                               trivAPE);
                     if (processor != null)
                         processors.add(processor);
@@ -498,12 +495,57 @@ public class Apt extends ListBuffer<Env<AttrContext>> {
      * won't match anything.
      */
     Pattern importStringToPattern(String s) {
-        if (com.sun.tools.javac.processing.JavacProcessingEnvironment.isValidImportString(s)) {
-            return com.sun.tools.javac.processing.JavacProcessingEnvironment.validImportStringToPattern(s);
+        if (s.equals("*")) {
+            return allMatches;
         } else {
-            Bark bark = Bark.instance(context);
-            bark.aptWarning("MalformedSupportedString", s);
-            return com.sun.tools.javac.processing.JavacProcessingEnvironment.noMatches;
+            String t = s;
+            boolean star = false;
+
+            /*
+             * Validate string from factory is legal.  If the string
+             * has more than one asterisks or the asterisks does not
+             * appear as the last character (preceded by a period),
+             * the string is not legal.
+             */
+
+            boolean valid = true;
+            int index = t.indexOf('*');
+            if (index != -1) {
+                // '*' must be last character...
+                if (index == t.length() -1) {
+                     // ... and preceeding character must be '.'
+                    if ( index-1 >= 0 ) {
+                        valid = t.charAt(index-1) == '.';
+                        // Strip off ".*$" for identifier checks
+                        t = t.substring(0, t.length()-2);
+                    }
+                } else
+                    valid = false;
+            }
+
+            // Verify string is off the form (javaId \.)+ or javaId
+            if (valid) {
+                String[] javaIds = t.split("\\.", t.length()+2);
+                for(String javaId: javaIds)
+                    valid &= isJavaIdentifier(javaId);
+            }
+
+            if (!valid) {
+                Bark bark = Bark.instance(context);
+                bark.aptWarning("MalformedSupportedString", s);
+                return noMatches; // won't match any valid identifier
+            }
+
+            String s_prime = s.replaceAll("\\.", "\\\\.");
+
+            if (s_prime.endsWith("*")) {
+                s_prime =  s_prime.substring(0, s_prime.length() - 1) + ".+";
+            }
+
+            return Pattern.compile(s_prime);
         }
     }
+
+    private static final Pattern allMatches = Pattern.compile(".*");
+    private static final Pattern noMatches  = Pattern.compile("(\\P{all})+");
 }

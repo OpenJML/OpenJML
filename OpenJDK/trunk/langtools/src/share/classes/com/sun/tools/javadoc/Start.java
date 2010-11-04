@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 1997-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javadoc;
@@ -51,6 +51,8 @@ import static com.sun.tools.javac.code.Flags.*;
  * @author Neal Gafter (rewrite)
  */
 public class Start {  // DRC - changed to public from package-default
+    /** Context for this invocation. */
+    private final Context context;
     
     public Context context() { return context; } // DRC - added access method
 
@@ -98,8 +100,8 @@ public class Start {  // DRC - changed to public from package-default
           PrintWriter noticeWriter,
           String defaultDocletClassName,
           ClassLoader docletParentClassLoader) {
-        Context tempContext = new Context(); // interim context until option decoding completed
-        messager = new Messager(tempContext, programName, errWriter, warnWriter, noticeWriter);
+        context = new Context();
+        messager = new Messager(context, programName, errWriter, warnWriter, noticeWriter);
         this.defaultDocletClassName = defaultDocletClassName;
         this.docletParentClassLoader = docletParentClassLoader;
     }
@@ -110,8 +112,8 @@ public class Start {  // DRC - changed to public from package-default
 
     Start(String programName, String defaultDocletClassName,
           ClassLoader docletParentClassLoader) {
-        Context tempContext = new Context(); // interim context until option decoding completed
-        messager = new Messager(tempContext, programName);
+        context = new Context();
+        messager = new Messager(context, programName);
         this.defaultDocletClassName = defaultDocletClassName;
         this.docletParentClassLoader = docletParentClassLoader;
     }
@@ -144,13 +146,6 @@ public class Start {  // DRC - changed to public from package-default
         if (docletInvoker != null) {
             docletInvoker.optionLength("-help");
         }
-    }
-
-    /**
-     * Usage
-     */
-    private void Xusage() {
-        messager.notice("main.Xusage");
     }
 
     /**
@@ -222,15 +217,6 @@ public class Start {  // DRC - changed to public from package-default
         setDocletInvoker(argv);
         ListBuffer<String> subPackages = new ListBuffer<String>();
         ListBuffer<String> excludedPackages = new ListBuffer<String>();
-
-        Context context = new Context();
-        // Setup a new Messager, using the same initial parameters as the
-        // existing Messager, except that this one will be able to use any
-        // options that may be set up below.
-        Messager.preRegister(context,
-                messager.programName,
-                messager.errWriter, messager.warnWriter, messager.noticeWriter);
-
         Options compOpts = Options.instance(context);
         boolean docClasses = false;
 
@@ -328,15 +314,6 @@ public class Start {  // DRC - changed to public from package-default
                     usageError("main.locale_first");
                 oneArg(argv, i++);
                 docLocale = argv[i];
-            } else if (arg.equals("-Xmaxerrs") || arg.equals("-Xmaxwarns")) {
-                oneArg(argv, i++);
-                if (compOpts.get(arg) != null) {
-                    usageError("main.option.already.seen", arg);
-                }
-                compOpts.put(arg, argv[i]);
-            } else if (arg.equals("-X")) {
-                Xusage();
-                exit();
             } else if (arg.startsWith("-XD")) {
                 String s = arg.substring("-XD".length());
                 int eq = s.indexOf('=');

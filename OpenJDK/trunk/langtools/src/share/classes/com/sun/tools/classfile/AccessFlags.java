@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2007-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.classfile;
@@ -32,8 +32,8 @@ import java.util.Set;
 /**
  * See JVMS3, sections 4.2, 4.6, 4.7.
  *
- *  <p><b>This is NOT part of any supported API.
- *  If you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
+ *  you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -58,7 +58,7 @@ public class AccessFlags {
     public static final int ACC_ENUM          = 0x4000; // class, inner, field
     public static final int ACC_MODULE        = 0x8000; // class, inner, field, method
 
-    public static enum Kind { Class, InnerClass, Field, Method};
+    private static enum Type { Class, InnerClass, Field, Method};
 
     AccessFlags(ClassReader cr) throws IOException {
         this(cr.readUnsignedShort());
@@ -76,10 +76,6 @@ public class AccessFlags {
         return (flags & mask) != 0;
     }
 
-    public int byteLength() {
-        return 2;
-    }
-
     private static final int[] classModifiers = {
         ACC_PUBLIC, ACC_FINAL, ACC_ABSTRACT, ACC_MODULE
     };
@@ -91,11 +87,11 @@ public class AccessFlags {
 
     public Set<String> getClassModifiers() {
         int f = ((flags & ACC_INTERFACE) != 0 ? flags & ~ACC_ABSTRACT : flags);
-        return getModifiers(f, classModifiers, Kind.Class);
+        return getModifiers(f, classModifiers, Type.Class);
     }
 
     public Set<String> getClassFlags() {
-        return getFlags(classFlags, Kind.Class);
+        return getFlags(classFlags, Type.Class);
     }
 
     private static final int[] innerClassModifiers = {
@@ -110,11 +106,11 @@ public class AccessFlags {
 
     public Set<String> getInnerClassModifiers() {
         int f = ((flags & ACC_INTERFACE) != 0 ? flags & ~ACC_ABSTRACT : flags);
-        return getModifiers(f, innerClassModifiers, Kind.InnerClass);
+        return getModifiers(f, innerClassModifiers, Type.InnerClass);
     }
 
     public Set<String> getInnerClassFlags() {
-        return getFlags(innerClassFlags, Kind.InnerClass);
+        return getFlags(innerClassFlags, Type.InnerClass);
     }
 
     private static final int[] fieldModifiers = {
@@ -128,11 +124,11 @@ public class AccessFlags {
     };
 
     public Set<String> getFieldModifiers() {
-        return getModifiers(fieldModifiers, Kind.Field);
+        return getModifiers(fieldModifiers, Type.Field);
     }
 
     public Set<String> getFieldFlags() {
-        return getFlags(fieldFlags, Kind.Field);
+        return getFlags(fieldFlags, Type.Field);
     }
 
     private static final int[] methodModifiers = {
@@ -147,18 +143,18 @@ public class AccessFlags {
     };
 
     public Set<String> getMethodModifiers() {
-        return getModifiers(methodModifiers, Kind.Method);
+        return getModifiers(methodModifiers, Type.Method);
     }
 
     public Set<String> getMethodFlags() {
-        return getFlags(methodFlags, Kind.Method);
+        return getFlags(methodFlags, Type.Method);
     }
 
-    private Set<String> getModifiers(int[] modifierFlags, Kind t) {
+    private Set<String> getModifiers(int[] modifierFlags, Type t) {
         return getModifiers(flags, modifierFlags, t);
     }
 
-    private static Set<String> getModifiers(int flags, int[] modifierFlags, Kind t) {
+    private static Set<String> getModifiers(int flags, int[] modifierFlags, Type t) {
         Set<String> s = new LinkedHashSet<String>();
         for (int m: modifierFlags) {
             if ((flags & m) != 0)
@@ -167,7 +163,7 @@ public class AccessFlags {
         return s;
     }
 
-    private Set<String> getFlags(int[] expectedFlags, Kind t) {
+    private Set<String> getFlags(int[] expectedFlags, Type t) {
         Set<String> s = new LinkedHashSet<String>();
         int f = flags;
         for (int e: expectedFlags) {
@@ -184,7 +180,7 @@ public class AccessFlags {
         return s;
     }
 
-    private static String flagToModifier(int flag, Kind t) {
+    private static String flagToModifier(int flag, Type t) {
         switch (flag) {
             case ACC_PUBLIC:
                 return "public";
@@ -199,7 +195,7 @@ public class AccessFlags {
             case ACC_SYNCHRONIZED:
                 return "synchronized";
             case 0x80:
-                return (t == Kind.Field ? "transient" : null);
+                return (t == Type.Field ? "transient" : null);
             case ACC_VOLATILE:
                 return "volatile";
             case ACC_NATIVE:
@@ -215,7 +211,7 @@ public class AccessFlags {
         }
     }
 
-    private static String flagToName(int flag, Kind t) {
+    private static String flagToName(int flag, Type t) {
         switch (flag) {
         case ACC_PUBLIC:
             return "ACC_PUBLIC";
@@ -228,11 +224,11 @@ public class AccessFlags {
         case ACC_FINAL:
             return "ACC_FINAL";
         case 0x20:
-            return (t == Kind.Class ? "ACC_SUPER" : "ACC_SYNCHRONIZED");
+            return (t == Type.Class ? "ACC_SUPER" : "ACC_SYNCHRONIZED");
         case 0x40:
-            return (t == Kind.Field ? "ACC_VOLATILE" : "ACC_BRIDGE");
+            return (t == Type.Field ? "ACC_VOLATILE" : "ACC_BRIDGE");
         case 0x80:
-            return (t == Kind.Field ? "ACC_TRANSIENT" : "ACC_VARARGS");
+            return (t == Type.Field ? "ACC_TRANSIENT" : "ACC_VARARGS");
         case ACC_NATIVE:
             return "ACC_NATIVE";
         case ACC_INTERFACE:
@@ -254,5 +250,5 @@ public class AccessFlags {
         }
     }
 
-    public final int flags;
+    final int flags;
 }

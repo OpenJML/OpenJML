@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2005-2006 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package javax.tools;
@@ -228,12 +228,6 @@ public interface JavaCompiler extends Tool, OptionChecker {
      * <p>If a file manager is provided, it must be able to handle all
      * locations defined in {@link StandardLocation}.
      *
-     * <p>Note that annotation processing can process both the
-     * compilation units of source code to be compiled, passed with
-     * the {@code compilationUnits} parameter, as well as class
-     * files, whose names are passed with the {@code classes}
-     * parameter.
-     *
      * @param out a Writer for additional output from the compiler;
      * use {@code System.err} if {@code null}
      * @param fileManager a file manager; if {@code null} use the
@@ -242,8 +236,8 @@ public interface JavaCompiler extends Tool, OptionChecker {
      * null} use the compiler's default method for reporting
      * diagnostics
      * @param options compiler options, {@code null} means no options
-     * @param classes names of classes to be processed by annotation
-     * processing, {@code null} means no class names
+     * @param classes class names (for annotation processing), {@code
+     * null} means no class names
      * @param compilationUnits the compilation units to compile, {@code
      * null} means no compilation units
      * @return an object representing the compilation

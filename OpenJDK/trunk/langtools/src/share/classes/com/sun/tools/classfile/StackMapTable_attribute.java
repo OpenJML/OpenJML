@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2007, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2007-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.classfile;
@@ -30,8 +30,8 @@ import java.io.IOException;
 /**
  * See JVMS3, section 4.8.4.
  *
- *  <p><b>This is NOT part of any supported API.
- *  If you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
+ *  you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -107,8 +107,6 @@ public class StackMapTable_attribute extends Attribute {
             return 1;
         }
 
-        public abstract int getOffsetDelta();
-
         public abstract <R,D> R accept(Visitor<R,D> visitor, D data);
 
         public final int frame_type;
@@ -132,10 +130,6 @@ public class StackMapTable_attribute extends Attribute {
         public <R, D> R accept(Visitor<R, D> visitor, D data) {
             return visitor.visit_same_frame(this, data);
         }
-
-        public int getOffsetDelta() {
-            return frame_type;
-        }
     }
 
     public static class same_locals_1_stack_item_frame extends stack_map_frame {
@@ -153,10 +147,6 @@ public class StackMapTable_attribute extends Attribute {
 
         public <R, D> R accept(Visitor<R, D> visitor, D data) {
             return visitor.visit_same_locals_1_stack_item_frame(this, data);
-        }
-
-        public int getOffsetDelta() {
-            return frame_type - 64;
         }
 
         public final verification_type_info[] stack;
@@ -180,10 +170,6 @@ public class StackMapTable_attribute extends Attribute {
             return visitor.visit_same_locals_1_stack_item_frame_extended(this, data);
         }
 
-        public int getOffsetDelta() {
-            return offset_delta;
-        }
-
         public final int offset_delta;
         public final verification_type_info[] stack;
     }
@@ -203,10 +189,6 @@ public class StackMapTable_attribute extends Attribute {
             return visitor.visit_chop_frame(this, data);
         }
 
-        public int getOffsetDelta() {
-            return offset_delta;
-        }
-
         public final int offset_delta;
     }
 
@@ -223,10 +205,6 @@ public class StackMapTable_attribute extends Attribute {
 
         public <R, D> R accept(Visitor<R, D> visitor, D data) {
             return visitor.visit_same_frame_extended(this, data);
-        }
-
-        public int getOffsetDelta() {
-            return offset_delta;
         }
 
         public final int offset_delta;
@@ -252,10 +230,6 @@ public class StackMapTable_attribute extends Attribute {
 
         public <R, D> R accept(Visitor<R, D> visitor, D data) {
             return visitor.visit_append_frame(this, data);
-        }
-
-        public int getOffsetDelta() {
-            return offset_delta;
         }
 
         public final int offset_delta;
@@ -290,10 +264,6 @@ public class StackMapTable_attribute extends Attribute {
 
         public <R, D> R accept(Visitor<R, D> visitor, D data) {
             return visitor.visit_full_frame(this, data);
-        }
-
-        public int getOffsetDelta() {
-            return offset_delta;
         }
 
         public final int offset_delta;
@@ -338,7 +308,7 @@ public class StackMapTable_attribute extends Attribute {
             }
         }
 
-        protected verification_type_info(int tag) {
+        verification_type_info(int tag) {
             this.tag = tag;
         }
 

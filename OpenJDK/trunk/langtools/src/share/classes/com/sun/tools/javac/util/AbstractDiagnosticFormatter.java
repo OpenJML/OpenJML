@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2008, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2008-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 package com.sun.tools.javac.util;
 
@@ -42,8 +42,8 @@ import com.sun.tools.javac.code.Printer;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.CapturedType;
+import com.sun.tools.javac.file.JavacFileManager;
 
-import com.sun.tools.javac.file.BaseFileObject;
 import static com.sun.tools.javac.util.JCDiagnostic.DiagnosticType.*;
 
 /**
@@ -57,10 +57,6 @@ import static com.sun.tools.javac.util.JCDiagnostic.DiagnosticType.*;
  *  <li> Provides the formatting logic for rendering the arguments of a JCDiagnostic object.
  * <ul>
  *
- * <p><b>This is NOT part of any supported API.
- * If you write code that depends on this, you do so at your own risk.
- * This code and its internal interfaces are subject to change or
- * deletion without notice.</b>
  */
 public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter<JCDiagnostic> {
 
@@ -81,11 +77,9 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
     protected int depth = 0;
 
     /**
-     * All captured types that have been encountered during diagnostic formatting.
-     * This info is used by the FormatterPrinter in order to print friendly unique
-     * ids for captured types
+     * Printer instance to be used for formatting types/symbol
      */
-    private List<Type> allCaptured = List.nil();
+    protected Printer printer;
 
     /**
      * Initialize an AbstractDiagnosticFormatter by setting its JavacMessages object.
@@ -94,6 +88,7 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
     protected AbstractDiagnosticFormatter(JavacMessages messages, SimpleConfiguration config) {
         this.messages = messages;
         this.config = config;
+        this.printer = new FormatterPrinter();
     }
 
     public String formatKind(JCDiagnostic d, Locale l) {
@@ -109,7 +104,7 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
 
     //JAVA16 @Override
     public String format(JCDiagnostic d, Locale locale) {
-        allCaptured = List.nil();
+        printer = new FormatterPrinter();
         return formatDiagnostic(d, locale);
     }
 
@@ -119,8 +114,7 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
         return formatDiagnostic(d, locale, format);
     }
 
-    protected abstract String formatDiagnostic(JCDiagnostic d, Locale locale);
-
+    abstract String formatDiagnostic(JCDiagnostic d, Locale locale);
     public String formatDiagnostic(JCDiagnostic d, Locale locale, String format) { return formatDiagnostic(d,locale); } // DRC - added
 
     public String formatPosition(JCDiagnostic d, PositionKind pk,Locale l) {
@@ -141,15 +135,8 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
     }
 
     public String formatSource(JCDiagnostic d, boolean fullname, Locale l) {
-        JavaFileObject fo = d.getSource();
-        if (fo == null)
-            throw new IllegalArgumentException(); // d should have source set
-        if (fullname)
-            return fo.getName();
-        else if (fo instanceof BaseFileObject)
-            return ((BaseFileObject) fo).getShortName();
-        else
-            return BaseFileObject.getSimpleName(fo);
+        assert (d.getSource() != null);
+        return fullname ? d.getSourceName() : d.getSource().getName();
     }
 
     /**
@@ -197,7 +184,7 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
             return printer.visit((Symbol)arg, l);
         }
         else if (arg instanceof JavaFileObject) {
-            return ((JavaFileObject)arg).getName();
+            return JavacFileManager.getJavacBaseFileName((JavaFileObject)arg);
         }
         else if (arg instanceof Formattable) {
             return ((Formattable)arg).toString(l, messages);
@@ -311,10 +298,6 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
                 d.getIntPosition() != Position.NOPOS;
     }
 
-    public boolean isRaw() {
-        return false;
-    }
-
     /**
      * Creates a string with a given amount of empty spaces. Useful for
      * indenting the text of a diagnostic message.
@@ -379,26 +362,26 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
             String showSource = null;
             if ((showSource = options.get("showSource")) != null) {
                 if (showSource.equals("true"))
-                    setVisiblePart(DiagnosticPart.SOURCE, true);
+                    visibleParts.add(DiagnosticPart.SOURCE);
                 else if (showSource.equals("false"))
-                    setVisiblePart(DiagnosticPart.SOURCE, false);
+                    visibleParts.remove(DiagnosticPart.SOURCE);
             }
             String diagOpts = options.get("diags");
             if (diagOpts != null) {//override -XDshowSource
                 Collection<String> args = Arrays.asList(diagOpts.split(","));
                 if (args.contains("short")) {
-                    setVisiblePart(DiagnosticPart.DETAILS, false);
-                    setVisiblePart(DiagnosticPart.SUBDIAGNOSTICS, false);
+                    visibleParts.remove(DiagnosticPart.DETAILS);
+                    visibleParts.remove(DiagnosticPart.SUBDIAGNOSTICS);
                 }
                 if (args.contains("source"))
-                    setVisiblePart(DiagnosticPart.SOURCE, true);
+                    visibleParts.add(DiagnosticPart.SOURCE);
                 if (args.contains("-source"))
-                    setVisiblePart(DiagnosticPart.SOURCE, false);
+                    visibleParts.remove(DiagnosticPart.SOURCE);
             }
             String multiPolicy = null;
             if ((multiPolicy = options.get("multilinePolicy")) != null) {
                 if (multiPolicy.equals("disabled"))
-                    setVisiblePart(DiagnosticPart.SUBDIAGNOSTICS, false);
+                    visibleParts.remove(DiagnosticPart.SUBDIAGNOSTICS);
                 else if (multiPolicy.startsWith("limit:")) {
                     String limitString = multiPolicy.substring("limit:".length());
                     String[] limits = limitString.split(":");
@@ -445,13 +428,6 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
             visibleParts = EnumSet.copyOf(diagParts);
         }
 
-        public void setVisiblePart(DiagnosticPart diagParts, boolean enabled) {
-            if (enabled)
-                visibleParts.add(diagParts);
-            else
-                visibleParts.remove(diagParts);
-        }
-
         /**
          * Shows a '^' sign under the source line displayed by the formatter
          * (if applicable).
@@ -472,14 +448,6 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
         }
     }
 
-    public Printer getPrinter() {
-        return printer;
-    }
-
-    public void setPrinter(Printer printer) {
-        this.printer = printer;
-    }
-
     /**
      * An enhanced printer for formatting types/symbols used by
      * AbstractDiagnosticFormatter. Provides alternate numbering of captured
@@ -489,23 +457,35 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
      * type referred by a given captured type C contains C itself) which might
      * lead to infinite loops.
      */
-    protected Printer printer = new Printer() {
+    protected class FormatterPrinter extends Printer {
+
+        List<Type> allCaptured = List.nil();
+        List<Type> seenCaptured = List.nil();
+
         @Override
         protected String localize(Locale locale, String key, Object... args) {
             return AbstractDiagnosticFormatter.this.localize(locale, key, args);
         }
-        @Override
-        protected String capturedVarId(CapturedType t, Locale locale) {
-            return "" + (allCaptured.indexOf(t) + 1);
-        }
+
         @Override
         public String visitCapturedType(CapturedType t, Locale locale) {
-            if (!allCaptured.contains(t)) {
-                allCaptured = allCaptured.append(t);
+            if (seenCaptured.contains(t))
+                return localize(locale, "compiler.misc.type.captureof.1",
+                    allCaptured.indexOf(t) + 1);
+            else {
+                try {
+                    seenCaptured = seenCaptured.prepend(t);
+                    allCaptured = allCaptured.append(t);
+                    return localize(locale, "compiler.misc.type.captureof",
+                        allCaptured.indexOf(t) + 1,
+                        visit(t.wildcard, locale));
+                }
+                finally {
+                    seenCaptured = seenCaptured.tail;
+                }
             }
-            return super.visitCapturedType(t, locale);
         }
-    };
+    }
     
     String noSource() { return toString(); } // DRC - added
 }

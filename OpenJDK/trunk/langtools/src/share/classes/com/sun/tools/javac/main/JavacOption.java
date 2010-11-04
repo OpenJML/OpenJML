@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2006, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2006-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,23 +18,23 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javac.main;
 
-import java.io.PrintWriter;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * TODO: describe com.sun.tools.javac.main.JavacOption
  *
- * <p><b>This is NOT part of any supported API.
+ * <p><b>This is NOT part of any API supported by Sun Microsystems.
  * If you write code that depends on this, you do so at your own
  * risk.  This code and its internal interfaces are subject to change
  * or deletion without notice.</b></p>
@@ -106,10 +106,9 @@ public interface JavacOption {
          */
         ChoiceKind choiceKind;
 
-        /** The choices for this option, if any, and whether or not the choices
-         *  are hidden
+        /** The choices for this option, if any.
          */
-        Map<String,Boolean> choices;
+        Collection<String> choices;
 
         Option(OptionName name, String argsNameKey, String descrKey) {
             this.name = name;
@@ -124,18 +123,10 @@ public interface JavacOption {
         }
 
         Option(OptionName name, String descrKey, ChoiceKind choiceKind, String... choices) {
-            this(name, descrKey, choiceKind, createChoices(choices));
+            this(name, descrKey, choiceKind, Arrays.asList(choices));
         }
 
-        private static Map<String,Boolean> createChoices(String... choices) {
-            Map<String,Boolean> map = new LinkedHashMap<String,Boolean>();
-            for (String c: choices)
-                map.put(c, false);
-            return map;
-        }
-
-        Option(OptionName name, String descrKey, ChoiceKind choiceKind,
-                Map<String,Boolean> choices) {
+        Option(OptionName name, String descrKey, ChoiceKind choiceKind, Collection<String> choices) {
             this(name, null, descrKey);
             if (choiceKind == null || choices == null)
                 throw new NullPointerException();
@@ -162,10 +153,10 @@ public interface JavacOption {
             if (choices != null) {
                 String arg = option.substring(name.optionName.length());
                 if (choiceKind == ChoiceKind.ONEOF)
-                    return choices.keySet().contains(arg);
+                    return choices.contains(arg);
                 else {
                     for (String a: arg.split(",+")) {
-                        if (!choices.keySet().contains(a))
+                        if (!choices.contains(a))
                             return false;
                     }
                 }
@@ -190,12 +181,10 @@ public interface JavacOption {
             if (argsNameKey == null) {
                 if (choices != null) {
                     String sep = "{";
-                    for (Map.Entry<String,Boolean> e: choices.entrySet()) {
-                        if (!e.getValue()) {
-                            sb.append(sep);
-                            sb.append(e.getKey());
-                            sep = ",";
-                        }
+                    for (String c: choices) {
+                        sb.append(sep);
+                        sb.append(c);
+                        sep = ",";
                     }
                     sb.append("}");
                 }
@@ -220,8 +209,8 @@ public interface JavacOption {
                 if (choices != null) {
                     if (choiceKind == ChoiceKind.ONEOF) {
                         // some clients like to see just one of option+choice set
-                        for (String s: choices.keySet())
-                            options.remove(option + s);
+                        for (String c: choices)
+                            options.remove(option + c);
                         String opt = option + arg;
                         options.put(opt, opt);
                         // some clients like to see option (without trailing ":")
@@ -267,7 +256,7 @@ public interface JavacOption {
         XOption(OptionName name, String descrKey, ChoiceKind kind, String... choices) {
             super(name, descrKey, kind, choices);
         }
-        XOption(OptionName name, String descrKey, ChoiceKind kind, Map<String,Boolean> choices) {
+        XOption(OptionName name, String descrKey, ChoiceKind kind, Collection<String> choices) {
             super(name, descrKey, kind, choices);
         }
         @Override

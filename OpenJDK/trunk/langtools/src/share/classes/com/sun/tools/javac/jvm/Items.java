@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javac.jvm;
@@ -43,8 +43,8 @@ import static com.sun.tools.javac.jvm.ByteCodes.*;
  *  special values this or super, etc. Individual items are represented as
  *  inner classes in class Items.
  *
- *  <p><b>This is NOT part of any supported API.
- *  If you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
+ *  you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -137,13 +137,6 @@ public class Items {
      */
     Item makeStaticItem(Symbol member) {
         return new StaticItem(member);
-    }
-
-    /** Make an item representing a dynamically invoked method.
-     *  @param member   The represented symbol.
-     */
-    Item makeDynamicItem(Symbol member) {
-        return new DynamicItem(member);
     }
 
     /** Make an item representing an instance variable or method.
@@ -464,38 +457,6 @@ public class Items {
         }
     }
 
-    /** An item representing a dynamic call site.
-     */
-    class DynamicItem extends StaticItem {
-        DynamicItem(Symbol member) {
-            super(member);
-            assert member.owner == syms.invokeDynamicType.tsym;
-        }
-
-        Item load() {
-            assert false;
-            return null;
-        }
-
-        void store() {
-            assert false;
-        }
-
-        Item invoke() {
-            // assert target.hasNativeInvokeDynamic();
-            MethodType mtype = (MethodType)member.erasure(types);
-            int rescode = Code.typecode(mtype.restype);
-            ClassFile.NameAndType descr = new ClassFile.NameAndType(member.name, mtype);
-            code.emitInvokedynamic(pool.put(descr), mtype);
-            return stackItem[rescode];
-        }
-
-        public String toString() {
-            return "dynamic(" + member + ")";
-        }
-    }
-
-
     /** An item representing an instance variable or method.
      */
     class MemberItem extends Item {
@@ -792,25 +753,25 @@ public class Items {
         }
 
         Chain jumpTrue() {
-            if (tree == null) return Code.mergeChains(trueJumps, code.branch(opcode));
+            if (tree == null) return code.mergeChains(trueJumps, code.branch(opcode));
             // we should proceed further in -Xjcov mode only
             int startpc = code.curPc();
-            Chain c = Code.mergeChains(trueJumps, code.branch(opcode));
+            Chain c = code.mergeChains(trueJumps, code.branch(opcode));
             code.crt.put(tree, CRTable.CRT_BRANCH_TRUE, startpc, code.curPc());
             return c;
         }
 
         Chain jumpFalse() {
-            if (tree == null) return Code.mergeChains(falseJumps, code.branch(Code.negate(opcode)));
+            if (tree == null) return code.mergeChains(falseJumps, code.branch(code.negate(opcode)));
             // we should proceed further in -Xjcov mode only
             int startpc = code.curPc();
-            Chain c = Code.mergeChains(falseJumps, code.branch(Code.negate(opcode)));
+            Chain c = code.mergeChains(falseJumps, code.branch(code.negate(opcode)));
             code.crt.put(tree, CRTable.CRT_BRANCH_FALSE, startpc, code.curPc());
             return c;
         }
 
         CondItem negate() {
-            CondItem c = new CondItem(Code.negate(opcode), falseJumps, trueJumps);
+            CondItem c = new CondItem(code.negate(opcode), falseJumps, trueJumps);
             c.tree = tree;
             return c;
         }

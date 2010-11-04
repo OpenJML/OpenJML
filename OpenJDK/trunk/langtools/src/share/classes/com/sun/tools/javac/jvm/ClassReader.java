@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,18 +18,16 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javac.jvm;
 
 import java.io.*;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.CharBuffer;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,6 +47,7 @@ import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.file.BaseFileObject;
 import com.sun.tools.javac.util.*;
+import com.sun.tools.javac.util.List;
 
 import static com.sun.tools.javac.code.Flags.*;
 import static com.sun.tools.javac.code.Kinds.*;
@@ -62,8 +61,8 @@ import static com.sun.tools.javac.jvm.ClassFile.Version.*;
  *  for all other definitions in the classfile. Top-level Classes themselves
  *  appear as members of the scopes of PackageSymbols.
  *
- *  <p><b>This is NOT part of any supported API.
- *  If you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
+ *  you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -188,20 +187,6 @@ public class ClassReader implements Completer {
     /** The minor version number of the class file being read. */
     int minorVersion;
 
-    /** Switch: debug output for JSR 308-related operations.
-     */
-    boolean debugJSR308;
-
-    /** A table to hold the constant pool indices for method parameter
-     * names, as given in LocalVariableTable attributes.
-     */
-    int[] parameterNameIndices;
-
-    /**
-     * Whether or not any parameter names have been found.
-     */
-    boolean haveParameterNameIndices;
-
     /** Get the ClassReader instance for this invocation. */
     public static ClassReader instance(Context context) {
         ClassReader instance = context.get(classReaderKey);
@@ -271,7 +256,6 @@ public class ClassReader implements Completer {
             : null;
 
         typevars = new Scope(syms.noSymbol);
-        debugJSR308 = options.get("TA:reader") != null;
 
         initAttributeReaders();
     }
@@ -317,12 +301,6 @@ public class ClassReader implements Completer {
      */
     char nextChar() {
         return (char)(((buf[bp++] & 0xFF) << 8) + (buf[bp++] & 0xFF));
-    }
-
-    /** Read a byte.
-     */
-    byte nextByte() {
-        return buf[bp++];
     }
 
     /** Read an integer.
@@ -933,33 +911,32 @@ public class ClassReader implements Completer {
                 void read(Symbol sym, int attrLen) {
                     int newbp = bp + attrLen;
                     if (saveParameterNames) {
-                        // Pick up parameter names from the variable table.
-                        // Parameter names are not explicitly identified as such,
-                        // but all parameter name entries in the LocalVariableTable
-                        // have a start_pc of 0.  Therefore, we record the name
-                        // indicies of all slots with a start_pc of zero in the
-                        // parameterNameIndicies array.
-                        // Note that this implicitly honors the JVMS spec that
-                        // there may be more than one LocalVariableTable, and that
-                        // there is no specified ordering for the entries.
+                        // pick up parameter names from the variable table
+                        List<Name> parameterNames = List.nil();
+                        int firstParam = ((sym.flags() & STATIC) == 0) ? 1 : 0;
+                        int endParam = firstParam + Code.width(sym.type.getParameterTypes());
                         int numEntries = nextChar();
-                        for (int i = 0; i < numEntries; i++) {
+                        for (int i=0; i<numEntries; i++) {
                             int start_pc = nextChar();
                             int length = nextChar();
                             int nameIndex = nextChar();
                             int sigIndex = nextChar();
                             int register = nextChar();
-                            if (start_pc == 0) {
-                                // ensure array large enough
-                                if (register >= parameterNameIndices.length) {
-                                    int newSize = Math.max(register, parameterNameIndices.length + 8);
-                                    parameterNameIndices =
-                                            Arrays.copyOf(parameterNameIndices, newSize);
+                            if (start_pc == 0 &&
+                                firstParam <= register &&
+                                register < endParam) {
+                                int index = firstParam;
+                                for (Type t : sym.type.getParameterTypes()) {
+                                    if (index == register) {
+                                        parameterNames = parameterNames.prepend(readName(nameIndex));
+                                        break;
+                                    }
+                                    index += Code.width(t);
                                 }
-                                parameterNameIndices[register] = nameIndex;
-                                haveParameterNameIndices = true;
                             }
                         }
+                        parameterNames = parameterNames.reverse();
+                        ((MethodSymbol)sym).savedParameterNames = parameterNames;
                     }
                     bp = newbp;
                 }
@@ -1083,27 +1060,7 @@ public class ClassReader implements Completer {
                     if (allowVarargs)
                         sym.flags_field |= VARARGS;
                 }
-            },
-
-            // v51 attributes
-            new AttributeReader(names.RuntimeVisibleTypeAnnotations, V51, CLASS_OR_MEMBER_ATTRIBUTE) {
-                void read(Symbol sym, int attrLen) {
-                    attachTypeAnnotations(sym);
-                }
-            },
-
-            new AttributeReader(names.RuntimeInvisibleTypeAnnotations, V51, CLASS_OR_MEMBER_ATTRIBUTE) {
-                void read(Symbol sym, int attrLen) {
-                    attachTypeAnnotations(sym);
-                }
-            },
-
-            new AttributeReader(names.PolymorphicSignature, V45_3/*S.B.V51*/, CLASS_OR_MEMBER_ATTRIBUTE) {
-                void read(Symbol sym, int attrLen) {
-                    sym.flags_field |= POLYMORPHIC_SIGNATURE;
-                }
-            },
-
+            }
 
             // The following attributes for a Code attribute are not currently handled
             // StackMapTable
@@ -1141,7 +1098,7 @@ public class ClassReader implements Completer {
         self.name = simpleBinaryName(self.flatname, c.flatname) ;
         self.owner = m != null ? m : c;
         if (self.name.isEmpty())
-            self.fullname = names.empty;
+            self.fullname = null;
         else
             self.fullname = ClassSymbol.formFullName(self.name, self.owner);
 
@@ -1311,17 +1268,6 @@ public class ClassReader implements Completer {
         }
     }
 
-    void attachTypeAnnotations(final Symbol sym) {
-        int numAttributes = nextChar();
-        if (numAttributes != 0) {
-            ListBuffer<TypeAnnotationProxy> proxies =
-                ListBuffer.lb();
-            for (int i = 0; i < numAttributes; i++)
-                proxies.append(readTypeAnnotation());
-            annotate.later(new TypeAnnotationCompleter(sym, proxies.toList()));
-        }
-    }
-
     /** Attach the default value for an annotation element.
      */
     void attachAnnotationDefault(final Symbol sym) {
@@ -1358,121 +1304,6 @@ public class ClassReader implements Completer {
         return new CompoundAnnotationProxy(t, pairs.toList());
     }
 
-    TypeAnnotationProxy readTypeAnnotation() {
-        CompoundAnnotationProxy proxy = readCompoundAnnotation();
-        TypeAnnotationPosition position = readPosition();
-
-        if (debugJSR308)
-            System.out.println("TA: reading: " + proxy + " @ " + position
-                    + " in " + log.currentSourceFile());
-
-        return new TypeAnnotationProxy(proxy, position);
-    }
-
-    TypeAnnotationPosition readPosition() {
-        byte tag = nextByte();
-
-        if (!TargetType.isValidTargetTypeValue(tag))
-            throw this.badClassFile("bad.type.annotation.value", tag);
-
-        TypeAnnotationPosition position = new TypeAnnotationPosition();
-        TargetType type = TargetType.fromTargetTypeValue(tag);
-
-        position.type = type;
-
-        switch (type) {
-        // type case
-        case TYPECAST:
-        case TYPECAST_GENERIC_OR_ARRAY:
-        // object creation
-        case INSTANCEOF:
-        case INSTANCEOF_GENERIC_OR_ARRAY:
-        // new expression
-        case NEW:
-        case NEW_GENERIC_OR_ARRAY:
-            position.offset = nextChar();
-            break;
-         // local variable
-        case LOCAL_VARIABLE:
-        case LOCAL_VARIABLE_GENERIC_OR_ARRAY:
-            int table_length = nextChar();
-            position.lvarOffset = new int[table_length];
-            position.lvarLength = new int[table_length];
-            position.lvarIndex = new int[table_length];
-
-            for (int i = 0; i < table_length; ++i) {
-                position.lvarOffset[i] = nextChar();
-                position.lvarLength[i] = nextChar();
-                position.lvarIndex[i] = nextChar();
-            }
-            break;
-         // method receiver
-        case METHOD_RECEIVER:
-            // Do nothing
-            break;
-        // type parameters
-        case CLASS_TYPE_PARAMETER:
-        case METHOD_TYPE_PARAMETER:
-            position.parameter_index = nextByte();
-            break;
-        // type parameter bounds
-        case CLASS_TYPE_PARAMETER_BOUND:
-        case CLASS_TYPE_PARAMETER_BOUND_GENERIC_OR_ARRAY:
-        case METHOD_TYPE_PARAMETER_BOUND:
-        case METHOD_TYPE_PARAMETER_BOUND_GENERIC_OR_ARRAY:
-            position.parameter_index = nextByte();
-            position.bound_index = nextByte();
-            break;
-         // wildcard
-        case WILDCARD_BOUND:
-        case WILDCARD_BOUND_GENERIC_OR_ARRAY:
-            position.wildcard_position = readPosition();
-            break;
-         // Class extends and implements clauses
-        case CLASS_EXTENDS:
-        case CLASS_EXTENDS_GENERIC_OR_ARRAY:
-            position.type_index = nextChar();
-            break;
-        // throws
-        case THROWS:
-            position.type_index = nextChar();
-            break;
-        case CLASS_LITERAL:
-        case CLASS_LITERAL_GENERIC_OR_ARRAY:
-            position.offset = nextChar();
-            break;
-        // method parameter: not specified
-        case METHOD_PARAMETER_GENERIC_OR_ARRAY:
-            position.parameter_index = nextByte();
-            break;
-        // method type argument: wasn't specified
-        case NEW_TYPE_ARGUMENT:
-        case NEW_TYPE_ARGUMENT_GENERIC_OR_ARRAY:
-        case METHOD_TYPE_ARGUMENT:
-        case METHOD_TYPE_ARGUMENT_GENERIC_OR_ARRAY:
-            position.offset = nextChar();
-            position.type_index = nextByte();
-            break;
-        // We don't need to worry abut these
-        case METHOD_RETURN_GENERIC_OR_ARRAY:
-        case FIELD_GENERIC_OR_ARRAY:
-            break;
-        case UNKNOWN:
-            break;
-        default:
-            throw new AssertionError("unknown type: " + position);
-        }
-
-        if (type.hasLocation()) {
-            int len = nextChar();
-            ListBuffer<Integer> loc = ListBuffer.lb();
-            for (int i = 0; i < len; i++)
-                loc = loc.append((int)nextByte());
-            position.location = loc.toList();
-        }
-
-        return position;
-    }
     Attribute readAttributeValue() {
         char c = (char) buf[bp++];
         switch (c) {
@@ -1574,18 +1405,6 @@ public class ClassReader implements Completer {
             }
             buf.append("}");
             return buf.toString();
-        }
-    }
-
-    /** A temporary proxy representing a type annotation.
-     */
-    static class TypeAnnotationProxy {
-        final CompoundAnnotationProxy compound;
-        final TypeAnnotationPosition position;
-        public TypeAnnotationProxy(CompoundAnnotationProxy compound,
-                TypeAnnotationPosition position) {
-            this.compound = compound;
-            this.position = position;
         }
     }
 
@@ -1785,45 +1604,6 @@ public class ClassReader implements Completer {
         }
     }
 
-    class TypeAnnotationCompleter extends AnnotationCompleter {
-
-        List<TypeAnnotationProxy> proxies;
-
-        TypeAnnotationCompleter(Symbol sym,
-                List<TypeAnnotationProxy> proxies) {
-            super(sym, List.<CompoundAnnotationProxy>nil());
-            this.proxies = proxies;
-        }
-
-        List<Attribute.TypeCompound> deproxyTypeCompoundList(List<TypeAnnotationProxy> proxies) {
-            ListBuffer<Attribute.TypeCompound> buf = ListBuffer.lb();
-            for (TypeAnnotationProxy proxy: proxies) {
-                Attribute.Compound compound = deproxyCompound(proxy.compound);
-                Attribute.TypeCompound typeCompound = new Attribute.TypeCompound(compound, proxy.position);
-                buf.add(typeCompound);
-            }
-            return buf.toList();
-        }
-
-        @Override
-        public void enterAnnotation() {
-            JavaFileObject previousClassFile = currentClassFile;
-            try {
-                currentClassFile = classFile;
-                List<Attribute.TypeCompound> newList = deproxyTypeCompoundList(proxies);
-              if (debugJSR308)
-              System.out.println("TA: reading: adding " + newList
-                      + " to symbol " + sym + " in " + log.currentSourceFile());
-                sym.typeAnnotations = ((sym.typeAnnotations == null)
-                                        ? newList
-                                        : newList.prependList(sym.typeAnnotations));
-
-            } finally {
-                currentClassFile = previousClassFile;
-            }
-        }
-    }
-
 
 /************************************************************************
  * Reading Symbols
@@ -1857,8 +1637,6 @@ public class ClassReader implements Completer {
                                       syms.methodClass);
         }
         MethodSymbol m = new MethodSymbol(flags, name, type, currentOwner);
-        if (saveParameterNames)
-            initParameterNames(m);
         Symbol prevOwner = currentOwner;
         currentOwner = m;
         try {
@@ -1866,88 +1644,7 @@ public class ClassReader implements Completer {
         } finally {
             currentOwner = prevOwner;
         }
-        if (saveParameterNames)
-            setParameterNames(m, type);
         return m;
-    }
-
-    /**
-     * Init the parameter names array.
-     * Parameter names are currently inferred from the names in the
-     * LocalVariableTable attributes of a Code attribute.
-     * (Note: this means parameter names are currently not available for
-     * methods without a Code attribute.)
-     * This method initializes an array in which to store the name indexes
-     * of parameter names found in LocalVariableTable attributes. It is
-     * slightly supersized to allow for additional slots with a start_pc of 0.
-     */
-    void initParameterNames(MethodSymbol sym) {
-        // make allowance for synthetic parameters.
-        final int excessSlots = 4;
-        int expectedParameterSlots =
-                Code.width(sym.type.getParameterTypes()) + excessSlots;
-        if (parameterNameIndices == null
-                || parameterNameIndices.length < expectedParameterSlots) {
-            parameterNameIndices = new int[expectedParameterSlots];
-        } else
-            Arrays.fill(parameterNameIndices, 0);
-        haveParameterNameIndices = false;
-    }
-
-    /**
-     * Set the parameter names for a symbol from the name index in the
-     * parameterNameIndicies array. The type of the symbol may have changed
-     * while reading the method attributes (see the Signature attribute).
-     * This may be because of generic information or because anonymous
-     * synthetic parameters were added.   The original type (as read from
-     * the method descriptor) is used to help guess the existence of
-     * anonymous synthetic parameters.
-     * On completion, sym.savedParameter names will either be null (if
-     * no parameter names were found in the class file) or will be set to a
-     * list of names, one per entry in sym.type.getParameterTypes, with
-     * any missing names represented by the empty name.
-     */
-    void setParameterNames(MethodSymbol sym, Type jvmType) {
-        // if no names were found in the class file, there's nothing more to do
-        if (!haveParameterNameIndices)
-            return;
-
-        int firstParam = ((sym.flags() & STATIC) == 0) ? 1 : 0;
-        // the code in readMethod may have skipped the first parameter when
-        // setting up the MethodType. If so, we make a corresponding allowance
-        // here for the position of the first parameter.  Note that this
-        // assumes the skipped parameter has a width of 1 -- i.e. it is not
-        // a double width type (long or double.)
-        if (sym.name == names.init && currentOwner.hasOuterInstance()) {
-            // Sometimes anonymous classes don't have an outer
-            // instance, however, there is no reliable way to tell so
-            // we never strip this$n
-            if (!currentOwner.name.isEmpty())
-                firstParam += 1;
-        }
-
-        if (sym.type != jvmType) {
-            // reading the method attributes has caused the symbol's type to
-            // be changed. (i.e. the Signature attribute.)  This may happen if
-            // there are hidden (synthetic) parameters in the descriptor, but
-            // not in the Signature.  The position of these hidden parameters
-            // is unspecified; for now, assume they are at the beginning, and
-            // so skip over them. The primary case for this is two hidden
-            // parameters passed into Enum constructors.
-            int skip = Code.width(jvmType.getParameterTypes())
-                    - Code.width(sym.type.getParameterTypes());
-            firstParam += skip;
-        }
-        List<Name> paramNames = List.nil();
-        int index = firstParam;
-        for (Type t: sym.type.getParameterTypes()) {
-            int nameIdx = (index < parameterNameIndices.length
-                    ? parameterNameIndices[index] : 0);
-            Name name = nameIdx == 0 ? names.empty : readName(nameIdx);
-            paramNames = paramNames.prepend(name);
-            index += Code.width(t);
-        }
-        sym.savedParameterNames = paramNames.reverse();
     }
 
     /** Skip a field or method
@@ -2612,7 +2309,6 @@ public class ClassReader implements Completer {
                     String binaryName = fileManager.inferBinaryName(currentLoc, fo);
                     String simpleName = binaryName.substring(binaryName.lastIndexOf(".") + 1);
                     if (SourceVersion.isIdentifier(simpleName) ||
-                        fo.getKind() == JavaFileObject.Kind.CLASS ||
                         simpleName.equals("package-info"))
                         includeClassFile(p, fo);
                     break;
@@ -2664,89 +2360,44 @@ public class ClassReader implements Completer {
             this.flatname = flatname;
         }
 
-        @Override
-        public URI toUri() {
-            try {
-                return new URI(null, name.toString(), null);
-            } catch (URISyntaxException e) {
-                throw new CannotCreateUriError(name.toString(), e);
-            }
-        }
-
-        @Override
-        public String getName() {
-            return name.toString();
-        }
-
-        @Override
-        public String getShortName() {
-            return getName();
-        }
-
-        @Override
-        public JavaFileObject.Kind getKind() {
-            return getKind(getName());
-        }
-
-        @Override
         public InputStream openInputStream() {
             throw new UnsupportedOperationException();
         }
 
-        @Override
         public OutputStream openOutputStream() {
             throw new UnsupportedOperationException();
         }
 
-        @Override
+        public Reader openReader() {
+            throw new UnsupportedOperationException();
+        }
+
+        public Writer openWriter() {
+            throw new UnsupportedOperationException();
+        }
+
+        /** @deprecated see bug 6410637 */
+        @Deprecated
+        public String getName() {
+            return name.toString();
+        }
+
+        public long getLastModified() {
+            throw new UnsupportedOperationException();
+        }
+
+        public boolean delete() {
+            throw new UnsupportedOperationException();
+        }
+
         public CharBuffer getCharContent(boolean ignoreEncodingErrors) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public Reader openReader(boolean ignoreEncodingErrors) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Writer openWriter() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public long getLastModified() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean delete() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        protected String inferBinaryName(Iterable<? extends File> path) {
-            return flatname.toString();
-        }
-
-        @Override
-        public boolean isNameCompatible(String simpleName, JavaFileObject.Kind kind) {
-            return true; // fail-safe mode
-        }
-
-        /**
-         * Check if two file objects are equal.
-         * SourceFileObjects are just placeholder objects for the value of a
-         * SourceFile attribute, and do not directly represent specific files.
-         * Two SourceFileObjects are equal if their names are equal.
-         */
-        @Override
         public boolean equals(Object other) {
-            if (this == other)
-                return true;
-
             if (!(other instanceof SourceFileObject))
                 return false;
-
             SourceFileObject o = (SourceFileObject) other;
             return name.equals(o.name);
         }
@@ -2754,6 +2405,24 @@ public class ClassReader implements Completer {
         @Override
         public int hashCode() {
             return name.hashCode();
+        }
+
+        public boolean isNameCompatible(String simpleName, JavaFileObject.Kind kind) {
+            return true; // fail-safe mode
+        }
+
+        public URI toUri() {
+            return URI.create(name.toString());
+        }
+
+        @Override
+        public Reader openReader(boolean ignoreEncodingErrors) throws IOException {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected String inferBinaryName(Iterable<? extends File> path) {
+            return flatname.toString();
         }
     }
     

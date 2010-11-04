@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2001, 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2001-2006 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javac.tree;
@@ -36,8 +36,8 @@ import com.sun.tools.javac.tree.JCTree.*;
  *  do some interesting work. The scanner class itself takes care of all
  *  navigational aspects.
  *
- *  <p><b>This is NOT part of any supported API.
- *  If you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
+ *  you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -85,7 +85,6 @@ public class TreeScanner extends Visitor {
         scan(tree.restype);
         scan(tree.typarams);
         scan(tree.params);
-        scan(tree.receiverAnnotations);
         scan(tree.thrown);
         scan(tree.defaultValue);
         scan(tree.body);
@@ -193,7 +192,6 @@ public class TreeScanner extends Visitor {
     }
 
     public void visitApply(JCMethodInvocation tree) {
-        scan(tree.typeargs);
         scan(tree.meth);
         scan(tree.args);
     }
@@ -201,17 +199,13 @@ public class TreeScanner extends Visitor {
     public void visitNewClass(JCNewClass tree) {
         scan(tree.encl);
         scan(tree.clazz);
-        scan(tree.typeargs);
         scan(tree.args);
         scan(tree.def);
     }
 
     public void visitNewArray(JCNewArray tree) {
-        scan(tree.annotations);
         scan(tree.elemtype);
         scan(tree.dims);
-        for (List<JCTypeAnnotation> annos : tree.dimAnnotations)
-            scan(annos);
         scan(tree.elems);
     }
 
@@ -275,12 +269,7 @@ public class TreeScanner extends Visitor {
         scan(tree.arguments);
     }
 
-    public void visitTypeDisjoint(JCTypeDisjoint tree) {
-        scan(tree.components);
-    }
-
     public void visitTypeParameter(JCTypeParameter tree) {
-        scan(tree.annotations);
         scan(tree.bounds);
     }
 
@@ -302,11 +291,6 @@ public class TreeScanner extends Visitor {
     public void visitAnnotation(JCAnnotation tree) {
         scan(tree.annotationType);
         scan(tree.args);
-    }
-
-    public void visitAnnotatedType(JCAnnotatedType tree) {
-        scan(tree.annotations);
-        scan(tree.underlyingType);
     }
 
     public void visitErroneous(JCErroneous tree) {

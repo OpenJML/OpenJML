@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 1999-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javac.util;
@@ -33,6 +33,7 @@ import java.util.Set;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
+import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.api.DiagnosticFormatter;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -41,8 +42,8 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticType;
 /** A class for error logs. Reports errors and warnings, and
  *  keeps track of error numbers and positions.
  *
- *  <p><b>This is NOT part of any supported API.
- *  If you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
+ *  you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -76,10 +77,6 @@ public class Log extends AbstractLog {
     /** Switch: emit warning messages.
      */
     public boolean emitWarnings;
-
-    /** Switch: suppress note messages.
-     */
-    public boolean suppressNotes;
 
     /** Print stack trace on errors?
      */
@@ -124,9 +121,8 @@ public class Log extends AbstractLog {
         this.dumpOnError = options.get("-doe") != null;
         this.promptOnError = options.get("-prompt") != null;
         this.emitWarnings = options.get("-Xlint:none") == null;
-        this.suppressNotes = options.get("suppressNotes") != null;
-        this.MaxErrors = getIntOption(options, "-Xmaxerrs", getDefaultMaxErrors());
-        this.MaxWarnings = getIntOption(options, "-Xmaxwarns", getDefaultMaxWarnings());
+        this.MaxErrors = getIntOption(options, "-Xmaxerrs", 100);
+        this.MaxWarnings = getIntOption(options, "-Xmaxwarns", 100);
 
         boolean rawDiagnostics = options.get("rawDiagnostics") != null;
         messages = JavacMessages.instance(context);
@@ -145,26 +141,11 @@ public class Log extends AbstractLog {
         private int getIntOption(Options options, String optionName, int defaultValue) {
             String s = options.get(optionName);
             try {
-                if (s != null) {
-                    int n = Integer.parseInt(s);
-                    return (n <= 0 ? Integer.MAX_VALUE : n);
-                }
+                if (s != null) return Integer.parseInt(s);
             } catch (NumberFormatException e) {
                 // silently ignore ill-formed numbers
             }
             return defaultValue;
-        }
-
-        /** Default value for -Xmaxerrs.
-         */
-        protected int getDefaultMaxErrors() {
-            return 100;
-        }
-
-        /** Default value for -Xmaxwarns.
-         */
-        protected int getDefaultMaxWarnings() {
-            return 100;
         }
 
     /** The default writer for diagnostics
@@ -203,12 +184,6 @@ public class Log extends AbstractLog {
     /** The number of warnings encountered so far.
      */
     public int nwarnings = 0;
-
-    /**
-     * Whether or not an unrecoverable error has been seen.
-     * Unrecoverable errors prevent subsequent annotation processing.
-     */
-    public boolean unrecoverableError;
 
     /** A set of all errors generated so far. This is used to avoid printing an
      *  error message more than once. For each error, a pair consisting of the
@@ -352,7 +327,7 @@ public class Log extends AbstractLog {
             // Print out notes only when we are permitted to report warnings
             // Notes are only generated at the end of a compilation, so should be small
             // in number.
-            if ((emitWarnings || diagnostic.isMandatory()) && !suppressNotes) {
+            if (emitWarnings || diagnostic.isMandatory()) {
                 writeDiagnostic(diagnostic);
             }
             break;
@@ -451,7 +426,7 @@ public class Log extends AbstractLog {
             JavaFileObject file = source.getFile();
             if (file != null)
                 printLines(errWriter,
-                           file.getName() + ":" +
+                           JavacFileManager.getJavacFileName(file) + ":" +
                            line + ": " + msg);
             printErrLine(pos, errWriter);
         }

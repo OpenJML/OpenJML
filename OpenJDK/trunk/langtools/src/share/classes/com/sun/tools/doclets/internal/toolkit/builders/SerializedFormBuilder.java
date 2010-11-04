@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2003, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2003-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,14 +18,15 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.doclets.internal.toolkit.builders;
 
 import java.io.*;
+import java.lang.reflect.*;
 import java.util.*;
 
 import com.sun.javadoc.*;
@@ -131,33 +132,47 @@ public class SerializedFormBuilder extends AbstractBuilder {
     /**
      * Build the serialized form.
      */
-    public void buildSerializedForm(XMLNode node) throws Exception {
-        buildChildren(node);
+    public void buildSerializedForm(List<?> elements) throws Exception {
+        build(elements);
         writer.close();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void invokeMethod(String methodName, Class<?>[] paramClasses,
+            Object[] params)
+    throws Exception {
+        if (DEBUG) {
+            configuration.root.printError("DEBUG: " + this.getClass().getName()
+                + "." + methodName);
+        }
+        Method method = this.getClass().getMethod(methodName, paramClasses);
+        method.invoke(this, params);
     }
 
     /**
      * Build the header.
      */
-    public void buildHeader(XMLNode node) {
+    public void buildHeader() {
         writer.writeHeader(configuration.getText("doclet.Serialized_Form"));
     }
 
     /**
      * Build the contents.
      */
-    public void buildSerializedFormSummaries(XMLNode node) {
+    public void buildSerializedFormSummaries(List<?> elements) {
         PackageDoc[] packages = configuration.packages;
         for (int i = 0; i < packages.length; i++) {
             currentPackage = packages[i];
-            buildChildren(node);
+            build(elements);
         }
     }
 
     /**
      * Build the package serialized for for the current package being processed.
      */
-    public void buildPackageSerializedForm(XMLNode node) {
+    public void buildPackageSerializedForm(List<?> elements) {
         String foo = currentPackage.name();
         ClassDoc[] classes = currentPackage.allClasses(false);
         if (classes == null || classes.length == 0) {
@@ -169,14 +184,14 @@ public class SerializedFormBuilder extends AbstractBuilder {
         if (!serialClassFoundToDocument(classes)) {
             return;
         }
-        buildChildren(node);
+        build(elements);
     }
 
-    public void buildPackageHeader(XMLNode node) {
+    public void buildPackageHeader() {
         writer.writePackageHeader(Util.getPackageName(currentPackage));
     }
 
-    public void buildClassSerializedForm(XMLNode node) {
+    public void buildClassSerializedForm(List<?> elements) {
         ClassDoc[] classes = currentPackage.allClasses(false);
         Arrays.sort(classes);
         for (int j = 0; j < classes.length; j++) {
@@ -187,19 +202,19 @@ public class SerializedFormBuilder extends AbstractBuilder {
                 if(!serialClassInclude(currentClass)) {
                     continue;
                 }
-                buildChildren(node);
+                build(elements);
             }
         }
     }
 
-    public void buildClassHeader(XMLNode node) {
+    public void buildClassHeader() {
         writer.writeClassHeader(currentClass);
     }
 
     /**
      * Build the serial UID information for the given class.
      */
-    public void buildSerialUIDInfo(XMLNode node) {
+    public void buildSerialUIDInfo() {
         FieldDoc[] fields = currentClass.fields(false);
         for (int i = 0; i < fields.length; i++) {
             if (fields[i].name().equals("serialVersionUID") &&
@@ -214,7 +229,7 @@ public class SerializedFormBuilder extends AbstractBuilder {
     /**
      * Build the footer.
      */
-    public void buildFooter(XMLNode node) {
+    public void buildFooter() {
         writer.writeFooter();
     }
 
@@ -301,7 +316,7 @@ public class SerializedFormBuilder extends AbstractBuilder {
     /**
      * Build the method header.
      */
-    public void buildMethodHeader(XMLNode node) {
+    public void buildMethodHeader() {
         if (currentClass.serializationMethods().length > 0) {
             methodWriter.writeHeader(
                 configuration.getText("doclet.Serialized_Form_methods"));
@@ -318,28 +333,28 @@ public class SerializedFormBuilder extends AbstractBuilder {
     /**
      * Build the method sub header.
      */
-    public void buildMethodSubHeader(XMLNode node)  {
+    public void buildMethodSubHeader()  {
         methodWriter.writeMemberHeader((MethodDoc) currentMember);
     }
 
     /**
      * Build the deprecated method description.
      */
-    public void buildDeprecatedMethodInfo(XMLNode node) {
+    public void buildDeprecatedMethodInfo() {
         methodWriter.writeDeprecatedMemberInfo((MethodDoc) currentMember);
     }
 
     /**
      * Build method tags.
      */
-    public void buildMethodDescription(XMLNode node) {
+    public void buildMethodDescription() {
         methodWriter.writeMemberDescription((MethodDoc) currentMember);
     }
 
     /**
      * Build the method tags.
      */
-    public void buildMethodTags(XMLNode node) {
+    public void buildMethodTags() {
         methodWriter.writeMemberTags((MethodDoc) currentMember);
         MethodDoc method = (MethodDoc)currentMember;
         if (method.name().compareTo("writeExternal") == 0
@@ -355,24 +370,24 @@ public class SerializedFormBuilder extends AbstractBuilder {
     /**
      * build the information for the method.
      */
-    public void buildMethodInfo(XMLNode node)  {
+    public void buildMethodInfo(List<?> elements)  {
         if(configuration.nocomment){
             return;
         }
-        buildChildren(node);
+        build(elements);
     }
 
     /**
      * Build the method footer.
      */
-    public void buildMethodFooter(XMLNode node) {
+    public void buildMethodFooter() {
         methodWriter.writeMemberFooter();
     }
 
     /**
      * Build the field header.
      */
-    public void buildFieldHeader(XMLNode node) {
+    public void buildFieldHeader() {
         if (currentClass.serializableFields().length > 0) {
             buildFieldSerializationOverview(currentClass);
             fieldWriter.writeHeader(configuration.getText(
@@ -411,7 +426,7 @@ public class SerializedFormBuilder extends AbstractBuilder {
     /**
      * Build the field sub header.
      */
-    public void buildFieldSubHeader(XMLNode node) {
+    public void buildFieldSubHeader() {
         if (! currentClass.definesSerializableFields() ){
             FieldDoc field = (FieldDoc) currentMember;
             fieldWriter.writeMemberHeader(field.type().asClassDoc(),
@@ -422,7 +437,7 @@ public class SerializedFormBuilder extends AbstractBuilder {
     /**
      * Build the field deprecation information.
      */
-    public void buildFieldDeprecationInfo(XMLNode node) {
+    public void buildFieldDeprecationInfo() {
         if (!currentClass.definesSerializableFields()) {
             FieldDoc field = (FieldDoc)currentMember;
             fieldWriter.writeMemberDeprecatedInfo(field);
@@ -432,7 +447,7 @@ public class SerializedFormBuilder extends AbstractBuilder {
     /**
      * Build the field information.
      */
-    public void buildFieldInfo(XMLNode node) {
+    public void buildFieldInfo() {
         if(configuration.nocomment){
             return;
         }
@@ -468,7 +483,7 @@ public class SerializedFormBuilder extends AbstractBuilder {
     /**
      * Build the field sub footer.
      */
-    public void buildFieldSubFooter(XMLNode node) {
+    public void buildFieldSubFooter() {
         if (! currentClass.definesSerializableFields()) {
             fieldWriter.writeMemberFooter();
         }
@@ -478,12 +493,12 @@ public class SerializedFormBuilder extends AbstractBuilder {
      * Build the summaries for the methods that belong to the given
      * class.
      */
-    public void buildSerializableMethods(XMLNode node) {
+    public void buildSerializableMethods(List<?> elements) {
         MemberDoc[] members = currentClass.serializationMethods();
         if (members.length > 0) {
             for (int i = 0; i < members.length; i++) {
                 currentMember = members[i];
-                buildChildren(node);
+                build(elements);
             }
         }
     }
@@ -492,12 +507,12 @@ public class SerializedFormBuilder extends AbstractBuilder {
      * Build the summaries for the fields that belong to the given
      * class.
      */
-    public void buildSerializableFields(XMLNode node) {
+    public void buildSerializableFields(List<?> elements) {
         MemberDoc[] members = currentClass.serializableFields();
         if (members.length > 0) {
             for (int i = 0; i < members.length; i++) {
                 currentMember = members[i];
-                buildChildren(node);
+                build(elements);
             }
         }
     }

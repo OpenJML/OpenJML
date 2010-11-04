@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2007-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.classfile;
@@ -31,8 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *  <p><b>This is NOT part of any supported API.
- *  If you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
+ *  you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -54,8 +54,6 @@ public abstract class Attribute {
     public static final String RuntimeInvisibleAnnotations = "RuntimeInvisibleAnnotations";
     public static final String RuntimeVisibleParameterAnnotations = "RuntimeVisibleParameterAnnotations";
     public static final String RuntimeInvisibleParameterAnnotations = "RuntimeInvisibleParameterAnnotations";
-    public static final String RuntimeVisibleTypeAnnotations = "RuntimeVisibleTypeAnnotations";
-    public static final String RuntimeInvisibleTypeAnnotations = "RuntimeInvisibleTypeAnnotations";
     public static final String Signature                = "Signature";
     public static final String SourceDebugExtension     = "SourceDebugExtension";
     public static final String SourceFile               = "SourceFile";
@@ -64,6 +62,11 @@ public abstract class Attribute {
     public static final String StackMapTable            = "StackMapTable";
     public static final String Synthetic                = "Synthetic";
 
+    // JSR 277/294
+    public static final String Module                   = "Module";
+    public static final String ModuleExportTable        = "ModuleExportTable";
+    public static final String ModuleMemberTable        = "ModuleMemberTable";
+
     public static class Factory {
         public Factory() {
             // defer init of standardAttributeClasses until after options set up
@@ -71,6 +74,10 @@ public abstract class Attribute {
 
         public void setCompat(boolean compat) {
             this.compat = compat;
+        }
+
+        public void setJSR277(boolean jsr277) {
+            this.jsr277 = jsr277;
         }
 
         public Attribute createAttribute(ClassReader cr, int name_index, byte[] data)
@@ -112,14 +119,18 @@ public abstract class Attribute {
             standardAttributes.put(LocalVariableTable, LocalVariableTable_attribute.class);
             standardAttributes.put(LocalVariableTypeTable, LocalVariableTypeTable_attribute.class);
 
+            if (jsr277) {
+                standardAttributes.put(Module,            Module_attribute.class);
+                standardAttributes.put(ModuleExportTable, ModuleExportTable_attribute.class);
+                standardAttributes.put(ModuleMemberTable, ModuleMemberTable_attribute.class);
+            }
+
             if (!compat) { // old javap does not recognize recent attributes
                 standardAttributes.put(CompilationID, CompilationID_attribute.class);
                 standardAttributes.put(RuntimeInvisibleAnnotations, RuntimeInvisibleAnnotations_attribute.class);
                 standardAttributes.put(RuntimeInvisibleParameterAnnotations, RuntimeInvisibleParameterAnnotations_attribute.class);
                 standardAttributes.put(RuntimeVisibleAnnotations, RuntimeVisibleAnnotations_attribute.class);
                 standardAttributes.put(RuntimeVisibleParameterAnnotations, RuntimeVisibleParameterAnnotations_attribute.class);
-                standardAttributes.put(RuntimeVisibleTypeAnnotations, RuntimeVisibleTypeAnnotations_attribute.class);
-                standardAttributes.put(RuntimeInvisibleTypeAnnotations, RuntimeInvisibleTypeAnnotations_attribute.class);
                 standardAttributes.put(Signature,     Signature_attribute.class);
                 standardAttributes.put(SourceID, SourceID_attribute.class);
             }
@@ -133,6 +144,7 @@ public abstract class Attribute {
 
         private Map<String,Class<? extends Attribute>> standardAttributes;
         private boolean compat; // don't support recent attrs in compatibility mode
+        private boolean jsr277; // support new jsr277 attrs
     }
 
     public static Attribute read(ClassReader cr) throws IOException {
@@ -149,10 +161,6 @@ public abstract class Attribute {
     }
 
     public abstract <R,D> R accept(Attribute.Visitor<R,D> visitor, D data);
-
-    public int byteLength() {
-        return 6 + attribute_length;
-    }
 
     public final int attribute_name_index;
     public final int attribute_length;
@@ -176,8 +184,6 @@ public abstract class Attribute {
         R visitRuntimeInvisibleAnnotations(RuntimeInvisibleAnnotations_attribute attr, P p);
         R visitRuntimeVisibleParameterAnnotations(RuntimeVisibleParameterAnnotations_attribute attr, P p);
         R visitRuntimeInvisibleParameterAnnotations(RuntimeInvisibleParameterAnnotations_attribute attr, P p);
-        R visitRuntimeVisibleTypeAnnotations(RuntimeVisibleTypeAnnotations_attribute attr, P p);
-        R visitRuntimeInvisibleTypeAnnotations(RuntimeInvisibleTypeAnnotations_attribute attr, P p);
         R visitSignature(Signature_attribute attr, P p);
         R visitSourceDebugExtension(SourceDebugExtension_attribute attr, P p);
         R visitSourceFile(SourceFile_attribute attr, P p);
@@ -185,5 +191,9 @@ public abstract class Attribute {
         R visitStackMap(StackMap_attribute attr, P p);
         R visitStackMapTable(StackMapTable_attribute attr, P p);
         R visitSynthetic(Synthetic_attribute attr, P p);
+
+        R visitModule(Module_attribute attr, P p);
+        R visitModuleExportTable(ModuleExportTable_attribute attr, P p);
+        R visitModuleMemberTable(ModuleMemberTable_attribute attr, P p);
     }
 }

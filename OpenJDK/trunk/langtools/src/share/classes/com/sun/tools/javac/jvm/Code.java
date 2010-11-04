@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javac.jvm;
@@ -39,8 +39,8 @@ import static com.sun.tools.javac.jvm.ClassWriter.StackMapTableFrame;
  *  methods in a classfile. The class also provides some utility operations to
  *  generate bytecode instructions.
  *
- *  <p><b>This is NOT part of any supported API.
- *  If you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
+ *  you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -453,19 +453,6 @@ public class Code {
         if (!alive) return;
         emit2(meth);
         state.pop(argsize + 1);
-        state.push(mtype.getReturnType());
-    }
-
-    /** Emit an invokedynamic instruction.
-     */
-    public void emitInvokedynamic(int desc, Type mtype) {
-        // N.B. this format is under consideration by the JSR 292 EG
-        int argsize = width(mtype.getParameterTypes());
-        emitop(invokedynamic);
-        if (!alive) return;
-        emit2(desc);
-        emit2(0);
-        state.pop(argsize);
         state.push(mtype.getReturnType());
     }
 
@@ -1912,27 +1899,10 @@ public class Code {
                 if (length < Character.MAX_VALUE) {
                     v.length = length;
                     putVar(v);
-                    fillLocalVarPosition(v);
                 }
             }
         }
         state.defined.excl(adr);
-    }
-
-    private void fillLocalVarPosition(LocalVar lv) {
-        if (lv == null || lv.sym == null
-                || lv.sym.typeAnnotations == null)
-            return;
-        for (Attribute.TypeCompound ta : lv.sym.typeAnnotations) {
-            TypeAnnotationPosition p = ta.position;
-            while (p != null) {
-                p.lvarOffset = new int[] { (int)lv.start_pc };
-                p.lvarLength = new int[] { (int)lv.length };
-                p.lvarIndex = new int[] { (int)lv.reg };
-                p.isValidOffset = true;
-                p = p.wildcard_position;
-            }
-        }
     }
 
     /** Put a live variable range into the buffer to be output to the
@@ -2186,7 +2156,7 @@ public class Code {
             mnem[invokespecial] = "invokespecial";
             mnem[invokestatic] = "invokestatic";
             mnem[invokeinterface] = "invokeinterface";
-            mnem[invokedynamic] = "invokedynamic";
+            // mnem[___unused___] = "___unused___";
             mnem[new_] = "new_";
             mnem[newarray] = "newarray";
             mnem[anewarray] = "anewarray";

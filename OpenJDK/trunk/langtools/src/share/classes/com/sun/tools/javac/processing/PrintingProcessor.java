@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2005, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2005-2009 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javac.processing;
@@ -42,14 +42,13 @@ import java.util.*;
  * -Xprint option; the included visitor class is used to implement
  * Elements.printElements.
  *
- * <p><b>This is NOT part of any supported API.
+ * <p><b>This is NOT part of any API supported by Sun Microsystems.
  * If you write code that depends on this, you do so at your own risk.
  * This code and its internal interfaces are subject to change or
  * deletion without notice.</b>
  */
 @SupportedAnnotationTypes("*")
-// TODO: Change to version 7 based visitors when available
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class PrintingProcessor extends AbstractProcessor {
     PrintWriter writer;
 
@@ -83,7 +82,7 @@ public class PrintingProcessor extends AbstractProcessor {
      * Used for the -Xprint option and called by Elements.printElements
      */
     public static class PrintingElementVisitor
-        extends SimpleElementVisitor7<PrintingElementVisitor, Boolean> {
+        extends SimpleElementVisitor6<PrintingElementVisitor, Boolean> {
         int indentation; // Indentation level;
         final PrintWriter writer;
         final Elements elementUtils;
@@ -117,7 +116,7 @@ public class PrintingProcessor extends AbstractProcessor {
                     enclosing != null &&
                     NestingKind.ANONYMOUS ==
                     // Use an anonymous class to determine anonymity!
-                    (new SimpleElementVisitor7<NestingKind, Void>() {
+                    (new SimpleElementVisitor6<NestingKind, Void>() {
                         @Override
                         public NestingKind visitType(TypeElement e, Void p) {
                             return e.getNestingKind();
@@ -229,24 +228,23 @@ public class PrintingProcessor extends AbstractProcessor {
             if (kind == ENUM) {
                 List<Element> enclosedElements =
                     new ArrayList<Element>(e.getEnclosedElements());
-                // Handle any enum constants specially before other entities.
                 List<Element> enumConstants = new ArrayList<Element>();
                 for(Element element : enclosedElements) {
                     if (element.getKind() == ENUM_CONSTANT)
                         enumConstants.add(element);
                 }
-                if (!enumConstants.isEmpty()) {
-                    int i;
-                    for(i = 0; i < enumConstants.size()-1; i++) {
-                        this.visit(enumConstants.get(i), true);
-                        writer.print(",");
-                    }
-                    this.visit(enumConstants.get(i), true);
-                    writer.println(";\n");
 
-                    enclosedElements.removeAll(enumConstants);
+                int i;
+                for(i = 0; i < enumConstants.size()-1; i++) {
+                    this.visit(enumConstants.get(i), true);
+                    writer.print(",");
+                }
+                if (i >= 0 ) {
+                    this.visit(enumConstants.get(i), true);
+                    writer.print(";");
                 }
 
+                enclosedElements.removeAll(enumConstants);
                 for(Element element : enclosedElements)
                     this.visit(element);
             } else {
@@ -376,7 +374,6 @@ public class PrintingProcessor extends AbstractProcessor {
                 for(TypeParameterElement tpe: typeParams) {
                     if (!first)
                         writer.print(", ");
-                    printAnnotationsInline(tpe);
                     writer.print(tpe.toString());
                     first = false;
                 }

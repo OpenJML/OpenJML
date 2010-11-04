@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2007-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,22 +18,21 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.classfile;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.sun.tools.classfile.Type.*;
 
 /**
  * See JVMS3 4.4.4.
  *
- *  <p><b>This is NOT part of any supported API.
- *  If you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
+ *  you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -51,19 +50,19 @@ public class Signature extends Descriptor {
 
     @Override
     public int getParameterCount(ConstantPool constant_pool) throws ConstantPoolException {
-        MethodType m = (MethodType) getType(constant_pool);
-        return m.paramTypes.size();
+        Type.MethodType m = (Type.MethodType) getType(constant_pool);
+        return m.argTypes.size();
     }
 
     @Override
     public String getParameterTypes(ConstantPool constant_pool) throws ConstantPoolException {
-        MethodType m = (MethodType) getType(constant_pool);
+        Type.MethodType m = (Type.MethodType) getType(constant_pool);
         StringBuilder sb = new StringBuilder();
         sb.append("(");
         String sep = "";
-        for (Type paramType: m.paramTypes) {
+        for (Type argType: m.argTypes) {
             sb.append(sep);
-            sb.append(paramType);
+            sb.append(argType);
             sep = ", ";
         }
         sb.append(")");
@@ -72,7 +71,7 @@ public class Signature extends Descriptor {
 
     @Override
     public String getReturnType(ConstantPool constant_pool) throws ConstantPoolException {
-        MethodType m = (MethodType) getType(constant_pool);
+        Type.MethodType m = (Type.MethodType) getType(constant_pool);
         return m.returnType.toString();
     }
 
@@ -85,12 +84,12 @@ public class Signature extends Descriptor {
         this.sig = sig;
         sigp = 0;
 
-        List<TypeParamType> typeParamTypes = null;
+        List<Type> typeArgTypes = null;
         if (sig.charAt(sigp) == '<')
-            typeParamTypes = parseTypeParamTypes();
+            typeArgTypes = parseTypeArgTypes();
 
         if (sig.charAt(sigp) == '(') {
-            List<Type> paramTypes = parseTypeSignatures(')');
+            List<Type> argTypes = parseTypeSignatures(')');
             Type returnType = parseTypeSignature();
             List<Type> throwsTypes = null;
             while (sigp < sig.length() && sig.charAt(sigp) == '^') {
@@ -99,19 +98,16 @@ public class Signature extends Descriptor {
                     throwsTypes = new ArrayList<Type>();
                 throwsTypes.add(parseTypeSignature());
             }
-            return new MethodType(typeParamTypes, paramTypes, returnType, throwsTypes);
+            return new Type.MethodType(typeArgTypes, argTypes, returnType, throwsTypes);
         } else {
             Type t = parseTypeSignature();
-            if (typeParamTypes == null && sigp == sig.length())
+            if (typeArgTypes == null && sigp == sig.length())
                 return t;
             Type superclass = t;
-            List<Type> superinterfaces = null;
-            while (sigp < sig.length()) {
-                if (superinterfaces == null)
-                    superinterfaces = new ArrayList<Type>();
+            List<Type> superinterfaces = new ArrayList<Type>();
+            while (sigp < sig.length())
                 superinterfaces.add(parseTypeSignature());
-            }
-            return new ClassSigType(typeParamTypes, superclass, superinterfaces);
+            return new Type.ClassSigType(typeArgTypes, superclass, superinterfaces);
 
         }
     }
@@ -120,61 +116,61 @@ public class Signature extends Descriptor {
         switch (sig.charAt(sigp)) {
             case 'B':
                 sigp++;
-                return new SimpleType("byte");
+                return new Type.SimpleType("byte");
 
             case 'C':
                 sigp++;
-                return new SimpleType("char");
+                return new Type.SimpleType("char");
 
             case 'D':
                 sigp++;
-                return new SimpleType("double");
+                return new Type.SimpleType("double");
 
             case 'F':
                 sigp++;
-                return new SimpleType("float");
+                return new Type.SimpleType("float");
 
             case 'I':
                 sigp++;
-                return new SimpleType("int");
+                return new Type.SimpleType("int");
 
             case 'J':
                 sigp++;
-                return new SimpleType("long");
+                return new Type.SimpleType("long");
 
             case 'L':
                 return parseClassTypeSignature();
 
             case 'S':
                 sigp++;
-                return new SimpleType("short");
+                return new Type.SimpleType("short");
 
             case 'T':
                 return parseTypeVariableSignature();
 
             case 'V':
                 sigp++;
-                return new SimpleType("void");
+                return new Type.SimpleType("void");
 
             case 'Z':
                 sigp++;
-                return new SimpleType("boolean");
+                return new Type.SimpleType("boolean");
 
             case '[':
                 sigp++;
-                return new ArrayType(parseTypeSignature());
+                return new Type.ArrayType(parseTypeSignature());
 
             case '*':
                 sigp++;
-                return new WildcardType();
+                return new Type.WildcardType();
 
             case '+':
                 sigp++;
-                return new WildcardType(WildcardType.Kind.EXTENDS, parseTypeSignature());
+                return new Type.WildcardType("extends", parseTypeSignature());
 
             case '-':
                 sigp++;
-                return new WildcardType(WildcardType.Kind.SUPER, parseTypeSignature());
+                return new Type.WildcardType("super", parseTypeSignature());
 
             default:
                 throw new IllegalStateException(debugInfo());
@@ -198,22 +194,30 @@ public class Signature extends Descriptor {
 
     private Type parseClassTypeSignatureRest() {
         StringBuilder sb = new StringBuilder();
-        List<Type> argTypes = null;
-        ClassType t = null;
-        char sigch ;
-
-        do {
+        Type t = null;
+        char sigch;
+        while (true) {
             switch  (sigch = sig.charAt(sigp)) {
-                case '<':
-                    argTypes = parseTypeSignatures('>');
+                case '/':
+                    sigp++;
+                    sb.append(".");
                     break;
 
                 case '.':
+                    sigp++;
+                    if (t == null)
+                        t = new Type.SimpleType(sb.toString());
+                    return new Type.InnerClassType(t, parseClassTypeSignatureRest());
+
                 case ';':
                     sigp++;
-                    t = new ClassType(t, sb.toString(), argTypes);
-                    sb.setLength(0);
-                    argTypes = null;
+                    if (t == null)
+                        t = new Type.SimpleType(sb.toString());
+                    return t;
+
+                case '<':
+                    List<Type> argTypes = parseTypeSignatures('>');
+                    t = new Type.ClassType(sb.toString(), argTypes);
                     break;
 
                 default:
@@ -221,22 +225,21 @@ public class Signature extends Descriptor {
                     sb.append(sigch);
                     break;
             }
-        } while (sigch != ';');
-
-        return t;
+        }
     }
 
-    private List<TypeParamType> parseTypeParamTypes() {
+    private List<Type> parseTypeArgTypes() {
         assert sig.charAt(sigp) == '<';
         sigp++;
-        List<TypeParamType> types = new ArrayList<TypeParamType>();
+        List<Type> types = null;
+        types = new ArrayList<Type>();
         while (sig.charAt(sigp) != '>')
-            types.add(parseTypeParamType());
+            types.add(parseTypeArgType());
         sigp++;
         return types;
     }
 
-    private TypeParamType parseTypeParamType() {
+    private Type parseTypeArgType() {
         int sep = sig.indexOf(":", sigp);
         String name = sig.substring(sigp, sep);
         Type classBound = null;
@@ -250,13 +253,13 @@ public class Signature extends Descriptor {
                 interfaceBounds = new ArrayList<Type>();
             interfaceBounds.add(parseTypeSignature());
         }
-        return new TypeParamType(name, classBound, interfaceBounds);
+        return new Type.TypeArgType(name, classBound, interfaceBounds);
     }
 
     private Type parseTypeVariableSignature() {
         sigp++;
         int sep = sig.indexOf(';', sigp);
-        Type t = new SimpleType(sig.substring(sigp, sep));
+        Type t = new Type.SimpleType(sig.substring(sigp, sep));
         sigp = sep + 1;
         return t;
     }

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2007-2008 Sun Microsystems, Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation.  Sun designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * by Sun in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
  */
 
 package com.sun.tools.javap;
@@ -41,16 +41,18 @@ import com.sun.tools.classfile.DefaultAttribute;
 import com.sun.tools.classfile.Deprecated_attribute;
 import com.sun.tools.classfile.EnclosingMethod_attribute;
 import com.sun.tools.classfile.Exceptions_attribute;
+import com.sun.tools.classfile.Field;
 import com.sun.tools.classfile.InnerClasses_attribute;
 import com.sun.tools.classfile.LineNumberTable_attribute;
 import com.sun.tools.classfile.LocalVariableTable_attribute;
 import com.sun.tools.classfile.LocalVariableTypeTable_attribute;
+import com.sun.tools.classfile.ModuleExportTable_attribute;
+import com.sun.tools.classfile.ModuleMemberTable_attribute;
+import com.sun.tools.classfile.Module_attribute;
 import com.sun.tools.classfile.RuntimeInvisibleAnnotations_attribute;
 import com.sun.tools.classfile.RuntimeInvisibleParameterAnnotations_attribute;
-import com.sun.tools.classfile.RuntimeInvisibleTypeAnnotations_attribute;
 import com.sun.tools.classfile.RuntimeVisibleAnnotations_attribute;
 import com.sun.tools.classfile.RuntimeVisibleParameterAnnotations_attribute;
-import com.sun.tools.classfile.RuntimeVisibleTypeAnnotations_attribute;
 import com.sun.tools.classfile.Signature_attribute;
 import com.sun.tools.classfile.SourceDebugExtension_attribute;
 import com.sun.tools.classfile.SourceFile_attribute;
@@ -64,15 +66,15 @@ import static com.sun.tools.classfile.AccessFlags.*;
 /*
  *  A writer for writing Attributes as text.
  *
- *  <p><b>This is NOT part of any supported API.
- *  If you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
+ *  you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
 public class AttributeWriter extends BasicWriter
         implements Attribute.Visitor<Void,Void>
 {
-    public static AttributeWriter instance(Context context) {
+    static AttributeWriter instance(Context context) {
         AttributeWriter instance = context.get(AttributeWriter.class);
         if (instance == null)
             instance = new AttributeWriter(context);
@@ -145,26 +147,22 @@ public class AttributeWriter extends BasicWriter
     }
 
     public Void visitAnnotationDefault(AnnotationDefault_attribute attr, Void ignore) {
-        println("AnnotationDefault:");
-        indent(+1);
-        print("default_value: ");
+        println("  AnnotationDefault: ");
+        print("    default_value: ");
         annotationWriter.write(attr.default_value);
-        indent(-1);
         return null;
     }
 
     public Void visitCharacterRangeTable(CharacterRangeTable_attribute attr, Void ignore) {
-        println("CharacterRangeTable:");
-        indent(+1);
+        print("  CharacterRangeTable: ");
         for (int i = 0; i < attr.character_range_table.length; i++) {
             CharacterRangeTable_attribute.Entry e = attr.character_range_table[i];
             print("    " + e.start_pc + ", " +
                     e.end_pc + ", " +
                     Integer.toHexString(e.character_range_start) + ", " +
                     Integer.toHexString(e.character_range_end) + ", " +
-                    Integer.toHexString(e.flags));
-            tab();
-            print("// ");
+                    Integer.toHexString(e.flags) +
+                    "\t// ");
             print(e.start_pc + ", " +
                     e.end_pc + ", " +
                     (e.character_range_start >> 10) + ":" + (e.character_range_start & 0x3ff) + ", " +
@@ -187,13 +185,16 @@ public class AttributeWriter extends BasicWriter
                 print(", branch-true");
             if ((e.flags & CharacterRangeTable_attribute.CRT_BRANCH_FALSE) != 0)
                 print(", branch-false");
+
+
+
         }
-        indent(-1);
         return null;
     }
 
     public Void visitCode(Code_attribute attr, Void ignore) {
         codeWriter.write(attr, constant_pool);
+        println();
         return null;
     }
 
@@ -204,23 +205,25 @@ public class AttributeWriter extends BasicWriter
 
     public Void visitConstantValue(ConstantValue_attribute attr, Void ignore) {
         if (options.compat) // BUG 6622216 javap names some attributes incorrectly
-            print("Constant value: ");
+            print("  Constant value: ");
         else
-            print("ConstantValue: ");
+            print("  ConstantValue: ");
         constantWriter.write(attr.constantvalue_index);
-        println();
+        if (!options.compat) // BUG 6622232 javap gets whitespace confused
+            println();
         return null;
     }
 
     public Void visitDeprecated(Deprecated_attribute attr, Void ignore) {
+        if (!(options.compat && owner instanceof Field)) // BUG 6622232 javap gets whitespace confused
+            print("  ");
         println("Deprecated: true");
         return null;
     }
 
     public Void visitEnclosingMethod(EnclosingMethod_attribute attr, Void ignore) {
-        print("EnclosingMethod: #" + attr.class_index + ".#" + attr.method_index);
-        tab();
-        print("// " + getJavaClassName(attr));
+        print("  EnclosingMethod: #" + attr.class_index + ".#" + attr.method_index
+                + "\t// " + getJavaClassName(attr));
         if (attr.method_index != 0)
             print("." + getMethodName(attr));
         println();
@@ -244,16 +247,15 @@ public class AttributeWriter extends BasicWriter
     }
 
     public Void visitExceptions(Exceptions_attribute attr, Void ignore) {
-        println("Exceptions:");
-        indent(+1);
-        print("throws ");
+        println("  Exceptions: ");
+        print("   throws ");
         for (int i = 0; i < attr.number_of_exceptions; i++) {
             if (i > 0)
                 print(", ");
             print(getJavaException(attr, i));
         }
-        println();
-        indent(-1);
+        if (!options.compat) // BUG 6622232 javap gets whitespace confused
+            println();
         return null;
     }
 
@@ -286,7 +288,8 @@ public class AttributeWriter extends BasicWriter
                     writeInnerClassHeader();
                     first = false;
                 }
-                print("   ");
+                if (!options.compat) // BUG 6622232: javap gets whitespace confused
+                    print("   ");
                 for (String name: access_flags.getInnerClassModifiers())
                     print(name + " ");
                 if (info.inner_name_index!=0) {
@@ -308,8 +311,6 @@ public class AttributeWriter extends BasicWriter
                 println();
             }
         }
-        if (!first)
-            indent(-1);
         return null;
     }
 
@@ -322,28 +323,26 @@ public class AttributeWriter extends BasicWriter
     }
 
     private void writeInnerClassHeader() {
+        print("  ");
         if (options.compat) // BUG 6622216: javap names some attributes incorrectly
             print("InnerClass");
         else
             print("InnerClasses");
-        println(":");
-        indent(+1);
+        println(": ");
     }
 
     public Void visitLineNumberTable(LineNumberTable_attribute attr, Void ignore) {
-        println("LineNumberTable:");
-        indent(+1);
+        println("  LineNumberTable: ");
         for (LineNumberTable_attribute.Entry entry: attr.line_number_table) {
-            println("line " + entry.line_number + ": " + entry.start_pc);
+            println("   line " + entry.line_number + ": " + entry.start_pc);
         }
-        indent(-1);
         return null;
     }
 
     public Void visitLocalVariableTable(LocalVariableTable_attribute attr, Void ignore) {
-        println("LocalVariableTable:");
-        indent(+1);
-        println("Start  Length  Slot  Name   Signature");
+        println("  LocalVariableTable: ");
+        println("   Start  Length  Slot  Name   Signature");
+
         for (LocalVariableTable_attribute.Entry entry : attr.local_variable_table) {
             Formatter formatter = new Formatter();
             println(formatter.format("%8d %7d %5d %5s   %s",
@@ -351,110 +350,118 @@ public class AttributeWriter extends BasicWriter
                     constantWriter.stringValue(entry.name_index),
                     constantWriter.stringValue(entry.descriptor_index)));
         }
-        indent(-1);
         return null;
     }
 
     public Void visitLocalVariableTypeTable(LocalVariableTypeTable_attribute attr, Void ignore) {
-        println("LocalVariableTypeTable:");
-        indent(+1);
-        println("Start  Length  Slot  Name   Signature");
+        println("  LocalVariableTypeTable: ");
+        println("   Start  Length  Slot  Name   Signature");
+
         for (LocalVariableTypeTable_attribute.Entry entry : attr.local_variable_table) {
-            println(String.format("%5d %7d %5d %5s   %s",
+            Formatter formatter = new Formatter();
+            println(formatter.format("%8d %7d %5d %5s   %s",
                     entry.start_pc, entry.length, entry.index,
                     constantWriter.stringValue(entry.name_index),
                     constantWriter.stringValue(entry.signature_index)));
         }
-        indent(-1);
         return null;
     }
 
+    public Void visitModule(Module_attribute attr, Void ignore) {
+        println("  Module: #" + attr.module_name + "\t// " + getModuleName(attr));
+        return null;
+    }
+
+    String getModuleName(Module_attribute attr) {
+        try {
+            return attr.getModuleName(constant_pool);
+        } catch (ConstantPoolException e) {
+            return report(e);
+        }
+    }
+
+    public Void visitModuleExportTable(ModuleExportTable_attribute attr, Void ignore) {
+        println("  ModuleExportTable:");
+        println("    Types: (" + attr.export_type_table.length + ")");
+        for (int i = 0; i < attr.export_type_table.length; i++) {
+            println("      #" + attr.export_type_table[i] + "\t// " + getExportTypeName(attr, i));
+        }
+        return null;
+    }
+
+    String getExportTypeName(ModuleExportTable_attribute attr, int index) {
+        try {
+            return attr.getExportTypeName(index, constant_pool);
+        } catch (ConstantPoolException e) {
+            return report(e);
+        }
+    }
+
+    public Void visitModuleMemberTable(ModuleMemberTable_attribute attr, Void ignore) {
+        println("  ModuleMemberTable:");
+        println("    Packages: (" + attr.package_member_table.length + ")");
+        for (int i = 0; i < attr.package_member_table.length; i++) {
+            println("      #" + attr.package_member_table[i] + "\t// " + getPackageMemberName(attr, i));
+        }
+        return null;
+    }
+
+    String getPackageMemberName(ModuleMemberTable_attribute attr, int index) {
+        try {
+            return attr.getPackageMemberName(index, constant_pool);
+        } catch (ConstantPoolException e) {
+            return report(e);
+        }
+    }
+
     public Void visitRuntimeVisibleAnnotations(RuntimeVisibleAnnotations_attribute attr, Void ignore) {
-        println("RuntimeVisibleAnnotations:");
-        indent(+1);
+        println("  RuntimeVisibleAnnotations: ");
         for (int i = 0; i < attr.annotations.length; i++) {
-            print(i + ": ");
+            print("    " + i + ": ");
             annotationWriter.write(attr.annotations[i]);
             println();
         }
-        indent(-1);
         return null;
     }
 
     public Void visitRuntimeInvisibleAnnotations(RuntimeInvisibleAnnotations_attribute attr, Void ignore) {
-        println("RuntimeInvisibleAnnotations:");
-        indent(+1);
+        println("  RuntimeInvisibleAnnotations: ");
         for (int i = 0; i < attr.annotations.length; i++) {
-            print(i + ": ");
+            print("    " + i + ": ");
             annotationWriter.write(attr.annotations[i]);
             println();
         }
-        indent(-1);
-        return null;
-    }
-
-    public Void visitRuntimeVisibleTypeAnnotations(RuntimeVisibleTypeAnnotations_attribute attr, Void ignore) {
-        println("RuntimeVisibleTypeAnnotations:");
-        indent(+1);
-        for (int i = 0; i < attr.annotations.length; i++) {
-            print(i + ": ");
-            annotationWriter.write(attr.annotations[i]);
-            println();
-        }
-        indent(-1);
-        return null;
-    }
-
-    public Void visitRuntimeInvisibleTypeAnnotations(RuntimeInvisibleTypeAnnotations_attribute attr, Void ignore) {
-        println("RuntimeInvisibleTypeAnnotations:");
-        indent(+1);
-        for (int i = 0; i < attr.annotations.length; i++) {
-            print(i + ": ");
-            annotationWriter.write(attr.annotations[i]);
-            println();
-        }
-        indent(-1);
         return null;
     }
 
     public Void visitRuntimeVisibleParameterAnnotations(RuntimeVisibleParameterAnnotations_attribute attr, Void ignore) {
-        println("RuntimeVisibleParameterAnnotations:");
-        indent(+1);
+        println("  RuntimeVisibleParameterAnnotations: ");
         for (int param = 0; param < attr.parameter_annotations.length; param++) {
-            println("parameter " + param + ": ");
-            indent(+1);
+            println("    parameter " + param + ": ");
             for (int i = 0; i < attr.parameter_annotations[param].length; i++) {
-                print(i + ": ");
+                print("    " + i + ": ");
                 annotationWriter.write(attr.parameter_annotations[param][i]);
                 println();
             }
-            indent(-1);
         }
-        indent(-1);
         return null;
     }
 
     public Void visitRuntimeInvisibleParameterAnnotations(RuntimeInvisibleParameterAnnotations_attribute attr, Void ignore) {
-        println("RuntimeInvisibleParameterAnnotations:");
-        indent(+1);
+        println("  RuntimeInvisibleParameterAnnotations: ");
         for (int param = 0; param < attr.parameter_annotations.length; param++) {
-            println(param + ": ");
-            indent(+1);
+            println("    " + param + ": ");
             for (int i = 0; i < attr.parameter_annotations[param].length; i++) {
-                print(i + ": ");
+                print("    " + i + ": ");
                 annotationWriter.write(attr.parameter_annotations[param][i]);
                 println();
             }
-            indent(-1);
         }
-        indent(-1);
         return null;
     }
 
     public Void visitSignature(Signature_attribute attr, Void ignore) {
-        print("Signature: #" + attr.signature_index);
-        tab();
-        println("// " + getSignature(attr));
+        println("  Signature: #" + attr.signature_index + "\t// " + getSignature(attr));
         return null;
     }
 
@@ -467,12 +474,12 @@ public class AttributeWriter extends BasicWriter
     }
 
     public Void visitSourceDebugExtension(SourceDebugExtension_attribute attr, Void ignore) {
-        println("SourceDebugExtension: " + attr.getValue());
+        println("  SourceDebugExtension: " + attr.getValue());
         return null;
     }
 
     public Void visitSourceFile(SourceFile_attribute attr, Void ignore) {
-        println("SourceFile: \"" + getSourceFile(attr) + "\"");
+        println("  SourceFile: \"" + getSourceFile(attr) + "\"");
         return null;
     }
 
@@ -490,26 +497,24 @@ public class AttributeWriter extends BasicWriter
     }
 
     public Void visitStackMap(StackMap_attribute attr, Void ignore) {
-        println("StackMap: number_of_entries = " + attr.number_of_entries);
-        indent(+1);
+        println("  StackMap: number_of_entries = " + attr.number_of_entries);
+
         StackMapTableWriter w = new StackMapTableWriter();
         for (StackMapTable_attribute.stack_map_frame entry : attr.entries) {
             w.write(entry);
         }
         println();
-        indent(-1);
         return null;
     }
 
     public Void visitStackMapTable(StackMapTable_attribute attr, Void ignore) {
-        println("StackMapTable: number_of_entries = " + attr.number_of_entries);
-        indent(+1);
+        println("  StackMapTable: number_of_entries = " + attr.number_of_entries);
+
         StackMapTableWriter w = new StackMapTableWriter();
         for (StackMapTable_attribute.stack_map_frame entry : attr.entries) {
             w.write(entry);
         }
         println();
-        indent(-1);
         return null;
     }
 
@@ -528,37 +533,29 @@ public class AttributeWriter extends BasicWriter
         public Void visit_same_locals_1_stack_item_frame(StackMapTable_attribute.same_locals_1_stack_item_frame frame, Void p) {
             printHeader(frame);
             println(" /* same_locals_1_stack_item */");
-            indent(+1);
             printMap("stack", frame.stack);
-            indent(-1);
             return null;
         }
 
         public Void visit_same_locals_1_stack_item_frame_extended(StackMapTable_attribute.same_locals_1_stack_item_frame_extended frame, Void p) {
             printHeader(frame);
             println(" /* same_locals_1_stack_item_frame_extended */");
-            indent(+1);
-            println("offset_delta = " + frame.offset_delta);
+            println("     offset_delta = " + frame.offset_delta);
             printMap("stack", frame.stack);
-            indent(-1);
             return null;
         }
 
         public Void visit_chop_frame(StackMapTable_attribute.chop_frame frame, Void p) {
             printHeader(frame);
             println(" /* chop */");
-            indent(+1);
-            println("offset_delta = " + frame.offset_delta);
-            indent(-1);
+            println("     offset_delta = " + frame.offset_delta);
             return null;
         }
 
         public Void visit_same_frame_extended(StackMapTable_attribute.same_frame_extended frame, Void p) {
             printHeader(frame);
             println(" /* same_frame_extended */");
-            indent(+1);
-            println("offset_delta = " + frame.offset_delta);
-            indent(-1);
+            println("     offset_delta = " + frame.offset_delta);
             return null;
         }
 
@@ -573,16 +570,13 @@ public class AttributeWriter extends BasicWriter
         public Void visit_full_frame(StackMapTable_attribute.full_frame frame, Void p) {
             printHeader(frame);
             if (frame instanceof StackMap_attribute.stack_map_frame) {
-                indent(+1);
-                println(" offset = " + frame.offset_delta);
+                println("     offset = " + frame.offset_delta);
             } else {
                 println(" /* full_frame */");
-                indent(+1);
-                println("offset_delta = " + frame.offset_delta);
+                println("     offset_delta = " + frame.offset_delta);
             }
             printMap("locals", frame.locals);
             printMap("stack", frame.stack);
-            indent(-1);
             return null;
         }
 
@@ -591,7 +585,7 @@ public class AttributeWriter extends BasicWriter
         }
 
         void printMap(String name, StackMapTable_attribute.verification_type_info[] map) {
-            print(name + " = [");
+            print("     " + name + " = [");
             for (int i = 0; i < map.length; i++) {
                 StackMapTable_attribute.verification_type_info info = map[i];
                 int tag = info.tag;
