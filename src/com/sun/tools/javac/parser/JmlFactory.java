@@ -73,7 +73,7 @@ public class JmlFactory extends ParserFactory {
      */
     public JmlParser newParser(CharSequence input, boolean keepDocComments,
             boolean genEndPos, boolean keepLineMap, boolean enableJml) {
-        JmlScanner lexer = (JmlScanner) scannerFactory.newScanner(input);
+        JmlScanner lexer = (JmlScanner) scannerFactory.newScanner(input, keepDocComments);
         lexer.setJml(enableJml);
         JmlParser p = new JmlParser(this, lexer, keepDocComments || true); 
             // FIXME - really just want the doc comments when doing jmldoc

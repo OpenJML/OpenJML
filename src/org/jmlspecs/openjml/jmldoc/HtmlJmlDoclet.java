@@ -97,15 +97,9 @@ public class HtmlJmlDoclet extends HtmlDoclet {
             }
         }
 
-        try {
-            // Javadoc is somewhat verbose - we'll add this message to it
-            Log.instance(context).noticeWriter.println("Compiling with JML");
-            JmlCompiler.instance(context).compile(list.toList(),List.<String>nil(),List.<Processor>nil());
-        } catch (java.io.IOException e) {
-            Log.instance(context).noticeWriter.println("IO exception during JML compilation: " + e);
-            e.printStackTrace(System.out);
-        }
-
+        // Javadoc is somewhat verbose - we'll add this message to it
+        Log.instance(context).noticeWriter.println("Compiling with JML");
+        JmlCompiler.instance(context).compile(list.toList(),List.<String>nil(),List.<Processor>nil());
     }
     
 }

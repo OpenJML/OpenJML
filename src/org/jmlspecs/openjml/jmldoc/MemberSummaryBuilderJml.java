@@ -8,6 +8,7 @@ import com.sun.javadoc.ClassDoc;
 import com.sun.tools.doclets.internal.toolkit.Configuration;
 import com.sun.tools.doclets.internal.toolkit.MemberSummaryWriter;
 import com.sun.tools.doclets.internal.toolkit.builders.MemberSummaryBuilder;
+import com.sun.tools.doclets.internal.toolkit.builders.XMLNode;
 import com.sun.tools.doclets.internal.toolkit.util.Util;
 import com.sun.tools.doclets.internal.toolkit.util.VisibleMemberMap;
 
@@ -17,14 +18,14 @@ public class MemberSummaryBuilderJml extends MemberSummaryBuilder {
         super(configuration);
     }
     
-    public void buildFieldsSummary() {
-        super.buildFieldsSummary();
+    public void buildFieldsSummary(XMLNode node) {
+        super.buildFieldsSummary(node);
         MemberSummaryWriter w = memberSummaryWriters[VisibleMemberMap.FIELDS];
         ((FieldWriterJml)w).checkJmlSummary(classDoc);
     }
 
-    public void buildFieldsInheritedSummary() {
-        super.buildFieldsInheritedSummary();
+    public void buildFieldsInheritedSummary(XMLNode node) {
+        super.buildFieldsInheritedSummary(node);
         MemberSummaryWriter w = memberSummaryWriters[VisibleMemberMap.FIELDS];
         VisibleMemberMap visibleMemberMap = visibleMemberMaps[VisibleMemberMap.FIELDS];
         for (Iterator iter = visibleMemberMap.getVisibleClassesList().iterator(); iter.hasNext();) {

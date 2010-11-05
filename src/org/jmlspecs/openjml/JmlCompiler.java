@@ -251,7 +251,7 @@ public class JmlCompiler extends JavaCompiler {
     }
     
     @Override
-    public List<JCCompilationUnit> parseFiles(List<JavaFileObject> fileObjects) throws IOException {
+    public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
         List<JCCompilationUnit> list = super.parseFiles(fileObjects);
         for (JCCompilationUnit cu: list) {
             ((JmlCompilationUnit)cu).mode = JmlCompilationUnit.JAVA_SOURCE_FULL;
@@ -524,7 +524,7 @@ public class JmlCompiler extends JavaCompiler {
      */
     public void compile(List<JavaFileObject> sourceFileObjects,
             List<String> classnames,
-            Iterable<? extends Processor> processors) throws IOException {
+            Iterable<? extends Processor> processors) {
 //        Runtime rt = Runtime.getRuntime();
         //log.noticeWriter.println("    ....... Memory free=" + rt.freeMemory() + "  max="+rt.maxMemory() + "  total="+rt.totalMemory());
 // FIXME - do we keep these preloadings?
