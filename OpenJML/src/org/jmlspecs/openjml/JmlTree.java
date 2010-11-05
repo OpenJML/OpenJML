@@ -233,7 +233,7 @@ public class JmlTree {
                 List<JCExpression> thrown,
                 JCBlock body,
                 JCExpression defaultValue) {
-            JmlMethodDecl tree = new JmlMethodDecl(mods,name,restype,typarams,params,thrown,body,defaultValue,null);
+            JmlMethodDecl tree = new JmlMethodDecl(mods,name,restype,typarams,params,null,thrown,body,defaultValue,null); // DRC Introduced null parameter to deal with new/evolved signature.
             tree.pos = pos;
             tree.sourcefile = Log.instance(context).currentSourceFile();
             return tree;
@@ -248,6 +248,7 @@ public class JmlTree {
                     Type(mtype.getReturnType()),
                     TypeParams(mtype.getTypeArguments()),
                     Params(mtype.getParameterTypes(), m),
+                    null, // DRC Introduced null parameter to deal with new/evolved signature.
                     Types(mtype.getThrownTypes()),
                     body,
                     null,
@@ -874,9 +875,10 @@ public class JmlTree {
         
         public JmlMethodDecl(JCModifiers mods, Name name, JCExpression restype,
                 List<JCTypeParameter> typarams, List<JCVariableDecl> params,
+                List<JCTypeAnnotation> receiver,
                 List<JCExpression> thrown, JCBlock body,
                 JCExpression defaultValue, MethodSymbol sym) {
-            super(mods, name, restype, typarams, params, thrown, body, defaultValue, sym);
+            super(mods, name, restype, typarams, params, receiver, thrown, body, defaultValue, sym);
             specsDecl = null;
             sourcefile = null;
         }

@@ -271,3 +271,17 @@ c) in a shell:
         - commit
         (TODO: should provide a script for most of this)
 
+OpenJML Documentation Generation
+
+The OpenJML tool-suite contains a new version of jmldoc.  This documentation
+generation tool has a few new features under development that are used to track
+the quality and utility of specifications.
+
+Firstly, JML documentation is written either in normal block comments with the
+extra '@' symbol at the front, or in normal line comments with the extra '@'
+symbol at the front, thusly:
+  /*@ invariant i != 0;
+      invariant j == 0; */
+  //@ requires 0 <= k;
+Optionally, any specification can include a generic "tag" that describes the use
+of the annotation.  Tags are 

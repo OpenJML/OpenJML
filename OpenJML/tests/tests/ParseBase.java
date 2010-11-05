@@ -16,6 +16,7 @@ import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.Parser;
 import com.sun.tools.javac.parser.ParserFactory;
 import com.sun.tools.javac.parser.Scanner;
+import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Log;
@@ -32,7 +33,7 @@ abstract public class ParseBase extends JmlTestCase {
     static String testspecpath = "$A"+z+"$B";
 
     ParserFactory fac;
-    Scanner.Factory sfac;
+    ScannerFactory sfac;
     JmlParser parser;
 
     /** Set this to true in tests which start out the scanner in jml mode
@@ -47,7 +48,7 @@ abstract public class ParseBase extends JmlTestCase {
         //main.register(context);
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         Log.instance(context).multipleErrors = true;
-        sfac = Scanner.Factory.instance(context);
+        sfac = ScannerFactory.instance(context);
         fac = ParserFactory.instance(context);
         print = false;
         jml = false;

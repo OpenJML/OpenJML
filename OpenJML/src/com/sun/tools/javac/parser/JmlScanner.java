@@ -55,7 +55,7 @@ public class JmlScanner extends DocCommentScanner {
      * have a consistent set of information across all files parsed within a
      * compilation task.
      */
-    public static class JmlFactory extends DocCommentScanner.Factory {
+    public static class JmlFactory extends ScannerFactory {
 
         /**
          * Not yet used - we'd like to use a different message factory for JML
@@ -88,8 +88,8 @@ public class JmlScanner extends DocCommentScanner {
          */
         public static void preRegister(final Context context) {
             context.put(scannerFactoryKey,
-                    new Context.Factory<Scanner.Factory>() {
-                        public Scanner.Factory make() {
+                    new Context.Factory<ScannerFactory>() {
+                        public ScannerFactory make() {
                             return new JmlScanner.JmlFactory(context);
                         }
                     });
@@ -101,14 +101,14 @@ public class JmlScanner extends DocCommentScanner {
          * @seecom.sun.tools.javac.parser.Scanner.Factory#newScanner(java.lang.
          * CharSequence)
          */
-        @Override
+        
         public Scanner newScanner(CharSequence input) {
             JmlScanner sc;
             if (input instanceof CharBuffer) {
                 sc = new JmlScanner(this, (CharBuffer) input);
             } else {
                 char[] array = input.toString().toCharArray();
-                sc = (JmlScanner)newScanner(array, array.length);
+                sc = (JmlScanner)newScanner(array, array.length, true);
             }
             sc.keys = Utils.instance(context).commentKeys;
             
@@ -119,10 +119,10 @@ public class JmlScanner extends DocCommentScanner {
          * (non-Javadoc)
          * 
          * @see com.sun.tools.javac.parser.Scanner.Factory#newScanner(char[],
-         * int)
+         * int, boolean)
          */
         @Override
-        public Scanner newScanner(char[] input, int inputLength) {
+        public Scanner newScanner(char[] input, int inputLength, boolean keepDocComments) {
             JmlScanner j = new JmlScanner(this, input, inputLength);
             j.noJML = JmlOptionName.isOption(context, JmlOptionName.NOJML);
             return j;
@@ -174,7 +174,7 @@ public class JmlScanner extends DocCommentScanner {
      */
     // @ requires fac != null && input != null;
     // @ requires inputLength <= input.length;
-    protected JmlScanner(Factory fac, char[] input, int inputLength) {
+    protected JmlScanner(ScannerFactory fac, char[] input, int inputLength) {
         super(fac, input, inputLength);
     }
 
@@ -188,7 +188,7 @@ public class JmlScanner extends DocCommentScanner {
      *            The character buffer to scan
      */
     // @ requires fac != null && buffer != null;
-    protected JmlScanner(Factory fac, CharBuffer buffer) {
+    protected JmlScanner(ScannerFactory fac, CharBuffer buffer) {
         super(fac, buffer);
     }
 

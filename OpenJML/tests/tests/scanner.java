@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.Scanner;
+import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.util.Log;
 
@@ -19,14 +20,14 @@ public class scanner extends JmlTestCase {
     final static JmlToken SJML = STARTJMLCOMMENT;
     final static JmlToken EJML = ENDJMLCOMMENT;
     
-    Scanner.Factory fac;
+    ScannerFactory fac;
     
     // TODO - do we need to collect and compare System.out,err
     
     /** Initializes a fresh scanner factory for each test */
     protected void setUp() throws Exception {
         super.setUp(); // Sets up a main program, diagnostic collector
-        fac = Scanner.Factory.instance(context);
+        fac = ScannerFactory.instance(context);
         Log.instance(context).multipleErrors = true;
     }
 
@@ -71,7 +72,7 @@ public class scanner extends JmlTestCase {
     public void helpScanner(String s, Enum<? extends Enum<?>>[] list, int[] positions, int numErrors) {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s) );
-            Scanner sc = fac.newScanner(s);
+            Scanner sc = fac.newScanner(s, true);
             int i = 0;
             while (i<list.length) {
                 sc.nextToken();
@@ -482,14 +483,14 @@ public class scanner extends JmlTestCase {
 //    }
     
     @Test public void testStringLiteral() {
-        Scanner sc = fac.newScanner("\"\\tA\\\\B\"");
+        Scanner sc = fac.newScanner("\"\\tA\\\\B\"", true);
         sc.nextToken();
         assertEquals(STRINGLITERAL,sc.token());
         assertEquals("\tA\\B",sc.stringVal());
     }
     
     @Test public void testCharLiteral() {
-        Scanner sc = fac.newScanner("\'\\t\'");
+        Scanner sc = fac.newScanner("\'\\t\'", true);
         sc.nextToken();
         assertEquals(CHARLITERAL,sc.token());
         assertEquals("\t",sc.stringVal());
