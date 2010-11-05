@@ -1,12 +1,12 @@
 /*
- * Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.comp;
@@ -48,8 +48,8 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
  *  by entering their members into the class scope using
  *  MemberEnter.complete().  See Enter for an overview.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -67,6 +67,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     private final Check chk;
     protected final Attr attr; // DRC - changed from private to protected
     private final Symtab syms;
+    private final Scope.ScopeCounter scopeCounter;
     private final TreeMaker make;
     private final ClassReader reader;
     private final Todo todo;
@@ -92,6 +93,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         chk = Check.instance(context);
         attr = Attr.instance(context);
         syms = Symtab.instance(context);
+        scopeCounter = Scope.ScopeCounter.instance(context);
         make = TreeMaker.instance(context);
         reader = ClassReader.instance(context);
         todo = Todo.instance(context);
@@ -99,8 +101,8 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         types = Types.instance(context);
         diags = JCDiagnostic.Factory.instance(context);
         target = Target.instance(context);
-        skipAnnotations =
-            Options.instance(context).get("skipAnnotations") != null;
+        Options options = Options.instance(context);
+        skipAnnotations = options.isSet("skipAnnotations");
     }
 
     /** A queue for classes whose members still need to be entered into the
@@ -671,9 +673,9 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     public void visitTree(JCTree tree) {
     }
 
-
     public void visitErroneous(JCErroneous tree) {
-        memberEnter(tree.errs, env);
+        if (tree.errs != null)
+            memberEnter(tree.errs, env);
     }
 
     public Env<AttrContext> getMethodEnv(JCMethodDecl tree, Env<AttrContext> env) {
@@ -773,6 +775,20 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
                 && s.owner.kind != MTH
                 && types.isSameType(c.type, syms.deprecatedType))
                 s.flags_field |= Flags.DEPRECATED;
+            // Internally to java.dyn, a @PolymorphicSignature annotation
+            // acts like a classfile attribute.
+            if (!c.type.isErroneous() &&
+                    types.isSameType(c.type, syms.polymorphicSignatureType)) {
+                if (!target.hasMethodHandles()) {
+                    // Somebody is compiling JDK7 source code to a JDK6 target.
+                    // Make it a strict warning, since it is unlikely but important.
+                    log.strictWarning(env.tree.pos(),
+                            "wrong.target.for.polymorphic.signature.definition",
+                            target.name);
+                }
+                // Pull the flag through for better diagnostics, even on a bad target.
+                s.flags_field |= Flags.POLYMORPHIC_SIGNATURE;
+            }
             if (!annotated.add(a.type.tsym))
                 log.error(a.pos, "duplicate.annotation");
         }
@@ -912,8 +928,12 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             if (hasDeprecatedAnnotation(tree.mods.annotations))
                 c.flags_field |= DEPRECATED;
             annotateLater(tree.mods.annotations, baseEnv, c);
+            // class type parameters use baseEnv but everything uses env
+            for (JCTypeParameter tp : tree.typarams)
+                tp.accept(new TypeAnnotate(baseEnv));
+            tree.accept(new TypeAnnotate(env));
 
-            chk.checkNonCyclic(tree.pos(), c.type);
+            chk.checkNonCyclicDecl(tree);
 
             attr.attribTypeVariables(tree.typarams, baseEnv);
 
@@ -994,15 +1014,101 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         }
     }
 
+    // A sub-phase that "compiles" annotations in annotated types.
+    private class TypeAnnotate extends TreeScanner {
+        private Env<AttrContext> env;
+        public TypeAnnotate(Env<AttrContext> env) { this.env = env; }
+
+        private void enterTypeAnnotations(List<JCTypeAnnotation> annotations) {
+            Set<TypeSymbol> annotated = new HashSet<TypeSymbol>();
+            if (!skipAnnotations)
+                for (List<JCTypeAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
+                    JCTypeAnnotation a = al.head;
+                    Attribute.Compound c = annotate.enterAnnotation(a,
+                            syms.annotationType,
+                            env);
+                    if (c == null) continue;
+                    Attribute.TypeCompound tc = new Attribute.TypeCompound(c.type, c.values, a.annotation_position);
+                    a.attribute_field = tc;
+                    // Note: @Deprecated has no effect on local variables and parameters
+                    if (!annotated.add(a.type.tsym))
+                        log.error(a.pos, "duplicate.annotation");
+                }
+        }
+
+        // each class (including enclosed inner classes) should be visited
+        // separately through MemberEnter.complete(Symbol)
+        // this flag is used to prevent from visiting inner classes.
+        private boolean isEnclosingClass = false;
+        @Override
+        public void visitClassDef(final JCClassDecl tree) {
+            if (isEnclosingClass)
+                return;
+            isEnclosingClass = true;
+            scan(tree.mods);
+            // type parameter need to be visited with a separate env
+            // scan(tree.typarams);
+            scan(tree.extending);
+            scan(tree.implementing);
+            scan(tree.defs);
+        }
+
+        private void annotate(final JCTree tree, final List<JCTypeAnnotation> annotations) {
+            annotate.later(new Annotate.Annotator() {
+                public String toString() {
+                    return "annotate " + annotations + " onto " + tree;
+                }
+                public void enterAnnotation() {
+                    JavaFileObject prev = log.useSource(env.toplevel.sourcefile);
+                    try {
+                        enterTypeAnnotations(annotations);
+                    } finally {
+                        log.useSource(prev);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void visitAnnotatedType(final JCAnnotatedType tree) {
+            annotate(tree, tree.annotations);
+            super.visitAnnotatedType(tree);
+        }
+        @Override
+        public void visitTypeParameter(final JCTypeParameter tree) {
+            annotate(tree, tree.annotations);
+            super.visitTypeParameter(tree);
+        }
+        @Override
+        public void visitNewArray(final JCNewArray tree) {
+            annotate(tree, tree.annotations);
+            for (List<JCTypeAnnotation> dimAnnos : tree.dimAnnotations)
+                annotate(tree, dimAnnos);
+            super.visitNewArray(tree);
+        }
+        @Override
+        public void visitMethodDef(JCMethodDecl tree) {
+            annotate(tree, tree.receiverAnnotations);
+            super.visitMethodDef(tree);
+        }
+    }
+
     protected Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) { // DRC - changed from private to protected
-        Scope typaramScope = new Scope(tree.sym);
+        Scope baseScope = new Scope.ClassScope(tree.sym, scopeCounter);
+        //import already entered local classes into base scope
+        for (Scope.Entry e = env.outer.info.scope.elems ; e != null ; e = e.sibling) {
+            if (e.sym.isLocal()) {
+                baseScope.enter(e.sym);
+            }
+        }
+        //import current type-parameters into base scope
         if (tree.typarams != null)
             for (List<JCTypeParameter> typarams = tree.typarams;
                  typarams.nonEmpty();
                  typarams = typarams.tail)
-                typaramScope.enter(typarams.head.type.tsym);
+                baseScope.enter(typarams.head.type.tsym);
         Env<AttrContext> outer = env.outer; // the base clause can't see members of this class
-        Env<AttrContext> localEnv = outer.dup(tree, outer.info.dup(typaramScope));
+        Env<AttrContext> localEnv = outer.dup(tree, outer.info.dup(baseScope));
         localEnv.baseClause = true;
         localEnv.outer = outer;
         localEnv.info.isSelfCall = false;

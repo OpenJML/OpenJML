@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2009 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,14 +18,18 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 //todo: one might eliminate uninits.andSets when monotonic
 
 package com.sun.tools.javac.comp;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.tree.*;
@@ -33,6 +37,7 @@ import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 import com.sun.tools.javac.code.Symbol.*;
+import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.tree.JCTree.*;
 
 import static com.sun.tools.javac.code.Flags.*;
@@ -168,8 +173,8 @@ import static com.sun.tools.javac.code.TypeTags.*;
  *  allow unqualified forms only, parentheses optional, and phase out
  *  support for assigning to a final field via this.x.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -183,7 +188,10 @@ public class Flow extends TreeScanner {
     private final Types types;
     private final Check chk;
     private       TreeMaker make;
+    private final Resolve rs;
+    private Env<AttrContext> attrEnv;
     private       Lint lint;
+    private final boolean allowRethrowAnalysis;
 
     public static Flow instance(Context context) {
         Flow instance = context.get(flowKey);
@@ -194,13 +202,15 @@ public class Flow extends TreeScanner {
 
     protected Flow(Context context) {
         context.put(flowKey, this);
-
         names = Names.instance(context);
         log = Log.instance(context);
         syms = Symtab.instance(context);
         types = Types.instance(context);
         chk = Check.instance(context);
         lint = Lint.instance(context);
+        rs = Resolve.instance(context);
+        Source source = Source.instance(context);
+        allowRethrowAnalysis = source.allowMulticatch();
     }
 
     /** A flag that indicates whether the last statement could
@@ -215,6 +225,8 @@ public class Flow extends TreeScanner {
     /** The set of definitely unassigned variables.
      */
     Bits uninits;
+
+    HashMap<Symbol, List<Type>> preciseRethrowTypes;
 
     /** The set of variables that are definitely unassigned everywhere
      *  in current try block. This variable is maintained lazily; it is
@@ -258,6 +270,10 @@ public class Flow extends TreeScanner {
      *  thrown.
      */
     List<Type> caught;
+
+    /** The list of unreferenced automatic resources.
+     */
+    Map<VarSymbol, JCVariableDecl> unrefdResources;
 
     /** Set when processing a loop body the second time for DU analysis. */
     boolean loopPassTwo = false;
@@ -316,7 +332,7 @@ public class Flow extends TreeScanner {
         if (!chk.isUnchecked(tree.pos(), exc)) {
             if (!chk.isHandled(exc, caught))
                 pendingExits.append(new PendingExit(tree, exc));
-            thrown = chk.incl(exc, thrown);
+                thrown = chk.incl(exc, thrown);
         }
     }
 
@@ -356,8 +372,14 @@ public class Flow extends TreeScanner {
         if (sym.adr >= firstadr && trackable(sym)) {
             if ((sym.flags() & FINAL) != 0) {
                 if ((sym.flags() & PARAMETER) != 0) {
-                    log.error(pos, "final.parameter.may.not.be.assigned",
+                    if ((sym.flags() & DISJUNCTION) != 0) { //multi-catch parameter
+                        log.error(pos, "multicatch.parameter.may.not.be.assigned",
+                                  sym);
+                    }
+                    else {
+                        log.error(pos, "final.parameter.may.not.be.assigned",
                               sym);
+                    }
                 } else if (!uninits.isMember(sym.adr)) {
                     log.error(pos,
                               loopPassTwo
@@ -387,7 +409,9 @@ public class Flow extends TreeScanner {
         tree = TreeInfo.skipParens(tree);
         if (tree.getTag() == JCTree.IDENT || tree.getTag() == JCTree.SELECT) {
             Symbol sym = TreeInfo.symbol(tree);
-            letInit(tree.pos(), (VarSymbol)sym);
+            if (sym.kind == VAR) {
+                letInit(tree.pos(), (VarSymbol)sym);
+            }
         }
     }
 
@@ -460,12 +484,13 @@ public class Flow extends TreeScanner {
 
     /** Split (duplicate) inits/uninits into WhenTrue/WhenFalse sets
      */
-    void split() {
+    void split(boolean setToNull) {
         initsWhenFalse = inits.dup();
         uninitsWhenFalse = uninits.dup();
         initsWhenTrue = inits;
         uninitsWhenTrue = uninits;
-        inits = uninits = null;
+        if (setToNull)
+            inits = uninits = null;
     }
 
     /** Merge (intersect) inits/uninits from WhenTrue/WhenFalse sets.
@@ -547,9 +572,11 @@ public class Flow extends TreeScanner {
             uninitsWhenTrue = uninits;
         } else {
             scan(tree);
-            if (inits != null) split();
+            if (inits != null)
+                split(tree.type != syms.unknownType);
         }
-        inits = uninits = null;
+        if (tree.type != syms.unknownType)
+            inits = uninits = null;
     }
 
     /* ------------ Visitor methods for various sorts of trees -------------*/
@@ -928,7 +955,8 @@ public class Flow extends TreeScanner {
                 alive &&
                 lint.isEnabled(Lint.LintCategory.FALLTHROUGH) &&
                 c.stats.nonEmpty() && l.tail.nonEmpty())
-                log.warning(l.tail.head.pos(),
+                log.warning(Lint.LintCategory.FALLTHROUGH,
+                            l.tail.head.pos(),
                             "possible.fall-through.into.case");
         }
         if (!hasDefault) {
@@ -955,14 +983,53 @@ public class Flow extends TreeScanner {
     public void visitTry(JCTry tree) {
         List<Type> caughtPrev = caught;
         List<Type> thrownPrev = thrown;
+        Map<VarSymbol, JCVariableDecl> unrefdResourcesPrev = unrefdResources;
         thrown = List.nil();
-        for (List<JCCatch> l = tree.catchers; l.nonEmpty(); l = l.tail)
-            caught = chk.incl(l.head.param.type, caught);
+        for (List<JCCatch> l = tree.catchers; l.nonEmpty(); l = l.tail) {
+            List<JCExpression> subClauses = TreeInfo.isMultiCatch(l.head) ?
+                    ((JCTypeDisjunction)l.head.param.vartype).alternatives :
+                    List.of(l.head.param.vartype);
+            for (JCExpression ct : subClauses) {
+                caught = chk.incl(ct.type, caught);
+            }
+        }
         Bits uninitsTryPrev = uninitsTry;
         ListBuffer<PendingExit> prevPendingExits = pendingExits;
         pendingExits = new ListBuffer<PendingExit>();
         Bits initsTry = inits.dup();
         uninitsTry = uninits.dup();
+        unrefdResources = new LinkedHashMap<VarSymbol, JCVariableDecl>();
+        for (JCTree resource : tree.resources) {
+            if (resource instanceof JCVariableDecl) {
+                JCVariableDecl vdecl = (JCVariableDecl) resource;
+                visitVarDef(vdecl);
+                unrefdResources.put(vdecl.sym, vdecl);
+            } else if (resource instanceof JCExpression) {
+                scanExpr((JCExpression) resource);
+            } else {
+                throw new AssertionError(tree);  // parser error
+            }
+        }
+        for (JCTree resource : tree.resources) {
+            List<Type> closeableSupertypes = resource.type.isCompound() ?
+                types.interfaces(resource.type).prepend(types.supertype(resource.type)) :
+                List.of(resource.type);
+            for (Type sup : closeableSupertypes) {
+                if (types.asSuper(sup, syms.autoCloseableType.tsym) != null) {
+                    Symbol closeMethod = rs.resolveQualifiedMethod(tree,
+                            attrEnv,
+                            sup,
+                            names.close,
+                            List.<Type>nil(),
+                            List.<Type>nil());
+                    if (closeMethod.kind == MTH) {
+                        for (Type t : ((MethodSymbol)closeMethod).getThrownTypes()) {
+                            markThrown(tree.body, t);
+                        }
+                    }
+                }
+            }
+        }
         scanStat(tree.body);
         List<Type> thrownInTry = thrown;
         thrown = thrownPrev;
@@ -973,31 +1040,53 @@ public class Flow extends TreeScanner {
         Bits uninitsEnd = uninits;
         int nextadrCatch = nextadr;
 
+        if (!unrefdResources.isEmpty() &&
+                lint.isEnabled(Lint.LintCategory.ARM)) {
+            for (Map.Entry<VarSymbol, JCVariableDecl> e : unrefdResources.entrySet()) {
+                log.warning(e.getValue().pos(),
+                            "automatic.resource.not.referenced", e.getKey());
+            }
+        }
+
         List<Type> caughtInTry = List.nil();
         for (List<JCCatch> l = tree.catchers; l.nonEmpty(); l = l.tail) {
             alive = true;
             JCVariableDecl param = l.head.param;
-            Type exc = param.type;
-            if (chk.subset(exc, caughtInTry)) {
-                log.error(l.head.pos(),
-                          "except.already.caught", exc);
-            } else if (!chk.isUnchecked(l.head.pos(), exc) &&
-                       exc.tsym != syms.throwableType.tsym &&
-                       exc.tsym != syms.exceptionType.tsym &&
-                       !chk.intersects(exc, thrownInTry)) {
-                log.error(l.head.pos(),
-                          "except.never.thrown.in.try", exc);
+            List<JCExpression> subClauses = TreeInfo.isMultiCatch(l.head) ?
+                    ((JCTypeDisjunction)l.head.param.vartype).alternatives :
+                    List.of(l.head.param.vartype);
+            List<Type> ctypes = List.nil();
+            List<Type> rethrownTypes = chk.diff(thrownInTry, caughtInTry);
+            for (JCExpression ct : subClauses) {
+                Type exc = ct.type;
+                if (exc != syms.unknownType) {
+                    ctypes = ctypes.append(exc);
+                    if (types.isSameType(exc, syms.objectType))
+                        continue;
+                    if (chk.subset(exc, caughtInTry)) {
+                        log.error(l.head.pos(),
+                                  "except.already.caught", exc);
+                    } else if (!chk.isUnchecked(l.head.pos(), exc) &&
+                               exc.tsym != syms.throwableType.tsym &&
+                               exc.tsym != syms.exceptionType.tsym &&
+                               !chk.intersects(exc, thrownInTry)) {
+                        log.error(l.head.pos(),
+                                  "except.never.thrown.in.try", exc);
+                    }
+                    caughtInTry = chk.incl(exc, caughtInTry);
+                }
             }
-            caughtInTry = chk.incl(exc, caughtInTry);
             inits = initsTry.dup();
             uninits = uninitsTry.dup();
             scan(param);
             inits.incl(param.sym.adr);
             uninits.excl(param.sym.adr);
+            preciseRethrowTypes.put(param.sym, chk.intersect(ctypes, rethrownTypes));
             scanStat(l.head.body);
             initsEnd.andSet(inits);
             uninitsEnd.andSet(uninits);
             nextadr = nextadrCatch;
+            preciseRethrowTypes.remove(param.sym);
             aliveEnd |= alive;
         }
         if (tree.finalizer != null) {
@@ -1014,8 +1103,9 @@ public class Flow extends TreeScanner {
                 thrown = chk.union(thrown, thrownPrev);
                 if (!loopPassTwo &&
                     lint.isEnabled(Lint.LintCategory.FINALLY)) {
-                    log.warning(TreeInfo.diagEndPos(tree.finalizer),
-                                "finally.cannot.complete");
+                    log.warning(Lint.LintCategory.FINALLY,
+                            TreeInfo.diagEndPos(tree.finalizer),
+                            "finally.cannot.complete");
                 }
             } else {
                 thrown = chk.union(thrown, chk.diff(thrownInTry, caughtInTry));
@@ -1044,6 +1134,7 @@ public class Flow extends TreeScanner {
             while (exits.nonEmpty()) pendingExits.append(exits.next());
         }
         uninitsTry.andSet(uninitsTryPrev).andSet(uninits);
+        unrefdResources = unrefdResourcesPrev;
     }
 
     public void visitConditional(JCConditional tree) {
@@ -1125,7 +1216,19 @@ public class Flow extends TreeScanner {
 
     public void visitThrow(JCThrow tree) {
         scanExpr(tree.expr);
-        markThrown(tree, tree.expr.type);
+        Symbol sym = TreeInfo.symbol(tree.expr);
+        if (sym != null &&
+            sym.kind == VAR &&
+            (sym.flags() & (FINAL | EFFECTIVELY_FINAL)) != 0 &&
+            preciseRethrowTypes.get(sym) != null &&
+            allowRethrowAnalysis) {
+            for (Type t : preciseRethrowTypes.get(sym)) {
+                markThrown(tree, t);
+            }
+        }
+        else {
+            markThrown(tree, tree.expr.type);
+        }
         markDead();
     }
 
@@ -1249,17 +1352,32 @@ public class Flow extends TreeScanner {
         }
     }
 
+    public void visitAnnotatedType(JCAnnotatedType tree) {
+        // annotations don't get scanned
+        tree.underlyingType.accept(this);
+    }
+
     public void visitIdent(JCIdent tree) {
-        if (tree.sym != null && tree.sym.kind == VAR) // DRC - Guarding this check, but why is the variable unattributed?
+        if (tree.sym != null && tree.sym.kind == VAR) { // DRC - Guarding this check, but why is the variable unattributed?
             checkInit(tree.pos(), (VarSymbol)tree.sym);
+            referenced(tree.sym);
+        }
+    }
+
+    void referenced(Symbol sym) {
+        if (unrefdResources != null && unrefdResources.containsKey(sym)) {
+            unrefdResources.remove(sym);
+        }
     }
 
     public void visitTypeCast(JCTypeCast tree) {
         super.visitTypeCast(tree);
         if (!tree.type.isErroneous()
             && lint.isEnabled(Lint.LintCategory.CAST)
-            && types.isSameType(tree.expr.type, tree.clazz.type)) {
-            log.warning(tree.pos(), "redundant.cast", tree.expr.type);
+            && types.isSameType(tree.expr.type, tree.clazz.type)
+            && !(ignoreAnnotatedCasts && containsTypeAnnotation(tree.clazz))) {
+            log.warning(Lint.LintCategory.CAST,
+                    tree.pos(), "redundant.cast", tree.expr.type);
         }
     }
 
@@ -1268,13 +1386,32 @@ public class Flow extends TreeScanner {
     }
 
 /**************************************************************************
+ * utility methods for ignoring type-annotated casts lint checking
+ *************************************************************************/
+    private static final boolean ignoreAnnotatedCasts = true;
+    private static class AnnotationFinder extends TreeScanner {
+        public boolean foundTypeAnno = false;
+        public void visitAnnotation(JCAnnotation tree) {
+            foundTypeAnno = foundTypeAnno || (tree instanceof JCTypeAnnotation);
+        }
+    }
+
+    private boolean containsTypeAnnotation(JCTree e) {
+        AnnotationFinder finder = new AnnotationFinder();
+        finder.scan(e);
+        return finder.foundTypeAnno;
+    }
+
+/**************************************************************************
  * main method
  *************************************************************************/
 
     /** Perform definite assignment/unassignment analysis on a tree.
      */
-    public void analyzeTree(JCTree tree, TreeMaker make) {
+    public void analyzeTree(Env<AttrContext> env, TreeMaker make) {
         try {
+            attrEnv = env;
+            JCTree tree = env.tree;
             this.make = make;
             inits = new Bits();
             uninits = new Bits();
@@ -1289,6 +1426,7 @@ public class Flow extends TreeScanner {
             firstadr = 0;
             nextadr = 0;
             pendingExits = new ListBuffer<PendingExit>();
+            preciseRethrowTypes = new HashMap<Symbol, List<Type>>();
             alive = true;
             this.thrown = this.caught = null;
             this.classDef = null;

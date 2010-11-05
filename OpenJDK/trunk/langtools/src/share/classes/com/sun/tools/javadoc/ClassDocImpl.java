@@ -1,12 +1,12 @@
 /*
- * Copyright 1997-2009 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1997, 2009, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javadoc;
@@ -298,7 +298,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
                         po instanceof SourcePositionImpl) {
                     URI uri = ((SourcePositionImpl) po).filename.toUri();
                     if ("file".equals(uri.getScheme())) {
-                        File f = new File(uri.getPath());
+                        File f = new File(uri);
                         File dir = f.getParentFile();
                         if (dir != null) {
                             File pf = new File(dir, "package.html");
@@ -852,6 +852,12 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
                                        String[] paramTypes, Set<ClassDocImpl> searched) {
         //### Note that this search is not necessarily what the compiler would do!
 
+        Names names = tsym.name.table.names;
+        // do not match constructors
+        if (names.init.contentEquals(methodName)) {
+            return null;
+        }
+
         ClassDocImpl cdi;
         MethodDocImpl mdi;
 
@@ -878,7 +884,6 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
          *---------------------------------*/
 
         // search current class
-        Names names = tsym.name.table.names;
         Scope.Entry e = tsym.members().lookup(names.fromString(methodName));
 
         //### Using modifier filter here isn't really correct,

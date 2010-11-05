@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.util;
@@ -29,8 +29,8 @@ package com.sun.tools.javac.util;
  * Access to the compiler's name table.  STandard names are defined,
  * as well as methods to create new names.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -73,6 +73,8 @@ public class Names {
     public final Name java_io_Serializable;
     public final Name serialVersionUID;
     public final Name java_lang_Enum;
+    public final Name java_dyn_MethodHandle;
+    public final Name java_dyn_InvokeDynamic;
     public final Name package_info;
     public final Name ConstantValue;
     public final Name LineNumberTable;
@@ -97,6 +99,8 @@ public class Names {
     public final Name Annotation;
     public final Name RuntimeVisibleAnnotations;
     public final Name RuntimeInvisibleAnnotations;
+    public final Name RuntimeVisibleTypeAnnotations;
+    public final Name RuntimeInvisibleTypeAnnotations;
     public final Name RuntimeVisibleParameterAnnotations;
     public final Name RuntimeInvisibleParameterAnnotations;
     public final Name Value;
@@ -111,7 +115,10 @@ public class Names {
     public final Name value;
     public final Name getMessage;
     public final Name getClass;
+    public final Name invoke;  //allowTransitionalJSR292 only
     public final Name TYPE;
+    public final Name TYPE_USE;
+    public final Name TYPE_PARAMETER;
     public final Name FIELD;
     public final Name METHOD;
     public final Name PARAMETER;
@@ -141,6 +148,8 @@ public class Names {
     public final Name getDeclaringClass;
     public final Name ex;
     public final Name finalize;
+    public final Name java_lang_AutoCloseable;
+    public final Name close;
 
     public final Name.Table table;
 
@@ -175,6 +184,8 @@ public class Names {
         java_lang_Cloneable = fromString("java.lang.Cloneable");
         java_io_Serializable = fromString("java.io.Serializable");
         java_lang_Enum = fromString("java.lang.Enum");
+        java_dyn_MethodHandle = fromString("java.dyn.MethodHandle");
+        java_dyn_InvokeDynamic = fromString("java.dyn.InvokeDynamic");
         package_info = fromString("package-info");
         serialVersionUID = fromString("serialVersionUID");
         ConstantValue = fromString("ConstantValue");
@@ -200,6 +211,8 @@ public class Names {
         Annotation = fromString("Annotation");
         RuntimeVisibleAnnotations = fromString("RuntimeVisibleAnnotations");
         RuntimeInvisibleAnnotations = fromString("RuntimeInvisibleAnnotations");
+        RuntimeVisibleTypeAnnotations = fromString("RuntimeVisibleTypeAnnotations");
+        RuntimeInvisibleTypeAnnotations = fromString("RuntimeInvisibleTypeAnnotations");
         RuntimeVisibleParameterAnnotations = fromString("RuntimeVisibleParameterAnnotations");
         RuntimeInvisibleParameterAnnotations = fromString("RuntimeInvisibleParameterAnnotations");
         Value = fromString("Value");
@@ -216,8 +229,11 @@ public class Names {
         value = fromString("value");
         getMessage = fromString("getMessage");
         getClass = fromString("getClass");
+        invoke = fromString("invoke");  //allowTransitionalJSR292 only
 
         TYPE = fromString("TYPE");
+        TYPE_USE = fromString("TYPE_USE");
+        TYPE_PARAMETER = fromString("TYPE_PARAMETER");
         FIELD = fromString("FIELD");
         METHOD = fromString("METHOD");
         PARAMETER = fromString("PARAMETER");
@@ -249,10 +265,13 @@ public class Names {
         getDeclaringClass = fromString("getDeclaringClass");
         ex = fromString("ex");
         finalize = fromString("finalize");
+
+        java_lang_AutoCloseable = fromString("java.lang.AutoCloseable");
+        close = fromString("close");
     }
 
     protected Name.Table createTable(Options options) {
-        boolean useUnsharedTable = options.get("useUnsharedTable") != null;
+        boolean useUnsharedTable = options.isSet("useUnsharedTable");
         if (useUnsharedTable)
             return new UnsharedNameTable(this);
         else

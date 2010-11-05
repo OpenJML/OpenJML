@@ -1,12 +1,12 @@
 /*
- * Copyright 2004-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2004, 2010, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.parser;
@@ -35,57 +35,24 @@ import static com.sun.tools.javac.util.LayoutCharacters.*;
  *  translating Unicode escape sequences and by stripping the
  *  leading whitespace and starts from each line of the comment.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
 public class DocCommentScanner extends Scanner {
 
-    /** A factory for creating scanners. */
-    public static class Factory extends Scanner.Factory {
-
-        public static void preRegister(final Context context) {
-            context.put(scannerFactoryKey, new Context.Factory<Scanner.Factory>() {
-                public Factory make() {
-                    return new Factory(context);
-                }
-            });
-        }
-
-        /** Create a new scanner factory. */
-        protected Factory(Context context) {
-            super(context);
-        }
-
-        @Override
-        public Scanner newScanner(CharSequence input) {
-            if (input instanceof CharBuffer) {
-                return new DocCommentScanner(this, (CharBuffer)input);
-            } else {
-                char[] array = input.toString().toCharArray();
-                return newScanner(array, array.length);
-            }
-        }
-
-        @Override
-        public Scanner newScanner(char[] input, int inputLength) {
-            return new DocCommentScanner(this, input, inputLength);
-        }
-    }
-
-
     /** Create a scanner from the input buffer.  buffer must implement
      *  array() and compact(), and remaining() must be less than limit().
      */
-    protected DocCommentScanner(Factory fac, CharBuffer buffer) {
+    protected DocCommentScanner(ScannerFactory fac, CharBuffer buffer) {
         super(fac, buffer);
     }
 
     /** Create a scanner from the input array.  The array must have at
      *  least a single character of extra space.
      */
-    protected DocCommentScanner(Factory fac, char[] input, int inputLength) {
+    protected DocCommentScanner(ScannerFactory fac, char[] input, int inputLength) {
         super(fac, input, inputLength);
     }
 

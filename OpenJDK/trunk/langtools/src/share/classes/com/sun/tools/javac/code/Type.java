@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.code;
@@ -56,8 +56,8 @@ import static com.sun.tools.javac.code.TypeTags.*;
  *  the error type (tag: ERROR, class: ErrorType).
  *  </pre>
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  *
@@ -328,6 +328,10 @@ public class Type implements PrimitiveType {
         return (tsym.flags() & INTERFACE) != 0;
     }
 
+    public boolean isFinal() {
+        return (tsym.flags() & FINAL) != 0;
+    }
+
     public boolean isPrimitive() {
         return tag < VOID;
     }
@@ -347,11 +351,17 @@ public class Type implements PrimitiveType {
         return false;
     }
 
-    /** Does this type contain an occurrence of some type in `elems'?
+    /** Does this type contain an occurrence of some type in 'ts'?
      */
-    public boolean containsSome(List<Type> ts) {
-        for (List<Type> l = ts; l.nonEmpty(); l = l.tail)
-            if (this.contains(ts.head)) return true;
+    public boolean containsAny(List<Type> ts) {
+        for (Type t : ts)
+            if (this.contains(t)) return true;
+        return false;
+    }
+
+    public static boolean containsAny(List<Type> ts1, List<Type> ts2) {
+        for (Type t : ts1)
+            if (t.containsAny(ts2)) return true;
         return false;
     }
 
@@ -429,6 +439,10 @@ public class Type implements PrimitiveType {
         public WildcardType(Type type, BoundKind kind, TypeSymbol tsym, TypeVar bound) {
             this(type, kind, tsym);
             this.bound = bound;
+        }
+
+        public boolean contains(Type t) {
+            return kind != UNBOUND && type.contains(t);
         }
 
         public boolean isSuperBound() {
@@ -681,7 +695,9 @@ public class Type implements PrimitiveType {
             return
                 elem == this
                 || (isParameterized()
-                    && (getEnclosingType().contains(elem) || contains(getTypeArguments(), elem)));
+                    && (getEnclosingType().contains(elem) || contains(getTypeArguments(), elem)))
+                || (isCompound()
+                    && (supertype_field.contains(elem) || contains(interfaces_field, elem)));
         }
 
         public void complete() {
@@ -1008,11 +1024,10 @@ public class Type implements PrimitiveType {
         @Override
         public String toString() {
             return "capture#"
-                + (hashCode() & 0xFFFFFFFFL) % PRIME
+                + (hashCode() & 0xFFFFFFFFL) % Printer.PRIME
                 + " of "
                 + wildcard;
         }
-        static final int PRIME = 997;  // largest prime less than 1000
     }
 
     public static abstract class DelegatedType extends Type {
@@ -1065,6 +1080,57 @@ public class Type implements PrimitiveType {
 
         public boolean isErroneous()  {
             return qtype.isErroneous();
+        }
+
+        /**
+         * Replaces this ForAll's typevars with a set of concrete Java types
+         * and returns the instantiated generic type. Subclasses should override
+         * in order to check that the list of types is a valid instantiation
+         * of the ForAll's typevars.
+         *
+         * @param actuals list of actual types
+         * @param types types instance
+         * @return qtype where all occurrences of tvars are replaced
+         * by types in actuals
+         */
+        public Type inst(List<Type> actuals, Types types) {
+            return types.subst(qtype, tvars, actuals);
+        }
+
+        /**
+         * Kind of type-constraint derived during type inference
+         */
+        public enum ConstraintKind {
+            /**
+             * upper bound constraint (a type variable must be instantiated
+             * with a type T, where T is a subtype of all the types specified by
+             * its EXTENDS constraints).
+             */
+            EXTENDS,
+            /**
+             * lower bound constraint (a type variable must be instantiated
+             * with a type T, where T is a supertype of all the types specified by
+             * its SUPER constraints).
+             */
+            SUPER,
+            /**
+             * equality constraint (a type variable must be instantiated to the type
+             * specified by its EQUAL constraint.
+             */
+            EQUAL;
+        }
+
+        /**
+         * Get the type-constraints of a given kind for a given type-variable of
+         * this ForAll type. Subclasses should override in order to return more
+         * accurate sets of constraints.
+         *
+         * @param tv the type-variable for which the constraint is to be retrieved
+         * @param ck the constraint kind to be retrieved
+         * @return the list of types specified by the selected constraint
+         */
+        public List<Type> getConstraints(TypeVar tv, ConstraintKind ck) {
+            return List.nil();
         }
 
         public Type map(Mapping f) {

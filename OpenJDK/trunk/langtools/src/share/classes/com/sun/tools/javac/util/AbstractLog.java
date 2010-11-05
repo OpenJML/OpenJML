@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.util;
@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.tools.JavaFileObject;
 
+import com.sun.tools.javac.code.Lint.LintCategory;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
 
@@ -37,8 +39,8 @@ import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
  *  A base class for error logs. Reports errors and warnings, and
  *  keeps track of error numbers and positions.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -58,7 +60,7 @@ public abstract class AbstractLog {
 
     protected DiagnosticSource getSource(JavaFileObject file) {
         if (file == null)
-            return null;
+            return DiagnosticSource.NO_SOURCE;
         DiagnosticSource s = sourceMap.get(file);
         if (s == null) {
             s = new DiagnosticSource(file, this);
@@ -102,6 +104,19 @@ public abstract class AbstractLog {
         report(diags.error(source, wrap(pos), key, args));
     }
 
+    /** Report an error, unless another error was already reported at same
+     *  source position.
+     *  @param flag   A flag to set on the diagnostic
+     *  @param pos    The source position at which to report the error.
+     *  @param key    The key for the localized error message.
+     *  @param args   Fields of the error message.
+     */
+    public void error(DiagnosticFlag flag, int pos, String key, Object ... args) {
+        JCDiagnostic d = diags.error(source, wrap(pos), key, args);
+        d.setFlag(flag);
+        report(d);
+    }
+
     /** Report a warning, unless suppressed by the  -nowarn option or the
      *  maximum number of warnings has been reached.
      *  @param pos    The source position at which to report the warning.
@@ -112,6 +127,16 @@ public abstract class AbstractLog {
         report(diags.warning(source, null, key, args));
     }
 
+    /** Report a lint warning, unless suppressed by the  -nowarn option or the
+     *  maximum number of warnings has been reached.
+     *  @param lc     The lint category for the diagnostic
+     *  @param key    The key for the localized warning message.
+     *  @param args   Fields of the warning message.
+     */
+    public void warning(LintCategory lc, String key, Object ... args) {
+        report(diags.warning(lc, key, args));
+    }
+
     /** Report a warning, unless suppressed by the  -nowarn option or the
      *  maximum number of warnings has been reached.
      *  @param pos    The source position at which to report the warning.
@@ -120,6 +145,17 @@ public abstract class AbstractLog {
      */
     public void warning(DiagnosticPosition pos, String key, Object ... args) {
         report(diags.warning(source, pos, key, args));
+    }
+
+    /** Report a lint warning, unless suppressed by the  -nowarn option or the
+     *  maximum number of warnings has been reached.
+     *  @param lc     The lint category for the diagnostic
+     *  @param pos    The source position at which to report the warning.
+     *  @param key    The key for the localized warning message.
+     *  @param args   Fields of the warning message.
+     */
+    public void warning(LintCategory lc, DiagnosticPosition pos, String key, Object ... args) {
+        report(diags.warning(lc, source, pos, key, args));
     }
 
     /** Report a warning, unless suppressed by the  -nowarn option or the
@@ -139,6 +175,16 @@ public abstract class AbstractLog {
      */
     public void mandatoryWarning(DiagnosticPosition pos, String key, Object ... args) {
         report(diags.mandatoryWarning(source, pos, key, args));
+    }
+
+    /** Report a warning.
+     *  @param lc     The lint category for the diagnostic
+     *  @param pos    The source position at which to report the warning.
+     *  @param key    The key for the localized warning message.
+     *  @param args   Fields of the warning message.
+     */
+    public void mandatoryWarning(LintCategory lc, DiagnosticPosition pos, String key, Object ... args) {
+        report(diags.mandatoryWarning(lc, source, pos, key, args));
     }
 
     /** Provide a non-fatal notification, unless suppressed by the -nowarn option.

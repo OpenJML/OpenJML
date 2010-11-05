@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.tree;
@@ -38,8 +38,8 @@ import static com.sun.tools.javac.code.Flags.*;
 
 /** Utility class containing inspector methods for trees.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -116,6 +116,10 @@ public class TreeInfo {
         for (List<JCTree> l = trees; l.nonEmpty(); l = l.tail)
             if (isConstructor(l.head)) return true;
         return false;
+    }
+
+    public static boolean isMultiCatch(JCCatch catchClause) {
+        return catchClause.param.vartype.getTag() == JCTree.TYPEDISJUNCTION;
     }
 
     /** Is statement an initializer for a synthetic field?
@@ -202,6 +206,15 @@ public class TreeInfo {
         JCExpressionStatement exec = (JCExpressionStatement) stats.head;
         if (exec.expr.getTag() != JCTree.APPLY) return null;
         return (JCMethodInvocation)exec.expr;
+    }
+
+    /** Return true if a tree represents a diamond new expr. */
+    public static boolean isDiamond(JCTree tree) {
+        switch(tree.getTag()) {
+            case JCTree.TYPEAPPLY: return ((JCTypeApply)tree).getTypeArguments().isEmpty();
+            case JCTree.NEWCLASS: return isDiamond(((JCNewClass)tree).clazz);
+            default: return false;
+        }
     }
 
     /** Return true if a tree represents the null literal. */
@@ -298,6 +311,18 @@ public class TreeInfo {
         case(JCTree.POSTINC):
         case(JCTree.POSTDEC):
             return getStartPos(((JCUnary) tree).arg);
+        case(JCTree.ANNOTATED_TYPE): {
+            JCAnnotatedType node = (JCAnnotatedType) tree;
+            if (node.annotations.nonEmpty())
+                return getStartPos(node.annotations.head);
+            return getStartPos(node.underlyingType);
+        }
+        case(JCTree.NEWCLASS): {
+            JCNewClass node = (JCNewClass)tree;
+            if (node.encl != null)
+                return getStartPos(node.encl);
+            break;
+        }
         case(JCTree.VARDEF): {
             JCVariableDecl node = (JCVariableDecl)tree;
             if (node.mods.pos != Position.NOPOS) {
@@ -395,6 +420,8 @@ public class TreeInfo {
             return getEndPos(((JCUnary) tree).arg, endPositions);
         case(JCTree.WHILELOOP):
             return getEndPos(((JCWhileLoop) tree).body, endPositions);
+        case(JCTree.ANNOTATED_TYPE):
+            return getEndPos(((JCAnnotatedType) tree).underlyingType, endPositions);
         case(JCTree.ERRONEOUS): {
             JCErroneous node = (JCErroneous)tree;
             if (node.errs != null && node.errs.nonEmpty())
@@ -473,6 +500,10 @@ public class TreeInfo {
             public void visitVarDef(JCVariableDecl that) {
                 if (that.sym == sym) result = that;
                 else super.visitVarDef(that);
+            }
+            public void visitTypeParameter(JCTypeParameter that) {
+                if (that.type.tsym == sym) result = that;
+                else super.visitTypeParameter(that);
             }
         }
         DeclScanner s = new DeclScanner();
@@ -603,6 +634,18 @@ public class TreeInfo {
             return ((JCVariableDecl) node).sym;
         default:
             return null;
+        }
+    }
+
+    public static boolean isDeclaration(JCTree node) {
+        node = skipParens(node);
+        switch (node.getTag()) {
+        case JCTree.CLASSDEF:
+        case JCTree.METHODDEF:
+        case JCTree.VARDEF:
+            return true;
+        default:
+            return false;
         }
     }
 
@@ -857,6 +900,40 @@ public class TreeInfo {
 
         default:
             return null;
+        }
+    }
+
+    /**
+     * Returns the underlying type of the tree if it is annotated type,
+     * or the tree itself otherwise
+     */
+    public static JCExpression typeIn(JCExpression tree) {
+        switch (tree.getTag()) {
+        case JCTree.ANNOTATED_TYPE:
+            return ((JCAnnotatedType)tree).underlyingType;
+        case JCTree.IDENT: /* simple names */
+        case JCTree.TYPEIDENT: /* primitive name */
+        case JCTree.SELECT: /* qualified name */
+        case JCTree.TYPEARRAY: /* array types */
+        case JCTree.WILDCARD: /* wild cards */
+        case JCTree.TYPEPARAMETER: /* type parameters */
+        case JCTree.TYPEAPPLY: /* parameterized types */
+            return tree;
+        default:
+            throw new AssertionError("Unexpected type tree: " + tree);
+        }
+    }
+
+    public static JCTree innermostType(JCTree type) {
+        switch (type.getTag()) {
+        case JCTree.TYPEARRAY:
+            return innermostType(((JCArrayTypeTree)type).elemtype);
+        case JCTree.WILDCARD:
+            return innermostType(((JCWildcard)type).inner);
+        case JCTree.ANNOTATED_TYPE:
+            return innermostType(((JCAnnotatedType)type).underlyingType);
+        default:
+            return type;
         }
     }
 }

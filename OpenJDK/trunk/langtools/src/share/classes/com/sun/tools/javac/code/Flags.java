@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.code;
@@ -33,8 +33,8 @@ import javax.lang.model.element.Modifier;
 
 /** Access flags and other modifiers for Java classes and members.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -113,6 +113,7 @@ public class Flags {
     public static final int ENUM         = 1<<14;
 
     public static final int StandardFlags = 0x0fff;
+    public static final int ModifierFlags = StandardFlags & ~INTERFACE;
 
     // Because the following access flags are overloaded with other
     // bit positions, we translate them when reading and writing class
@@ -225,9 +226,31 @@ public class Flags {
     public static final long HYPOTHETICAL   = 1L<<37;
 
     /**
-     * Flag that marks a Sun proprietary class.
+     * Flag that marks an internal proprietary class.
      */
     public static final long PROPRIETARY = 1L<<38;
+
+    /**
+     * Flag that marks a disjunction var in a multi-catch clause
+     */
+    public static final long DISJUNCTION = 1L<<39;
+
+    /**
+     * Flag that marks a signature-polymorphic invoke method.
+     * (These occur inside java.dyn.MethodHandle.)
+     */
+    public static final long POLYMORPHIC_SIGNATURE = 1L<<40;
+
+    /**
+     * Flag that marks a special kind of bridge methods (the ones that
+     * come from restricted supertype bounds)
+     */
+    public static final long OVERRIDE_BRIDGE = 1L<<41;
+
+    /**
+     * Flag that marks an 'effectively final' local variable
+     */
+    public static final long EFFECTIVELY_FINAL = 1L<<42;
 
     /** Modifier masks.
      */

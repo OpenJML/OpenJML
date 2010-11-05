@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2009 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.main;
@@ -28,7 +28,13 @@ package com.sun.tools.javac.main;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 import java.util.MissingResourceException;
+import javax.tools.JavaFileManager;
+import javax.tools.JavaFileObject;
+import javax.annotation.processing.Processor;
 
 import com.sun.tools.javac.code.Source;
 import com.sun.tools.javac.file.CacheFSInfo;
@@ -38,14 +44,13 @@ import com.sun.tools.javac.main.JavacOption.Option;
 import com.sun.tools.javac.main.RecognizedOptions.OptionHelper;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.processing.AnnotationProcessingError;
-import javax.tools.JavaFileManager;
-import javax.tools.JavaFileObject;
-import javax.annotation.processing.Processor;
+
+import static com.sun.tools.javac.main.OptionName.*;
 
 /** This class provides a commandline interface to the GJC compiler.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -236,16 +241,16 @@ public class Main {
             }
         }
 
-        if (!checkDirectory("-d"))
+        if (!checkDirectory(D))
             return null;
-        if (!checkDirectory("-s"))
+        if (!checkDirectory(S))
             return null;
 
-        String sourceString = options.get("-source");
+        String sourceString = options.get(SOURCE);
         Source source = (sourceString != null)
             ? Source.lookup(sourceString)
             : Source.DEFAULT;
-        String targetString = options.get("-target");
+        String targetString = options.get(TARGET);
         Target target = (targetString != null)
             ? Target.lookup(targetString)
             : Target.DEFAULT;
@@ -268,18 +273,36 @@ public class Main {
                     }
                     return null;
                 } else {
-                    options.put("-target", source.requiredTarget().name);
+                    target = source.requiredTarget();
+                    options.put("-target", target.name);
                 }
             } else {
                 if (targetString == null && !source.allowGenerics()) {
-                    options.put("-target", Target.JDK1_4.name);
+                    target = Target.JDK1_4;
+                    options.put("-target", target.name);
                 }
             }
         }
+
+        // phase this out with JSR 292 PFD
+        if ("no".equals(options.get("allowTransitionalJSR292"))) {
+            options.put("allowTransitionalJSR292", null);
+        } else if (target.hasInvokedynamic() && options.isUnset("allowTransitionalJSR292")) {
+            options.put("allowTransitionalJSR292", "allowTransitionalJSR292");
+        }
+
+        // handle this here so it works even if no other options given
+        String showClass = options.get("showClass");
+        if (showClass != null) {
+            if (showClass.equals("showClass")) // no value given for option
+                showClass = "com.sun.tools.javac.Main";
+            showClass(showClass);
+        }
+
         return filenames.toList();
     }
     // where
-        private boolean checkDirectory(String optName) {
+        private boolean checkDirectory(OptionName optName) {
             String value = options.get(optName);
             if (value == null)
                 return true;
@@ -346,10 +369,10 @@ public class Main {
                     return EXIT_CMDERR;
                 } else if (files.isEmpty() && fileObjects.isEmpty() && classnames.isEmpty()) {
                     // it is allowed to compile nothing if just asking for help or version info
-                    if (options.get("-help") != null
-                        || options.get("-X") != null
-                        || options.get("-version") != null
-                        || options.get("-fullversion") != null)
+                    if (options.isSet(HELP)
+                        || options.isSet(X)
+                        || options.isSet(VERSION)
+                        || options.isSet(FULLVERSION))
                         return EXIT_OK;
                     error("err.no.source.files");
                     return EXIT_CMDERR;
@@ -361,7 +384,7 @@ public class Main {
                 return EXIT_SYSERR;
             }
 
-            boolean forceStdOut = options.get("stdout") != null;
+            boolean forceStdOut = options.isSet("stdout");
             if (forceStdOut) {
                 out.flush();
                 out = new PrintWriter(System.out, true);
@@ -370,7 +393,7 @@ public class Main {
             context.put(Log.outKey, out);
 
             // allow System property in following line as a Mustang legacy
-            boolean batchMode = (options.get("nonBatchMode") == null
+            boolean batchMode = (options.isUnset("nonBatchMode")
                         && System.getProperty("nonBatchMode") == null);
             if (batchMode)
                 CacheFSInfo.preRegister(context);
@@ -434,7 +457,7 @@ public class Main {
             // for buggy compiler error recovery by swallowing thrown
             // exceptions.
             if (true || comp == null || comp.errorCount() == 0 ||  // DRC - report anyway
-                options == null || options.get("dev") != null)
+                options == null || options.isSet("dev"))
                 bugMessage(ex);
             return EXIT_ABNORMAL;
         } finally {
@@ -453,10 +476,13 @@ public class Main {
         ex.printStackTrace(out);
     }
 
-    /** Print a message reporting an fatal error.
+    /** Print a message reporting a fatal error.
      */
     void feMessage(Throwable ex) {
         Log.printLines(out, ex.getMessage());
+        if (ex.getCause() != null && options.isSet("dev")) {
+            ex.getCause().printStackTrace(out);
+        }
     }
 
     /** Print a message reporting an input/output error.
@@ -481,6 +507,37 @@ public class Main {
         Log.printLines(out,
                        getLocalizedString("msg.proc.annotation.uncaught.exception"));
         ex.getCause().printStackTrace();
+    }
+
+    /** Display the location and checksum of a class. */
+    void showClass(String className) {
+        out.println("javac: show class: " + className);
+        URL url = getClass().getResource('/' + className.replace('.', '/') + ".class");
+        if (url == null)
+            out.println("  class not found");
+        else {
+            out.println("  " + url);
+            try {
+                final String algorithm = "MD5";
+                byte[] digest;
+                MessageDigest md = MessageDigest.getInstance(algorithm);
+                DigestInputStream in = new DigestInputStream(url.openStream(), md);
+                try {
+                    byte[] buf = new byte[8192];
+                    int n;
+                    do { n = in.read(buf); } while (n > 0);
+                    digest = md.digest();
+                } finally {
+                    in.close();
+                }
+                StringBuilder sb = new StringBuilder();
+                for (byte b: digest)
+                    sb.append(String.format("%02x", b));
+                out.println("  " + algorithm + " checksum: " + sb);
+            } catch (Exception e) {
+                out.println("  cannot compute digest: " + e);
+            }
+        }
     }
 
     private JavaFileManager fileManager;

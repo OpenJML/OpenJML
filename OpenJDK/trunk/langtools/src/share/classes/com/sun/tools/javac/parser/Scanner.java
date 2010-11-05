@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.parser;
@@ -38,56 +38,14 @@ import static com.sun.tools.javac.util.LayoutCharacters.*;
 /** The lexical analyzer maps an input stream consisting of
  *  ASCII characters and Unicode escapes into a token sequence.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
 public class Scanner implements Lexer {
 
     private static boolean scannerDebug = false;
-
-    /** A factory for creating scanners. */
-    public static class Factory {
-        /** The context key for the scanner factory. */
-        public static final Context.Key<Scanner.Factory> scannerFactoryKey =
-            new Context.Key<Scanner.Factory>();
-
-        /** Get the Factory instance for this context. */
-        public static Factory instance(Context context) {
-            Factory instance = context.get(scannerFactoryKey);
-            if (instance == null)
-                instance = new Factory(context);
-            return instance;
-        }
-
-        final Log log;
-        final Names names;
-        final Source source;
-        final Keywords keywords;
-
-        /** Create a new scanner factory. */
-        protected Factory(Context context) {
-            context.put(scannerFactoryKey, this);
-            this.log = Log.instance(context);
-            this.names = Names.instance(context);
-            this.source = Source.instance(context);
-            this.keywords = Keywords.instance(context);
-        }
-
-        public Scanner newScanner(CharSequence input) {
-            if (input instanceof CharBuffer) {
-                return new Scanner(this, (CharBuffer)input);
-            } else {
-                char[] array = input.toString().toCharArray();
-                return newScanner(array, array.length);
-            }
-        }
-
-        public Scanner newScanner(char[] input, int inputLength) {
-            return new Scanner(this, input, inputLength);
-        }
-    }
 
     /* Output variables; set by nextToken():
      */
@@ -99,6 +57,22 @@ public class Scanner implements Lexer {
     /** Allow hex floating-point literals.
      */
     private boolean allowHexFloats;
+
+    /** Allow binary literals.
+     */
+    private boolean allowBinaryLiterals;
+
+    /** Allow underscores in literals.
+     */
+    private boolean allowUnderscoresInLiterals;
+
+    /** Allow exotic identifiers.
+     */
+    private boolean allowExoticIdentifiers;
+
+    /** The source language setting.
+     */
+    private Source source;
 
     /** The token's position, 0-based offset from beginning of text.
      */
@@ -161,11 +135,15 @@ public class Scanner implements Lexer {
     private final Keywords keywords;
 
     /** Common code for constructors. */
-    private Scanner(Factory fac) {
-        this.log = fac.log;
-        this.names = fac.names;
-        this.keywords = fac.keywords;
-        this.allowHexFloats = fac.source.allowHexFloats();
+    private Scanner(ScannerFactory fac) {
+        log = fac.log;
+        names = fac.names;
+        keywords = fac.keywords;
+        source = fac.source;
+        allowBinaryLiterals = source.allowBinaryLiterals();
+        allowHexFloats = source.allowHexFloats();
+        allowUnderscoresInLiterals = source.allowBinaryLiterals();
+        allowExoticIdentifiers = source.allowExoticIdentifiers();  // for invokedynamic
     }
 
     private static final boolean hexFloatsWork = hexFloatsWork();
@@ -181,7 +159,7 @@ public class Scanner implements Lexer {
     /** Create a scanner from the input buffer.  buffer must implement
      *  array() and compact(), and remaining() must be less than limit().
      */
-    protected Scanner(Factory fac, CharBuffer buffer) {
+    protected Scanner(ScannerFactory fac, CharBuffer buffer) {
         this(fac, JavacFileManager.toArray(buffer), buffer.limit());
     }
 
@@ -196,7 +174,7 @@ public class Scanner implements Lexer {
      * @param inputLength the size of the input.
      * Must be positive and less than or equal to input.length.
      */
-    protected Scanner(Factory fac, char[] input, int inputLength) {
+    protected Scanner(ScannerFactory fac, char[] input, int inputLength) {
         this(fac);
         eofPos = inputLength;
         if (inputLength == input.length) {
@@ -322,7 +300,7 @@ public class Scanner implements Lexer {
 
     /** Read next character in character or string literal and copy into sbuf.
      */
-    private void scanLitChar() {
+    private void scanLitChar(boolean forBytecodeName) {
         if (ch == '\\') {
             if (buf[bp+1] == '\\' && unicodeConversionBp != bp) {
                 bp++;
@@ -362,6 +340,18 @@ public class Scanner implements Lexer {
                     putChar('\"'); scanChar(); break;
                 case '\\':
                     putChar('\\'); scanChar(); break;
+                case '|': case ',': case '?': case '%':
+                case '^': case '_': case '{': case '}':
+                case '!': case '-': case '=':
+                    if (forBytecodeName) {
+                        // Accept escape sequences for dangerous bytecode chars.
+                        // This is illegal in normal Java string or character literals.
+                        // Note that the escape sequence itself is passed through.
+                        putChar('\\'); putChar(ch); scanChar();
+                    } else {
+                        lexError(bp, "illegal.esc.char");
+                    }
+                    break;
                 default:
                     lexError(bp, "illegal.esc.char");
                 }
@@ -370,6 +360,44 @@ public class Scanner implements Lexer {
             putChar(ch); scanChar();
         }
     }
+    private void scanLitChar() {
+        scanLitChar(false);
+    }
+
+    /** Read next character in an exotic name #"foo"
+     */
+    private void scanBytecodeNameChar() {
+        switch (ch) {
+        // reject any "dangerous" char which is illegal somewhere in the JVM spec
+        // cf. http://blogs.sun.com/jrose/entry/symbolic_freedom_in_the_vm
+        case '/': case '.': case ';':  // illegal everywhere
+        case '<': case '>':  // illegal in methods, dangerous in classes
+        case '[':  // illegal in classes
+            lexError(bp, "illegal.bytecode.ident.char", String.valueOf((int)ch));
+            break;
+        }
+        scanLitChar(true);
+    }
+
+    private void scanDigits(int digitRadix) {
+        char saveCh;
+        int savePos;
+        do {
+            if (ch != '_') {
+                putChar(ch);
+            } else {
+                if (!allowUnderscoresInLiterals) {
+                    lexError("unsupported.underscore.lit", source.name);
+                    allowUnderscoresInLiterals = true;
+                }
+            }
+            saveCh = ch;
+            savePos = bp;
+            scanChar();
+        } while (digit(digitRadix) >= 0 || ch == '_');
+        if (saveCh == '_')
+            lexError(savePos, "illegal.underscore");
+    }
 
     /** Read fractional part of hexadecimal floating point number.
      */
@@ -377,17 +405,16 @@ public class Scanner implements Lexer {
         if (ch == 'p' || ch == 'P') {
             putChar(ch);
             scanChar();
+            skipIllegalUnderscores();
             if (ch == '+' || ch == '-') {
                 putChar(ch);
                 scanChar();
             }
+            skipIllegalUnderscores();
             if ('0' <= ch && ch <= '9') {
-                do {
-                    putChar(ch);
-                    scanChar();
-                } while ('0' <= ch && ch <= '9');
+                scanDigits(10);
                 if (!allowHexFloats) {
-                    lexError("unsupported.fp.lit");
+                    lexError("unsupported.fp.lit", source.name);
                     allowHexFloats = true;
                 }
                 else if (!hexFloatsWork)
@@ -413,23 +440,22 @@ public class Scanner implements Lexer {
     /** Read fractional part of floating point number.
      */
     private void scanFraction() {
-        while (digit(10) >= 0) {
-            putChar(ch);
-            scanChar();
+        skipIllegalUnderscores();
+        if ('0' <= ch && ch <= '9') {
+            scanDigits(10);
         }
         int sp1 = sp;
         if (ch == 'e' || ch == 'E') {
             putChar(ch);
             scanChar();
+            skipIllegalUnderscores();
             if (ch == '+' || ch == '-') {
                 putChar(ch);
                 scanChar();
             }
+            skipIllegalUnderscores();
             if ('0' <= ch && ch <= '9') {
-                do {
-                    putChar(ch);
-                    scanChar();
-                } while ('0' <= ch && ch <= '9');
+                scanDigits(10);
                 return;
             }
             lexError("malformed.fp.lit");
@@ -462,10 +488,10 @@ public class Scanner implements Lexer {
         assert ch == '.';
         putChar(ch);
         scanChar();
-        while (digit(16) >= 0) {
+        skipIllegalUnderscores();
+        if (digit(16) >= 0) {
             seendigit = true;
-            putChar(ch);
-            scanChar();
+            scanDigits(16);
         }
         if (!seendigit)
             lexError("invalid.hex.number");
@@ -473,28 +499,35 @@ public class Scanner implements Lexer {
             scanHexExponentAndSuffix();
     }
 
+    private void skipIllegalUnderscores() {
+        if (ch == '_') {
+            lexError(bp, "illegal.underscore");
+            while (ch == '_')
+                scanChar();
+        }
+    }
+
     /** Read a number.
-     *  @param radix  The radix of the number; one of 8, 10, 16.
+     *  @param radix  The radix of the number; one of 2, j8, 10, 16.
      */
     private void scanNumber(int radix) {
         this.radix = radix;
         // for octal, allow base-10 digit in case it's a float literal
-        int digitRadix = (radix <= 10) ? 10 : 16;
+        int digitRadix = (radix == 8 ? 10 : radix);
         boolean seendigit = false;
-        while (digit(digitRadix) >= 0) {
+        if (digit(digitRadix) >= 0) {
             seendigit = true;
-            putChar(ch);
-            scanChar();
+            scanDigits(digitRadix);
         }
         if (radix == 16 && ch == '.') {
             scanHexFractionAndSuffix(seendigit);
         } else if (seendigit && radix == 16 && (ch == 'p' || ch == 'P')) {
             scanHexExponentAndSuffix();
-        } else if (radix <= 10 && ch == '.') {
+        } else if (digitRadix == 10 && ch == '.') {
             putChar(ch);
             scanChar();
             scanFractionAndSuffix();
-        } else if (radix <= 10 &&
+        } else if (digitRadix == 10 &&
                    (ch == 'e' || ch == 'E' ||
                     ch == 'f' || ch == 'F' ||
                     ch == 'd' || ch == 'D')) {
@@ -796,6 +829,7 @@ public class Scanner implements Lexer {
                     scanChar();
                     if (ch == 'x' || ch == 'X') {
                         scanChar();
+                        skipIllegalUnderscores();
                         if (ch == '.') {
                             scanHexFractionAndSuffix(false);
                         } else if (digit(16) < 0) {
@@ -803,8 +837,29 @@ public class Scanner implements Lexer {
                         } else {
                             scanNumber(16);
                         }
+                    } else if (ch == 'b' || ch == 'B') {
+                        if (!allowBinaryLiterals) {
+                            lexError("unsupported.binary.lit", source.name);
+                            allowBinaryLiterals = true;
+                        }
+                        scanChar();
+                        skipIllegalUnderscores();
+                        if (digit(2) < 0) {
+                            lexError("invalid.binary.number");
+                        } else {
+                            scanNumber(2);
+                        }
                     } else {
                         putChar('0');
+                        if (ch == '_') {
+                            int savePos = bp;
+                            do {
+                                scanChar();
+                            } while (ch == '_');
+                            if (digit(10) < 0) {
+                                lexError(savePos, "illegal.underscore");
+                            }
+                        }
                         scanNumber(8);
                     }
                     return;
@@ -918,6 +973,30 @@ public class Scanner implements Lexer {
                         scanChar();
                     } else {
                         lexError(_pos, "unclosed.str.lit");
+                    }
+                    return;
+                case '#':
+                    scanChar();
+                    if (ch == '\"') {
+                        if (!allowExoticIdentifiers) {
+                            lexError("unsupported.exotic.id", source.name);
+                            allowExoticIdentifiers = true;
+                        }
+                        scanChar();
+                        if (ch == '\"')
+                            lexError(_pos, "empty.bytecode.ident");
+                        while (ch != '\"' && ch != CR && ch != LF && bp < buflen) {
+                            scanBytecodeNameChar();
+                        }
+                        if (ch == '\"') {
+                            name = names.fromChars(sbuf, 0, sp);
+                            token = IDENTIFIER;  // even if #"int" or #"do"
+                            scanChar();
+                        } else {
+                            lexError(_pos, "unclosed.bytecode.ident");
+                        }
+                    } else {
+                        lexError("illegal.char", String.valueOf((int)'#'));
                     }
                     return;
                 default:

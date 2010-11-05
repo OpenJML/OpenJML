@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.tree;
@@ -39,8 +39,8 @@ import static com.sun.tools.javac.code.TypeTags.*;
 
 /** Factory class for trees.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -168,6 +168,20 @@ public class TreeMaker implements JCTree.Factory {
                                List<JCVariableDecl> params,
                                List<JCExpression> thrown,
                                JCBlock body,
+                               JCExpression defaultValue) {
+        return MethodDef(
+                mods, name, restype, typarams, params,
+                null, thrown, body, defaultValue);
+    }
+
+    public JCMethodDecl MethodDef(JCModifiers mods,
+                               Name name,
+                               JCExpression restype,
+                               List<JCTypeParameter> typarams,
+                               List<JCVariableDecl> params,
+                               List<JCTypeAnnotation> receiver,
+                               List<JCExpression> thrown,
+                               JCBlock body,
                                JCExpression defaultValue)
     {
         JCMethodDecl tree = new JCMethodDecl(mods,
@@ -175,6 +189,7 @@ public class TreeMaker implements JCTree.Factory {
                                        restype,
                                        typarams,
                                        params,
+                                       receiver,
                                        thrown,
                                        body,
                                        defaultValue,
@@ -254,7 +269,14 @@ public class TreeMaker implements JCTree.Factory {
     }
 
     public JCTry Try(JCBlock body, List<JCCatch> catchers, JCBlock finalizer) {
-        JCTry tree = new JCTry(body, catchers, finalizer);
+        return Try(List.<JCTree>nil(), body, catchers, finalizer);
+    }
+
+    public JCTry Try(List<JCTree> resources,
+                     JCBlock body,
+                     List<JCCatch> catchers,
+                     JCBlock finalizer) {
+        JCTry tree = new JCTry(resources, body, catchers, finalizer);
         tree.pos = pos;
         return tree;
     }
@@ -429,8 +451,18 @@ public class TreeMaker implements JCTree.Factory {
         return tree;
     }
 
+    public JCTypeDisjunction TypeDisjunction(List<JCExpression> components) {
+        JCTypeDisjunction tree = new JCTypeDisjunction(components);
+        tree.pos = pos;
+        return tree;
+    }
+
     public JCTypeParameter TypeParameter(Name name, List<JCExpression> bounds) {
-        JCTypeParameter tree = new JCTypeParameter(name, bounds);
+        return TypeParameter(name, bounds, List.<JCTypeAnnotation>nil());
+    }
+
+    public JCTypeParameter TypeParameter(Name name, List<JCExpression> bounds, List<JCTypeAnnotation> annos) {
+        JCTypeParameter tree = new JCTypeParameter(name, bounds, annos);
         tree.pos = pos;
         return tree;
     }
@@ -453,15 +485,27 @@ public class TreeMaker implements JCTree.Factory {
         return tree;
     }
 
+    public JCTypeAnnotation TypeAnnotation(JCTree annotationType, List<JCExpression> args) {
+        JCTypeAnnotation tree = new JCTypeAnnotation(annotationType, args);
+        tree.pos = pos;
+        return tree;
+    }
+
     public JCModifiers Modifiers(long flags, List<JCAnnotation> annotations) {
         JCModifiers tree = new JCModifiers(flags, annotations);
-        boolean noFlags = (flags & Flags.StandardFlags) == 0;
+        boolean noFlags = (flags & (Flags.ModifierFlags | Flags.ANNOTATION)) == 0;
         tree.pos = (noFlags && annotations.isEmpty()) ? Position.NOPOS : pos;
         return tree;
     }
 
     public JCModifiers Modifiers(long flags) {
         return Modifiers(flags, List.<JCAnnotation>nil());
+    }
+
+    public JCAnnotatedType AnnotatedType(List<JCTypeAnnotation> annotations, JCExpression underlyingType) {
+        JCAnnotatedType tree = new JCAnnotatedType(annotations, underlyingType);
+        tree.pos = pos;
+        return tree;
     }
 
     public JCErroneous Erroneous() {
@@ -772,6 +816,7 @@ public class TreeMaker implements JCTree.Factory {
                 Type(mtype.getReturnType()),
                 TypeParams(mtype.getTypeArguments()),
                 Params(mtype.getParameterTypes(), m),
+                null,
                 Types(mtype.getThrownTypes()),
                 body,
                 null,

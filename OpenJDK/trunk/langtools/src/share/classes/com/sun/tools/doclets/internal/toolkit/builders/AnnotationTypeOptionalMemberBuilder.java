@@ -1,12 +1,12 @@
 /*
- * Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.doclets.internal.toolkit.builders;
@@ -30,7 +30,6 @@ import com.sun.tools.doclets.internal.toolkit.util.*;
 import com.sun.tools.doclets.internal.toolkit.*;
 import com.sun.javadoc.*;
 import java.util.*;
-import java.lang.reflect.*;
 
 /**
  * Builds documentation for optional annotation type members.
@@ -85,6 +84,7 @@ public class AnnotationTypeOptionalMemberBuilder extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getName() {
         return "AnnotationTypeOptionalMemberDetails";
     }
@@ -95,34 +95,20 @@ public class AnnotationTypeOptionalMemberBuilder extends
      * @param elements the XML elements that specify how to construct this
      *                documentation.
      */
-    public void buildAnnotationTypeOptionalMember(List<?> elements) {
+    public void buildAnnotationTypeOptionalMember(XMLNode node) {
         if (writer == null) {
             return;
         }
         for (currentMemberIndex = 0; currentMemberIndex < members.size();
             currentMemberIndex++) {
-            build(elements);
+            buildChildren(node);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void invokeMethod(String methodName, Class<?>[] paramClasses,
-            Object[] params)
-    throws Exception {
-        if (DEBUG) {
-            configuration.root.printError("DEBUG: " + this.getClass().getName()
-                + "." + methodName);
-        }
-        Method method = this.getClass().getMethod(methodName, paramClasses);
-        method.invoke(this, params);
     }
 
     /**
      * Document the default value for this optional member.
      */
-    public void buildDefaultValueInfo() {
+    public void buildDefaultValueInfo(XMLNode node) {
         ((AnnotationTypeOptionalMemberWriter) writer).writeDefaultValueInfo(
             (MemberDoc) members.get(currentMemberIndex));
     }
@@ -130,6 +116,7 @@ public class AnnotationTypeOptionalMemberBuilder extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public AnnotationTypeRequiredMemberWriter getWriter() {
         return writer;
     }

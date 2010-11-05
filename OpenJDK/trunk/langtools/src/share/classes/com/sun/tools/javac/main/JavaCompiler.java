@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2009 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,63 +18,60 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.main;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Queue;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.processing.Processor;
+import javax.lang.model.SourceVersion;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.DiagnosticListener;
 
-import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.source.util.TaskEvent;
 import com.sun.source.util.TaskListener;
 
+import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.tree.*;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.parser.*;
 import com.sun.tools.javac.comp.*;
 import com.sun.tools.javac.jvm.*;
-
-import com.sun.tools.javac.code.Symbol.*;
-import com.sun.tools.javac.tree.JCTree.*;
-
 import com.sun.tools.javac.processing.*;
-import javax.annotation.processing.Processor;
 
 import static javax.tools.StandardLocation.CLASS_OUTPUT;
+import static com.sun.tools.javac.main.OptionName.*;
+import static com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag.*;
 import static com.sun.tools.javac.util.ListBuffer.lb;
 
-// TEMP, until we have a more efficient way to save doc comment info
-import com.sun.tools.javac.parser.DocCommentScanner;
-
-import java.util.HashMap;
-import java.util.Queue;
-import javax.lang.model.SourceVersion;
 
 /** This class could be the main entry point for GJC when GJC is used as a
  *  component in a larger software system. It provides operations to
  *  construct a new compiler, and to run a new compiler on a set of source
  *  files.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -111,14 +108,14 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             try {
                 versionRB = ResourceBundle.getBundle(versionRBName);
             } catch (MissingResourceException e) {
-                return Log.getLocalizedString("version.resource.missing", System.getProperty("java.version"));
+                return Log.getLocalizedString("version.not.available");
             }
         }
         try {
             return versionRB.getString(key);
         }
         catch (MissingResourceException e) {
-            return Log.getLocalizedString("version.unknown", System.getProperty("java.version"));
+            return Log.getLocalizedString("version.not.available");
         }
     }
 
@@ -364,22 +361,22 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
 
         Options options = Options.instance(context);
 
-        verbose       = options.get("-verbose")       != null;
-        sourceOutput  = options.get("-printsource")   != null; // used to be -s
-        stubOutput    = options.get("-stubs")         != null;
-        relax         = options.get("-relax")         != null;
-        printFlat     = options.get("-printflat")     != null;
-        attrParseOnly = options.get("-attrparseonly") != null;
-        encoding      = options.get("-encoding");
-        lineDebugInfo = options.get("-g:")            == null ||
-                        options.get("-g:lines")       != null;
-        genEndPos     = options.get("-Xjcov")         != null ||
+        verbose       = options.isSet(VERBOSE);
+        sourceOutput  = options.isSet(PRINTSOURCE); // used to be -s
+        stubOutput    = options.isSet("-stubs");
+        relax         = options.isSet("-relax");
+        printFlat     = options.isSet("-printflat");
+        attrParseOnly = options.isSet("-attrparseonly");
+        encoding      = options.get(ENCODING);
+        lineDebugInfo = options.isUnset(G_CUSTOM) ||
+                        options.isSet(G_CUSTOM, "lines");
+        genEndPos     = options.isSet(XJCOV) ||
                         context.get(DiagnosticListener.class) != null;
-        devVerbose    = options.get("dev") != null;
-        processPcks   = options.get("process.packages") != null;
-        werror        = options.get("-Werror")        != null;
+        devVerbose    = options.isSet("dev");
+        processPcks   = options.isSet("process.packages");
+        werror        = options.isSet(WERROR);
 
-        verboseCompilePolicy = options.get("verboseCompilePolicy") != null;
+        verboseCompilePolicy = options.isSet("verboseCompilePolicy");
 
         if (attrParseOnly)
             compilePolicy = CompilePolicy.ATTR_ONLY;
@@ -389,14 +386,16 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         implicitSourcePolicy = ImplicitSourcePolicy.decode(options.get("-implicit"));
 
         completionFailureName =
-            (options.get("failcomplete") != null)
+            options.isSet("failcomplete")
             ? names.fromString(options.get("failcomplete"))
             : null;
 
         shouldStopPolicy =
-            (options.get("shouldStopPolicy") != null)
+            options.isSet("shouldStopPolicy")
             ? CompileState.valueOf(options.get("shouldStopPolicy"))
             : null;
+        if (options.isUnset("oldDiags"))
+            log.setDiagnosticFormatter(RichDiagnosticFormatter.instance(context));
     }
 
     /* Switches:
@@ -481,7 +480,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     public Todo todo;
 
     /** Ordered list of compiler phases for each compilation unit. */
-    static public enum CompileState { // DRC - made static public
+    static public enum CompileState { // DRC - made static public TODO Why is this static?
         PARSE(1),
         ENTER(2),
         PROCESS(3),
@@ -518,7 +517,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
 
     protected boolean shouldStop(CompileState cs) {
         if (shouldStopPolicy == null)
-            return (errorCount() > 0);
+            return (errorCount() > 0 || unrecoverableError());
         else
             return cs.ordinal() > shouldStopPolicy.ordinal();
     }
@@ -533,7 +532,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                 log.error("warnings.and.werror");
             }
         }
-            return log.nerrors;
+        return log.nerrors;
     }
 
     protected final <T> Queue<T> stopIfError(CompileState cs, Queue<T> queue) {
@@ -553,12 +552,6 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             return log.nwarnings;
     }
 
-    /** Whether or not any parse errors have occurred.
-     */
-    public boolean parseErrors() {
-        return parseErrors;
-    }
-
     /** Try to open input stream with given name.
      *  Report an error if this fails.
      *  @param filename   The file name of the input stream to be opened.
@@ -568,7 +561,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             inputFiles.add(filename);
             return filename.getCharContent(false);
         } catch (IOException e) {
-            log.error("error.reading.file", filename, e.getLocalizedMessage());
+            log.error("error.reading.file", filename, JavacFileManager.getMessage(e));
             return null;
         }
     }
@@ -589,10 +582,8 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                 TaskEvent e = new TaskEvent(TaskEvent.Kind.PARSE, filename);
                 taskListener.started(e);
             }
-            int initialErrorCount = log.nerrors;
             Parser parser = parserFactory.newParser(content, keepComments(), genEndPos, lineDebugInfo);
             tree = parser.parseCompilationUnit();
-            parseErrors |= (log.nerrors > initialErrorCount);
             if (verbose) {
                 printVerbose("parsing.done", Long.toString(elapsed(msec)));
             }
@@ -618,7 +609,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
      *  @param filename     The name of the file to be parsed.
      */
     @Deprecated
-    public JCTree.JCCompilationUnit parse(String filename) throws IOException {
+    public JCTree.JCCompilationUnit parse(String filename) {
         JavacFileManager fm = (JavacFileManager)fileManager;
         return parse(fm.getJavaFileObjectsFromStrings(List.of(filename)).iterator().next());
     }
@@ -728,7 +719,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         try {
             tree = parse(filename, filename.getCharContent(false));
         } catch (IOException e) {
-            log.error("error.reading.file", filename, e);
+            log.error("error.reading.file", filename, JavacFileManager.getMessage(e));
             tree = make.TopLevel(List.<JCTree.JCAnnotation>nil(), null, List.<JCTree>nil());
         } finally {
             log.useSource(prev);
@@ -773,9 +764,6 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     private long start_msec = 0;
     public long elapsed_msec = 0;
 
-    /** Track whether any errors occurred while parsing source text. */
-    private boolean parseErrors = false;
-
     public void compile(List<JavaFileObject> sourceFileObject)
         throws Throwable {
         compile(sourceFileObject, List.<String>nil(), null);
@@ -792,7 +780,6 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     public void compile(List<JavaFileObject> sourceFileObjects,
                         List<String> classnames,
                         Iterable<? extends Processor> processors)
-        throws IOException // TODO: temp, from JavacProcessingEnvironment
     {
         if (processors != null && processors.iterator().hasNext())
             explicitAnnotationProcessingRequested = true;
@@ -818,6 +805,9 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         } catch (Abort ex) {
             if (devVerbose)
                 ex.printStackTrace();
+        } finally {
+            if (procEnvImpl != null)
+                procEnvImpl.close();
         }
     }
 
@@ -882,14 +872,19 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     /**
      * Parses a list of files.
      */
-   public List<JCCompilationUnit> parseFiles(List<JavaFileObject> fileObjects) throws IOException {
+   public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
        if (shouldStop(CompileState.PARSE))
            return List.nil();
 
         //parse all files
         ListBuffer<JCCompilationUnit> trees = lb();
-        for (JavaFileObject fileObject : fileObjects)
-            trees.append(parse(fileObject));
+        Set<JavaFileObject> filesSoFar = new HashSet<JavaFileObject>();
+        for (JavaFileObject fileObject : fileObjects) {
+            if (!filesSoFar.contains(fileObject)) {
+                filesSoFar.add(fileObject);
+                trees.append(parse(fileObject));
+            }
+        }
         return trees.toList();
     }
 
@@ -930,6 +925,15 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             }
             rootClasses = cdefs.toList();
         }
+
+        // Ensure the input files have been recorded. Although this is normally
+        // done by readSource, it may not have been done if the trees were read
+        // in a prior round of annotation processing, and the trees have been
+        // cleaned and are being reused.
+        for (JCCompilationUnit unit : roots) {
+            inputFiles.add(unit.sourcefile);
+        }
+
         return roots;
     }
 
@@ -944,7 +948,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     /**
      * Object to handle annotation processing.
      */
-    JavacProcessingEnvironment procEnvImpl = null;
+    private JavacProcessingEnvironment procEnvImpl = null;
 
     /**
      * Check if we should process annotations.
@@ -959,22 +963,20 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         // Process annotations if processing is not disabled and there
         // is at least one Processor available.
         Options options = Options.instance(context);
-        if (options.get("-proc:none") != null) {
+        if (options.isSet(PROC, "none")) {
             processAnnotations = false;
         } else if (procEnvImpl == null) {
             procEnvImpl = new JavacProcessingEnvironment(context, processors);
             processAnnotations = procEnvImpl.atLeastOneProcessor();
 
             if (processAnnotations) {
-                if (context.get(Scanner.Factory.scannerFactoryKey) == null)
-                    DocCommentScanner.Factory.preRegister(context);
                 options.put("save-parameter-names", "save-parameter-names");
                 reader.saveParameterNames = true;
                 keepComments = true;
+                genEndPos = true;
                 if (taskListener != null)
                     taskListener.started(new TaskEvent(TaskEvent.Kind.ANNOTATION_PROCESSING));
-
-
+                log.deferDiagnostics = true;
             } else { // free resources
                 procEnvImpl.close();
             }
@@ -982,7 +984,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     }
 
     // TODO: called by JavacTaskImpl
-    public JavaCompiler processAnnotations(List<JCCompilationUnit> roots) throws IOException {
+    public JavaCompiler processAnnotations(List<JCCompilationUnit> roots) {
         return processAnnotations(roots, List.<String>nil());
     }
 
@@ -991,17 +993,23 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
      * @param roots a list of compilation units
      * @return an instance of the compiler in which to complete the compilation
      */
+    // Implementation note: when this method is called, log.deferredDiagnostics
+    // will have been set true by initProcessAnnotations, meaning that any diagnostics
+    // that are reported will go into the log.deferredDiagnostics queue.
+    // By the time this method exits, log.deferDiagnostics must be set back to false,
+    // and all deferredDiagnostics must have been handled: i.e. either reported
+    // or determined to be transient, and therefore suppressed.
     public JavaCompiler processAnnotations(List<JCCompilationUnit> roots,
-                                           List<String> classnames)
-        throws IOException  { // TODO: see TEMP note in JavacProcessingEnvironment
+                                           List<String> classnames) {
         if (shouldStop(CompileState.PROCESS)) {
-            // Errors were encountered.  If todo is empty, then the
-            // encountered errors were parse errors.  Otherwise, the
-            // errors were found during the enter phase which should
-            // be ignored when processing annotations.
-
-            if (todo.isEmpty())
+            // Errors were encountered.
+            // Unless all the errors are resolve errors, the errors were parse errors
+            // or other errors during enter which cannot be fixed by running
+            // any annotation processors.
+            if (unrecoverableError()) {
+                log.reportDeferredDiagnostics();
                 return this;
+            }
         }
 
         // ASSERT: processAnnotations and procEnvImpl should have been set up by
@@ -1014,7 +1022,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             // annotation processing is to occur with compilation,
             // emit a warning.
             Options options = Options.instance(context);
-            if (options.get("-proc:only") != null) {
+            if (options.isSet(PROC, "only")) {
                 log.warning("proc.proc-only.requested.no.procs");
                 todo.clear();
             }
@@ -1023,6 +1031,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                 log.error("proc.no.explicit.annotation.processing.requested",
                           classnames);
             }
+            log.reportDeferredDiagnostics();
             return this; // continue regular compilation
         }
 
@@ -1035,6 +1044,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                 if (!explicitAnnotationProcessingRequested()) {
                     log.error("proc.no.explicit.annotation.processing.requested",
                               classnames);
+                    log.reportDeferredDiagnostics();
                     return this; // TODO: Will this halt compilation?
                 } else {
                     boolean errors = false;
@@ -1049,7 +1059,6 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                             if (sym.kind == Kinds.PCK)
                                 sym.complete();
                             if (sym.exists()) {
-                                Name name = names.fromString(nameStr);
                                 if (sym.kind == Kinds.PCK)
                                     pckSymbols = pckSymbols.prepend((PackageSymbol)sym);
                                 else
@@ -1065,29 +1074,46 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                             continue;
                         }
                     }
-                    if (errors)
+                    if (errors) {
+                        log.reportDeferredDiagnostics();
                         return this;
+                    }
                 }
             }
-            JavaCompiler c = procEnvImpl.doProcessing(context, roots, classSymbols, pckSymbols);
-            if (c != this)
-                annotationProcessingOccurred = c.annotationProcessingOccurred = true;
-            return c;
+            try {
+                JavaCompiler c = procEnvImpl.doProcessing(context, roots, classSymbols, pckSymbols);
+                if (c != this)
+                    annotationProcessingOccurred = c.annotationProcessingOccurred = true;
+                // doProcessing will have handled deferred diagnostics
+                assert c.log.deferDiagnostics == false;
+                assert c.log.deferredDiagnostics.size() == 0;
+                return c;
+            } finally {
+                procEnvImpl.close();
+            }
         } catch (CompletionFailure ex) {
             log.error("cant.access", ex.sym, ex.getDetailValue());
+            log.reportDeferredDiagnostics();
             return this;
-
         }
+    }
+
+    private boolean unrecoverableError() {
+        for (JCDiagnostic d: log.deferredDiagnostics) {
+            if (d.getKind() == JCDiagnostic.Kind.ERROR && !d.isFlagSet(RECOVERABLE))
+                return true;
+        }
+        return false;
     }
 
     boolean explicitAnnotationProcessingRequested() {
         Options options = Options.instance(context);
         return
             explicitAnnotationProcessingRequested ||
-            options.get("-processor") != null ||
-            options.get("-processorpath") != null ||
-            options.get("-proc:only") != null ||
-            options.get("-Xprint") != null;
+            options.isSet(PROCESSOR) ||
+            options.isSet(PROCESSORPATH) ||
+            options.isSet(PROC, "only") ||
+            options.isSet(XPRINT);
     }
 
     /**
@@ -1113,7 +1139,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             return env;
 
         if (verboseCompilePolicy)
-            log.printLines(log.noticeWriter, "[attribute " + env.enclClass.sym + "]");
+            printNote("[attribute " + env.enclClass.sym + "]");
         if (verbose)
             printVerbose("checking.attribution", env.enclClass.sym);
 
@@ -1128,6 +1154,11 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                                   env.toplevel.sourcefile);
         try {
             attr.attribClass(env.tree.pos(), env.enclClass.sym);
+            if (errorCount() > 0 && !shouldStop(CompileState.ATTR)) {
+                //if in fail-over mode, ensure that AST expression nodes
+                //are correctly initialized (e.g. they have a type/symbol)
+                attr.postAttr(env);
+            }
             compileStates.put(env, CompileState.ATTR);
         }
         finally {
@@ -1182,7 +1213,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             try {
                 make.at(Position.FIRSTPOS);
                 TreeMaker localMake = make.forToplevel(env.toplevel);
-                flow.analyzeTree(env.tree, localMake);
+                flow.analyzeTree(env, localMake);
                 compileStates.put(env, CompileState.FLOW);
 
                 if (shouldStop(CompileState.FLOW))
@@ -1215,6 +1246,9 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         return stopIfError(CompileState.FLOW, results);
     }
 
+    HashMap<Env<AttrContext>, Queue<Pair<Env<AttrContext>, JCClassDecl>>> desugaredEnvs =
+            new HashMap<Env<AttrContext>, Queue<Pair<Env<AttrContext>, JCClassDecl>>>();
+
     /**
      * Prepare attributed parse trees, in conjunction with their attribution contexts,
      * for source or code generation. If the file was not listed on the command line,
@@ -1230,10 +1264,17 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             return;
         }
 
+        if (compileStates.isDone(env, CompileState.LOWER)) {
+            results.addAll(desugaredEnvs.get(env));
+            return;
+        }
+
         /**
-         * As erasure (TransTypes) destroys information needed in flow analysis,
-         * including information in supertypes, we need to ensure that supertypes
-         * are processed through attribute and flow before subtypes are translated.
+         * Ensure that superclasses of C are desugared before C itself. This is
+         * required for two reasons: (i) as erasure (TransTypes) destroys
+         * information needed in flow analysis and (ii) as some checks carried
+         * out during lowering require that all synthetic fields/methods have
+         * already been added to C and its superclasses.
          */
         class ScanNested extends TreeScanner {
             Set<Env<AttrContext>> dependencies = new LinkedHashSet<Env<AttrContext>>();
@@ -1254,8 +1295,8 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         ScanNested scanner = new ScanNested();
         scanner.scan(env.tree);
         for (Env<AttrContext> dep: scanner.dependencies) {
-            if (!compileStates.isDone(dep, CompileState.FLOW))
-                flow(attribute(dep));
+        if (!compileStates.isDone(dep, CompileState.FLOW))
+            desugaredEnvs.put(dep, desugar(flow(attribute(dep))));
         }
 
         //We need to check for error another time as more classes might
@@ -1306,6 +1347,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                 return;
 
             env.tree = transTypes.translateTopLevelClass(env.tree, localMake);
+            compileStates.put(env, CompileState.TRANSTYPES);
 
             if (shouldStop(CompileState.LOWER))
                 return;
@@ -1323,6 +1365,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
 
             //translate out inner classes
             List<JCTree> cdefs = lower.translateTopLevelClass(env, env.tree, localMake);
+            compileStates.put(env, CompileState.LOWER);
 
             if (shouldStop(CompileState.LOWER))
                 return;
@@ -1523,19 +1566,19 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
      *  @param arg An argument for substitution into the output string.
      */
     protected void printVerbose(String key, Object arg) {
-        Log.printLines(log.noticeWriter, Log.getLocalizedString("verbose." + key, arg));
+        log.printNoteLines("verbose." + key, arg);
     }
 
     /** Print numbers of errors and warnings.
      */
     protected void printCount(String kind, int count) {
         if (count != 0) {
-            String text;
+            String key;
             if (count == 1)
-                text = Log.getLocalizedString("count." + kind, String.valueOf(count));
+                key = "count." + kind;
             else
-                text = Log.getLocalizedString("count." + kind + ".plural", String.valueOf(count));
-            Log.printLines(log.errWriter, text);
+                key = "count." + kind + ".plural";
+            log.printErrLines(key, String.valueOf(count));
             log.errWriter.flush();
         }
     }
@@ -1549,6 +1592,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     }
 
     public void initRound(JavaCompiler prev) {
+        genEndPos = prev.genEndPos;
         keepComments = prev.keepComments;
         start_msec = prev.start_msec;
         hasBeenUsed = true;

@@ -1,12 +1,12 @@
 /*
- * Copyright 2005-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.api;
@@ -54,9 +54,9 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.main.JavaCompiler;
 
 /**
- * Provides access to functionality specific to the Sun Java Compiler, javac.
+ * Provides access to functionality specific to the JDK Java Compiler, javac.
  *
- * <p><b>This is NOT part of any API supported by Sun Microsystems.
+ * <p><b>This is NOT part of any supported API.
  * If you write code that depends on this, you do so at your own
  * risk.  This code and its internal interfaces are subject to change
  * or deletion without notice.</b></p>
@@ -96,9 +96,6 @@ public class JavacTaskImpl extends JavacTask {
         args.getClass();
         context.getClass();
         fileObjects.getClass();
-
-        // force the use of the scanner that captures Javadoc comments
-        com.sun.tools.javac.parser.DocCommentScanner.Factory.preRegister(context);
     }
 
     JavacTaskImpl(JavacTool tool,
@@ -133,6 +130,7 @@ public class JavacTaskImpl extends JavacTask {
     public Boolean call() {
         if (!used.getAndSet(true)) {
             beginContext();
+            notYetEntered = new HashMap<JavaFileObject, JCCompilationUnit>();
             try {
                 compilerMain.setFatalErrors(true);
                 result = compilerMain.compile(args, context, fileObjects, processors);
@@ -143,6 +141,7 @@ public class JavacTaskImpl extends JavacTask {
             args = null;
             context = null;
             fileObjects = null;
+            notYetEntered = null;
             return result == 0;
         } else {
             throw new IllegalStateException("multiple calls to method 'call'");
@@ -335,9 +334,13 @@ public class JavacTaskImpl extends JavacTask {
 
             ListBuffer<TypeElement> elements = new ListBuffer<TypeElement>();
             for (JCCompilationUnit unit : units) {
-                for (JCTree node : unit.defs)
-                    if (node.getTag() == JCTree.CLASSDEF)
-                        elements.append(((JCTree.JCClassDecl) node).sym);
+                for (JCTree node : unit.defs) {
+                    if (node.getTag() == JCTree.CLASSDEF) {
+                        JCClassDecl cdef = (JCClassDecl) node;
+                        if (cdef.sym != null) // maybe null if errors in anno processing
+                            elements.append(cdef.sym);
+                    }
+                }
             }
             return elements.toList();
         }
@@ -500,7 +503,7 @@ public class JavacTaskImpl extends JavacTask {
     }
 
     /**
-     * For internal use by Sun Microsystems only.  This method will be
+     * For internal use only.  This method will be
      * removed without warning.
      */
     public Context getContext() {
@@ -508,7 +511,7 @@ public class JavacTaskImpl extends JavacTask {
     }
 
     /**
-     * For internal use by Sun Microsystems only.  This method will be
+     * For internal use only.  This method will be
      * removed without warning.
      */
     public void updateContext(Context newContext) {
@@ -516,7 +519,7 @@ public class JavacTaskImpl extends JavacTask {
     }
 
     /**
-     * For internal use by Sun Microsystems only.  This method will be
+     * For internal use only.  This method will be
      * removed without warning.
      */
     public Type parseType(String expr, TypeElement scope) {

@@ -1,12 +1,12 @@
 /*
- * Copyright 2005-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,22 +18,15 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.processing;
 
-import com.sun.tools.javac.util.*;
-import javax.annotation.processing.*;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.NestingKind;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Element;
-import java.util.*;
-
 import java.io.Closeable;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.FilterOutputStream;
@@ -42,13 +35,25 @@ import java.io.Writer;
 import java.io.FilterWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
+import java.util.*;
 
-import javax.tools.*;
 import static java.util.Collections.*;
 
+import javax.annotation.processing.*;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.NestingKind;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Element;
+import javax.tools.*;
 import javax.tools.JavaFileManager.Location;
+
 import static javax.tools.StandardLocation.SOURCE_OUTPUT;
 import static javax.tools.StandardLocation.CLASS_OUTPUT;
+
+import com.sun.tools.javac.code.Lint;
+import com.sun.tools.javac.util.*;
+
+import static com.sun.tools.javac.code.Lint.LintCategory.PROCESSING;
 
 /**
  * The FilerImplementation class must maintain a number of
@@ -87,7 +92,7 @@ import static javax.tools.StandardLocation.CLASS_OUTPUT;
  * class path can alter the behavior of the tool and any final
  * compile.
  *
- * <p><b>This is NOT part of any API supported by Sun Microsystems.
+ * <p><b>This is NOT part of any supported API.
  * If you write code that depends on this, you do so at your own risk.
  * This code and its internal interfaces are subject to change or
  * deletion without notice.</b>
@@ -365,7 +370,7 @@ public class JavacFiler implements Filer, Closeable {
         aggregateGeneratedSourceNames = new LinkedHashSet<String>();
         aggregateGeneratedClassNames  = new LinkedHashSet<String>();
 
-        lint = (Options.instance(context)).lint("processing");
+        lint = (Lint.instance(context)).isEnabled(PROCESSING);
     }
 
     public JavaFileObject createSourceFile(CharSequence name,
@@ -379,6 +384,15 @@ public class JavacFiler implements Filer, Closeable {
     }
 
     private JavaFileObject createSourceOrClassFile(boolean isSourceFile, String name) throws IOException {
+        if (lint) {
+            int periodIndex = name.lastIndexOf(".");
+            if (periodIndex != -1) {
+                String base = name.substring(periodIndex);
+                String extn = (isSourceFile ? ".java" : ".class");
+                if (base.equals(extn))
+                    log.warning("proc.suspicious.class.name", name, extn);
+            }
+        }
         checkNameAndExistence(name, isSourceFile);
         Location loc = (isSourceFile ? SOURCE_OUTPUT : CLASS_OUTPUT);
         JavaFileObject.Kind kind = (isSourceFile ?
@@ -441,10 +455,15 @@ public class JavacFiler implements Filer, Closeable {
         // TODO: Only support reading resources in selected output
         // locations?  Only allow reading of non-source, non-class
         // files from the supported input locations?
-        FileObject fileObject = fileManager.getFileForOutput(location,
-                                                             pkg.toString(),
-                                                             relativeName.toString(),
-                                                             null);
+        FileObject fileObject = fileManager.getFileForInput(location,
+                    pkg.toString(),
+                    relativeName.toString());
+        if (fileObject == null) {
+            String name = (pkg.length() == 0)
+                    ? relativeName.toString() : (pkg + "/" + relativeName);
+            throw new FileNotFoundException(name);
+        }
+
         // If the path was already opened for writing, throw an exception.
         checkFileReopening(fileObject, false);
         return new FilerInputFileObject(fileObject);
@@ -530,11 +549,14 @@ public class JavacFiler implements Filer, Closeable {
     /**
      * Update internal state for a new round.
      */
-    public void newRound(Context context, boolean lastRound) {
+    public void newRound(Context context) {
         this.context = context;
         this.log = Log.instance(context);
-        this.lastRound = lastRound;
         clearRoundState();
+    }
+
+    void setLastRound(boolean lastRound) {
+        this.lastRound = lastRound;
     }
 
     public void close() {

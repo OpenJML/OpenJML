@@ -1,12 +1,12 @@
 /*
- * Copyright 2005-2006 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.source.util;
@@ -138,8 +138,10 @@ public class TreeScanner<R,P> implements TreeVisitor<R,P> {
         r = scanAndReduce(node.getReturnType(), p, r);
         r = scanAndReduce(node.getTypeParameters(), p, r);
         r = scanAndReduce(node.getParameters(), p, r);
+//308        r = scanAndReduce(node.getReceiverAnnotations(), p, r);
         r = scanAndReduce(node.getThrows(), p, r);
         r = scanAndReduce(node.getBody(), p, r);
+        r = scanAndReduce(node.getDefaultValue(), p, r);
         return r;
     }
 
@@ -208,7 +210,8 @@ public class TreeScanner<R,P> implements TreeVisitor<R,P> {
     }
 
     public R visitTry(TryTree node, P p) {
-        R r = scan(node.getBlock(), p);
+        R r = scan(node.getResources(), p);
+        r = scanAndReduce(node.getBlock(), p, r);
         r = scanAndReduce(node.getCatches(), p, r);
         r = scanAndReduce(node.getFinallyBlock(), p, r);
         return r;
@@ -353,8 +356,14 @@ public class TreeScanner<R,P> implements TreeVisitor<R,P> {
         return r;
     }
 
+    public R visitDisjunctiveType(DisjunctiveTypeTree node, P p) {
+        return scan(node.getTypeAlternatives(), p);
+    }
+
     public R visitTypeParameter(TypeParameterTree node, P p) {
-        return scan(node.getBounds(), p);
+        R r = scan(node.getBounds(), p);
+//308        R r = scanAndReduce(node.getAnnotations(), p, r);
+        return r;
     }
 
     public R visitWildcard(WildcardTree node, P p) {
@@ -370,6 +379,12 @@ public class TreeScanner<R,P> implements TreeVisitor<R,P> {
         r = scanAndReduce(node.getArguments(), p, r);
         return r;
     }
+
+//308   public R visitAnnotatedType(AnnotatedTypeTree node, P p) {
+//308       R r = scan(node.getAnnotations(), p);
+//308       r = scanAndReduce(node.getUnderlyingType(), p, r);
+//308       return r;
+//308   }
 
     public R visitOther(Tree node, P p) {
         return null;

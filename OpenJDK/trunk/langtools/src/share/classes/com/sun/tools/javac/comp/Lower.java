@@ -1,12 +1,12 @@
 /*
- * Copyright 1999-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Sun designates this
+ * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the LICENSE file that accompanied this code.
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -18,9 +18,9 @@
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
- * CA 95054 USA or visit www.sun.com if you need additional information or
- * have any questions.
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.tools.javac.comp;
@@ -29,6 +29,7 @@ import java.util.*;
 
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.jvm.*;
+import com.sun.tools.javac.main.RecognizedOptions.PkgInfo;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -48,8 +49,8 @@ import static com.sun.tools.javac.jvm.ByteCodes.*;
 /** This pass translates away some syntactic sugar: inner classes,
  *  class literals, assertions, foreach loops, etc.
  *
- *  <p><b>This is NOT part of any API supported by Sun Microsystems.  If
- *  you write code that depends on this, you do so at your own risk.
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
@@ -67,6 +68,7 @@ public class Lower extends TreeTranslator {
     private Names names;
     private Log log;
     private Symtab syms;
+    private Scope.ScopeCounter scopeCounter;
     private Resolve rs;
     private Check chk;
     private Attr attr;
@@ -82,12 +84,14 @@ public class Lower extends TreeTranslator {
     private final Name classDollar;
     private Types types;
     private boolean debugLower;
+    private PkgInfo pkginfoOpt;
 
     protected Lower(Context context) {
         context.put(lowerKey, this);
         names = Names.instance(context);
         log = Log.instance(context);
         syms = Symtab.instance(context);
+        scopeCounter = Scope.ScopeCounter.instance(context);
         rs = Resolve.instance(context);
         chk = Check.instance(context);
         attr = Attr.instance(context);
@@ -105,7 +109,8 @@ public class Lower extends TreeTranslator {
 
         types = Types.instance(context);
         Options options = Options.instance(context);
-        debugLower = options.get("debuglower") != null;
+        debugLower = options.isSet("debuglower");
+        pkginfoOpt = PkgInfo.get(options);
     }
 
     /** The currently enclosing class.
@@ -357,7 +362,7 @@ public class Lower extends TreeTranslator {
      *          case 2: stmt2
      *          }
      *  </pre>
-     *  with the auxilliary table intialized as follows:
+     *  with the auxiliary table initialized as follows:
      *  <pre>
      *          class Outer$0 {
      *              synthetic final int[] $EnumMap$Color = new int[Color.values().length];
@@ -566,7 +571,7 @@ public class Lower extends TreeTranslator {
         c.flatname = chk.localClassName(c);
         c.sourcefile = owner.sourcefile;
         c.completer = null;
-        c.members_field = new Scope(c);
+        c.members_field = new Scope.ClassScope(c, scopeCounter);
         c.flags_field = flags;
         ClassType ctype = (ClassType) c.type;
         ctype.supertype_field = syms.objectType;
@@ -596,34 +601,73 @@ public class Lower extends TreeTranslator {
  * Symbol manipulation utilities
  *************************************************************************/
 
-    /** Report a conflict between a user symbol and a synthetic symbol.
-     */
-    private void duplicateError(DiagnosticPosition pos, Symbol sym) {
-        if (!sym.type.isErroneous()) {
-            log.error(pos, "synthetic.name.conflict", sym, sym.location());
-        }
-    }
-
     /** Enter a synthetic symbol in a given scope, but complain if there was already one there.
      *  @param pos           Position for error reporting.
      *  @param sym           The symbol.
      *  @param s             The scope.
      */
     private void enterSynthetic(DiagnosticPosition pos, Symbol sym, Scope s) {
-        if (sym.name != names.error && sym.name != names.empty) {
-            for (Scope.Entry e = s.lookup(sym.name); e.scope == s; e = e.next()) {
-                if (sym != e.sym && sym.kind == e.sym.kind) {
-                    // VM allows methods and variables with differing types
-                    if ((sym.kind & (MTH|VAR)) != 0 &&
-                        !types.erasure(sym.type).equals(types.erasure(e.sym.type)))
-                        continue;
-                    duplicateError(pos, e.sym);
-                    break;
-                }
-            }
-        }
         s.enter(sym);
     }
+
+    /** Create a fresh synthetic name within a given scope - the unique name is
+     *  obtained by appending '$' chars at the end of the name until no match
+     *  is found.
+     *
+     * @param name base name
+     * @param s scope in which the name has to be unique
+     * @return fresh synthetic name
+     */
+    private Name makeSyntheticName(Name name, Scope s) {
+        do {
+            name = name.append(
+                    target.syntheticNameChar(),
+                    names.empty);
+        } while (lookupSynthetic(name, s) != null);
+        return name;
+    }
+
+    /** Check whether synthetic symbols generated during lowering conflict
+     *  with user-defined symbols.
+     *
+     *  @param translatedTrees lowered class trees
+     */
+    void checkConflicts(List<JCTree> translatedTrees) {
+        for (JCTree t : translatedTrees) {
+            t.accept(conflictsChecker);
+        }
+    }
+
+    JCTree.Visitor conflictsChecker = new TreeScanner() {
+
+        TypeSymbol currentClass;
+
+        @Override
+        public void visitMethodDef(JCMethodDecl that) {
+            chk.checkConflicts(that.pos(), that.sym, currentClass);
+            super.visitMethodDef(that);
+        }
+
+        @Override
+        public void visitVarDef(JCVariableDecl that) {
+            if (that.sym.owner.kind == TYP) {
+                chk.checkConflicts(that.pos(), that.sym, currentClass);
+            }
+            super.visitVarDef(that);
+        }
+
+        @Override
+        public void visitClassDef(JCClassDecl that) {
+            TypeSymbol prevCurrentClass = currentClass;
+            currentClass = that.sym;
+            try {
+                super.visitClassDef(that);
+            }
+            finally {
+                currentClass = prevCurrentClass;
+            }
+        }
+    };
 
     /** Look up a synthetic name in a given scope.
      *  @param scope        The scope.
@@ -650,6 +694,40 @@ public class Lower extends TreeTranslator {
      */
     private VarSymbol lookupField(DiagnosticPosition pos, Type qual, Name name) {
         return rs.resolveInternalField(pos, attrEnv, qual, name);
+    }
+
+    /** Anon inner classes are used as access constructor tags.
+     * accessConstructorTag will use an existing anon class if one is available,
+     * and synthethise a class (with makeEmptyClass) if one is not available.
+     * However, there is a small possibility that an existing class will not
+     * be generated as expected if it is inside a conditional with a constant
+     * expression. If that is found to be the case, create an empty class here.
+     */
+    private void checkAccessConstructorTags() {
+        for (List<ClassSymbol> l = accessConstrTags; l.nonEmpty(); l = l.tail) {
+            ClassSymbol c = l.head;
+            if (isTranslatedClassAvailable(c))
+                continue;
+            // Create class definition tree.
+            JCClassDecl cdef = make.ClassDef(
+                make.Modifiers(STATIC | SYNTHETIC), names.empty,
+                List.<JCTypeParameter>nil(),
+                null, List.<JCExpression>nil(), List.<JCTree>nil());
+            cdef.sym = c;
+            cdef.type = c.type;
+            // add it to the list of classes to be generated
+            translated.append(cdef);
+        }
+    }
+    // where
+    private boolean isTranslatedClassAvailable(ClassSymbol c) {
+        for (JCTree tree: translated) {
+            if (tree.getTag() == JCTree.CLASSDEF
+                    && ((JCClassDecl) tree).sym == c) {
+                return true;
+            }
+        }
+        return false;
     }
 
 /**************************************************************************
@@ -695,6 +773,10 @@ public class Lower extends TreeTranslator {
     /** A mapping from (constructor) symbols to access constructor symbols.
      */
     private Map<Symbol,MethodSymbol> accessConstrs;
+
+    /** A list of all class symbols used for access constructor tags.
+     */
+    private List<ClassSymbol> accessConstrTags;
 
     /** A queue for all accessed symbols.
      */
@@ -836,7 +918,7 @@ public class Lower extends TreeTranslator {
         int acode;                // The access code of the access method.
         List<Type> argtypes;      // The argument types of the access method.
         Type restype;             // The result type of the access method.
-        List<Type> thrown;        // The thrown execeptions of the access method.
+        List<Type> thrown;        // The thrown exceptions of the access method.
         switch (vsym.kind) {
         case VAR:
             acode = accessCode(tree, enclOp);
@@ -1116,6 +1198,8 @@ public class Lower extends TreeTranslator {
         ClassSymbol ctag = chk.compiled.get(flatname);
         if (ctag == null)
             ctag = makeEmptyClass(STATIC | SYNTHETIC, topClass);
+        // keep a record of all tags, to verify that all are generated as required
+        accessConstrTags = accessConstrTags.prepend(ctag);
         return ctag;
     }
 
@@ -1237,6 +1321,11 @@ public class Lower extends TreeTranslator {
      */
     Scope proxies;
 
+    /** A scope containing all unnamed resource variables/saved
+     *  exception variables for translated TWR blocks
+     */
+    Scope twrVars;
+
     /** A stack containing the this$n field of the currently translated
      *  classes (if needed) in innermost first order.
      *  Inside a constructor, proxies and any this$n symbol are duplicated
@@ -1336,6 +1425,122 @@ public class Lower extends TreeTranslator {
             // need to go via this$n
             return makeOuterThis(pos, c);
         }
+    }
+
+    /** Optionally replace a try statement with an automatic resource
+     *  management (ARM) block.
+     * @param tree  The try statement to inspect.
+     * @return      An ARM block, or the original try block if there are no
+     *              resources to manage.
+     */
+    JCTree makeArmTry(JCTry tree) {
+        make_at(tree.pos());
+        twrVars = twrVars.dup();
+        JCBlock armBlock = makeArmBlock(tree.resources, tree.body, 0);
+        if (tree.catchers.isEmpty() && tree.finalizer == null)
+            result = translate(armBlock);
+        else
+            result = translate(make.Try(armBlock, tree.catchers, tree.finalizer));
+        twrVars = twrVars.leave();
+        return result;
+    }
+
+    private JCBlock makeArmBlock(List<JCTree> resources, JCBlock block, int depth) {
+        if (resources.isEmpty())
+            return block;
+
+        // Add resource declaration or expression to block statements
+        ListBuffer<JCStatement> stats = new ListBuffer<JCStatement>();
+        JCTree resource = resources.head;
+        JCExpression expr = null;
+        if (resource instanceof JCVariableDecl) {
+            JCVariableDecl var = (JCVariableDecl) resource;
+            expr = make.Ident(var.sym).setType(resource.type);
+            stats.add(var);
+        } else {
+            assert resource instanceof JCExpression;
+            VarSymbol syntheticTwrVar =
+            new VarSymbol(SYNTHETIC | FINAL,
+                          makeSyntheticName(names.fromString("twrVar" +
+                                           depth), twrVars),
+                          (resource.type.tag == TypeTags.BOT) ?
+                          syms.autoCloseableType : resource.type,
+                          currentMethodSym);
+            twrVars.enter(syntheticTwrVar);
+            JCVariableDecl syntheticTwrVarDecl =
+                make.VarDef(syntheticTwrVar, (JCExpression)resource);
+            expr = (JCExpression)make.Ident(syntheticTwrVar);
+            stats.add(syntheticTwrVarDecl);
+        }
+
+        // Add primaryException declaration
+        VarSymbol primaryException =
+            new VarSymbol(SYNTHETIC,
+                          makeSyntheticName(names.fromString("primaryException" +
+                          depth), twrVars),
+                          syms.throwableType,
+                          currentMethodSym);
+        twrVars.enter(primaryException);
+        JCVariableDecl primaryExceptionTreeDecl = make.VarDef(primaryException, makeNull());
+        stats.add(primaryExceptionTreeDecl);
+
+        // Create catch clause that saves exception and then rethrows it
+        VarSymbol param =
+            new VarSymbol(FINAL|SYNTHETIC,
+                          names.fromString("t" +
+                                           target.syntheticNameChar()),
+                          syms.throwableType,
+                          currentMethodSym);
+        JCVariableDecl paramTree = make.VarDef(param, null);
+        JCStatement assign = make.Assignment(primaryException, make.Ident(param));
+        JCStatement rethrowStat = make.Throw(make.Ident(param));
+        JCBlock catchBlock = make.Block(0L, List.<JCStatement>of(assign, rethrowStat));
+        JCCatch catchClause = make.Catch(paramTree, catchBlock);
+
+        int oldPos = make.pos;
+        make.at(TreeInfo.endPos(block));
+        JCBlock finallyClause = makeArmFinallyClause(primaryException, expr);
+        make.at(oldPos);
+        JCTry outerTry = make.Try(makeArmBlock(resources.tail, block, depth + 1),
+                                  List.<JCCatch>of(catchClause),
+                                  finallyClause);
+        stats.add(outerTry);
+        return make.Block(0L, stats.toList());
+    }
+
+    private JCBlock makeArmFinallyClause(Symbol primaryException, JCExpression resource) {
+        // primaryException.addSuppressedException(catchException);
+        VarSymbol catchException =
+            new VarSymbol(0, make.paramName(2),
+                          syms.throwableType,
+                          currentMethodSym);
+        JCStatement addSuppressionStatement =
+            make.Exec(makeCall(make.Ident(primaryException),
+                               names.fromString("addSuppressedException"),
+                               List.<JCExpression>of(make.Ident(catchException))));
+
+        // try { resource.close(); } catch (e) { primaryException.addSuppressedException(e); }
+        JCBlock tryBlock =
+            make.Block(0L, List.<JCStatement>of(makeResourceCloseInvocation(resource)));
+        JCVariableDecl catchExceptionDecl = make.VarDef(catchException, null);
+        JCBlock catchBlock = make.Block(0L, List.<JCStatement>of(addSuppressionStatement));
+        List<JCCatch> catchClauses = List.<JCCatch>of(make.Catch(catchExceptionDecl, catchBlock));
+        JCTry tryTree = make.Try(tryBlock, catchClauses, null);
+
+        // if (resource != null) resourceClose;
+        JCExpression nullCheck = makeBinary(JCTree.NE,
+                                            make.Ident(primaryException),
+                                            makeNull());
+        JCIf closeIfStatement = make.If(nullCheck,
+                                        tryTree,
+                                        makeResourceCloseInvocation(resource));
+        return make.Block(0L, List.<JCStatement>of(closeIfStatement));
+    }
+
+    private JCStatement makeResourceCloseInvocation(JCExpression resource) {
+        // create resource.close() method invocation
+        JCExpression resourceClose = makeCall(resource, names.close, List.<JCExpression>nil());
+        return make.Exec(resourceClose);
     }
 
     /** Construct a tree that represents the outer instance
@@ -1961,7 +2166,7 @@ public class Lower extends TreeTranslator {
     }
 
     public void visitTopLevel(JCCompilationUnit tree) {
-        if (tree.packageAnnotations.nonEmpty()) {
+        if (needPackageInfoClass(tree)) {
             Name name = names.package_info;
             long flags = Flags.ABSTRACT | Flags.INTERFACE;
             if (target.isPackageInfoSynthetic())
@@ -1972,22 +2177,33 @@ public class Lower extends TreeTranslator {
                                                tree.packageAnnotations),
                                 name, List.<JCTypeParameter>nil(),
                                 null, List.<JCExpression>nil(), List.<JCTree>nil());
-            ClassSymbol c = reader.enterClass(name, tree.packge);
-            c.flatname = names.fromString(tree.packge + "." + name);
-            c.sourcefile = tree.sourcefile;
-            c.completer = null;
-            c.members_field = new Scope(c);
-            c.flags_field = flags;
+            ClassSymbol c = tree.packge.package_info;
+            c.flags_field |= flags;
             c.attributes_field = tree.packge.attributes_field;
-            tree.packge.attributes_field = List.nil();
             ClassType ctype = (ClassType) c.type;
             ctype.supertype_field = syms.objectType;
             ctype.interfaces_field = List.nil();
             packageAnnotationsClass.sym = c;
 
-
             translated.append(packageAnnotationsClass);
         }
+    }
+    // where
+    private boolean needPackageInfoClass(JCCompilationUnit tree) {
+        switch (pkginfoOpt) {
+            case ALWAYS:
+                return true;
+            case LEGACY:
+                return tree.packageAnnotations.nonEmpty();
+            case NONEMPTY:
+                for (Attribute.Compound a: tree.packge.attributes_field) {
+                    Attribute.RetentionPolicy p = types.getRetention(a);
+                    if (p != Attribute.RetentionPolicy.SOURCE)
+                        return true;
+                }
+                return false;
+        }
+        throw new AssertionError();
     }
 
     public void visitClassDef(JCClassDecl tree) {
@@ -2369,6 +2585,11 @@ public class Lower extends TreeTranslator {
         result = tree;
     }
 
+    public void visitAnnotatedType(JCAnnotatedType tree) {
+        tree.underlyingType = translate(tree.underlyingType);
+        result = tree.underlyingType;
+    }
+
     public void visitTypeCast(JCTypeCast tree) {
         tree.clazz = translate(tree.clazz);
         if (tree.type.isPrimitive() != tree.expr.type.isPrimitive())
@@ -2437,7 +2658,7 @@ public class Lower extends TreeTranslator {
     // the dead code, which will not be eliminated during code generation.
     // Note that Flow.isFalse and Flow.isTrue only return true
     // for constant expressions in the sense of JLS 15.27, which
-    // are guaranteed to have no side-effects.  More agressive
+    // are guaranteed to have no side-effects.  More aggressive
     // constant propagation would require that we take care to
     // preserve possible side-effects in the condition expression.
 
@@ -2458,7 +2679,8 @@ public class Lower extends TreeTranslator {
     }
 //where
         private JCTree convert(JCTree tree, Type pt) {
-            if (tree.type == pt) return tree;
+            if (tree.type == pt || tree.type.tag == TypeTags.BOT)
+                return tree;
             JCTree result = make_at(tree.pos()).TypeCast(make.Type(pt), (JCExpression)tree);
             result.type = (tree.type.constValue() != null) ? cfolder.coerce(tree.type, pt)
                                                            : pt;
@@ -2670,8 +2892,17 @@ public class Lower extends TreeTranslator {
     /** Unbox an object to a primitive value. */
     JCExpression unbox(JCExpression tree, Type primitive) {
         Type unboxedType = types.unboxedType(tree.type);
-        // note: the "primitive" parameter is not used.  There muse be
-        // a conversion from unboxedType to primitive.
+        if (unboxedType.tag == NONE) {
+            unboxedType = primitive;
+            if (!unboxedType.isPrimitive())
+                throw new AssertionError(unboxedType);
+            make_at(tree.pos());
+            tree = make.TypeCast(types.boxedClass(unboxedType).type, tree);
+        } else {
+            // There must be a conversion from unboxedType to primitive.
+            if (!types.isSubtype(unboxedType, primitive))
+                throw new AssertionError(tree);
+        }
         make_at(tree.pos());
         Symbol valueSym = lookupMethod(tree.pos(),
                                        unboxedType.tsym.name.append(names.Value), // x.intValue()
@@ -2824,7 +3055,7 @@ public class Lower extends TreeTranslator {
 
         // If translated left hand side is an Apply, we are
         // seeing an access method invocation. In this case, return
-        // that access method invokation as result.
+        // that access method invocation as result.
         if (isUpdateOperator && tree.arg.getTag() == JCTree.APPLY) {
             result = tree.arg;
         } else {
@@ -2874,7 +3105,7 @@ public class Lower extends TreeTranslator {
     }
         // where
         /**
-         * A statment of the form
+         * A statement of the form
          *
          * <pre>
          *     for ( T v : arrayexpr ) stmt;
@@ -3083,12 +3314,16 @@ public class Lower extends TreeTranslator {
         Type selsuper = types.supertype(tree.selector.type);
         boolean enumSwitch = selsuper != null &&
             (tree.selector.type.tsym.flags() & ENUM) != 0;
-        Type target = enumSwitch ? tree.selector.type : syms.intType;
+        boolean stringSwitch = selsuper != null &&
+            types.isSameType(tree.selector.type, syms.stringType);
+        Type target = enumSwitch ? tree.selector.type :
+            (stringSwitch? syms.stringType : syms.intType);
         tree.selector = translate(tree.selector, target);
         tree.cases = translateCases(tree.cases);
         if (enumSwitch) {
             result = visitEnumSwitch(tree);
-            patchTargets(result, tree, result);
+        } else if (stringSwitch) {
+            result = visitStringSwitch(tree);
         } else {
             result = tree;
         }
@@ -3115,7 +3350,194 @@ public class Lower extends TreeTranslator {
                 cases.append(c);
             }
         }
-        return make.Switch(selector, cases.toList());
+        JCSwitch enumSwitch = make.Switch(selector, cases.toList());
+        patchTargets(enumSwitch, tree, enumSwitch);
+        return enumSwitch;
+    }
+
+    public JCTree visitStringSwitch(JCSwitch tree) {
+        List<JCCase> caseList = tree.getCases();
+        int alternatives = caseList.size();
+
+        if (alternatives == 0) { // Strange but legal possibility
+            return make.at(tree.pos()).Exec(attr.makeNullCheck(tree.getExpression()));
+        } else {
+            /*
+             * The general approach used is to translate a single
+             * string switch statement into a series of two chained
+             * switch statements: the first a synthesized statement
+             * switching on the argument string's hash value and
+             * computing a string's position in the list of original
+             * case labels, if any, followed by a second switch on the
+             * computed integer value.  The second switch has the same
+             * code structure as the original string switch statement
+             * except that the string case labels are replaced with
+             * positional integer constants starting at 0.
+             *
+             * The first switch statement can be thought of as an
+             * inlined map from strings to their position in the case
+             * label list.  An alternate implementation would use an
+             * actual Map for this purpose, as done for enum switches.
+             *
+             * With some additional effort, it would be possible to
+             * use a single switch statement on the hash code of the
+             * argument, but care would need to be taken to preserve
+             * the proper control flow in the presence of hash
+             * collisions and other complications, such as
+             * fallthroughs.  Switch statements with one or two
+             * alternatives could also be specially translated into
+             * if-then statements to omit the computation of the hash
+             * code.
+             *
+             * The generated code assumes that the hashing algorithm
+             * of String is the same in the compilation environment as
+             * in the environment the code will run in.  The string
+             * hashing algorithm in the SE JDK has been unchanged
+             * since at least JDK 1.2.  Since the algorithm has been
+             * specified since that release as well, it is very
+             * unlikely to be changed in the future.
+             *
+             * Different hashing algorithms, such as the length of the
+             * strings or a perfect hashing algorithm over the
+             * particular set of case labels, could potentially be
+             * used instead of String.hashCode.
+             */
+
+            ListBuffer<JCStatement> stmtList = new ListBuffer<JCStatement>();
+
+            // Map from String case labels to their original position in
+            // the list of case labels.
+            Map<String, Integer> caseLabelToPosition =
+                new LinkedHashMap<String, Integer>(alternatives + 1, 1.0f);
+
+            // Map of hash codes to the string case labels having that hashCode.
+            Map<Integer, Set<String>> hashToString =
+                new LinkedHashMap<Integer, Set<String>>(alternatives + 1, 1.0f);
+
+            int casePosition = 0;
+            for(JCCase oneCase : caseList) {
+                JCExpression expression = oneCase.getExpression();
+
+                if (expression != null) { // expression for a "default" case is null
+                    String labelExpr = (String) expression.type.constValue();
+                    Integer mapping = caseLabelToPosition.put(labelExpr, casePosition);
+                    assert mapping == null;
+                    int hashCode = labelExpr.hashCode();
+
+                    Set<String> stringSet = hashToString.get(hashCode);
+                    if (stringSet == null) {
+                        stringSet = new LinkedHashSet<String>(1, 1.0f);
+                        stringSet.add(labelExpr);
+                        hashToString.put(hashCode, stringSet);
+                    } else {
+                        boolean added = stringSet.add(labelExpr);
+                        assert added;
+                    }
+                }
+                casePosition++;
+            }
+
+            // Synthesize a switch statement that has the effect of
+            // mapping from a string to the integer position of that
+            // string in the list of case labels.  This is done by
+            // switching on the hashCode of the string followed by an
+            // if-then-else chain comparing the input for equality
+            // with all the case labels having that hash value.
+
+            /*
+             * s$ = top of stack;
+             * tmp$ = -1;
+             * switch($s.hashCode()) {
+             *     case caseLabel.hashCode:
+             *         if (s$.equals("caseLabel_1")
+             *           tmp$ = caseLabelToPosition("caseLabel_1");
+             *         else if (s$.equals("caseLabel_2"))
+             *           tmp$ = caseLabelToPosition("caseLabel_2");
+             *         ...
+             *         break;
+             * ...
+             * }
+             */
+
+            VarSymbol dollar_s = new VarSymbol(FINAL|SYNTHETIC,
+                                               names.fromString("s" + tree.pos + target.syntheticNameChar()),
+                                               syms.stringType,
+                                               currentMethodSym);
+            stmtList.append(make.at(tree.pos()).VarDef(dollar_s, tree.getExpression()).setType(dollar_s.type));
+
+            VarSymbol dollar_tmp = new VarSymbol(SYNTHETIC,
+                                                 names.fromString("tmp" + tree.pos + target.syntheticNameChar()),
+                                                 syms.intType,
+                                                 currentMethodSym);
+            JCVariableDecl dollar_tmp_def =
+                (JCVariableDecl)make.VarDef(dollar_tmp, make.Literal(INT, -1)).setType(dollar_tmp.type);
+            dollar_tmp_def.init.type = dollar_tmp.type = syms.intType;
+            stmtList.append(dollar_tmp_def);
+            ListBuffer<JCCase> caseBuffer = ListBuffer.lb();
+            // hashCode will trigger nullcheck on original switch expression
+            JCMethodInvocation hashCodeCall = makeCall(make.Ident(dollar_s),
+                                                       names.hashCode,
+                                                       List.<JCExpression>nil()).setType(syms.intType);
+            JCSwitch switch1 = make.Switch(hashCodeCall,
+                                        caseBuffer.toList());
+            for(Map.Entry<Integer, Set<String>> entry : hashToString.entrySet()) {
+                int hashCode = entry.getKey();
+                Set<String> stringsWithHashCode = entry.getValue();
+                assert stringsWithHashCode.size() >= 1;
+
+                JCStatement elsepart = null;
+                for(String caseLabel : stringsWithHashCode ) {
+                    JCMethodInvocation stringEqualsCall = makeCall(make.Ident(dollar_s),
+                                                                   names.equals,
+                                                                   List.<JCExpression>of(make.Literal(caseLabel)));
+                    elsepart = make.If(stringEqualsCall,
+                                       make.Exec(make.Assign(make.Ident(dollar_tmp),
+                                                             make.Literal(caseLabelToPosition.get(caseLabel))).
+                                                 setType(dollar_tmp.type)),
+                                       elsepart);
+                }
+
+                ListBuffer<JCStatement> lb = ListBuffer.lb();
+                JCBreak breakStmt = make.Break(null);
+                breakStmt.target = switch1;
+                lb.append(elsepart).append(breakStmt);
+
+                caseBuffer.append(make.Case(make.Literal(hashCode), lb.toList()));
+            }
+
+            switch1.cases = caseBuffer.toList();
+            stmtList.append(switch1);
+
+            // Make isomorphic switch tree replacing string labels
+            // with corresponding integer ones from the label to
+            // position map.
+
+            ListBuffer<JCCase> lb = ListBuffer.lb();
+            JCSwitch switch2 = make.Switch(make.Ident(dollar_tmp), lb.toList());
+            for(JCCase oneCase : caseList ) {
+                // Rewire up old unlabeled break statements to the
+                // replacement switch being created.
+                patchTargets(oneCase, tree, switch2);
+
+                boolean isDefault = (oneCase.getExpression() == null);
+                JCExpression caseExpr;
+                if (isDefault)
+                    caseExpr = null;
+                else {
+                    caseExpr = make.Literal(caseLabelToPosition.get((String)oneCase.
+                                                                    getExpression().
+                                                                    type.constValue()));
+                }
+
+                lb.append(make.Case(caseExpr,
+                                    oneCase.getStatements()));
+            }
+
+            switch2.cases = lb.toList();
+            stmtList.append(switch2);
+
+            return make.Block(0L, stmtList.toList());
+        }
     }
 
     public void visitNewArray(JCNewArray tree) {
@@ -3153,6 +3575,15 @@ public class Lower extends TreeTranslator {
         result = tree;
     }
 
+    @Override
+    public void visitTry(JCTry tree) {
+        if (tree.resources.isEmpty()) {
+            super.visitTry(tree);
+        } else {
+            result = makeArmTry(tree);
+        }
+    }
+
 /**************************************************************************
  * main method
  *************************************************************************/
@@ -3178,16 +3609,20 @@ public class Lower extends TreeTranslator {
             actualSymbols = new HashMap<Symbol,Symbol>();
             freevarCache = new HashMap<ClassSymbol,List<VarSymbol>>();
             proxies = new Scope(syms.noSymbol);
+            twrVars = new Scope(syms.noSymbol);
             outerThisStack = List.nil();
             accessNums = new HashMap<Symbol,Integer>();
             accessSyms = new HashMap<Symbol,MethodSymbol[]>();
             accessConstrs = new HashMap<Symbol,MethodSymbol>();
+            accessConstrTags = List.nil();
             accessed = new ListBuffer<Symbol>();
             translate(cdef, (JCExpression)null);
             for (List<Symbol> l = accessed.toList(); l.nonEmpty(); l = l.tail)
                 makeAccessible(l.head);
             for (EnumMapping map : enumSwitchMap.values())
                 map.translate();
+            checkConflicts(this.translated.toList());
+            checkAccessConstructorTags();
             translated = this.translated;
         } finally {
             // note that recursive invocations of this method fail hard
@@ -3207,6 +3642,7 @@ public class Lower extends TreeTranslator {
             accessNums = null;
             accessSyms = null;
             accessConstrs = null;
+            accessConstrTags = null;
             accessed = null;
             enumSwitchMap.clear();
         }
