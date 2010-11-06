@@ -24,7 +24,7 @@ if [[ "${SPECS}" == "" ]]; then
     SPECS=../Specs
 fi
 
-## Within Eclipse (in Cygwin at least), the paths that arer defined do not work
+## Within Eclipse (in Cygwin at least), the paths that are defined do not work
 ## here, so we just set them.
     ROOT=..
     ANNOTATIONS=../JMLAnnotations

@@ -11,6 +11,12 @@
 
 ## You should have Java 1.7 on your path
 
+## Within Eclipse (in Cygwin at least), the paths that are defined do not work
+## here, so we just set them.
+export ROOT=..
+export ANNOTATIONS=../JMLAnnotations
+export SPECS=../Specs
+
 
 
 VERSION=`date +%Y%m%d`
