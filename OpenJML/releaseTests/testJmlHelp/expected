@@ -17,7 +17,7 @@ where possible options include:
   -processorpath <path>      Specify where to find annotation processors
   -d <directory>             Specify where to place generated class files
   -s <directory>             Specify where to place generated source files
-  -implicit:{none,class}     Specify whether or not to generate class files for implicitly referenced files 
+  -implicit:{none,class}     Specify whether or not to generate class files for implicitly referenced files
   -encoding <encoding>       Specify character encoding used by source files
   -source <release>          Provide source compatibility with specified release
   -target <release>          Generate class files for specific VM version

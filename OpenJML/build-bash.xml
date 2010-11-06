@@ -2,6 +2,8 @@
 	<description>
 	</description>
 	
+	<target name="release-test" depends="release,test"/>
+		
 	<target name="release">
 		<loadproperties srcFile="openjml.properties"/>
 		<echo message="Building release"/>
