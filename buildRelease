@@ -1,6 +1,13 @@
 #!/bin/bash
 
+## FIXME: This script works when run standalone in Cygwin or from Eclipse
+## launched from Cygwin, but NOT from Eclipse launched from Windows.
+
 ## This script builds releases
+## It is meant to be built from the root of the collection of OpenJML projects,
+## that is, the current working directory should have OpenJML, Specs, JMLAnnotations,
+## OpenJDK, and OpenJMLUI as direct subdirectories.
+
 
 umask 022
 ## DO not know why this is necessary.  ROOT, ANNOTATIONS, and
@@ -9,7 +16,6 @@ umask 022
 ## So we reset them here to the most common relative paths
 ## for those env. variables.  (FIXME)
 if [[ "${COMSPEC}" != "" ]]; then
-if [[ "${COKENV}" == "" ]]; then
 	ROOT=..
 	if [[ -e ../JMLAnnotations ]]; then
 		ANNOTATIONS=../JMLAnnotations
@@ -17,7 +23,6 @@ if [[ "${COKENV}" == "" ]]; then
 	if [[ -e ../Specs ]]; then
 		SPECS=../Specs
 	fi
-fi
 fi
 
 VERSION=`date +%Y%m%d`
@@ -40,17 +45,20 @@ NAME=openjml-${VERSION}.tar.gz
 	cp -r ${ROOT}/OpenJML/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
 	cp -r ${ANNOTATIONS}/bin/* temp
-	mkdir -p temp/specs14 temp/specs15 temp/specs16; chmod -R u+rwx,a+rx temp
+	mkdir -p temp/specs14 temp/specs15 temp/specs16 temp/specs17; chmod -R u+rwx,a+rx temp
 	cp -r ${SPECS}/java4/* temp/specs14
-	find temp/specs14 -name .svn -exec rm -rf \{\} +
+    ( cd temp; find specs14 -name '.svn' -exec rm -rf {} + )
 	cp -r temp/specs14/* temp/specs15
 	cp -r ${SPECS}/java5/* temp/specs15
-	find temp/specs15 -name .svn -exec rm -rf \{\} +
-	cp -r temp/specs15/* temp/specs16
-	cp -r ${SPECS}/java6/* temp/specs16
-	find temp/specs16 -name .svn -exec rm -rf \{\} +
+    ( cd temp; find specs15 -name '.svn' -exec rm -rf {} + )
+    cp -r temp/specs15/* temp/specs16
+    cp -r ${SPECS}/java6/* temp/specs16
+    ( cd temp; find specs16 -name '.svn' -exec rm -rf {} + )
+    cp -r temp/specs16/* temp/specs17
+    cp -r ${SPECS}/java7/* temp/specs17
+    ( cd temp; find specs17 -name '.svn' -exec rm -rf {} + )
 	echo "   " Creating jmlspecs.jar
-	(cd temp/specs16; jar -cf ../../jars/jmlspecs.jar . )
+	(cd temp/specs17; jar -cf ../../jars/jmlspecs.jar . )
 	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
 	echo "   " Creating openjml.jar
 	echo "Manifest-Version: 1.0" > temp2/manifest
@@ -78,39 +86,6 @@ NAME=openjml-${VERSION}.tar.gz
 	tar -zcf ../${NAME} README openjml.jar jmlruntime.jar jmlspecs.jar *.properties )
 	##rm -rf jars  ## We don't delete them because some tests use them
 	echo "   " tar created
-
-##### Some consistency checks
-	if [[ -d ../OpenJML-DevUI ]]; then 
-	    if [[ -d ../OpenJMLUI ]]; then 
-		echo "   " Comparing icons and plugins ;
-		diff ../OpenJMLUI/plugin.xml ../OpenJML-DevUI/plugin.xml || echo "PLUGINS ARE DIFFERENT - RESOLVE!!!!!" ;
-		diff -r -x ".svn" ../OpenJMLUI/icons ../OpenJML-DevUI/icons || echo "ICON DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!" ;
-		diff -r -x ".svn" ../OpenJMLUI/html ../OpenJML-DevUI/html || echo "HTML DIRECTORIES ARE DIFFERENT - RESOLVE!!!!!" ;
-	    else echo "   " "No ../OpenJMLUI to compare" ;
-	    fi
-	##else 
-	    ##echo "   " "No ../OpenJML-DevUI to compare" ;
-	fi
-	echo "   " Checked icons and plugins
-
-##### Copy stuff to the ui
-	(cd ../OpenJMLUI; chmod -R u+rwx runtime openjml specs;
-	 rm -rf runtime openjml specs ; )
-	(cd ../OpenJMLUI; mkdir -p specs; chmod -R u+rwx,a+rx specs;)
-	cp -rf ${SPECS}/java7 ../OpenJMLUI/specs
-	cp -rf ${SPECS}/java6 ../OpenJMLUI/specs
-	cp -rf ${SPECS}/java5 ../OpenJMLUI/specs
-	cp -rf ${SPECS}/java4 ../OpenJMLUI/specs
-	find ../OpenJMLUI/specs -name .svn -exec rm -rf \{\} +
-	mkdir -p ../OpenJMLUI/openjml; chmod -R u+rwx,a+rx ../OpenJMLUI/openjml
-	mkdir -p ../OpenJMLUI/runtime; chmod -R u+rwx,a+rx ../OpenJMLUI/runtime
-	cp -r ${ROOT}/OpenJDK/bin/* ../OpenJMLUI/openjml
-	cp -r ${ROOT}/OpenJML/bin/* ../OpenJMLUI/openjml
-	cp -r ${ROOT}/OpenJML/bin-runtime/* ../OpenJMLUI/runtime
-	chmod -R u+rwx,a+rx ${ANNOTATIONS}/bin/*
-	cp -r ${ANNOTATIONS}/bin/* ../OpenJMLUI/runtime
-	echo "   " "Copy to OpenJMLUI complete"
-
 
 ##### End	
 	echo Release complete
