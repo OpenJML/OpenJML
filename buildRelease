@@ -10,26 +10,45 @@
 
 
 umask 022
-## DO not know why this is necessary.  ROOT, ANNOTATIONS, and
-## SPECS are set from Eclipse project locations, but under
-## Windows/Cygwin, the cp commands below fail with those settings.
-## So we reset them here to the most common relative paths
-## for those env. variables.  (FIXME)
-if [[ "${COMSPEC}" != "" ]]; then
-	ROOT=..
-	if [[ -e ../JMLAnnotations ]]; then
-		ANNOTATIONS=../JMLAnnotations
-	fi
-	if [[ -e ../Specs ]]; then
-		SPECS=../Specs
-	fi
+
+## If these variables are not set, we set them to what they will be in 
+## a standard Eclipse project setup for OpenJML.
+
+if [[ "${ROOT}" == "" ]]; then
+    ROOT=..
 fi
+if [[ "${ANNOTATIONS}" == "" ]]; then
+    ANNOTATIONS=../JMLAnnotations
+fi
+if [[ "${SPECS}" == "" ]]; then
+    SPECS=../Specs
+fi
+
+## Within Eclipse (in Cygwin at least), the paths that arer defined do not work
+## here, so we just set them.
+    ROOT=..
+    ANNOTATIONS=../JMLAnnotations
+    SPECS=../Specs
+
+
 
 VERSION=`date +%Y%m%d`
 NAME=openjml-${VERSION}.tar.gz
 
-###### Build jmlspecs.jar openjml.jar:
 	echo Building ${NAME} in `pwd`
+
+##### Build jmlruntime.jar
+	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
+	mkdir -p jars; chmod -R u+rwx,a+rx jars
+	rm -f jars/jmlruntime.jar
+	cp -r bin-runtime/* temp2
+	cp -r ${ANNOTATIONS}/bin/* temp2
+	(cd temp2; jar -cf ../jars/jmlruntime.jar . ) 
+	cp jars/jmlruntime.jar ${SPECS}
+	rm -rf temp2
+	echo "   " jmlruntime.jar created
+
+###### Build jmlspecs.jar openjml.jar:
 	test -d temp && chmod -R u+rwx,a+rx temp || rm -rf temp
 	test -d temp2 && chmod -R u+rwx,a+rx temp2 || rm -rf temp2
 	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/OpenJML-${VERSION}/ > version.properties )
@@ -66,17 +85,6 @@ NAME=openjml-${VERSION}.tar.gz
 	(cd temp; jar -cfm ../jars/openjml.jar ../temp2/manifest . )
 	##cp jars/openjml.jar ../OpenJMLUI
 	echo "   " jmlspecs.jar openjml.jar created
-
-##### Build jmlruntime.jar
-	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
-	mkdir -p jars; chmod -R u+rwx,a+rx jars
-	rm -f jars/jmlruntime.jar
-	cp -r bin-runtime/* temp2
-	cp -r ${ANNOTATIONS}/bin/* temp2
-	(cd temp2; jar -cf ../jars/jmlruntime.jar . ) 
-	cp jars/jmlruntime.jar ${SPECS}
-	rm -rf temp2
-	echo "   " jmlruntime.jar created
 
 ##### Build the tar file
 	cp openjml-system.properties jars
