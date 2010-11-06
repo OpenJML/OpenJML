@@ -108,6 +108,7 @@ ${RTH} testRuntime1 "java -jar openjml.jar C.java -classpath . -noPurityCheck -n
 
 if [ -e ${ANNOTATIONS} ]; then
 
+##echo 1 - ANNOTATIONS = ${ANNOTATIONS}
 ## Checks a valid file with an external binary runtime library - should be OK
 ${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../bin-runtime${Z}${ANNOTATIONS}/bin -noInternalRuntime"  || RES=$(($RES+1))
 
@@ -116,6 +117,7 @@ ${RTH} testRuntime3 "java -jar openjml.jar C.java -noPurityCheck -classpath ../r
 
 else 
 
+##echo 2 - ANNOTATIONS = ${ANNOTATIONS}
 ## Checks a valid file with an external binary runtime library - should be OK
 ${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../bin-runtime${Z}../${ANNOTATIONS}/bin -noInternalRuntime"  || RES=$(($RES+1))
 
