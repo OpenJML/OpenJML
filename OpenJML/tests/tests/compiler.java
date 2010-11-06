@@ -60,30 +60,32 @@ public class compiler extends TestCase {
         System.setOut(savedout);
         if (berr == null) return;
         // Depending on how the log is setup, error output can go to either bout or berr
-        String actualOutput = berr.toString();
-        //if (output.length <= 1 && actualOutput.length() == 0) actualOutput = bout.toString();
-        if (actualOutput.length() == 0) actualOutput = bout.toString().replace("\\","/");
+        String actualOutput = bout.toString();
+        String errOutput = berr.toString();
+        actualOutput = actualOutput.toString().replace("\\","/");
+        errOutput = errOutput.toString().replace("\\","/");
+        if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (capture) try {
             String tail = exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
-            if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + actualOutput);
+            if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + errOutput);
             String expected = output[0].replace("${PROJ}",projHome);
-            if (all==0) assertEquals("The error message is wrong",expected+tail,actualOutput);
-            else if (all == -1) assertEquals("The error message is wrong",expected,actualOutput);
+            if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
+            else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
             else if (all == 1 && !actualOutput.startsWith(expected)) {
-                fail("Output does not begin with: " + expected + eol + "Instead is: " + actualOutput);
+                fail("Output does not begin with: " + expected + eol + "Instead is: " + errOutput);
             } else if (all == 2 && actualOutput.indexOf(expected) == -1 ) {
-                fail("Output does not end with: " + expected + eol + "Instead is: " + actualOutput);
+                fail("Output does not end with: " + expected + eol + "Instead is: " + errOutput);
             }
             if (output.length > 1) {
                 expected = output[1].replace("${PROJ}",projHome);
-                if (print) System.out.println("TEST: " + getName() + " STANDARD OUT: " + eol + bout.toString());
+                if (print) System.out.println("TEST: " + getName() + " STANDARD OUT: " + eol + actualOutput);
                 if (all == 0) {
-                    assertEquals("The standard out is wrong",expected+tail,bout.toString());
+                    assertEquals("The standard out is wrong",expected+tail,actualOutput);
                 } else if (all == -1) {
-                    assertEquals("The standard out is wrong",expected,bout.toString());
-                } else if (all == 2 && bout.toString().indexOf(expected) == -1) {
-                    fail("Output does not end with: " + expected + eol + "Instead is: " + bout.toString());
+                    assertEquals("The standard out is wrong",expected,actualOutput);
+                } else if (all == 2 && actualOutput.indexOf(expected) == -1) {
+                    fail("Output does not end with: " + expected + eol + "Instead is: " + actualOutput);
                 }
             }
             assertEquals("The exit code is wrong",exitcode,e);
@@ -127,7 +129,7 @@ public class compiler extends TestCase {
         helper(new String[]
                   {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","-noPurityCheck","testfiles/testNoErrors/A.java"},
                   0,
-                  0,
+                  1,
 //                  "openjml: file not found: A.java" + eol +
 //                  "Usage: openjml <options> <source files>" + eol +
 //                  "use -help for a list of possible options" + eol +
@@ -135,8 +137,7 @@ public class compiler extends TestCase {
                   "warning: A specification path directory does not exist: cpath" + eol +
                   "warning: A specification path directory does not exist: cpath2" + eol +
                   "warning: A specification path directory does not exist: spath" + eol +
-                  "warning: A specification path directory does not exist: Z" + eol +
-                  "5 warnings" + eol
+                  "warning: A specification path directory does not exist: Z" + eol
                   );
     }
     
@@ -174,9 +175,9 @@ public class compiler extends TestCase {
                             "testfiles/testNoErrors/A.java", "-jmlverbose", "-noInternalSpecs" 
                           },0,2,"",
                           //"parsing ${PROJ}/testfiles/testNoErrors/A.java" + eol +
-                          "parsing ${PROJ}/testfiles/testNoErrors/A.refines-java" + eol +
-                          "entering A.java" + eol +
-                          "  completed entering A.java" + eol +
+                          //"parsing ${PROJ}/testfiles/testNoErrors/A.refines-java" + eol +
+                          "entering testfiles/testNoErrors/A.java" + eol +
+                          "  completed entering testfiles/testNoErrors/A.java" + eol +
                           "typechecking A" + eol +
                           "No specs for java.lang.Object" + eol + 
                           "typechecked A" + eol +
@@ -184,6 +185,7 @@ public class compiler extends TestCase {
                           "");
     }
 
+    
     /** Test that specs in the java file are ignored */
     @Test
     public void testIgnoreJava() throws Exception {
@@ -193,9 +195,9 @@ public class compiler extends TestCase {
                           },0,2,"",
                           //"parsing ${PROJ}/testfiles/testJavaErrors/A.java" + eol +
                           // stuff about specs path comes in here
-                          "parsing ${PROJ}/testfiles/testJavaErrors/A.refines-java" + eol +
-                          "entering A.java" + eol +
-                          "  completed entering A.java" + eol +
+                          //"parsing ${PROJ}/testfiles/testJavaErrors/A.refines-java" + eol +
+                          "entering testfiles/testJavaErrors/A.java" + eol +
+                          "  completed entering testfiles/testJavaErrors/A.java" + eol +
                           "typechecking A" + eol +
                           "No specs for java.lang.Object" + eol +
                           "typechecked A" + eol +

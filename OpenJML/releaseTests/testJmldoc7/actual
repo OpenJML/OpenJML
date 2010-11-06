@@ -1,0 +1,439 @@
+Creating destination directory: "doc\"
+Loading source file ..\testfiles\jmldoc3\data\Vis.java...
+Loading source file ..\testfiles\jmldoc3\data\tp\PVis.java...
+Loading source file ..\testfiles\jmldoc3\data\tp\PVis.java...
+Constructing Javadoc information...
+Standard Doclet version OpenJMLDoc: DATE-VERSION
+Building tree for all the packages and classes...
+Compiling with JML
+error: error reading openjml.jar; Negative seek offset
+..\testfiles\jmldoc3\data\Vis.java:1: package org.jmlspecs.lang does not exist
+public class Vis extends SVis {
+^
+..\testfiles\jmldoc3\data\tp\PVis.java:1: package org.jmlspecs.lang does not exist
+package tp;
+^
+openjml.jar(specs17/java/lang/Object.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/Object.jml):35: cannot find symbol
+    //@ public non_null model JMLDataGroup objectState;
+                              ^
+  symbol:   class JMLDataGroup
+  location: class Object
+openjml.jar(specs17/java/lang/Object.jml):38: cannot find symbol
+    //@ public non_null model JMLDataGroup privateState; in objectState;
+                              ^
+  symbol:   class JMLDataGroup
+  location: class Object
+openjml.jar(specs17/java/lang/reflect/Array.jml):22: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+openjml.jar(specs17/java/io/Serializable.jml):3: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs17/java/lang/Class.jml):20: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/Class.jml):27: package org.jmlspecs.annotation does not exist
+//@ pure nullable_by_default
+    ^
+openjml.jar(specs17/java/lang/Class.jml):27: package org.jmlspecs.annotation does not exist
+//@ pure nullable_by_default
+         ^
+openjml.jar(specs17/java/lang/Throwable.jml):37: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/Exception.jml):26: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/CloneNotSupportedException.jml):3: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/Comparable.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/CharSequence.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/String.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/InterruptedException.jml):3: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/RuntimeException.jml):26: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/IllegalArgumentException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/IndexOutOfBoundsException.jml):3: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/ArrayIndexOutOfBoundsException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/NegativeArraySizeException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/io/InputStream.jml):22: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs17/java/io/InputStream.jml):35: cannot find symbol
+    //@ public model JMLDataGroup streamState; in objectState;
+                     ^
+  symbol:   class JMLDataGroup
+  location: class InputStream
+openjml.jar(specs17/java/lang/ClassNotFoundException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/InstantiationException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/IllegalAccessException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/Package.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/reflect/Field.jml):1: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+openjml.jar(specs17/java/lang/SecurityException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/reflect/Method.jml):1: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+openjml.jar(specs17/java/lang/reflect/Constructor.jml):1: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+openjml.jar(specs17/java/lang/NoSuchFieldException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/NoSuchMethodException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/io/OutputStream.jml):21: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs17/java/io/OutputStream.jml):36: cannot find symbol
+    //@ public model JMLDataGroup output; in objectState;
+                     ^
+  symbol:   class JMLDataGroup
+  location: class OutputStream
+openjml.jar(specs17/java/io/FilterOutputStream.jml):4: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs17/java/io/PrintStream.jml):21: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs17/java/io/Writer.jml):3: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs17/java/io/PrintWriter.jml):2: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs17/java/lang/StackTraceElement.jml):22: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/io/IOException.jml):3: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs17/java/io/UnsupportedEncodingException.jml):3: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs17/java/lang/Cloneable.jml):3: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/util/Locale.jml):22: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs17/java/util/regex/Pattern.jml):21: package org.jmlspecs.lang does not exist
+package java.util.regex;
+^
+openjml.jar(specs17/java/util/Comparator.jml):1: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs17/java/lang/NullPointerException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/StringIndexOutOfBoundsException.jml):3: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/StringBuffer.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/lang/reflect/InvocationTargetException.jml):1: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+openjml.jar(specs17/java/lang/Number.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/math/BigInteger.jml):21: package org.jmlspecs.lang does not exist
+package java.math;
+^
+openjml.jar(specs17/java/util/MissingResourceException.jml):1: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs17/java/util/regex/Matcher.jml):21: package org.jmlspecs.lang does not exist
+package java.util.regex;
+^
+..\testfiles\jmldoc3\data\Vis.java:67: package org.jmlspecs.annotation does not exist
+//@ model public static class D_public {}
+    ^
+..\testfiles\jmldoc3\data\Vis.java:85: cannot find symbol
+//@ model public static enum EM_public { EMA }
+                        ^
+  symbol:   class EM_public
+  location: class Vis
+..\testfiles\jmldoc3\data\Vis.java:85: cannot find symbol
+//@ model public static enum EM_public { EMA }
+                                         ^
+  symbol:   class EM_public
+  location: class EM_public
+..\testfiles\jmldoc3\data\Vis.java:87: cannot find symbol
+//@ model protected static enum EM_protected { EMB }
+                           ^
+  symbol:   class EM_protected
+  location: class Vis
+..\testfiles\jmldoc3\data\Vis.java:87: cannot find symbol
+//@ model protected static enum EM_protected { EMB }
+                                               ^
+  symbol:   class EM_protected
+  location: class EM_protected
+..\testfiles\jmldoc3\data\Vis.java:89: cannot find symbol
+//@ model static enum EM_package { EMC }
+                 ^
+  symbol:   class EM_package
+  location: class Vis
+..\testfiles\jmldoc3\data\Vis.java:89: cannot find symbol
+//@ model static enum EM_package { EMC }
+                                   ^
+  symbol:   class EM_package
+  location: class EM_package
+..\testfiles\jmldoc3\data\Vis.java:91: cannot find symbol
+//@ model private static enum EM_private { EMD }
+                         ^
+  symbol:   class EM_private
+  location: class Vis
+..\testfiles\jmldoc3\data\Vis.java:91: cannot find symbol
+//@ model private static enum EM_private { EMD }
+                                           ^
+  symbol:   class EM_private
+  location: class EM_private
+..\testfiles\jmldoc3\data\Vis.java:189: cannot find symbol
+//@ model public static enum EMs_public { EMAs }
+                        ^
+  symbol:   class EMs_public
+  location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:189: cannot find symbol
+//@ model public static enum EMs_public { EMAs }
+                                          ^
+  symbol:   class EMs_public
+  location: class EMs_public
+..\testfiles\jmldoc3\data\Vis.java:191: cannot find symbol
+//@ model protected static enum EMs_protected { EMBs }
+                           ^
+  symbol:   class EMs_protected
+  location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:191: cannot find symbol
+//@ model protected static enum EMs_protected { EMBs }
+                                                ^
+  symbol:   class EMs_protected
+  location: class EMs_protected
+..\testfiles\jmldoc3\data\Vis.java:193: cannot find symbol
+//@ model static enum EMs_package { EMCs }
+                 ^
+  symbol:   class EMs_package
+  location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:193: cannot find symbol
+//@ model static enum EMs_package { EMCs }
+                                    ^
+  symbol:   class EMs_package
+  location: class EMs_package
+..\testfiles\jmldoc3\data\Vis.java:195: cannot find symbol
+//@ model private static enum EMs_private { EMDs }
+                         ^
+  symbol:   class EMs_private
+  location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:195: cannot find symbol
+//@ model private static enum EMs_private { EMDs }
+                                            ^
+  symbol:   class EMs_private
+  location: class EMs_private
+..\testfiles\jmldoc3\data\tp\PVis.java:60: cannot find symbol
+//@ model public static enum EMp_public { EMAp }
+                        ^
+  symbol:   class EMp_public
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:60: cannot find symbol
+//@ model public static enum EMp_public { EMAp }
+                                          ^
+  symbol:   class EMp_public
+  location: class EMp_public
+..\testfiles\jmldoc3\data\tp\PVis.java:62: cannot find symbol
+//@ model protected static enum EMp_protected { EMBp }
+                           ^
+  symbol:   class EMp_protected
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:62: cannot find symbol
+//@ model protected static enum EMp_protected { EMBp }
+                                                ^
+  symbol:   class EMp_protected
+  location: class EMp_protected
+..\testfiles\jmldoc3\data\tp\PVis.java:64: cannot find symbol
+//@ model static enum EMp_package { EMCp }
+                 ^
+  symbol:   class EMp_package
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:64: cannot find symbol
+//@ model static enum EMp_package { EMCp }
+                                    ^
+  symbol:   class EMp_package
+  location: class EMp_package
+..\testfiles\jmldoc3\data\tp\PVis.java:66: cannot find symbol
+//@ model private static enum EMp_private { EMDp }
+                         ^
+  symbol:   class EMp_private
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:66: cannot find symbol
+//@ model private static enum EMp_private { EMDp }
+                                            ^
+  symbol:   class EMp_private
+  location: class EMp_private
+..\testfiles\jmldoc3\data\Vis.java:13: package org.jmlspecs.annotation does not exist
+//@ ghost public int g_public;
+    ^
+openjml.jar(specs17/java/lang/Object.jml):59: package org.jmlspecs.annotation does not exist
+    public /*@ pure @*/ final /*@non_null*/ Class<?> getClass();
+                                 ^
+openjml.jar(specs17/java/lang/Object.jml):95: package org.jmlspecs.annotation does not exist
+    public /*@ pure @*/ boolean equals(/*@\readonly*//*@nullable*/ Object obj);
+                                                        ^
+openjml.jar(specs17/java/lang/CharSequence.jml):29: package org.jmlspecs.annotation does not exist
+    //@ public instance model non_null char[] charArray;
+               ^
+openjml.jar(specs17/java/lang/Object.jml):56: cannot access IJMLTYPE
+      @   ensures \result == \typeof(this).erasure();
+                                          ^
+  class file for org.jmlspecs.utils.IJMLTYPE not found
+Could not find org.jmlspecs.utils.Utils symbol not found error
+openjml.jar(specs17/java/lang/System.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/util/Dictionary.jml):1: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs17/java/util/Map.jml):19: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs17/java/util/Hashtable.jml):19: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs17/java/util/Properties.jml):1: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs17/java/lang/SecurityManager.jml):14: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/util/Enumeration.jml):26: package org.jmlspecs.lang does not exist
+//@ model import org.jmlspecs.lang.JMLDataGroup;
+                                  ^
+openjml.jar(specs17/java/util/Enumeration.jml):24: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs17/java/lang/Iterable.jml):1: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+openjml.jar(specs17/java/util/Collection.jml):24: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs17/java/util/Collection.jml):36: cannot find symbol
+    //@ public model instance JMLDataGroup localState; in objectState;
+                              ^
+  symbol:   class JMLDataGroup
+  location: interface Collection<E>
+  where E is a type-variable:
+    E extends Object declared in interface Collection
+openjml.jar(specs17/java/util/Set.jml):23: package org.jmlspecs.lang does not exist
+package java.util;
+^
+openjml.jar(specs17/java/io/File.jml):4: package org.jmlspecs.lang does not exist
+package java.io;
+^
+openjml.jar(specs17/java/lang/Runnable.jml):21: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+100 errors
+Generating doc\SVis.html...
+Generating doc\SVis.As_package.html...
+Generating doc\SVis.As_private.html...
+Generating doc\SVis.As_protected.html...
+Generating doc\SVis.As_public.html...
+Generating doc\SVis.Cs_package.html...
+Generating doc\SVis.Cs_private.html...
+Generating doc\SVis.Cs_protected.html...
+Generating doc\SVis.Cs_public.html...
+Generating doc\SVis.ES_package.html...
+Generating doc\SVis.ES_private.html...
+Generating doc\SVis.ES_protected.html...
+Generating doc\SVis.ES_public.html...
+Generating doc\SVis.Is_package.html...
+Generating doc\SVis.Is_private.html...
+Generating doc\SVis.Is_protected.html...
+Generating doc\SVis.Is_public.html...
+Generating doc\Vis.html...
+Generating doc\Vis.A_package.html...
+Generating doc\Vis.A_private.html...
+Generating doc\Vis.A_protected.html...
+Generating doc\Vis.A_public.html...
+Generating doc\Vis.C_package.html...
+Generating doc\Vis.C_private.html...
+Generating doc\Vis.C_protected.html...
+Generating doc\Vis.C_public.html...
+Generating doc\Vis.E_package.html...
+Generating doc\Vis.E_private.html...
+Generating doc\Vis.E_protected.html...
+Generating doc\Vis.E_public.html...
+Generating doc\Vis.I_package.html...
+Generating doc\Vis.I_private.html...
+Generating doc\Vis.I_protected.html...
+Generating doc\Vis.I_public.html...
+Generating doc\tp\PVis.html...
+Generating doc\tp\PVis.Ap_package.html...
+Generating doc\tp\PVis.Ap_private.html...
+Generating doc\tp\PVis.Ap_protected.html...
+Generating doc\tp\PVis.Ap_public.html...
+Generating doc\tp\PVis.Cp_package.html...
+Generating doc\tp\PVis.Cp_private.html...
+Generating doc\tp\PVis.Cp_protected.html...
+Generating doc\tp\PVis.Cp_public.html...
+Generating doc\tp\PVis.EP_package.html...
+Generating doc\tp\PVis.EP_private.html...
+Generating doc\tp\PVis.EP_protected.html...
+Generating doc\tp\PVis.EP_public.html...
+Generating doc\tp\PVis.Ip_package.html...
+Generating doc\tp\PVis.Ip_private.html...
+Generating doc\tp\PVis.Ip_protected.html...
+Generating doc\tp\PVis.Ip_public.html...
+Generating doc\overview-frame.html...
+Generating doc\package-frame.html...
+Generating doc\package-summary.html...
+Generating doc\package-tree.html...
+Generating doc\tp\package-frame.html...
+Generating doc\tp\package-summary.html...
+Generating doc\tp\package-tree.html...
+Generating doc\constant-values.html...
+Building index for all the packages and classes...
+Generating doc\overview-tree.html...
+Generating doc\index-all.html...
+Generating doc\deprecated-list.html...
+Building index for all classes...
+Generating doc\allclasses-frame.html...
+Generating doc\allclasses-noframe.html...
+Generating doc\index.html...
+Generating doc\overview-summary.html...
+Generating doc\help-doc.html...
+Generating doc\stylesheet.css...

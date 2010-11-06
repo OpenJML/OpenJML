@@ -3,7 +3,7 @@ package tests;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-import org.junit.Test;
+import org.junit.*;
 
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
@@ -23,6 +23,7 @@ public class jmldoc extends TestCase {
     boolean print = false;
     boolean capture = true;
     
+    @Before
     protected void setUp() throws Exception {
         //capture = false;
         //print = true;
@@ -33,6 +34,7 @@ public class jmldoc extends TestCase {
         if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
     }
     
+    @After
     protected void tearDown() {
         berr = null;
         bout = null;
@@ -56,34 +58,34 @@ public class jmldoc extends TestCase {
         System.setErr(savederr);
         System.setOut(savedout);
         // Depending on how the log is setup, error output can go to either bout or berr
-        String actualOutput = capture ? berr.toString() : "";
-        if (output.length <= 1 && actualOutput.length() == 0 && capture) actualOutput = bout.toString();
+        String actualOutput = capture ? bout.toString() : "";
+        String errOutput = capture ? berr.toString() : "";
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (capture) try {
             String tail = ""; //exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
-            if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + actualOutput);
+            if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + errOutput);
             String expected = output[0];
-            if (all==0) assertEquals("The error message is wrong",expected+tail,actualOutput);
-            else if (all == -1) assertEquals("The error message is wrong",expected,actualOutput);
-            else if (all == 1 && !actualOutput.startsWith(expected)) {
-                fail("Output does not begin with: " + expected + eol + "Instead is: " + actualOutput);
-            } else if (all == 2 && actualOutput.indexOf(expected) == -1 ) {
-                fail("Output does not end with: " + expected + eol + "Instead is: " + actualOutput);
+            if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
+            else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
+            else if (all == 1 && !errOutput.startsWith(expected)) {
+                fail("Output does not begin with: " + expected + eol + "Instead is: " + errOutput);
+            } else if (all == 2 && errOutput.indexOf(expected) == -1 ) {
+                fail("Output does not end with: " + expected + eol + "Instead is: " + errOutput);
             }
             if (output.length > 1) {
                 expected = output[1];
-                if (print) System.out.println("TEST: " + getName() + " STANDARD OUT: " + eol + bout.toString());
+                if (print) System.out.println("TEST: " + getName() + " STANDARD OUT: " + eol + actualOutput);
                 if (all == 0) {
-                    assertEquals("The standard out is wrong",expected+tail,bout.toString());
+                    assertEquals("The standard out is wrong",expected+tail,actualOutput);
                 } else if (all == -1) {
-                    assertEquals("The standard out is wrong",expected,bout.toString());
-                } else if (all == 2 && bout.toString().indexOf(expected) == -1) {
-                    fail("Output does not end with: " + expected + eol + "Instead is: " + bout.toString());
+                    assertEquals("The standard out is wrong",expected,actualOutput);
+                } else if (all == 2 && actualOutput.indexOf(expected) == -1) {
+                    fail("Output does not end with: " + expected + eol + "Instead is: " + actualOutput);
                 }
             }
             assertEquals("The exit code is wrong",exitcode,e);
         } catch (AssertionFailedError ex) {
-            if (!print) System.out.println("TEST: " + getName() + " exit=" + e + eol + berr.toString());
+            if (!print) System.out.println("TEST: " + getName() + " exit=" + e + eol + actualOutput);
             throw ex;
         }
     }
@@ -120,16 +122,18 @@ public class jmldoc extends TestCase {
      * directories that then get complaints
      * @throws Exception
      */
+    @Ignore // Behaves differently when run standalone vs. run with the other tests
     @Test
     public void testSpecPath() throws Exception {
         helper(new String[]
-                  {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","A.java"},
-                  1,
+                  {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","P"},
                   0,
-                  // TODO - do we want warnings about non-existent files?
-//                  "jml: file not found: A.java" + eol +
-//                  "Usage: jml <options> <source files>" + eol +
-//                  "use -help for a list of possible options" + eol +
+                  1,
+                  "",
+//                  "jmldoc: warning - No source files for package P" + eol +
+//                  "jmldoc: warning - No source files for package P" + eol +
+//                  "jmldoc: error - No public or protected classes found to document.",
+
                   "warning: A specification path directory does not exist: A" + eol +
                   "warning: A specification path directory does not exist: cpath" + eol +
                   "warning: A specification path directory does not exist: cpath2" + eol +

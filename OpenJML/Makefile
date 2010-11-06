@@ -27,13 +27,13 @@ Makefile.local: Makefile.local.template
 	
 ## Just build a release named ${NAME}
 .PHONY: release
-release: alljars jmlruntime.jar tar ui
+release: alljars jmlruntime.jar tar
 	@echo Release complete
 
 ${NAME}: release
 
-ui:	other copy
 
+##OBSOLETE
 other:
 	@-if [[ -d ../OpenJML-DevUI ]]; then if [[ -d ../OpenJMLUI ]]; then \
 	echo Comparing icons and plugins ;\
@@ -80,7 +80,7 @@ alljars jmlspecs.jar openjml.jar:
 	cp -r ${ROOT}/OpenJML/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
 	cp -r ${ANNOTATIONS}/bin/* temp
-	mkdir temp/specs14 temp/specs15 temp/specs16
+	mkdir temp/specs14 temp/specs15 temp/specs16 temp/specs17
 	cp -r ${SPECS}/java4/* temp/specs14
 	find temp/specs14 -name .svn -exec rm -rf \{\} + 
 	cp -r temp/specs14/* temp/specs15
@@ -89,7 +89,10 @@ alljars jmlspecs.jar openjml.jar:
 	cp -r temp/specs15/* temp/specs16
 	cp -r ${SPECS}/java6/* temp/specs16
 	find temp/specs16 -name .svn -exec rm -rf \{\} +
-	(cd temp/specs16; jar -cf ../../jars/jmlspecs.jar . )
+	cp -r temp/specs16/* temp/specs17
+	cp -r ${SPECS}/java7/* temp/specs17
+	find temp/specs17 -name .svn -exec rm -rf \{\} +
+	(cd temp/specs17; jar -cf ../../jars/jmlspecs.jar . )
 	mkdir -p temp2
 	echo "Manifest-Version: 1.0" > temp2/manifest
 	echo "Main-Class: org.jmlspecs.openjml.Main" >> temp2/manifest
@@ -128,7 +131,7 @@ jmlruntime.jar:
 ## openjml.jar
 jmlspecs:
 	mkdir -p temp
-	mkdir temp/specs14 temp/specs15 temp/specs16
+	mkdir temp/specs14 temp/specs15 temp/specs16 temp/specs17
 	mkdir -p jars
 	rm -f jars/jmlspecs.jar
 	cp -r ${SPECS}/java4/* temp/specs14
@@ -139,7 +142,10 @@ jmlspecs:
 	cp -r temp/specs15/* temp/specs16
 	cp -r ${SPECS}/java6/* temp/specs16
 	find temp/specs16 -name .svn -exec rm -rf \{\} +
-	(cd temp; jar -cf ../jars/jmlspecs.jar specs16 specs15 specs14 )
+	cp -r temp/specs16/* temp/specs17
+	cp -r ${SPECS}/java7/* temp/specs17
+	find temp/specs17 -name .svn -exec rm -rf \{\} +
+	(cd temp; jar -cf ../jars/jmlspecs.jar specs17 specs16 specs15 specs14 )
 	-rm -rf temp
 	
 jdkbin:
