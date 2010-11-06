@@ -38,7 +38,7 @@ public class QuerySecret extends TCBase {
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(v=\"q\") int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: interface org.jmlspecs.annotation.Query",10
+                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: @interface org.jmlspecs.annotation.Query",10
         );
     }
     
@@ -60,18 +60,18 @@ public class QuerySecret extends TCBase {
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(value=\"q\",value=\"r\") int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: duplicate annotation member value value in org.jmlspecs.annotation.Query",26
+                ,"/A.java:4: duplicate annotation member value value in org.jmlspecs.annotation.Query",20
         );
     }
     
-    public void testconstantExpresion() {
+    public void testConstantExpression() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(value=\"q\"+\"r\") int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: There is no field or datagroup named qr in the class or its super types",19
+                ,"/A.java:4: There is no field or datagroup named qr in the class or its super types",15
         );
     }
     
@@ -215,7 +215,7 @@ public class QuerySecret extends TCBase {
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(v=\"q\") int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: interface org.jmlspecs.annotation.Secret",11
+                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: @interface org.jmlspecs.annotation.Secret",11
         );
     }
     
@@ -238,7 +238,7 @@ public class QuerySecret extends TCBase {
                 "  @Secret(value=\"q\",value=\"r\") int m() { return 0; } \n" +
                 "} \n"
                 ,"/A.java:4: A secret annotation on a method must have exactly one argument",3
-                ,"/A.java:4: duplicate annotation member value value in org.jmlspecs.annotation.Secret",27
+                ,"/A.java:4: duplicate annotation member value value in org.jmlspecs.annotation.Secret",21
         );
     }
     
@@ -532,8 +532,8 @@ public class QuerySecret extends TCBase {
                 "public class A { \n" + 
                 "  @Secret(v=\"q\") int m; \n" +
                 "} \n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   method v()\n  location: interface org.jmlspecs.annotation.Secret",11
-                ,"/A.java:3: A secret declaration for a field may not have arguments",13
+                ,"/A.java:3: cannot find symbol\n  symbol:   method v()\n  location: @interface org.jmlspecs.annotation.Secret",11
+                ,"/A.java:3: A secret declaration for a field may not have arguments",12
                 //,"/A.java:3: A secret field must be a model field or in a secret datagroup",22
         );
     }
@@ -558,7 +558,7 @@ public class QuerySecret extends TCBase {
                 "public class A { \n" + 
                 "  @Secret(value=\"q\") int m; \n" +
                 "} \n"
-                ,"/A.java:3: A secret declaration for a field may not have arguments",17
+                ,"/A.java:3: A secret declaration for a field may not have arguments",16
                 //,"/A.java:3: A secret field must be a model field or in a secret datagroup",26
         );
     }

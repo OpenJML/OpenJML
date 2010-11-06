@@ -7,7 +7,7 @@ Bundle-Vendor: David R. Cok
 Bundle-Localization: plugin
 Require-Bundle: org.jmlspecs.annotation;bundle-version="[0.1.1,1.0.0)",
  org.jmlspecs.openjml.OpenJDK;bundle-version="0.1.1"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: com.sun.tools.javac.comp,
  com.sun.tools.javac.parser,
  org.jmlspecs.lang,

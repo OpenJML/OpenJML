@@ -822,52 +822,70 @@ public class Main extends com.sun.tools.javac.main.Main {
         } else {
             String s = rootdir + "/openjml-system.properties";
             readProps(properties,s);
-            s = rootdir + "/openjml.properties";
-            File props = new File(s);
-            if (!props.exists()) {
-                File in = new File(rootdir + "/openjml-template.properties");
-                if (in.exists()) {
-                    try {
-                        char[] buf = new char[10000];
-                        int k = new FileReader(in).read(buf);
-                        if (k == buf.length) {
-                            Log.instance(context()).error("jml.internal.notsobad", "Failed to copy openjml-template.properties - buffer not large enough");
-                        } else {
-                            // FIXME - need to check that everything is read
-                            FileWriter fw = new FileWriter(props);
-                            fw.write(buf,0,k);
-                            fw.close();
-                        }
-                    } catch (IOException e) {
-                        Log.instance(context()).error("jml.internal.notsobad","Failed to copy openjml-template.properties");
-                    }
-                }
-            }
-            readProps(properties,s);
         }
         
-        String s = System.getProperty("user.home") + "/openjml.properties";
-        readProps(properties,s);
+        // Look for the user properties file
+        // First in the working directory
+        boolean found = false;
+        {
+            String s = System.getProperty("user.dir") + "/openjml.properties";
+            found = readProps(properties,s);
+        }
+        // Otherwise in the user's home directory
+        if (!found) {
+            String s = System.getProperty("user.home") + "/openjml.properties";
+            found = readProps(properties,s);
+        }
+        // Otherwise in the installation directory
+        if (!found) {
+            String s = rootdir + "/openjml.properties";
+            File props = new File(s);
+            // If it still does not exist, copy the template file
+            // TODO: do we really want to do this?
+//            if (!props.exists()) {
+//                File in = new File(rootdir + "/openjml-template.properties");
+//                if (in.exists()) {
+//                    try {
+//                        char[] buf = new char[10000];
+//                        int k = new FileReader(in).read(buf);
+//                        if (k == buf.length) {
+//                            Log.instance(context()).error("jml.internal.notsobad", "Failed to copy openjml-template.properties - buffer not large enough");
+//                        } else {
+//                            // FIXME - need to check that everything is read
+//                            FileWriter fw = new FileWriter(props);
+//                            fw.write(buf,0,k);
+//                            fw.close();
+//                        }
+//                    } catch (IOException e) {
+//                        Log.instance(context()).error("jml.internal.notsobad","Failed to copy openjml-template.properties");
+//                    }
+//                }
+//            }
+            readProps(properties,s);
+
+        }
+        
+//        Print out the properties
 //        for (Map.Entry<Object,Object> entry: properties.entrySet()) {
 //            System.out.println("PROP " + entry.getKey() + " = " + entry.getValue());
 //        }
         System.getProperties().putAll(properties);
-        //System.out.println("SYS " + "openjml.prover.yices = " + System.getProperty("openjml.prover.yices"));
     }
     
-    public static void readProps(Properties properties, String filename) {
+    public static boolean readProps(Properties properties, String filename) {
         File f = new File(filename);
         // No option settings are set yet
         //System.out.println("Exists? " + filename + " " + f.exists());
         if (f.exists()) {
             try {
                 properties.load(new FileInputStream(f));
+                return true;
             } catch (java.io.IOException e) {
                 // log is not yet set up
                 System.out.println("Failed to read property file " + filename);
             }
         }
-
+        return false;
     }
     
 

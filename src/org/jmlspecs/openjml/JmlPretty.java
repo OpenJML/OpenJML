@@ -779,11 +779,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print("// Refinement Sequence:");
                 for (JmlCompilationUnit jcu : tree.specsSequence) {
                     print(" ");
-                    print(jcu.sourcefile);
+                    print(jcu.sourcefile.getName());
                 }
                 println();
                 for (JmlCompilationUnit jcu : tree.specsSequence) {
-                    print("// Specification file: " + jcu.sourcefile); 
+                    print("// Specification file: " + jcu.sourcefile.getName()); 
                     println();
                     jcu.accept(this);
                     println();

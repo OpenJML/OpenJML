@@ -44,16 +44,18 @@ public class namelookup extends TCBase {
 
     public void testLookup3() {
         helpTCF("A.java",
-                " public class A { int k;  \n" +
+                " public class A { int k; Object o; \n" +
                 "   void m() {\n" +
                 "      //@ ghost Object k;\n" +
-                "      boolean b = k == null;\n" +
-                "      //@ assert k == 1;\n" +
+                "      boolean b = k == null;\n" +  // ERROR
+                "      //@ assert k == 1;\n" +  // Allowed by boxing
                 "      //@ assert k == null;\n" +
+                "      boolean bb = k == o;\n" +  // Allowed by boxing
+                "      boolean bbb = k == null;\n" +  // ERROR
                 "   }\n" +
                 "}",
         "/A.java:4: incomparable types: int and <nulltype>",21,
-        "/A.java:5: incomparable types: java.lang.Object and int",20);
+        "/A.java:8: incomparable types: int and <nulltype>",23);
     }
 
     public void testDupField() {
@@ -324,7 +326,7 @@ public class namelookup extends TCBase {
        ,"/$A/A.spec:11: This specification declaration of type AA has the same name as a previous JML type declaration",11
        ,"/$A/A.spec:2: Associated declaration",11
        ,"/$A/A.spec:13: This specification declaration of type BB in A does not match any Java type declaration.",11
-       ,"/$A/A.spec:17: This specification declaration of type B does not match any Java type declaration in A.java",1
+       ,"/$A/A.spec:17: This specification declaration of type B does not match any Java type declaration in /A.java",1
         ,"/A.java:3: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
         ,"/A.java:5: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
         ,"/A.java:6: incompatible types\n  required: boolean\n  found:    double",22
@@ -345,7 +347,7 @@ public class namelookup extends TCBase {
                 "public class A {   \n" +
                 "}\n" +
                 ""
-        ,"/$A/A.spec:7: This specification declaration of type D does not match any Java type declaration in A.java",8
+        ,"/$A/A.spec:7: This specification declaration of type D does not match any Java type declaration in /A.java",8
         ,"/$A/A.spec:3: duplicate class: A",11
         ,"/$A/A.spec:5: duplicate class: B",11
 

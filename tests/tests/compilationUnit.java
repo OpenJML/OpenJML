@@ -170,7 +170,7 @@ public class compilationUnit extends ParseBase {
         checkCompilationUnit("@org.jmlspecs.annotation.Pure class A {}",
                 JmlCompilationUnit.class, 0,
                 JmlClassDecl.class, 30,
-                JCModifiers.class, 30,
+                JCModifiers.class, 0, // TODO - was 30?
                 JCAnnotation.class, 0,
                 JCFieldAccess.class, 24,
                 JCFieldAccess.class, 13,
@@ -185,7 +185,7 @@ public class compilationUnit extends ParseBase {
         checkCompilationUnit("/*@ pure */ class A {}",
         JmlCompilationUnit.class, 2,
         JmlClassDecl.class, 12,
-        JCModifiers.class, 12,
+        JCModifiers.class, -1, // TODO - should be 12?
         JCAnnotation.class, 4,
         JCFieldAccess.class, 4,
         JCFieldAccess.class, 4,

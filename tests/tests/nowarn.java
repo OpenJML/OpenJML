@@ -81,7 +81,7 @@ public class nowarn extends ParseBase {
                 JmlCompilationUnit.class,0,
                 JCIdent.class, 8,
                 JmlClassDecl.class, 34,
-                JCModifiers.class, 34,
+                JCModifiers.class, -1, // TODO - was 34 ?
                 JCAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
@@ -96,7 +96,7 @@ public class nowarn extends ParseBase {
                 JmlCompilationUnit.class,0,
                 JCIdent.class, 8,
                 JmlClassDecl.class, 33,
-                JCModifiers.class, 33,
+                JCModifiers.class, -1, // TODO: was 33
                 JCAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
@@ -111,7 +111,7 @@ public class nowarn extends ParseBase {
                 JmlCompilationUnit.class,0,
                 JCIdent.class, 8,
                 JmlClassDecl.class, 54,
-                JCModifiers.class, 54,
+                JCModifiers.class, -1, // TODO: was 54
                 JCAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
@@ -131,7 +131,7 @@ public class nowarn extends ParseBase {
                 JmlCompilationUnit.class,0,
                 JCIdent.class, 8,
                 JmlClassDecl.class, 53,
-                JCModifiers.class, 53,
+                JCModifiers.class, -1, // TODO - was 53
                 JCAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
