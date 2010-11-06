@@ -326,7 +326,7 @@ public class typechecking extends TCBase {
 
     public void testQuantifierA() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n //@ requires m( (\\exists int i; 0 < i && i <10; m(i)) ); \n/*@pure*/boolean m(int k) { return false; }\n }",
-                "/A.java:3: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",15);
+                "/A.java:3: method m in class A cannot be applied to given types;\n  required: int\n  found: boolean\n  reason: actual argument boolean cannot be converted to int by method invocation conversion",15);
     }
   
     public void testSetCompB() {
@@ -348,7 +348,7 @@ public class typechecking extends TCBase {
 
     public void testQuantifierB() {
         helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(int k) { return false; }\n }",
-                "/A.java:2: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",24);
+                "/A.java:2: method m in class A cannot be applied to given types;\n  required: int\n  found: boolean\n  reason: actual argument boolean cannot be converted to int by method invocation conversion",24);
     }
   
     public void testQuantifierB2() {
@@ -358,14 +358,14 @@ public class typechecking extends TCBase {
   
     public void testQuantifierB3() {
         helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(boolean k) { return false; } \n }"
-                ,"/A.java:2: method m in class A cannot be applied to given types\n  required: boolean\n  found: int",59
+                ,"/A.java:2: method m in class A cannot be applied to given types;\n  required: boolean\n  found: int\n  reason: actual argument int cannot be converted to boolean by method invocation conversion",59
                 );
     }
   
     // Looking for a name in the outer scope
     public void testQuantifierB4() {
         helpTCF("A.java","public class A { boolean p;  \n  //@ ghost boolean j = ( (\\exists int i; 0 < i && i <10; m(p)) ); \nboolean m(int k) { return false; } \n }"
-                ,"/A.java:2: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",59
+                ,"/A.java:2: method m in class A cannot be applied to given types;\n  required: int\n  found: boolean\n  reason: actual argument boolean cannot be converted to int by method invocation conversion",59
                 );
     }
   
@@ -389,7 +389,7 @@ public class typechecking extends TCBase {
 
     public void testQuantifierC() {
         helpTCF("A.java","public class A {  \n  boolean m(int k) { //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }",
-                "/A.java:2: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",43
+                "/A.java:2: method m in class A cannot be applied to given types;\n  required: int\n  found: boolean\n  reason: actual argument boolean cannot be converted to int by method invocation conversion",43
                 );
     }
     
@@ -400,7 +400,7 @@ public class typechecking extends TCBase {
     
     public void testQuantifierC3() {
         helpTCF("A.java","public class A {  \n  boolean m(int k) { boolean p ; //@ ghost boolean j = ( (\\exists int i; 0 < i && i <10; m(p)) ); \n return false; }\n }",
-                "/A.java:2: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",90
+                "/A.java:2: method m in class A cannot be applied to given types;\n  required: int\n  found: boolean\n  reason: actual argument boolean cannot be converted to int by method invocation conversion",90
                 );
     }
     
@@ -412,18 +412,17 @@ public class typechecking extends TCBase {
 
     public void testQuantifierD() {
         helpTCF("A.java","public class A { //@ ghost int j;\n  \n  boolean m(int k) { //@ set j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }",
-                "/A.java:3: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",34);
+                "/A.java:3: method m in class A cannot be applied to given types;\n  required: int\n  found: boolean\n  reason: actual argument boolean cannot be converted to int by method invocation conversion",34);
     }
     
     public void testQuantifier() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@pure*/ boolean m(int i) { return false; }\n//@ invariant m( (\\exists int i; 0 < i && i <10; m(i)) ); \n }",
-                "/A.java:4: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",15);
+                "/A.java:4: method m in class A cannot be applied to given types;\n  required: int\n  found: boolean\n  reason: actual argument boolean cannot be converted to int by method invocation conversion",15);
     }
-    
     
     public void testQuantifier1() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@pure*/ boolean m(int i) { return false; }\n//@ invariant m( (\\forall int i; 0 < i && i <10; m(i)) ); \n }",
-                "/A.java:4: method m in class A cannot be applied to given types\n  required: int\n  found: boolean",15);
+                "/A.java:4: method m in class A cannot be applied to given types;\n  required: int\n  found: boolean\n  reason: actual argument boolean cannot be converted to int by method invocation conversion",15);
     }
     
     public void testQuantifier2() {

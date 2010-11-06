@@ -115,7 +115,9 @@ public class CVC3Expr extends JmlTreeScanner {
             id = id.replace('.','_');
             p.rawdefine(id,convertIdentType(that));  // rawdefine does not repeat a definition
             result.append(id);
-        } catch (ProverException e) { System.out.println("PROVER ERROR");   }
+        } catch (ProverException e) { 
+            throw new RuntimeException(e);
+        }
     }
     
     public String convertIdentType(JCIdent that) {

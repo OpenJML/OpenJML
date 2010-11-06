@@ -44,6 +44,7 @@ import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 
@@ -688,7 +689,7 @@ public class api extends TestCase {
             assertEquals(7,dlist.get(0).getPosition());
             assertEquals(0,dlist.get(0).getStartPosition());
             assertEquals(58,dlist.get(0).getEndPosition());
-            assertEquals("testfiles/testNoErrors2/A.java",dlist.get(0).getSource().toString().replace('\\','/'));
+            assertEquals("testfiles/testNoErrors2/A.java",dlist.get(0).getSource().getName().toString().replace('\\','/'));
         } catch (Exception e) {
             check("","");
             System.out.println(e);
@@ -757,10 +758,12 @@ public class api extends TestCase {
                     "-specspath","testfiles/testJavaErrors");
             m.setOption("-noPurityCheck");
             m.parseAndCheck(f); 
-            check("","");
+            check("",""); // FIXME - this does not capture errors
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
             int errs = dlist.size();
-            assertEquals(0,errs);  // TODO: Will be non-zero when we combine specs sequences
+            assertEquals(0,errs);
+            // This test should find no errors because it only takes specs from files on the specs path
+            //assertEquals("testfiles\\testJavaErrors\\A.java:2: incompatible types\n  required: int\n  found:    boolean",((JCDiagnostic)dlist.get(0)).noSource());
         } catch (Exception e) {
             check("","");
             System.out.println(e);

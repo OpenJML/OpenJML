@@ -64,7 +64,7 @@ public class typeclauses extends TCBase {
     public void testConstraint5() {
         helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for A(), m, m(int), m(Object);\n}"
                 ,"/TEST.java:2: Constructors are not allowed as methods in constraint clauses",23
-                ,"/TEST.java:2: method m in class A cannot be applied to given types\n  required: int\n  found: java.lang.Object",39
+                ,"/TEST.java:2: method m in class A cannot be applied to given types;\n  required: int\n  found: java.lang.Object\n  reason: actual argument java.lang.Object cannot be converted to int by method invocation conversion",39
                 );
     }
 

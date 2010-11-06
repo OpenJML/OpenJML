@@ -112,7 +112,9 @@ public class YicesJCExpr extends JmlTreeScanner {
         try { 
             String id = that.toString();
             p.rawdefine(id,convertIdentType(that));  // rawdefine does not repeat a definition
-        } catch (ProverException e) { System.out.println("PROVER ERROR");   }
+        } catch (ProverException e) { 
+            throw new RuntimeException(e);
+        }
         result.append(that.toString());
     }
     

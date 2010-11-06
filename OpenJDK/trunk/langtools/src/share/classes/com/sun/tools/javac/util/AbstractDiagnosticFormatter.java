@@ -115,13 +115,14 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
     }
 
     //JAVA16 @Override
-//    public String format(JCDiagnostic d, Locale locale, String format) { // DRC -added
-//        printer = new FormatterPrinter();
-//        return formatDiagnostic(d, locale, format);
-//    }
+    public String format(JCDiagnostic d, Locale locale, String format) { // DRC -added
+        allCaptured = List.nil();
+        //printer = new FormatterPrinter();
+        return formatDiagnostic(d, locale, format);
+    }
 
     protected abstract String formatDiagnostic(JCDiagnostic d, Locale locale);
-    // public String formatDiagnostic(JCDiagnostic d, Locale locale, String format) { return formatDiagnostic(d,locale); } // DRC - added
+    public String formatDiagnostic(JCDiagnostic d, Locale locale, String format) { return formatDiagnostic(d,locale); } // DRC - added - the new argument is used in the overrides
 
     public String formatPosition(JCDiagnostic d, PositionKind pk,Locale l) {
         assert (d.getPosition() != Position.NOPOS);

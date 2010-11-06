@@ -249,6 +249,7 @@ public class ClassReader implements Completer {
 
         names = Names.instance(context);
         syms = Symtab.instance(context);
+        init(syms, definitive);   // DRC - moved from below to avoid circular initialization
         scopeCounter = Scope.ScopeCounter.instance(context);
         types = Types.instance(context);
         fileManager = context.get(JavaFileManager.class);
@@ -256,7 +257,6 @@ public class ClassReader implements Completer {
             throw new AssertionError("FileManager initialization error");
         diagFactory = JCDiagnostic.Factory.instance(context);
 
-        init(syms, definitive);
         log = Log.instance(context);
 
         Options options = Options.instance(context);

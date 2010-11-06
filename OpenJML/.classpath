@@ -4,14 +4,12 @@
 	<classpathentry exported="true" kind="lib" path="/JMLAnnotations/bin"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/OpenJDK"/>
 	<classpathentry excluding="org/jmlspecs/genericmodels/**|org/jmlspecs/unfinished/**" including="org/jmlspecs/**" kind="src" output="bin-runtime" path="runtime"/>
+	<classpathentry excluding="runtime/|src/|tests/" including="openjml-system.properties|openjml-template.properties" kind="src" path=""/>
 	<classpathentry kind="src" output="bin-tests" path="tests"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6">
-		<accessrules>
-			<accessrule kind="accessible" pattern="**"/>
-		</accessrules>
-	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Specs"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -186,6 +186,8 @@ public class JmlCompiler extends JavaCompiler {
     //@ non_null
     public java.util.List<JmlCompilationUnit> parseSpecs(/*@ nullable*/JmlCompilationUnit javaCU, /*@ nullable*/String pack, /*@ non_null */String file) {
         int i = file.lastIndexOf('/');
+        int ii = file.lastIndexOf('\\');
+        if (i < ii) i = ii;
         int k = file.lastIndexOf(".");
         if (k >= 0) file = file.substring(i+1,k);
         JavaFileObject f = JmlSpecs.instance(context).findLeadingSpecFile(pack == null ? file : (pack + "." + file));

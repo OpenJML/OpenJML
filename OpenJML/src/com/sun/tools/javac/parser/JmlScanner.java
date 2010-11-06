@@ -128,6 +128,13 @@ public class JmlScanner extends DocCommentScanner {
             return j;
         }
 
+        @Override
+        public Scanner newScanner(CharSequence input, boolean keepDocComments) {
+            JmlScanner j = new JmlScanner(this, CharBuffer.wrap(input));
+            j.noJML = JmlOptionName.isOption(context, JmlOptionName.NOJML);
+            return j;
+        }
+
     }
 
     /**

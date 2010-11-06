@@ -3,9 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: OpenJMLUI
 Bundle-SymbolicName: org.jmlspecs.OpenJMLUI;singleton:=true
 Bundle-Version: 0.1.13
-Bundle-ClassPath: bin/,
- openjml/,
- runtime/
+Bundle-ClassPath: bin/
 Bundle-Activator: org.jmlspecs.openjml.eclipse.Activator
 Bundle-Vendor: David R. Cok
 Export-Package: org.jmlspecs.openjml.eclipse
@@ -18,6 +16,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.ui;bundle-version="3.4.2";visibility:=reexport,
  org.eclipse.jface.text;bundle-version="3.4.2",
  org.jmlspecs.annotation;bundle-version="0.1.1",
- org.jmlspecs.Specs;bundle-version="0.1.4"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+ org.jmlspecs.Specs;bundle-version="0.1.4",
+ org.jmlspecs.openjml.OpenJDK;bundle-version="0.1.1",
+ org.jmlspecs.openjml.OpenJML;bundle-version="0.1.2"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy

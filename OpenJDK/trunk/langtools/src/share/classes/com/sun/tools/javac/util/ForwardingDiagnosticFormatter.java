@@ -81,6 +81,10 @@ public class ForwardingDiagnosticFormatter<D extends Diagnostic<?>, F extends Di
         return formatter.format(diag, l);
     }
 
+    public String format(D diag, Locale l, String format) {  // DRC - added
+        return formatter.format(diag, l, format);
+    }
+
     public String formatKind(D diag, Locale l) {
         return formatter.formatKind(diag, l);
     }

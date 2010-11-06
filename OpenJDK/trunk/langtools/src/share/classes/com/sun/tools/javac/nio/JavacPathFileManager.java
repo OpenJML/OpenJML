@@ -370,7 +370,7 @@ public class JavacPathFileManager extends BaseFileManager implements PathFileMan
         Files.walkFileTree(packageDir, opts, maxDepth,
                 new SimpleFileVisitor<Path>() {
             @Override
-            public FileVisitResult preVisitDirectory(Path dir) {
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) { // DRC - added 2nd parameter so that JDK would compile
                 if (SourceVersion.isIdentifier(dir.getName().toString())) // JSR 292?
                     return FileVisitResult.CONTINUE;
                 else
