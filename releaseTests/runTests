@@ -106,25 +106,15 @@ ${RTH} testRuntime1 "java -jar openjml.jar C.java -classpath . -noPurityCheck -n
 ## ANNOTATIONS might be an absolute or relative path.  We are currently in
 ## OpenJML/temp-release so if absolute we want ${ANNOTATIONS}, if relative we want ../${ANNOTATIONS}
 
-if [ -e ${ANNOTATIONS} ]; then
+if [ ! -e ${ANNOTATIONS} ]; then
+  ANNOTATIONS=../${ANNOTATIONS}
+fi
 
-##echo 1 - ANNOTATIONS = ${ANNOTATIONS}
 ## Checks a valid file with an external binary runtime library - should be OK
 ${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../bin-runtime${Z}${ANNOTATIONS}/bin -noInternalRuntime"  || RES=$(($RES+1))
 
 ## Checks a valid file with an external source runtime library - should be OK
 ${RTH} testRuntime3 "java -jar openjml.jar C.java -noPurityCheck -classpath ../runtime${Z}${ANNOTATIONS}/src -noInternalRuntime" || RES=$(($RES+1))
-
-else 
-
-##echo 2 - ANNOTATIONS = ${ANNOTATIONS}
-## Checks a valid file with an external binary runtime library - should be OK
-${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../bin-runtime${Z}../${ANNOTATIONS}/bin -noInternalRuntime"  || RES=$(($RES+1))
-
-## Checks a valid file with an external source runtime library - should be OK
-${RTH} testRuntime3 "java -jar openjml.jar C.java -noPurityCheck -classpath ../runtime${Z}../${ANNOTATIONS}/src -noInternalRuntime" || RES=$(($RES+1))
-
-fi
 
 ## Checks using annotations with normal use - should be OK
 ${RTH} testRuntime4 "java -jar openjml.jar C.java -noPurityCheck " || RES=$(($RES+1))
