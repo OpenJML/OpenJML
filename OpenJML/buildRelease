@@ -66,16 +66,16 @@ NAME=openjml-${VERSION}.tar.gz
 	cp -r ${ANNOTATIONS}/bin/* temp
 	mkdir -p temp/specs14 temp/specs15 temp/specs16 temp/specs17; chmod -R u+rwx,a+rx temp
 	cp -r ${SPECS}/java4/* temp/specs14
-    ( cd temp; find specs14 -name '.svn' -exec rm -rf {} + )
+    ( cd temp; /usr/bin/find specs14 -name '.svn' -exec rm -rf {} + )
 	cp -r temp/specs14/* temp/specs15
 	cp -r ${SPECS}/java5/* temp/specs15
-    ( cd temp; find specs15 -name '.svn' -exec rm -rf {} + )
+    ( cd temp; /usr/bin/find specs15 -name '.svn' -exec rm -rf {} + )
     cp -r temp/specs15/* temp/specs16
     cp -r ${SPECS}/java6/* temp/specs16
-    ( cd temp; find specs16 -name '.svn' -exec rm -rf {} + )
+    ( cd temp; /usr/bin/find specs16 -name '.svn' -exec rm -rf {} + )
     cp -r temp/specs16/* temp/specs17
     cp -r ${SPECS}/java7/* temp/specs17
-    ( cd temp; find specs17 -name '.svn' -exec rm -rf {} + )
+    ( cd temp; /usr/bin/find specs17 -name '.svn' -exec rm -rf {} + )
 	echo "   " Creating jmlspecs.jar
 	(cd temp/specs17; jar -cf ../../jars/jmlspecs.jar . )
 	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
