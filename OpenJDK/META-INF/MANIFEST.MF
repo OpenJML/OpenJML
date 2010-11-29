@@ -47,11 +47,5 @@ Export-Package: com.sun.javadoc,
  com.sun.tools.javac.util,
  com.sun.tools.javadoc,
  com.sun.tools.javah,
- com.sun.tools.javap,
- javax.annotation.processing,
- javax.lang.model,
- javax.lang.model.element,
- javax.lang.model.type,
- javax.lang.model.util,
- javax.tools
+ com.sun.tools.javap
 Bundle-ClassPath: bin/

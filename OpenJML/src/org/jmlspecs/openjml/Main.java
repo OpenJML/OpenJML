@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -160,7 +161,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         public void setDelegate(IProgressReporter d) {
             delegate = d;
         }
-        //JAVA16 @Override
+        @Override
         public void setContext(Context context) { if (delegate!= null) delegate.setContext(context); }
     }
     
@@ -178,13 +179,13 @@ public class Main extends com.sun.tools.javac.main.Main {
             this.context = context;
         }
         
-        //JAVA16 @Override
+        @Override
         public boolean report(int ticks, int level, String message) {
             if (level <= 1 || (context != null && JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE))) pw.println(message);
             return false;
         }
 
-        //JAVA16 @Override
+        @Override
         public void setContext(Context context) { this.context = context; }
 }
 
@@ -670,9 +671,9 @@ public class Main extends com.sun.tools.javac.main.Main {
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
             Options.instance(context).get("-verbose") != null;
         
-//        // First see if an external runtime library has been specified by
-//        // some external controller
-//        
+        // First see if an external runtime library has been specified by
+        // some external controller
+        
 //        if (externalRuntime != null) {
 //            boolean found = false;
 //            for (String s: externalRuntime) {
@@ -774,55 +775,59 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     public void findProperties() {
-        String sp = System.getProperty("java.class.path");
-        String[] ss = sp.split(java.io.File.pathSeparator);
+//        String sp = System.getProperty("java.class.path");
+//        String[] ss = sp.split(java.io.File.pathSeparator);
+//        Properties properties = new Properties();
+//        
+//        String rootdir = null;
+//        
+//        // find the jar that contains OpenJML classes
+//        for (String s: ss) {
+//            if (s.endsWith(".jar")) {
+//                if (isDirInJar("org/jmlspecs/openjml",s, context)) {
+//                    if (s.contains(File.separator)) {
+//                        s = s.substring(0, s.lastIndexOf(File.separator));
+//                    }
+//                    if (!s.contains(File.separator)) {
+//                        s = ".";
+//                    }
+//                    rootdir = s;
+//                    break;
+//                }
+//            }
+//            else { // s is not a jar file
+//                File f = new File(s + File.separator + "org" + 
+//                                  File.separator + "jmlspecs" + 
+//                                  File.separator + "openjml");
+//                if (f.isDirectory()) {
+//                    // s is the path to org.jmlspecs.openjml
+//                    rootdir = s;
+//                    break;
+//                }
+//            }
+//        }
+//        
+//        if (rootdir == null) { // Perhaps this is Eclipse JUnit tests
+//            for (String s: ss) {
+//                if (s.endsWith("bin-runtime")) {
+//                    s = s.substring(0,s.length()-"bin-runtime".length());
+//                    if (s.length() == 0) s = ".";
+//                    rootdir = s;
+//                    break;
+//                }
+//            }
+//        }
+//        
+//        if (rootdir == null) {
+//            Log.instance(context()).error("jml.internal.notsobad", "Installation directory not found - openjml system and local properties not read");
+//        } else {
+//            String s = rootdir + "/openjml-system.properties";
+//            readProps(properties,s);
+//        }
+        
         Properties properties = new Properties();
-        
-        String rootdir = null;
-        
-        // find the jar that contains OpenJML classes
-        for (String s: ss) {
-            if (s.endsWith(".jar")) {
-                if (isDirInJar("org/jmlspecs/openjml",s, context)) {
-                    if (s.contains(File.separator)) {
-                        s = s.substring(0, s.lastIndexOf(File.separator));
-                    }
-                    if (!s.contains(File.separator)) {
-                        s = ".";
-                    }
-                    rootdir = s;
-                    break;
-                }
-            }
-            else { // s is not a jar file
-                File f = new File(s + File.separator + "org" + 
-                                  File.separator + "jmlspecs" + 
-                                  File.separator + "openjml");
-                if (f.isDirectory()) {
-                    // s is the path to org.jmlspecs.openjml
-                    rootdir = s;
-                    break;
-                }
-            }
-        }
-        
-        if (rootdir == null) { // Perhaps this is Eclipse JUnit tests
-            for (String s: ss) {
-                if (s.endsWith("bin-runtime")) {
-                    s = s.substring(0,s.length()-"bin-runtime".length());
-                    if (s.length() == 0) s = ".";
-                    rootdir = s;
-                    break;
-                }
-            }
-        }
-        
-        if (rootdir == null) {
-            Log.instance(context()).error("jml.internal.notsobad", "Installation directory not found - openjml system and local properties not read");
-        } else {
-            String s = rootdir + "/openjml-system.properties";
-            readProps(properties,s);
-        }
+        URL url = ClassLoader.getSystemResource("openjml-system.properties");
+        if (url != null) readProps(properties,url.getFile());
         
         // Look for the user properties file
         // First in the working directory
@@ -838,31 +843,11 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         // Otherwise in the installation directory
         if (!found) {
-            String s = rootdir + "/openjml.properties";
-            File props = new File(s);
-            // If it still does not exist, copy the template file
-            // TODO: do we really want to do this?
-//            if (!props.exists()) {
-//                File in = new File(rootdir + "/openjml-template.properties");
-//                if (in.exists()) {
-//                    try {
-//                        char[] buf = new char[10000];
-//                        int k = new FileReader(in).read(buf);
-//                        if (k == buf.length) {
-//                            Log.instance(context()).error("jml.internal.notsobad", "Failed to copy openjml-template.properties - buffer not large enough");
-//                        } else {
-//                            // FIXME - need to check that everything is read
-//                            FileWriter fw = new FileWriter(props);
-//                            fw.write(buf,0,k);
-//                            fw.close();
-//                        }
-//                    } catch (IOException e) {
-//                        Log.instance(context()).error("jml.internal.notsobad","Failed to copy openjml-template.properties");
-//                    }
-//                }
-//            }
-            readProps(properties,s);
-
+            URL url2 = ClassLoader.getSystemResource("openjml.properties");
+            if (url2 != null) {
+                String s = url2.getFile();
+                readProps(properties,s);
+            }
         }
         
 //        Print out the properties

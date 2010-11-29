@@ -114,7 +114,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlBinary(JmlBinary that, Void p) {
         JCExpression lhs = copy(that.lhs,p);
         JCExpression rhs = copy(that.rhs,p);
@@ -123,7 +123,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return r;
     }
     
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlConstraintMethodSig(JmlConstraintMethodSig that,
             Void p) {
         return M.at(that.pos).JmlConstraintMethodSig(
@@ -131,7 +131,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.argtypes,p)).setType(that.type);
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlDoWhileLoop(JmlDoWhileLoop that, Void p) {
         JmlDoWhileLoop r = M.at(that.pos).JmlDoWhileLoop(
                 (JCDoWhileLoop)this.visitDoWhileLoop(that,p),
@@ -140,7 +140,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return r;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlEnhancedForLoop(JmlEnhancedForLoop that, Void p) {
         JmlEnhancedForLoop r = M.at(that.pos).JmlEnhancedForLoop(
                 (JCEnhancedForLoop)this.visitEnhancedForLoop(that,p),
@@ -151,7 +151,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlForLoop(JmlForLoop that, Void p) {
         JmlForLoop r = M.at(that.pos).JmlForLoop(
                 (JCForLoop)this.visitForLoop(that,p),
@@ -160,7 +160,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return r;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlGroupName(JmlGroupName that, Void p) {
         JmlGroupName r = M.at(that.pos).JmlGroupName(copy(that.selection,p));
         r.sym = that.sym;
@@ -168,7 +168,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return r;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlImport(JmlImport that, Void p) {
         JmlImport copy = (JmlImport)visitImport(that,p);
         copy.isModel = that.isModel;
@@ -176,7 +176,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlLblExpression(JmlLblExpression that, Void p) {
         return M.at(that.pos).JmlLblExpression(
                 that.token,
@@ -184,7 +184,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.expression,p)).setType(that.type);
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlMethodClauseConditional(JmlMethodClauseConditional that, Void p) {
         JmlMethodClauseConditional copy = M.at(that.pos).JmlMethodClauseConditional(
                 that.token,
@@ -195,7 +195,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlMethodClauseDecl(JmlMethodClauseDecl that, Void p) {
         JmlMethodClauseDecl copy = M.at(that.pos).JmlMethodClauseDecl(
                 that.token,
@@ -205,7 +205,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlMethodClauseExpr(JmlMethodClauseExpr that, Void p) {
         JmlMethodClauseExpr copy = M.at(that.pos).JmlMethodClauseExpr(
                 that.token,
@@ -215,7 +215,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlMethodClauseGroup(JmlMethodClauseGroup that, Void p) {
         JmlMethodClauseGroup copy = M.at(that.pos).JmlMethodClauseGroup(
                 copy(that.cases,p));
@@ -225,7 +225,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlMethodClauseSignals(JmlMethodClauseSignals that, Void p) {
         JmlMethodClauseSignals copy = M.at(that.pos).JmlMethodClauseSignals(
                 that.token,
@@ -236,7 +236,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that, Void p) {
         JmlMethodClauseSignalsOnly copy = M.at(that.pos).JmlMethodClauseSignalsOnly(
                 that.token,
@@ -246,7 +246,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that, Void p) {
         JmlMethodClauseStoreRef r = M.at(that.pos).JmlMethodClauseStoreRef(
                 that.token,
@@ -256,7 +256,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return r;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlMethodInvocation(JmlMethodInvocation that, Void p) {
         // Don't use visitMethodInvocation, since it is designed just to produce
         // JCMethodInvocation nodes.  Normal method calls are JCMethodInvocations;
@@ -274,7 +274,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlMethodSpecs(JmlMethodSpecs that, Void p) {
         JmlMethodSpecs copy = M.at(that.pos).JmlMethodSpecs(copy(that.cases,p));
         copy.impliesThatCases = copy(that.impliesThatCases,p);
@@ -284,18 +284,18 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlModelProgramStatement(JmlModelProgramStatement that,
             Void p) {
         return M.at(that.pos).JmlModelProgramStatement(copy(that.item,p)).setType(that.type);
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, Void p) {
         return M.at(that.pos).JmlPrimitiveTypeTree(that.token).setType(that.type);
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlQuantifiedExpr(JmlQuantifiedExpr that, Void p) {
         return M.at(that.pos).JmlQuantifiedExpr(
                 that.op,
@@ -304,12 +304,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.value,p)).setType(that.type);
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlRefines(JmlRefines that, Void p) {
         return M.at(that.pos).JmlRefines(that.filename).setType(that.type);
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlSetComprehension(JmlSetComprehension that, Void p) {
         return M.at(that.pos).JmlSetComprehension(
                 copy(that.newtype,p),
@@ -317,7 +317,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.predicate,p)).setType(that.type);
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         JmlSingleton r = M.at(that.pos).JmlSingleton(that.token);
         r.type = that.type;
@@ -326,7 +326,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return r;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlSpecificationCase(JmlSpecificationCase that, Void p) {
         JmlSpecificationCase copy = M.at(that.pos).JmlSpecificationCase(
                 copy(that.modifiers,p),
@@ -340,7 +340,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlStatement(JmlStatement that, Void p) {
         JmlStatement copy = M.at(that.pos).JmlStatement(
                 that.token,
@@ -349,7 +349,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlStatementDecls(JmlStatementDecls that, Void p) {
         JmlStatementDecls copy = M.at(that.pos).JmlStatementDecls(
                 copy(that.list,p));
@@ -358,7 +358,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlStatementExpr(JmlStatementExpr that, Void p) {
         JmlStatementExpr copy = M.at(that.pos).JmlExpressionStatement(
                 that.token,
@@ -372,7 +372,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlStatementLoop(JmlStatementLoop that, Void p) {
         JmlStatementLoop copy = M.at(that.pos).JmlStatementLoop(
                 that.token,
@@ -381,13 +381,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlStatementSpec(JmlStatementSpec that, Void p) {
         return M.at(that.pos).JmlStatementSpec(
                 copy(that.statementSpecs,p)).setType(that.type);
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that, Void p) {
         JmlStoreRefArrayRange copy = M.at(that.pos).JmlStoreRefArrayRange(
                 copy(that.expression,p),
@@ -397,7 +397,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlStoreRefKeyword(JmlStoreRefKeyword that, Void p) {
         JmlStoreRefKeyword copy = M.at(that.pos).JmlStoreRefKeyword(
                 that.token);
@@ -405,7 +405,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlStoreRefListExpression(JmlStoreRefListExpression that, Void p) {
         JmlStoreRefListExpression copy = M.at(that.pos).JmlStoreRefListExpression(
                 that.token,
@@ -414,7 +414,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlTypeClauseConditional(JmlTypeClauseConditional that, Void p) {
         JmlTypeClauseConditional copy = M.at(that.pos).JmlTypeClauseConditional(
                 copy(that.modifiers,p),
@@ -426,7 +426,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that, Void p) {
         JmlTypeClauseConstraint copy = M.at(that.pos).JmlTypeClauseConstraint(
                 copy(that.modifiers,p),
@@ -438,7 +438,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlTypeClauseDecl(JmlTypeClauseDecl that, Void p) {
         JmlTypeClauseDecl copy = M.at(that.pos).JmlTypeClauseDecl(
                 copy(that.decl,p));
@@ -449,7 +449,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlTypeClauseExpr(JmlTypeClauseExpr that, Void p) {
         JmlTypeClauseExpr copy = M.at(that.pos).JmlTypeClauseExpr(
                 copy(that.modifiers,p),
@@ -460,7 +460,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlTypeClauseIn(JmlTypeClauseIn that, Void p) {
         JmlTypeClauseIn copy = M.at(that.pos).JmlTypeClauseIn(
                 copy(that.list,p));
@@ -472,7 +472,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that, Void p) {
         JmlTypeClauseInitializer copy = M.at(that.pos).JmlTypeClauseInitializer(
                 that.token);
@@ -483,7 +483,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlTypeClauseMaps(JmlTypeClauseMaps that, Void p) {
         JmlTypeClauseMaps copy = M.at(that.pos).JmlTypeClauseMaps(
                 copy(that.expression,p),
@@ -495,7 +495,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that, Void p) {
         JmlTypeClauseMonitorsFor copy = M.at(that.pos).JmlTypeClauseMonitorsFor(
                 copy(that.modifiers,p),
@@ -507,7 +507,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that, Void p) {
         JmlTypeClauseRepresents copy = M.at(that.pos).JmlTypeClauseRepresents(
                 copy(that.modifiers,p),
@@ -520,7 +520,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    //JAVA16 @Override
+    @Override
     public JCTree visitJmlWhileLoop(JmlWhileLoop that, Void p) {
         JmlWhileLoop r = M.at(that.pos).JmlWhileLoop(
                 (JmlWhileLoop)this.visitWhileLoop(that,p),

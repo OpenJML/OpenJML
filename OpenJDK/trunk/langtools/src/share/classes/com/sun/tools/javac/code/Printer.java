@@ -142,7 +142,7 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
         return s.accept(this, locale);
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitCapturedType(CapturedType t, Locale locale) {
         if (seenCaptured.contains(t))
             return localize(locale, "compiler.misc.type.captureof.1",
@@ -160,12 +160,12 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
         }
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitForAll(ForAll t, Locale locale) {
         return "<" + visitTypes(t.tvars, locale) + ">" + visit(t.qtype, locale);
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitUndetVar(UndetVar t, Locale locale) {
         if (t.inst != null) {
             return visit(t.inst, locale);
@@ -174,12 +174,12 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
         }
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitArrayType(ArrayType t, Locale locale) {
         return visit(t.elemtype, locale) + "[]";
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitClassType(ClassType t, Locale locale) {
         StringBuffer buf = new StringBuffer();
         if (t.getEnclosingType().tag == CLASS && t.tsym.owner.kind == Kinds.TYP) {
@@ -197,17 +197,17 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
         return buf.toString();
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitMethodType(MethodType t, Locale locale) {
         return "(" + printMethodArgs(t.argtypes, false, locale) + ")" + visit(t.restype, locale);
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitPackageType(PackageType t, Locale locale) {
         return t.tsym.getQualifiedName().toString();
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitWildcardType(WildcardType t, Locale locale) {
         StringBuffer s = new StringBuffer();
         s.append(t.kind);
@@ -217,12 +217,12 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
         return s.toString();
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitErrorType(ErrorType t, Locale locale) {
         return visitType(t, locale);
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitTypeVar(TypeVar t, Locale locale) {
         return visitType(t, locale);
     }
@@ -302,14 +302,14 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
         }
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitClassSymbol(ClassSymbol sym, Locale locale) {
         return sym.name.isEmpty()
                 ? localize(locale, "compiler.misc.anonymous.class", sym.flatname)
                 : sym.fullname.toString();
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitMethodSymbol(MethodSymbol s, Locale locale) {
         if ((s.flags() & BLOCK) != 0) {
             return s.owner.name.toString();
@@ -330,29 +330,29 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
         }
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitOperatorSymbol(OperatorSymbol s, Locale locale) {
         return visitMethodSymbol(s, locale);
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitPackageSymbol(PackageSymbol s, Locale locale) {
         return s.isUnnamed()
                 ? localize(locale, "compiler.misc.unnamed.package")
                 : s.fullname.toString();
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitTypeSymbol(TypeSymbol s, Locale locale) {
         return visitSymbol(s, locale);
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitVarSymbol(VarSymbol s, Locale locale) {
         return visitSymbol(s, locale);
     }
 
-    //JAVA16 @Override
+    @Override
     public String visitSymbol(Symbol s, Locale locale) {
         return s.name.toString();
     }
