@@ -404,12 +404,12 @@ public class Utils {
             this.args = args;
         }
 
-        //JAVA16 @Override
+        @Override
         public IJMLTYPE arg(int i) {
             return args[i];
         }
 
-        //JAVA16 @Override
+        @Override
         public boolean equals(IJMLTYPE t) {
             if (t == null) return false;
             if (this == t) return true;
@@ -431,22 +431,22 @@ public class Utils {
             return i;
         }
 
-        //JAVA16 @Override
+        @Override
         public Class<?> erasure() {
             return base;
         }
 
-        //JAVA16 @Override
+        @Override
         public boolean isArray() {
             return base.isArray();
         }
 
-        //JAVA16 @Override
+        @Override
         public boolean isSubtypeOf(IJMLTYPE t) {
             return t.erasure().isAssignableFrom(this.base);
         }
 
-        //JAVA16 @Override
+        @Override
         public int numargs() {
             // TODO Auto-generated method stub
             return 0;

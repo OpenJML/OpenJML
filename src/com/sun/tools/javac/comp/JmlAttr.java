@@ -3876,7 +3876,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         visitTopLevel(that);
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         visitMethodDef(that);
     }
@@ -3889,7 +3889,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * adds the declaration to the current scope.
      * @param that the AST node to attribute
      */
-    //JAVA16 @Override
+    @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         attribAnnotationTypes(that.mods.annotations,env); annotate.flush(); // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
         for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;

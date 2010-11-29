@@ -48,7 +48,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     //@ ensures \typeof(result) <: \type(JmlBinary);
-    //JAVA16 @Override
+    @Override
     public void visitJmlBinary(JmlBinary that) {
         JmlBinary r = copy ? new JmlBinary(that) : that;
         r.lhs = translate(that.lhs);
@@ -57,7 +57,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
         visitClassDef(that);
         JmlClassDecl r = (JmlClassDecl)result;
@@ -78,7 +78,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
         visitTopLevel(that);
         JmlCompilationUnit r = (JmlCompilationUnit)result;
@@ -90,7 +90,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
         visitDoLoop(that);
         JmlDoWhileLoop r = (JmlDoWhileLoop)result;
@@ -99,7 +99,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: none
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
         visitForeachLoop(that);
         JmlEnhancedForLoop r = (JmlEnhancedForLoop)result;
@@ -108,7 +108,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: none
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlForLoop(JmlForLoop that) {
         visitForLoop(that);
         JmlForLoop r = (JmlForLoop)result;
@@ -117,7 +117,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: none
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlGroupName(JmlGroupName that) {
         JmlGroupName r = that;
         r.selection = translate(that.selection);
@@ -125,13 +125,13 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: sym
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlImport(JmlImport that) {
         visitImport(that);
         // not translating: isModel, staticImport
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlLblExpression(JmlLblExpression that) {
         JmlLblExpression r = that;
         r.expression = translate(that.expression);
@@ -139,7 +139,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token, label
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
         JmlMethodClauseConditional r = that;
         r.expression = translate(that.expression);
@@ -148,7 +148,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
         JmlMethodClauseDecl r = that;
         r.decls = translate(that.decls);
@@ -156,7 +156,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token, sourcefile
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
         JmlMethodClauseExpr r = that;
         r.expression = translate(that.expression);
@@ -164,7 +164,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
         JmlMethodClauseGroup r = that;
         r.cases = translate(that.cases);
@@ -172,7 +172,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
         JmlMethodClauseSignalsOnly r = that;
         r.list = translate(that.list);
@@ -180,7 +180,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
         JmlMethodClauseSignals r = that;
         r.vardef = translate(that.vardef);
@@ -189,7 +189,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
         JmlMethodClauseStoreRef r = that;
         r.list = translate(that.list);
@@ -197,7 +197,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         visitMethodDef(that);
         JmlMethodDecl r = (JmlMethodDecl)result;
@@ -213,7 +213,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: name, sym, ??? FIXME
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         visitApply(that);
         JmlMethodInvocation r = (JmlMethodInvocation)result;
@@ -223,7 +223,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token, label
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlMethodSpecs(JmlMethodSpecs that) {
         // FIXME - decl, desugared
         JmlMethodSpecs r = that;
@@ -233,14 +233,14 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
         // nothing to translate
         result = that;
         // Not translating: token
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         JmlQuantifiedExpr r = that;
         r.decls = translate(that.decls);
@@ -250,14 +250,14 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: op
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlRefines(JmlRefines that) {
         // nothing to translate
         result = that;
         // Not translating: filename
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {
         JmlSetComprehension r = that;
         r.newtype = translate(that.newtype);
@@ -267,13 +267,13 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: none
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlSingleton(JmlSingleton that) {
         result = that;
         // Not translating: info, symbol, token, (pos, type)
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlSpecificationCase(JmlSpecificationCase that) {
         JmlSpecificationCase r = that;
         r.modifiers = translate(that.modifiers);
@@ -283,7 +283,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token, also, code, sourcefile
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlStatement(JmlStatement that) {
         JmlStatement r = that;
         r.statement = translate(that.statement);
@@ -291,7 +291,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlStatementDecls(JmlStatementDecls that) {
         JmlStatementDecls r = that;
         r.list = translate(that.list);
@@ -299,7 +299,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) {
         JmlStatementExpr r = that;
         r.expression = translate(that.expression);
@@ -308,7 +308,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token, line, source, label, declPos - FIXME
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlStatementLoop(JmlStatementLoop that) {
         JmlStatementLoop r = that;
         r.expression = translate(that.expression);
@@ -316,7 +316,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token, line, source - FIXME
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlStatementSpec(JmlStatementSpec that) {
         JmlStatementSpec r = that;
         r.statementSpecs = translate(that.statementSpecs);
@@ -324,7 +324,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: none
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
         JmlStoreRefArrayRange r = that;
         r.expression = translate(that.expression);
@@ -334,13 +334,13 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: ( pos, type)
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
         // Not translating: token, ( pos, type )
         result = that;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
         JmlStoreRefListExpression r = that;
         r.list = translate(that.list);
@@ -348,7 +348,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
         JmlTypeClauseConditional r = that;
         r.modifiers = translate(that.modifiers);
@@ -358,7 +358,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
         JmlTypeClauseConstraint r = that;
         r.modifiers = translate(that.modifiers);
@@ -368,7 +368,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
         JmlTypeClauseDecl r = that;
         r.modifiers = translate(that.modifiers);
@@ -377,7 +377,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
         JmlTypeClauseExpr r = that;
         r.modifiers = translate(that.modifiers);
@@ -386,7 +386,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
         JmlTypeClauseIn r = that;
         // r.modifiers is a reference FIXME
@@ -395,7 +395,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: source token
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
         JmlTypeClauseInitializer r = that;
         r.modifiers = translate(that.modifiers);
@@ -404,7 +404,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
         JmlTypeClauseMaps r = that;
         // r.modifiers FIXME
@@ -413,7 +413,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
         JmlTypeClauseMonitorsFor r = that;
         r.modifiers = translate(that.modifiers);
@@ -423,7 +423,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
         JmlTypeClauseRepresents r = that;
         r.modifiers = translate(that.modifiers);
@@ -433,7 +433,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);
         JmlVariableDecl r = (JmlVariableDecl)result;
@@ -450,7 +450,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: sourcefile, docComment, name, sym
     }
 
-    //JAVA16 @Override
+    @Override
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         visitWhileLoop(that);
         JmlWhileLoop r = (JmlWhileLoop)result;
