@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2006-2010 David R. Cok
+ * @author David R. Cok
+ */
 package org.jmlspecs.openjml.eclipse;
 
 import org.eclipse.jface.action.IAction;
@@ -6,15 +10,15 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
-/** This class and its inner classes implement the various utils
+/** This class and its inner classes implement the various utilities
  * that are defined when a right-mouse click is performed on menu items
  * in the Package Navigator and other similar Views.  The class names
- * must be in synch with the information in the plugin definition.
+ * must be in synch with the information in the plug-in definition.
  */
 abstract public class PopupActions implements IObjectActionDelegate {
 
     /** The Eclipse ID of the Decorator used on Java Projects to show that
-     * JML compilation is enabled.  This must match the ID defined in the plugin 
+     * JML compilation is enabled.  This must match the ID defined in the plug-in 
      * definition.
      */
     static public final String JML_DECORATOR_ID = Activator.PLUGIN_ID + ".JMLDecoration";
@@ -29,7 +33,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
     protected Utils utils = Activator.getDefault().utils;
 
     /** The method that is called when the menu item is activated. */
-    //JAVA16 @Override
+    @Override
     abstract public void run(IAction action);
 
     /*
@@ -38,7 +42,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
      * @see org.eclipse.ui.IActionDelegate#selectionChanged(org.eclipse.jface.action.IAction,
      *      org.eclipse.jface.viewers.ISelection)
      */
-    //JAVA16 @Override
+    @Override
     public void selectionChanged(IAction action, ISelection selection) {
         this.selection = selection;
     }
@@ -49,15 +53,14 @@ abstract public class PopupActions implements IObjectActionDelegate {
      * @see org.eclipse.ui.IObjectActionDelegate#setActivePart(org.eclipse.jface.action.IAction,
      *      org.eclipse.ui.IWorkbenchPart)
      */
-    //JAVA16 @Override
+    @Override
     public void setActivePart(IAction action, IWorkbenchPart targetPart) {
         this.shell = targetPart.getSite().getShell();
     }
 
 
     /** This class implements the 'EnableNature' action, which adds the
-     * JML Natures to a Java Project.  This menu item
-     * is only enabled for Java Projects.
+     * JML Natures to a Java Project.
      */
     public static class EnableNature extends PopupActions {
         // This is all done in the UI thread with no progress
@@ -89,7 +92,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
 
 
     /** This class implements the action of deleting all the JML markers
-     * ikn everything selected (recursively, for containers).  It is completed
+     * in everything selected (recursively, for containers).  It is completed
      * in the UI thread, without a progress monitor.
      */
     public static class DeleteMarkers extends PopupActions {
@@ -103,7 +106,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
         }
     }
 
-    /** This class implements the action of checking JML for
+    /** This class implements the action of type-checking JML for
      *  a resource (recursively, for containers).
      */
     public static class CheckJML extends PopupActions {
@@ -117,7 +120,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
         }
     }
 
-    /** This class implements the action of checking JML for
+    /** This class implements the action of static checking for
      *  a resource (recursively, for containers).
      */
     public static class CheckESC extends PopupActions {
@@ -128,7 +131,6 @@ abstract public class PopupActions implements IObjectActionDelegate {
             } catch (Exception e) {
                 utils.topLevelException(shell,"PopupActions.CheckESC",e);
             }
-
         }
     }
 
@@ -157,7 +159,6 @@ abstract public class PopupActions implements IObjectActionDelegate {
             } catch (Exception e) {
                 utils.topLevelException(shell,"PopupActions.ShowSpecs",e);
             }
-
         }
     }
 
@@ -266,7 +267,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
      * @author David Cok
      */
     static public class JmlDoc extends PopupActions {
-        // This is done in the UI thread. 
+        // This is done in the UI thread. // FIXME - probably jmldoc should not be done in the UI thread
         @Override
         public final void run(final IAction action) {
             try {

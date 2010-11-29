@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 David R. Cok
+ * Copyright (c) 2005-2010 David R. Cok
  * @author David R. Cok
  * Created Aug 19, 2005
  */
@@ -21,8 +21,8 @@ public interface IProblems {
    */
   public String toString();
 
-  /** Returns the default severity of the problem
-   * @return The default severity of the problem
+  /** Returns the severity of the problem
+   * @return The severity of the problem
    */
   public int severity();
   

@@ -1,22 +1,35 @@
 /*
  * This file is part of the OpenJML plugin project. 
- * Copyright 2006-2009 David R. Cok
+ * Copyright (c) 2006-2010 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringBufferInputStream;
 import java.io.StringWriter;
-import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
@@ -26,9 +39,20 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.core.compiler.IProblem;
-import org.eclipse.jdt.internal.core.JavaModel;
+import org.eclipse.jdt.core.Flags;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeHierarchy;
+import org.eclipse.jdt.core.ITypeParameter;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -52,7 +76,6 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
-import org.jmlspecs.openjml.API;
 
 /** This class holds utility values and methods to support the Eclipse plugin
  * for OpenJML.
@@ -73,7 +96,7 @@ public class Utils {
         }
         /** Used to signal some unexpected error situation in doing JML processing. */
         public OpenJMLException(@NonNull String error, @NonNull Exception e) {
-            super(error,e); // FIXME - is e nullable?
+            super(error,e);
         }
     }
 
@@ -127,13 +150,13 @@ public class Utils {
                     try {
                         getInterface(jp).executeExternalCommand(OpenJMLInterface.Cmd.CHECK,ores,monitor);
                     } catch (Exception e) {
-                        showMessageInUI(shell,"OpenJML Exception",e.getClass() + " - " + e.getMessage());
+                        showExceptionInUI(shell,e);
                         c = true;
                     }
                     return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
                 }
             };
-            j.setUser(true); // FIXME - document this and elsewhere
+            j.setUser(true); // true since the job has been initiated by an end-user
             j.schedule();
         }
     }
@@ -164,15 +187,13 @@ public class Utils {
                         getInterface(jp).executeESCCommand(OpenJMLInterface.Cmd.ESC,
                                         ores,monitor);
                     } catch (Exception e) {
-                        String s = e.getMessage();
-                        if (s == null || s.length()==0) s = e.getClass().toString();
-                        showMessageInUI(shell,"OpenJML",s);
+                        showExceptionInUI(shell,e);
                         c = true;
                     }
                     return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
                 }
             };
-            j.setUser(true);
+            j.setUser(true); // true since the job has been initiated by an end-user
             j.schedule();
         }
     }
@@ -201,17 +222,18 @@ public class Utils {
                     try {
                         getInterface(jp).executeExternalCommand(OpenJMLInterface.Cmd.RAC,sorted.get(jp),monitor);
                     } catch (Exception e) {
-                        showMessageInUI(shell,"OpenJML",e.getMessage());
+                        showExceptionInUI(shell,e);
                         c = true;
                     }
                     return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
                 }
             };
-            j.setUser(true);
+            j.setUser(true); // true since the job has been initiated by an end-user
             j.schedule();
         }
     }
     
+    // TODO - document doBuildRac - put in a Job - or not - because called from a computation thread anyway
     protected void doBuildRac(IJavaProject jproject, List<IResource> resourcesToBuild, IProgressMonitor monitor) {
         Set<IResource> enabledForRac = getSet(jproject);
         List<IResource> newlist = new ArrayList<IResource>(enabledForRac.size());
@@ -224,7 +246,7 @@ public class Utils {
                 getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.RAC,newlist,monitor);
                 Log.log("Completed RAC");
             } catch (Exception e) {
-                showMessageInUI(null,"OpenJML -",e.getMessage());
+                showExceptionInUI(null,e);
             }
         } else {
             Log.log("Nothing to RAC");
@@ -257,7 +279,7 @@ public class Utils {
                         getInterface(p).generateJmldoc(p);
                     }
                 } catch (Exception e) {
-                    showMessageInUI(shell,"OpenJML",e.getMessage());
+                    showExceptionInUI(shell,e);
                     c = true;
                 }
                 return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
@@ -504,7 +526,7 @@ public class Utils {
         }
     }
     
-    // FIXME - add default content
+    // FIXME - add default content - document
 
     public void generateDefaultSpecs(PrintWriter ww, IType t) {
         StringWriter sw = new StringWriter();
@@ -531,6 +553,7 @@ public class Utils {
         ww.close();
     }
     
+    // FIXME - document
     protected void printClass(PrintWriter w, IType t, Set<String> imports) throws JavaModelException {
         ITypeHierarchy th = t.newSupertypeHierarchy(null);
         IType sup = th.getSuperclass(t);
@@ -592,6 +615,7 @@ public class Utils {
         w.println("}");
     }
     
+    // FIXME - document
     protected void printType(PrintWriter w, IType t, Set<String> imports) throws JavaModelException {
         w.print(t.getElementName());
         ITypeParameter[] tparams = t.getTypeParameters();
@@ -737,6 +761,7 @@ public class Utils {
         return list;
     }
 
+    // TODO - document
     public ITextSelection getSelectedText(@NonNull ISelection selection) {
         if (!selection.isEmpty() && selection instanceof ITextSelection) {
             return (ITextSelection)selection;
@@ -744,6 +769,7 @@ public class Utils {
             return null;
         }
     }
+    
     /**
      * This method interprets the selection returning a List of IResources or
      * IJavaElements, and
@@ -949,11 +975,6 @@ public class Utils {
     }
 
 
-    /** This map holds the specs path for each project.  The specs path can hold
-     * folders or libraries (jar files).
-     */
-    //Map<IJavaProject, List<File>> specsPaths = new HashMap<IJavaProject, List<File>>();
-    
     /** Expects the selection to hold exactly one Java project, plus one or more
      * folders or jar files; those folders and jar files are added to the 
      * beginning of the specs path for the given project.
@@ -1157,15 +1178,15 @@ public class Utils {
         }
         
         /** Interface method that returns the contents of the storage unit */
-        //JAVA16 @Override
+        @Override
         public InputStream getContents() throws CoreException {
-            return new StringBufferInputStream(content);
+            return new ByteArrayInputStream(content.getBytes());
         }
 
         /** Returns the path to the underlying resource
          * @return null (not needed for readonly Strings)
          */
-        //JAVA16 @Override
+        @Override
         public IPath getFullPath() {
             return null;
         }
@@ -1173,28 +1194,28 @@ public class Utils {
         /** Returns the name of the storage object 
          * @return the name of the storage unit
          */
-        //JAVA16 @Override
+        @Override
         @Query
         public @NonNull String getName() { return name; }
 
         /** Returns whether the storage object is read only
          * @return always true
          */
-        //JAVA16 @Override
+        @Override
         public boolean isReadOnly() { return true; }
 
         /** Returns the object adapted to the given class.  It appears we can
          * ignore this and always return null.
          * @return null
          */
-        //JAVA16 @Override
+        @Override
         public @Nullable Object getAdapter(@NonNull Class arg0) { return null; }
 
         /** Returns self
          * @return this object
          */
         //@ ensures \return == this;
-        //JAVA16 @Override
+        @Override
         public IStorage getStorage() throws CoreException {
             return (IStorage)this;
         }
@@ -1202,7 +1223,7 @@ public class Utils {
         /** Returns whether the underlying storage object exists
          * @return always true
          */
-        //JAVA16 @Override
+        @Override
         public boolean exists() {
             return true;
         }
@@ -1210,7 +1231,7 @@ public class Utils {
         /** Returns an ImageDescriptor, here ignored
          * @return always null
          */
-        //JAVA16 @Override
+        @Override
         public ImageDescriptor getImageDescriptor() {
             return null;
         }
@@ -1218,7 +1239,7 @@ public class Utils {
         /** Returns a corresponding Persistable object, here ignored
          * @return always null
          */
-        //JAVA16 @Override
+        @Override
         public IPersistableElement getPersistable() {
             return null;
         }
@@ -1227,7 +1248,7 @@ public class Utils {
          * storage unit
          */
         @NonNull
-        //JAVA16 @Override
+        @Override
         public String getToolTipText() {
             return name;
         }
@@ -1243,12 +1264,9 @@ public class Utils {
             IEditorInput editorInput = new StringStorage(content,name);
             IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
             IWorkbenchPage page = window.getActivePage();
-
-            //            IEditorPart[] parts = page.getEditors();
-            //            for (IEditorPart e: parts) Log.log("EDITOR " + e.getEditorSite().getId());
             page.openEditor(editorInput, "org.eclipse.ui.DefaultTextEditor");
         } catch (Exception e) {
-            showMessageInUI(null,"JML Exception",e.getMessage());
+            showExceptionInUI(null,e);
         }
     }
 
@@ -1263,7 +1281,7 @@ public class Utils {
             IWorkbenchPage page = window.getActivePage();
             page.openEditor(editorInput, org.eclipse.jdt.ui.JavaUI.ID_CU_EDITOR);
         } catch (Exception e) {
-            showMessageInUI(null,"JML Exception",e.getMessage());
+            showExceptionInUI(null,e);
         }
     }
 
@@ -1278,7 +1296,7 @@ public class Utils {
             IWorkbenchPage page = window.getActivePage();
             page.openEditor(editorInput, org.eclipse.jdt.ui.JavaUI.ID_CU_EDITOR );
         } catch (Exception e) {
-            showMessageInUI(null,"JML Exception",e.getMessage());
+            showExceptionInUI(null,e);
         }
     }
 
@@ -1315,7 +1333,10 @@ public class Utils {
         }
     }
     
+    // TODO _ needs more documentation
+    
     public Map<IJavaProject, Set<IResource>> enabledMaps = new HashMap<IJavaProject, Set<IResource>>();
+
     public Set<IResource> getSet(IJavaProject jp) {
         Set<IResource> set = enabledMaps.get(jp);
         if (set == null) {
@@ -1462,41 +1483,49 @@ public class Utils {
     /**
      * Displays a message in a dialog in the UI thread - this may
      * be called from other threads.
-     * @param sh  The shell to use to display the dialog, or 
+     * @param shell  The shell to use to display the dialog, or 
      *      a top-level shell if the parameter is null
      * @param title  The title of the dialog window
      * @param msg  The message to display in the dialog
      */
-    public void showMessageInUI(@Nullable Shell sh, 
+    public void showMessageInUI(@Nullable Shell shell, 
             @NonNull final String title, @NonNull final String msg) {
-        final Shell shell = sh;
-        Display d = shell == null ? Display.getDefault() : shell.getDisplay();
+        final Shell fshell = shell;
+        Display d = fshell == null ? Display.getDefault() : fshell.getDisplay();
         d.asyncExec(new Runnable() {
             public void run() {
                 MessageDialog.openInformation(
-                        shell,
+                        fshell,
                         title,
                         msg);
             }
         });
     }
+    
+    // TODO _ document
+    public void showExceptionInUI(@Nullable Shell shell, Exception e) {
+        String s = e.getMessage();
+        if (s == null || s.isEmpty()) s = e.getClass().toString();
+        showMessageInUI(shell,"OpenJML Exception",s);
+    }
 
-    /**
-     * Displays a message in a dialog in the UI thread - this may
+    // FIXME - fix non-modal dialog
+    /** 
+     * Displays a message in a non-modal dialog in the UI thread - this may
      * be called from other threads.
-     * @param sh  The shell to use to display the dialog, or 
+     * @param shell  The shell to use to display the dialog, or 
      *      a top-level shell if the parameter is null
      * @param title  The title of the dialog window
      * @param msg  The message to display in the dialog
      */
-    public void showMessageInUINM(@Nullable Shell sh, 
+    public void showMessageInUINM(@Nullable Shell shell, 
             @NonNull final String title, @NonNull final String msg) {
-        final Shell shell = sh;
-        Display d = shell == null ? Display.getDefault() : shell.getDisplay();
+        final Shell fshell = shell;
+        Display d = fshell == null ? Display.getDefault() : fshell.getDisplay();
         d.asyncExec(new Runnable() {
             public void run() {
                 Dialog d = new NonModalDialog(
-                        shell,
+                        fshell,
                         title,
                         msg);
                 d.open();
@@ -1526,15 +1555,16 @@ public class Utils {
             for (String n: names) {
                 if (n.length() > 0) {
                     Path p = new Path(n);
-                    // We try a bunch of things, in order to do out best to read the
+                    // We try a bunch of things, in order to do our best to read the
                     // format of what is stored.  Ideally it is the 
                     // toPortableString form of an IPath
-                    IResource f = ResourcesPlugin.getWorkspace().getRoot().findMember(p);
-                    if (f == null) f = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(p);
-                    if (f == null) f = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(p);
+                    IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+                    IResource f = root.findMember(p);
+                    if (f == null) f = root.getFileForLocation(p);
+                    if (f == null) f = root.getContainerForLocation(p);
                     p = new Path("C:"+n);
-                    if (f == null) f = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(p);
-                    if (f == null) f = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(p);
+                    if (f == null) f = root.getFileForLocation(p);
+                    if (f == null) f = root.getContainerForLocation(p);
                     if (f != null) {
                         //Log.log("  IFILE " + f + " " + f.getFullPath() + " " + f.getFullPath().toPortableString());
                         files.add(f);
@@ -1574,7 +1604,7 @@ public class Utils {
     //@ requires shell != null;
     //@ requires title != null;
     //@ requires msg != null;
-    public void showMessage(Shell shell, String title, String msg) {
+    static public void showMessage(Shell shell, String title, String msg) {
         MessageDialog.openInformation(
                 shell,
                 title,
@@ -1583,8 +1613,11 @@ public class Utils {
     
     // FIXME -document
 
-    public void topLevelException(Shell shell, String title, Exception e) {
-        //e.printStackTrace(sw); // TODO
+    /** Shows a dialog regarding an exception that has been thrown; this must be
+     * called within the UI thread.
+     */
+    static public void topLevelException(Shell shell, String title, Exception e) {
+        //e.printStackTrace(sw); // TODO - show the stack trace?
         showMessage(shell,"JML Top-level Exception: " + title,
                 e.toString());
     }

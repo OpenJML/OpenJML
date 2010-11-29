@@ -1,18 +1,13 @@
 /*
  * This file is part of the OpenJML plugin project. 
- * Copyright 2006 David R. Cok
+ * Copyright 2006-2010 David R. Cok
  * 
  * Created on November 21, 2006
  */
 package org.jmlspecs.openjml.eclipse;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 

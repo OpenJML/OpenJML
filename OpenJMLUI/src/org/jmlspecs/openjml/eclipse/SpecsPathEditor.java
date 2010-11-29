@@ -35,7 +35,7 @@ import org.eclipse.swt.widgets.Shell;
 // - Can only select one directory at a time
 // - if a selected file or directory is not in the workspace, should we link it?
 // - if a persisted entry is not in the workspace, should we give a more prominent error message?  Should we keep it? [Maybe store everything as IPath entries instead of IResource?]
-// FIXME - cannot add a File because getFileForLocation appears not to work????
+// FIXME - cannot add a File because getFileForLocation appears not to work???? - won't work as is for files that are linked into the project or not part ofthe project at all
 public class SpecsPathEditor extends Dialog {
 
     final protected java.util.List<IResource> savedSpecsPath;
@@ -155,7 +155,7 @@ public class SpecsPathEditor extends Dialog {
                                 list.pack();
                             } else {
                                 Activator.getDefault().utils.showMessage(shell,"JML - Edit Specifications Path","The selected location does not appear to be present in an open project in the current workspace: " + p);
-                                // FIXME - should we offer to link to the resource
+                                // FIXME - should we offer to link to the resource; this can happen even if linked, I think, because the getPath gives the file system path, not the project path
                             }
                         }
                     }

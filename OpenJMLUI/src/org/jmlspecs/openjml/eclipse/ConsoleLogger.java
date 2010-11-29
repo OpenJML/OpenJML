@@ -1,6 +1,6 @@
 /*
  * This file is part of the Esc/Java plugin project.
- * Copyright 2004 David R. Cok
+ * Copyright 2004-2010 David R. Cok
  * 
  * Created on Aug 26, 2004
  */

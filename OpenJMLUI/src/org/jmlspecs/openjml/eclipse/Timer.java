@@ -1,6 +1,6 @@
 /*
  * This file is part of the OpenJML plugin project. 
- * Copyright 2006-2009 David R. Cok
+ * Copyright (c) 2006-2010 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 

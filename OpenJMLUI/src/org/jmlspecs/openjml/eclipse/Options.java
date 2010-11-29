@@ -1,18 +1,11 @@
 /**
- * Copyright (c) 2005 David R. Cok.
+ * Copyright (c) 2005-2010 David R. Cok.
  *
  * @author David R. Cok
  * Jun 18, 2005 
  * 
  */
 package org.jmlspecs.openjml.eclipse;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-
 
 /**
  * This class holds options that control the global behavior
@@ -86,7 +79,7 @@ public class Options {
     /** If true, the internal runtime library is not automatically used. */
     public boolean noInternalRuntime;
 
-    /** If true, check that elements of the specs path all exist.  If false, ignore
+    /** If true, warn if elements of the specs path do not exist.  If false, ignore
      * any non-existent directories or non-directories on the path.
      */
     public boolean checkSpecsPath;
@@ -108,7 +101,7 @@ public class Options {
         debug = false;
         verbosity = 2;
 
-        classpath = System.getProperty("java.classpath","");  // Is this the right default FIXME
+        classpath = System.getProperty("java.classpath","");  // FIXME Is this the right default for the classpath
         destination = "";
         source = "1.5";
 

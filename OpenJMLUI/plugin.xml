@@ -28,9 +28,9 @@
   <!-- An Eclipse Nature that designates a Java project as one to
    	which JML tools can be applied.  It also controls the builder.
    	The unqualified id appears
-        to be implicitly prefixed by the plugin id as defined in
-        the Activator and in the manifest.
-   		-->
+    to be implicitly prefixed by the plugin id as defined in
+    the Activator and in the manifest.
+  -->
   <extension
          id="JMLNatureID"
          name="JML Nature"
@@ -86,7 +86,8 @@
    
   <!-- The following set of extensions add various menu items to the
   	popup menus that appear when right-clicking on items in the
-  	Package Explorer
+  	Package Explorer. They appear in the UI in reverse order of how they are
+  	listed here.
   	 -->
   <extension
          point="org.eclipse.ui.popupMenus">
@@ -431,24 +432,24 @@
                tooltip="Deletes RAC-compiled class files for selected resources"
                class="org.jmlspecs.openjml.eclipse.MenuActions$ClearForRAC"
                menubarPath="JMLMenu/JMLGroup"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.ClearForRac"
-                           definitionId="org.jmlspecs.eclipse.commands.ClearForRac">
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ClearForRAC"
+               definitionId="org.jmlspecs.eclipse.commands.ClearForRAC">
          </action>
          <action
                label="Disable for RAC"
                tooltip="Disables selected resources from being compiled with runtime checks"
                class="org.jmlspecs.openjml.eclipse.MenuActions$DisableForRAC"
                menubarPath="JMLMenu/JMLGroup"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.DisableForRac"
-                           definitionId="org.jmlspecs.eclipse.commands.DisableForRac">
+               id="org.jmlspecs.openjml.eclipse.MenuActions.DisableForRAC"
+               definitionId="org.jmlspecs.eclipse.commands.DisableForRAC">
          </action>
          <action
                label="Enable for RAC"
                tooltip="Marks selected resources to be compiled with runtime checks"
                class="org.jmlspecs.openjml.eclipse.MenuActions$EnableForRAC"
                menubarPath="JMLMenu/JMLGroup"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.EnableForRac"
-                           definitionId="org.jmlspecs.eclipse.commands.EnableForRac">
+               id="org.jmlspecs.openjml.eclipse.MenuActions.EnableForRAC"
+               definitionId="org.jmlspecs.eclipse.commands.EnableForRAC">
          </action>
          <action
                label="Show counterexample value"
@@ -548,7 +549,7 @@
          </action>
          <action
                label="RAC"
-               tooltip="Compiles runtime checks in selected objects"
+               tooltip="Compiles JML runtime checks for selected objects"
                class="org.jmlspecs.openjml.eclipse.MenuActions$RAC"
                menubarPath="JMLMenu/JMLGroup"
                toolbarPath="Normal/build.ext"
@@ -557,7 +558,7 @@
          </action>
          <action
                label="ESC"
-               tooltip="Runs static checks on selected objects"
+               tooltip="Performs JML static checks for selected objects"
                class="org.jmlspecs.openjml.eclipse.MenuActions$CheckESC"
                menubarPath="JMLMenu/JMLGroup"
                toolbarPath="Normal/build.ext"
@@ -565,8 +566,8 @@
                definitionId="org.jmlspecs.eclipse.commands.CheckESC">
          </action>
          <action
-               label="JML"
-               tooltip="Checks JML in selected objects"
+               label="JML type-check"
+               tooltip="Type-checks JML in selected objects"
                class="org.jmlspecs.openjml.eclipse.MenuActions$CheckJML"
                menubarPath="JMLMenu/JMLGroup"
                toolbarPath="Normal/build.ext"
@@ -590,7 +591,7 @@
 
   <extension
          id="JMLESCProblem"
-         name="JML Problem"
+         name="JML Static Check Problem"
          point="org.eclipse.core.resources.markers">
     <super type="org.eclipse.jdt.core.problem"/>
     <persistent value="true"/>
@@ -600,7 +601,7 @@
 <!-- FIXME - is the declarationInfo attribute actually used ? -->
 	
   <!-- This connects the JML markers to editor annotations  -->
-  <!--  NOTE: Per the code in JMLBuilder the marker type must
+  <!--  NOTE: Per the code in Utils the marker type must
         be PLUGIN_ID + ".JMLProblem" or PLUGIN_ID + ".JMLESCProblem"
   -->
   <!-- Note: The type declarations used to have an attribute
@@ -721,7 +722,7 @@
     </specification>
   </extension> 
  
- <!--  This has to do with filters in the problems view - I have not tried it yet
+ <!--  (TODO) This has to do with filters in the problems view - I have not tried it yet
     <extension point="org.eclipse.ui.ide.markerSupport">
   <problemFilter
     name = "Warnings"
@@ -867,13 +868,13 @@
    <!-- file extensions - treats JML specs files as Java source and so use the
                 Java editor -->
    
-   <extension point="org.eclipse.core.runtime.contentTypes"> 
+   <extension point="org.eclipse.core.contenttype.contentTypes"> 
       <file-association 
        content-type="org.eclipse.jdt.core.javaSource"
        file-extensions="spec,jml,refines-java,refines-spec,refines-jml"/>
    </extension>
    
-   <!--  FIXME - what does this do -->
+   <!--  FIXME - this would define a new editor, but it is not implemented yet
    <extension
          point="org.eclipse.ui.editors">
       <editor
@@ -884,9 +885,10 @@
             id="org.jmlspecs.openjml.eclipse.JMLEditor"
             name="JML Editor"/>
    </extension>
-
-<!--
-<extension point="org.eclipse.ui.decorators"> 
+   -->
+   
+<!-- TODO: RAC decorator, meant to indicate which files have RAC compiled in, but not implemented yet
+    <extension point="org.eclipse.ui.decorators"> 
         <decorator
             id="org.jmlspecs.openjml.eclipse.racDecorator" 
             label="RAC" 

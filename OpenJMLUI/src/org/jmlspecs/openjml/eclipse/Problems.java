@@ -1,12 +1,15 @@
 /*
  * This file is part of the OpenJML plugin project. 
- * Copyright 2006-2009 David R. Cok
+ * Copyright (c) 2006-2010 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
+
+// TODO - I don't think anything here is used anymore - all error messages
+// should be provided through .properties files.
 
 /**
  * This class is an enum containing all the error and warning messages produced 

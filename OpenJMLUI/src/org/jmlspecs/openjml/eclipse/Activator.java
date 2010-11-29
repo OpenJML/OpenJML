@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2006-2010 David R. Cok
+ * @author David R. Cok
+ */
 package org.jmlspecs.openjml.eclipse;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
