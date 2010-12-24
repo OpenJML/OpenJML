@@ -10,6 +10,9 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringBufferInputStream;
 import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -36,6 +39,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
@@ -76,6 +80,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
+import org.osgi.framework.Bundle;
 
 /** This class holds utility values and methods to support the Eclipse plugin
  * for OpenJML.
@@ -1154,7 +1159,15 @@ public class Utils {
                     break;
                 }
             }
+            Bundle b = Platform.getBundle("org.jmlspecs.OpenJMLUI");
+            URL url = b.getEntry("");
+            URI uri = url.toURI();
+            String s = uri.getPath();
+            String ss = url.toExternalForm();
+            cpes.add(s);
             return cpes;
+        } catch (URISyntaxException e) {
+            throw new Utils.OpenJMLException("Failed in determining classpath",e);
         } catch (JavaModelException e) {
             throw new Utils.OpenJMLException("Failed in determining classpath",e);
         }

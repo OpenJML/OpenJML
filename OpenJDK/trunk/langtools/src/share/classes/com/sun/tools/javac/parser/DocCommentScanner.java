@@ -58,7 +58,7 @@ public class DocCommentScanner extends Scanner {
 
     /** Starting position of the comment in original source
      */
-    private int pos; // DRC - commented out because inherited from Scanner
+    //private int pos; // DRC - commented out because inherited from Scanner
 
     /** The comment input buffer, index of next chacter to be read,
      *  index of one past last character in buffer.

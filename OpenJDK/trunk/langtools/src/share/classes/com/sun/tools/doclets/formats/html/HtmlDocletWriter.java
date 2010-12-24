@@ -238,7 +238,7 @@ public class HtmlDocletWriter extends HtmlDocWriter {
         String outputString = output.toString().trim();
         // For RootDoc, ClassDoc and PackageDoc, this section is not the
         // definition description but the start of definition list.
-        if (outputString.length()!=0) { // DRC - 1.5
+        if (!outputString.isEmpty()) {
             if (!(doc instanceof RootDoc || doc instanceof ClassDoc ||
                     doc instanceof PackageDoc)) {
                 printMemberDetailsListStartTag();
@@ -265,7 +265,7 @@ public class HtmlDocletWriter extends HtmlDocWriter {
         TagletWriter.genTagOuput(configuration.tagletManager, field,
             configuration.tagletManager.getCustomTags(field),
                 getTagletWriterInstance(false), output);
-        return (output.toString().trim().length()!=0); // DRC - 1.5
+        return (!output.toString().trim().isEmpty());
     }
 
     /**

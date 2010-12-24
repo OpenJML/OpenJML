@@ -245,7 +245,7 @@ public abstract class AbstractMemberWriter {
     protected void printDeprecated(ProgramElementDoc member) {
         String output = (new DeprecatedTaglet()).getTagletOutput(member,
             writer.getTagletWriterInstance(false)).toString().trim();
-        if (output.length()!=0) { // DRC - 1.5
+        if (!output.isEmpty()) {
             writer.printMemberDetailsListStartTag();
             writer.print(output);
         }

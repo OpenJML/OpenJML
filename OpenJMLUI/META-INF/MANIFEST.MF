@@ -6,7 +6,12 @@ Bundle-Version: 0.1.13
 Bundle-ClassPath: bin/
 Bundle-Activator: org.jmlspecs.openjml.eclipse.Activator
 Bundle-Vendor: David R. Cok
-Export-Package: org.jmlspecs.openjml.eclipse
+Export-Package: org.jmlspecs.annotation,
+ org.jmlspecs.genericmodels,
+ org.jmlspecs.lang,
+ org.jmlspecs.models,
+ org.jmlspecs.models.resolve,
+ org.jmlspecs.openjml.eclipse
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.jdt.core;bundle-version="3.4.4",

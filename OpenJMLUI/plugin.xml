@@ -761,13 +761,13 @@
             id="org.jmlspecs.eclipse.commands.DisableJML">
       </command>
       <command
-            name="Check JML"
-            description="Manually checks JML constructs in selected resources"
+            name="TypeCheck JML"
+            description="Manually type-checks JML constructs in selected resources"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.CheckJML">
       </command>
       <command
-            name="Check ESC"
+            name="Static Check (ESC)"
             description="Runs static checks on selected resources"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.CheckESC">

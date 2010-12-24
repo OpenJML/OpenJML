@@ -3,17 +3,10 @@
 <HTML>
 
 <HEAD>
-<META http-equiv="Content-Style-Type" content="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <link rel="stylesheet" href="book.css" charset="ISO-8859-1" type="text/css">        
 
 <TITLE>JML Eclipse plug-in</TITLE>
-
-
-<style type="text/css">
-H4 {font-style: italic}
-TH.vertical_text{ text-align: center; -moz-transform=rotate(90deg); writing-mode=tb-rl; }
-
-</style>
-
 
 </HEAD>
 <BODY>
@@ -21,7 +14,7 @@ TH.vertical_text{ text-align: center; -moz-transform=rotate(90deg); writing-mode
 <CENTER><H1>JML Eclipse Plugin</H1></CENTER>
 <CENTER>Author: David Cok</CENTER>
 <CENTER> Version alpha, 29 November 2010</CENTER>
-<CENTER><A href="mailto:xcok@frontiernet.net">Feedback</A> (temporarily)</CENTER>
+<CENTER><A href="davidcok@sourceforge.net">Feedback</A></CENTER>
 <P>
 This plugin provides JML functionality integrated with Eclipse (3.6) UI for Java 1.7.
 It is a GUI interface to the OpenJML command-line tool.
@@ -30,15 +23,15 @@ It is a GUI interface to the OpenJML command-line tool.
 Contents:
 <!-- start toc.  do not edit; run html-update-toc instead -->
     <ul>
-      <li><a href="#Overview">Overview</a>
-      <li><a href="#Installation">Installation</a>
-      <li><a href="#General_comments">General comments</a>
-      <li><a href="#Menus">Menu and toolbar functionality</a>
+      <li class="toc"><a href="#Overview">Overview</a>
+      <li class="toc"><a href="#Installation">Installation</a>
+      <li class="toc"><a href="#General_comments">General comments</a>
+      <li class="toc"><a href="#Menus">Menu and toolbar functionality</a>
         <ul>
-          <li><a href="#Checks">JML Checking</a>
-          <li><a href="#Clear">Deleting JML Markers</a>
-          <li><a href="#Enable">Enable JML auto checking</a>
-          <li><a href="#Disable">Disable JML auto checking</a>
+          <li class="toc"><a href="#Checks">JML Checking</a>
+          <li class="toc"><a href="#Clear">Deleting JML Markers</a>
+          <li class="toc"><a href="#Enable">Enable JML auto checking</a>
+          <li class="toc"><a href="#Disable">Disable JML auto checking</a>
         </ul>
       <li><a href="#Preferences">JML Preferences</a>
         <ul>
@@ -266,6 +259,7 @@ on the General &gt;&gt; Appearance &gt;&gt; Label Decorations preference page.
 controls are set on the General &gt;&gt; Editors &gt;&gt; Text Editors &gt;&gt; Annotations
 preference page.  The colors of the annotations are also controlled here. The colors
 of the 'J' icons are fixed.
+<LI>The OpenJML tool needs access to SMT solvers in order to do static checking.
 <LI>Key bindings to JML commands are set on the General &gt;&gt; Keys preference page.
 No key bindings are set by default.
 <LI>Automatic type-checking of JML specifications is enabled by adding
@@ -301,11 +295,11 @@ Eclipse's error log.  The JML page of the Eclipse Console
 This section describes how to accomplish a number of common actions.
 Later sections provide a reference manual style enumeration of the plug-ins functionality.
 
-<H3>Editing JML specifications</H3>
+<H3><A NAME="#EditingJMLSpecifications">Editing JML specifications</A></H3>
 
 TBD
 
-<H3>Adding JML specifications outside the .java file</H3>
+<H3><A NAME="#AddingJmlSpecs">Adding JML specifications outside the .java file</A></H3>
 
 TBD
 
