@@ -56,6 +56,9 @@ public class Options {
 
     // Options relating to JML
 
+    /** Verbose output about JML */
+    public boolean jmlverbose;
+    
     /** If true, then annotations beginning with +@ are processed as well
      * as those beginning with @ or -@.
      */
@@ -100,7 +103,8 @@ public class Options {
     public Options setDefaults() {
         debug = false;
         verbosity = 2;
-
+        jmlverbose = false;
+        
         classpath = System.getProperty("java.classpath","");  // FIXME Is this the right default for the classpath
         destination = "";
         source = "1.5";

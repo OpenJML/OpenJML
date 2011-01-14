@@ -183,7 +183,7 @@ public class Utils {
         final Map<IJavaProject,List<Object>> sorted = sortByProject(res);
         for (final IJavaProject jp : sorted.keySet()) {
             final List<Object> ores = sorted.get(jp);
-            Log.log("Checking ESC (" + res.size() + " items)");
+            if (Activator.options.jmlverbose) Log.log("Checking ESC (" + res.size() + " items)");
             deleteMarkers(res,shell);
             Job j = new Job("Static Checks - Manual") {
                 public IStatus run(IProgressMonitor monitor) {
@@ -247,14 +247,14 @@ public class Utils {
         }
         if (newlist.size() != 0) {
             try {
-                Log.log("Starting RAC " + newlist.size() + " files");
+            	if (Activator.options.jmlverbose) Log.log("Starting RAC " + newlist.size() + " files");
                 getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.RAC,newlist,monitor);
-                Log.log("Completed RAC");
+                if (Activator.options.jmlverbose) Log.log("Completed RAC");
             } catch (Exception e) {
                 showExceptionInUI(null,e);
             }
         } else {
-            Log.log("Nothing to RAC");
+        	if (Activator.options.jmlverbose) Log.log("Nothing to RAC");
         }
     }
     
@@ -350,7 +350,7 @@ public class Utils {
         List<Object> list;
         String text;
         if (textSelection != null && window != null && (text=textSelection.getText()).length() != 0) {
-            Log.log("Selected text: " + text);
+        	if (Activator.options.jmlverbose) Log.log("Selected text: " + text);
             String classname = text.replace('.','/') + ".class";
             IEditorPart p = window.getActivePage().getActiveEditor();
             IEditorInput e = p==null? null : p.getEditorInput();
@@ -505,7 +505,7 @@ public class Utils {
                     launchJavaEditor(s,nm);
                 } else if (firstEditableLocation != null) {
                     IFile newfile = firstEditableLocation.getFile(name + ".jml");
-                    Log.log("Creating " + newfile);
+                    if (Activator.options.jmlverbose) Log.log("Creating " + newfile);
                     // FIXME - add default content
                     // FIXME - be able to decline to create, or to choose location
                     boolean b = MessageDialog.openConfirm(
@@ -898,7 +898,7 @@ public class Utils {
                     else if (element instanceof IAdaptable && (r=(IResource)((IAdaptable)element).getAdapter(IResource.class))!=null) {
                         list.add(r);
                     } else {
-                        Log.log("No resource for " + ((IJavaElement)element).getElementName());
+                    	if (Activator.options.jmlverbose) Log.log("No resource for " + ((IJavaElement)element).getElementName());
                     }
                 }
             }
@@ -956,7 +956,7 @@ public class Utils {
                         (p!=null? " on project " + p.getElementName() : ""), e);
             }
         }
-        Log.log("Completed JML Nature operation ");
+        if (Activator.options.jmlverbose) Log.log("Completed JML Nature operation ");
     }
 
     // Do this right here in the UI thread
@@ -1327,7 +1327,7 @@ public class Utils {
             IResource resource = (IResource)t;
             try {
                 try {
-                    Log.log("Deleting markers in " + resource.getName());
+                	if (Activator.options.jmlverbose) Log.log("Deleting markers in " + resource.getName());
                     resource.deleteMarkers(JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
                     resource.deleteMarkers(ESC_MARKER_ID, false, IResource.DEPTH_INFINITE);
                 } catch (CoreException e) {
@@ -1379,7 +1379,7 @@ public class Utils {
                     else set.remove(r);
                 }
             } else {
-                Log.log("Not handling " + r.getClass());
+            	if (Activator.options.jmlverbose) Log.log("Not handling " + r.getClass());
             }
         } catch (CoreException e) {
             Log.errorlog("Core Exception while traversing Resource tree (mark for RAC)",e);
@@ -1438,7 +1438,7 @@ public class Utils {
                     }
                 }
             } else {
-                Log.log("Not handling " + r.getClass());
+            	if (Activator.options.jmlverbose) Log.log("Not handling " + r.getClass());
             }
         } catch (CoreException e) {
             Log.errorlog("Core Exception while traversing Resource tree (mark for RAC)",e);
@@ -1588,7 +1588,7 @@ public class Utils {
             }
             return files;
         } catch (CoreException e) {
-            Log.log("CoreException happened: " + e);
+            Log.log("CoreException happened: " + e); // FIXME - error log?
             return new ArrayList<IResource>();
         }
     }
@@ -1604,7 +1604,7 @@ public class Utils {
             //Log.log("SAVED SPECSPATH: " + s.toString());
             jp.getProject().setPersistentProperty(SPECSPATH_ID,s.toString());
         } catch (CoreException e) {
-            Log.log("CoreException happened: " + e);
+            Log.log("CoreException happened: " + e); // FIXME - error log?
         }
     }
 

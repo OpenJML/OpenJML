@@ -129,7 +129,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		Log.log("Cleaning: " + getProject().getName());
+		if (Activator.options.jmlverbose) Log.log("Cleaning: " + getProject().getName());
 		deleteMarkers(getProject(),true);
 		cleanRacbin(getProject());
 	}
@@ -198,11 +198,11 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			return;
 		}
 
-		Log.log("Full build " + project.getName());
+		if (Activator.options.jmlverbose) Log.log("Full build " + project.getName());
 		Timer.markTime();
 		deleteMarkers(project,true);
 		if (monitor.isCanceled() || isInterrupted()) {
-			Log.log("Build interrupted");
+			if (Activator.options.jmlverbose) Log.log("Build interrupted");
 			return;
 		}
 		ResourceVisitor v = new ResourceVisitor();
@@ -244,7 +244,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	protected void incrementalBuild(IResourceDelta delta,
 			IProgressMonitor monitor) throws CoreException {
 		IProject project = getProject();
-		Log.log("Incremental build " + project.getName());
+		if (Activator.options.jmlverbose) Log.log("Incremental build " + project.getName());
 		Timer.markTime();
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files and deletes markers
@@ -300,7 +300,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// FIXME - need to build one project at a time
 		try {
 			boolean cancelled = doBuild(JavaCore.create(((IResource)resources.get(0)).getProject()),resources, monitor);  // FIXME - build everything or update?
-			Log.log(Timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
+			if (Activator.options.jmlverbose) Log.log(Timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
 		} catch (Exception e) {
 			Log.errorlog("Exception occurred during JML check ",e);
 		}

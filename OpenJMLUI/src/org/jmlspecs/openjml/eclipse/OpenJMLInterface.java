@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -127,7 +128,7 @@ public class OpenJMLInterface {
        specsPath = utils.getSpecsPath(pi);
        PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener).getConsoleStream());
        try { 
-    	   api = new API(w,new EclipseDiagnosticListener(preq)); 
+    	   api = new API(w,new EclipseDiagnosticListener(preq), new String[]{"-noInternalRuntime"}); 
        } catch (Exception e) {
     	   Log.errorlog("Failed to create an interface to OpenJML",e);
        }
@@ -153,7 +154,7 @@ public class OpenJMLInterface {
             for (IResource r: files) {
                 args.add(r.getLocation().toString());
             }
-            Log.log(Timer.getTimeString() + " Executing openjml ");
+            if (Activator.options.jmlverbose) Log.log(Timer.getTimeString() + " Executing openjml ");
             if (monitor != null) {
                 monitor.setTaskName(command == Cmd.RAC ? "JML RAC" : "JML Checking");
                 monitor.subTask("Executing openjml");
@@ -280,7 +281,7 @@ public class OpenJMLInterface {
                 return;
             }
             if (args.size() > n) {
-                Log.log(Timer.getTimeString() + " Executing openjml ");
+            	if (Activator.options.jmlverbose) Log.log(Timer.getTimeString() + " Executing openjml ");
                 if (monitor != null) monitor.subTask("Executing openjml");
                 try {
                     if (monitor != null) monitor.setTaskName("ESC");
@@ -839,7 +840,7 @@ public class OpenJMLInterface {
             }
             opts.add(f.getLocation().toString());
         }
-        boolean verbose = opt.verbosity >= 1;
+        boolean verbose = opt.verbosity >= 2;
         if (opt.debug) opts.add(JmlOptionName.JMLDEBUG.optionName());
         //if (opt.verbosity != 0)  { opts.add(JmlOptionName.JMLVERBOSE.optionName()); } //opts.add(Integer.toString(opt.verbosity)); }
         if (opt.source != null && !opt.source.isEmpty()) { opts.add("-source"); opts.add(opt.source); }
@@ -980,33 +981,32 @@ public class OpenJMLInterface {
             try {
                 Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
                 if (selfBundle == null) {
-                    Log.log("No self plugin");
+                	if (Activator.options.jmlverbose) Log.log("No self plugin");
                 } else {
-                    URL url = FileLocator.toFileURL(selfBundle.getResource(""));
+                    URL url;
+                    url = FileLocator.toFileURL(selfBundle.getResource(""));
                     if (url != null) {
                         File root = new File(url.toURI());
                         if (root.isDirectory()) {
-                            File f = new File(root,"../runtime");
+                            File f = new File(root,"jmlruntime.jar");
                             if (f.exists()) {
-                                //API.setExternalRuntime(new String[]{ f.toString() });
                                 ss.append(File.pathSeparator);
                                 ss.append(f.toString());
-                                Log.log("Internal runtime location: " + f.toString());
-                            }
-                        } else {
-                            JarFile j = new JarFile(root);
-                            JarEntry f = j.getJarEntry("runtime");
-                            if (f != null) {
-                                //API.setExternalRuntime(new String[]{ root + "!runtime"} );
-                                ss.append(File.pathSeparator);
-                                ss.append(root + "!runtime");
-                                Log.log("Internal runtime location: " + root + "!runtime");
+                                if (Activator.options.jmlverbose) Log.log("Internal runtime location: " + f.toString());
+                            } else {
+                            	f = new File(root,"../jmlruntime.jar");
+                                if (f.exists()) {
+                                    //API.setExternalRuntime(new String[]{ f.toString() });
+                                    ss.append(File.pathSeparator);
+                                    ss.append(f.toString());
+                                    if (Activator.options.jmlverbose) Log.log("Internal runtime location: " + f.toString());
+                                }
                             }
                         }
                     }
                 }
             } catch (Exception e) {
-                Log.log("Failure finding internal runtime: "  + e);
+                if (Activator.options.jmlverbose) Log.log("Failure finding internal runtime: "  + e);
             }
         }
 

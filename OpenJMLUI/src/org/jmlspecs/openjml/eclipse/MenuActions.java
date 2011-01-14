@@ -717,8 +717,8 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     	public final void run(final IAction action) {
     		try {
     			IStatus result = editSpecsPath(shell);
-    			Log.log((result == Status.OK_STATUS ? "Completed" : "Cancelled") +
-    			" Edit specs path operation ");
+    			if (Activator.options.jmlverbose) Log.log((result == Status.OK_STATUS ? "Completed" : "Cancelled") +
+    														" Edit specs path operation ");
     		} catch (Exception e) {
     			utils.topLevelException(shell,"MenuActions.CheckJML",e);
     		}
@@ -792,7 +792,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     	// FIXME - the sizes of the text field, the file browser field and the list
     	// are not appearing as they should
     	protected Control createDialogArea(Composite parent) {
-    		Log.log("Creating dialog area");
+    		if (Activator.options.jmlverbose) Log.log("Creating dialog area");
     		Composite composite = (Composite)super.createDialogArea(parent);
     		Composite vv = new Widgets.VComposite(composite);
     		Composite hh = new Widgets.HComposite(vv,2);
@@ -810,13 +810,13 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     		listcontrol.addSelectionListener(new SelectionListener() {
     			public void widgetSelected(SelectionEvent e) { 
     				int i = list.getSelectionIndex();
-    				Log.log("Statemask " + e.stateMask + " " + i + " " + list.getItem(i));
+    				if (Activator.options.jmlverbose) Log.log("Statemask " + e.stateMask + " " + i + " " + list.getItem(i));
     				if (i<0) f.setText(list.getItem(i));  // FIXME - this is not working
     				list.select(i);
     				list.setFocus();
     			};
     			public void widgetDefaultSelected(SelectionEvent e) {
-    				Log.log("Default selected " + e.stateMask);
+    				if (Activator.options.jmlverbose) Log.log("Default selected " + e.stateMask);
     			}
     		});
     		Composite v = new Widgets.VComposite(w);
@@ -966,7 +966,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     		}
     		list.setItems(listItems);
     		list.setSize(list.getSize().y, list.getItemHeight()*10);
-    		Log.log((listloc.size()-1) + " specs path items detected in the existing specs project named " + specsProjectText);
+    		if (Activator.options.jmlverbose) Log.log((listloc.size()-1) + " specs path items detected in the existing specs project named " + specsProjectText);
     		return composite;
     	}
 

@@ -1,6 +1,7 @@
-README
-openjml.jar
+LICENSE.rtf
+OpenJMLUserGuide.pdf
+epl-v10.html
 jmlruntime.jar
 jmlspecs.jar
-openjml-system.properties
 openjml-template.properties
+openjml.jar

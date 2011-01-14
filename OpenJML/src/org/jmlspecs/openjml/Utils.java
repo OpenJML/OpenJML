@@ -1,5 +1,9 @@
 package org.jmlspecs.openjml;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.net.URL;
+import java.util.Properties;
 import java.util.Set;
 
 import com.sun.tools.javac.code.Flags;
@@ -14,6 +18,7 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 /** This class holds a number of utility methods.  They could often be
@@ -21,6 +26,19 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
  * overridden by some enterprising future person.
  */
 public class Utils {
+    
+    static public final String runtimeJarName = "jmlruntime.jar";
+
+    static public final String optionPropertyPrefix = "openjml.option.";
+    
+    static public final String proverPropertyPrefix = "openjml.prover.";
+    
+    static public final String defaultProverProperty = "openjml.defaultProver";
+    
+    static public final String YICES = "yices";
+    
+    static public final String SIMPLIFY = "simplify";
+    
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
     public static final Context.Key<Utils> utilsKey =
@@ -38,6 +56,10 @@ public class Utils {
             instance = new Utils(context);  // registers itself
         }
         return instance;
+    }
+    
+    public static /*@Nullable*/ String getProperty(String key) {
+        return System.getProperty(key);
     }
 
 
@@ -317,5 +339,119 @@ public class Utils {
         if (rac) log.warning(pos,"jml.not.implemented.rac",feature);
         else if (esc) log.warning(pos,"jml.not.implemented.esc",feature);
     }
+    
+    public static void findProperties(Context context) {
+//      String sp = System.getProperty("java.class.path");
+//      String[] ss = sp.split(java.io.File.pathSeparator);
+//      Properties properties = new Properties();
+//      
+//      String rootdir = null;
+//      
+//      // find the jar that contains OpenJML classes
+//      for (String s: ss) {
+//          if (s.endsWith(".jar")) {
+//              if (isDirInJar("org/jmlspecs/openjml",s, context)) {
+//                  if (s.contains(File.separator)) {
+//                      s = s.substring(0, s.lastIndexOf(File.separator));
+//                  }
+//                  if (!s.contains(File.separator)) {
+//                      s = ".";
+//                  }
+//                  rootdir = s;
+//                  break;
+//              }
+//          }
+//          else { // s is not a jar file
+//              File f = new File(s + File.separator + "org" + 
+//                                File.separator + "jmlspecs" + 
+//                                File.separator + "openjml");
+//              if (f.isDirectory()) {
+//                  // s is the path to org.jmlspecs.openjml
+//                  rootdir = s;
+//                  break;
+//              }
+//          }
+//      }
+//      
+//      if (rootdir == null) { // Perhaps this is Eclipse JUnit tests
+//          for (String s: ss) {
+//              if (s.endsWith("bin-runtime")) {
+//                  s = s.substring(0,s.length()-"bin-runtime".length());
+//                  if (s.length() == 0) s = ".";
+//                  rootdir = s;
+//                  break;
+//              }
+//          }
+//      }
+//      
+//      if (rootdir == null) {
+//          Log.instance(context()).error("jml.internal.notsobad", "Installation directory not found - openjml system and local properties not read");
+//      } else {
+//          String s = rootdir + "/openjml-system.properties";
+//          readProps(properties,s);
+//      }
+
+      boolean verbose = Utils.instance(context).jmldebug ||
+          JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
+          Options.instance(context).get("-verbose") != null;
+
+      Properties properties = new Properties();
+      String propertiesFileName = "openjml.properties";
+      // Load properties files found in these locations:
+      
+      // On the system classpath
+      {
+          URL url2 = ClassLoader.getSystemResource(propertiesFileName);
+          if (url2 != null) {
+              String s = url2.getFile();
+              boolean found = readProps(properties,s);
+              if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from system classpath");
+          }
+      }
+      
+      // FIXME - add in the directory containing openjml.jar
+
+      // In the user's home directory
+      {
+          String s = System.getProperty("user.home") + "/" + propertiesFileName;
+          boolean found = readProps(properties,s);
+          if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from user.home");
+      }
+
+      // In the working directory
+      {
+          String s = System.getProperty("user.dir") + "/" + propertiesFileName;
+          boolean found = readProps(properties,s);
+          if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from working directory");
+      }
+      
+      // FIXME - add on the application classpath
+      
+      // FIXME - add on the command-line
+      
+//      Print out the properties
+//      for (Map.Entry<Object,Object> entry: properties.entrySet()) {
+//          System.out.println("PROP " + entry.getKey() + " = " + entry.getValue());
+//      }
+      System.getProperties().putAll(properties);
+  }
+  
+  public static boolean readProps(Properties properties, String filename) {
+      File f = new File(filename);
+      // No option settings are set yet
+      //System.out.println("Exists? " + filename + " " + f.exists());
+      if (f.exists()) {
+          try {
+              properties.load(new FileInputStream(f));
+              return true;
+          } catch (java.io.IOException e) {
+              // log is not yet set up
+              System.out.println("Failed to read property file " + filename);
+          }
+      }
+      return false;
+  }
+  
+
 
 }

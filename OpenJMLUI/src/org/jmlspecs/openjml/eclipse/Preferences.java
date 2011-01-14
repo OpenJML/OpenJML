@@ -54,6 +54,8 @@ implements IWorkbenchPreferencePage {
 		final static public String checkSpecsPathKey = prefix + "checkSpecsPath";
 		/** The preference store key for the nonnullByDefault option. */
 		final static public String nonnullByDefaultKey = prefix + "nonnullByDefault";
+		/** The preference store key for JML verbosity option. */
+		final static public String jmlverbosityKey = prefix + "jmlverbosity";
 		/** The preference store key for the verbosity (quiet, nowarnings, verbose) option. */
 		final static public String verbosityKey = prefix + "verbosity";
 		/** The preference store key for the source option. */
@@ -97,6 +99,10 @@ implements IWorkbenchPreferencePage {
 		/** The object controlling the preference store entry for the verbosity option. */
 		public AbstractPreference.IntOption verbosity = 
 			new AbstractPreference.IntOption(verbosityKey,defaultOptions.verbosity,"verbosity","Amount of information emitted");
+
+		/** The object controlling the preference store entry for the JML verbosity option. */
+		public AbstractPreference.BooleanOption jmlverbosity = 
+			new AbstractPreference.BooleanOption(jmlverbosityKey,defaultOptions.jmlverbose,"JML verbosity","Enable verbose output about JML");
 
 		/** The object controlling the preference store entry for the source option. */
 		public AbstractPreference.StringOption source = 
@@ -157,6 +163,7 @@ implements IWorkbenchPreferencePage {
 		options.source = poptions.source.getValue();
 		options.destination = poptions.destination.getValue();
 		//    options.classpath = poptions.classpath.getValue();
+		options.jmlverbose = poptions.jmlverbosity.getValue();
 		options.parsePlus = poptions.parsePlus.getValue();
 		options.checkPurity = poptions.checkPurity.getValue();
 		options.nonnullByDefault = poptions.nonnullByDefault.getValue();
@@ -165,7 +172,6 @@ implements IWorkbenchPreferencePage {
 		options.showNotExecutable = poptions.showNotExecutable.getValue();
 		options.noInternalSpecs = poptions.noInternalSpecs.getValue();
 		options.noInternalRuntime = poptions.noInternalRuntime.getValue();
-		Log.log("Extracted options");
 		return options;
 	}
 
@@ -206,6 +212,7 @@ implements IWorkbenchPreferencePage {
 	 * An array of widgets for debugging options.
 	 */
 	static final private PreferenceWidget[] debugOptions = {
+		new PreferenceWidget.BooleanWidget(poptions.jmlverbosity),
 		new PreferenceWidget.BooleanWidget(poptions.debug),
 	};
 

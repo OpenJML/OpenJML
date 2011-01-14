@@ -34,7 +34,7 @@ public class Log {
 	 * @param message the message to write; a new line will be added
 	 */
 	static public void errorlog(String message, Throwable e) { // FIXME - record the stack trace
-		String emsg = e.getMessage();
+		String emsg = e == null ? null : e.getMessage();
 		if (emsg != null && !emsg.isEmpty()) message = message + " (" + emsg + ")";
 		if (log.listener != null) log.listener.log(message);
 		else System.out.println(message); 

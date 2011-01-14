@@ -665,8 +665,8 @@ public class JmlEsc extends JmlTreeScanner {
         try {
 
             // Pick a prover to use
-            String proverToUse = System.getProperty("openjml.defaultProver");
-            if (proverToUse == null) proverToUse = "yices";
+            String proverToUse = System.getProperty(Utils.defaultProverProperty);
+            if (proverToUse == null) proverToUse = Utils.YICES;
             //String proverToUse = "cvc";
             //String proverToUse = "simplify";
             p = AbstractProver.getProver(context,proverToUse);

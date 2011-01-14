@@ -56,7 +56,7 @@ public class Activator extends AbstractUIPlugin {
   public void start(BundleContext context) throws Exception {
     super.start(context);
     Log.log.setListener(new ConsoleLogger("JML Console"));
-    Log.log("JML UI plugin started");
+    //Log.log("JML UI plugin started");
     options = Preferences.extractOptions(null);
     utils = new Utils();
     AbstractPreference.addListener(new AbstractPreference.Listener(){

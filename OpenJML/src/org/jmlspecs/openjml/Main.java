@@ -650,11 +650,11 @@ public class Main extends com.sun.tools.javac.main.Main {
         filenames = new ListBuffer<File>();
         classnames = new ListBuffer<String>();
         register(context);
-        findProperties();
+        Utils.findProperties(context);
         for (Map.Entry<Object,Object> entry: System.getProperties().entrySet()) {
             String key = entry.getKey().toString();
-            if (key.startsWith("openjml.option.")) {
-                key = key.substring("openjml.option.".length());
+            if (key.startsWith(Utils.optionPropertyPrefix)) {
+                key = key.substring(Utils.optionPropertyPrefix.length());
                 options.put(key, entry.getValue().toString());
             }
         }
@@ -672,7 +672,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             Options.instance(context).get("-verbose") != null;
         
         // First see if an external runtime library has been specified by
-        // some external controller
+        // some external controller FIXME - do we need still need this case?
         
 //        if (externalRuntime != null) {
 //            boolean found = false;
@@ -696,74 +696,147 @@ public class Main extends com.sun.tools.javac.main.Main {
 //            if (found) return;
 //        }
 
-        // See if a default has been specified
+        // See if a jar file has been specified
         
-        String sss = null;
-        if (sss == null) {
+        String jmlruntimePath = null;
+        if (jmlruntimePath == null) {
             String sy = System.getProperty(Utils.defaultRuntimeClassPath);
             // These are used in testing - sy should be the directory of the OpenJML project
             if (sy != null) {
-                sss = sy;
+                jmlruntimePath = sy;
             }
         }
 
-        // Then look for something in the classpath itself
+        // Then look for jmlruntime.jar in the classpath itself
         
-        String sp = System.getProperty("java.class.path");
-        String[] ss = sp.split(java.io.File.pathSeparator);
-        if (sss == null) {
+        if (jmlruntimePath == null) {
+            URL url = ClassLoader.getSystemResource(Utils.runtimeJarName);
+            if (url != null) {
+                jmlruntimePath = url.getFile();
+                if (jmlruntimePath.startsWith("file:/")) {
+                    jmlruntimePath = jmlruntimePath.substring("file:/".length());
+                }
+            }
+        }
+        
+        // Then look for something in the same directory as something on the classpath
+        
+        String classpath = System.getProperty("java.class.path");
+        if (jmlruntimePath == null) {
+            String[] ss = classpath.split(java.io.File.pathSeparator);
             for (String s: ss) {
                 if (s.endsWith(".jar")) {
-                    if (isDirInJar("org/jmlspecs/lang",s, context)) {
-                        sss = s;
+                    try {
+                        File f = new File(s).getCanonicalFile().getParentFile();
+                        if (f != null) {
+                            f = new File(f,Utils.runtimeJarName);
+                            if (f.isFile()) {
+                                jmlruntimePath = f.getPath();
+                                break;
+                            }
+                        }
+                    } catch (IOException e) {
+                        // Just skip
+                    }
+                } else {
+                    File f = new File(new File(s),Utils.runtimeJarName);
+                    if (f.isFile()) {
+                        jmlruntimePath = f.getPath();
                         break;
                     }
                 }
             }
         }
-        if (sss == null) {
-            String sy = System.getProperty(Utils.eclipseProjectLocation);
-            // These are used in testing - sy should be the directory of the OpenJML project
-            if (sy != null) {
-                sss = sy + "/jars/jmlruntime.jar";
-                if (!(new File(sss)).exists()) sss = null;
+        
+//        // Then look for the marker
+//        
+//        if (jmlruntimePath == null) {
+//            URL url = ClassLoader.getSystemResource("JMLRUNTIME_MARKER");
+//            if (url != null) {
+//                try {
+//                    String s = url.getPath();
+//                    int k = s.indexOf("!");
+//                    if (k <0) k = s.length();
+//                    int b = s.startsWith("file:/") ? "file:/".length() : 0;
+//                    s = s.substring(b,k);
+//                    if (new File(s).exists()) jmlruntimePath = s;
+//                } catch (Exception e) {
+//                    // Just skip
+//                }
+//            }
+//        }
+
+        // The above all presume some variation on the conventional installation
+        // of the command-line tool.  In the development environment, those
+        // presumptions do not hold.  So in that case we use the appropriate
+        // bin directories directly. We make sure that we get both of them.
+        // This also takes care of the case in which the openjml.jar file is in 
+        // the class path under a different name.
+
+        if (jmlruntimePath == null) {
+            URL url = ClassLoader.getSystemResource("org/jmlspecs/annotation");
+            if (url != null) {
+                try {
+                    String s = url.getPath();
+                    if (s.startsWith("file:")) s = s.substring("file:".length());
+                    int b = (s.length()> 2 && s.charAt(0) == '/' && s.charAt(2) == ':') ? 1 : 0;
+                    int k = s.indexOf("!");
+                    if (k >= 0) {
+                        s = s.substring(b,k);
+                    } else {
+                        s = s.substring(b);
+                        s = new File(s).getParentFile().getParentFile().getParent();
+                    }
+                    if (new File(s).exists()) jmlruntimePath = s;
+
+                    url = ClassLoader.getSystemResource("org/jmlspecs/lang");
+                    if (url != null) {
+                        s = url.getPath();
+                        if (s.startsWith("file:")) s = s.substring("file:".length());
+                        b = (s.length()> 2 && s.charAt(0) == '/' && s.charAt(2) == ':') ? 1 : 0;
+                        k = s.indexOf("!");
+                        if (k >= 0) {
+                            s = s.substring(b,k);
+                        } else {
+                            s = s.substring(b);
+                            s = new File(s).getParentFile().getParentFile().getParent();
+                        }
+                        if (new File(s).exists() && !s.equals(jmlruntimePath)) jmlruntimePath = jmlruntimePath + java.io.File.pathSeparator + s;
+                    }
+                } catch (Exception e) {
+                    // Just skip
+                }
             }
         }
-        if (sss == null) {
-            String sy = System.getProperty(Utils.eclipseProjectLocation);
-            // These are used in testing - sy should be the directory of the OpenJML project
-            // Note - if we use the source directory for the runtime files
-            // we get odd errors complaining that we are missing value= in the annotations
-            if (sy != null) {
-                sss = sy + "/bin-runtime";
-            }
-        }
-        if (sss != null) {
-            if (verbose) Log.instance(context).noticeWriter.println("Using internal runtime " + sss);
-            sp = Options.instance(context).get("-classpath");
-            Options.instance(context).put("-classpath",(sp==null?"":(sp + java.io.File.pathSeparator)) + sss);
+
+        
+        if (jmlruntimePath != null) {
+            if (verbose) Log.instance(context).noticeWriter.println("Using internal runtime " + jmlruntimePath);
+            String sp = Options.instance(context).get("-classpath");
+            sp = sp==null ? jmlruntimePath : (sp + java.io.File.pathSeparator + jmlruntimePath);
+            Options.instance(context).put("-classpath",sp);
             if (verbose) Log.instance(context).noticeWriter.println("Classpath: " + Options.instance(context).get("-classpath"));
         } else {
             Log.instance(context).warning("jml.no.internal.runtime");
         }
     }
     
-    static public boolean isDirInJar(String dir, String zip, Context context) {
-        ZipArchive zipArchive;
-        try {
-            zipArchive = new ZipArchive(((JavacFileManager)context.get(JavaFileManager.class)),new ZipFile(zip));
-        } catch (IOException e) {
-            return false;
-        }
-        RelativePath.RelativeDirectory internalDir = new RelativePath.RelativeDirectory(dir);
-        String name = zip + (dir.length() == 0 ? dir : ("!" + dir));
-        if (name.length() == 0) return true;
-        for (RelativePath.RelativeDirectory f: zipArchive.getSubdirectories()) {
-            // TODO - check that this works correctly // use contains?
-            if (f.getPath().startsWith(internalDir.getPath())) return true;
-        }
-        return false;
-    }
+//    static public boolean isDirInJar(String dir, String zip, Context context) {
+//        ZipArchive zipArchive;
+//        try {
+//            zipArchive = new ZipArchive(((JavacFileManager)context.get(JavaFileManager.class)),new ZipFile(zip));
+//        } catch (IOException e) {
+//            return false;
+//        }
+//        RelativePath.RelativeDirectory internalDir = new RelativePath.RelativeDirectory(dir);
+//        String name = zip + (dir.length() == 0 ? dir : ("!" + dir));
+//        if (name.length() == 0) return true;
+//        for (RelativePath.RelativeDirectory f: zipArchive.getSubdirectories()) {
+//            // TODO - check that this works correctly // use contains?
+//            if (f.getPath().startsWith(internalDir.getPath())) return true;
+//        }
+//        return false;
+//    }
     
     
     /** An empty array used simply to avoid repeatedly creating one. */
@@ -772,105 +845,6 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** Returns a reference to the API's compilation context. */
     public @Nullable Context context() {
         return context;
-    }
-    
-    public void findProperties() {
-//        String sp = System.getProperty("java.class.path");
-//        String[] ss = sp.split(java.io.File.pathSeparator);
-//        Properties properties = new Properties();
-//        
-//        String rootdir = null;
-//        
-//        // find the jar that contains OpenJML classes
-//        for (String s: ss) {
-//            if (s.endsWith(".jar")) {
-//                if (isDirInJar("org/jmlspecs/openjml",s, context)) {
-//                    if (s.contains(File.separator)) {
-//                        s = s.substring(0, s.lastIndexOf(File.separator));
-//                    }
-//                    if (!s.contains(File.separator)) {
-//                        s = ".";
-//                    }
-//                    rootdir = s;
-//                    break;
-//                }
-//            }
-//            else { // s is not a jar file
-//                File f = new File(s + File.separator + "org" + 
-//                                  File.separator + "jmlspecs" + 
-//                                  File.separator + "openjml");
-//                if (f.isDirectory()) {
-//                    // s is the path to org.jmlspecs.openjml
-//                    rootdir = s;
-//                    break;
-//                }
-//            }
-//        }
-//        
-//        if (rootdir == null) { // Perhaps this is Eclipse JUnit tests
-//            for (String s: ss) {
-//                if (s.endsWith("bin-runtime")) {
-//                    s = s.substring(0,s.length()-"bin-runtime".length());
-//                    if (s.length() == 0) s = ".";
-//                    rootdir = s;
-//                    break;
-//                }
-//            }
-//        }
-//        
-//        if (rootdir == null) {
-//            Log.instance(context()).error("jml.internal.notsobad", "Installation directory not found - openjml system and local properties not read");
-//        } else {
-//            String s = rootdir + "/openjml-system.properties";
-//            readProps(properties,s);
-//        }
-        
-        Properties properties = new Properties();
-        URL url = ClassLoader.getSystemResource("openjml-system.properties");
-        if (url != null) readProps(properties,url.getFile());
-        
-        // Look for the user properties file
-        // First in the working directory
-        boolean found = false;
-        {
-            String s = System.getProperty("user.dir") + "/openjml.properties";
-            found = readProps(properties,s);
-        }
-        // Otherwise in the user's home directory
-        if (!found) {
-            String s = System.getProperty("user.home") + "/openjml.properties";
-            found = readProps(properties,s);
-        }
-        // Otherwise in the installation directory
-        if (!found) {
-            URL url2 = ClassLoader.getSystemResource("openjml.properties");
-            if (url2 != null) {
-                String s = url2.getFile();
-                readProps(properties,s);
-            }
-        }
-        
-//        Print out the properties
-//        for (Map.Entry<Object,Object> entry: properties.entrySet()) {
-//            System.out.println("PROP " + entry.getKey() + " = " + entry.getValue());
-//        }
-        System.getProperties().putAll(properties);
-    }
-    
-    public static boolean readProps(Properties properties, String filename) {
-        File f = new File(filename);
-        // No option settings are set yet
-        //System.out.println("Exists? " + filename + " " + f.exists());
-        if (f.exists()) {
-            try {
-                properties.load(new FileInputStream(f));
-                return true;
-            } catch (java.io.IOException e) {
-                // log is not yet set up
-                System.out.println("Failed to read property file " + filename);
-            }
-        }
-        return false;
     }
     
 
