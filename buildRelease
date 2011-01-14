@@ -29,6 +29,7 @@ fi
     ROOT=..
     ANNOTATIONS=../JMLAnnotations
     SPECS=../Specs
+    UI=../OpenJMLUI
 
 
 
@@ -43,8 +44,10 @@ NAME=openjml-${VERSION}.tar.gz
 	rm -f jars/jmlruntime.jar
 	cp -r bin-runtime/* temp2
 	cp -r ${ANNOTATIONS}/bin/* temp2
+	touch temp2/JMLRUNTIME_MARKER
+	## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER
 	(cd temp2; jar -cf ../jars/jmlruntime.jar . ) 
-	cp jars/jmlruntime.jar ${SPECS}
+    cp jars/jmlruntime.jar ${UI}
 	rm -rf temp2
 	echo "   " jmlruntime.jar created
 
@@ -77,7 +80,14 @@ NAME=openjml-${VERSION}.tar.gz
     cp -r ${SPECS}/java7/* temp/specs17
     ( cd temp; /usr/bin/find specs17 -name '.svn' -exec rm -rf {} + )
 	echo "   " Creating jmlspecs.jar
+	## The jmlspecs.jar contains the composite Java 1.7 specs files
+	## The openjml.jar file contains the OpenJDK and OpenJML class files, and the specs directories, combined for each Java version
 	(cd temp/specs17; jar -cf ../../jars/jmlspecs.jar . )
+	
+	cp -r bin-runtime/* temp
+    cp -r ${ANNOTATIONS}/bin/* temp
+    touch temp/JMLRUNTIME_MARKER
+	
 	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
 	echo "   " Creating openjml.jar
 	echo "Manifest-Version: 1.0" > temp2/manifest
@@ -87,11 +97,15 @@ NAME=openjml-${VERSION}.tar.gz
 	echo "   " jmlspecs.jar openjml.jar created
 
 ##### Build the tar file
-	cp openjml-system.properties jars
-	cp openjml-template.properties jars
+    if [ -e ../../texstuff/papers/OpenJMLUserGuide/OpenJMLUserGuide.pdf ]; then
+        cp ../../texstuff/papers/OpenJMLUserGuide/OpenJMLUserGuide.pdf jars
+    else
+        echo No User Guide file is found
+    fi
+    cp legal/* jars
 	(cd jars; \
-	cp ../README . ; \
-	tar -zcf ../${NAME} README openjml.jar jmlruntime.jar jmlspecs.jar *.properties )
+    cp ../openjml-template.properties . ;\
+	tar -zcf ../${NAME} * )
 	##rm -rf jars  ## We don't delete them because some tests use them
 	echo "   " tar created
 

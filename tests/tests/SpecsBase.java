@@ -47,7 +47,7 @@ import com.sun.tools.javac.util.Log;
  * 
  *<PRE>
     public void testFile() {
-        checkFile("<fully-qualified-type-name>");
+        checkClass("<fully-qualified-type-name>");
     }
    </PRE>
  * or
@@ -80,7 +80,7 @@ import com.sun.tools.javac.util.Log;
 public class SpecsBase extends TCBase {
 
     /** Enables or disables this suite of tests */
-    static private boolean dotests = true;  // Change this to enable/disable tests
+    static private boolean dotests = true;  // Change this to enable/disable dynamic tests
     
     /** If true, then a progress message is printed as each test is executed.*/
     private static boolean verbose;
@@ -98,7 +98,7 @@ public class SpecsBase extends TCBase {
     }
 
     /** Runs the test in dynamically created test mode */
-    public void runTest() { checkFile(classname); }
+    public void runTest() { checkClass(classname); }
 
     /** The name of the class to be tested (which is also the name of the test)
      * when the suite mode is used.
@@ -163,7 +163,7 @@ public class SpecsBase extends TCBase {
             if (!print && !noExtraPrinting) printErrors();
             throw e;
         }
-        assertTrue(!foundErrors);
+        assertTrue("Found errors checking specs for " + testClass, !foundErrors);
     }
 
     /** The test to run - finds all system specs and runs tests on them in order
@@ -178,7 +178,7 @@ public class SpecsBase extends TCBase {
         foundErrors = false;
         helpTCF("AJDK.java","public class AJDK {  }");  // smoke test
         SortedSet<String> classes = findAllFiles(specs); 
-        checkFiles(classes);
+        checkClasses(classes);
         assertTrue("Errors found",!foundErrors);
     }
     
@@ -253,8 +253,15 @@ public class SpecsBase extends TCBase {
      * @param classNames set of classes to test
      */
     //@ modifies foundErrors;
-    public void checkFiles(Set<String> classNames) {
-        for (String qname: classNames) checkFile(qname);
+    public void checkClasses(Set<String> classNames) {
+        for (String qname: classNames) {
+            int n = isGeneric(qname);
+            if (n == 1) checkClassGeneric(qname);
+            else if (n == 0) checkClass(qname);
+            else {
+                assertTrue("Not implemented for " + n + " + generic arguments",false);
+            }
+        }
     }
 
     /** Does a test on the given fully qualified,
@@ -263,19 +270,38 @@ public class SpecsBase extends TCBase {
      * @param className the name of the class to test
      */
     //@ modifies foundErrors;
-    public void checkFile(String className) {
+    public void checkClass(String className) {
         String program = "public class AJDK { "+ className +" o; }";
         if (verbose) System.out.println("JUnit SpecsBase: " + className);
         helpTCFile("AJDK.java",program,className);
     }
     
+    /** Does a test on the given fully qualified,
+     * dot-separated class name
+     * 
+     * @param className the name of the class to test
+     */
+    //@ modifies foundErrors;
+    public void checkClassGeneric(String className) {
+        String program = "public class AJDK { "+ className +"<?> o; }";
+        if (verbose) System.out.println("JUnit SpecsBase: " + className);
+        helpTCFile("AJDK.java",program,className);
+    }
+    
+    public int isGeneric(String className) {
+        if ("java.util.LinkedList".equals(className)) return 1;
+        if ("java.util.AbstractQueue".equals(className)) return 1;
+        if ("java.util.ArrayDeque".equals(className)) return 1;
+        if ("java.util.Deque".equals(className)) return 1;
+        return 0;
+    }
+    
     // FIXME - the above test template does not seem to trigger all the
     // modifier checking in attribute testing.
 
-    // TODO - what is this for
+    /** Use this to test the specs for a specific file */
     public void testFileTemp() {
-        helpTCF("A.java","public class A { java.util.Collection<Integer> f; }"
-                );
+        checkClass("java.util.LinkedList");
     }
 
 }

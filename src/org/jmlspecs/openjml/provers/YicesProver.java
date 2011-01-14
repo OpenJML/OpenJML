@@ -82,7 +82,7 @@ public class YicesProver extends AbstractProver implements IProver {
 
     /** The String by which to invoke the prover */
     /*@ nullable */
-    protected String app = System.getProperty("openjml.prover.yices");
+    protected String app = System.getProperty(Utils.proverPropertyPrefix + Utils.YICES);
 
     /** The one instance of the associated translator */
     /*@ non_null */

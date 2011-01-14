@@ -714,7 +714,7 @@ public class esc2 extends EscBase {
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2",16
                 );
     }
-    
+   
     public void testAssignable() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -804,6 +804,6 @@ public class esc2 extends EscBase {
                 ,"/tt/TestJava.java:63: warning: The prover cannot establish an assertion (Assignable) in method m9b",9
                 );
     }
-    
+   
 
 }
