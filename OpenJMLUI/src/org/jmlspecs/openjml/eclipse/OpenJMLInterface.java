@@ -1,6 +1,6 @@
 /*
  * This file is part of the OpenJML plugin project. 
- * Copyright (c) 2006-2010 David R. Cok
+ * Copyright (c) 2006-2011 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
@@ -10,7 +10,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +71,8 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.util.Context;
 
+// FIXME - needs review
+
 /**
  * This class is the interface between the Eclipse UI that serves as view and
  * controller and the openjml packages that executes operations on JML annotations.
@@ -106,7 +107,7 @@ public class OpenJMLInterface {
     @NonNull
     final protected IJavaProject jproject;
 
-    /** The specs path fof the project */
+    /** The specs path of the project */
     protected List<IResource> specsPath;
     
     /** The problem requestor that reports problems it is told about to the user
@@ -154,7 +155,7 @@ public class OpenJMLInterface {
             for (IResource r: files) {
                 args.add(r.getLocation().toString());
             }
-            if (Activator.options.jmlverbose) Log.log(Timer.getTimeString() + " Executing openjml ");
+            if (Activator.options.uiverbosity >= 2) Log.log(Timer.getTimeString() + " Executing openjml ");
             if (monitor != null) {
                 monitor.setTaskName(command == Cmd.RAC ? "JML RAC" : "JML Checking");
                 monitor.subTask("Executing openjml");
@@ -281,7 +282,7 @@ public class OpenJMLInterface {
                 return;
             }
             if (args.size() > n) {
-            	if (Activator.options.jmlverbose) Log.log(Timer.getTimeString() + " Executing openjml ");
+            	if (Activator.options.uiverbosity >= 1) Log.log(Timer.getTimeString() + " Executing openjml ");
                 if (monitor != null) monitor.subTask("Executing openjml");
                 try {
                     if (monitor != null) monitor.setTaskName("ESC");
@@ -981,7 +982,7 @@ public class OpenJMLInterface {
             try {
                 Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
                 if (selfBundle == null) {
-                	if (Activator.options.jmlverbose) Log.log("No self plugin");
+                	if (Activator.options.uiverbosity >= 2) Log.log("No self plugin");
                 } else {
                     URL url;
                     url = FileLocator.toFileURL(selfBundle.getResource(""));
@@ -992,21 +993,21 @@ public class OpenJMLInterface {
                             if (f.exists()) {
                                 ss.append(File.pathSeparator);
                                 ss.append(f.toString());
-                                if (Activator.options.jmlverbose) Log.log("Internal runtime location: " + f.toString());
+                                if (Activator.options.uiverbosity >= 2) Log.log("Internal runtime location: " + f.toString());
                             } else {
                             	f = new File(root,"../jmlruntime.jar");
                                 if (f.exists()) {
                                     //API.setExternalRuntime(new String[]{ f.toString() });
                                     ss.append(File.pathSeparator);
                                     ss.append(f.toString());
-                                    if (Activator.options.jmlverbose) Log.log("Internal runtime location: " + f.toString());
+                                    if (Activator.options.uiverbosity >= 2) Log.log("Internal runtime location: " + f.toString());
                                 }
                             }
                         }
                     }
                 }
             } catch (Exception e) {
-                if (Activator.options.jmlverbose) Log.log("Failure finding internal runtime: "  + e);
+                Log.errorlog("Failure finding internal runtime",e);
             }
         }
 

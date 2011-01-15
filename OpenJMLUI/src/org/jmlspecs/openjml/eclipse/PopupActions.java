@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 David R. Cok
+ * Copyright (c) 2006-2011 David R. Cok
  * @author David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
@@ -69,7 +69,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
             try {
                 utils.changeJmlNatureSelection(true,selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.EnableJML",e);
+                utils.topLevelException(shell,"PopupActions.EnableJML",e);
             }
         }
     }
@@ -85,7 +85,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
             try {
                 utils.changeJmlNatureSelection(false,selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.DisableJML",e);
+                utils.topLevelException(shell,"PopupActions.DisableJML",e);
             }
         }
     }
@@ -248,7 +248,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
     /**
      * This action puts up a dialog that allows manipulation of the class path.
      * @author David Cok
-     */
+     */ // FIXME - do we need this?
     static public class ClassPath extends PopupActions {
         // This is done in the UI thread. 
         @Override

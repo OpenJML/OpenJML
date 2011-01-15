@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005-2010 David R. Cok
+ * Copyright (c) 2005-2011 David R. Cok
  * @author David R. Cok
  * Created Jul 7, 2005
  */
@@ -16,7 +16,6 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
@@ -24,7 +23,8 @@ import org.jmlspecs.annotation.Nullable;
 
 // FIXME - perhaps should be using DefaultProblem.errorReportSource
 // instead of carting the lineStart and end positions around
-// FIXME - should we inherit from CategorizedProblem directly?
+// FIXME - should we inherit from CategorizedProblem directly? but then we need to copy errorReportSource
+// FIXME - clean up this file; severities, file position, error range info
 /**
  * This is a class that implements the eclipse IProblem interface
  * tailored for the JmlParser.  It is mostly present to provide
@@ -125,7 +125,7 @@ public class JmlEclipseProblem extends DefaultProblem {
 	 * @param icu The ICompilationUnit
 	 * @return The source text for the ICompilationUnit
 	 */
-	private static String getSource(ICompilationUnit icu) {
+	private static /*@Nullable*/ String getSource(ICompilationUnit icu) {
 		if (icu == null) return null;
 		try {
 			return icu.getSource();
@@ -148,51 +148,51 @@ public class JmlEclipseProblem extends DefaultProblem {
 						getSource(icu), -1, -1);
 	}
 
-	/**
-	 * Constructs and reports an IProblem 
-	 * @param req  The problem requestor to which to report the error
-	 * @param cu The CompilationUnit from which to get line ending information
-	 * @param message  The error message to produce
-	 * @param id       A numerical id for the problem
-	 * @param severity One of the severity constants above, e.g. Error, Warning
-	 * @param startPosition The character position within the file of source text to mark
-	 * @param endPosition The character position within the file of source text of the end of the region to mark (not one beyond it)
-	 */
-	private static void report(IProblemRequestor req, org.eclipse.jdt.core.dom.CompilationUnit cu, 
-			String message, int id, int severity,
-			int startPosition, int endPosition) {
-		if (severity == Problems.IGNORE) return;
-		//    int lineStart = cu.getLineStart(line);
-		//    if (line == 1 && lineStart < 0) lineStart = 0; // Fixes an apparent bug
-		if (cu != null) {
-			int line = cu.getLineNumber(startPosition);
-			if (line < 1) line = 1;
-			ICompilationUnit icu = (ICompilationUnit)cu.getJavaElement();
-			IFile r = (IFile)icu.getResource();
-			//      req.acceptProblem(new DefaultProblem(
-			//              r.getFullPath().toString().toCharArray(), 
-			//              message, id, null, severity, 
-			//              startPosition, endPosition, line));
-			req.acceptProblem(new JmlEclipseProblem(
-					r, 
-					message, id, severity, 
-					startPosition, endPosition, line, 
-					null,
-					-1, -1));
-		} else {
-			int line = -1;
-			//      req.acceptProblem(new DefaultProblem(
-			//              null, 
-			//              message, id, null, severity, 
-			//              startPosition, endPosition, line));
-			req.acceptProblem(new JmlEclipseProblem(
-					null, 
-					message, id, severity, 
-					startPosition, endPosition, line, 
-					null,
-					-1,-1));
-		}
-	}
+//	/**
+//	 * Constructs and reports an IProblem 
+//	 * @param req  The problem requestor to which to report the error
+//	 * @param cu The CompilationUnit from which to get line ending information
+//	 * @param message  The error message to produce
+//	 * @param id       A numerical id for the problem
+//	 * @param severity One of the severity constants above, e.g. Error, Warning
+//	 * @param startPosition The character position within the file of source text to mark
+//	 * @param endPosition The character position within the file of source text of the end of the region to mark (not one beyond it)
+//	 */
+//	private static void report(IProblemRequestor req, org.eclipse.jdt.core.dom.CompilationUnit cu, 
+//			String message, int id, int severity,
+//			int startPosition, int endPosition) {
+//		if (severity == IProblems.IGNORE) return;
+//		//    int lineStart = cu.getLineStart(line);
+//		//    if (line == 1 && lineStart < 0) lineStart = 0; // Fixes an apparent bug
+//		if (cu != null) {
+//			int line = cu.getLineNumber(startPosition);
+//			if (line < 1) line = 1;
+//			ICompilationUnit icu = (ICompilationUnit)cu.getJavaElement();
+//			IFile r = (IFile)icu.getResource();
+//			//      req.acceptProblem(new DefaultProblem(
+//			//              r.getFullPath().toString().toCharArray(), 
+//			//              message, id, null, severity, 
+//			//              startPosition, endPosition, line));
+//			req.acceptProblem(new JmlEclipseProblem(
+//					r, 
+//					message, id, severity, 
+//					startPosition, endPosition, line, 
+//					null,
+//					-1, -1));
+//		} else {
+//			int line = -1;
+//			//      req.acceptProblem(new DefaultProblem(
+//			//              null, 
+//			//              message, id, null, severity, 
+//			//              startPosition, endPosition, line));
+//			req.acceptProblem(new JmlEclipseProblem(
+//					null, 
+//					message, id, severity, 
+//					startPosition, endPosition, line, 
+//					null,
+//					-1,-1));
+//		}
+//	}
 
 	//  /**
 	//   * Constructs and reports an IProblem 
@@ -262,26 +262,26 @@ public class JmlEclipseProblem extends DefaultProblem {
 	//    report(req, cu, problem.toString(args), problem.id(), problem.severity(), startPosition, endPosition);
 	//  }
 
-	/**
-	 * Constructs and reports a problem that is not associated with a source location
-	 * @param req  The problem requestor to which to report the error
-	 * @param problem  The instance of IProblems giving the id/text of this error
-	 * @param args The arguments to substitute in the problem text
-	 * @return a String version of the problem message
-	 */
-	public static String report(IProblemRequestor req, 
-			IProblems problem, 
-			Object ... args) {
-		String s;
-		req.acceptProblem(new JmlEclipseProblem(
-				null, 
-				s=problem.toString(args), problem.id(),
-				problem.severity(), 
-				-1, -1, -1, 
-				null,
-				-1, -1));
-		return s;
-	}
+//	/**
+//	 * Constructs and reports a problem that is not associated with a source location
+//	 * @param req  The problem requestor to which to report the error
+//	 * @param problem  The instance of IProblems giving the id/text of this error
+//	 * @param args The arguments to substitute in the problem text
+//	 * @return a String version of the problem message
+//	 */
+//	public static String report(IProblemRequestor req, 
+//			IProblems problem, 
+//			Object ... args) {
+//		String s;
+//		req.acceptProblem(new JmlEclipseProblem(
+//				null, 
+//				s=problem.toString(args), problem.id(),
+//				problem.severity(), 
+//				-1, -1, -1, 
+//				null,
+//				-1, -1));
+//		return s;
+//	}
 
 
 	/**
@@ -314,7 +314,7 @@ public class JmlEclipseProblem extends DefaultProblem {
 		// translate the workspace-relative filename into a file-system
 		// filename
 		if (filenameAsChars != null) {
-			filename = (String.valueOf(p.getOriginatingFileName()));
+			filename = String.valueOf(p.getOriginatingFileName());
 			IWorkspace workspace = ResourcesPlugin.getWorkspace();
 			IWorkspaceRoot root = workspace.getRoot();
 			resource = root.findMember(filename);
@@ -469,24 +469,24 @@ public class JmlEclipseProblem extends DefaultProblem {
 		}
 	}
 
-	// FIXME - probably should refactor to use this interface a lot more
-	// FIXME - or can we get rid of it entirely
-	/**
-	 * Implementations of this interface can be used to store state
-	 * that is then used when a problem report is issued.
-	 */
-	public static interface Context {
-		/**
-		 * A simplified problem report call.  An implementation of this
-		 * method will combine the information from the call parameters
-		 * with information stored in the instance of the class implementing
-		 * the Context interface in order to create a full problem 
-		 * report.
-		 * @param start the starting character position of the problem
-		 * @param end the ending character position of the problem
-		 * @param p the Problems instance
-		 * @param args the arguments of the Problems instance
-		 */
-		public void report(int start, int end, Problems p, Object... args);
-	}
+//	// FIXME - probably should refactor to use this interface a lot more
+//	// FIXME - or can we get rid of it entirely
+//	/**
+//	 * Implementations of this interface can be used to store state
+//	 * that is then used when a problem report is issued.
+//	 */
+//	public static interface Context {
+//		/**
+//		 * A simplified problem report call.  An implementation of this
+//		 * method will combine the information from the call parameters
+//		 * with information stored in the instance of the class implementing
+//		 * the Context interface in order to create a full problem 
+//		 * report.
+//		 * @param start the starting character position of the problem
+//		 * @param end the ending character position of the problem
+//		 * @param p the Problems instance
+//		 * @param args the arguments of the Problems instance
+//		 */
+//		public void report(int start, int end, IProblems p, Object... args);
+//	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 David R. Cok
+ * Copyright (c) 2006-2011 David R. Cok
  * @author David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
@@ -93,20 +93,22 @@ public class JMLNature implements IProjectNature {
 	 */
 	static public void enableJMLNature(IProject project) {
 		try {
-			if (Activator.options.jmlverbose) Log.log("Enabling JML nature for project " + project.getName());
+			if (Activator.options.uiverbosity >= 2) Log.log("Enabling JML nature for project " + project.getName());
 			IProjectDescription description = project.getDescription();
 			String[] natures = description.getNatureIds();
 
 			boolean hasJava = false;
 			for (int i = 0; i < natures.length; ++i) {
 				if (JML_NATURE_ID.equals(natures[i])) {
-					if (Activator.options.jmlverbose) Log.log("JML Nature already present in " + project.getName());
+					if (Activator.options.uiverbosity >= 2) Log.log("JML Nature already present in " + project.getName());
 					return;
 				}
 				if (JAVA_NATURE_ID.equals(natures[i])) hasJava = true;
 			}
-			if (!hasJava) if (Activator.options.jmlverbose) Log.log("Unexpected non-Java project: " + project.getName());
-			if (!hasJava) return; // Was not a Java project after all
+			if (!hasJava) {
+				if (Activator.options.uiverbosity >= 2) Log.log("Non-Java project: " + project.getName());
+				return; // Was not a Java project after all
+			}
 
 			// Add the nature
 			String[] newNatures = new String[natures.length + 1];
@@ -114,7 +116,7 @@ public class JMLNature implements IProjectNature {
 			newNatures[natures.length] = JML_NATURE_ID;
 			description.setNatureIds(newNatures);
 			project.setDescription(description, null);
-			if (Activator.options.jmlverbose) Log.log("JML Nature added to " + project.getName());
+			if (Activator.options.uiverbosity >= 2) Log.log("JML Nature added to " + project.getName());
 
 		} catch (CoreException e) {
 			Log.errorlog("Failed to enable JML nature for " + project.getProject(), e);
@@ -127,7 +129,7 @@ public class JMLNature implements IProjectNature {
 	 */
 	static public void disableJMLNature(IProject project) {
 		try {
-			if (Activator.options.jmlverbose) Log.log("Disabling nature on project " + project.getName());
+			if (Activator.options.uiverbosity >= 2) Log.log("Disabling nature on project " + project.getName());
 			IProjectDescription description = project.getDescription();
 			String[] natures = description.getNatureIds();
 
@@ -142,11 +144,11 @@ public class JMLNature implements IProjectNature {
 					description.setNatureIds(newNatures);
 					project.setDescription(description, null);
 
-					if (Activator.options.jmlverbose) Log.log("JML Nature removed from " + project.getName());
+					if (Activator.options.uiverbosity >= 2) Log.log("JML Nature removed from " + project.getName());
 					return;
 				}
 			}
-			if (Activator.options.jmlverbose) Log.log("JML Nature not present in " + project.getName());
+			if (Activator.options.uiverbosity >= 2) Log.log("JML Nature not present in " + project.getName());
 
 		} catch (CoreException e) {
 			Log.errorlog("Failed to change JML nature for " + project.getProject(), e);

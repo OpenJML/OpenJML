@@ -1,5 +1,14 @@
 Plug-in TODO items:
 
+Menu items to fix:
+    OpenSpecsEditor
+    ShowSpecs
+    AddToSpecsPath, RemoveFromSpecspath, EditSpecspath
+    COunterexample Value
+    RAC operations
+    
+TODO items in plugin.xml
+
 - change the way that spec chains are handled
 
 - Review and test and document each of the following:

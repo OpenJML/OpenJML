@@ -82,6 +82,8 @@ import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
 import org.osgi.framework.Bundle;
 
+// FIXME - review UI Utils class
+
 /** This class holds utility values and methods to support the Eclipse plugin
  * for OpenJML.
  * 
@@ -183,7 +185,7 @@ public class Utils {
         final Map<IJavaProject,List<Object>> sorted = sortByProject(res);
         for (final IJavaProject jp : sorted.keySet()) {
             final List<Object> ores = sorted.get(jp);
-            if (Activator.options.jmlverbose) Log.log("Checking ESC (" + res.size() + " items)");
+            if (Activator.options.uiverbosity >= 2) Log.log("Checking ESC (" + res.size() + " items)");
             deleteMarkers(res,shell);
             Job j = new Job("Static Checks - Manual") {
                 public IStatus run(IProgressMonitor monitor) {
@@ -247,14 +249,14 @@ public class Utils {
         }
         if (newlist.size() != 0) {
             try {
-            	if (Activator.options.jmlverbose) Log.log("Starting RAC " + newlist.size() + " files");
+            	if (Activator.options.uiverbosity >= 2) Log.log("Starting RAC " + newlist.size() + " files");
                 getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.RAC,newlist,monitor);
-                if (Activator.options.jmlverbose) Log.log("Completed RAC");
+                if (Activator.options.uiverbosity >= 2) Log.log("Completed RAC");
             } catch (Exception e) {
                 showExceptionInUI(null,e);
             }
         } else {
-        	if (Activator.options.jmlverbose) Log.log("Nothing to RAC");
+        	if (Activator.options.uiverbosity >= 2) Log.log("Nothing to RAC");
         }
     }
     
@@ -350,7 +352,7 @@ public class Utils {
         List<Object> list;
         String text;
         if (textSelection != null && window != null && (text=textSelection.getText()).length() != 0) {
-        	if (Activator.options.jmlverbose) Log.log("Selected text: " + text);
+        	if (Activator.options.uiverbosity >= 2) Log.log("Selected text: " + text);
             String classname = text.replace('.','/') + ".class";
             IEditorPart p = window.getActivePage().getActiveEditor();
             IEditorInput e = p==null? null : p.getEditorInput();
@@ -505,7 +507,7 @@ public class Utils {
                     launchJavaEditor(s,nm);
                 } else if (firstEditableLocation != null) {
                     IFile newfile = firstEditableLocation.getFile(name + ".jml");
-                    if (Activator.options.jmlverbose) Log.log("Creating " + newfile);
+                    if (Activator.options.uiverbosity >= 2) Log.log("Creating " + newfile);
                     // FIXME - add default content
                     // FIXME - be able to decline to create, or to choose location
                     boolean b = MessageDialog.openConfirm(
@@ -898,7 +900,7 @@ public class Utils {
                     else if (element instanceof IAdaptable && (r=(IResource)((IAdaptable)element).getAdapter(IResource.class))!=null) {
                         list.add(r);
                     } else {
-                    	if (Activator.options.jmlverbose) Log.log("No resource for " + ((IJavaElement)element).getElementName());
+                    	if (Activator.options.uiverbosity >= 2) Log.log("No resource for " + ((IJavaElement)element).getElementName());
                     }
                 }
             }
@@ -956,7 +958,7 @@ public class Utils {
                         (p!=null? " on project " + p.getElementName() : ""), e);
             }
         }
-        if (Activator.options.jmlverbose) Log.log("Completed JML Nature operation ");
+        if (Activator.options.uiverbosity >= 2) Log.log("Completed JML Nature operation ");
     }
 
     // Do this right here in the UI thread
@@ -1327,7 +1329,7 @@ public class Utils {
             IResource resource = (IResource)t;
             try {
                 try {
-                	if (Activator.options.jmlverbose) Log.log("Deleting markers in " + resource.getName());
+                	if (Activator.options.uiverbosity >= 2) Log.log("Deleting markers in " + resource.getName());
                     resource.deleteMarkers(JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
                     resource.deleteMarkers(ESC_MARKER_ID, false, IResource.DEPTH_INFINITE);
                 } catch (CoreException e) {
@@ -1379,7 +1381,7 @@ public class Utils {
                     else set.remove(r);
                 }
             } else {
-            	if (Activator.options.jmlverbose) Log.log("Not handling " + r.getClass());
+            	if (Activator.options.uiverbosity >= 2) Log.log("Not handling " + r.getClass());
             }
         } catch (CoreException e) {
             Log.errorlog("Core Exception while traversing Resource tree (mark for RAC)",e);
@@ -1438,7 +1440,7 @@ public class Utils {
                     }
                 }
             } else {
-            	if (Activator.options.jmlverbose) Log.log("Not handling " + r.getClass());
+            	if (Activator.options.uiverbosity >= 2) Log.log("Not handling " + r.getClass());
             }
         } catch (CoreException e) {
             Log.errorlog("Core Exception while traversing Resource tree (mark for RAC)",e);
@@ -1629,7 +1631,7 @@ public class Utils {
     /** Shows a dialog regarding an exception that has been thrown; this must be
      * called within the UI thread.
      */
-    static public void topLevelException(Shell shell, String title, Exception e) {
+    public void topLevelException(Shell shell, String title, Exception e) {
         //e.printStackTrace(sw); // TODO - show the stack trace?
         showMessage(shell,"JML Top-level Exception: " + title,
                 e.toString());

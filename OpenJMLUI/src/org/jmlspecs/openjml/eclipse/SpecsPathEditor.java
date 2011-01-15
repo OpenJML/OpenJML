@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML plugin project. 
+ * Copyright (c) 2006-2011 David R. Cok
+ */
 package org.jmlspecs.openjml.eclipse;
 
 import java.util.ArrayList;
@@ -27,6 +31,7 @@ import org.eclipse.swt.widgets.Shell;
  * Specifications Path for a java Project in Eclipse.
  * @author David R. Cok
  */
+// FIXME - needs repair and review - SpecsPathEditor
 // TODO: Remaining problems
 // - Dialog is not resizable
 // - Dialog buttons are too big

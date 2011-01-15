@@ -31,7 +31,9 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  * (e.g. eclipseOptions, jmlOptions, javaOptions, debugOptions).
  * This is the GUI element on the preference page that controls the preference and the option.
  * </UL>
- */
+ */ // FIXME - review the instructions above
+// FIXME - other options
+// FIXME - consider reimplementing using standard preference page widgets
 
 public class Preferences extends org.eclipse.jface.preference.PreferencePage 
 implements IWorkbenchPreferencePage {
@@ -58,6 +60,8 @@ implements IWorkbenchPreferencePage {
 		final static public String jmlverbosityKey = prefix + "jmlverbosity";
 		/** The preference store key for the verbosity (quiet, nowarnings, verbose) option. */
 		final static public String verbosityKey = prefix + "verbosity";
+		/** The preference store key for the uiverbosity option. */
+		final static public String uiverbosityKey = prefix + "uiverbosity";
 		/** The preference store key for the source option. */
 		final static public String sourceKey = prefix + "javaSourceVersion";
 		/** The preference store key for the classpath option. */
@@ -86,7 +90,7 @@ implements IWorkbenchPreferencePage {
 
 		/** The object controlling the preference store entry for the debug option. */
 		public AbstractPreference.BooleanOption debug = 
-			new AbstractPreference.BooleanOption(debugKey,defaultOptions.debug,"debug","When on, debug information is emitted");
+			new AbstractPreference.BooleanOption(debugKey,defaultOptions.debug,"OpenJML debugging","When on, debug information is emitted");
 
 		/** The object controlling the preference store entry for the debugast option. */
 		public AbstractPreference.BooleanOption nonnullByDefault = 
@@ -98,24 +102,26 @@ implements IWorkbenchPreferencePage {
 
 		/** The object controlling the preference store entry for the verbosity option. */
 		public AbstractPreference.IntOption verbosity = 
-			new AbstractPreference.IntOption(verbosityKey,defaultOptions.verbosity,"verbosity","Amount of information emitted");
+			new AbstractPreference.IntOption(verbosityKey,
+					defaultOptions.verbosity,"Java verbosity","Amount of information emitted by the compiler");
+
+		/** The object controlling the preference store entry for the uiverbosity option. */
+		public AbstractPreference.IntOption uiverbosity = 
+			new AbstractPreference.IntOption(uiverbosityKey,defaultOptions.uiverbosity,"UI verbosity","Amount of information emitted about the UI");
 
 		/** The object controlling the preference store entry for the JML verbosity option. */
 		public AbstractPreference.BooleanOption jmlverbosity = 
 			new AbstractPreference.BooleanOption(jmlverbosityKey,defaultOptions.jmlverbose,"JML verbosity","Enable verbose output about JML");
 
 		/** The object controlling the preference store entry for the source option. */
-		public AbstractPreference.StringOption source = 
-			new AbstractPreference.StringOption(sourceKey,defaultOptions.source,"Java source","Version of Java source that is recognized");
+		public AbstractPreference.ChoiceOption source = 
+			new AbstractPreference.ChoiceOption(sourceKey,
+					new String[]{"1.4","1.5","1.6","1.7"},
+					defaultOptions.source,"Java source","Version of Java source that is recognized");
 
 		/** The object controlling the preference store entry for the destination option. */
 		public AbstractPreference.StringOption destination = 
 			new AbstractPreference.StringOption(destinationKey,defaultOptions.destination,"Destination directory","Directory in which to put compiled files");
-
-		// FIXME - not sure we need to save this
-		//    /** The object controlling the preference store entry for the classpath option. */
-		//    public AbstractPreference.StringOption classpath = 
-		//      new AbstractPreference.StringOption(classpathKey,defaultOptions.classpath,"classpath","Classpath as used by Java");
 
 		/** The object controlling the preference store entry for the parsePlus option. */
 		public AbstractPreference.BooleanOption parsePlus = 
@@ -160,9 +166,9 @@ implements IWorkbenchPreferencePage {
 		if (options == null) options = new Options();
 		options.debug = poptions.debug.getValue();
 		options.verbosity = poptions.verbosity.getValue();
-		options.source = poptions.source.getValue();
+		options.uiverbosity = poptions.uiverbosity.getValue();
+		options.source = poptions.source.getStringValue();
 		options.destination = poptions.destination.getValue();
-		//    options.classpath = poptions.classpath.getValue();
 		options.jmlverbose = poptions.jmlverbosity.getValue();
 		options.parsePlus = poptions.parsePlus.getValue();
 		options.checkPurity = poptions.checkPurity.getValue();
@@ -175,29 +181,26 @@ implements IWorkbenchPreferencePage {
 		return options;
 	}
 
-	/**
-	 * This is the list of widgets in the JmlEclipse options section of the
-	 * preferences page
-	 */
-	final static private PreferenceWidget[] eclipseOptions = new PreferenceWidget[] {
-		new PreferenceWidget.IntWidget( // FIXME - why is this an IntWidget
-				poptions.verbosity,new String[]{"errors only","errors and warnings (quiet)","normal","verbose"}),
-	};
+//	/**
+//	 * This is the list of widgets in the JmlEclipse options section of the
+//	 * preferences page
+//	 */
+//	final static private PreferenceWidget<?>[] eclipseOptions = new PreferenceWidget[] {
+//	};
 
 	/**
 	 * This is the list of widgets in the JmlEclipse options section of the
 	 * preferences page
 	 */
-	final static private PreferenceWidget[] javaOptions = new PreferenceWidget[] {
-		new PreferenceWidget.StringWidget(poptions.source), // FIXME - choice?
-		//    new PreferenceWidget.StringWidget(poptions.classpath), // FIXME (specspath also) edit/browse to change the list
-		new PreferenceWidget.StringWidget(poptions.destination) // |FIXME - file browser
+	final static private PreferenceWidget<?>[] javaOptions = {
+		new PreferenceWidget.ChoiceWidget(poptions.source),
+		new PreferenceWidget.DirectoryWidget(poptions.destination)
 	};
 
 	/**
 	 * An array of the JML option widgets.
 	 */
-	static final private PreferenceWidget[] jmlOptions = {
+	static final private PreferenceWidget<?>[] jmlOptions = {
 		new PreferenceWidget.BooleanWidget(poptions.parsePlus),
 		new PreferenceWidget.BooleanWidget(poptions.checkPurity),
 		new PreferenceWidget.BooleanWidget(poptions.nonnullByDefault),
@@ -209,9 +212,13 @@ implements IWorkbenchPreferencePage {
 	};
 
 	/**
-	 * An array of widgets for debugging options.
+	 * An array of widgets for verbosity and debugging options.
 	 */
-	static final private PreferenceWidget[] debugOptions = {
+	static final private PreferenceWidget<?>[] debugOptions = {
+		new PreferenceWidget.IntChoiceWidget(
+				poptions.verbosity,new String[]{"errors only","errors and warnings (quiet)","normal","verbose"}),
+		new PreferenceWidget.IntChoiceWidget(
+						poptions.uiverbosity,new String[]{"quiet","timing info","progress info","verbose"}),
 		new PreferenceWidget.BooleanWidget(poptions.jmlverbosity),
 		new PreferenceWidget.BooleanWidget(poptions.debug),
 	};
@@ -252,13 +259,13 @@ implements IWorkbenchPreferencePage {
 		//  Composite composite3 = new Widgets.VComposite(composite2);
 		//  Composite composite4 = new Widgets.VComposite(composite2);
 
-		new Widgets.LabeledSeparator(composite0, "Options relating to Eclipse");
-		addWidgets(eclipseOptions, composite0);
-		new Widgets.LabeledSeparator(composite0, "Options relating to Java");
-		addWidgets(javaOptions, composite0);
+//		new Widgets.LabeledSeparator(composite0, "Options relating to the UI");
+//		addWidgets(eclipseOptions, composite0);
 		new Widgets.LabeledSeparator(composite0, "Options relating to JML");
 		addWidgets(jmlOptions, composite0);
-		new Widgets.LabeledSeparator(composite0, "Options for debugging");
+		new Widgets.LabeledSeparator(composite0, "Options relating to Java");
+		addWidgets(javaOptions, composite0);
+		new Widgets.LabeledSeparator(composite0, "Options controlling verboseness and debugging");
 		addWidgets(debugOptions, composite0);
 
 		return composite0;
@@ -269,7 +276,7 @@ implements IWorkbenchPreferencePage {
 	 */
 	public boolean performOk() {
 		// When OK is pressed, set all the options selected.
-		setOptionValue(eclipseOptions);
+//		setOptionValue(eclipseOptions);
 		setOptionValue(javaOptions);
 		setOptionValue(jmlOptions);
 		setOptionValue(debugOptions);
@@ -279,7 +286,7 @@ implements IWorkbenchPreferencePage {
 
 	public void performDefaults() {
 		// When OK is pressed, set all the options selected.    
-		setDefaults(eclipseOptions);
+//		setDefaults(eclipseOptions);
 		setDefaults(javaOptions);
 		setDefaults(jmlOptions);
 		setDefaults(debugOptions);
@@ -291,7 +298,7 @@ implements IWorkbenchPreferencePage {
 	 */
 	//@ requires ws != null;
 	//@ requires \nonnullelements(ws);
-	public void setDefaults(PreferenceWidget[] ws) {
+	public void setDefaults(PreferenceWidget<?>[] ws) {
 		for (int i = 0; i<ws.length; ++i) {
 			ws[i].setDefault();
 		}
@@ -303,7 +310,7 @@ implements IWorkbenchPreferencePage {
 	 */
 	//@ requires ws != null;
 	//@ requires \nonnullelements(ws);
-	public void setOptionValue(PreferenceWidget[] ws) {
+	public void setOptionValue(PreferenceWidget<?>[] ws) {
 		for (int i=0; i<ws.length; ++i) {
 			ws[i].setOptionValue();
 		}
@@ -333,7 +340,7 @@ implements IWorkbenchPreferencePage {
 	 */
 	//@ requires ws != null && composite != null;
 	//@ requires \nonnullelements(ws);
-	public void addWidgets(PreferenceWidget[] ws, Composite composite) {
+	protected void addWidgets(PreferenceWidget<?>[] ws, Composite composite) {
 		addWidgets(ws,0,ws.length,composite);
 	}
 
@@ -349,7 +356,7 @@ implements IWorkbenchPreferencePage {
 	//@ requires offset >= 0 && offset < ws.length;
 	//@ requires num >= 0 && offset + num < ws.length;
 	//@ requires \nonnullelements(ws);
-	public void addWidgets(PreferenceWidget[] ws, int offset, int num, Composite composite) {
+	protected void addWidgets(PreferenceWidget<?>[] ws, int offset, int num, Composite composite) {
 		for (int i=0; i<num; ++i) {
 			ws[offset+i].addWidget(composite);
 		}

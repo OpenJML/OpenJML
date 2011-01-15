@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005-2010 David R. Cok.
+ * Copyright (c) 2005-2011 David R. Cok.
  *
  * @author David R. Cok
  * Jun 18, 2005 
@@ -16,7 +16,7 @@ package org.jmlspecs.openjml.eclipse;
  * to create a way to persist the value of the option, and (d) add code
  * in Preferences to provide a way to set the option value from the UI.
  *
- */
+ */ // TODO - this needs separation from the command-line and from Preferences
 public class Options {
 
     // Options relating to Eclipse or generic running of the tools
@@ -33,6 +33,15 @@ public class Options {
      * When 3 or higher, verbose progress output is produced.
      */
     public int verbosity;
+    
+    
+    /** Verbosity of the plugin itself:
+     * When 0, quiet; 
+     * When 1, timing and limited progress messages;
+     * When 2, action information and replication of ESC warnings;
+     * When 3 or higher, debug output.
+     */
+    public int uiverbosity = 1;
 
     // Options relating to Java
 
@@ -40,7 +49,7 @@ public class Options {
      *  search for and process files listed on the command-line.
      */
     //@ non_null
-    public String classpath; // FIXME - change to an array of locations
+    public String classpath; // FIXME - change to an array of locations; why is this needed in Options?
 
     /** The directory in which to place output .class files.
      * FIXME - is there reasonable default behavior when null?
@@ -62,7 +71,7 @@ public class Options {
     /** If true, then annotations beginning with +@ are processed as well
      * as those beginning with @ or -@.
      */
-    public boolean parsePlus;
+    public boolean parsePlus; // FIXME - obsolete
 
     /** If true, checks for proper use of purity are performed. */
     public boolean checkPurity;
@@ -103,6 +112,7 @@ public class Options {
     public Options setDefaults() {
         debug = false;
         verbosity = 2;
+        uiverbosity = 1;
         jmlverbose = false;
         
         classpath = System.getProperty("java.classpath","");  // FIXME Is this the right default for the classpath
@@ -121,4 +131,5 @@ public class Options {
 
         return this;
     }
+    // FIXME - other options?
 }

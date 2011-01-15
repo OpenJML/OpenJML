@@ -1,15 +1,18 @@
 /*
- * Copyright (c) 2006-2010 David R. Cok
+ * Copyright (c) 2006-2011 David R. Cok
  * @author David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 
 /** The logging mechanism for the OpenJML plugin - used for reporting progress or
  * errors within the plugin itself (i.e. not messages arising from the use of
- * command-line OpenJML nor messages from analysis of user code).  All user output is sent to
+ * command-line OpenJML nor messages from analysis of user code).  All textual user output is sent to
  * the static methods of this class; specific kinds of reporters register as listeners.
  * Actually - in the current implementation there can be only one listener.
  * @author David R. Cok
@@ -33,9 +36,16 @@ public class Log {
 	 * current listener, or to System.out if there are no listeners
 	 * @param message the message to write; a new line will be added
 	 */
-	static public void errorlog(String message, Throwable e) { // FIXME - record the stack trace
+	static public void errorlog(String message, Throwable e) {
 		String emsg = e == null ? null : e.getMessage();
 		if (emsg != null && !emsg.isEmpty()) message = message + " (" + emsg + ")";
+		if (e != null) {
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			pw.println();
+			e.printStackTrace(pw);
+			emsg = emsg + sw.toString(); 
+		}
 		if (log.listener != null) log.listener.log(message);
 		else System.out.println(message); 
 	}
@@ -53,8 +63,6 @@ public class Log {
 		listener = l;
 	}
 
-	//context.put(DiagnosticListener.class, new UIListener<JavaFileObject>() );
-
 	/** A class that listens to diagnostic messages coming in from OpenJDK
 	 * and reports them into the OpenJML logging mechanism for Log listeners
 	 * to hear. 
@@ -66,7 +74,5 @@ public class Log {
 		public void report(Diagnostic<? extends S> diagnostic) {
 			Log.log(diagnostic.toString());
 		}
-
 	}
-
 }

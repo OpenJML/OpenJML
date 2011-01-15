@@ -26,6 +26,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 
 // FIXME - we need to handle dependencies when doing incremental compilation
+// FIXME - needs review
 
 /** This class implements a builder for JML tools.  The builder is 
  *  run as part of the compilation cycle and appears in the list of
@@ -129,7 +130,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		if (Activator.options.jmlverbose) Log.log("Cleaning: " + getProject().getName());
+		if (Activator.options.uiverbosity >= 2) Log.log("Cleaning: " + getProject().getName());
 		deleteMarkers(getProject(),true);
 		cleanRacbin(getProject());
 	}
@@ -198,22 +199,22 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			return;
 		}
 
-		if (Activator.options.jmlverbose) Log.log("Full build " + project.getName());
+		if (Activator.options.uiverbosity >= 2) Log.log("Full build " + project.getName());
 		Timer.markTime();
 		deleteMarkers(project,true);
 		if (monitor.isCanceled() || isInterrupted()) {
-			if (Activator.options.jmlverbose) Log.log("Build interrupted");
+			if (Activator.options.uiverbosity >= 2) Log.log("Build interrupted");
 			return;
 		}
 		ResourceVisitor v = new ResourceVisitor();
 		project.accept(v);
-		// FIXME - doing double work here
+		// FIXME - doing double work here - checking and then rechecking while we build
 		doChecking(jproject,v.resourcesToBuild,monitor);
 		Activator.getDefault().utils.doBuildRac(jproject,v.resourcesToBuild,monitor);
 		v.resourcesToBuild.clear();
 	}
 
-	/** Called to do a build on a resource, recursively; this is a utility
+	/** Called to do a build on a list of resources, recursively; this is a utility
 	 * to be called by client code elsewhere in the program.
 	 * @param jp the java project to which the resources belong 
 	 * @param resources the resources to JML check, each one recursively
@@ -244,7 +245,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	protected void incrementalBuild(IResourceDelta delta,
 			IProgressMonitor monitor) throws CoreException {
 		IProject project = getProject();
-		if (Activator.options.jmlverbose) Log.log("Incremental build " + project.getName());
+		if (Activator.options.uiverbosity >= 2) Log.log("Incremental build " + project.getName());
 		Timer.markTime();
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files and deletes markers
@@ -300,7 +301,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// FIXME - need to build one project at a time
 		try {
 			boolean cancelled = doBuild(JavaCore.create(((IResource)resources.get(0)).getProject()),resources, monitor);  // FIXME - build everything or update?
-			if (Activator.options.jmlverbose) Log.log(Timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
+			if (Activator.options.uiverbosity >= 1) Log.log(Timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
 		} catch (Exception e) {
 			Log.errorlog("Exception occurred during JML check ",e);
 		}

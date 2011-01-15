@@ -1,6 +1,6 @@
 /*
  * This file is part of the OpenJML plugin project. 
- * Copyright 2006-2010 David R. Cok
+ * Copyright 2006-2011 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
@@ -73,8 +73,6 @@ public class JmlProblemRequestor implements IProblemRequestor {
 		this.project = jp == null ? null : jp.getProject();
 	}
 
-//	IProblem mostRecentProblem = null;
-
 	/** Eclipse calls this when a problem is reported
 	 * @param p the reported problem
 	 * @see org.eclipse.jdt.core.IProblemRequestor#acceptProblem(org.eclipse.jdt.core.compiler.IProblem)
@@ -97,6 +95,8 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			//          p.delete();
 			return;
 		}
+		
+		// FIXME - need a comment here?
 		if (p.isWarning() && level == 2) return;
 
 		try {
@@ -115,13 +115,16 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			// as well as producing markers and annotations
 			//JmlEclipseProblem.printProblem(Log.log.stream(), p);
 
+			JmlEclipseProblem jmlproblem = (JmlEclipseProblem)p;
 			final IResource r = f;
 			final int finalLineNumber = p.getSourceLineNumber();
 			final int column = p.getSourceStart();
-			final int finalOffset = p.getSourceStart() + ((JmlEclipseProblem)p).lineStart;
-			final int finalEnd = p.getSourceEnd() + 1 + ((JmlEclipseProblem)p).lineStart;
+			final int finalOffset = p.getSourceStart() + jmlproblem.lineStart;
+			final int finalEnd = p.getSourceEnd() + 1 + jmlproblem.lineStart;
 			final String finalErrorMessage = p.getMessage();
-			int severity = ((JmlEclipseProblem)p).severity;
+			int severity = jmlproblem.severity;
+			
+			// FIXME - this looks like a hack - at least explain
 			final boolean staticCheckWarning = 
 				// The 64 is ProblemSeverities.SecondaryError, which has discouraged access
 				severity == 64 || finalErrorMessage.contains("The prover") 
@@ -132,30 +135,31 @@ public class JmlProblemRequestor implements IProblemRequestor {
 						severity > 0  ? IMarker.SEVERITY_ERROR :
 							IMarker.SEVERITY_INFO;
 
-						// Eclipse recommends that things that modify the resources
-						// in a workspace be performed in a IWorkspaceRunnable
-						IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
-							public void run(IProgressMonitor monitor) throws CoreException {
-								IMarker marker = r.createMarker(
+			// Eclipse recommends that things that modify the resources
+			// in a workspace be performed in a IWorkspaceRunnable
+			IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
+				public void run(IProgressMonitor monitor) throws CoreException {
+					IMarker marker = r.createMarker(
 										staticCheckWarning ? Utils.ESC_MARKER_ID : Utils.JML_MARKER_ID);
-								marker.setAttribute(IMarker.LINE_NUMBER, 
+					marker.setAttribute(IMarker.LINE_NUMBER, 
 										finalLineNumber >= 1? finalLineNumber : 1);
-								if (column >= 0) {
-									marker.setAttribute(IMarker.CHAR_START, finalOffset); 
-									marker.setAttribute(IMarker.CHAR_END, finalEnd);
-								}
-								// Note - it appears that CHAR_START is measured from the beginning of the
-								// file and overrides the line number when drawing the squiggly 
+					if (column >= 0) {
+						marker.setAttribute(IMarker.CHAR_START, finalOffset); 
+						marker.setAttribute(IMarker.CHAR_END, finalEnd);
+					}
+					// Note - it appears that CHAR_START is measured from the beginning of the
+					// file and overrides the line number when drawing the squiggly 
+					// The line number is used in the information about the problem in
+					// the Problem View
 
-								marker.setAttribute(IMarker.SEVERITY,finalSeverity);
-								marker.setAttribute(IMarker.MESSAGE, finalErrorMessage);
-							}
-						};
-						r.getWorkspace().run(runnable, null);
+					marker.setAttribute(IMarker.SEVERITY,finalSeverity);
+					marker.setAttribute(IMarker.MESSAGE, finalErrorMessage);
+				}
+			};
+			r.getWorkspace().run(runnable, null);
 		} catch (Exception e) {
 			Log.errorlog("Failed to make a marker " + e,e);
 		}
-//		mostRecentProblem = p;
 	}
 
 	/** What to accept: level == 2 ==> errors only; level == 1; errors and

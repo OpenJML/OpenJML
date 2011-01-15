@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 David R. Cok
+ * Copyright (c) 2006-2011 David R. Cok
  * @author David R. Cok
  * Created Nov 17, 2006
  */
@@ -120,7 +120,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
-                Activator.getDefault().utils.checkESCSelection(selection,window,shell);
+                utils.checkESCSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.CheckESC",e);
             }
@@ -138,7 +138,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
-                Activator.getDefault().utils.racSelection(selection,window,shell);
+                utils.racSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.RAC",e);
             }
@@ -193,7 +193,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
-                Activator.getDefault().utils.changeJmlNatureSelection(false,selection,window,shell);
+                utils.changeJmlNatureSelection(false,selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.DisableJML",e);
             }
@@ -331,7 +331,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     /**
      * This action puts up a dialog that allows manipulation of the class path.
      * @author David Cok
-     */
+     */ // FIXME - do we really need to manipulate the classpath?
     static public class ClassPath extends MenuActions {
         // This is done in the UI thread. 
         @Override
@@ -392,6 +392,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
         }
     }
 
+    // FIXME - implement showSpecs
     /** A static helper method that can be called for PopupActions
      * as well - it puts up an informational dialog with specification
      * information about the object o.  This may spawn a computational
@@ -709,7 +710,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      * @author David Cok
      *
      */
-    static public class EditSpecsPath extends MenuActions {  // TODO
+    static public class EditSpecsPath extends MenuActions {  // TODO - EditSpecsPath
     	// This is all done in the UI thread with no progress,
     	// except for the actual creating of the specs path folders,
     	// since for some reason that can take a long time
@@ -717,10 +718,10 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     	public final void run(final IAction action) {
     		try {
     			IStatus result = editSpecsPath(shell);
-    			if (Activator.options.jmlverbose) Log.log((result == Status.OK_STATUS ? "Completed" : "Cancelled") +
+    			if (Activator.options.uiverbosity >= 2) Log.log((result == Status.OK_STATUS ? "Completed" : "Cancelled") +
     														" Edit specs path operation ");
     		} catch (Exception e) {
-    			utils.topLevelException(shell,"MenuActions.CheckJML",e);
+    			utils.topLevelException(shell,"MenuActions.EditSpecsPath",e);
     		}
     	}
 
@@ -729,7 +730,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     	 * @param shell the shell to own the windows
     	 * @return a Status value, e.g. OK_STATUS or CANCEL_STATUS
     	 */
-    	private IStatus editSpecsPath(Shell shell) {
+    	private IStatus editSpecsPath(Shell shell) { // FIXME - implement editSpecsPath
     		// At the moment, the specsProject is independent of project, so we don't
     		// require any project selection to edit the path
     		//      final ProjectInfo jproject = new ProjectInfo(Activator.options,JMLBuilder.preq);
@@ -772,7 +773,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      */
     private String specsProjectText = null;
 
-    /** This class holds functionality to allow editing the specs path in the UI */
+    /** This class holds functionality to allow editing the specs path in the UI */// FIXME - needs review
     public class EditPath extends Dialog {
 
     	/** The wdiget that hold sthe list of path items */
@@ -790,9 +791,9 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     	public EditPath(Shell shell) { super(shell); }
 
     	// FIXME - the sizes of the text field, the file browser field and the list
-    	// are not appearing as they should
+    	// are not appearing as they should 
     	protected Control createDialogArea(Composite parent) {
-    		if (Activator.options.jmlverbose) Log.log("Creating dialog area");
+    		if (Activator.options.uiverbosity >= 2) Log.log("Creating dialog area");
     		Composite composite = (Composite)super.createDialogArea(parent);
     		Composite vv = new Widgets.VComposite(composite);
     		Composite hh = new Widgets.HComposite(vv,2);
@@ -810,13 +811,13 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     		listcontrol.addSelectionListener(new SelectionListener() {
     			public void widgetSelected(SelectionEvent e) { 
     				int i = list.getSelectionIndex();
-    				if (Activator.options.jmlverbose) Log.log("Statemask " + e.stateMask + " " + i + " " + list.getItem(i));
+    				if (Activator.options.uiverbosity >= 2) Log.log("Statemask " + e.stateMask + " " + i + " " + list.getItem(i));
     				if (i<0) f.setText(list.getItem(i));  // FIXME - this is not working
     				list.select(i);
     				list.setFocus();
     			};
     			public void widgetDefaultSelected(SelectionEvent e) {
-    				if (Activator.options.jmlverbose) Log.log("Default selected " + e.stateMask);
+    				if (Activator.options.uiverbosity >= 2) Log.log("Default selected " + e.stateMask);
     			}
     		});
     		Composite v = new Widgets.VComposite(w);
@@ -966,7 +967,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     		}
     		list.setItems(listItems);
     		list.setSize(list.getSize().y, list.getItemHeight()*10);
-    		if (Activator.options.jmlverbose) Log.log((listloc.size()-1) + " specs path items detected in the existing specs project named " + specsProjectText);
+    		if (Activator.options.uiverbosity >= 2) Log.log((listloc.size()-1) + " specs path items detected in the existing specs project named " + specsProjectText);
     		return composite;
     	}
 

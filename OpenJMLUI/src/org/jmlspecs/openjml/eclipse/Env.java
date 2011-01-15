@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005-2010 David R. Cok
+ * Copyright (c) 2005-2011 David R. Cok
  * @author David R. Cok
  * Created Jul 5, 2005
  */
@@ -95,43 +95,17 @@ public class Env {
 	 * (particularly by the parser).  This is set for Java 1.5;
 	 * there has been no testing at all for other values.
 	 */
-	public static Level jlsLevel = Level.JLS1_5;
-
-	/**
-	 * This is the version of AST nodes to use in constructing abstract
-	 * syntax trees.  It cannot be changed without reprogramming the
-	 * code used to generate trees - between changes of this value, the
-	 * structure of the nodes changes and the existence of different node
-	 * classes.
-	 */
-	//  final static public int astLevel = org.jmlspecs.eclipse.jmldom.AST.JLS3;
-
-	/** The ast generator used in type bindings and in Eclipse ASTs. */
-	//  final static public org.eclipse.jdt.core.dom.AST ast = org.eclipse.jdt.core.dom.AST.newAST(Env.astLevel);
+	public static Level jlsLevel = Level.JLS1_5;  // FIXME 
 
 	// Some hard-coded strings
 
-	//  /** The default name of the specs project */
-	//  final static public String defaultSpecsProjectName = "specsProject";  // FIXME - delete this
-
 	/** The fixed name of the folder that holds all the source folders for the specs path items. */
-	final static public String specsContainerName = "specspath";
+	final static public String specsContainerName = "specspath"; // FIXME - still used?
 
-	/** The root of the source folder names, each on of which is linked to the 
+	/** The root of the source folder names, each one of which is linked to the 
 	 * location of an item on the specs path; the names have numerical suffixes, in
 	 * order - that is, specs1, specs2, specs3, ...
 	 */
-	final static public String specsFolderRoot = "specs";
+	final static public String specsFolderRoot = "specs"; // FIXME - still used?
 
-	//  /** The name of the folder containing the specification library. */  // FIXME
-	//  final static public String specsLibraryName = "specs";
-
-	//  /** The root of the source folder names, each one of which is linked to the 
-	//   * location of an item on the class path that might contain compilable java
-	//   * files; the names have numerical suffixes, in
-	//   * order - that is, srcs1, srcs2, srcs3, ...
-	//   * It is also used as the name of the folder containing all of these
-	//   * source folders.
-	//   */
-	//  final static public String srcFolderRoot = "srcs";
 }

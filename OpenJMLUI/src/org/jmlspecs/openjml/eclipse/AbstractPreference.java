@@ -1,6 +1,6 @@
 /*
  * This file is part of the OpenJML plugin project. 
- * Copyright 2006-2010 David R. Cok
+ * Copyright 2006-2011 David R. Cok
  * 
  * Created on November 21, 2006
  */
@@ -20,7 +20,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 public class AbstractPreference {
 
     /** A reference to the plugin's preference store */
-    // FIXME - do we need to worry about concurrent accesses into this structure
+    // (TODO) Make sure all accesses into this store are in the UI thread
     public final static IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 
     /** The name used as the key into the 
@@ -82,13 +82,11 @@ public class AbstractPreference {
     }
 
     /** Returns the label string (short description) for this option
-     * 
      * @return the label string
      */
     public String label() { return label; }
 
     /** Returns the help string for this option
-     * 
      * @return the help string
      */
     public String tooltip() { return tooltip; }
@@ -220,16 +218,16 @@ public class AbstractPreference {
         /**
          * Creating a String option object
          * @param key  The name used as a preference key
-         * @param def  The default value used if no value is previously stored (an index into the array of choices)
+         * @param def  The default value used if no value is previously stored (an element of the array of choices)
          * @param choices The choices (as Strings) to be chosen among
          * @param label A short description usable as a label
          * @param tooltip A long description usable as help
          */
         public ChoiceOption(String key, String[] choices,
-                int def,
+                String def,
                 String label, String tooltip) {
             super(key,label,tooltip);
-            preferenceStore.setDefault(key,choices[def]);
+            preferenceStore.setDefault(key,def);
             this.choices = choices;
         }
 

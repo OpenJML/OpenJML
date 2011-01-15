@@ -1,13 +1,13 @@
 /*
  * This file is part of the OpenJML plugin project. 
- * Copyright (c) 2006-2010 David R. Cok
+ * Copyright (c) 2006-2011 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
 import java.util.Date;
 
 /**
- * A class that provides some (static) timing routines for performance
+ * A class that provides some (static - so there is just one timer) timing routines for performance
  * checking.
  */
 public class Timer {
