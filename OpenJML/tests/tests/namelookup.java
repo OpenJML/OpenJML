@@ -70,7 +70,7 @@ public class namelookup extends TCBase {
     }
 
     public void testDupField1() {
-        addMockFile("$A/A.spec",
+        addMockFile("$A/A.jml",
                 " class A { int k;  \n" +
                 "   double k;\n" +
                 "   void m(double k) {}\n" +
@@ -79,15 +79,15 @@ public class namelookup extends TCBase {
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
-        ,"/$A/A.spec:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",4
-        ,"/$A/A.spec:2: This specification declaration of field k has the same name as a previous field declaration",11
-        ,"/$A/A.spec:1: Associated declaration",16
-        ,"/$A/A.spec:3: The specification of the method A.m(double) must not have a body",21
+        ,"/$A/A.jml:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",4
+        ,"/$A/A.jml:2: This specification declaration of field k has the same name as a previous field declaration",11
+        ,"/$A/A.jml:1: Associated declaration",16
+        ,"/$A/A.jml:3: The specification of the method A.m(double) must not have a body",21
         );
     }
 
     public void testDupField1b() {
-        addMockFile("$A/A.spec",
+        addMockFile("$A/A.jml",
                 " class A { int k;  \n" +
                 "   int k;\n" +
                 "   void m(double k) {}\n" +
@@ -96,14 +96,14 @@ public class namelookup extends TCBase {
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
-        ,"/$A/A.spec:2: This specification declaration of field k has the same name as a previous field declaration",8
-        ,"/$A/A.spec:1: Associated declaration",16
-        ,"/$A/A.spec:3: The specification of the method A.m(double) must not have a body",21
+        ,"/$A/A.jml:2: This specification declaration of field k has the same name as a previous field declaration",8
+        ,"/$A/A.jml:1: Associated declaration",16
+        ,"/$A/A.jml:3: The specification of the method A.m(double) must not have a body",21
         );
     }
 
     public void testDupField1a() {
-        addMockFile("$A/A.spec",
+        addMockFile("$A/A.jml",
                 " class A { int k;  \n" +
                 "   //@ ghost double k;\n" +
                 "   void m(double k);\n" +
@@ -112,8 +112,8 @@ public class namelookup extends TCBase {
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
-        ,"/$A/A.spec:2: k is already defined in A",21
-        ,"/$A/A.spec:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",14
+        ,"/$A/A.jml:2: k is already defined in A",21
+        ,"/$A/A.jml:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",14
         );
     }
 
@@ -290,7 +290,7 @@ public class namelookup extends TCBase {
     }
 
     public void testModelClass3() {
-        addMockFile("$A/A.spec",
+        addMockFile("$A/A.jml",
                 "public class A {   \n" +
                 "   static class AA {\n" +
                 "      //@ model static class B { static double i; }  \n" +
@@ -321,12 +321,12 @@ public class namelookup extends TCBase {
                 "   }\n" +
                 "}\n" +
                 ""
-       ,"/$A/A.spec:16: This specification declaration of type A has the same name as a previous JML type declaration",1
-       ,"/$A/A.spec:1: Associated declaration",8
-       ,"/$A/A.spec:11: This specification declaration of type AA has the same name as a previous JML type declaration",11
-       ,"/$A/A.spec:2: Associated declaration",11
-       ,"/$A/A.spec:13: This specification declaration of type BB in A does not match any Java type declaration.",11
-       ,"/$A/A.spec:17: This specification declaration of type B does not match any Java type declaration in /A.java",1
+       ,"/$A/A.jml:16: This specification declaration of type A has the same name as a previous JML type declaration",1
+       ,"/$A/A.jml:1: Associated declaration",8
+       ,"/$A/A.jml:11: This specification declaration of type AA has the same name as a previous JML type declaration",11
+       ,"/$A/A.jml:2: Associated declaration",11
+       ,"/$A/A.jml:13: This specification declaration of type BB in A does not match any Java type declaration.",11
+       ,"/$A/A.jml:17: This specification declaration of type B does not match any Java type declaration in /A.java",1
         ,"/A.java:3: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
         ,"/A.java:5: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
         ,"/A.java:6: incompatible types\n  required: boolean\n  found:    double",22
@@ -334,7 +334,7 @@ public class namelookup extends TCBase {
     }
  
     public void testToplevelModel() {
-        addMockFile("$A/A.spec",
+        addMockFile("$A/A.jml",
                 "public class A {   \n" +
                 "}\n" +
                 "//@ model class A {}\n" +
@@ -347,9 +347,9 @@ public class namelookup extends TCBase {
                 "public class A {   \n" +
                 "}\n" +
                 ""
-        ,"/$A/A.spec:7: This specification declaration of type D does not match any Java type declaration in /A.java",8
-        ,"/$A/A.spec:3: duplicate class: A",11
-        ,"/$A/A.spec:5: duplicate class: B",11
+        ,"/$A/A.jml:7: This specification declaration of type D does not match any Java type declaration in /A.java",8
+        ,"/$A/A.jml:3: duplicate class: A",11
+        ,"/$A/A.jml:5: duplicate class: B",11
 
         );
     }

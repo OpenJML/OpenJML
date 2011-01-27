@@ -654,11 +654,11 @@ public class API {
         if (!tree.sourcefile.toString().replace('\\','/').equals(fileLocation)) {
             //System.out.println("Did not match " + tree.sourcefile.toString());
             boolean found = false;
-            for (JmlCompilationUnit stree: tree.specsSequence) {
+            {
+                JmlCompilationUnit stree = tree. specsCompilationUnit;
                 if (stree.sourcefile.toString().replace('\\','/').equals(fileLocation)) {
                     tree = stree;
                     found = true;
-                    break;
                 }
                 //System.out.println("Did not match " + stree.sourcefile.toString());
             }

@@ -92,10 +92,9 @@ public class Env {
 
 	/**
 	 * The value of Java language level handled by this code
-	 * (particularly by the parser).  This is set for Java 1.5;
-	 * there has been no testing at all for other values.
+	 * (particularly by the parser). 
 	 */
-	public static Level jlsLevel = Level.JLS1_5;  // FIXME 
+	public static Level jlsLevel = Level.JLS1_7;
 
 	// Some hard-coded strings
 

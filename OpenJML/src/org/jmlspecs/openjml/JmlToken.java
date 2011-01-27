@@ -118,8 +118,8 @@ public enum JmlToken {
     FIELD("field"),
     METHOD("method"),
     NOWARN("nowarn"),
-    REFINES("refines"),
-    WEAKLY("weakly"),
+//    REFINES("refines"),
+//    WEAKLY("weakly"),
     
     // These are various tokens related to JML expressions
     BSEXCEPTION("\\exception"), // This is for internal use only, so it is before \result
@@ -287,7 +287,7 @@ public enum JmlToken {
         allTokens.put("abrupt_behaviour".intern(),ABRUPT_BEHAVIOR);
         allTokens.put("decreasing".intern(),DECREASES);
         allTokens.put("maintaining".intern(),LOOP_INVARIANT);
-        allTokens.put("refine".intern(),REFINES);
+//        allTokens.put("refine".intern(),REFINES);
         
     }
 }

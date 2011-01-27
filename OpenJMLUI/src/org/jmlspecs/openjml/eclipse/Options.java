@@ -91,6 +91,11 @@ public class Options {
     /** If true, the internal runtime library is not automatically used. */
     public boolean noInternalRuntime;
 
+    /** If true (the default), the internal runtime library is automatically added
+     * to the project classpath (so that the project files have the annotations defined).
+     */
+    public boolean autoAddRuntimeToProject;
+    
     /** If true, warn if elements of the specs path do not exist.  If false, ignore
      * any non-existent directories or non-directories on the path.
      */
@@ -119,6 +124,7 @@ public class Options {
         destination = "";
         source = "1.5";
 
+        autoAddRuntimeToProject = true;
         parsePlus = false;
         checkPurity = false;
         nonnullByDefault = true;

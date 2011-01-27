@@ -755,9 +755,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print(";");
                 println();
             }
-            if (tree.refinesClause != null) {
-                tree.refinesClause.accept(this);
-            }
             boolean firstImport = true;
             for (List<JCTree> l = tree.defs; l.nonEmpty(); l = l.tail) {
                 if (l.head.getTag() == JCTree.IMPORT) {
@@ -773,16 +770,17 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                     printStat(l.head);
                 }
             }
-            if (!inSequence && tree.specsSequence != null) {
+            if (!inSequence && tree.specsCompilationUnit != null) {
                 inSequence = true;
                 println();
                 print("// Refinement Sequence:");
-                for (JmlCompilationUnit jcu : tree.specsSequence) {
+                {
                     print(" ");
-                    print(jcu.sourcefile.getName());
+                    print(tree.specsCompilationUnit.sourcefile.getName());
                 }
                 println();
-                for (JmlCompilationUnit jcu : tree.specsSequence) {
+                {
+                    JmlCompilationUnit jcu = tree.specsCompilationUnit;
                     print("// Specification file: " + jcu.sourcefile.getName()); 
                     println();
                     jcu.accept(this);

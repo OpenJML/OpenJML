@@ -808,7 +808,7 @@ public class JavacParser implements Parser {
             return opStack;
         }
 
-        private int[] newPosStack() {
+        protected int[] newPosStack() { // DRC - changed from private to protected
             if (posStackSupply.elems == posStackSupply.last)
                 posStackSupply.append(new int[infixPrecedenceLevels + 1]);
             int[] posStack = posStackSupply.elems.head;

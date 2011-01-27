@@ -72,8 +72,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitJmlCompilationUnit(JmlCompilationUnit that, Void p) {
         JmlCompilationUnit copy = (JmlCompilationUnit)super.visitCompilationUnit(that,p);
         copy.sourcefile = that.sourcefile;
-        copy.refinesClause = that.refinesClause;
-        copy.specsSequence = that.specsSequence;
+        copy.specsCompilationUnit = that.specsCompilationUnit;
         copy.mode = that.mode;
         copy.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes;
         copy.specsTopLevelModelTypes = that.specsTopLevelModelTypes;

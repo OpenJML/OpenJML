@@ -37,81 +37,13 @@ public class compilationUnit extends ParseBase {
     /** One refines clause with no package or imports */
     public void testRefines() {
         checkCompilationUnit("/*@ refines \"A.xxx\"; */ class A{}",
-                JmlCompilationUnit.class,4,
-                JmlRefines.class, 4,
+                JmlCompilationUnit.class,2,
+                JCErroneous.class, 4,
                 JmlClassDecl.class, 24,
                 JCModifiers.class, -1);
-        checkMessages();
+        checkMessages("/TEST.java:1: class, interface, or enum expected",5);
     }
 
-    /** Package and refines clauses */
-    public void testRefines2() {
-        checkCompilationUnit("package t; /*@ refines \"A.xxx\"; */ class A{}",
-                JmlCompilationUnit.class,0,
-                JCIdent.class, 8,
-                JmlRefines.class, 15,
-                JmlClassDecl.class, 35,
-                JCModifiers.class, -1);
-        checkMessages();
-    }
-
-    /** Refines before package */   // TODO - this error message could be improved
-    public void testRefines2a() {
-        checkCompilationUnit("/*@ refines \"A.xxx\"; */ package t; class A{}",
-                JmlCompilationUnit.class,4,
-                JmlRefines.class, 4,
-                JCErroneous.class, 24,
-                JmlClassDecl.class, 35,
-                JCModifiers.class, -1);
-        checkMessages("/TEST.java:1: class, interface, or enum expected",25);
-    }
-
-    /** Package and two refines clauses */
-    public void testRefines3() {
-        checkCompilationUnit("package t; /*@ refines \"A.xxx\"; */\n /*@ refines \"B.xxx\"; */ class A{}",
-                JmlCompilationUnit.class,0,
-                JCIdent.class, 8,
-                JmlRefines.class, 15,
-                JmlClassDecl.class, 60,
-                JCModifiers.class, -1);
-        checkMessages(
-                "/TEST.java:2: A compilation unit may have at most one refines clause",6);
-    }
-
-    /** Package, refines, import, refines clauses */
-    public void testRefines4() {
-        checkCompilationUnit("package t; /*@ refines \"A.xxx\"; */\n import java.io.*; /*@ refines \"B.xxx\"; */ class A{}",
-                JmlCompilationUnit.class,0,
-                JCIdent.class, 8,
-                JmlRefines.class, 15,
-                JmlImport.class, 36,
-                JCFieldAccess.class, 50,
-                JCFieldAccess.class, 47,
-                JCIdent.class, 43,
-                JmlClassDecl.class, 78,
-                JCModifiers.class, -1);
-        checkMessages(
-                "/TEST.java:2: Refines declarations must precede all import declarations and follow any package declaration",24,
-                "/TEST.java:2: A compilation unit may have at most one refines clause",24);
-    }
-
-    /** Refines without a string */
-    public void testRefines5() {
-        parseCompilationUnit("package t; /*@ refines ; */ class A{}");
-        checkMessages("/TEST.java:1: A refines declaration must contain a string literal",24);
-    }
-
-    /** Refines with no string or semicolon */
-    public void testRefines6() {
-        parseCompilationUnit("package t; /*@ refines  */  class A{}");
-        checkMessages("/TEST.java:1: A refines declaration must contain a string literal",25);
-    }
-
-    /** Refines with no string or semicolon */
-    public void testRefines7() {
-        parseCompilationUnit("package t; /*@ refines \"X.spec\" */  class A{}");
-        checkMessages("/TEST.java:1: A refines statement needs to be ended by a semicolon",33);
-    }
 
     /** Tests a star import */
     public void testImports() {

@@ -7,35 +7,38 @@ package org.jmlspecs.openjml.eclipse;
 import java.util.Date;
 
 /**
- * A class that provides some (static - so there is just one timer) timing routines for performance
+ * A class that provides some timing routines for performance
  * checking.
  */
 public class Timer {
-  
-  /** The private value holding the time at the beginning of the timed 
-   * period, that is, when markTime was called.
-   */
-  //@ non_null
-  static private Date timer = new Date();
-  
-  /** Sets this timer to 0. */
-  static public void markTime() {
-    timer = new Date();
-  }
-  
-  /** 
-   * @return the number of seconds since the last call of markTime()
-   */
-  static public double getTime() {
-    return (new Date().getTime() - timer.getTime())/1000.;
-  }
-  
-  /** 
-   * @return the number of seconds since the last call of markTime()
-   * as a String enclosed in [ ]
-   */
-  static public String getTimeString() {
-    return "[" + getTime() + "]";
-  }
+
+	/** A static timer that may be be used when threading is not an issue */
+	static public Timer timer = new Timer();
+
+	/** The private value holding the time at the beginning of the timed 
+	 * period, that is, when markTime was called.
+	 */
+	//@ non_null
+	private Date date = new Date();
+
+	/** Sets this timer to 0. */
+	public void markTime() {
+		date = new Date();
+	}
+
+	/** 
+	 * @return the number of seconds since the last call of markTime()
+	 */
+	public double getTime() {
+		return (new Date().getTime() - date.getTime())/1000.;
+	}
+
+	/** 
+	 * @return the number of seconds since the last call of markTime()
+	 * as a String enclosed in [ ]
+	 */
+	public String getTimeString() {
+		return "[" + getTime() + "]";
+	}
 
 }

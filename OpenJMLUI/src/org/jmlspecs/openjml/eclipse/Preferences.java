@@ -82,7 +82,9 @@ implements IWorkbenchPreferencePage {
 		final static public String noInternalSpecsKey = prefix + "noInternalSpecs";
 		/** The preference store key for the noInternalRuntime option. */
 		final static public String noInternalRuntimeKey = prefix + "noInternalRuntime";
-
+		/** The preference store key for the autoAddRuntimeToProject option */
+		final static public String autoAddRuntimeToProjectKey = prefix + "autoAddRuntimeToProject";
+		
 		/** A temporary copy of the options structure, just used to get
 		 * the initial defaults.
 		 */
@@ -147,7 +149,11 @@ implements IWorkbenchPreferencePage {
 		public AbstractPreference.BooleanOption noInternalRuntime = 
 			new AbstractPreference.BooleanOption(noInternalRuntimeKey,defaultOptions.noInternalRuntime,"Do not use internal runtime library","When on, default runtime library is not used (user must supply it)");
 
+		/** The object controlling the preference store entry for the autoAddRuntimeToProject option. */
+		public AbstractPreference.BooleanOption autoAddRuntimeToProject = 
+			new AbstractPreference.BooleanOption(autoAddRuntimeToProjectKey,defaultOptions.autoAddRuntimeToProject,"Automatically add annotation library to project classpath when checked","When on, the annotation library is automatically added to the project classpath when the project is checked");
 
+		
 	}
 	/** An instance of the object that holds all of the preference store items. */
 	static POptions poptions = new POptions();
@@ -178,6 +184,7 @@ implements IWorkbenchPreferencePage {
 		options.showNotExecutable = poptions.showNotExecutable.getValue();
 		options.noInternalSpecs = poptions.noInternalSpecs.getValue();
 		options.noInternalRuntime = poptions.noInternalRuntime.getValue();
+		options.autoAddRuntimeToProject = poptions.autoAddRuntimeToProject.getValue();
 		return options;
 	}
 
@@ -209,6 +216,7 @@ implements IWorkbenchPreferencePage {
 		new PreferenceWidget.BooleanWidget(poptions.showNotExecutable),
 		new PreferenceWidget.BooleanWidget(poptions.noInternalSpecs),
 		new PreferenceWidget.BooleanWidget(poptions.noInternalRuntime),
+		new PreferenceWidget.BooleanWidget(poptions.autoAddRuntimeToProject),
 	};
 
 	/**

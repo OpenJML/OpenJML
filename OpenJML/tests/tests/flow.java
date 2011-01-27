@@ -17,17 +17,17 @@ public class flow extends TCBase {
 
     /** Forward reference in model class */
     public void testForwardReference2() {
-        addMockFile("$A/A.spec","public class A { }\n//@ model class B { int b = c; int c = 0; }\n\n");
+        addMockFile("$A/A.jml","public class A { }\n//@ model class B { int b = c; int c = 0; }\n\n");
         helpTCF("A.java","public class A { }"
-        ,"/$A/A.spec:2: illegal forward reference",29
+        ,"/$A/A.jml:2: illegal forward reference",29
         );
     }
 
     /** Flow checks for model methods*/
     public void testModelMethod() {
-        addMockFile("$A/A.spec","public class A { \n//@ model int m() {} \n}");
+        addMockFile("$A/A.jml","public class A { \n//@ model int m() {} \n}");
         helpTCF("A.java","public class A { }"
-        ,"/$A/A.spec:2: missing return statement",20
+        ,"/$A/A.jml:2: missing return statement",20
         );
     }
 
@@ -54,9 +54,9 @@ public class flow extends TCBase {
 
     /** Flow checks for ghost fields */
     public void testGhostForwardReference() {
-        addMockFile("$A/A.spec","public class A { \n//@ ghost int i = j; ghost int j; \n}");
+        addMockFile("$A/A.jml","public class A { \n//@ ghost int i = j; ghost int j; \n}");
         helpTCF("A.java","public class A { }"
-        ,"/$A/A.spec:2: illegal forward reference",19
+        ,"/$A/A.jml:2: illegal forward reference",19
         );
     }
 

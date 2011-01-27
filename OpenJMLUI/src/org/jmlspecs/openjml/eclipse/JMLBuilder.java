@@ -162,12 +162,15 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 * @param delete if true, markers are deleted as we walk the tree
 	 */
 	static void accumulate(List<IResource> resourcesToBuild, IResource resource, boolean delete) {
-		if (!(resource instanceof IFile)) return;
-		String name = resource.getName();
-		if (Utils.suffixOK(name) >= 0) {
-			IFile file = (IFile) resource;
-			resourcesToBuild.add(file);
-			if (delete) deleteMarkers(file,false);
+		if (resource instanceof IFile) {
+			String name = resource.getName();
+			if (Utils.suffixOK(name) >= 0) {
+				IFile file = (IFile) resource;
+				resourcesToBuild.add(file);
+				if (delete) deleteMarkers(file,false);
+			} else if (".classpath".equals(name)) {
+				resourcesToBuild.add(resource.getProject());
+			}
 		}
 	}
 
@@ -182,6 +185,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// We've already checked that this is a Java and a JML project
 		// Also all the resources should be from this project, because the
 		// builders work project by project
+		if (Activator.options.autoAddRuntimeToProject) Activator.getDefault().utils.addRuntimeToProjectClasspath(jproject);
 		Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.CHECK,resourcesToBuild, monitor);
 	}
 
@@ -200,7 +204,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		}
 
 		if (Activator.options.uiverbosity >= 2) Log.log("Full build " + project.getName());
-		Timer.markTime();
+		Timer.timer.markTime();
 		deleteMarkers(project,true);
 		if (monitor.isCanceled() || isInterrupted()) {
 			if (Activator.options.uiverbosity >= 2) Log.log("Build interrupted");
@@ -246,7 +250,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			IProgressMonitor monitor) throws CoreException {
 		IProject project = getProject();
 		if (Activator.options.uiverbosity >= 2) Log.log("Incremental build " + project.getName());
-		Timer.markTime();
+		Timer.timer.markTime();
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files and deletes markers
 		doChecking(JavaCore.create(getProject()),v.resourcesToBuild,monitor);
@@ -296,12 +300,12 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */
 	static public boolean checkJML(List<IResource> resources, IProgressMonitor monitor) {
 		if (resources.isEmpty()) return true;
-		Timer.markTime();
+		Timer.timer.markTime();
 		deleteMarkers(resources,true); // FIXME - should this be done in another thread?  but it has to be completed before the checking starts
 		// FIXME - need to build one project at a time
 		try {
 			boolean cancelled = doBuild(JavaCore.create(((IResource)resources.get(0)).getProject()),resources, monitor);  // FIXME - build everything or update?
-			if (Activator.options.uiverbosity >= 1) Log.log(Timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
+			if (Activator.options.uiverbosity >= 1) Log.log(Timer.timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
 		} catch (Exception e) {
 			Log.errorlog("Exception occurred during JML check ",e);
 		}

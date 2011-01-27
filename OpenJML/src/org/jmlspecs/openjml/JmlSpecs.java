@@ -719,13 +719,13 @@ public class JmlSpecs {
      * @return The file found, or null if none found
      */
     //@ nullable
-    public JavaFileObject findLeadingSpecFile(ClassSymbol classSym) {
-        return findLeadingSpecFile(classSym.fullname.toString());
+    public JavaFileObject findSpecFile(ClassSymbol classSym) {
+        return findAnySpecFile(classSym.fullname.toString());
     }
     
     /** Finds the first specification file (if any) for the given class.  It
-     * searches each directory on the specPath, in order, for a file with a
-     * JML suffix (in order), returning the first one found.
+     * searches for the defined suffixes in order, searching the whole specs
+     * path for each one.
      * 
      * @param className The fully-qualified name of the file to be found, 
      *  without a suffix (or the dot before the suffix) either
@@ -733,11 +733,13 @@ public class JmlSpecs {
      * @return The file found, or null if none found
      */
     //@ nullable
-    public JavaFileObject findLeadingSpecFile(String className) {
+    public JavaFileObject findAnySpecFile(String className) {
         String s = className.replace('.','/');
-        for (Dir dir: getSpecsPath()) {
-            JavaFileObject j = dir.findAnySuffixFile(s);
-            if (j != null) return j;
+        for (String suffix : Utils.suffixes){ 
+            for (Dir dir: getSpecsPath()) {
+                JavaFileObject j = dir.findFile(s + suffix);
+                if (j != null) return j;
+            }
         }
         return null;
     }
@@ -749,7 +751,7 @@ public class JmlSpecs {
      * @return The file found, or null if not found
      */
     //@ nullable
-    public JavaFileObject findSpecFile(String filename) {
+    public JavaFileObject findSpecificSpecFile(String filename) {
         for (Dir dir: getSpecsPath()) {
             JavaFileObject j = dir.findFile(filename);
             if (j != null) return j;

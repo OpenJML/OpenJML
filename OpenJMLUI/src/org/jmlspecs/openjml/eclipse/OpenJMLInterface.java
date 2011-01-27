@@ -155,7 +155,7 @@ public class OpenJMLInterface {
             for (IResource r: files) {
                 args.add(r.getLocation().toString());
             }
-            if (Activator.options.uiverbosity >= 2) Log.log(Timer.getTimeString() + " Executing openjml ");
+            if (Activator.options.uiverbosity >= 2) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
             if (monitor != null) {
                 monitor.setTaskName(command == Cmd.RAC ? "JML RAC" : "JML Checking");
                 monitor.subTask("Executing openjml");
@@ -163,8 +163,8 @@ public class OpenJMLInterface {
             try {
                 setMonitor(monitor);
                 int ret = api.exec(args.toArray(new String[args.size()]));
-                if (ret == 0) Log.log(Timer.getTimeString() + " Completed");
-                else if (ret == 1) Log.log(Timer.getTimeString() + " Completed with errors");
+                if (ret == 0) Log.log(Timer.timer.getTimeString() + " Completed");
+                else if (ret == 1) Log.log(Timer.timer.getTimeString() + " Completed with errors");
                 else if (ret >= 2) {
                     StringBuilder ss = new StringBuilder();
                     for (String r: args) {
@@ -282,13 +282,13 @@ public class OpenJMLInterface {
                 return;
             }
             if (args.size() > n) {
-            	if (Activator.options.uiverbosity >= 1) Log.log(Timer.getTimeString() + " Executing openjml ");
+            	if (Activator.options.uiverbosity >= 1) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
                 if (monitor != null) monitor.subTask("Executing openjml");
                 try {
                     if (monitor != null) monitor.setTaskName("ESC");
                     int ret = api.exec(args.toArray(new String[args.size()]));
-                    if (ret == 0) Log.log(Timer.getTimeString() + " Completed");
-                    else if (ret == 1) Log.log(Timer.getTimeString() + " Completed with errors");
+                    if (ret == 0) Log.log(Timer.timer.getTimeString() + " Completed");
+                    else if (ret == 1) Log.log(Timer.timer.getTimeString() + " Completed with errors");
                     else if (ret >= 2) {
                         StringBuilder ss = new StringBuilder();
                         for (String c: args) {
@@ -546,7 +546,7 @@ public class OpenJMLInterface {
         ClassSymbol csym = convertType(t);
         if (csym != null) {
             // FIXME go through API
-            JavaFileObject f = JmlSpecs.instance(api.context()).findLeadingSpecFile(csym);
+            JavaFileObject f = JmlSpecs.instance(api.context()).findSpecFile(csym);
             return null;
         }
         // FIXME - no check run?
@@ -979,36 +979,11 @@ public class OpenJMLInterface {
         }
 
         if (!opt.noInternalRuntime) {
-            try {
-                Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
-                if (selfBundle == null) {
-                	if (Activator.options.uiverbosity >= 2) Log.log("No self plugin");
-                } else {
-                    URL url;
-                    url = FileLocator.toFileURL(selfBundle.getResource(""));
-                    if (url != null) {
-                        File root = new File(url.toURI());
-                        if (root.isDirectory()) {
-                            File f = new File(root,"jmlruntime.jar");
-                            if (f.exists()) {
-                                ss.append(File.pathSeparator);
-                                ss.append(f.toString());
-                                if (Activator.options.uiverbosity >= 2) Log.log("Internal runtime location: " + f.toString());
-                            } else {
-                            	f = new File(root,"../jmlruntime.jar");
-                                if (f.exists()) {
-                                    //API.setExternalRuntime(new String[]{ f.toString() });
-                                    ss.append(File.pathSeparator);
-                                    ss.append(f.toString());
-                                    if (Activator.options.uiverbosity >= 2) Log.log("Internal runtime location: " + f.toString());
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                Log.errorlog("Failure finding internal runtime",e);
-            }
+        	String runtime = utils.findInternalRuntime();
+        	if (runtime != null) {
+        		ss.append(File.pathSeparator);
+        		ss.append(runtime);
+        	}
         }
 
         opts.add("-classpath");

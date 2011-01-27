@@ -82,7 +82,6 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
         visitTopLevel(that);
         JmlCompilationUnit r = (JmlCompilationUnit)result;
-        r.refinesClause = translate(that.refinesClause);
         r.parsedTopLevelModelTypes = translate(that.parsedTopLevelModelTypes);
         //r.specsSequence
         //r.specsTopLevelModelTypes - FIXME

@@ -131,7 +131,7 @@ public class expressions extends ParseBase {
     public void testJCBinary() {
         jml = false;
         helpExpr("a+b*c",
-                JCBinary.class, 3,// 1, // TODO - fix positions in binary trees
+                JCBinary.class, 0,// 1, // TODO - fix positions in binary trees
                   JCIdent.class ,0,
                   JCBinary.class, 3,
                     JCIdent.class ,2,
@@ -295,9 +295,9 @@ public class expressions extends ParseBase {
     /** Test precedence between lock and other operators */
     public void testJMLprecedence7() {
         helpExpr("a == b <#=c << d",
-                JCBinary.class, 12,//2,  // TODO - fix positions in binary expression trees
+                JCBinary.class, 0,//2,  // TODO - fix positions in binary expression trees
                   JCIdent.class ,0,
-                  JmlBinary.class, 12,//7,
+                  JmlBinary.class, 0,//7,
                     JCIdent.class ,5,
                     JCBinary.class, 12,
                       JCIdent.class ,10,
@@ -390,7 +390,7 @@ public class expressions extends ParseBase {
     /** Test precedence of <: operator */
     public void testCompare() {
         helpExpr(" a == b <= c",
-                JCBinary.class, 8, // FIXME - Bug in Parser, should be 3
+                JCBinary.class, 0, // FIXME - Bug in Parser, should be 3
                 JCIdent.class, 1,
                 JCBinary.class, 8,
                 JCIdent.class ,6,
@@ -409,7 +409,7 @@ public class expressions extends ParseBase {
     /** Test precedence of <: operator */
     public void testSubTypeof() {
         helpExpr(" a == b <: c",
-                JCBinary.class, 8, // FIXME - Bug in Parser, should be 3
+                JCBinary.class, 0, // FIXME - Bug in Parser, should be 3
                   JCIdent.class, 1,
                   JmlBinary.class, 8,
                     JCIdent.class ,6,
@@ -429,7 +429,7 @@ public class expressions extends ParseBase {
     /** Test precedence of <: operator */
     public void testSubTypeof3() {
         helpExpr(" a <: b << c",
-                JmlBinary.class, 8, // FIXME - Bug in parser, should be 3
+                JmlBinary.class, 0, // FIXME - Bug in parser, should be 3
                 JCIdent.class, 1,
                 JCBinary.class, 8,
                 JCIdent.class ,6,

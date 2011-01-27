@@ -127,8 +127,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The Name version of exceptionVarString in the current context */
     final public Name exceptionName;
 
-    protected Name postCheckName;
-    protected Name signalsCheckName;
+    protected Name postCheckName; // FIXME - not used
+    protected Name signalsCheckName; // FIXME - not used
     
     public final static String syntheticExceptionID = "jml$$syntheticExceptionID";
     

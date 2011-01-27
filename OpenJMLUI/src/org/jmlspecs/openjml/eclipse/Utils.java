@@ -5,6 +5,7 @@
 package org.jmlspecs.openjml.eclipse;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -34,6 +35,7 @@ import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -150,6 +152,7 @@ public class Utils {
         deleteMarkers(res,shell);
         final Map<IJavaProject,List<IResource>> sorted = sortByProject(res);
         for (final IJavaProject jp : sorted.keySet()) {
+			if (Activator.options.autoAddRuntimeToProject) addRuntimeToProjectClasspath(jp);
             final List<IResource> ores = sorted.get(jp);
             Job j = new Job("JML Manual Check") {
                 public IStatus run(IProgressMonitor monitor) {
@@ -184,6 +187,7 @@ public class Utils {
         }
         final Map<IJavaProject,List<Object>> sorted = sortByProject(res);
         for (final IJavaProject jp : sorted.keySet()) {
+			if (Activator.options.autoAddRuntimeToProject) addRuntimeToProjectClasspath(jp);
             final List<Object> ores = sorted.get(jp);
             if (Activator.options.uiverbosity >= 2) Log.log("Checking ESC (" + res.size() + " items)");
             deleteMarkers(res,shell);
@@ -1105,6 +1109,41 @@ public class Utils {
             showMessage(shell,"JML Classpath for project " + jp.getElementName(), ss.toString());
         }
     }
+    
+    private boolean changingClasspath = false;
+    
+    /** Adds a Library classpath entry holding the internal run-time library
+     * to the end of the given project's classpath, if the library is not already
+     * on the classpath. This will trigger a build, if auto-building is turned on.
+     * @param jproject the project whose classpath is to be adjusted
+     */
+    public void addRuntimeToProjectClasspath(IJavaProject jproject) {
+    	if (changingClasspath) return;
+    	try {
+    		String runtime = findInternalRuntime();
+    		if (runtime == null) return;
+    		IPath path = new Path(runtime);
+    		IClasspathEntry libentry = JavaCore.newLibraryEntry(path,null,null);
+
+    		IClasspathEntry[] entries = jproject.getResolvedClasspath(true);
+    		for (IClasspathEntry i: entries) {
+    			if (i.getEntryKind() == IClasspathEntry.CPE_LIBRARY
+    					&& i.equals(libentry)) return;
+    		}
+    		IClasspathEntry[] newentries = new IClasspathEntry[entries.length+1];
+    		System.arraycopy(entries,0,newentries,0,entries.length);
+    		newentries[entries.length] = libentry;
+    		try {
+    			changingClasspath = true;
+    			// TODO - should this be in a computational thread
+    			jproject.setRawClasspath(newentries,null); // TODO _ no monitor? might recompile
+    		} finally {
+    			changingClasspath = false;
+    		}
+    	} catch (JavaModelException e) {
+    		throw new Utils.OpenJMLException("Failed in adding internal runtime library to classpath: " + e.getMessage(),e);
+    	}
+    }
 
     /** Gets the classpath of the given project, interpreting all Eclipse entries
      * and converting them into file system paths to directories or jars.
@@ -1653,6 +1692,43 @@ public class Utils {
             i++;
         }
         return -1;
+    }
+    
+    /** Returns an absolute, local file-system path to the internal run-time
+     * library (which holds definitions of annotations and some runtime utilities
+     * for RAC), or null without an error message if the library could not be found.
+     * @return
+     */
+    public String findInternalRuntime() {
+    	String file = null;
+        try {
+            Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
+            if (selfBundle == null) {
+            	if (Activator.options.uiverbosity >= 2) Log.log("No self plugin");
+            } else {
+                URL url;
+                url = FileLocator.toFileURL(selfBundle.getResource(""));
+                if (url != null) {
+                    File root = new File(url.toURI());
+                    if (root.isDirectory()) {
+                        File f = new File(root,"jmlruntime.jar");
+                        if (f.exists()) {
+                        	file = f.toString();
+                            if (Activator.options.uiverbosity >= 2) Log.log("Internal runtime location: " + file);
+                        } else {
+                        	f = new File(root,"../jmlruntime.jar");
+                            if (f.exists()) {
+                                file = f.toString();
+                                if (Activator.options.uiverbosity >= 2) Log.log("Internal runtime location: " + file);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.errorlog("Failure finding internal runtime",e);
+        }
+        return file;
     }
 
 }

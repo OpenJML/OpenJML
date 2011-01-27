@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: OpenJMLUI
 Bundle-SymbolicName: org.jmlspecs.OpenJMLUI;singleton:=true
-Bundle-Version: 0.1.18
+Bundle-Version: 0.1.19
 Bundle-ClassPath: bin/,
  jmlruntime.jar
 Bundle-Activator: org.jmlspecs.openjml.eclipse.Activator

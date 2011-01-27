@@ -285,16 +285,16 @@ public class typeclauses extends TCBase {
     }
     
     public void testRepresents13a() {
-        addMockFile("$A/A.spec","public class A {\n //@ ghost int i; represents i = 0;\n}");
+        addMockFile("$A/A.jml","public class A {\n //@ ghost int i; represents i = 0;\n}");
         helpTCF("A.java","public class A {\n }"
-                ,"/$A/A.spec:2: The target of a represents clause must be a model field",19
+                ,"/$A/A.jml:2: The target of a represents clause must be a model field",19
                 );
     }
     
     public void testRepresents14a() {
-        addMockFile("$A/A.spec","public class A {\n //@ represents i = 0;\n}");
+        addMockFile("$A/A.jml","public class A {\n //@ represents i = 0;\n}");
         helpTCF("A.java","public class A {\n int i; \n}"
-                ,"/$A/A.spec:2: The target of a represents clause must be a model field",6
+                ,"/$A/A.jml:2: The target of a represents clause must be a model field",6
                 );
     }
 
@@ -576,16 +576,16 @@ public class typeclauses extends TCBase {
     }
 
     public void testInitializer4() {
-        addMockFile("$A/A.spec","public class A {\n int i; static int j; //@ ensures i == 0; static_initializer \n}");
+        addMockFile("$A/A.jml","public class A {\n int i; static int j; //@ ensures i == 0; static_initializer \n}");
         helpTCF("A.java","public class A {\n int i; static int j;  \n}"
-                ,"/$A/A.spec:2: non-static variable i cannot be referenced from a static context",35
+                ,"/$A/A.jml:2: non-static variable i cannot be referenced from a static context",35
         );
     }
 
     public void testInitializer5() {
-        addMockFile("$A/A.spec","public class A {\n int i; static int j; static {} \n}");
+        addMockFile("$A/A.jml","public class A {\n int i; static int j; static {} \n}");
         helpTCF("A.java","public class A {\n int i; static int j;  \n}"
-                ,"/$A/A.spec:2: Initializer blocks are not allowed in specifications",30
+                ,"/$A/A.jml:2: Initializer blocks are not allowed in specifications",30
         );
     }
 

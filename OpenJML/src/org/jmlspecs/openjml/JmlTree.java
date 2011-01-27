@@ -601,11 +601,12 @@ public class JmlTree {
     
     /** This class adds some JML specific information to the JCCompilationUnit toplevel node. */
     public static class JmlCompilationUnit extends JCTree.JCCompilationUnit {
-        /** This field contains the AST of the refines clause, or null if there is none for this compilation unit. */
-        public /*@ nullable */ JmlRefines refinesClause = null;
+//        /** This field contains the AST of the refines clause, or null if there is none for this compilation unit. */
+//        public /*@ nullable */ JmlRefines refinesClause = null;
         
-        /** This list contains the parse trees of the sequence of specification files, if any, for this compilation unit. */
-        public /*@ nullable */ java.util.List<JmlCompilationUnit> specsSequence = null;
+        /** This list contains the parse tree of the specification file, if any, for this compilation unit. 
+         *  This field will be null if 'this' is the compilation unit of the specs file itself. */
+        public /*@ nullable */ JmlCompilationUnit specsCompilationUnit = null;
         
         /** This list contains the top-level model types declared in this compilation unit; this
          * is not necessarily all or even part of the top-level model types that the CUs specifications
