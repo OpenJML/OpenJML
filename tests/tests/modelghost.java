@@ -189,14 +189,14 @@ public class modelghost extends TCBase {
     }
     
     public void testInitializer() {
-        addMockFile("$A/A.spec","public class A { { i = 2; } }");
+        addMockFile("$A/A.jml","public class A { { i = 2; } }");
         helpTCF("A.java","public class A { int i; { i = 1; } } "
-                ,"/$A/A.spec:1: Initializer blocks are not allowed in specifications",18
+                ,"/$A/A.jml:1: Initializer blocks are not allowed in specifications",18
         );
     }
 
     public void testInitializer2() {
-        addMockFile("$A/A.spec","public class A { /*@ model public class B { int i;  { i = 2; } } */ }");
+        addMockFile("$A/A.jml","public class A { /*@ model public class B { int i;  { i = 2; } } */ }");
         helpTCF("A.java","public class A { int i; { i = 1; } } "
         );
     }

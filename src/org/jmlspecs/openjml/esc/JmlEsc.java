@@ -125,8 +125,11 @@ public class JmlEsc extends JmlTreeScanner {
     public boolean checkAssumptions = true;
 
 
-    @NonNull final static public String arraysRoot = "$$arrays";  // Reference in masicblocker?
+//    @NonNull final static public String arraysRoot = "$$arrays";  // Reference in masicblocker?
 
+    // FIXME - check whether a new JmlEsc is created for each new check,
+    // if not, the option values will not be updated
+    
     /** The tool constructor, which initializes all the tools. */
     public JmlEsc(Context context) {
         this.context = context;
@@ -134,7 +137,7 @@ public class JmlEsc extends JmlTreeScanner {
         this.specs = JmlSpecs.instance(context);
         this.log = Log.instance(context);
         this.names = Names.instance(context);
-        this.factory = (JmlTree.JmlFactory)JmlTree.Maker.instance(context);
+        this.factory = JmlTree.Maker.instance(context);
         this.verbose = JmlOptionName.isOption(context,"-verbose") ||
             JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
             Utils.instance(context).jmldebug;
@@ -152,17 +155,10 @@ public class JmlEsc extends JmlTreeScanner {
     public void visitClassDef(JCClassDecl node) {
         if (node.sym.isInterface()) return;  // Nothing to verify in an interface
         //log.noticeWriter.println("DOING CLASS " + node.sym);
-        
-        // Save the information in case classes are nested
-        //JCClassDecl prev = currentClassDecl;
-//        try {
-            //currentClassDecl = node;
-            super.visitClassDef(node);
-//        } finally {
-//            currentClassDecl = prev;
-//        }
+        super.visitClassDef(node);
     }
 
+    // TODO - turn these into options
     static boolean usePush = true;
     static boolean useRetract = false;
     static boolean useSearch = false;
@@ -177,12 +173,15 @@ public class JmlEsc extends JmlTreeScanner {
      */  // FIXME - what about local classes or anonymous classes
     public void visitMethodDef(@NonNull JCMethodDecl node) {
         if (!(node instanceof JmlMethodDecl)) {
+            // TODO - I would think this is an internal error
             log.warning("esc.not.implemented","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + node.sym);
             return;
         }
         
         // The code in this method decides whether to attempt a proof of this method.
         // If so, it sets some parameters and then calls proveMethod
+        // We don't check abstract or native methods (no source)
+        // nor synthetic methods.
         
         boolean isConstructor = node.sym.isConstructor();
         boolean doEsc = ((node.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
@@ -197,8 +196,6 @@ public class JmlEsc extends JmlTreeScanner {
         String methodToDo = Options.instance(context).get(JmlOptionName.METHOD.optionName());
         if (methodToDo != null && !name.contains(methodToDo)) return ;  // TODO - pattern match? include class name?
 
-        //        Log.printLines(log.noticeWriter,"["+(++ord)+"] "+ "Checking method "+ name);
-        
         Pattern doPattern = 
             null; 
         //Pattern.compile("escjava[.]ast[.]ArrayRangeRefExpr[.]getTag[(].*"); 

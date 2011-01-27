@@ -25,7 +25,7 @@ public class purity extends TCBase {
     }
     
     public void testSpecFile() {
-        addMockFile("$A/A.spec","public class A { /*@pure*/ int m();  //@ invariant m() == 0; \n}");
+        addMockFile("$A/A.jml","public class A { /*@pure*/ int m();  //@ invariant m() == 0; \n}");
         helpTCF("A.java","public class A {  int m() { return 0; }  \n }"
                 );
         
@@ -33,16 +33,16 @@ public class purity extends TCBase {
 
     public void testSpecFile2() {
         expectedExit = 0;
-        addMockFile("$A/A.spec","public class A {  int m();  //@ invariant m() == 0; \n}");
+        addMockFile("$A/A.jml","public class A {  int m();  //@ invariant m() == 0; \n}");
         helpTCF("A.java","public class A {  int m() { return 0; }  \n }"
-                ,"/$A/A.spec:1: warning: A non-pure method is being called where it is not permitted: m()",44
+                ,"/$A/A.jml:1: warning: A non-pure method is being called where it is not permitted: m()",44
                 );
         
     }
     
     public void testSpecFile3() {
         expectedExit = 0;
-        addMockFile("$A/A.spec","public class A {  /*@ pure */ int m();  //@ invariant m() == 0; \n}");
+        addMockFile("$A/A.jml","public class A {  /*@ pure */ int m();  //@ invariant m() == 0; \n}");
         helpTCF("A.java","public class A {  int m() { return 0; }  \n }"
                 );
         
@@ -50,9 +50,9 @@ public class purity extends TCBase {
     
     public void testSpecFile3a() {
         expectedExit = 0;
-        addMockFile("$A/A.spec","public class A {  int m();  //@ invariant m() == 0; \n}");
+        addMockFile("$A/A.jml","public class A {  int m();  //@ invariant m() == 0; \n}");
         helpTCF("A.java","public class A {  int m() { return 0; }  \n }"
-                ,"/$A/A.spec:1: warning: A non-pure method is being called where it is not permitted: m()",44
+                ,"/$A/A.jml:1: warning: A non-pure method is being called where it is not permitted: m()",44
                 );
         
     }

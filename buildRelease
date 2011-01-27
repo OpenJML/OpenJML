@@ -63,7 +63,7 @@ NAME=openjml-${VERSION}.tar.gz
 	echo "   " Copying files
 	(cd temp; for j in ../otherlibs/* ; do jar xf $j; done; rm -rf META-INF )
 	chmod -R a+rwx,go+rx ${ROOT}/OpenJDK/bin ${ROOT}/OpenJML/bin*
-	cp -r ${ROOT}/OpenJDK/bin/* temp
+    cp -r ${ROOT}/OpenJDK/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
 	cp -r ${ANNOTATIONS}/bin/* temp
@@ -95,7 +95,15 @@ NAME=openjml-${VERSION}.tar.gz
 	(cd temp; jar -cfm ../jars/openjml.jar ../temp2/manifest . )
 	##cp jars/openjml.jar ../OpenJMLUI
 	echo "   " jmlspecs.jar openjml.jar created
-
+	
+    rm temp/com/sun/tools/*/*/*.properties temp/com/sun/tools/*/*/*/*/*.properties
+    rm -rf temp/specs*
+    (cd temp; jar cf ../jars/openjmlboot.jar . )
+    cp jars/openjmlboot.jar ${UI}
+    echo "   " openjmlboot.jar created
+	
+    rm -rf temp temp2
+    
 ##### Build the tar file
     if [ -e ../../texstuff/papers/OpenJMLUserGuide/OpenJMLUserGuide.pdf ]; then
         cp ../../texstuff/papers/OpenJMLUserGuide/OpenJMLUserGuide.pdf jars

@@ -209,9 +209,19 @@ public class Main extends com.sun.tools.javac.main.Main {
     public Main(/*@ non_null */String name, /*@ non_null */PrintWriter out, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, String... args) 
         throws java.io.IOException {
         super(name,out);
+        check();
         this.out = out;  // FIXME - would not need this if the super class declared out protected
         this.diagListener = diagListener;
         initialize(args);
+    }
+    
+    public void check() {
+        javax.lang.model.element.ElementKind[] kinds = javax.lang.model.element.ElementKind.values();
+        if (kinds[kinds.length-1] == javax.lang.model.element.ElementKind.OTHER) {
+            System.out.println("OpenJML is being run with a Java 6 VM. Use this command-line:");
+            System.out.println("  java -Xbootclasspath/p:openjml.jar -jar openjml.jar");
+            System.exit(99);
+        }
     }
 
     /** The external entry point - simply calls compiler(args) and exits with the

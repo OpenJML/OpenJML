@@ -198,6 +198,8 @@ public class compiler extends TestCase {
                           //"parsing ${PROJ}/testfiles/testJavaErrors/A.refines-java" + eol +
                           "entering testfiles/testJavaErrors/A.java" + eol +
                           "  completed entering testfiles/testJavaErrors/A.java" + eol +
+                          "No specs for java.lang.annotation.Annotation" + eol +
+                          "No specs for org.jmlspecs.annotation.Ghost" + eol +
                           "typechecking A" + eol +
                           "No specs for java.lang.Object" + eol +
                           "typechecked A" + eol +
@@ -347,7 +349,7 @@ public class compiler extends TestCase {
 
     /** Tests that super files are read and processed */
     @Test
-    public void testSuperRead() { // TODO - .refines-java is deprecated
+    public void testSuperRead() {
         helper(new String[]
                           { "-classpath","bin", 
                             "-sourcepath","testfiles",
@@ -356,7 +358,7 @@ public class compiler extends TestCase {
                             "testfiles/testSuperRead/A.java"
                           },1,1
                           ,""
-                          ,"testfiles/testSuperRead/B.refines-java:3: This JML modifier is not allowed for a type declaration"
+                          ,"testfiles/testSuperRead/B.jml:3: This JML modifier is not allowed for a type declaration"
                           );
     }
     

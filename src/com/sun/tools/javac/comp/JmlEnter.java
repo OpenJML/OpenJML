@@ -119,7 +119,8 @@ public class JmlEnter extends Enter {
         context.put(enterKey, new Context.Factory<Enter>() {
             Enter instance = null;
             public Enter make() {
-                return instance != null ? instance : (instance = new JmlEnter(context));
+                return instance != null ? instance 
+                        : (instance = new JmlEnter(context));
             }
         });
     }
@@ -181,14 +182,10 @@ public class JmlEnter extends Enter {
             return;
         }
         JmlCompilationUnit jmltree = (JmlCompilationUnit)tree;
-//        if (jmltree.mode == 0) {
-//            log.error("jml.internal","A JmlCompilationUnit has an unset mode field");
-//            throw new JmlInternalError("A JmlCompilationUnit has an unset mode field");
-//        }
 
         context.get(Main.IProgressReporter.class).report(0,2,"entering " + jmltree.sourcefile.getName());
         
-        if (jmltree.specsSequence == null) {
+        if (jmltree.specsCompilationUnit == null) {
             // If there are no specs files we enter this branch
             // This might be because we are just processing an individual spec
             // file for a binary class
@@ -202,7 +199,8 @@ public class JmlEnter extends Enter {
 
             ListBuffer<List<JCTree>> prev = currentParentSpecList;
             ListBuffer<List<JCTree>> newlist = currentParentSpecList = new ListBuffer<List<JCTree>>();
-            for (JmlCompilationUnit jcu: jmltree.specsSequence) {
+            {
+                JmlCompilationUnit jcu = jmltree.specsCompilationUnit; 
                 currentParentSpecList.append(jcu.defs);
                 Env<AttrContext> tlenv = topLevelEnv(jcu);
                 for (JCTree t: jcu.defs) {
@@ -235,7 +233,7 @@ public class JmlEnter extends Enter {
             
             // Then add in any top-level model types
             // FIXME - do we really need specsTopLevelModelTypes - same as typeSpecs.modelTypes, no?
-            jmltree.specsTopLevelModelTypes = addTopLevelModelTypes(jmltree.packge,jmltree.specsSequence);
+            jmltree.specsTopLevelModelTypes = addTopLevelModelTypes(jmltree.packge,jmltree.specsCompilationUnit);
             
             currentParentSpecList = prev;
 
@@ -472,7 +470,7 @@ public class JmlEnter extends Enter {
      * @param packageSymbol The symbol of the package that owns this top-level declaration
      * @param specsSequence The specs sequence to be searched for model types
      */
-    public List<JmlClassDecl> addTopLevelModelTypes(PackageSymbol packageSymbol, java.util.List<JmlCompilationUnit> specsSequence) {
+    public List<JmlClassDecl> addTopLevelModelTypes(PackageSymbol packageSymbol, JmlCompilationUnit specCompilationUnit) {
 
 
         ListBuffer<JmlClassDecl> specsTopLevelModelTypes = new ListBuffer<JmlClassDecl>();
@@ -485,7 +483,7 @@ public class JmlEnter extends Enter {
         // declarations with the same name (instead, an error about duplicate
         // names is produced).
         // TODO - this does not reflect name lookup issues when there are multiple specification files
-        for (JmlCompilationUnit specCompilationUnit : specsSequence) {
+        {
             currentParentSpecList = new ListBuffer<List<JCTree>>();
             currentParentSpecList.append(specCompilationUnit.defs);  // Model types are their own specification
             specCompilationUnit.packge = packageSymbol;
@@ -603,13 +601,13 @@ public class JmlEnter extends Enter {
      * (including the specifications for any secondary types that would have been in the same source
      * compilation unit)
      */
-    public void enterSpecsForBinaryClasses(ClassSymbol csymbol, java.util.List<JmlCompilationUnit> specsSequence) {
+    public void enterSpecsForBinaryClasses(ClassSymbol csymbol, JmlCompilationUnit speccu) {
         if (utils.jmldebug) log.noticeWriter.println("ENTER TOPLEVEL (BINARY) " + csymbol);
 
         // First do all the linking of java types to specifications
         // Since we do not have a Java compilation Unit to walk down, we will
         // enter the model classes as well
-        if (specsSequence == null || specsSequence.isEmpty()) {
+        if (speccu == null) {
             // If there are no specs, we still make an (empty) record of that
             // fact in the specs database, so that we don't go looking again.
             recordEmptySpecs(csymbol);
@@ -617,11 +615,11 @@ public class JmlEnter extends Enter {
         }
 
         ListBuffer<List<JCTree>> specslist = new ListBuffer<List<JCTree>>();
-        for (JmlCompilationUnit jcu : specsSequence) {
-            specslist.append(jcu.defs);
-            Env<AttrContext> tlenv = topLevelEnv(jcu);
+        if (speccu != null) {
+            specslist.append(speccu.defs);
+            Env<AttrContext> tlenv = topLevelEnv(speccu);
             //jcu.accept(this); // add in imports
-            for (JCTree t: jcu.defs) {
+            for (JCTree t: speccu.defs) {
                 // A bit of a hack: for lack of an easier way to communicate 
                 // parent information about each element of the list of spec
                 // sequence declarations, we are putting the parent env in
@@ -662,22 +660,21 @@ public class JmlEnter extends Enter {
         }
         
         // Do any top-level model types
-        for (JmlCompilationUnit jcu: specsSequence) {
-            for (JmlClassDecl modelType: jcu.parsedTopLevelModelTypes) {
-                classEnter(modelType,topLevelEnv(jcu));
+        if (speccu != null) {
+            for (JmlClassDecl modelType: speccu.parsedTopLevelModelTypes) {
+                classEnter(modelType,topLevelEnv(speccu));
             }
         }
 
         // Create a todo item for each toplevel class that needs processing
         // but only for those in the first item of the specsSequence
         // If the specsSequence is empty, there is nothing to do anyway
-        if (!specsSequence.isEmpty()) {
-            JmlCompilationUnit jcu = specsSequence.get(0);
-            for (JCTree t: jcu.defs) {
+        if (speccu != null) {
+            for (JCTree t: speccu.defs) {
                 if (t instanceof JmlClassDecl) {
                     binaryMemberTodo.add(((JmlClassDecl)t).env);
                     //log.noticeWriter.println("APPENDING TO BINARYENVS " + specsSequence.get(0).sourcefile);
-                    binaryEnvs.append(specsSequence.get(0));
+                    binaryEnvs.append(speccu);
                 }
             }
         }

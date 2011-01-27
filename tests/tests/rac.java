@@ -915,16 +915,16 @@ public class rac extends RacBase {
     }
 
     public void testSpecFile() {
-        addMockFile("$A/tt/A.spec","package tt; public class A { //@ ghost static int i = 0;\n  //@ invariant i == 0; \n //@ requires i == 1;\n static int m(); }");
+        addMockFile("$A/tt/A.jml","package tt; public class A { //@ ghost static int i = 0;\n  //@ invariant i == 0; \n //@ requires i == 1;\n static int m(); }");
         helpTCX("tt.A","package tt; public class A { static int m() { return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
-                ,"/$A/tt/A.spec:3: JML precondition is false"
+                ,"/$A/tt/A.jml:3: JML precondition is false"
                 ,"END"
                 );
         
     }
 
     public void testSpecFile2() {
-        addMockFile("$A/tt/A.spec","package tt; public class A { //@ ghost static int i = 0;\n  //@ invariant i == 0; \n //@ ensures i == 1;\n static int m(); }");
+        addMockFile("$A/tt/A.jml","package tt; public class A { //@ ghost static int i = 0;\n  //@ invariant i == 0; \n //@ ensures i == 1;\n static int m(); }");
         helpTCX("tt.A","package tt; public class A { static int m() { //@ set i = 1; \n return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
                 ,"END"
                 );
@@ -932,21 +932,21 @@ public class rac extends RacBase {
     }
 
     public void testSpecModelMethod() {
-        addMockFile("$A/tt/A.spec","package tt; public class A { " 
+        addMockFile("$A/tt/A.jml","package tt; public class A { " 
                 +"/*@ model static pure int mm() { return 5; } */ "
                 +"//@ ghost static int i = 0;\n  "
                 +"//@ invariant i == 0; \n //@ ensures i == 1;\n static int m(); "
                 +"}"
                 );
         helpTCX("tt.A","package tt; public class A { static int m() { //@ set i = mm(); \n return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
-                ,"/$A/tt/A.spec:3: JML postcondition is false"
+                ,"/$A/tt/A.jml:3: JML postcondition is false"
                 ,"END"
                 );
         
     }
 
     public void _testSpecModelClass() { // FIXME - nested class problems?
-        addMockFile("$A/tt/A.spec","package tt; public class A { \n" 
+        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"/*@ model static class AA { static int mm() { return 5; }} */ \n"
                 +"//@ ghost static int i = 0;\n  "
                 +"//@ invariant i == 0; \n "
@@ -963,14 +963,14 @@ public class rac extends RacBase {
                 +"  m(); \n"
                 +"  System.out.println(\"END\"); \n"
                 +"}}"
-                ,"/$A/tt/A.spec:5: JML postcondition is false"
+                ,"/$A/tt/A.jml:5: JML postcondition is false"
                 ,"END"
                 );
         
     }
     
     public void testStaticInvariant() {
-        addMockFile("$A/tt/A.spec","package tt; public class A { \n" 
+        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ static invariant i == 0; \n "
                 +"static void m(); \n"
                 +"}"
@@ -984,15 +984,15 @@ public class rac extends RacBase {
                 +"m(); "
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/$A/tt/A.spec:2: JML static invariant is false"
+                ,"/$A/tt/A.jml:2: JML static invariant is false"
                 ,"MID"
-                ,"/$A/tt/A.spec:2: JML static invariant is false"
+                ,"/$A/tt/A.jml:2: JML static invariant is false"
                 ,"END"
                 );
     }
 
     public void testStaticInvariant2() { 
-        addMockFile("$A/tt/A.spec","package tt; public class A { \n" 
+        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ static invariant i == 0; \n "
                 +"void m(); \n"
                 +"}"
@@ -1006,16 +1006,16 @@ public class rac extends RacBase {
                 +"new A().m(); "
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/$A/tt/A.spec:2: JML static invariant is false"
+                ,"/$A/tt/A.jml:2: JML static invariant is false"
                 ,"MID"
-                ,"/$A/tt/A.spec:2: JML static invariant is false"
-                ,"/$A/tt/A.spec:2: JML static invariant is false"
+                ,"/$A/tt/A.jml:2: JML static invariant is false"
+                ,"/$A/tt/A.jml:2: JML static invariant is false"
                 ,"END"
                 );
     }
 
     public void testInvariant() { 
-        addMockFile("$A/tt/A.spec","package tt; public class A { \n" 
+        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"void m(); \n"
                 +"}"
@@ -1029,15 +1029,15 @@ public class rac extends RacBase {
                 +"new A().m(); "
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/$A/tt/A.spec:2: JML invariant is false"
+                ,"/$A/tt/A.jml:2: JML invariant is false"
                 ,"MID"
-                ,"/$A/tt/A.spec:2: JML invariant is false"
+                ,"/$A/tt/A.jml:2: JML invariant is false"
                 ,"END"
                 );
     }
 
     public void testInitially() {
-        addMockFile("$A/tt/A.spec","package tt; public class A { \n" 
+        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ initially i == 1; \n "
                 +"//@ initially j == 1; \n "
                 +"void m(); \n"
@@ -1055,14 +1055,14 @@ public class rac extends RacBase {
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"MID"
-                ,"/$A/tt/A.spec:3: JML initially is false"
+                ,"/$A/tt/A.jml:3: JML initially is false"
                 ,"END"
                 );
     }
 
 
     public void testConstraint() {
-        addMockFile("$A/tt/A.spec","package tt; public class A { \n" 
+        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ constraint i == \\old(i)+1; \n "
                 +"void m(); \n"
                 +"}"
@@ -1080,13 +1080,13 @@ public class rac extends RacBase {
                 +"}}"
                 ,"START"
                 ,"MID"
-                ,"/$A/tt/A.spec:2: JML constraint is false"
+                ,"/$A/tt/A.jml:2: JML constraint is false"
                 ,"END"
                 );
     }
 
     public void testHelper() {
-        addMockFile("$A/tt/A.spec","package tt; public class A { \n" 
+        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"/*@ helper */ void m(); \n"
                 +"}"

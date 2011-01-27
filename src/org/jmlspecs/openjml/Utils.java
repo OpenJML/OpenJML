@@ -263,7 +263,7 @@ public class Utils {
     
     /** This array gives the suffixes recognized as JML specification files, in order of priority */
     /*@ non_null*/
-    public static final String[] suffixes = { ".refines-java", ".refines-spec", ".refines-jml", ".java", ".spec", ".jml"   };
+    public static final String[] suffixes = { ".jml", ".java" };
     
     /** This gives the character that marks a mock directory (cf. JmlSpecs), mostly for use in testing */
     // FIXME - not yet used everywhere it should be

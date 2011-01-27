@@ -278,138 +278,138 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testMatchClass() {
-        addMockFile("$A/A.spec"," class A {}");
+        addMockFile("$A/A.jml"," class A {}");
         helpTCF("A.java","public class A{}",
-                "/$A/A.spec:1: The type A in the specification matches a Java type A with different modifiers: public", 2);
+                "/$A/A.jml:1: The type A in the specification matches a Java type A with different modifiers: public", 2);
     }
     
     @Test public void testMatchClass2() {
-        addMockFile("$A/A.spec","public class A<T> {}");
+        addMockFile("$A/A.jml","public class A<T> {}");
         helpTCF("A.java","public class A<T,U>{}",
-                "/$A/A.spec:1: The type A in the specification matches a Java type A<T,U> with a different number of type arguments", 8);
+                "/$A/A.jml:1: The type A in the specification matches a Java type A<T,U> with a different number of type arguments", 8);
     }
     
     @Test public void testMatchClass3() { // FIXME - this should fail - need to compare the type parameters
-        addMockFile("$A/A.spec","public class A<T> {}");
+        addMockFile("$A/A.jml","public class A<T> {}");
         helpTCF("A.java","public class A<T extends java.util.List>{}");//,
                // "/A.java:1: The type A in the specification matches a Java type A with different modifiers: public ", 2);
     }
     
     @Test public void testMatchField() {
-        addMockFile("$A/A.spec","public class A { int k; }");
+        addMockFile("$A/A.jml","public class A { int k; }");
         helpTCF("A.java","public class A{}",
-                "/$A/A.spec:1: The field k is a Java field (neither ghost nor model) but does not match any fields in the corresponding Java class.", 22);
+                "/$A/A.jml:1: The field k is a Java field (neither ghost nor model) but does not match any fields in the corresponding Java class.", 22);
     }
     
     @Test public void testMatchField2() {
-        addMockFile("$A/A.spec","public class A { /*@ ghost int k; */}");
+        addMockFile("$A/A.jml","public class A { /*@ ghost int k; */}");
         helpTCF("A.java","public class A{}");  // OK
     }
     
     @Test public void testMatchField2a() {
-        addMockFile("$A/A.spec","public class A { /*@ model int k; */}");
+        addMockFile("$A/A.jml","public class A { /*@ model int k; */}");
         helpTCF("A.java","public class A{}");  // OK
     }
     
     @Test public void testMatchField3() { 
-        addMockFile("$A/A.spec","public class A { /*@ ghost int k; */}");
+        addMockFile("$A/A.jml","public class A { /*@ ghost int k; */}");
         helpTCF("A.java","public class A{}");  // OK
     }
     
     /** Missing a ghost or model modifier */
     @Test public void testMatchField3a() {
-        addMockFile("$A/A.spec","public class A { /*@ int k; */}");
+        addMockFile("$A/A.jml","public class A { /*@ int k; */}");
         helpTCF("A.java","public class A{}",
-                "/$A/A.spec:1: A declaration within a JML annotation must be either ghost or model", 26); 
+                "/$A/A.jml:1: A declaration within a JML annotation must be either ghost or model", 26); 
     }
     
     @Test public void testMatchField4() {
-        addMockFile("$A/A.spec","public class A { int k=0; }");
+        addMockFile("$A/A.jml","public class A { int k=0; }");
         helpTCF("A.java","public class A{ int k; }",
-                "/$A/A.spec:1: Field initializers are not permitted in specification files (A.k)", 24);
+                "/$A/A.jml:1: Field initializers are not permitted in specification files (A.k)", 24);
     }
     
     @Test public void testMatchField5() {
-        addMockFile("$A/A.spec","public class A { public int k; }");
+        addMockFile("$A/A.jml","public class A { public int k; }");
         helpTCF("A.java","public class A{ protected int k; }",
-                "/$A/A.spec:1: The field k in the specification matches a Java field A.k with different modifiers: public protected", 29);
+                "/$A/A.jml:1: The field k in the specification matches a Java field A.k with different modifiers: public protected", 29);
     }
 
     @Test public void testMatchField6() { 
-        addMockFile("$A/A.spec","public class A { boolean k; }");
+        addMockFile("$A/A.jml","public class A { boolean k; }");
         helpTCF("A.java","public class A{ int k; }",
-                "/$A/A.spec:1: The field k in the specification matches a Java field A.k but they have different types: boolean vs. int",18);
+                "/$A/A.jml:1: The field k in the specification matches a Java field A.k but they have different types: boolean vs. int",18);
     }
     
     @Test public void testMatchField7() {  
-        addMockFile("$A/A.spec","public class A { String k; }");
+        addMockFile("$A/A.jml","public class A { String k; }");
         helpTCF("A.java","public class A{ Object k; }",
-                "/$A/A.spec:1: The field k in the specification matches a Java field A.k but they have different types: java.lang.String vs. java.lang.Object",18);
+                "/$A/A.jml:1: The field k in the specification matches a Java field A.k but they have different types: java.lang.String vs. java.lang.Object",18);
     }
     
     @Test public void testMatchField8() { 
-        addMockFile("$A/A.spec","public class A { Object k; }");
+        addMockFile("$A/A.jml","public class A { Object k; }");
         helpTCF("A.java","public class A{ java.lang.Object k; }"); // OK
     }
     
     @Test public void testMatchField9() { 
-        addMockFile("$A/A.spec","public class A { Class<String> k; }");
+        addMockFile("$A/A.jml","public class A { Class<String> k; }");
         helpTCF("A.java","public class A{ Class<Object> k; }",
-                "/$A/A.spec:1: The field k in the specification matches a Java field A.k but they have different types: java.lang.Class<java.lang.String> vs. java.lang.Class<java.lang.Object>", 23); 
+                "/$A/A.jml:1: The field k in the specification matches a Java field A.k but they have different types: java.lang.Class<java.lang.String> vs. java.lang.Class<java.lang.Object>", 23); 
     }
     
     @Test public void testMatchMethod() { 
-        addMockFile("$A/A.spec","public class A { void m(int i); }");
+        addMockFile("$A/A.jml","public class A { void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(int i) {} }"); 
     }
     
     @Test public void testMatchMethod1() { 
-        addMockFile("$A/A.spec","public class A { void m(int i); }");
+        addMockFile("$A/A.jml","public class A { void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(Object i) {} }",
-                "/$A/A.spec:1: The method A.m(int) is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.", 23); 
+                "/$A/A.jml:1: The method A.m(int) is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.", 23); 
     }
     
     @Test public void testMatchMethod2() { // Should be OK
-        addMockFile("$A/A.spec","public class A { void m(Object i); }");
+        addMockFile("$A/A.jml","public class A { void m(Object i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(java.lang.Object i) {} }"); 
     }
     
     @Test public void testMatchMethod3() { 
-        addMockFile("$A/A.spec","public class A { void m(int i, boolean j); }");
+        addMockFile("$A/A.jml","public class A { void m(int i, boolean j); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(int i) {} }",
-                "/$A/A.spec:1: The method A.m(int,boolean) is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.", 23); 
+                "/$A/A.jml:1: The method A.m(int,boolean) is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.", 23); 
     }
     
     @Test public void testMatchMethod4() { 
-        addMockFile("$A/A.spec","public class A { public void m(int i); }");
+        addMockFile("$A/A.jml","public class A { public void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(int i) { } }",
-                "/$A/A.spec:1: The method m in the specification matches a Java method m(int) with different modifiers: public", 30
+                "/$A/A.jml:1: The method m in the specification matches a Java method m(int) with different modifiers: public", 30
                 ); 
     }
     
     @Test public void testMatchMethod5() { 
-        addMockFile("$A/A.spec","public class A { public Object m(int i); }");
+        addMockFile("$A/A.jml","public class A { public Object m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {}  private java.lang.Object m(int i) { return null; } }",
-                "/$A/A.spec:1: The method m in the specification matches a Java method m(int) with different modifiers: public private", 32); 
+                "/$A/A.jml:1: The method m in the specification matches a Java method m(int) with different modifiers: public private", 32); 
     }
     
     @Test public void testMatchMethod6() {
-        addMockFile("$A/A.spec","public class A { public void m(int i); }");
+        addMockFile("$A/A.jml","public class A { public void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {}  public String m(int i) { return null; } }",
-                "/$A/A.spec:1: The return types of method A.m(int) are different in the specification and java files: void vs. java.lang.String",25); 
+                "/$A/A.jml:1: The return types of method A.m(int) are different in the specification and java files: void vs. java.lang.String",25); 
     }
     
     @Test public void testMatchMethod7() { 
-        addMockFile("$A/A.spec","public class A { public void m(int j, Object k); }");
+        addMockFile("$A/A.jml","public class A { public void m(int j, Object k); }");
         helpTCF("A.java","public class A{ void m(boolean i) {}  public String m(int i, Object mm) { return null; } }",
-                "/$A/A.spec:1: Parameter 0 of method A.m(int,java.lang.Object) has name j in the .java file but i in the specification (they should be the same)",36,
-                "/$A/A.spec:1: Parameter 1 of method A.m(int,java.lang.Object) has name k in the .java file but mm in the specification (they should be the same)",46,
-                "/$A/A.spec:1: The return types of method A.m(int,java.lang.Object) are different in the specification and java files: void vs. java.lang.String",25); 
+                "/$A/A.jml:1: Parameter 0 of method A.m(int,java.lang.Object) has name j in the .java file but i in the specification (they should be the same)",36,
+                "/$A/A.jml:1: Parameter 1 of method A.m(int,java.lang.Object) has name k in the .java file but mm in the specification (they should be the same)",46,
+                "/$A/A.jml:1: The return types of method A.m(int,java.lang.Object) are different in the specification and java files: void vs. java.lang.String",25); 
     }
     
 //    @Ignore
 //    @Test public void testMatchMethod8() { 
-//        addMockFile("$A/A.spec","public class A { public void m() {} }");
+//        addMockFile("$A/A.jml","public class A { public void m() {} }");
 //        helpTCF("A.java","public class A{ void m(boolean i) {}  public void m() {  } }",
 //                "/A.java:1: The specification of the method A.m() must not have a body",34); 
 //    }
@@ -1057,15 +1057,15 @@ public class modifiers extends TCBase {
 //        options.put("-jmldebug","");
 //        options.put("-jmlverbose","");
 //        options.put("-progress","");
-        addMockFile("$A/java/lang/Object.spec","/*@ non_null */ public class Object {\n"
+        addMockFile("$A/java/lang/Object.jml","/*@ non_null */ public class Object {\n"
                 +"//@ spec_public spec_protected\n"
                 +"public boolean equals(Object o);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.spec:2: A declaration may not be both spec_public and spec_protected",17
-                ,"/$A/java/lang/Object.spec:2: warning: There is no point to a declaration being both public and spec_protected",17
-                ,"/$A/java/lang/Object.spec:2: warning: There is no point to a declaration being both public and spec_public",5
-                ,"/$A/java/lang/Object.spec:1: This JML modifier is not allowed for a type declaration",5
+                ,"/$A/java/lang/Object.jml:2: A declaration may not be both spec_public and spec_protected",17
+                ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
+                ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_public",5
+                ,"/$A/java/lang/Object.jml:1: This JML modifier is not allowed for a type declaration",5
                 );
     }
     
@@ -1088,26 +1088,26 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testAnnotations1() {
-        addMockFile("$A/A.spec","  public class A {}");
+        addMockFile("$A/A.jml","  public class A {}");
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
                 "public @Pure class A{}",
-                "/$A/A.spec:1: The specification must include all the annotations that the Java declaration declares: @Pure", 3);
+                "/$A/A.jml:1: The specification must include all the annotations that the Java declaration declares: @Pure", 3);
     }
 
     // FIXME - also need to test this for when a .class file has a JML annotation that the spec file does not - is that tested for Java m
     // FIXME - these need implementing - error for the different in annotations
 //    @Test public void testAnnotations2() {
-//        addMockFile("$A/A.spec","public class A { Object f; }");
+//        addMockFile("$A/A.jml","public class A { Object f; }");
 //        helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
 //                "public class A{ @NonNull Object f; }",
-//                "/$A/A.spec:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
+//                "/$A/A.jml:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
 //    }
 //     
 //    @Test public void testAnnotations3() {
-//        addMockFile("$A/A.spec","public class A { Object m(); }");
+//        addMockFile("$A/A.jml","public class A { Object m(); }");
 //        helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
 //                "public class A{  @NonNull Object m() { return null: }}",
-//                "/$A/A.spec:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
+//                "/$A/A.jml:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
 //    }
      
 }

@@ -23,7 +23,7 @@ public class esclocation extends EscBase {
     }
     
     public void testLocationRequires() {
-        addMockFile("$A/tt/TestJava.refines-java","package tt; public class TestJava {\n"
+        addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@   requires false;\n"
                 +"  public void mm();\n"
                 +"}"
@@ -43,7 +43,7 @@ public class esclocation extends EscBase {
     }
     
     public void testLocationEnsures() {
-        addMockFile("$A/tt/TestJava.refines-java","package tt; public class TestJava {\n"
+        addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@   ensures false;\n"
                 +"  public void m();\n"
                 +"}"
@@ -55,12 +55,12 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Postcondition) in method m",15
-                ,"/$A/tt/TestJava.refines-java:2: warning: Associated declaration",17
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
                 );
     }
     
     public void testLocationEnsures2() {
-        addMockFile("$A/tt/TestJava.refines-java","package tt; public class TestJava {\n"
+        addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@   ensures false;\n"
                 +"  public void m();\n"
                 +"}"
@@ -73,14 +73,14 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Postcondition) in method m",5
-                ,"/$A/tt/TestJava.refines-java:2: warning: Associated declaration",17
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
                 );
     }
     
     public void testLocationSignals() {
 //        options.put("-progress","");
 //        options.put("-jmlverbose","");
-        addMockFile("$A/tt/TestJava.refines-java","package tt; public class TestJava {\n"
+        addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@   signals (Exception) false;\n"
                 +"  public void m();\n"
                 +"}"
@@ -93,12 +93,12 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m",5
-                ,"/$A/tt/TestJava.refines-java:2: warning: Associated declaration",9
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",9
                 );
     }
     
     public void testLocationInvariant() {
-        addMockFile("$A/tt/TestJava.refines-java","package tt; public class TestJava {\n"
+        addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@ invariant i>=0;\n"
                 +"}"
                 );
@@ -111,14 +111,14 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
-                ,"/$A/tt/TestJava.refines-java:2: warning: Associated declaration",17
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Invariant) in method m",13
-                ,"/$A/tt/TestJava.refines-java:2: warning: Associated declaration",17
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
                 );
     }
     
     public void testLocationInitially() {
-        addMockFile("$A/tt/TestJava.refines-java","package tt; public class TestJava {\n"
+        addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@ initially i>=0;\n"
                 +"}"
                 );
@@ -131,13 +131,13 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Initially) in method <init>",13
-                ,"/$A/tt/TestJava.refines-java:2: warning: Associated declaration",17
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
                 );
     }
     
     
     public void testLocationConstraint() {
-        addMockFile("$A/tt/TestJava.refines-java","package tt; public class TestJava {\n"
+        addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@ constraint i>=\\old(i);\n"
                 +"}"
                 );
@@ -150,7 +150,7 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method m",13
-                ,"/$A/tt/TestJava.refines-java:2: warning: Associated declaration",18
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",18
                 );
     }
     

@@ -464,7 +464,7 @@ public class api extends TestCase {
             v.scan(ast);
             check("","");
             assertEquals(1,v.numberClasses);
-            assertEquals(10,v.numberNodes);
+            assertEquals(9,v.numberNodes);
             
         } catch (Exception e) {
             System.out.println(e);
@@ -747,6 +747,7 @@ public class api extends TestCase {
     
     /** Tests the parseAndCheck call */
     // parseAndCheck 
+    // uses specs in the .jml file, not the .java file, so sees no errors
     @Test
     public void testParseAndCheck1ErrorsA() {
         start(true);
@@ -762,7 +763,6 @@ public class api extends TestCase {
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
             int errs = dlist.size();
             assertEquals(0,errs);
-            // This test should find no errors because it only takes specs from files on the specs path
             //assertEquals("testfiles\\testJavaErrors\\A.java:2: incompatible types\n  required: int\n  found:    boolean",((JCDiagnostic)dlist.get(0)).noSource());
         } catch (Exception e) {
             check("","");
@@ -774,6 +774,7 @@ public class api extends TestCase {
     
     /** Tests the parseAndCheck call */
     // parseAndCheck 
+    // No specspath so uses the .java file, which has an error
     @Test
     public void testParseAndCheck1ErrorsB() {
         start(true);

@@ -14,9 +14,6 @@ import com.sun.tools.javac.util.Names;
  */
 public class JmlFactory extends ParserFactory {
 
-    /** The context key for the parser factory. */
-    protected static final Context.Key<JmlFactory> jmlparserFactoryKey = new Context.Key<JmlFactory>();
-
     /**
      * The constructor for the factory.
      * 
@@ -40,6 +37,7 @@ public class JmlFactory extends ParserFactory {
      */
     public static void preRegister(final Context context) {
         context.put(parserFactoryKey, new Context.Factory<ParserFactory>() {
+            @Override
             public ParserFactory make() {
                 return new JmlFactory(context);
             }

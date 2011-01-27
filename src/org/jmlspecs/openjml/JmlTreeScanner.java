@@ -63,7 +63,6 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
         scan(that.packageAnnotations);
         scan(that.pid); // package id
-        scan(that.refinesClause);
         scan(that.defs);
         if (scanMode == AST_JML_MODE) scan(that.parsedTopLevelModelTypes);
         if (scanMode == SPEC_MODE) scan(that.specsTopLevelModelTypes);

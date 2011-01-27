@@ -138,25 +138,23 @@ public class JmlCompiler extends JavaCompiler {
             // FIXME - unfortunately, there is no guarantee as to what getName()
             // will return.  It would be safer, but a pain, to dismember the 
             // associated URI. (getName is even deprecated within some subclasses)
-            jmlcu.specsSequence = parseSpecs(jmlcu,e == null ? null : e.toString(),jmlcu.getSourceFile().getName());
-            if (jmlcu.specsSequence.size() == 0) {
+            jmlcu.specsCompilationUnit = parseSpecs(jmlcu,e == null ? null : e.toString(),jmlcu.getSourceFile().getName());
+            if (jmlcu.specsCompilationUnit == null) {
                 // If there are no specs, that means that not even the .java file is
                 // on the specification path.  That may well be something to warn
                 // about.  For now (and for the sake of the tests), we will be
                 // helpful and add the .java file to the specs sequence despite it
                 // not being on the specification path.
                 // FIXME log.warning("jml.no.specs",filename.getName());
-                java.util.List<JmlCompilationUnit> list = new java.util.LinkedList<JmlCompilationUnit>();
-                list.add(jmlcu);
-                jmlcu.specsSequence = list;
+                jmlcu.specsCompilationUnit = jmlcu;
             } else {
-                for (JmlCompilationUnit jcu: jmlcu.specsSequence) {
-                    if (jcu != cu) jcu.mode = JmlCompilationUnit.SPEC_FOR_SOURCE;
-                }
+                JmlCompilationUnit jcu = jmlcu.specsCompilationUnit;
+                if (jcu != cu) jcu.mode = JmlCompilationUnit.SPEC_FOR_SOURCE;
             }
             // Only need dependencies in interactive situations - Eclipse and programmatic api
             // Needs to be false for testing or we run out of memory
-            if (false) for (JmlCompilationUnit jcu: jmlcu.specsSequence) {
+            if (false) {
+                JmlCompilationUnit jcu = jmlcu.specsCompilationUnit;
                 //log.noticeWriter.println(jmlcu.sourcefile + " depends on " + jcu.sourcefile);
                 Dependencies.instance(context).dependsOn(jmlcu.sourcefile,jcu.sourcefile);
             }
@@ -184,13 +182,13 @@ public class JmlCompiler extends JavaCompiler {
      * @return the possibly empty list of parsed compilation units, as ASTs
      */
     //@ non_null
-    public java.util.List<JmlCompilationUnit> parseSpecs(/*@ nullable*/JmlCompilationUnit javaCU, /*@ nullable*/String pack, /*@ non_null */String file) {
+    public JmlCompilationUnit parseSpecs(/*@ nullable*/JmlCompilationUnit javaCU, /*@ nullable*/String pack, /*@ non_null */String file) {
         int i = file.lastIndexOf('/');
         int ii = file.lastIndexOf('\\');
         if (i < ii) i = ii;
         int k = file.lastIndexOf(".");
         if (k >= 0) file = file.substring(i+1,k);
-        JavaFileObject f = JmlSpecs.instance(context).findLeadingSpecFile(pack == null ? file : (pack + "." + file));
+        JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(pack == null ? file : (pack + "." + file));
         return parseSpecs(f,javaCU);
     }
 
@@ -198,23 +196,23 @@ public class JmlCompiler extends JavaCompiler {
      * @param typeSymbol the symbol of the type whose specs are sought
      * @return the possibly empty list of parsed compilation units, as ASTs
      */
-    //@ non_null
-    public java.util.List<JmlCompilationUnit> parseSpecs(Symbol.TypeSymbol typeSymbol) {
+    /*@Nullable*/
+    public JmlCompilationUnit parseSpecs(Symbol.TypeSymbol typeSymbol) {
         String typeName = typeSymbol.flatName().toString();
         String path = typeName.replace('.','/');
-        JavaFileObject f = JmlSpecs.instance(context).findLeadingSpecFile(path);
-        java.util.List<JmlCompilationUnit> list = parseSpecs(f,null);
-        for (JmlCompilationUnit jcu: list) jcu.packge = (Symbol.PackageSymbol)typeSymbol.outermostClass().getEnclosingElement();
-        return list;
+        JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(path);
+        /*@Nullable*/ JmlCompilationUnit speccu = parseSpecs(f,null);
+        if (speccu != null) speccu.packge = (Symbol.PackageSymbol)typeSymbol.outermostClass().getEnclosingElement();
+        return speccu;
     }
     
-    public java.util.List<JmlCompilationUnit> parseEnterCombineSpecs(Symbol.TypeSymbol typeSymbol, Env<AttrContext> env) {
-        java.util.List<JmlCompilationUnit> specsSequence = parseSpecs(typeSymbol);
-//        Enter enter = Enter.instance(context);
-//        enter.topLevelForSymbol(typeSymbol,defs,env);
-//        //enter.enterNestedClasses(typeSymbol,specsSequence,env);
-        return specsSequence;
-    }
+//    public java.util.List<JmlCompilationUnit> parseEnterCombineSpecs(Symbol.TypeSymbol typeSymbol, Env<AttrContext> env) {
+//        java.util.List<JmlCompilationUnit> specsSequence = parseSpecs(typeSymbol);
+////        Enter enter = Enter.instance(context);
+////        enter.topLevelForSymbol(typeSymbol,defs,env);
+////        //enter.enterNestedClasses(typeSymbol,specsSequence,env);
+//        return specsSequence;
+//    }
     
     /** Initiates the actual parsing of the refinement chain.  Note that in the
      * end we want to consolidate the specs sequence into one declaration file
@@ -226,11 +224,10 @@ public class JmlCompiler extends JavaCompiler {
      * @return the possibly empty list of parsed compilation units, as ASTs
      */
     //@ non_null
-    public java.util.List<JmlCompilationUnit> parseSpecs(/*@ nullable*/JavaFileObject f, /*@ nullable*/JmlCompilationUnit javaCU) {
+    public JmlCompilationUnit parseSpecs(/*@ nullable*/JavaFileObject f, /*@ nullable*/JmlCompilationUnit javaCU) {
         inSequence = true;
-        java.util.List<JmlCompilationUnit> list = new java.util.LinkedList<JmlCompilationUnit>();
-        while (f != null) {
-            JmlCompilationUnit jmlcu;
+        JmlCompilationUnit jmlcu = null;
+        if (f != null) {
             // FIXME - this comparison is not robust, though is usually working
             // we use it to avoid parsing a file twice (which would also give
             // duplicate error messages)
@@ -241,15 +238,9 @@ public class JmlCompiler extends JavaCompiler {
             } else {
                 jmlcu = (JmlCompilationUnit)parse(f);
             }
-            list.add(jmlcu);
-            JCTree.JCExpression packTree = jmlcu.getPackageName();
-            if (jmlcu.refinesClause == null) break;
-            String file = jmlcu.refinesClause.filename;
-            String fullname = packTree == null ? file : (packTree.toString().replace('.','/') + "/" + file);
-            f = JmlSpecs.instance(context).findSpecFile(fullname);
         }
         inSequence = false;
-        return list;
+        return jmlcu;
     }
     
     @Override
@@ -292,23 +283,23 @@ public class JmlCompiler extends JavaCompiler {
         // Java handling uses, we just don't use the same todo list.
         nestingLevel++;
         loadSuperSpecs(env,csymbol);
-        java.util.List<JmlCompilationUnit> specSequence = parseSpecs(csymbol);
-        if (verbose && specSequence.isEmpty()) {
+        JmlCompilationUnit speccu = parseSpecs(csymbol);
+        if (verbose && speccu == null) {
             log.noticeWriter.println("No specs for " + csymbol);
         }
         // FIXME - not sure env or mode below are still used
-        if (!specSequence.isEmpty()) {
-            env = enter.getTopLevelEnv(specSequence.get(0));
+        if (speccu != null) {
+            env = enter.getTopLevelEnv(speccu);
             //enter.visitTopLevel(specSequence.get(0));  // Does imports
             csymbol.flags_field |= Flags.UNATTRIBUTED;
         }
-        for (JmlCompilationUnit cu: specSequence) {
-            if (cu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) cu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
-            else cu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
+        if (speccu != null) {
+            if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
+            else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
         }
-        if (utils.jmldebug) if (specSequence.isEmpty()) log.noticeWriter.println("   LOADED CLASS " + csymbol + " FOUND NO SPECS");
+        if (utils.jmldebug) if (speccu == null) log.noticeWriter.println("   LOADED CLASS " + csymbol + " FOUND NO SPECS");
                             else log.noticeWriter.println("   LOADED CLASS " + csymbol + " PARSED SPECS");
-        ((JmlEnter)enter).enterSpecsForBinaryClasses(csymbol,specSequence);
+        ((JmlEnter)enter).enterSpecsForBinaryClasses(csymbol,speccu);
         if (utils.jmldebug) log.noticeWriter.println("NEST " + nestingLevel + " " + csymbol);
         if (nestingLevel==1) ((JmlMemberEnter)JmlMemberEnter.instance(context)).completeBinaryTodo();
         nestingLevel--;

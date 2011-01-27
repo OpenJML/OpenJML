@@ -27,7 +27,8 @@ public class Elemtype extends ExpressionExtension {
 
     public Elemtype() {}
     
-    static public JmlToken[] tokens() { return new JmlToken[]{JmlToken.BSELEMTYPE,JmlToken.BSTYPEOF,
+    static public JmlToken[] tokens() { return new JmlToken[]{
+            JmlToken.BSELEMTYPE,JmlToken.BSTYPEOF,
             JmlToken.BSOLD,JmlToken.BSPRE,JmlToken.BSNOWARN, JmlToken.BSNOWARNOP,
             JmlToken.BSWARN, JmlToken.BSWARNOP,
             JmlToken.BSBIGINT_MATH, JmlToken.BSJAVAMATH, JmlToken.BSSAFEMATH}; }

@@ -103,17 +103,6 @@ public class prettyprinting extends ParseBase {
         );
     }
 
-    public void testRefines() {
-        helpPP(
-                "package t;" + eol + 
-                "//@ refines \"A.jml\";" + eol + eol + 
-                "//@ model import java.io.File;" + eol +
-                "//@ model import java.io.*;" + eol + eol + 
-                "class A {" + eol +
-                "}"
-        );
-    }
-    
     public void testClassModifiers() {
         helpPP(
                 eol + 
