@@ -11,7 +11,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
@@ -124,7 +124,9 @@ public class JmlEsc extends JmlTreeScanner {
     /** Whether to check that key assumptions are feasible */
     public boolean checkAssumptions = true;
 
-
+    /** The prover to use */
+    public /*@NonNull*/ String proverToUse;
+    
 //    @NonNull final static public String arraysRoot = "$$arrays";  // Reference in masicblocker?
 
     // FIXME - check whether a new JmlEsc is created for each new check,
@@ -138,23 +140,36 @@ public class JmlEsc extends JmlTreeScanner {
         this.log = Log.instance(context);
         this.names = Names.instance(context);
         this.factory = JmlTree.Maker.instance(context);
-        this.verbose = JmlOptionName.isOption(context,"-verbose") ||
-            JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
+        this.verbose = JmlOption.isOption(context,"-verbose") ||
+            JmlOption.isOption(context,JmlOption.JMLVERBOSE) || 
             Utils.instance(context).jmldebug;
-        this.showCounterexample = JmlOptionName.isOption(context,"-ce") || JmlOptionName.isOption(context,JmlOptionName.COUNTEREXAMPLE) || JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE);
-        this.showSubexpressions = JmlOptionName.isOption(context,JmlOptionName.SUBEXPRESSIONS);
-        this.showTrace = showCounterexample || JmlOptionName.isOption(context,JmlOptionName.TRACE) || showSubexpressions;
-        this.checkAssumptions = !JmlOptionName.isOption(context,"-noCheckAssumptions");
+        this.showCounterexample = JmlOption.isOption(context,"-ce") || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE) || JmlOption.isOption(context,JmlOption.JMLVERBOSE);
+        this.showSubexpressions = JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
+        this.showTrace = showCounterexample || JmlOption.isOption(context,JmlOption.TRACE) || showSubexpressions;
+        this.checkAssumptions = !JmlOption.isOption(context,"-noCheckAssumptions");
         escdebug = escdebug || Utils.instance(context).jmldebug;
-        this.cfInfo = JmlOptionName.isOption(context,"-crossRefAssociatedInfo");
+        this.cfInfo = JmlOption.isOption(context,"-crossRefAssociatedInfo");
+        
+        // Pick a prover to use
+        proverToUse = JmlOption.value(context,JmlOption.PROVER);
+        if (proverToUse == null) proverToUse = System.getProperty(Utils.defaultProverProperty);
+        if (proverToUse == null) proverToUse = Utils.YICES;
+        
+        //proverToUse = "cvc";
+        //proverToUse = "simplify";
+        //proverToUse = "smt";
+
     }
 
     /** Set to the currently owning class declaration while visiting JCClassDecl and its children. */
     // @Nullable JCClassDecl currentClassDecl = null;
     
+    /** Visit a class definition */
     public void visitClassDef(JCClassDecl node) {
         if (node.sym.isInterface()) return;  // Nothing to verify in an interface
+            // TODO: not so - could check that specs are consistent
         //log.noticeWriter.println("DOING CLASS " + node.sym);
+        // The super class takes care of visiting all the methods
         super.visitClassDef(node);
     }
 
@@ -162,7 +177,7 @@ public class JmlEsc extends JmlTreeScanner {
     static boolean usePush = true;
     static boolean useRetract = false;
     static boolean useSearch = false;
-    static boolean useCoreIds = true;
+    static boolean useCoreIds = false;
     static boolean useTree = false;
     //public static boolean mainCheckOnly = false;
     int timingTest;
@@ -185,7 +200,8 @@ public class JmlEsc extends JmlTreeScanner {
         
         boolean isConstructor = node.sym.isConstructor();
         boolean doEsc = ((node.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
-
+            // TODO: Could check that abstract or native methods have consistent specs
+        
         // Don't do ESC on the constructor of Object
         // FIXME - why?  (we don't have the source anyway, so how would we get here?)
         if (node.sym.owner == syms.objectType.tsym && isConstructor) doEsc = false;
@@ -193,7 +209,7 @@ public class JmlEsc extends JmlTreeScanner {
 
         String name = node.sym.owner + "." + node.sym;
 
-        String methodToDo = Options.instance(context).get(JmlOptionName.METHOD.optionName());
+        String methodToDo = Options.instance(context).get(JmlOption.METHOD.optionName());
         if (methodToDo != null && !name.contains(methodToDo)) return ;  // TODO - pattern match? include class name?
 
         Pattern doPattern = 
@@ -315,16 +331,17 @@ public class JmlEsc extends JmlTreeScanner {
      */
     public boolean proveMethod(@NonNull JCMethodDecl node) {
         
-        progress(1,2,"Starting proof of " + node.sym.owner.name + "." + node.name);
+        progress(1,2,"Starting proof of " + node.sym.owner.name + "." + node.name + " with prover " + proverToUse);
         Utils.Timer timer = new Utils.Timer();
         
         
-        //log.noticeWriter.println("Starting proof of " + node.sym.owner.name + "." + node.name);
         JmlMethodDecl tree = (JmlMethodDecl)node;
         //JmlClassDecl currentClassDecl = JmlSpecs.instance(context).get((ClassSymbol)node.sym.owner).decl;
         JmlClassDecl currentClassDecl = (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)node.sym.owner).tree;
+        
         // Get the denested specs for the method - FIXME - when might they be null?
         JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
+        
         // Change the log's source file to represent the source for this method
         JavaFileObject source = tree.sourcefile;
         JavaFileObject prev = log.useSource(source);
@@ -334,7 +351,7 @@ public class JmlEsc extends JmlTreeScanner {
         try {
             String name = node.sym.owner + "." + node.sym;
             
-            if (JmlOptionName.isOption(context,"-showds") || escdebug) {
+            if (JmlOption.isOption(context,"-showds") || escdebug) {
                 log.noticeWriter.println(JmlPretty.write(tree)); // print the input tree
             }
             boolean doMetrics = false;
@@ -363,7 +380,7 @@ public class JmlEsc extends JmlTreeScanner {
             if (doMetrics) return true;
 
             try {
-                if (JmlOptionName.isOption(context,"-showbb") || escdebug) {
+                if (JmlOption.isOption(context,"-showbb") || escdebug) {
                     program.write(log.noticeWriter); // print the basic block program
                 }
                 //if (showTimes) log.noticeWriter.println("    ... prep           " +  t.elapsed()/1000.);
@@ -394,7 +411,8 @@ public class JmlEsc extends JmlTreeScanner {
         } finally {
             log.useSource(prev);
         }
-        progress(1,1,"Completed proof of " + node.sym.getQualifiedName() + " [" + timer.elapsed()/1000. + "]");
+        //progress(1,1,"Completed proof [" + (ok?"   ":"not") + " proved] of " + node.sym.getQualifiedName() + " [" + timer.elapsed()/1000. + "]");
+        progress(1,1,"Completed proof attempt of " + node.sym.getQualifiedName() + " [" + timer.elapsed()/1000. + "] using " + proverToUse);
         return ok;
     }
  
@@ -435,7 +453,7 @@ public class JmlEsc extends JmlTreeScanner {
         int fan1 = fanCount(program).nodes + oth;
         int lin1 = parCount(program,false).nodes + oth;
         int linf = parCount(program,true).nodes + oth;
-        log.noticeWriter.println(ast + " AST; " + sts + " statements; " + c + "  " + fan1 + " tree; " + lin1 + " linear; " + linf + " fulllinear; " + program.definitions.size() + " defs :: " + name);
+        log.noticeWriter.println(ast + " AST; " + sts + " statements; " + c + "  " + fan1 + " tree; " + lin1 + " linear; " + linf + " fulllinear; " + (program.definitions.size()+program.pdefinitions.size()) + " defs :: " + name);
 
     }
     
@@ -660,12 +678,6 @@ public class JmlEsc extends JmlTreeScanner {
         boolean ok = false;
         IProver p = null;
         try {
-
-            // Pick a prover to use
-            String proverToUse = System.getProperty(Utils.defaultProverProperty);
-            if (proverToUse == null) proverToUse = Utils.YICES;
-            //String proverToUse = "cvc";
-            //String proverToUse = "simplify";
             p = AbstractProver.getProver(context,proverToUse);
             if (p == null) {
                 // Error is already reported
@@ -673,8 +685,18 @@ public class JmlEsc extends JmlTreeScanner {
                 return false;
             }
 
-            if (useRetract && !p.supports().retract) { p.kill(); return true; }
-            if (useCoreIds && !p.supports().unsatcore) { p.kill(); return true; }
+            boolean usingSMT = p instanceof org.jmlspecs.openjml.provers.SMTProver;
+            
+            if (useRetract && !p.supports().retract) { 
+                log.error("esc.retract.not.supported",proverToUse);
+                p.kill(); 
+                return true; 
+            }
+            if (useCoreIds && !p.supports().unsatcore) {
+                log.error("esc.unsatcore.not.supported",proverToUse);
+                p.kill(); 
+                return true; 
+            }
             if (timingTest >= 15 && p instanceof CVC3Prover) { p.kill(); return true;}
             
             Map<Integer,JCExpression> defexpr = new HashMap<Integer,JCExpression>();
@@ -683,9 +705,16 @@ public class JmlEsc extends JmlTreeScanner {
             Utils.Timer timer = null;
             if (showTimes) timer = new Utils.Timer();
 
-//            for (BasicProgram.BasicBlock block : program.blocks()) {
-//                p.define(block.id.toString(),syms.booleanType);
-//            }
+            for (BasicProgram.BasicBlock block : program.blocks()) {
+                p.define(block.id.toString(),syms.booleanType);
+            }
+            
+            // For SMT, not Yices
+            if (usingSMT) {
+                for (BasicProgram.Definition def: program.definitions()) {
+                    p.define(def.id.toString(),def.value.type,def.value); // FIXME - define with a define-fun ?
+                }
+            }
             
 //            if (JmlOptionName.isOption(context,"-checkPreconditions")) {
 //                // Check that the preconditions are satisfiable
@@ -745,7 +774,16 @@ public class JmlEsc extends JmlTreeScanner {
             }
             
             Map<JCExpression,Integer> defnum = new HashMap<JCExpression,Integer>();
-            for (JCExpression expr: program.definitions()) {
+            if (!usingSMT) {
+                for (BasicProgram.Definition def: program.definitions()) {
+                    JCExpression expr = def.expr(context);
+                    assertionNumber = p.assume(expr);
+                    defnum.put(expr,assertionNumber);
+                    defexpr.put(assertionNumber,expr);
+                }
+            }
+
+            for (JCExpression expr: program.pdefinitions) {
                 assertionNumber = p.assume(expr);
                 defnum.put(expr,assertionNumber);
                 defexpr.put(assertionNumber,expr);
@@ -885,7 +923,13 @@ public class JmlEsc extends JmlTreeScanner {
                             }
 
                             defnum = new HashMap<JCExpression,Integer>();
-                            for (JCExpression expr: program.definitions()) {
+                            for (BasicProgram.Definition def: program.definitions()) {
+                                JCExpression expr = def.expr(context);
+                                assertionNumber = p.assume(expr);
+                                defnum.put(expr,assertionNumber);
+                                defexpr.put(assertionNumber,expr);
+                            }
+                            for (JCExpression expr: program.pdefinitions) {
                                 assertionNumber = p.assume(expr);
                                 defnum.put(expr,assertionNumber);
                                 defexpr.put(assertionNumber,expr);

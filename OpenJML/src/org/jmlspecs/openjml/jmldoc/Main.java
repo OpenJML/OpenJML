@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.Locale;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.Main.IProgressReporter;
@@ -71,7 +71,7 @@ public class Main extends org.jmlspecs.openjml.Main {
                 // Since this is rare, we'll require that it be the first
                 // option.
                 boolean useJavaCompiler = args.length > 0 &&
-                            args[0].equals(JmlOptionName.USEJAVACOMPILER.optionName());
+                            args[0].equals(JmlOption.USEJAVACOMPILER.optionName());
                 if (useJavaCompiler) {
                     jmlContext = null;
                     args = processArgs(args,jmlContext); // Have to filter out all of the JML options
@@ -116,19 +116,19 @@ public class Main extends org.jmlspecs.openjml.Main {
     //@ ensures \nonnullelements(\result);
     static public @NonNull String[] processArgs(@NonNull String[] args, Context context) {
         Options options = Options.instance(context == null ? new Context() : context);
-        JmlOptionName n=null;
+        JmlOption n=null;
         LinkedList<String> newargs = new LinkedList<String>();
         //int cpindex = -1;
         int i = 0;
         while (i < args.length) {
             String a = args[i];
             i++;
-            n = JmlOptionName.find(a);
+            n = JmlOption.find(a);
             if (n != null) {
-                if (JmlOptionName.DIR.optionName().equals(a) || JmlOptionName.DIRS.optionName().equals(a)) {
+                if (JmlOption.DIR.optionName().equals(a) || JmlOption.DIRS.optionName().equals(a)) {
                     java.util.List<File> todo = new LinkedList<File>();
                     if (i < args.length) todo.add(new File(args[i++]));
-                    if (JmlOptionName.DIRS.optionName().equals(a)) {
+                    if (JmlOption.DIRS.optionName().equals(a)) {
                         while (i<args.length && args[i].length() > 0 && args[i].charAt(0) != '-') {
                             todo.add(new File(args[i]));
                             i++;
@@ -148,7 +148,7 @@ public class Main extends org.jmlspecs.openjml.Main {
                             // Just skip it
                         }
                     }
-                } else if (JmlOptionName.ENDOPTIONS.optionName().equals(a)) {
+                } else if (JmlOption.ENDOPTIONS.optionName().equals(a)) {
                     i = args.length;
                 } else if (n.hasArg()) {
                     if (i < args.length) {
@@ -173,9 +173,9 @@ public class Main extends org.jmlspecs.openjml.Main {
             }
         }
         if (context != null) {
-            Utils.instance(context).jmldebug = Options.instance(context).get(JmlOptionName.JMLDEBUG.optionName()) != null; 
+            Utils.instance(context).jmldebug = Options.instance(context).get(JmlOption.JMLDEBUG.optionName()) != null; 
             JmlSpecs.instance(context).initializeSpecsPath();
-            if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALRUNTIME)) {
+            if (!JmlOption.isOption(context,JmlOption.NOINTERNALRUNTIME)) {
                 appendRuntime(context);
             }
         }

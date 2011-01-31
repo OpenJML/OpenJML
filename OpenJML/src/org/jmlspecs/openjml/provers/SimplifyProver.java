@@ -66,7 +66,10 @@ public class SimplifyProver extends AbstractProver implements IProver {
         protected SimplifyTranslator translator;
         
         protected boolean interactive = true;
-        
+
+        @Override
+        public String name() { return "simplify"; }
+
         protected String prompt() {
             return ">\t";
         }
@@ -431,6 +434,11 @@ public class SimplifyProver extends AbstractProver implements IProver {
                 throw e;
             }
         }
+
+        public void define(String id, Type t, JCExpression e) throws ProverException {
+            throw new ProverException("Definitions not implemented in Simplify");
+        }
+
 
         /** Defines an id as a given (raw) type; returns true and does nothing if the
          * id was already defined.

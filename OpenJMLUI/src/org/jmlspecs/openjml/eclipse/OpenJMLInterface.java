@@ -53,7 +53,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.SpecPublic;
 import org.jmlspecs.openjml.API;
-import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
@@ -150,7 +150,7 @@ public class OpenJMLInterface {
             }
             IJavaProject jp = JavaCore.create(files.get(0).getProject());
             List<String> args = getOptions(jp,command);
-            args.add(JmlOptionName.DIRS.optionName());
+            args.add(JmlOption.DIRS.optionName());
 
             for (IResource r: files) {
                 args.add(r.getLocation().toString());
@@ -210,7 +210,7 @@ public class OpenJMLInterface {
         List<String> args = getOptions(p,Cmd.JMLDOC);
         args.add("-d");
         args.add(p.getProject().getLocation().toString() + File.separator + "docx");
-        //args.add(JmlOptionName.DIRS.optionName());
+        //args.add(JmlOption.DIRS.optionName());
         try {
             for (IPackageFragmentRoot pfr : p.getPackageFragmentRoots()) {
                 // PackageFragmentRoots can be source folders or jar files
@@ -259,7 +259,7 @@ public class OpenJMLInterface {
            
             List<String> args = getOptions(jproject,Cmd.ESC);
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
-            args.add(JmlOptionName.DIRS.optionName());
+            args.add(JmlOption.DIRS.optionName());
             int n = args.size();
             
             IResource rr;
@@ -823,12 +823,12 @@ public class OpenJMLInterface {
         Options opt = Activator.options;
         List<String> opts = new LinkedList<String>();
         if (cmd == Cmd.ESC) {
-            opts.add(JmlOptionName.ESC.optionName());
+            opts.add(JmlOption.ESC.optionName());
             opts.add("-crossRefAssociatedInfo");
             setYicesLocation();
         }
         if (cmd == Cmd.RAC) {
-            opts.add(JmlOptionName.RAC.optionName());
+            opts.add(JmlOption.RAC.optionName());
             opts.add("-d");
             IFolder f = jproject.getProject().getFolder(opt.racbin);
             if (!f.exists()) {
@@ -842,19 +842,19 @@ public class OpenJMLInterface {
             opts.add(f.getLocation().toString());
         }
         boolean verbose = opt.verbosity >= 2;
-        if (opt.debug) opts.add(JmlOptionName.JMLDEBUG.optionName());
-        //if (opt.verbosity != 0)  { opts.add(JmlOptionName.JMLVERBOSE.optionName()); } //opts.add(Integer.toString(opt.verbosity)); }
+        if (opt.debug) opts.add(JmlOption.JMLDEBUG.optionName());
+        //if (opt.verbosity != 0)  { opts.add(JmlOption.JMLVERBOSE.optionName()); } //opts.add(Integer.toString(opt.verbosity)); }
         if (opt.source != null && !opt.source.isEmpty()) { opts.add("-source"); opts.add(opt.source); }
         if (cmd != Cmd.JMLDOC && opt.destination != null && !opt.destination.isEmpty())  { opts.add("-d"); opts.add(opt.destination); }
-        if (!opt.checkPurity) opts.add(JmlOptionName.NOPURITYCHECK.optionName());
-        // FIXME if (opt.parsePlus) opts.add(JmlOptionName.PARSEPLUS.optionName());
-        if (opt.showNotImplemented) opts.add(JmlOptionName.SHOW_NOT_IMPLEMENTED.optionName());
-        // FIXME if (opt.showNotExecutable) opts.add(JmlOptionName.SHOWNOTEXECUTABLE.optionName());
-        opts.add(JmlOptionName.NOINTERNALSPECS.optionName());
-        opts.add(JmlOptionName.NOINTERNALRUNTIME.optionName());
-        if (!opt.checkSpecsPath) opts.add(JmlOptionName.NOCHECKSPECSPATH.optionName());
-        if (opt.nonnullByDefault) opts.add(JmlOptionName.NONNULLBYDEFAULT.optionName());
-        else                      opts.add(JmlOptionName.NULLABLEBYDEFAULT.optionName());
+        if (!opt.checkPurity) opts.add(JmlOption.NOPURITYCHECK.optionName());
+        // FIXME if (opt.parsePlus) opts.add(JmlOption.PARSEPLUS.optionName());
+        if (opt.showNotImplemented) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
+        // FIXME if (opt.showNotExecutable) opts.add(JmlOption.SHOWNOTEXECUTABLE.optionName());
+        opts.add(JmlOption.NOINTERNALSPECS.optionName());
+        opts.add(JmlOption.NOINTERNALRUNTIME.optionName());
+        if (!opt.checkSpecsPath) opts.add(JmlOption.NOCHECKSPECSPATH.optionName());
+        if (opt.nonnullByDefault) opts.add(JmlOption.NONNULLBYDEFAULT.optionName());
+        else                      opts.add(JmlOption.NULLABLEBYDEFAULT.optionName());
         
         if (cmd == Cmd.JMLDOC) {
             // jmldoc specific options
@@ -963,7 +963,7 @@ public class OpenJMLInterface {
         }
 
         if (ss.toString().length()!=0) {
-            opts.add(JmlOptionName.SPECS.optionName());
+            opts.add(JmlOption.SPECS.optionName());
             opts.add(ss.toString());
         }
         

@@ -2,32 +2,20 @@ package org.jmlspecs.openjml;
 
 import static com.sun.tools.javac.util.ListBuffer.lb;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Set;
 
 import javax.annotation.processing.Processor;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.Main.PrintProgressReporter;
 import org.jmlspecs.openjml.esc.JmlEsc;
 
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.comp.Attr;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
-import com.sun.tools.javac.comp.Enter;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.comp.JmlMemberEnter;
@@ -35,18 +23,12 @@ import com.sun.tools.javac.comp.JmlRac;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.main.JavaCompiler.CompileState;
-import com.sun.tools.javac.parser.EndPosParser;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Names;
-import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Pair;
 
 /**
@@ -57,8 +39,8 @@ import com.sun.tools.javac.util.Pair;
  */
 public class JmlCompiler extends JavaCompiler {
 
-    /** Registers a factory for producing parsers.  We use a fresh parser for
-     * each file parsed.
+    /** Registers a factory for producing JmlCompiler tools.
+     * There is one instance for each instance of context.  
      * @param context the compilation context used for tools
      */
     public static void preRegister(final Context context) {
@@ -87,8 +69,8 @@ public class JmlCompiler extends JavaCompiler {
         //shouldStopPolicy = CompileState.GENERATE;
         this.context = context;
         this.utils = Utils.instance(context);
-        this.verbose = JmlOptionName.isOption(context,"-verbose") ||
-                        JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) || 
+        this.verbose = JmlOption.isOption(context,"-verbose") ||
+                        JmlOption.isOption(context,JmlOption.JMLVERBOSE) || 
                         utils.jmldebug;
         this.resolver = JmlResolve.instance(context);
     }
@@ -104,14 +86,15 @@ public class JmlCompiler extends JavaCompiler {
      * Thus when parsing an individual file (such as a spec file) it is also called (through parse).  Consequently
      * we have to do this little trick with the "inSequence" field to avoid trying to parse the specifications
      * of specification files. [I'm not sure when, if ever, JavaCompiler.complete is called.  If it did not ever 
-     * call this method here, we could override JavaCOmpiler.parse(JavaFileObject) instead, and avoid this
+     * call this method here, we could override JavaCompiler.parse(JavaFileObject) instead, and avoid this
      * trickery with inSequence.]
      * <P>
      * <UL>
      * <LI>If inSequence is false, then this method parses the given content and associated specs.
+     * The JmlCompilationUnit for the specs is assigned to the specsCompilationUnit field of the
+     * JmlCompilationUnit for the .java file.
      * <LI>If inSequence is true, then this method parses just the given content.
-     * <LI>In either case a JmlCompilationUnit is returned.  The specsSequence field
-     * contains a non-null, but possibly empty, list of the specification files for this class.
+     * <LI>In either case a JmlCompilationUnit is returned.
      * However, see the FIXME below regarding adding the .java file into an empty specs list.
      * </UL>
      */
@@ -119,8 +102,7 @@ public class JmlCompiler extends JavaCompiler {
     // in the way that happens when called from JavaCompiler.parse.  Is this a problem in the Javac compiler?
     @Override
     public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
-        context.get(Main.IProgressReporter.class).report(0,2,"parsing " + fileobject.toUri().getPath());
-        //log.noticeWriter.println("parsing " + fileobject.toUri().getPath());
+        context.get(Main.IProgressReporter.class).report(0,2,"parsing " + fileobject.toUri() );
         JCCompilationUnit cu = super.parse(fileobject,content);
         if (inSequence) {
             return cu;
@@ -132,10 +114,10 @@ public class JmlCompiler extends JavaCompiler {
             // In the following, we need a name as the prefix to look for the specs.
             // That is supposed to be the same as the name of the public class within
             // the file, and thus the same as the name of the file itself.
-            // However, a file may have no public classes within it - in which case 
+            // However, a file may have no public classes within it - so 
             // the best indication of the spec file name is the name of the
             // java file just parsed.
-            // FIXME - unfortunately, there is no guarantee as to what getName()
+            // (TODO) Unfortunately, there is no guarantee as to what getName()
             // will return.  It would be safer, but a pain, to dismember the 
             // associated URI. (getName is even deprecated within some subclasses)
             jmlcu.specsCompilationUnit = parseSpecs(jmlcu,e == null ? null : e.toString(),jmlcu.getSourceFile().getName());
@@ -145,7 +127,7 @@ public class JmlCompiler extends JavaCompiler {
                 // about.  For now (and for the sake of the tests), we will be
                 // helpful and add the .java file to the specs sequence despite it
                 // not being on the specification path.
-                // FIXME log.warning("jml.no.specs",filename.getName());
+                // TODO log.warning("jml.no.specs",filename.getName());
                 jmlcu.specsCompilationUnit = jmlcu;
             } else {
                 JmlCompilationUnit jcu = jmlcu.specsCompilationUnit;
@@ -164,61 +146,57 @@ public class JmlCompiler extends JavaCompiler {
                     + cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
         }
         try {
-        if (cu.endPositions != null) {
-            JavaFileObject prev = log.useSource(fileobject);
-            log.setEndPosTable(fileobject,cu.endPositions);
-            log.useSource(prev);
+            if (cu.endPositions != null) {
+                JavaFileObject prev = log.useSource(fileobject);
+                log.setEndPosTable(fileobject,cu.endPositions);
+                log.useSource(prev);
+            }
+        } catch (Exception e) {
+            log.error("jml.internal","The end-position table for " + fileobject.getName() + " is set twice to different values");
         }
-        } catch (Exception e) {} // FIXME _ get duplicate endpos table entries
         return cu;
-        
     }
     
-    /** Parses the entire refinement chain of  specification files
+    /** Parses the specs for the given Java CU.
      * @param javaCU the Java compilation unit on whose behalf we are parsing specs, or null if none; this is supplied so that if
-     * the Java file is part of the refinement sequence, the file is not parsed over again
+     * the Java file is part of the specs, the file is not parsed over again
      * @param pack a dot-separated path name for the package in which the class resides, or null for the default package
-     * @param file the class name whose specs are being sought (without any suffix)
-     * @return the possibly empty list of parsed compilation units, as ASTs
+     * @param filepath the name (possibly including path and suffix) of the .java file
+     * @return the possibly null compilation unit containing specs
      */
-    //@ non_null
-    public JmlCompilationUnit parseSpecs(/*@ nullable*/JmlCompilationUnit javaCU, /*@ nullable*/String pack, /*@ non_null */String file) {
-        int i = file.lastIndexOf('/');
-        int ii = file.lastIndexOf('\\');
+    //@ nullable
+    public JmlCompilationUnit parseSpecs(/*@ nullable*/JmlCompilationUnit javaCU, /*@ nullable*/String pack, /*@ non_null */String filepath) {
+        int i = filepath.lastIndexOf('/');
+        int ii = filepath.lastIndexOf('\\');
         if (i < ii) i = ii;
-        int k = file.lastIndexOf(".");
-        if (k >= 0) file = file.substring(i+1,k);
-        JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(pack == null ? file : (pack + "." + file));
+        int k = filepath.lastIndexOf(".");
+        String rootname = k >= 0 ? filepath.substring(i+1,k) : filepath.substring(i+1);
+        JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(pack == null ? rootname : (pack + "." + rootname));
         return parseSpecs(f,javaCU);
     }
 
-    /** Parses the entire refinement chain of  specification files
+    /** Parses the specs - used when we need the specs corresponding to a binary file;
+     * this may only be called for public top-level classes (the specs for non-public or
+     * nested classes are part of the same file with the corresponding public class)
      * @param typeSymbol the symbol of the type whose specs are sought
      * @return the possibly empty list of parsed compilation units, as ASTs
      */
     /*@Nullable*/
     public JmlCompilationUnit parseSpecs(Symbol.TypeSymbol typeSymbol) {
         String typeName = typeSymbol.flatName().toString();
-        String path = typeName.replace('.','/');
-        JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(path);
+        JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(typeName);
         /*@Nullable*/ JmlCompilationUnit speccu = parseSpecs(f,null);
         if (speccu != null) speccu.packge = (Symbol.PackageSymbol)typeSymbol.outermostClass().getEnclosingElement();
         return speccu;
     }
     
-//    public java.util.List<JmlCompilationUnit> parseEnterCombineSpecs(Symbol.TypeSymbol typeSymbol, Env<AttrContext> env) {
-//        java.util.List<JmlCompilationUnit> specsSequence = parseSpecs(typeSymbol);
-////        Enter enter = Enter.instance(context);
-////        enter.topLevelForSymbol(typeSymbol,defs,env);
-////        //enter.enterNestedClasses(typeSymbol,specsSequence,env);
-//        return specsSequence;
-//    }
-    
     /** Initiates the actual parsing of the refinement chain.  Note that in the
-     * end we want to consolidate the specs sequence into one declaration file
+     * end we want to consolidate all specs sequence into one declaration file
      * with all replicated declarations identified together and specifications
-     * combined.  However, we cannot do that until we can do type matching, so
-     * that has to wait until the enter phase is completed.
+     * combined, and then associate them with the correct declarations in the .java
+     * or .class file.  However, we cannot do that until we can do type matching, so
+     * that has to wait until the enter phase is completed. This task is now easier 
+     * that JML has been simplified to have just one spec file per .java file.
      * @param f the file object to parse, if any
      * @param javaCU the compilation unit that provoked this parsing, if any
      * @return the possibly empty list of parsed compilation units, as ASTs
@@ -233,7 +211,7 @@ public class JmlCompiler extends JavaCompiler {
             // duplicate error messages)
             //log.noticeWriter.println(f.toUri().normalize().getPath() + " VS " + javaCU.getSourceFile().toUri().normalize().getPath());
             if (javaCU != null && f.equals(javaCU.getSourceFile())) {
-                if (utils.jmldebug) log.noticeWriter.println("REFOUND " + f);
+                if (utils.jmldebug) log.noticeWriter.println("The java file is its own specs for " + f);
                 jmlcu = javaCU;
             } else {
                 jmlcu = (JmlCompilationUnit)parse(f);
@@ -327,13 +305,11 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     protected  <T> List<T> stopIfError(CompileState cs, List<T> list) {
         if (errorCount() != 0) {
-            if (JmlOptionName.isOption(context,JmlOptionName.STOPIFERRORS)) {  // FIXME - do we want this option?
+            if (JmlOption.isOption(context,JmlOption.STOPIFERRORS)) {
                 context.get(Main.IProgressReporter.class).report(0,2,"Stopping because of parsing errors");
-                //log.note("jml.stop");
                 return List.<T>nil();
             } else {
                 context.get(Main.IProgressReporter.class).report(0,2,"Continuing bravely despite parsing errors");
-                //if (verbose) log.note("jml.continue");
             }
         }
         return list;
@@ -461,7 +437,7 @@ public class JmlCompiler extends JavaCompiler {
             // FIXME - does this happen?
             env.toplevel = rac.translate(env.toplevel);
         }
-        if (JmlOptionName.isOption(context,"-showrac")) {
+        if (JmlOption.isOption(context,"-showrac")) {
             log.noticeWriter.println("TRANSLATED RAC");
             log.noticeWriter.println(JmlPretty.writeJava(env.tree,true));
         }

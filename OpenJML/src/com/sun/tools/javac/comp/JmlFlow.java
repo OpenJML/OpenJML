@@ -237,12 +237,6 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlRefines(JmlRefines that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {
         // TODO Auto-generated method stub
         

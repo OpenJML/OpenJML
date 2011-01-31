@@ -76,7 +76,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     private final JCDiagnostic.Factory diags;
     private final Target target;
 
-    private final boolean skipAnnotations;
+    protected final boolean skipAnnotations; // DRC - changed from private to protected
 
     public static MemberEnter instance(Context context) {
         MemberEnter instance = context.get(memberEnterKey);
@@ -1015,7 +1015,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     }
 
     // A sub-phase that "compiles" annotations in annotated types.
-    private class TypeAnnotate extends TreeScanner {
+    protected class TypeAnnotate extends TreeScanner { // DRC - changed from private to protected
         private Env<AttrContext> env;
         public TypeAnnotate(Env<AttrContext> env) { this.env = env; }
 

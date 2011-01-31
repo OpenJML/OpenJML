@@ -36,7 +36,6 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that);
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that);
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that)     ;
-    public void visitJmlRefines(JmlRefines that)                   ;
     public void visitJmlSetComprehension(JmlSetComprehension that) ;
     public void visitJmlSingleton(JmlSingleton that)               ;
     public void visitJmlSpecificationCase(JmlSpecificationCase that);

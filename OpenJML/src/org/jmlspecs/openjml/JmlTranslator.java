@@ -5,20 +5,62 @@ import java.util.LinkedList;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
+import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
+import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.JmlTree.JmlStatement;
+import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
+import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConditional;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCAssignOp;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -26,7 +68,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Names;
 
 /** This translator mutates an AST to simplify it, in ways that are common
- * (momstly) to both RAC and ESC and that still result in a valid Java AST.
+ * (mostly) to both RAC and ESC and that still result in a valid Java AST.
  * Any transformations must result in a fully-typechecked
  * tree.  Thus the sym and type fields of new nodes must be filled in correctly.
  * As typechecking is already completed, any errors in this regard may cause 
@@ -77,7 +119,7 @@ import com.sun.tools.javac.util.Names;
  * <LI>ghost fields
  * <LI>model fields
  * <LI>modifiers
- * <LI>redundantly, implies_that, for_example, weakly
+ * <LI>redundantly, implies_that, for_example
  * </UL>
  * 
  * @author David Cok
@@ -136,7 +178,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     protected JavaFileObject source;
     
     /** A stack of previous source files, manipulated through pushSource and
-     * popSource.  The current source is the top element of the stack.
+     * popSource.  The current source is not on the stack.
      */
     protected java.util.List<JavaFileObject> stack = new LinkedList<JavaFileObject>();
     
@@ -146,8 +188,8 @@ public class JmlTranslator extends JmlTreeTranslator {
         source = jfo;
     }
     
-    /** Discards the top element of the stack and makes the new top element the
-     * current source.
+    /** Replaces the current source with the top element of the stack,
+     * popping it from the stack.
      */
     public void popSource() {
         source = stack.remove(0);
@@ -190,16 +232,16 @@ public class JmlTranslator extends JmlTreeTranslator {
     // TODO - all these explicit checks need to be moved out.  Although we
     // want the same checks in ESC and RAC they are constructed differently.
     
-    /** Visitor method: translate a list of nodes, adding checks that each
-     * one is nonnull.
-     */
-    public <T extends JCExpression> List<T> translateNN(List<T> trees) {
-        if (trees == null) return null;
-        for (List<T> l = trees; l.nonEmpty(); l = l.tail)
-            l.head = (T)makeNullCheck(l.head.pos,translate(l.head),
-                    "ERROR",Label.UNDEFINED_NULL);  // FIXME _ fix the error message if this stays
-        return trees;
-    }
+//    /** Visitor method: translate a list of nodes, adding checks that each
+//     * one is nonnull.
+//     */
+//    public <T extends JCExpression> List<T> translateNN(List<T> trees) {
+//        if (trees == null) return null;
+//        for (List<T> l = trees; l.nonEmpty(); l = l.tail)
+//            l.head = (T)makeNullCheck(l.head.pos,translate(l.head),
+//                    "ERROR",Label.UNDEFINED_NULL);  // FIXME _ fix the error message if this stays
+//        return trees;
+//    }
 
     /** Creates a method call that checks that the given expression is non-null,
      * returning the expression.
@@ -222,7 +264,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         return newv;
     }
 
-    //that is presumed already translated
+    //that is presumed already translated, condition is presumed untranslated
     protected JCExpression makeTrueCheck(int pos, JCExpression condition, JCExpression that, String msg, Label label) {
         String posDescription = position(source,pos);
         
@@ -236,6 +278,9 @@ public class JmlTranslator extends JmlTreeTranslator {
         return newv;
     }
     
+    /** Inserts a check that 'obj' and 'that' are equal, returning 'that';
+     * both 'obj' and 'that' must be already translated.
+     */
     protected JCExpression makeEqCheck(int pos, JCExpression obj, JCExpression that, String msg, Label label) {
         String posDescription = position(source,pos);
         
@@ -247,6 +292,8 @@ public class JmlTranslator extends JmlTreeTranslator {
         return newv;
     }
     
+    /** Inserts a check that 'that' does not equal 0 for the appropriate in type;
+     * 'that' is presumed untranslated */ 
     protected JCExpression makeZeroCheck(int pos, JCExpression that, Label label) {
         JCLiteral message = treeutils.makeStringLiteral("Divide by zero",pos); // end -position ??? FIXME
         JCExpression newv = translate(that);
@@ -369,13 +416,13 @@ public class JmlTranslator extends JmlTreeTranslator {
             }
         } else if (that.lhs instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)that.lhs;
-            //if (fa.sym instanceof VarSymbol) {
+            if (fa.sym instanceof VarSymbol) {
                 VarSymbol vsym = (VarSymbol)fa.sym;
                 nonnull = !vsym.type.isPrimitive() && specs.isNonNull(vsym,vsym.enclClass());
-//            } else {
-//                System.out.println("OUCH " + fa.sym.getClass() + " " + fa);
-//            }
-                
+            } else {
+                log.error("jml.unexpected.code.branch",fa.sym.getClass() + " " + fa);
+                nonnull = false;
+            }
         }
         if (nonnull) {
             that.lhs = translate(that.lhs);
@@ -416,7 +463,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         JmlMethodSpecs mspecs = ((JmlMethodDecl)currentMethodDecl).methodSpecsCombined.cases.deSugared;
         if (mspecs == null) return;
         for (JmlSpecificationCase c: mspecs.cases) {
-            JCExpression precond = trueLit; // FIXME - need the assignable clauses precondition
+            JCExpression precond = trueLit;
             for (JmlMethodClause m: c.clauses) {
                 if (m.token == JmlToken.REQUIRES) {
                     precond = treeutils.makeAnd(m.pos,precond,((JmlMethodClauseExpr)m).expression);
@@ -598,6 +645,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         if (utils.rac && (that.getTag() == JCTree.DIV_ASG || that.getTag() == JCTree.MOD_ASG)) {
             if (that.rhs instanceof JCLiteral && ((JCLiteral)that.rhs).value.equals(Integer.valueOf(0))) {
                 log.noticeWriter.println("Explicit divide by zero");
+                // FIXME - put in an error message?
             } else {
                 that.rhs = makeZeroCheck(that.pos,that.rhs, inSpecExpression? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0);
             }
@@ -726,6 +774,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         }
     }
     
+    @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
         // FIXME - do we do nothing with interfaces ?? At least translate the invariants etc.???
         if ((that.sym.flags() & Flags.INTERFACE) != 0) {
@@ -788,7 +837,8 @@ public class JmlTranslator extends JmlTreeTranslator {
     }
 
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-        System.out.println("CANT DO THIS"); // FIXME - better error
+        log.error("jml.internal","Should not be calling JmlTranslator.visitJmlCompilationUnit");
+        result = that;
     }
 
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
@@ -870,9 +920,6 @@ public class JmlTranslator extends JmlTreeTranslator {
 
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-//        if (that.name.toString().equals("m2")) {
-//            System.out.println("ZZZ");
-//        }
         boolean prevSpecExpression = inSpecExpression;
         JCMethodDecl prev = currentMethodDecl;
         try {
@@ -902,11 +949,11 @@ public class JmlTranslator extends JmlTreeTranslator {
         // No translation of the method, just putting in checks on
         // the arguments.
         JmlToken t = that.token;
-        JCExpression arg;
         if (t == null) {
             visitApply(that);
             return;
         }
+        // FIXME - what about these implementations
         switch (t) {
             case BSOLD:
             case BSPRE:
@@ -993,9 +1040,6 @@ public class JmlTranslator extends JmlTreeTranslator {
 //        result = copy;
 //    }
 //
-//    public void visitJmlRefines(JmlRefines that) {
-//        result = that;
-//    }
 
 //    public void visitJmlSetComprehension(JmlSetComprehension that) {
 //        JmlSetComprehension copy = that;
@@ -1004,11 +1048,10 @@ public class JmlTranslator extends JmlTreeTranslator {
 //        result = copy;
 //    }
 
-//    @Override
+    @Override
     /** This handles expression constructs with no argument list such as \\result */
     public void visitJmlSingleton(JmlSingleton that) {
         JmlToken jt = that.token;
-//        Type t = syms.errType;
         switch (jt) {
                
             case BSINDEX:
@@ -1037,7 +1080,6 @@ public class JmlTranslator extends JmlTreeTranslator {
                 result = that;
                 break;
         }
-        //result = check(that, t, VAL, pkind, pt);
     }
 
     @Override
@@ -1066,7 +1108,8 @@ public class JmlTranslator extends JmlTreeTranslator {
                 
             default:
                 // FIXME - unimplemented
-                result = that;
+                result = factory.Skip();
+            	log.error("log.internal","Unexpected and unimplemented case in JmlTranslator.visitJmlStatement for token " + that.token.internedName());
         }
         inSpecExpression = prev;
     }
@@ -1092,9 +1135,13 @@ public class JmlTranslator extends JmlTreeTranslator {
             r.source = that.source;
             r.line = that.line;
             result = r;
-        } else { // assert, assume
+        } else if (that.token == JmlToken.ASSERT || that.token == JmlToken.ASSUME){ // assert, assume
+            // We translate the expression but leave the assert and assume statements
             that.expression = translate(that.expression);
             that.optionalExpression = translate(that.optionalExpression);
+            result = that;
+        } else {
+            log.error("log.internal","Unexpected and unimplemented case in JmlTranslator.visitJmlStatementExpr for token " + that.token.internedName());
             result = that;
         }
         inSpecExpression = prev;
@@ -1215,6 +1262,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         }
     }
 
+    // A normal variable declaration with specs
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         pushSource(that.sourcefile);
         try {

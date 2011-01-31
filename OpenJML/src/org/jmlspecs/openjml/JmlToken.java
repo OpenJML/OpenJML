@@ -287,7 +287,5 @@ public enum JmlToken {
         allTokens.put("abrupt_behaviour".intern(),ABRUPT_BEHAVIOR);
         allTokens.put("decreasing".intern(),DECREASES);
         allTokens.put("maintaining".intern(),LOOP_INVARIANT);
-//        allTokens.put("refine".intern(),REFINES);
-        
     }
 }

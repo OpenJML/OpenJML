@@ -1,6 +1,6 @@
 package org.jmlspecs.openjml.jmldoc;
 
-import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlOption;
 
 import com.sun.tools.javadoc.Start;
 
@@ -24,19 +24,19 @@ public class JmlStart extends Start {
     /** Overrides the usage method to add information about jmldoc-specific options */
     protected void usage() {
         super.usage();
-        JmlOptionName[] addedOptions = { 
-                JmlOptionName.SPECS, 
-                JmlOptionName.NOINTERNALSPECS, 
-                JmlOptionName.NOINTERNALRUNTIME, 
-                JmlOptionName.NOCHECKSPECSPATH, 
-                JmlOptionName.DIRS,
-                JmlOptionName.DIR,
+        JmlOption[] addedOptions = { 
+                JmlOption.SPECS, 
+                JmlOption.NOINTERNALSPECS, 
+                JmlOption.NOINTERNALRUNTIME, 
+                JmlOption.NOCHECKSPECSPATH, 
+                JmlOption.DIRS,
+                JmlOption.DIR,
 //                JmlOptionName.ENDOPTIONS  // FIXME - implement this or not?
                 };
         System.out.println();
         System.out.println("JMLDoc options:");
         String spaces = "                                  ";
-        for (JmlOptionName n : addedOptions) {
+        for (JmlOption n : addedOptions) {
             System.out.println(n.optionName() + 
                     spaces.substring(n.optionName().length()) + n.help());
         }

@@ -1,7 +1,7 @@
-../testfiles/testPath/data/TestPath.java:3: cannot find symbol
-    //@ requires z ; // BAD
+../testfiles/testPath/data-specs/TestPath.jml:3: cannot find symbol
+    //@ requires q; // BAD
                  ^
-  symbol:   variable z
+  symbol:   variable q
   location: class TestPath
 1 error
 ENDING with exit code 1

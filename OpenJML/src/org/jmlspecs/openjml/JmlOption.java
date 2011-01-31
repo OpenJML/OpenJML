@@ -17,7 +17,7 @@ import com.sun.tools.javac.util.Options;
 // something other than an enum since it is not extensible
 // FIXME - best practice would use a resources file for all the help
 // information; javac loads its resources on demand
-public enum JmlOptionName implements OptionInterface {
+public enum JmlOption implements IOption {
 
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
     DIR("-dir",true,"Process all files, recursively, within this directory"),
@@ -57,7 +57,8 @@ public enum JmlOptionName implements OptionInterface {
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!"),
     ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files"),
     ASSOCINFO("-crossRefAssociatedInfo",false,">..."),
-    METHOD("-method",true,"The method name on which to run ESC")
+    METHOD("-method",true,"The method name on which to run ESC"),
+    PROVER("-prover",true,"The prover to use to check verification conditions")
     ;
     public void process(Options options) {}
     
@@ -81,7 +82,7 @@ public enum JmlOptionName implements OptionInterface {
      * @param hasArg Whether the option takes a (required) argument
      * @param help The associated help string
      */
-    private JmlOptionName(/*@ non_null */ String s, boolean hasArg, /*@ non_null */ String help) {
+    private JmlOption(/*@ non_null */ String s, boolean hasArg, /*@ non_null */ String help) {
         this.name = s;
         this.hasArg = hasArg;
         this.help = help;
@@ -92,7 +93,7 @@ public enum JmlOptionName implements OptionInterface {
      * @param context the compilation context
      * @param option the option to enable
      */
-    public static void putOption(Context context, JmlOptionName option) {
+    public static void putOption(Context context, JmlOption option) {
         putOption(context,option,"");
     }
     
@@ -102,7 +103,7 @@ public enum JmlOptionName implements OptionInterface {
      * @param option the option to set
      * @param value the value to give the option
      */
-    public static void putOption(Context context, JmlOptionName option, String value) {
+    public static void putOption(Context context, JmlOption option, String value) {
         Options.instance(context).put(option.name,value);
     }
     
@@ -111,7 +112,7 @@ public enum JmlOptionName implements OptionInterface {
      * @param option the option name
      * @return true if the option is enabled, false otherwise
      */
-    public static boolean isOption(Context context, JmlOptionName option) {
+    public static boolean isOption(Context context, JmlOption option) {
         return Options.instance(context).get(option.name) != null;
     }
     
@@ -130,12 +131,12 @@ public enum JmlOptionName implements OptionInterface {
      * @return the value of the argument, or null if not specified
      */
     //@ nullable
-    public static String value(Context context, JmlOptionName option) {
+    public static String value(Context context, JmlOption option) {
         return Options.instance(context).get(option.name);
     }
     
     /** The name of the option, including any leading - sign
-     * @see org.jmlspecs.openjml.OptionInterface#optionName()
+     * @see org.jmlspecs.openjml.IOption#optionName()
      */
      //@ non_null
     public String optionName() { return name; }
@@ -158,15 +159,15 @@ public enum JmlOptionName implements OptionInterface {
      */
     //@ ensures \result == null || \result.optionName().equals(s);
     //@ nullable
-    static public JmlOptionName find(/*@ non_null */ String s) {
+    static public JmlOption find(/*@ non_null */ String s) {
         return map.get(s);
     }
     
-    static Map<String,JmlOptionName> map = new HashMap<String,JmlOptionName>();
+    static Map<String,JmlOption> map = new HashMap<String,JmlOption>();
     static {
         // Puts all the options in the map and adds any synonyms
         // synonyms include the all lowercase versions of each name
-        for (JmlOptionName n:JmlOptionName.values()) {
+        for (JmlOption n:JmlOption.values()) {
             map.put(n.name,n);
             map.put(n.name.toLowerCase(),n);
         }
@@ -187,7 +188,7 @@ public enum JmlOptionName implements OptionInterface {
     public static String helpInfo() {
         StringBuilder sb = new StringBuilder();
         sb.append("JML options:").append(eol);
-        for (OptionInterface j : values()) {
+        for (IOption j : values()) {
             sb.append("  ").append(j.optionName());
             for (int i = j.optionName().length(); i<27; i++) {
                 sb.append(" ");

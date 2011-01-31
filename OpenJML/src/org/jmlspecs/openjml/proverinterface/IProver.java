@@ -37,6 +37,9 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
  */
 public interface IProver {
 
+    /** Returns an identifying name for the prover */
+    public String name();
+
     /**
      * Adds {@code tree} as an assumption; the concrete IProver is
      * responsible to translate the AST into prover-dependent form.
@@ -64,6 +67,15 @@ public interface IProver {
      * @throws ProverException if something goes wrong
      */
     public void define(/*@ non_null*/String id, /*@ non_null*/Type type) throws ProverException;
+
+    /** Tells the prover to define a given variable as the stated type and with the given value
+     * (not all provers need this)
+     * @param id the name of the variable
+     * @param type the type of the variable
+     * @param value the value the variable is an abbreviation for
+     * @throws ProverException if something goes wrong
+     */
+    public void define(/*@ non_null*/String id, /*@ non_null*/Type type, /*@ non_null*/ JCExpression value) throws ProverException;
 
     /**
      * Retract the last assumption.

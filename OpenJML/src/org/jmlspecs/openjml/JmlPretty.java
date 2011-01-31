@@ -5,20 +5,66 @@ import java.io.StringWriter;
 import java.io.Writer;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlConstraintMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
+import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlGroupName;
+import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlModelProgramStatement;
+import org.jmlspecs.openjml.JmlTree.JmlPrimitiveTypeTree;
+import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
+import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
+import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.JmlTree.JmlStatement;
+import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
+import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
+import org.jmlspecs.openjml.JmlTree.JmlStatementSpec;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefListExpression;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConditional;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.Pretty;
-import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.Pretty;
+import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 
@@ -161,16 +207,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(that.label.toString());
             print(" ");
             that.expression.accept(this);
-        } catch (IOException e) { perr(that,e); }
-    }
-    
-    public void visitJmlRefines(JmlRefines that) {
-        try { 
-            if (useJMLComments) print("//@ ");
-            print("refines \"");
-            print(that.filename);
-            print("\";");
-            println();
         } catch (IOException e) { perr(that,e); }
     }
     
@@ -655,9 +691,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             } else {
                 super.visitAnnotation(tree);
             }
-        } catch (IOException e) {
-            //throw e;
-        }
+        } catch (IOException e) { perr(tree,e); }
     }
     
     @Override
@@ -677,7 +711,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             s.accept(this);
         }
         super.visitDoLoop(that);
-        
     }
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
@@ -717,6 +750,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
 
+    // FIXME - clean this up
     JmlSpecs.TypeSpecs specsToPrint = null;
     
     public void visitJmlClassDecl(JmlClassDecl that) {
@@ -725,7 +759,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } else if (that.typeSpecs != null) {
             specsToPrint = that.typeSpecs;
         }
-
         visitClassDef(that);
     }
     
@@ -746,7 +779,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     boolean inSequence = false;
 
     public void visitJmlCompilationUnit(JmlCompilationUnit tree) {
-        // Duplicated from the super class in order to insert printing the refines statement - MAINTENANCE
+        // FIXME - can we call Pretty.printUnit - or do we not get model imports then
         try {
             printDocComment(tree);
             if (tree.pid != null) {
@@ -771,22 +804,21 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 }
             }
             if (!inSequence && tree.specsCompilationUnit != null) {
+                boolean prevInSequence = inSequence; // should always be false, since we don't call this more than one level deep
                 inSequence = true;
-                println();
-                print("// Refinement Sequence:");
-                {
-                    print(" ");
+                try {
+                    println();
+                    print("// Specifications: ");
                     print(tree.specsCompilationUnit.sourcefile.getName());
-                }
-                println();
-                {
+                    println();
                     JmlCompilationUnit jcu = tree.specsCompilationUnit;
                     print("// Specification file: " + jcu.sourcefile.getName()); 
                     println();
                     jcu.accept(this);
                     println();
+                } finally {
+                    inSequence = prevInSequence;
                 }
-                inSequence = false;
             }
         } catch (IOException e) {
             perr(tree,e);
@@ -810,10 +842,13 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         visitVarDef(that);
     }
     
-    public void visitVarDef(JmlVariableDecl that) {
+    @Override
+    public void visitVarDef(JCVariableDecl that) {
         super.visitVarDef(that);
-        if (that.fieldSpecsCombined != null) printFieldSpecs(that.fieldSpecsCombined);
-        else if (that.fieldSpecs != null) printFieldSpecs(that.fieldSpecs);
+        if (!(that instanceof JmlVariableDecl)) return;
+        JmlVariableDecl jmlthat = (JmlVariableDecl)that;
+        if (jmlthat.fieldSpecsCombined != null) printFieldSpecs(jmlthat.fieldSpecsCombined);
+        else if (jmlthat.fieldSpecs != null) printFieldSpecs(jmlthat.fieldSpecs);
     }
     
     public void printFieldSpecs(JmlSpecs.FieldSpecs fspecs) {
@@ -839,6 +874,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         undent();
     }
 
+    @Override
     public void visitLiteral(JCLiteral that) {
         if (that.value instanceof Type) {
             try {

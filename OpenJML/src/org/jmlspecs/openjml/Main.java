@@ -181,7 +181,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         @Override
         public boolean report(int ticks, int level, String message) {
-            if (level <= 1 || (context != null && JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE))) pw.println(message);
+            if (level <= 1 || (context != null && JmlOption.isOption(context,JmlOption.JMLVERBOSE))) pw.println(message);
             return false;
         }
 
@@ -212,9 +212,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         check();
         this.out = out;  // FIXME - would not need this if the super class declared out protected
         this.diagListener = diagListener;
-        initialize(args);
+        initialize(args); // Creates a new context and initializes it per the command-line arguments
     }
     
+    /** Checks that the tool is being run with an adequate JVM - and exits abruptly if not */
     public void check() {
         javax.lang.model.element.ElementKind[] kinds = javax.lang.model.element.ElementKind.values();
         if (kinds[kinds.length-1] == javax.lang.model.element.ElementKind.OTHER) {
@@ -303,7 +304,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 // Since this is rare, we'll require that it be the first
                 // option.
                 boolean useJavaCompiler = args.length > 0 &&
-                        args[0].equals(JmlOptionName.USEJAVACOMPILER.optionName());
+                        args[0].equals(JmlOption.USEJAVACOMPILER.optionName());
                 if (useJavaCompiler) {
                     errorcode = com.sun.tools.javac.Main.compile(args);
                 } else if (args.length > 0 && args[0].equals(interactiveOption)) {
@@ -368,7 +369,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         
     /** This is a utility method to print out all of the JML help information */
     protected void helpJML() {
-        out.print(JmlOptionName.helpInfo());
+        out.print(JmlOption.helpInfo());
         out.flush();
     }
     
@@ -438,11 +439,11 @@ public class Main extends com.sun.tools.javac.main.Main {
     int processJmlArg(@NonNull String[] args, int i, @NonNull Options options, @NonNull java.util.List<String> remainingArgs, @NonNull java.util.List<String> files ) {
         String res = "";
         String s = args[i++];
-        OptionInterface o = JmlOptionName.find(s);
+        IOption o = JmlOption.find(s);
         if (o == null) {
             int k = s.indexOf('=');
             if (k != -1) {
-                o = JmlOptionName.find(s.substring(0,k));
+                o = JmlOption.find(s.substring(0,k));
                 if (o != null) {
                     res = s.substring(k+1,s.length());
                     if ("false".equals(res)) res = null;
@@ -462,10 +463,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         if (o == null) {
             remainingArgs.add(s);
-        } else if (JmlOptionName.DIR.optionName().equals(s) || JmlOptionName.DIRS.optionName().equals(s)) {
+        } else if (JmlOption.DIR.optionName().equals(s) || JmlOption.DIRS.optionName().equals(s)) {
             java.util.List<File> todo = new LinkedList<File>();
             todo.add(new File(res));
-            if (JmlOptionName.DIRS.optionName().equals(s)) {
+            if (JmlOption.DIRS.optionName().equals(s)) {
                 while (i<args.length && (res=args[i]).length() > 0 && res.charAt(0) != '-') {
                     todo.add(new File(res));
                     i++;
@@ -513,34 +514,34 @@ public class Main extends com.sun.tools.javac.main.Main {
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
 
-        if (options.get(JmlOptionName.JMLDEBUG.optionName()) != null) {
+        if (options.get(JmlOption.JMLDEBUG.optionName()) != null) {
             utils.jmldebug = true;
-            options.put(JmlOptionName.PROGRESS.optionName(),"");
+            options.put(JmlOption.PROGRESS.optionName(),"");
         }
         
-        if (options.get(JmlOptionName.JMLVERBOSE.optionName()) != null) {
+        if (options.get(JmlOption.JMLVERBOSE.optionName()) != null) {
             // ??? FIXME Utils.jmlverbose = true;
-            options.put(JmlOptionName.PROGRESS.optionName(),"");
+            options.put(JmlOption.PROGRESS.optionName(),"");
         }
         
-        if (options.get(JmlOptionName.PROGRESS.optionName()) != null) {
+        if (options.get(JmlOption.PROGRESS.optionName()) != null) {
             if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
         }
         
-        if (options.get(JmlOptionName.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);
+        if (options.get(JmlOption.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);
         
-        String keysString = options.get(JmlOptionName.KEYS.optionName());
+        String keysString = options.get(JmlOption.KEYS.optionName());
         utils.commentKeys = new HashSet<Name>();
         if (keysString != null) {
             String[] keys = keysString.split(",");
             for (String k: keys) utils.commentKeys.add(Names.instance(context).fromString(k));
         }
         
-        String cmd = options.get(JmlOptionName.COMMAND.optionName());
-        utils.rac = "rac".equals(cmd) || (cmd == null && options.get(JmlOptionName.RAC.optionName()) != null);
-        utils.esc = "esc".equals(cmd) || (cmd == null && options.get(JmlOptionName.ESC.optionName()) != null);
-        utils.check = "check".equals(cmd) || (cmd == null && options.get(JmlOptionName.CHECK.optionName()) != null);
-        utils.compile = "compile".equals(cmd) || (cmd == null && options.get(JmlOptionName.COMPILE.optionName()) != null);
+        String cmd = options.get(JmlOption.COMMAND.optionName());
+        utils.rac = "rac".equals(cmd) || (cmd == null && options.get(JmlOption.RAC.optionName()) != null);
+        utils.esc = "esc".equals(cmd) || (cmd == null && options.get(JmlOption.ESC.optionName()) != null);
+        utils.check = "check".equals(cmd) || (cmd == null && options.get(JmlOption.CHECK.optionName()) != null);
+        utils.compile = "compile".equals(cmd) || (cmd == null && options.get(JmlOption.COMPILE.optionName()) != null);
         boolean picked = utils.rac||utils.esc||utils.check||utils.compile;
         if (!picked && cmd != null) {
             Log.instance(context).noticeWriter.println("Invalid argument to the -command option: " + cmd); // FIXME - change to a wanring
@@ -678,7 +679,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     static protected void appendRuntime(Context context) {
         boolean verbose = Utils.instance(context).jmldebug ||
-            JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
+            JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
             Options.instance(context).get("-verbose") != null;
         
         // First see if an external runtime library has been specified by

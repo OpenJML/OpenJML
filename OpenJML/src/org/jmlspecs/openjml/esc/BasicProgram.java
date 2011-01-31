@@ -13,15 +13,18 @@ import java.util.TreeMap;
 
 import org.jmlspecs.annotation.*;
 import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
 
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
 /**
@@ -65,10 +68,31 @@ public class BasicProgram {
     //@ non_null
     protected JCIdent startId;
     
+    static public class Definition {
+    	public int pos;
+        public JCIdent id;
+        public JCExpression value;
+        public JCExpression expr;
+        public Definition(int pos, JCIdent id, JCExpression value) {
+        	this.pos = pos;
+            this.id = id;
+            this.value = value;
+            this.expr = null;
+        }
+        public JCExpression expr(Context context) {
+            if (expr != null) return expr;
+            expr = JmlTree.Maker.instance(context).Binary(JCTree.EQ,id,value);
+            expr.pos = this.pos;
+            expr.type = Symtab.instance(context).booleanType;
+            return expr;
+        }
+    }
+    
     /** A list of logical assertions (e.g. equalities that are definitions)
      *  used in the block equations but are not block equations themselves.
      */
-    protected List<JCExpression> definitions = new ArrayList<JCExpression>();
+    protected List<Definition> definitions = new ArrayList<Definition>();
+    protected List<JCExpression> pdefinitions = new ArrayList<JCExpression>();
 
     /** A map of expressions and ids that are the assumptions to be checked for vacuity. */
     //@ non_null
@@ -78,7 +102,7 @@ public class BasicProgram {
      * @return the program's definitions
      */
     @Pure
-    public List<JCExpression> definitions() {
+    public List<Definition> definitions() {
         return definitions;
     }
     
@@ -135,7 +159,14 @@ public class BasicProgram {
                 pw.println();
                 w.flush();
             }
-            for (JCExpression e: definitions) {
+            for (Definition e: definitions) {
+                e.id.accept(pw);
+                pw.print(" ::: ");
+                e.value.accept(pw);
+                pw.println();
+                w.flush();
+            }
+            for (JCExpression e: pdefinitions) { // FIXME - get rid of this
                 e.accept(pw);
                 pw.println();
                 w.flush();
@@ -262,16 +293,26 @@ public class BasicProgram {
                     t.accept(pw);
                     if (program != null && t instanceof JmlTree.JmlStatementExpr && ((JmlTree.JmlStatementExpr)t).expression instanceof JCIdent) {
                         JCIdent i = (JCIdent)((JmlTree.JmlStatementExpr)t).expression;
-                        for (JCExpression e : program.definitions) {
-                            if (e instanceof JCBinary && ((JCBinary)e).lhs instanceof JCIdent 
-                                    && ((JCIdent)((JCBinary)e).lhs ).name.equals(i.name)) {
-                                JCExpression rhs = ((JCBinary)e).rhs;
+                        for (Definition def : program.definitions) {
+                            if (def.id.name.equals(i.name)) {
+                                JCExpression rhs = def.value;
                                 w.write("    [ ");
                                 rhs.accept(pw);
                                 w.write(" ]");
                                 break;
                             }
                         }
+                        // TODO - I don't think the conditional in this loop is ever triggered
+//                        for (JCExpression e : program.pdefinitions) {
+//                            if (e instanceof JCBinary && ((JCBinary)e).lhs instanceof JCIdent 
+//                                    && ((JCIdent)((JCBinary)e).lhs ).name.equals(i.name)) {
+//                                JCExpression rhs = ((JCBinary)e).rhs;
+//                                w.write("    [ ");
+//                                rhs.accept(pw);
+//                                w.write(" ]");
+//                                break;
+//                            }
+//                        }
                     }
                     w.write("\n");
                     w.flush();

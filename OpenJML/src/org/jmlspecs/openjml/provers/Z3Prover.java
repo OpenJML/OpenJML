@@ -30,7 +30,7 @@ import com.sun.tools.javac.util.Context;
 // FIXME - needs implementation
 
 /**
- * Used to interact with Simplify.
+ * Used to interact with Z3.
  * 
  * TODO keep track whether the prover is alive or is known to be dead
  * TODO Abstract the prompt-based interaction in another class
@@ -65,6 +65,9 @@ public class Z3Prover extends AbstractProver implements IProver {
         protected SimplifyTranslator translator;
         
         protected boolean interactive = true;
+        
+        @Override
+        public String name() { return "z3"; }
         
         protected String prompt() {
             return ">\t";
@@ -429,6 +432,11 @@ public class Z3Prover extends AbstractProver implements IProver {
                 throw e;
             }
         }
+
+        public void define(String id, Type t, JCExpression e) throws ProverException {
+            throw new ProverException("Definitions not implemented in Z3");
+        }
+
 
         /** Defines an id as a given (raw) type; returns true and does nothing if the
          * id was already defined.
