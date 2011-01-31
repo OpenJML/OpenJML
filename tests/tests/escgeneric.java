@@ -2,8 +2,6 @@ package tests;
 
 import org.jmlspecs.openjml.esc.JmlEsc;
 
-import com.sun.tools.javac.util.Options;
-
 /** This class of JUnit tests checks various uses of generic types.
  * @author David R. Cok
  *
@@ -15,8 +13,9 @@ public class escgeneric extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-noPurityCheck","");
-        options.put("-nullableByDefault",""); // Because the tests were written this wasy
-        //options.put("-jmlverbose",   "");
+        options.put("-nullableByDefault",""); // Because the tests were written this way
+//        options.put("-showbb",   "");
+//        options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         JmlEsc.escdebug = false;
@@ -80,8 +79,8 @@ public class escgeneric extends EscBase {
                 
                 +"  public void m(Integer i) {\n"
                 +"    //@ assert Object.class == java.lang.Object.class;\n"
-                +"    //@ assert \\type(TestJava<Integer>) != \\type(Object);\n"
-                +"    //@ assert \\type(TestJava<Integer>) != \\type(TestJava<Object>);\n"
+                +"    //@ assert \\type(TestJava<Integer>) != \\type(Object);\n" // FIXME - should be an error
+                +"    //@ assert \\type(TestJava<Integer>) != \\type(TestJava<Object>);\n" // FIXME - should be error because
                 +"  }\n"
                 +"  public void mz(Object o) {\n"
                 +"    //@ assert Object.class == \\type(T).erasure();\n"  // NO
@@ -96,7 +95,7 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\type(TestJava<Integer>) == \\type(TestJava<Object>);\n"  // NO
                 +"  }\n"
                 +"  public void mz1(Object o) {\n"
-                +"    //@ assert Object.class != \\type(T).erasure();\n"  
+                +"    //@ assert Object.class != \\type(T).erasure();\n"  // OK because T extends B so can't be Object
                 +"  }\n"
                 +"  public TestJava() {}\n"
                 +"}\n"

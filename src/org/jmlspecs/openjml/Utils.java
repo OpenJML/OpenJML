@@ -26,18 +26,82 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
  * overridden by some enterprising future person.
  */
 public class Utils {
+    // All explicit strings should be here
+    
+    // The following are stored here globally (e.g., for all compilation
+    // contexts). I expect they will always be constant, but one could, for
+    // example, reset them by a command-line option. No guarantees on the
+    // behavior of the tool if these are changed during processing.  They are
+    // final for now - which could be changed if necessary.
+    
+    /** A string giving the name of the package that JML annotations are in.
+     */
+    /*@ non_null*/
+    static public final String jmlAnnotationPackage = "org.jmlspecs.annotation";
+
+    /** The fully-qualified name of the NonNull annotation */
+    static public final String nonnullAnnotation = jmlAnnotationPackage + ".NonNull";
+    
+    /** The fully-qualified name of the Nullable annotation */
+    static public final String nullableAnnotation = jmlAnnotationPackage + ".Nullable";
     
     static public final String runtimeJarName = "jmlruntime.jar";
 
-    static public final String optionPropertyPrefix = "openjml.option.";
-    
-    static public final String proverPropertyPrefix = "openjml.prover.";
-    
-    static public final String defaultProverProperty = "openjml.defaultProver";
-    
     static public final String YICES = "yices";
     
     static public final String SIMPLIFY = "simplify";
+    
+    
+    /** This string is the fully-qualified name of the JML compiler messages file */
+    /*@ non_null*/
+    public static final String messagesJML = "org.jmlspecs.openjml.messages";
+    
+    /** This array gives the suffixes recognized as JML specification files, in order of priority */
+    /*@ non_null*/
+    public static final String[] suffixes = { ".jml", ".java" };
+    
+    /** This gives the character that marks a mock directory (cf. JmlSpecs), mostly for use in testing */
+    // FIXME - not yet used everywhere it should be
+    public static final char mockDirChar = '$';
+    
+    /** A property name prefix for adding new options or specifying values */
+    static public final String optionPropertyPrefix = "openjml.option.";
+    
+    /** A property name prefix for specifying information about provers */
+    static public final String proverPropertyPrefix = "openjml.prover.";
+    
+    /** The property name to specify a default prover */
+    static public final String defaultProverProperty = "openjml.defaultProver";
+    
+    /** A Java property name used to indicate the directory path on which to find specification files */
+    /*@ non_null*/
+    public static final String specsPathEnvironmentPropertyName = "org.jmlspecs.specspath";
+
+    /** A Java property name giving the directory in which specifications for the Java system libraries are found */
+    /*@ non_null*/
+    public static final String systemSpecsLocationEnvironmentPropertyName = "org.jmlspecs.system.specs";
+    
+    /** Set this to the name of a Java property that contains the default
+     * runtime classpath. 
+     */
+    /*@ non_null*/
+    public static final String defaultRuntimeClassPath = "openjml.defaultRuntimeClassPath";
+
+    /** Set this to the name of a Java property that contains the location of 
+     * the project files in Eclipse, so that testing proceeds OK. 
+     * If this directory is null or does not exist, it is ignored and tests will fail.
+     */
+    /*@ non_null*/
+    public static final String eclipseProjectLocation = "openjml.eclipseProjectLocation";
+
+    /** Set this to the name of a Java property that contains the location of 
+     * the project files in Eclipse, so that testing proceeds OK. 
+     * If this directory is null or does not exist, it is ignored and tests will fail.
+     */
+    /*@ non_null*/
+    public static final String eclipseSpecsProjectLocation = "openjml.eclipseSpecsProjectLocation";
+    
+    ///////////////////////////////////////////////////////////////////////////////////////
     
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
@@ -92,7 +156,7 @@ public class Utils {
     /** Do Jmldoc  */
     public boolean doc = false;
     
-    /** The set of keys that control the use of optional comments */
+    /** The set of keys that control the use of optional comments, set from options */
     public Set<Name> commentKeys;
     
     /** A bit that indicates that a declaration was declared within a JML annotation */
@@ -156,6 +220,7 @@ public class Utils {
         mods.flags |= JMLINSTRUMENTED;
     }
     
+    // IS this flag used for anything?  FIXME
     /** Returns true if the modifiers is marked as local to a JML expression */
     public boolean isExprLocal(/*@ non_null */ JCModifiers mods) {
         return (mods.flags & JMLEXPRLOCAL) != 0;
@@ -223,6 +288,13 @@ public class Utils {
         return null;
     }
     
+    /** Finds whether a specified annotation is present in the given modifiers,
+     * returning it if it is; this method requires that the annotations have
+     * already been attributed.
+     * @param mods the modifiers to search
+     * @param m the Name (fully qualified) of the annotation type to find
+     * @return the annotation AST if present, null if not
+     */
     public JCTree.JCAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */Symbol asym) {
         if (mods == null) return null;
         for (JCTree.JCAnnotation a: mods.annotations) {
@@ -238,6 +310,11 @@ public class Utils {
         return null;
     }
     
+    /** Returns true if the given String ends with a valid JML suffix, including the
+     * period; there are no further checks that the argument is a sensible filename.
+     * @param filename the String to check
+     * @return true if the input ends in a valid JML suffix
+     */
     public boolean hasValidSuffix(String filename) {
         for (String s : suffixes) {
             if (filename.endsWith(s)) return true;
@@ -245,57 +322,6 @@ public class Utils {
         return false;
     }
     
-    
-    // The following are stored here globally (e.g., for all compilation
-	// contexts). I expect they will always be constant, but one could, for
-	// example, reset them by a command-line option. No guarantees on the
-	// behavior of the tool if these are changed during processing.  They are
-    // final for now - which could be changed if necessary.
-
-    /** A string giving the name of the package that JML annotations are in.
-     */
-    /*@ non_null*/
-    public static final String jmlAnnotationPackage = "org.jmlspecs.annotation";
-    
-    /** This string is the fully-qualified name of the JML compiler messages file */
-    /*@ non_null*/
-    public static final String messagesJML = "org.jmlspecs.openjml.messages";
-    
-    /** This array gives the suffixes recognized as JML specification files, in order of priority */
-    /*@ non_null*/
-    public static final String[] suffixes = { ".jml", ".java" };
-    
-    /** This gives the character that marks a mock directory (cf. JmlSpecs), mostly for use in testing */
-    // FIXME - not yet used everywhere it should be
-    public static final char mockDirChar = '$';
-    
-    /** A Java property name used to indicate the directory path on which to find specification files */
-    /*@ non_null*/
-    public static final String specsPathEnvironmentPropertyName = "org.jmlspecs.specspath";
-
-    /** A Java property name giving the directory in which specifications for the Java system libraries are found */
-    /*@ non_null*/
-    public static final String systemSpecsLocationEnvironmentPropertyName = "org.jmlspecs.system.specs";
-    
-    /** Set this to the name of a Java property that contains the location of 
-     * the project files in Eclipse, so that testing proceeds OK. 
-     * If this directory is null or does not exist, it is ignored and tests will fail.
-     */
-    /*@ non_null*/
-    public static final String eclipseProjectLocation = "openjml.eclipseProjectLocation";
-
-    /** Set this to the name of a Java property that contains the location of 
-     * the project files in Eclipse, so that testing proceeds OK. 
-     * If this directory is null or does not exist, it is ignored and tests will fail.
-     */
-    /*@ non_null*/
-    public static final String eclipseSpecsProjectLocation = "openjml.eclipseSpecsProjectLocation";
-    
-    /** Set this to the name of a Java property that contains the default
-     * runtime classpath. 
-     */
-    /*@ non_null*/
-    public static final String defaultRuntimeClassPath = "openjml.defaultRuntimeClassPath";
     
     /** A little class to encapsulate elapsed wall-clock time */
     public static class Timer {
@@ -392,7 +418,7 @@ public class Utils {
 //      }
 
       boolean verbose = Utils.instance(context).jmldebug ||
-          JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
+          JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
           Options.instance(context).get("-verbose") != null;
 
       Properties properties = new Properties();

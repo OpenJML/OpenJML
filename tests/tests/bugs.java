@@ -1,6 +1,6 @@
 package tests;
 
-import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlOption;
 
 /** This file contains miscellaneous cases that once were bugs.
     I made tests to reproduce them and test the fixes.  I leave
@@ -15,7 +15,7 @@ public class bugs extends TCBase {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
-        JmlOptionName.putOption(context,JmlOptionName.NOPURITYCHECK);
+        JmlOption.putOption(context,JmlOption.NOPURITYCHECK);
     }
 
     

@@ -49,6 +49,9 @@ public class YicesProver extends AbstractProver implements IProver {
     public static final String JAVASUBTYPE = "subtypeJava$";
     public static final String CAST = "cast$";
 
+    @Override
+    public String name() { return "yices"; }
+
     //    /** The process that is the actual prover */
     //    protected Process process = null;
 
@@ -774,6 +777,11 @@ public class YicesProver extends AbstractProver implements IProver {
             throw e;
         }
     }
+
+    public void define(String id, Type t, JCExpression e) throws ProverException {
+        throw new ProverException("Definitions not implemented in Yices");
+    }
+
 
     /** Defines an id as a given (raw) type; returns true and does nothing if the
      * id was already defined.

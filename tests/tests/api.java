@@ -151,7 +151,7 @@ public class api extends TestCase {
         "  @Ghost " + eol +
         "  int i = 0;" + eol +
         "}" + eol +
-        "// Refinement Sequence: testfiles/testNoErrors/A.java" + eol +
+        "// Specifications: testfiles/testNoErrors/A.java" + eol +
         "// Specification file: testfiles/testNoErrors/A.java" + eol +
         "" + eol +
         "public class A {" + eol +

@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.jmlspecs.openjml.JmlInternalError;
-import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
@@ -269,9 +269,11 @@ public class JmlParser extends EndPosParser {
         // Run through the list to combine any loop statements
         ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
         ListBuffer<JmlStatementLoop> loops = new ListBuffer<JmlStatementLoop>();
+        int endPos = -1;
         for (JCStatement s : list) {
             if (s instanceof JmlStatementLoop) {
                 loops.append((JmlStatementLoop) s);
+                endPos = getEndPos(s);
                 continue;
             } else if (s instanceof JmlForLoop) {
                 ((JmlForLoop) s).loopSpecs = loops.toList();
@@ -287,14 +289,14 @@ public class JmlParser extends EndPosParser {
                 loops = new ListBuffer<JmlStatementLoop>();
             } else {
                 if (loops.size() != 0) {
-                    log.error(loops.first().pos(), "jml.loop.spec.misplaced");
+                    jmlerror(getStartPos(loops.first()),loops.first().pos, endPos, "jml.loop.spec.misplaced");
                     loops = new ListBuffer<JmlStatementLoop>();
                 }
             }
             newlist.append(s);
         }
         if (loops.size() != 0) {
-            log.error(loops.first().pos(), "jml.loop.spec.misplaced");
+            jmlerror(getStartPos(loops.first()),loops.first().pos,endPos, "jml.loop.spec.misplaced");
         }
         return newlist.toList();
     }
@@ -397,7 +399,7 @@ public class JmlParser extends EndPosParser {
                     utils.setJML(((JmlVariableDecl) st).mods);
                     return st;
                 } else {
-                    log.error(S.pos(), "jml.unknown.statement", jtoken
+                    jmlerror(S.pos(),S.endPos(), "jml.unknown.statement", jtoken
                             .internedName());
                     skipToSemi();
                     st = jmlF.at(S.pos()).Skip();
@@ -422,7 +424,7 @@ public class JmlParser extends EndPosParser {
                     }
                 }
             } else if (S.token() != Token.SEMI) {
-                log.error(S.pos(), "jml.bad.construct", reason);
+                jmlerror(S.pos(),S.endPos(), "jml.bad.construct", reason);
                 skipThroughSemi();
             } else {
                 S.nextToken(); // skip the semi
@@ -588,7 +590,7 @@ public class JmlParser extends EndPosParser {
                 list.append(to(jmlF.at(S.pos()).JmlTypeClauseInitializer(jt)));
                 S.nextToken();
             } else {
-                log.error(S.pos(), "jml.illegal.token.for.declaration", jt
+                jmlerror(S.pos(), S.endPos(), "jml.illegal.token.for.declaration", jt
                         .internedName());
                 skipThroughSemi();
                 break;
@@ -742,7 +744,7 @@ public class JmlParser extends EndPosParser {
             } else {
                 tspecs.clauses.append(tsp);
                 tspecs.initializerSpec = tsp;
-                if (tsp.specs == null) tsp.specs = new JmlMethodSpecs();
+                if (tsp.specs == null) tsp.specs = new JmlMethodSpecs(); // FIXME - use factory?
             }
         } else { // static initializer
             if (tspecs.staticInitializerSpec != null) {
@@ -750,7 +752,7 @@ public class JmlParser extends EndPosParser {
             } else {
                 tspecs.clauses.append(tsp);
                 tspecs.staticInitializerSpec = tsp;
-                if (tsp.specs == null) tsp.specs = new JmlMethodSpecs();
+                if (tsp.specs == null) tsp.specs = new JmlMethodSpecs(); // FIXME - use factory?
             }
         }
 
@@ -770,7 +772,7 @@ public class JmlParser extends EndPosParser {
     public JmlTypeClauseMaps parseMaps(int pos, JCModifiers mods,
             ListBuffer<JCTree> list) {
         if (!isNone(mods))
-            log.error(pos, "jml.no.mods.allowed", JmlToken.MAPS.internedName());
+            jmlerror(mods.getStartPosition(), mods.getPreferredPosition(), getEndPos(mods), "jml.no.mods.allowed", JmlToken.MAPS.internedName());
         S.setJmlKeyword(false);
         S.nextToken(); // skip over the maps token
         JCExpression e = parseMapsTarget();
@@ -778,7 +780,7 @@ public class JmlParser extends EndPosParser {
         // return null; // presumes already advanced to SEMI
         ListBuffer<JmlGroupName> glist;
         if (S.jmlToken() != JmlToken.BSINTO) {
-            log.error(S.pos(), "log.expected",
+            jmlerror(S.pos(), S.endPos(), "jml.expected",
                     "an \\into token here, or the maps target is ill-formed");
             glist = new ListBuffer<JmlGroupName>();
             S.setJmlKeyword(true);
@@ -788,7 +790,7 @@ public class JmlParser extends EndPosParser {
             glist = parseGroupNameList();
             S.setJmlKeyword(true);
             if (S.token() != Token.SEMI) {
-                log.error(S.pos(), "jml.bad.construct", "maps clause");
+                jmlerror(S.pos(), S.endPos(), "jml.bad.construct", "maps clause");
                 skipThroughSemi();
             } else {
                 S.nextToken();
@@ -800,7 +802,7 @@ public class JmlParser extends EndPosParser {
     public JCExpression parseMapsTarget() {
         int p = S.pos();
         if (S.token() != Token.IDENTIFIER) {
-            log.error(S.pos(), "jml.expected", "an identifier");
+            jmlerror(S.pos(), S.endPos(), "jml.expected", "an identifier");
             skipThroughSemi();
             return toP(jmlF.at(p).Erroneous());
         }
@@ -817,7 +819,7 @@ public class JmlParser extends EndPosParser {
             } else if (S.token() == Token.IDENTIFIER) {
                 n = ident();
             } else {
-                log.error(S.pos(), "jml.ident.or.star.after.dot");
+                jmlerror(S.pos(),S.endPos(), "jml.ident.or.star.after.dot");
                 skipThroughSemi();
                 return toP(jmlF.at(p).Erroneous());
             }
@@ -825,7 +827,7 @@ public class JmlParser extends EndPosParser {
             // It is null to denote a wildcard selector
             result = to(jmlF.at(p).Select(result, n));
         } else if (!(result instanceof JmlStoreRefArrayRange)) {
-            log.error(S.pos(), "jml.expected", "a . to select a field");
+            jmlerror(S.pos(), S.endPos(), "jml.expected", "a . to select a field");
             skipThroughSemi();
             return to(jmlF.at(p).Erroneous());
         }
@@ -1242,7 +1244,7 @@ public class JmlParser extends EndPosParser {
     }
 
     public void warnNotImplemented(int pos, String construct, String location) {
-        if (JmlOptionName.isOption(context, JmlOptionName.SHOW_NOT_IMPLEMENTED))
+        if (JmlOption.isOption(context, JmlOption.SHOW_NOT_IMPLEMENTED))
             log.warning(pos, "jml.unimplemented.construct", construct,
                             location);
     }
@@ -2606,5 +2608,12 @@ public class JmlParser extends EndPosParser {
         setErrorEndPos(pos);
         reportSyntaxError(pos, key, args);
         return toP(F.at(pos).Erroneous(errs));
+    }
+    
+    public void jmlerror(int begin, int end, String key, Object... args) {
+        log.error(new JmlScanner.DiagnosticPositionSE(begin,end-1),key,args);
+    }
+    public void jmlerror(int begin, int preferred, int end, String key, Object... args) {
+        log.error(new JmlScanner.DiagnosticPositionSE(begin,preferred,end-1),key,args);
     }
 }

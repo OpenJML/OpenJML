@@ -225,7 +225,8 @@ public class BasicBlocker extends JmlTreeScanner {
     protected List<JCStatement> newstatements;  // FIXME - just use currentBlock.statements ???
     
     /** Place to put new definitions, such as the equalities defining auxiliary variables */
-    protected List<JCExpression> newdefs;
+    protected List<BasicProgram.Definition> newdefs;
+    protected List<JCExpression> newpdefs;
     
     /** Place to put new background assertions, such as class predicates */
     protected List<JCExpression> background;
@@ -965,7 +966,8 @@ public class BasicBlocker extends JmlTreeScanner {
             throw new RuntimeException("UNEXPECTED NULL CLASSINFO FOR " + classDecl.name);
         }
         this.classInfo = classInfo;
-        newdefs = new LinkedList<JCExpression>();
+        newdefs = new LinkedList<BasicProgram.Definition>();
+        newpdefs = new LinkedList<JCExpression>();
         background = new LinkedList<JCExpression>();
         blocksToDo = new LinkedList<BasicBlock>();
         blocksCompleted = new ArrayList<BasicBlock>();
@@ -1058,6 +1060,7 @@ public class BasicBlocker extends JmlTreeScanner {
         program.blocks.addAll(blocksCompleted);
         if (assumeCheck != null) booleanAssumeCheck = assumeCheck;
         program.definitions = newdefs;
+        program.pdefinitions = newpdefs;
         program.background = background;
         program.assumeCheckVar = assumeCheckCountVar;
         
@@ -1066,7 +1069,11 @@ public class BasicBlocker extends JmlTreeScanner {
         for (BasicBlock bb : blocksCompleted) {
             VarFinder.findVars(bb.statements,vars);
         }
-        for (JCExpression ex : newdefs) {
+        for (BasicProgram.Definition def : newdefs) {
+            VarFinder.findVars(def.id,vars);
+            VarFinder.findVars(def.value,vars);
+        }
+        for (JCExpression ex : newpdefs) {
             VarFinder.findVars(ex,vars);
         }
         for (JCExpression ex : background) {
@@ -1358,10 +1365,10 @@ public class BasicBlocker extends JmlTreeScanner {
                 n = "assert$" + usepos + "$" + declpos + "@" + i + "$" + label + "$" + (unique++);
             }
              
-            JCExpression id = newAuxIdent(n,syms.booleanType,that.getStartPosition(),false);
-            JCExpression expr = treeutils.makeBinary(that.pos,JCTree.EQ,id,that);
+            JCIdent id = newAuxIdent(n,syms.booleanType,that.getStartPosition(),false);
+            //JCExpression expr = treeutils.makeBinary(that.pos,JCTree.EQ,id,that);
                     // FIXME - start and end?
-            newdefs.add(expr);
+            newdefs.add(new BasicProgram.Definition(that.pos,id,that));
             that = id;
         }
         st = factory.at(that.pos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
@@ -1428,8 +1435,8 @@ public class BasicBlocker extends JmlTreeScanner {
         if (useAssumeDefinitions) {
             JCIdent id = factory.Ident(names.fromString(ASSUMPTION_PREFIX+(unique++)));
             id.type = syms.booleanType;
-            JCExpression e = factory.Binary(JCTree.EQ,id,that).setType(syms.booleanType);
-            newdefs.add(e);
+            //JCExpression e = factory.Binary(JCTree.EQ,id,that).setType(syms.booleanType);
+            newdefs.add(new BasicProgram.Definition(that.pos,id,that));
             st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,id);
         } else {
             st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,that);
@@ -1451,7 +1458,7 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     protected void addAxiom(int pos, Label label, JCExpression that, List<JCStatement> statements) {
-        newdefs.add(that);
+        newpdefs.add(that);
     }
     
     static public String encodeType(Type t) {   // FIXME String? char? void? unsigned?
@@ -1503,7 +1510,8 @@ public class BasicBlocker extends JmlTreeScanner {
         JCIdent vd = newAuxIdent(name,type,newexpr.getStartPosition(),false);
         // FIXME - use a definition?
         if (makeDefinition) {
-            newdefs.add(treeutils.makeEquality(newexpr.pos,vd,newexpr));
+            //newdefs.add(treeutils.makeEquality(newexpr.pos,vd,newexpr));
+            newdefs.add(new BasicProgram.Definition(newexpr.pos,vd,newexpr));
         } else {
             JmlTree.JmlStatementExpr asm = factory.at(expr.getStartPosition()).JmlExpressionStatement(JmlToken.ASSUME,Label.SYN,treeutils.makeEquality(newexpr.pos,vd,newexpr));
             currentBlock.statements.add(asm);
@@ -1667,17 +1675,32 @@ public class BasicBlocker extends JmlTreeScanner {
                 JCExpression e = treeutils.makeNeqObject(0,lit0,nullLiteral);
                 background.add(trSpecExpr(e,null));
 
-                e = treeutils.makeJmlBinary(0,JmlToken.JSUBTYPE_OF,lit0,treeutils.makeDotClass(0,t));
+                JCExpression supertype = treeutils.makeDotClass(0,t);
+                
+                e = treeutils.makeJmlBinary(0,JmlToken.JSUBTYPE_OF,lit0,supertype);
                 background.add(trSpecExpr(e,null));
+
+                e = treeutils.makeNeqObject(0,lit0,supertype);
+                background.add(trSpecExpr(e,null));
+                // FIXME - we need to state that all type literals are distinct
 // FIXME - need to have literals for generic types
                 
                 JCExpression lit1 = makeTypeLiteral(type,0);
                 JCExpression lit2 = makeTypeLiteral(t,0);
                 e = treeutils.makeJmlBinary(0,JmlToken.SUBTYPE_OF,lit1,lit2);
                 if (lit1 != null && lit2 != null) e = trSpecExpr(e,null);  // FIXME - guards are just while we don't have all literals implemented
-                
-                // FIXME - need to add everything else - e.g. invariants
                 background.add(e);
+                e = treeutils.makeNeqObject(0,lit1,lit2);
+                if (lit1 != null && lit2 != null) e = trSpecExpr(e,null);  // FIXME - guards are just while we don't have all literals implemented
+                background.add(e);
+                e = treeutils.makeJmlBinary(0,JmlToken.SUBTYPE_OF,lit2,lit1);
+                e = treeutils.makeNot(0, e);
+                if (lit1 != null && lit2 != null) e = trSpecExpr(e,null);  // FIXME - guards are just while we don't have all literals implemented
+                background.add(e);
+
+                // FIXME - we need to state that all type literals are distinct
+
+                // FIXME - need to add everything else - e.g. invariants
                 
             }
         } else {
@@ -4223,18 +4246,21 @@ public class BasicBlocker extends JmlTreeScanner {
     
     protected void checkAssumption(int pos, /*@ non_null*/ Label label, List<JCStatement> statements) {
         if (!insertAssumptionChecks) return;
-        JCExpression e,id;
+        JCExpression e;
+        JCIdent id;
         String n = "assumeCheck$" + pos + "$" + label.toString();
         if (useCountedAssumeCheck) {
             JCExpression count = treeutils.makeIntLit(pos,pos);
             e = treeutils.makeBinary(pos,JCTree.NE,assumeCheckCountVar,count);
             id = newAuxIdent(n,syms.booleanType,e.pos,false);
-            e = treeutils.makeBinary(pos,JCTree.EQ,id,e);
+            //e = treeutils.makeBinary(pos,JCTree.EQ,id,e);
             // assume assumeCheck$<int>$<label> == <assumeCheckCountVar> != <int>
             // To do the coreId method, we need to put this in the definitions list
             // instead.  And it does not hurt anyway.
             //addAssume(pos,Label.ASSUME_CHECK,e); // adds to the currentBlock
-            newdefs.add(e);
+            BasicProgram.Definition def = new BasicProgram.Definition(pos,id,e);
+            newdefs.add(def);
+            e = def.expr(context);
         } else {
             id = newAuxIdent(n,syms.booleanType,pos,false);
             e = id;
@@ -5275,7 +5301,6 @@ public class BasicBlocker extends JmlTreeScanner {
     public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
     public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
     public void visitJmlCompilationUnit(JmlCompilationUnit that)   { shouldNotBeCalled(that); }
-    public void visitJmlRefines(JmlRefines that)                   { shouldNotBeCalled(that); }
     public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
 
     public void visitClassDef(JCClassDecl that) {
@@ -5309,7 +5334,11 @@ public class BasicBlocker extends JmlTreeScanner {
         public static Set<JCIdent> findVars(BasicProgram program) {
             VarFinder vf = new VarFinder();
             Set<JCIdent> v = new HashSet<JCIdent>();
-            for (JCExpression def : program.definitions()) {
+            for (BasicProgram.Definition def : program.definitions()) {
+                vf.find(def.id,v);
+                vf.find(def.value,v);
+            }
+            for (JCExpression def : program.pdefinitions) {
                 vf.find(def,v);
             }
             for (BasicBlock b : program.blocks()) {
@@ -5916,7 +5945,7 @@ public class BasicBlocker extends JmlTreeScanner {
             log = Log.instance(context);
             syms = Symtab.instance(context);
             w = new StringWriter();
-            showSubexpressions = JmlOptionName.isOption(context,JmlOptionName.SUBEXPRESSIONS) || true;
+            showSubexpressions = JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS) || true;
         }
         
         //@ ensures this.program != null && this.ce != null;
@@ -5976,11 +6005,16 @@ public class BasicBlocker extends JmlTreeScanner {
                 if (expr instanceof JCIdent) {
                     Name nm = ((JCIdent)expr).name;
                     if (nm.toString().startsWith(BasicBlocker.ASSUMPTION_PREFIX)) {
-                        for (JCExpression e : program.definitions) {
-                            if (e instanceof JCBinary && ((JCBinary)e).lhs instanceof JCIdent && ((JCIdent)((JCBinary)e).lhs).name.equals(nm)) {
-                                expr = ((JCBinary)e).rhs;
+                        for (BasicProgram.Definition def : program.definitions) {
+                            if (def.id.name.equals(nm)) {
+                                expr = def.value;
                             }
                         }
+//                        for (JCExpression e : program.pdefinitions) {
+//                            if (e instanceof JCBinary && ((JCBinary)e).lhs instanceof JCIdent && ((JCIdent)((JCBinary)e).lhs).name.equals(nm)) {
+//                                expr = ((JCBinary)e).rhs;
+//                            }
+//                        }
                     }
                 }
                 lastpos = pos;
@@ -6169,14 +6203,19 @@ public class BasicBlocker extends JmlTreeScanner {
         }
         
         public JCExpression findDefinition(Name name) {
-            for (JCExpression e: program.definitions) {
-                if (!(e instanceof JCBinary)) continue;
-                JCBinary bin = (JCBinary)e;
-                if (!(bin.lhs instanceof JCIdent)) continue;
-                JCIdent id = (JCIdent)bin.lhs;
+            for (BasicProgram.Definition def: program.definitions()) {
+                JCIdent id = def.id;
                 if (id.name != name) continue;
-                return bin.rhs;
+                return def.value;
             }
+//            for (JCExpression e: program.pdefinitions) {
+//                if (!(e instanceof JCBinary)) continue;
+//                JCBinary bin = (JCBinary)e;
+//                if (!(bin.lhs instanceof JCIdent)) continue;
+//                JCIdent id = (JCIdent)bin.lhs;
+//                if (id.name != name) continue;
+//                return bin.rhs;
+//            }
             return null;
         }
         
@@ -6401,7 +6440,8 @@ public class BasicBlocker extends JmlTreeScanner {
                 if (c.nodes - c1 > max) max = c.nodes - c1;
             }
             c.maxBlockNodes = max;
-            for (JCTree t: b.definitions()) t.accept(c);
+            for (BasicProgram.Definition t: b.definitions()) { t.id.accept(c); t.value.accept(c); }
+            for (JCTree t: b.pdefinitions) t.accept(c);
             for (JCTree t: b.background()) t.accept(c);
             c.blocks = b.blocks().size();
             return c;
@@ -6409,7 +6449,8 @@ public class BasicBlocker extends JmlTreeScanner {
         
         static public int countx(BasicProgram b) {
             Counter c = new Counter();
-            for (JCTree t: b.definitions()) t.accept(c);
+            for (BasicProgram.Definition t: b.definitions()) { t.id.accept(c); t.value.accept(c); }
+            for (JCTree t: b.pdefinitions) t.accept(c);
             for (JCTree t: b.background()) t.accept(c);
             return c.nodes;
         }

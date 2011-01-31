@@ -3,7 +3,6 @@ package tests;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
-import org.jmlspecs.openjml.JmlTree.JmlRefines;
 
 import com.sun.tools.javac.tree.JCTree.*;
 

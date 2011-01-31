@@ -30,23 +30,19 @@ import org.jmlspecs.openjml.proverinterface.IProverResult;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.Enter;
-import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlEnter;
-import com.sun.tools.javac.comp.Todo;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.main.JavaCompiler.CompileState;
-import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -113,7 +109,7 @@ public class API {
     
     
     /** Executes the jmldoc tool on the given command-line arguments. */
-    static public int jmldoc(@NonNull String... args) {
+    public static int jmldoc(@NonNull String... args) {
         return org.jmlspecs.openjml.jmldoc.Main.execute(args);
     }
     
@@ -244,7 +240,7 @@ public class API {
         return errs;
     }
 
-    /** Parses each java file and its specs returning a list of the ASTs corresponding
+    /** Parses each java file and its specs returning a list of the ASTs for corresponding
      * java files; the spec files are automatically found according to JML rules 
      * (do not include them in the arguments);  the ASTs of the spec files are contained in the 
      * JmlCompilationUnit.specsSequence.  Error messages are reported separately
@@ -269,7 +265,7 @@ public class API {
         return trees;
     }
     
-    /** Parses each input, finding its specs returning a list of the ASTs corresponding
+    /** Parses each input, finding its specs returning a list of the ASTs corresponding to the
      * java files; the spec files are automatically found according to JML rules 
      * (do not include them in the arguments);  the ASTs of the spec files are contained in the 
      * JmlCompilationUnit.specsSequence.  Error messages are reported separately
@@ -293,7 +289,7 @@ public class API {
         return trees;
     }
     
-    /** Parses each input, finding its specs returning a list of the ASTs corresponding
+    /** Parses each input, finding its specs returning a list of the ASTs corresponding to the
      * java files; the spec files are automatically found according to JML rules 
      * (do not include them in the arguments);  the ASTs of the spec files are contained in the 
      * JmlCompilationUnit.specsSequence.  Error messages are reported separately
@@ -331,19 +327,19 @@ public class API {
         c.inSequence = true;
         Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(file);
         return ((JmlCompilationUnit)c.parse(fobjects.iterator().next()));
-    }
-    
-    // TODO: do we need a parseSingleFile for strings or JavaFileObject
+    } // FIXME - check that this works for .jml files
     
     /** Produces a parse tree for the given text; the text must represent a
-     * compilation unit for each a .java file or a specification file.  The name 
-     * is the filename to associate with the text.  The trees are not
+     * compilation unit for a .java file or a specification file.  The name 
+     * is the file path to associate with the text and must include directories
+     * corresponding to the purported package holding the java class.  The trees are not
      * type-checked and do not have any name resolution applied and are not made
      * part of the compilation context.
      * @param name the filename to associate with the text (but not the package)
      * @param content the textual content to parse
      * @return the parse tree for the file
      */
+    // FIXME - resolve whether the package name must be present
     // TODO: Would like to automatically set the filename, but can't since the
     // JavaFileObject has to be created before parsing and it is immutable
     //@ requires name.length() > 0;
@@ -361,8 +357,9 @@ public class API {
     
     /** Parses, creates symbol table symbols and typechecks the given set of files.
      *  This method may be called multiple times to add new classes to the symbol
-     *  table entries.  Other files may be parsed and entered if they are dependencies
-     *  of the files given as arguments.
+     *  table entries. However if any file depends on another file, it will look for
+     *  it on the sourcepath (or specspath). Typically those paths are set to include
+     *  the files that are listed in the arguments.
      * @param files the set of files to parse and check
      * @throws java.io.IOException
      */
@@ -598,7 +595,7 @@ public class API {
             this.startpos = startpos;
             this.endpos = endpos;
             this.tree = tree;
-            this.scanMode = SPEC_MODE;
+            this.scanMode = AST_JML_MODE;
             scan(tree);
             return found;
         }
@@ -636,12 +633,10 @@ public class API {
      * @return the node identified
      */
     protected JCTree findNode(JmlCompilationUnit tree, int startpos, int endpos) {
-        // FIXME - in AST_JML_MODE - we look in the compilation unit, but that may not be where the spec text came from
-        // But in SPEC_MODE the pieces of the specs are scrambled up among different text files
         return finder.find(tree,startpos,endpos);
     }
     
-    // TODO: document
+    /** The method on which ESC was run most recently */
     protected MethodSymbol mostRecentProofMethod = null;
     
     // TODO: document
@@ -695,9 +690,7 @@ public class API {
     //@ ensures isOpen;
     public void doESC(ClassSymbol csym) {
         mostRecentProofMethod = null;
-        Env<AttrContext> env = JmlEnter.instance(context).getEnv(csym);
-        JCTree tree = env.tree;
-        JmlClassDecl decl = (JmlClassDecl)tree;
+        JmlClassDecl decl = getJavaDecl(csym);
         JmlEsc.instance(context).visitClassDef(decl);
     }
     
@@ -811,7 +804,8 @@ public class API {
     }
     
     /** Returns the specs for a given method, including specs of all overridden
-     * methods
+     * methods. Note that the names of parameters of various methods may be different,
+     * and hence the specs will need some renaming in order to be used together.
      * 
      * @param sym the method symbol whose specs are wanted
      * @return the specs for that method
@@ -875,7 +869,7 @@ public class API {
      * @param likeSource if true, prints out as valid source code
      * @return a string containing the output
      * @throws Exception
-     */
+     */ // FIXME - allow the option of showing composite specs?
     //@ requires isOpen;
     //@ ensures isOpen;
     public @NonNull String prettyPrint(@NonNull JCTree ast, boolean likeSource) throws Exception {
@@ -928,7 +922,7 @@ public class API {
      * @param name the name to give the 'file'
      * @param content the content to give the file
      * @return the resulting JavaFileObject
-     */
+     */ // FIXME - comment on whether the package path is needed
     public JavaFileObject makeJFOfromString(String name, String content) throws Exception {
         return new StringJavaFileObject(name,content);
     }
@@ -984,15 +978,15 @@ public class API {
          * filename extension
          * @param filename the filename to use (no leading slash) (null indicates to
          *          use the internal fabricated filename)
-         * @param s the content of the pseudo file
+         * @param content the content of the pseudo file
          * @throws Exception if a URI cannot be created
-         */
-        public StringJavaFileObject(/*@ nullable */String filename, /*@ non_null */String s) throws Exception {
+         */ // FIXME - sort out the package part of the path
+        public StringJavaFileObject(/*@ nullable */String filename, /*@ non_null */String content) throws Exception {
             // This takes three slashes because the filename is supposed to be absolute.
             // In our case this is not a real file anyway, so we pretend it is absolute.
             super(filename == null ? uritest : new URI("file:///" + filename),
                     filename == null || filename.endsWith(".java") ? Kind.SOURCE : Kind.OTHER);
-            content = s;
+            this.content = content;
         }
 
         /** Overrides the parent to provide the content directly from the String

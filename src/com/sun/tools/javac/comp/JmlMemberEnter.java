@@ -19,13 +19,15 @@ import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
 
 import org.jmlspecs.openjml.IJmlVisitor;
-import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.*;
 
+import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Scope;
@@ -46,6 +48,7 @@ import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
+import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.*;
 
@@ -214,6 +217,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         log.error(that.pos,"jml.initializer.block.allowed");
                     }
                 } else if (that instanceof JmlVariableDecl) {
+                    // FIXME - anything here - or for other cases?
                 }
             }
 
@@ -964,7 +968,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
     
     public void addRacMethods(ClassSymbol sym, Env<AttrContext> env) {
-        if (!JmlOptionName.isOption(context,JmlOptionName.RAC)) return;
+        if (!JmlOption.isOption(context,JmlOption.RAC)) return;
         if ((sym.flags() & Flags.INTERFACE) != 0) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
         JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(sym);
         JCExpression vd = jmlF.Type(syms.voidType);
@@ -2556,5 +2560,84 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        
 //    }
 //    
+
+//    // A sub-phase that "compiles" annotations in annotated types.
+//    static protected class JmlTypeAnnotate extends JmlTreeScanner  {
+//        private Env<AttrContext> env;
+//        public JmlTypeAnnotate(Env<AttrContext> env) { this.env = env; }
+//
+//        private void enterTypeAnnotations(List<JCTypeAnnotation> annotations) {
+//            Set<TypeSymbol> annotated = new HashSet<TypeSymbol>();
+//            if (!skipAnnotations)
+//                for (List<JCTypeAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
+//                    JCTypeAnnotation a = al.head;
+//                    Attribute.Compound c = annotate.enterAnnotation(a,
+//                            syms.annotationType,
+//                            env);
+//                    if (c == null) continue;
+//                    Attribute.TypeCompound tc = new Attribute.TypeCompound(c.type, c.values, a.annotation_position);
+//                    a.attribute_field = tc;
+//                    // Note: @Deprecated has no effect on local variables and parameters
+//                    if (!annotated.add(a.type.tsym))
+//                        log.error(a.pos, "duplicate.annotation");
+//                }
+//        }
+//
+//        // each class (including enclosed inner classes) should be visited
+//        // separately through MemberEnter.complete(Symbol)
+//        // this flag is used to prevent from visiting inner classes.
+//        private boolean isEnclosingClass = false;
+//        @Override
+//        public void visitClassDef(final JCClassDecl tree) {
+//            if (isEnclosingClass)
+//                return;
+//            isEnclosingClass = true;
+//            scan(tree.mods);
+//            // type parameter need to be visited with a separate env
+//            // scan(tree.typarams);
+//            scan(tree.extending);
+//            scan(tree.implementing);
+//            scan(tree.defs);
+//        }
+//
+//        private void annotate(final JCTree tree, final List<JCTypeAnnotation> annotations) {
+//            annotate.later(new Annotate.Annotator() {
+//                public String toString() {
+//                    return "annotate " + annotations + " onto " + tree;
+//                }
+//                public void enterAnnotation() {
+//                    JavaFileObject prev = log.useSource(env.toplevel.sourcefile);
+//                    try {
+//                        enterTypeAnnotations(annotations);
+//                    } finally {
+//                        log.useSource(prev);
+//                    }
+//                }
+//            });
+//        }
+//
+//        @Override
+//        public void visitAnnotatedType(final JCAnnotatedType tree) {
+//            annotate(tree, tree.annotations);
+//            super.visitAnnotatedType(tree);
+//        }
+//        @Override
+//        public void visitTypeParameter(final JCTypeParameter tree) {
+//            annotate(tree, tree.annotations);
+//            super.visitTypeParameter(tree);
+//        }
+//        @Override
+//        public void visitNewArray(final JCNewArray tree) {
+//            annotate(tree, tree.annotations);
+//            for (List<JCTypeAnnotation> dimAnnos : tree.dimAnnotations)
+//                annotate(tree, dimAnnos);
+//            super.visitNewArray(tree);
+//        }
+//        @Override
+//        public void visitMethodDef(JCMethodDecl tree) {
+//            annotate(tree, tree.receiverAnnotations);
+//            super.visitMethodDef(tree);
+//        }
+//    }
 
 }

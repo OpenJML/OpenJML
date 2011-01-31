@@ -21,6 +21,10 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     // translateTypeParams, trnaslateVarDefs - find others and make sure that
     // Jml methods below use them as appropriate
 
+    // FIXME - the copy functionality is barely started - perhaps it should be left to
+    // JmlTreeCopier - or perhaps JmlTreeCopier should be combined into here to make one
+    // less maintenance problem
+    
     protected boolean copy = false;
     
     public JmlTreeTranslator() {
@@ -250,13 +254,6 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlRefines(JmlRefines that) {
-        // nothing to translate
-        result = that;
-        // Not translating: filename
-    }
-
-    @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {
         JmlSetComprehension r = that;
         r.newtype = translate(that.newtype);
@@ -406,7 +403,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     @Override
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
         JmlTypeClauseMaps r = that;
-        // r.modifiers FIXME
+        r.modifiers = translate(that.modifiers);
         r.expression = translate(that.expression);
         r.list = translate(that.list);
         result = r;

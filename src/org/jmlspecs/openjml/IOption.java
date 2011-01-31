@@ -1,7 +1,7 @@
 package org.jmlspecs.openjml;
 
 /** This is an interface for the behavior of options. */
-public interface OptionInterface {
+public interface IOption {
 
     /** The name of the option, as used on the command-line
      * @return The name of the option, as used on the command-line

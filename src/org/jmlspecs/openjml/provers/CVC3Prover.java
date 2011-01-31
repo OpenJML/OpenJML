@@ -62,7 +62,10 @@ public class CVC3Prover extends AbstractProver implements IProver {
     protected CVC3Expr translator;
     
     protected boolean interactive = true;
-    
+ 
+    @Override
+    public String name() { return "cvc"; }
+
     protected String prompt() {
         return "CVC> ";
     }
@@ -427,6 +430,10 @@ public class CVC3Prover extends AbstractProver implements IProver {
             e.mostRecentInput = builder.toString();
             throw e;
         }
+    }
+    
+    public void define(String id, Type t, JCExpression e) throws ProverException {
+        throw new ProverException("Definitions not implemented in CVC3");
     }
 
     /** Defines an id as a given (raw) type; returns true and does nothing if the

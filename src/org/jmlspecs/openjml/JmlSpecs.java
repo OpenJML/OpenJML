@@ -46,7 +46,7 @@ import com.sun.tools.javac.util.Options;
 /** This class manages the specifications during a compilation.  There should be
  * just one instance per compilation Context, ensured by calling the preRegister
  * method.  The class provides methods for finding specification files, and it
- * maintains a database of specifications of types, methods, and field.  
+ * maintains a database of specifications of types, methods, and fields.  
  * The specs are indexed by type 
  * as well as by method, so that obsolete specs can be readily discarded.
  * <P>
@@ -62,7 +62,7 @@ import com.sun.tools.javac.util.Options;
  * <LI>2) if there is no command-line argument, the value of the environment property 
  * org.jmlspecs.specspath is used</LI>
  * <LI>3) if that is not defined, the value of the sourcepath is used (specified 
- * by the -sourcepath command-line option)</LI>
+ * by the -sourcepath command-line option or properties)</LI>
  * <LI>4) if that is not defined, the value of the classpath is used</LI>
  * is used (the -classpath option, if it is specified, or the java.class.path
  * environment property)</LI>
@@ -95,7 +95,7 @@ import com.sun.tools.javac.util.Options;
  * accomplished using mock file objects.  This tool handles files abstractly as
  * instances of JavaFileObject.  One can create an instance of a derived class,
  * a MockJavaFileObject, which has a name and a String as content (which should 
- * look like the text of a compilation unit), but which does not actually exist.
+ * look like the text of a compilation unit), but which does not actually exist as a file.
  * The name does however have to look like a legitimate path name, with a 
  * directory, a fully-qualified package directory path, and the class file name.
  * The initial directory must be on the specspath.  For that purpose, mock
@@ -106,7 +106,7 @@ import com.sun.tools.javac.util.Options;
  * specifications file.  For example, the JUnit tests for this tool use two
  * mock directories, $A and $B (in that order).  A test will specify the
  * specsPath for the test to include those two paths (e.g. setSpecsPath("$A;$B");),
- * and it will add mock files with names like "$A/t/A.java".
+ * and it will add mock files with names like "$A/t/A.java" for class t.A.
  * <P>
  * <B>The specifications database</B>
  * This class also handles the database of specifications.  This database is
@@ -115,20 +115,20 @@ import com.sun.tools.javac.util.Options;
  * as fields of the JmlClassDecl, JmlMethodDecl, and JmlVariableDecl AST nodes,
  * but these are only the specs that are declared in that compilation unit.
  * The database holds the combined specifications from all sources, e.g. all
- * files in the specification sequence.
+ * files that contribute specifications (JML used to allow a sequence of files,
+ * but it has been simplified to take specifications from just one file).
  * Also, Java classes which do not have source available to the compiler
  * do not have an AST in which to place references to specifications.  Thus this
  * database is used as the general mechanism for retrieving specs for a Java element.
+ * If there is a Java source file and accompanying ASTs, the fields 
+ * JmlClassDecl.typeSpecsCombined, JmlMethodDecl.methodSpecsCombined, and
+ * JmlVariableDecl.fieldSpecsCombined should have the same entries as the database.
  * 
  * @author David Cok
  *
  */
 public class JmlSpecs {
     
-//    static public String[] externalDefaultSpecs = null;
-//
-//    static public String[] externalRuntime = null;
-
     /** The name of the jar file that constitutes an openjml release. 
      * The specs for Java version v are in a top-level directory named
      * prefix + "v" for each version (e.g. in specs16 for Java 1.6)*/
@@ -178,7 +178,7 @@ public class JmlSpecs {
     public static void preRegister(final Context context) {
         context.put(specsKey, new Context.Factory<JmlSpecs>() {
             public JmlSpecs make() {
-                return new JmlSpecs(context); // Registers the new instance in place of the factory
+                return new JmlSpecs(context);
             }
         });
     }
@@ -216,7 +216,7 @@ public class JmlSpecs {
      */
     protected JmlSpecs(Context context) {
         this.context = context;
-        context.put(specsKey, this);
+        context.put(specsKey, this); // self-register
         attr = JmlAttr.instance(context);
         log = Log.instance(context);
         utils = Utils.instance(context);
@@ -225,7 +225,7 @@ public class JmlSpecs {
     /** Initializes the specs path given the current settings of options.
      */
     public void initializeSpecsPath() {
-        String s = JmlOptionName.value(context,JmlOptionName.SPECS);
+        String s = JmlOption.value(context,JmlOption.SPECS);
         if (s == null) s = System.getProperty(Utils.specsPathEnvironmentPropertyName);
         if (s == null) s = Options.instance(context).get("-sourcepath");
         if (s == null) s = Options.instance(context).get("-classpath");
@@ -242,7 +242,7 @@ public class JmlSpecs {
     public boolean appendInternalSpecs(boolean verbose, java.util.List<Dir> dirs) {
         
         String versionString = System.getProperty("java.version");
-        int version = 6; // the current default
+        int version;
         if (versionString.startsWith("1.6")) version = 6;
         else if (versionString.startsWith("1.5")) version = 5;
         else if (versionString.startsWith("1.4")) version = 4;
@@ -252,31 +252,7 @@ public class JmlSpecs {
             version = 6; // default, if the version string is in an unexpected format
         }
         if (verbose) log.noticeWriter.println("Java version " + version);
-
-//        // First use externalDefaultSpecs if it is there.  This is used
-//        // when openjml is driven by an Eclipse plugin outside a development
-//        // environment (and possibly in it as well).
-//        // We could use eclipseSpecsProjectLocation but then we would
-//        // have to represent all of these as strings and read them back in.
-//        
-//        if (externalDefaultSpecs != null) {
-//            for (String d: externalDefaultSpecs) {
-//                if (d != null) {
-//                    int i = d.indexOf("!");
-//                    if (i == -1) {
-//                        dirs.add(new FileSystemDir(d));
-//                    } else {
-//                        String n = d.substring(i+1);
-//                        String f = d.substring(0,i);
-//                        dirs.add(new JarDir(f,n));
-//                    }
-//                    if (verbose) log.noticeWriter.println("External: " + d);
-//                }
-//            }
-//            if (verbose) log.noticeWriter.println("Internal specs from plugin");
-//            return true;
-//        }
-        
+       
         // Look for a openjml.jar or jmlspecs.jar file on the classpath
         // If present, use it (and use the first one found).  
         // This happens in command-line mode.
@@ -296,6 +272,8 @@ public class JmlSpecs {
                     return true;
                 }
             }
+        }
+        for (String s: ss) {
             if (s.endsWith(specsJar)) {
                 d = new JarDir(s,"");
                 if (d.exists()) {
@@ -325,6 +303,10 @@ public class JmlSpecs {
                 }
             }
         }
+        
+        // FIXME - clean this all up and try to get rid of the dependency on eclipseSpecsProjectLocation
+        // (which is used in tests) - be careful though, the UI can be tricky and operates
+        // differently in development vs. deployed mode
         
         // Finally, for working in the Eclipse environment, see if there
         // is an environment variable that is set.
@@ -382,7 +364,7 @@ public class JmlSpecs {
     //@ assignable this.specsDirs;
     public void setSpecsPath(String[] specsPathArray) {
         boolean verbose = utils.jmldebug ||
-            JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
+            JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
             Options.instance(context).get("-verbose") != null;
 
         specsDirs = new LinkedList<Dir>();
@@ -393,8 +375,8 @@ public class JmlSpecs {
             todo.add(s);
         }
         String dir;
-        boolean checkDirectories = !JmlOptionName.isOption(context,JmlOptionName.NOCHECKSPECSPATH);
-        if (!JmlOptionName.isOption(context,JmlOptionName.NOINTERNALSPECS)) {
+        boolean checkDirectories = !JmlOption.isOption(context,JmlOption.NOCHECKSPECSPATH);
+        if (!JmlOption.isOption(context,JmlOption.NOINTERNALSPECS)) {
             todo.add("$SY");
         }
 
@@ -550,14 +532,14 @@ public class JmlSpecs {
          * suffix) is present in this directory
          * @return a JavaFileObject for that file
          */
-        abstract public JavaFileObject findFile(String filePath);
+        abstract public /*@Nullable*/JavaFileObject findFile(String filePath);
         
         /** Finds a file with the given path (relative directory, name but
          * no suffix) is present in this directory with any active JML suffix
          * (in the order of priority for suffixes).
          * @return a JavaFileObject for that file
          */
-        abstract public JavaFileObject findAnySuffixFile(String filePath);
+        abstract public /*@Nullable*/JavaFileObject findAnySuffixFile(String filePath);
     }
     
     /** This class handles mock directories - data that appear to be files
@@ -579,14 +561,14 @@ public class JmlSpecs {
         }
         
         @Override
-        public JavaFileObject findFile(String filePath) { 
+        public /*@Nullable*/JavaFileObject findFile(String filePath) { 
             String ss = name + "/" + filePath;
             JavaFileObject j = mockFiles.get(ss);
             return j;
         }
         
         @Override
-        public JavaFileObject findAnySuffixFile(String filePath) { 
+        public /*@Nullable*/JavaFileObject findAnySuffixFile(String filePath) { 
             String ss = name + "/" + filePath;
             for (String suffix : Utils.suffixes) {
                     JavaFileObject j = mockFiles.get(ss + suffix);
@@ -623,7 +605,7 @@ public class JmlSpecs {
         }
 
         @Override
-        public JavaFileObject findFile(String filePath) {
+        public /*@Nullable*/JavaFileObject findFile(String filePath) {
             File f = new File(dir,filePath);
             if (f.exists()) {
                 return ((JavacFileManager)context.get(JavaFileManager.class)).getRegularFile(f);
@@ -632,7 +614,7 @@ public class JmlSpecs {
         }
         
         @Override
-        public JavaFileObject findAnySuffixFile(String filePath) {
+        public /*@Nullable*/JavaFileObject findAnySuffixFile(String filePath) {
             for (String suffix : Utils.suffixes) {
                 File f = new File(dir,filePath + suffix);
                 if (f.exists()) {
@@ -688,7 +670,7 @@ public class JmlSpecs {
         }
         
         @Override
-        public JavaFileObject findFile(String filePath) { 
+        public /*@Nullable*/JavaFileObject findFile(String filePath) { 
             RelativePath file = new RelativePath.RelativeFile(internalDir,filePath);
             if (zipArchive == null) return null;
             if (!zipArchive.contains(file)) return null;
@@ -696,7 +678,7 @@ public class JmlSpecs {
         }
         
         @Override
-        public JavaFileObject findAnySuffixFile(String filePath) { 
+        public /*@Nullable*/JavaFileObject findAnySuffixFile(String filePath) { 
             if (zipArchive == null) return null;
             for (String suffix : Utils.suffixes) {
                 String ss = filePath + suffix;
@@ -725,7 +707,10 @@ public class JmlSpecs {
     
     /** Finds the first specification file (if any) for the given class.  It
      * searches for the defined suffixes in order, searching the whole specs
-     * path for each one.
+     * path for each one before checking for the next suffix.
+     * [NOTE: In a previous design of JML, this method would search each
+     * directory for any allowed suffix, before moving on to the next
+     * directory - that behavior can be restored by switching the loops.]
      * 
      * @param className The fully-qualified name of the file to be found, 
      *  without a suffix (or the dot before the suffix) either
@@ -817,7 +802,6 @@ public class JmlSpecs {
      * @param type the ClassSymbol of the type whose specs are wanted
      * @return the specifications
      */
-    //@ nullable
     public TypeSpecs getSpecs(ClassSymbol type) {
         TypeSpecs t = specsmap.get(type);
         if (t == null) specsmap.put(type, t=new TypeSpecs(type));
@@ -841,7 +825,7 @@ public class JmlSpecs {
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
         spec.csymbol = type;
         specsmap.put(type,spec);
-        if (utils.jmldebug) log.noticeWriter.println("PUTTING SPECS " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
+        if (utils.jmldebug) log.noticeWriter.println("Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     /** Adds the specs for a given method to the database, overwriting anything
@@ -850,7 +834,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-        if (utils.jmldebug) log.noticeWriter.println("            PUTTING METHOD SPECS " + m.enclClass() + " " + m);
+        if (utils.jmldebug) log.noticeWriter.println("            Saving method specs for " + m.enclClass() + " " + m);
         specsmap.get(m.enclClass()).methods.put(m,spec);
     }
     
@@ -862,18 +846,18 @@ public class JmlSpecs {
      * @param spec the specs to associate with the block
      */
     public void putSpecs(ClassSymbol csym, JCTree.JCBlock m, MethodSpecs spec) {
-        if (utils.jmldebug) log.noticeWriter.println("            PUTTING BLOCK SPECS " );
+        if (utils.jmldebug) log.noticeWriter.println("            Saving initializer block specs " );
         specsmap.get(csym).blocks.put(m,spec);
     }
     
     /** Adds the specs for a given field to the database, overwriting anything
-     * already there.  The type must already have a specs supplied, to which
+     * already there.  The type must already have a class specs, to which
      * this is added.
      * @param m the VarSymbol of the method whose specs are provided
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-        if (utils.jmldebug) log.noticeWriter.println("            PUTTING FIELD SPECS " + m.enclClass() + " " + m);
+        if (utils.jmldebug) log.noticeWriter.println("            Saving field specs for " + m.enclClass() + " " + m);
         specsmap.get(m.enclClass()).fields.put(m,spec);
     }
     
@@ -1078,7 +1062,7 @@ public class JmlSpecs {
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
             // If neither one is present, then the logic here will give the
             // default as NONNULL.
-            if (JmlOptionName.isOption(context,JmlOptionName.NULLABLEBYDEFAULT)) {
+            if (JmlOption.isOption(context,JmlOption.NULLABLEBYDEFAULT)) {
                 return JmlToken.NULLABLE;
             } else {
                 return JmlToken.NONNULL;
@@ -1111,12 +1095,12 @@ public class JmlSpecs {
     ClassSymbol nullableAnnotationSymbol = null;
     public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
         if (nonnullAnnotationSymbol == null) {
-            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.annotation.NonNull"));
+            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Utils.nonnullAnnotation));
         }
         Attribute.Compound attr = symbol.attribute(nonnullAnnotationSymbol);
         if (attr!=null) return true;
         if (nullableAnnotationSymbol == null) {
-            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.annotation.Nullable"));
+            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Utils.nullableAnnotation));
         }
         attr = symbol.attribute(nullableAnnotationSymbol);
         if (attr!=null) return false;
@@ -1147,11 +1131,12 @@ public class JmlSpecs {
         /** A list of the clauses pertinent to this field (e.g. in, maps) */
         public ListBuffer<JmlTree.JmlTypeClause> list = new ListBuffer<JmlTree.JmlTypeClause>();
         
-        
+        /** Creates a FieldSpecs object initialized with only the given modifiers */
         public FieldSpecs(JCTree.JCModifiers mods) { 
             this.mods = mods;
         }
         
+        @Override
         public String toString() {
             StringWriter s = new StringWriter();
             JmlPretty p = new JmlPretty(s, false);

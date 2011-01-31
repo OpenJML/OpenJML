@@ -28,11 +28,11 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     /** The mode in which subtrees are scanned:  <BR>
      * AST_MODE scans the tree as it
      * was parsed, ignoring convenience fields in which links to specs are
-     * placed, and ignoring refinement sequence; <BR>
+     * placed, and ignoring the specs CU; <BR>
      * AST_WITH_JML_MODE scans the tree as an individual compilation unit
-     * (no specs sequence, but including the specs that are part of that file)<BR>
+     * (no specs in other files, but including the specs that are part of that file)<BR>
      * SPEC_MODE ignores parsed specs and instead scans through the
-     * summaries of specs (from all elements of the refinement sequence).
+     * summaries of specs (that come from the specification files).
      */
     public int scanMode = AST_JML_MODE;
     
@@ -167,10 +167,6 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.decls);
         scan(that.range);
         scan(that.value);
-    }
-
-    public void visitJmlRefines(JmlRefines that) {
-        // no subtrees
     }
 
     public void visitJmlSetComprehension(JmlSetComprehension that) {

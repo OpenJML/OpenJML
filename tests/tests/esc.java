@@ -12,11 +12,13 @@ public class esc extends EscBase {
         options.put("-noPurityCheck","");
         options.put("-nullableByDefault",""); // Because the tests were written this way
         //options.put("-jmlverbose",   "");
+        //options.put("-showbb",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //options.put("-trace",   "");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
+        //print = true;
     }
  
     // FIXME - causes a prover failure
@@ -56,7 +58,8 @@ public class esc extends EscBase {
     public void testForEach() {
 //        options.put("-showbb","");
 //        options.put("-trace","");
-//        options.put("-method","m1");
+//        options.put("-jmlverbose","");
+//        options.put("-method","m4");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1454,6 +1457,7 @@ public class esc extends EscBase {
     }
 
     public void testOld() {
+      options.put("-showbb","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static int i;\n"

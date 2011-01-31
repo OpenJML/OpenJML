@@ -13,7 +13,7 @@ import javax.tools.JavaFileObject;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestSuite;
 
-import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.JmlSpecs.Dir;
@@ -121,7 +121,7 @@ public class SpecsBase extends TCBase {
         useSystemSpecs = true;
         super.setUp();
         // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
-        JmlOptionName.putOption(context,JmlOptionName.NOPURITYCHECK);
+        JmlOption.putOption(context,JmlOption.NOPURITYCHECK);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
         print = false; // true = various debugging output

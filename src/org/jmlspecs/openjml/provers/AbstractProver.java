@@ -36,30 +36,27 @@ public abstract class AbstractProver implements IProver {
         this.context = context;
         this.log = Log.instance(context);
     }
-    
+        
     abstract public int assume(JCExpression tree) throws ProverException;
 
-    static Map<String,Class<? extends IProver>> map = new HashMap<String,Class<? extends IProver>>();
+    static public Map<String,Class<? extends IProver>> map = new HashMap<String,Class<? extends IProver>>();
     static {
         map.put("yices",org.jmlspecs.openjml.provers.YicesProver.class);
         map.put("cvc",org.jmlspecs.openjml.provers.CVC3Prover.class);
         map.put("simplify",org.jmlspecs.openjml.provers.SimplifyProver.class);
+        map.put("smt",org.jmlspecs.openjml.provers.SMTProver.class);
     }
+    
     static public IProver getProver(Context context, String prover) {
         try {
             Class<? extends IProver> c;
-            if (prover == null) {
-                c = org.jmlspecs.openjml.provers.YicesProver.class;
-            } else {
-                c = map.get(prover);
-                if (c == null) {
-                    Log.instance(context).error("esc.no.prover",prover);
-                    return null;
-                }
+            c = map.get(prover);
+            if (c == null) {
+                Log.instance(context).error("esc.no.prover",prover);
+                return null;
             }
-            // FIXME Constructor<?> cn = c.getConstructor(com.sun.tools.javac.util.Context.class);
-            //return (IProver)cn.newInstance(context);
-            return new YicesProver(context);
+            Constructor<?> cn = c.getConstructor(com.sun.tools.javac.util.Context.class);
+            return (IProver)cn.newInstance(context);
         } catch (Exception e) {
             Log.instance(context).error("esc.create.prover.exception",prover,e.getMessage());
             return null;
@@ -131,7 +128,7 @@ public abstract class AbstractProver implements IProver {
             throw new ProverException("No path to the executable found; specify it using -Dopenjml.prover.cvc3");
         } else {
             java.io.File f = new java.io.File(app[0]);
-            if (!f.exists()) log.noticeWriter.println("Doesnot appear to exist " + app[0]);
+            if (!f.exists()) log.noticeWriter.println("Does not appear to exist: " + app[0]);
             //if (!f.exists()) throw new ProverException("The specified executable does not appear to exist: " + app[0]);
         }
         try {

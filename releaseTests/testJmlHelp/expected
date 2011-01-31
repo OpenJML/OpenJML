@@ -58,4 +58,5 @@ JML options:
   --                         Terminates option processing - all remaining arguments are files
   -crossRefAssociatedInfo    >...
   -method                    The method name on which to run ESC
+  -prover                    The prover to use to check verification conditions
 ENDING with exit code 2

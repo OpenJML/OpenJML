@@ -65,8 +65,8 @@ public class Utils {
         return v;
     }
     
-    /** Reports aJML assertion failure with the given message if the second argument 
-     * is not equal to the third
+    /** Reports a JML assertion failure with the given message if the second argument 
+     * is not equal to the third (this is a test for object non-equality)
      * @param message the message to report if the second argument and third arguments are not equal
      * @param o value to be tested 
      * @param v value to be returned 

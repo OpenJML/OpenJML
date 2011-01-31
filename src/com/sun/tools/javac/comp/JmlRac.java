@@ -1694,9 +1694,6 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
     //        
     //    }
     //
-        public void visitJmlRefines(JmlRefines that) {
-            log.error("jml.internal","Do not expect to ever reach this point - JmlRac.visitJmlRefines");
-        }
 
     // FIXME - check this
     public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
@@ -2445,7 +2442,8 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                         // FIXME - check that method signature is present
                         String sp = position(constraint.source(),constraint.pos);
                         try {
-                            JCExpression e = translate(treeutils.makeUnary(constraint.pos,JCTree.NOT,JmlTreeCopier.copy(make,constraint.expression)));
+                            // FIXME - why are we making a copy here?
+                            JCExpression e = translate(treeutils.makeUnary(constraint.pos,JCTree.NOT,JmlTreeCopier.copy(context,make,constraint.expression)));
                             JCStatement st = undefinedCheck(currentMethodInfo.owner,
                                     sp+"constraint",
                                     make.If(e,assertFailure(sp+"constraint is false",constraint.pos),null));

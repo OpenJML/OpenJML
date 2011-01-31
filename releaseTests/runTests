@@ -138,7 +138,7 @@ ${RTH} testPath4 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/dat
 ## Checks using source path (specs and java) - finds specs and super class
 ${RTH} testPath5 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
 
-## Checks using source path (java then specs) - finds super class; uses java file for specs
+## Checks using source path (java then specs) - finds super class; uses jml file for specs even though it is later on the search path
 ${RTH} testPath6 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using source path and specs path - uses specs file, finds super class
@@ -147,7 +147,7 @@ ${RTH} testPath7 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/dat
 ## Checks using class path (specs and java) - finds specs and super class
 ${RTH} testPath8 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
 
-## Checks using class path (java then specs) - finds super class; uses java file for specs
+## Checks using class path (java then specs) - finds super class; uses jml file for specs
 ${RTH} testPath9 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using class path and specs path - uses specs file, finds super class

@@ -10,7 +10,7 @@ import java.util.Set;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.Utils;
 
@@ -132,14 +132,14 @@ public class JmlScanner extends DocCommentScanner {
         @Override
         public Scanner newScanner(char[] input, int inputLength, boolean keepDocComments) {
             JmlScanner j = new JmlScanner(this, input, inputLength);
-            j.noJML = JmlOptionName.isOption(context, JmlOptionName.NOJML);
+            j.noJML = JmlOption.isOption(context, JmlOption.NOJML);
             return j;
         }
 
         @Override
         public Scanner newScanner(CharSequence input, boolean keepDocComments) {
             JmlScanner j = new JmlScanner(this, CharBuffer.wrap(input));
-            j.noJML = JmlOptionName.isOption(context, JmlOptionName.NOJML);
+            j.noJML = JmlOption.isOption(context, JmlOption.NOJML);
             return j;
         }
 
@@ -265,7 +265,7 @@ public class JmlScanner extends DocCommentScanner {
         char chend = ch;
 
         // rescan the input
-        bp = pos() - 1; // OK for unicode
+        bp = pos() - 1; // OK for unicode // FIXME - really?
         scanChar(); // the /
         scanChar(); // the next / or *
         if (bp >= end)

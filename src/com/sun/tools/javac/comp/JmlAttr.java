@@ -26,7 +26,7 @@ import org.jmlspecs.annotation.*;
 import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlCompiler;
 import org.jmlspecs.openjml.JmlInternalError;
-import org.jmlspecs.openjml.JmlOptionName;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
@@ -254,8 +254,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
-        this.verbose = JmlOptionName.isOption(context,"-verbose") ||
-                        JmlOptionName.isOption(context,JmlOptionName.JMLVERBOSE) ||
+        this.verbose = JmlOption.isOption(context,"-verbose") ||
+                        JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
                         utils.jmldebug;
 
         this.specs = JmlSpecs.instance(context);
@@ -2645,7 +2645,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (msym != null) {
                 // FIXME - test that this works if the purity annotation is in a specs file and not the java file
                 boolean isPure = isPure(msym) || isPure(msym.enclClass());
-                if (!isPure && !JmlOptionName.isOption(context,JmlOptionName.NOPURITYCHECK)) {
+                if (!isPure && !JmlOption.isOption(context,JmlOption.NOPURITYCHECK)) {
                     log.warning(tree.pos,"jml.non.pure.method",msym);
                 }
             } else {
@@ -2833,10 +2833,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        // visitApply.
 //        result = that.type = Type.noType;
 //    }
-    
-    public void visitJmlRefines(JmlRefines that) {
-        // nothing to do
-    }
     
 
     public void visitJmlImport(JmlImport that) {
