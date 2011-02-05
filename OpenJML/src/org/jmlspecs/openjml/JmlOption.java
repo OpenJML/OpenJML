@@ -51,6 +51,7 @@ public enum JmlOption implements IOption {
         { public void process(Options options) { options.put(JMLVERBOSE.name,""); }},
     //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove
     TRACE("-trace",false,"ESC: Enables tracing of counterexamples"),
+    SHOWBB("-showbb",false,"ESC: Debug output of Basic Block program"),
     COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample"),
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions"),
     JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)"),

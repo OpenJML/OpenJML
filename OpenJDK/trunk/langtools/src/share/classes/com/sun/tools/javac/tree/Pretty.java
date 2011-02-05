@@ -158,6 +158,9 @@ public class Pretty extends JCTree.Visitor {
     /** Print string, replacing all non-ascii character with unicode escapes.
      */
     public void print(Object s) throws IOException {
+        if (s == null) s = "<<<ERROR>>>"; // This is defensive. s should not be null, but in case it is
+                                    // making this assignment avoids aborting the whole pretty-printing
+                                    // and makes it easier to debug the problem.
         out.write(Convert.escapeUnicode(s.toString()));
     }
 

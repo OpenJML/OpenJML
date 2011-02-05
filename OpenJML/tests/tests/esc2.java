@@ -11,7 +11,8 @@ public class esc2 extends EscBase {
         super.setUp();
         options.put("-noPurityCheck","");
         options.put("-nullableByDefault",""); // Because the tests were written this way
-        //options.put("-jmlverbose",   "");
+//        options.put("-jmlverbose",   "");
+//        options.put("-showbb","");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //options.put("-trace",   "");

@@ -2427,6 +2427,7 @@ public class JmlTree {
     public static class JmlStatementLoop extends JmlAbstractStatement {
         public JmlToken token;
         public JCTree.JCExpression expression;
+        public VarSymbol sym; // FIXME - put this in the copy constructors etc.
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementLoop(int pos, JmlToken token, JCTree.JCExpression expression) {
