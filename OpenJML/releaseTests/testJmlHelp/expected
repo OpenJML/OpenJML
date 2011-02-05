@@ -51,6 +51,7 @@ JML options:
   -jmlverbose                Like -verbose, but only jml information and not as much (included in -verbose)
   -progress                  Shows progress through compilation phases, includes -jmlverbose
   -trace                     ESC: Enables tracing of counterexamples
+  -showbb                    ESC: Debug output of Basic Block program
   -counterexample            ESC: Enables output of complete, raw counterexample
   -subexpressions            ESC: Enables tracing with subexpressions
   -jmldebug                  When on, the program emits lots of output (includes -progress)
