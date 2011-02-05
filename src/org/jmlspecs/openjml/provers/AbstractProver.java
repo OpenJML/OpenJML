@@ -194,7 +194,7 @@ public abstract class AbstractProver implements IProver {
 
     /** A buffer to hold input */
     /*@ non_null */
-    protected char[] cbuf = new char[300000];
+    protected char[] cbuf = new char[3000000];
 
     /** Returns the prover-specific prompt string that the eatPrompt method
      * should look for.  The string may not contain any CR/NL characters.

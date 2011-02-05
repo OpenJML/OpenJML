@@ -128,6 +128,7 @@ public class JmlTreeUtils {
     protected Symbol orSymbol;
     protected Symbol notSymbol;
     protected Symbol objecteqSymbol;
+    protected Symbol objectneSymbol;
     protected Symbol booleqSymbol;
     protected Symbol boolneSymbol;
     public JCLiteral trueLit;
@@ -177,6 +178,7 @@ public class JmlTreeUtils {
         orSymbol = findOpSymbol("||",syms.booleanType);
         notSymbol = findOpSymbol("!",syms.booleanType);
         objecteqSymbol = findOpSymbol("==",syms.objectType);
+        objectneSymbol = findOpSymbol("!=",syms.objectType);
         booleqSymbol = findOpSymbol("==",syms.booleanType);
         boolneSymbol = findOpSymbol("!=",syms.booleanType);
         trueLit = makeLit(0,syms.booleanType,1);
@@ -461,9 +463,9 @@ public class JmlTreeUtils {
         return makeBinary(pos,JCTree.EQ,objecteqSymbol,lhs, rhs);
     }
 
-    /** Makes the AST for a reference equality (==) expression */
+    /** Makes the AST for a reference inequality (!=) expression */
     public JCBinary makeNeqObject(int pos, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,JCTree.NE,objecteqSymbol,lhs, rhs);
+        return makeBinary(pos,JCTree.NE,objectneSymbol,lhs, rhs);
     }
 
     /** Makes a new variable declaration for helper variables in the AST translation;

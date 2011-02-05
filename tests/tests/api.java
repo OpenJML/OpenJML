@@ -93,12 +93,18 @@ public class api extends TestCase {
         this.capture = capture;
     }
     
-    public void check(String errOutput, String output) {
+    public void endCapture() {
         if (!capture) return;
         System.err.flush();
         System.out.flush();
         System.setErr(savederr);
         System.setOut(savedout);
+        capture = false;
+    }
+    
+    public void check(String errOutput, String output) {
+        if (!capture) return;
+        endCapture();
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualErr = berr.toString();
         String actualOut = bout.toString();
@@ -910,6 +916,13 @@ public class api extends TestCase {
 
             m.doESC(msym);
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = diags.getDiagnostics();
+            if (dlist.size() != 0) {
+                // Print out observed errors for debugging
+                endCapture();
+                for (Diagnostic<? extends JavaFileObject> d: dlist) {
+                    System.out.println(d.getMessage(null));
+                }
+            }
             assertEquals(null,res);
             res = m.getProofResult(msym);
             assertTrue(res != null);
@@ -926,9 +939,6 @@ public class api extends TestCase {
             m.doESC(csym);
             check("","");
             assertEquals(4,dlist.size());
-//            for (Diagnostic<? extends JavaFileObject> d: dlist) {
-//                System.out.println(d.getMessage(null));
-//            }
         } catch(junit.framework.AssertionFailedError e) {
             throw e;
         } catch (Exception e) {

@@ -337,13 +337,22 @@ public class YicesProver extends AbstractProver implements IProver {
                         int off = 0;
                         while (errors.ready()) {
                             int nn = errors.read(cbuf,off,cbuf.length-off);
-                            if (nn < 0) throw new ProverException("Prover died-eStream");
+                            if (nn < 0) {
+                                if (showCommunication >= 2) log.noticeWriter.print("Prover died-eStream");
+                                throw new ProverException("Prover died-eStream: read so far: " + String.valueOf(cbuf,0,off));
+                            }
                             if (nn == 0) break;
                             off += nn;
                         }
                         String serr = String.valueOf(cbuf,0,off);
-                        if (!serr.startsWith("searching")) log.noticeWriter.println("ERROR STREAM ON DEATH: " + serr);
-                        throw new ProverException("Prover died");
+                        if (showCommunication >= 2) log.noticeWriter.println("NO INPUT - ERROR READ: " + serr);
+                        try {
+                            process.exitValue();
+                            throw new ProverException("Prover has terminated");
+                        } catch (IllegalThreadStateException e) {
+                            try { Thread.sleep(2000); } catch (InterruptedException ee) {}
+                        }
+                        continue;
                     }
                     offset += n;
                     if (offset > 1 && cbuf[offset-2] == '>' && cbuf[offset-1] ==' ') break;
@@ -571,7 +580,9 @@ public class YicesProver extends AbstractProver implements IProver {
         } catch (IOException e) {
             String se = e.toString();
             if (se.length() > 100) se = se.substring(0,100) + " .....";
-            throw new ProverException("Failed to write to prover: (" + s.length() + " chars) " + se);
+            String msg = "Failed to write to prover: (" + s.length() + " chars) " + se;
+            if (showCommunication >= 2) log.noticeWriter.print(msg);
+            throw new ProverException(msg);
         }
     }
 

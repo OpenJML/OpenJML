@@ -72,7 +72,7 @@ public class escgeneric extends EscBase {
     public void testGenericType() {
 //        options.put("-showbb","");
 //        options.put("-trace","");
-//        options.put("-method","mz1");
+//        options.put("-method","m");
 //        JmlEsc.escdebug= true;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
