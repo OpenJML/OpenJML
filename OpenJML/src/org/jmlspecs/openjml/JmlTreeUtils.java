@@ -420,7 +420,7 @@ public class JmlTreeUtils {
      */
     public JCBinary makeEquality(int pos, JCExpression lhs, JCExpression rhs) {
         JCBinary tree = factory.at(pos).Binary(JCTree.EQ, lhs, rhs);
-        tree.operator = null;
+        tree.operator = null; // FIXME - add in appropriate operator based on type?
         tree.type = syms.booleanType;
         return tree;
     }

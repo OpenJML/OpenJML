@@ -145,7 +145,7 @@ public class esc extends EscBase {
                 
                 +"  public void m7a() {\n"
                 +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ decreases \\index;\n" // BAD
+                +"    //@ decreases \\index+10;\n" // BAD
                 +"    for (long k: a) {\n"
                 +"    }\n"
                 +"  }\n"
@@ -236,82 +236,15 @@ public class esc extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 
-                +"  public void m4() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    long[] b = { 1,2};\n"
-                +"    for (long k: a) {\n"
-                +"      //@ ghost int i = \\index;\n"  // OK
-                +"      //@ assert \\index >= 0;\n"  // OK
-                +"      for (long kk: b) {\n"
-                +"         //@ assert \\index < 2;\n" // OK
-                +"      }\n"
-                +"      //@ assert \\index == i;\n"  // OK
-                +"    }\n"
-                +"  }\n"  // Line 40
-                
-                +"  public void m5() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    long[] b = { 1,2};\n" 
-                +"    for (long k: a) {\n"
-                +"      //@ ghost int i = \\index;\n"  
-                +"      for (long kk: b) {\n"
-                +"         //@ assert \\index == i;\n" // BAD
-                +"      }\n"
-                +"    }\n"
-                +"  }\n"  // Line 50
-                
-                +"  public void m6() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ loop_invariant \\index >= 0 && \\index <= a.length;\n" // OK
-                +"    //@ decreases a.length - \\index;\n" // OK
-                +"    for (long k: a) {\n"
-                +"    }\n"
-                +"  }\n"
-                
-                +"  public void m7() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ decreases a.length - \\index -1;\n" // BAD  // Line 60
-                +"    for (long k: a) {\n"
-                +"    }\n"
-                +"  }\n"  
-                
-                +"  public void m7a() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ decreases \\index+10;\n" // BAD
-                +"    for (long k: a) {\n"
-                +"    }\n"
-                +"  }\n"
-                
-                +"  public void m8() {\n"  // Line 70
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ loop_invariant \\index > 0 && \\index <= a.length;\n" // BAD - first time through loop
-                +"    for (long k: a) {\n"
-                +"    }\n"
-                +"  }\n"
-                
-                +"  public void m9() {\n"
-                +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ loop_invariant \\index >= 0 && \\index < a.length;\n" // BAD - last time through loop
-                +"    for (long k: a) {\n"
-                +"    }\n"
-                +"  }\n"
                 
                 +"}"
                 
                 ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assert) in method m3a",11
-                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (Assert) in method m5",14
-                ,"/tt/TestJava.java:61: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method m7",5
-                ,"/tt/TestJava.java:60: warning: Associated declaration",9
-                ,"/tt/TestJava.java:68: warning: The prover cannot establish an assertion (LoopDecreases) in method m7a",5
-                ,"/tt/TestJava.java:66: warning: Associated declaration",9
-                ,"/tt/TestJava.java:73: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method m8",5
-                ,"/tt/TestJava.java:72: warning: Associated declaration",9
-                ,"/tt/TestJava.java:80: warning: The prover cannot establish an assertion (LoopInvariant) in method m9",5
-                ,"/tt/TestJava.java:78: warning: Associated declaration",9
                 );
     }
 
     // FIXME - troubles with enhanced-for statements with complicated generics
+    // FIXME - need more testing with foreach and iterables
     public void _testForEach2() {
         helpTCX("tt.TestJava","package tt; import java.util.*; \n"
                 +"public class TestJava { \n"
