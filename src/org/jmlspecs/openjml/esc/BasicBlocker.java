@@ -301,9 +301,32 @@ public class BasicBlocker extends JmlTreeScanner {
     /** Suffix for the name of a 'catchrest' basic block */
     public static final String CATCHREST = "$catchrest";
     
-    /** Suffix for the name of a basic block holding the code after a loop */
-    public static final String LOOPAFTER = "$loopafter";
+    /** Suffix for the name of a basic block holding the body of a loop */
+    public static final String LOOPBODY = "$LoopBody";
     
+    /** Suffix for the name of a basic block holding the code after a loop */
+    public static final String LOOPAFTER = "$LoopAfter";
+    
+    /** Suffix for the name of a basic block holding the code where continue statements go */
+    public static final String LOOPCONTINUE = "$LoopContinue";
+    
+    /** Suffix for the name of a basic block holding the code where break statements go */
+    public static final String LOOPBREAK = "$LoopBreak";
+    
+    /** Suffix for the name of a basic block to which control transfers if the loop condition fails */
+    public static final String LOOPEND = "$LoopEnd";
+    
+    /** Suffix for the name of a basic block for the then branch of an if statement */
+    public static final String THENSUFFIX = "$then";
+    
+    /** Suffix for the name of a basic block for the else branch of an if statement */
+    public static final String ELSESUFFIX = "$else";
+    
+    /** Suffix for the name of a basic block after an if statement */
+    public static final String AFTERIF = "$afterIf";
+    
+    /** Prefix for branch condition variables */
+    public static final String BRANCHCONDITION_PREFIX = "branchCondition$";
     
     //-----------------------------------------------------------------
     // Names for various basic blocks
@@ -1505,10 +1528,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 b.statements.add(comment(ax));
                 JCExpression e = ax.expression;
                 e = trSpecExpr(e,ax.source());
-                // FIXME - call addAssume?
-                JmlStatementExpr asm = factory.JmlExpressionStatement(JmlToken.ASSUME,Label.INVARIANT,e);
-                asm.pos = ax.pos;
-                b.statements.add(asm);
+                addAssume(ax.pos,Label.INVARIANT,e,b.statements);
             }
             
             // For each type parameter T we need T != null and any bounds expressions
@@ -2370,11 +2390,11 @@ public class BasicBlocker extends JmlTreeScanner {
     protected void visitLoopWithSpecs(JCTree that, List<JCStatement> init, JCExpression test, List<JCExpressionStatement> update, JCStatement body, List<JmlStatementLoop> loopSpecs) {
         loopStack.add(0,that);
         int pos = that.pos;
-        BasicBlock bloopBody = newBlock(blockPrefix + pos + "$LoopBody",pos);
-        BasicBlock bloopContinue = newBlock(blockPrefix + pos + "$LoopContinue",pos);
-        BasicBlock bloopEnd = newBlock(blockPrefix + pos + "$LoopEnd",pos);
-        BasicBlock bloopBreak = newBlock(blockPrefix + pos + "$LoopBreak",pos);
-        String restName = blockPrefix + pos + "$LoopAfter";
+        BasicBlock bloopBody = newBlock(blockPrefix + pos + LOOPBODY,pos);
+        BasicBlock bloopContinue = newBlock(blockPrefix + pos + LOOPCONTINUE,pos);
+        BasicBlock bloopEnd = newBlock(blockPrefix + pos + LOOPEND,pos);
+        BasicBlock bloopBreak = newBlock(blockPrefix + pos + LOOPBREAK,pos);
+        String restName = blockPrefix + pos + LOOPAFTER;
         blockLookup.put(bloopContinue.id.name.toString(),bloopContinue);
         blockLookup.put(bloopBreak.id.name.toString(),bloopBreak);
 
@@ -2540,6 +2560,7 @@ public class BasicBlocker extends JmlTreeScanner {
     }
 
     public void visitForeachLoop(JCEnhancedForLoop that) {
+        currentBlock.statements.add(comment(that.pos,"for..."));
         visitForeachLoopWithSpecs(that,null);
     }
     
@@ -2616,7 +2637,7 @@ public class BasicBlocker extends JmlTreeScanner {
         visitDoLoopWithSpecs(that,that.loopSpecs);
     }
 
-    
+    // FIXME - rewview this
     /* FOR A DO-WHILE LOOP
      * do { S; } while (Test)    becomes
      * 
@@ -2644,10 +2665,10 @@ public class BasicBlocker extends JmlTreeScanner {
         loopStack.add(0,that);
         int pos = that.pos;
         BasicBlock bloopStart = currentBlock;
-        BasicBlock bloopContinue = newBlock(blockPrefix + pos + "$LoopContinue",pos);
-        BasicBlock bloopEnd = newBlock(blockPrefix + pos + "$LoopEnd",pos);
-        BasicBlock bloopBreak = newBlock(blockPrefix + pos + "$LoopBreak",pos);
-        String restName = blockPrefix + pos + "$LoopAfter";
+        BasicBlock bloopContinue = newBlock(blockPrefix + pos + LOOPCONTINUE,pos);
+        BasicBlock bloopEnd = newBlock(blockPrefix + pos + LOOPEND,pos);
+        BasicBlock bloopBreak = newBlock(blockPrefix + pos + LOOPBREAK,pos);
+        String restName = blockPrefix + pos + LOOPAFTER;
 
         // Create an (unprocessed) block for everything that follows the
         // loop statement
@@ -2737,8 +2758,8 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     public void visitLabelled(JCLabeledStatement that) {
+        currentBlock.statements.add(comment(that.pos,that.label + ": ..."));
         JCTree target = that.getStatement();
-        while (target instanceof JCLabeledStatement) ((JCLabeledStatement)target).getStatement();
         VarMap map = currentMap.copy();
         labelmaps.put(that.label,map);
         labelmapStatement.put(that.label,target);
@@ -2784,6 +2805,7 @@ public class BasicBlocker extends JmlTreeScanner {
     //     $$BL$<pos>$switchEnd:
     //          ....
     //     
+    // FIXME - review
     public void visitSwitch(JCSwitch that) { 
         currentBlock.statements.add(comment(that.pos,"switch ..."));
         int pos = that.pos;
@@ -2938,6 +2960,7 @@ public class BasicBlocker extends JmlTreeScanner {
     //
     //
     // FIXME - the catch blocks should use Java not JML subtype tests
+    // FIXME - review
     public void visitTry(JCTry that) {
         currentBlock.statements.add(comment(that.pos,"try..."));
 
@@ -3038,6 +3061,7 @@ public class BasicBlocker extends JmlTreeScanner {
         processBlockStatements(false);
     }
     
+    // Should not get here because catch statements are handled with the try statement
     public void visitCatch(JCCatch that) { 
         shouldNotBeCalled(that); 
     }
@@ -3046,16 +3070,17 @@ public class BasicBlocker extends JmlTreeScanner {
         currentBlock.statements.add(comment(that.pos,"if..."));
         int pos = that.pos;
         // Create a bunch of block names
-        String thenName = blockPrefix + pos + "$then";
-        String elseName = blockPrefix + pos + "$else";
-        String restName = blockPrefix + pos + "$afterIf";
+        String thenName = blockPrefix + pos + THENSUFFIX;
+        String elseName = blockPrefix + pos + ELSESUFFIX;
+        String restName = blockPrefix + pos + AFTERIF;
         
         // We create a new auxiliary variable to hold the branch condition, so 
         // we can track its value and so the subexpression does not get
         // replicated.  We add an assumption about its value and add it to
         // list of new variables
-        String condName = "branchCondition$" + that.getStartPosition();
-        JCIdent vd = newAuxIdent(condName,syms.booleanType,that.getStartPosition(),false);
+        String condName = BRANCHCONDITION_PREFIX + pos;
+        JCIdent vd = newAuxIdent(condName,syms.booleanType,pos,true);
+        currentMap.put((VarSymbol)vd.sym,pos,vd.sym.name); // FIXME - fold this into a newAuxIdent call?
         JCExpression newexpr = treeutils.makeBinary(that.cond.pos,JCTree.EQ,vd,that.cond);
         addAssume(that.pos,Label.BRANCHC,trJavaExpr(newexpr));
         
@@ -3098,6 +3123,7 @@ public class BasicBlocker extends JmlTreeScanner {
     
     protected java.util.List<JCStatement> breakStack = new java.util.LinkedList<JCStatement>();
     
+    // FIXME - needs review
     public void visitBreak(JCBreak that) { 
         currentBlock.statements.add(comment(that));
         if (breakStack.isEmpty()) {
@@ -3119,19 +3145,21 @@ public class BasicBlocker extends JmlTreeScanner {
         }
     }
     
+    // FIXME - review with loops
     public void visitContinue(JCContinue that) {
         currentBlock.statements.add(comment(that));
         if (that.label == null) {
             JCTree t = loopStack.get(0);
-            String s = blockPrefix + t.pos + "$LoopContinue";
-            BasicBlock b = blockLookup.get(s);
-            if (b == null) log.noticeWriter.println("NO CONTINUE BLOCK: " + s);
+            String blockName = blockPrefix + t.pos + LOOPCONTINUE;
+            BasicBlock b = blockLookup.get(blockName);
+            if (b == null) log.noticeWriter.println("NO CONTINUE BLOCK: " + blockName);
             else replaceFollows(currentBlock,b);
         } else {
             Log.instance(context).warning("esc.not.implemented","continue statements with labels in BasicBlocker");
         }
     }
     
+    // FIXME - review
     public void visitReturn(JCReturn that) {
         currentBlock.statements.add(comment(that));
         if (that.getExpression() != null) {
@@ -3156,6 +3184,7 @@ public class BasicBlocker extends JmlTreeScanner {
         }
     }
     
+    // FIXME - review
     public void visitThrow(JCThrow that) { 
         currentBlock.statements.add(comment(that));
         
@@ -3207,6 +3236,7 @@ public class BasicBlocker extends JmlTreeScanner {
         addAssert(Label.EXPLICIT_ASSERT, cond, that.cond.getStartPosition(), newstatements, that.cond.getStartPosition(),log.currentSourceFile());
     }
     
+    // FIXME - needs review
     public void visitApply(JCMethodInvocation that) { 
         // This is an expression so we just use trExpr
         JCExpression now;
@@ -3282,6 +3312,7 @@ public class BasicBlocker extends JmlTreeScanner {
         return;
     }
 
+    // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
             // This is an expression so we just use trExpr
@@ -4384,6 +4415,7 @@ public class BasicBlocker extends JmlTreeScanner {
     public void visitSkip(JCSkip that) {
         // do nothing
     }
+    
     public void visitJmlStatement(JmlStatement that) {
         // These are the set and debug statements
         // Just do all the JML statements as if they were Java statements, 
@@ -4415,6 +4447,7 @@ public class BasicBlocker extends JmlTreeScanner {
         return comment(t.pos,JmlPretty.write(t,false));
     }
     
+    // FIXME - review
     public void visitJmlStatementExpr(JmlStatementExpr that) { 
         JmlStatementExpr now = null;
         if (that.token != JmlToken.COMMENT) currentBlock.statements.add(comment(that));
@@ -4422,29 +4455,26 @@ public class BasicBlocker extends JmlTreeScanner {
             JCExpression expr = trSpecExpr(that.expression,that.source);
             JCExpression opt = trSpecExpr(that.optionalExpression,that.source);
             if (that.token == JmlToken.ASSUME) {
-//                if (that.label == Label.EXPLICIT_ASSUME || that.label == Label.BRANCHT || that.label == Label.BRANCHE) {
-//                    now = factory.at(that.pos).JmlExpressionStatement(that.token,that.label,expr);
-//                    now.optionalExpression = opt;
-//                    now.type = that.type; 
+                //                if (that.label == Label.EXPLICIT_ASSUME || that.label == Label.BRANCHT || that.label == Label.BRANCHE) {
+                //                    now = factory.at(that.pos).JmlExpressionStatement(that.token,that.label,expr);
+                //                    now.optionalExpression = opt;
+                //                    now.type = that.type; 
                 if (that.label == Label.LOOP) {
-                    expr = that.expression;
+                    expr = that.expression; // FIXME - explain no translation
                 }
-                {
-                    now = factory.at(that.pos).JmlExpressionStatement(that.token,that.label,expr);
-                    now.optionalExpression = opt;
-                    now.type = that.type;   
-                }
+                now = factory.at(that.pos).JmlExpressionStatement(that.token,that.label,expr);
+                now.optionalExpression = opt;
+                now.type = that.type;   
                 currentBlock.statements.add(now);
-            } else {
+                if (that.label == Label.EXPLICIT_ASSUME 
+                                || that.label == Label.BRANCHT || that.label == Label.BRANCHE) {
+                    checkAssumption(that.pos,that.label);
+                }
+            } else { // ASSERT
                 if (that.label == Label.ASSUME_CHECK){
-                    expr = that.expression;
+                    expr = that.expression; // FIXME - explain no translation
                 } 
                 addAssert(that.label,expr,that.declPos,newstatements,that.pos,that.source);
-            }
-            if (that.token == JmlToken.ASSUME &&
-                    (that.label == Label.EXPLICIT_ASSUME 
-                    || that.label == Label.BRANCHT || that.label == Label.BRANCHE)) {
-                checkAssumption(that.pos,that.label);
             }
 
         } else if (that.token == JmlToken.UNREACHABLE) {
@@ -4527,9 +4557,7 @@ public class BasicBlocker extends JmlTreeScanner {
             inSpecExpression = prevInSpecExpression;
         }
     }
-    
-    // Expression nodes to be implemented
-    
+        
     public void visitParens(JCParens that) { 
         JCExpression expr = trExpr(that.expr);
         JCParens now = factory.Parens(expr);
@@ -4537,6 +4565,8 @@ public class BasicBlocker extends JmlTreeScanner {
         now.pos = that.pos;
         result = now;
     }
+    
+    // FIXME - what about embedded assignments within a conditional
     
     public void visitConditional(JCConditional that) { 
         JCExpression cond = trExpr(that.cond);
@@ -4573,9 +4603,11 @@ public class BasicBlocker extends JmlTreeScanner {
         if (arg == that.arg) { result = that; return; }
         JCUnary now = factory.at(that.pos).Unary(that.getTag(),arg);
         now.operator = that.operator;
-        now.type = that.type;  // FIXME - is this right
+        now.type = that.type;
         result = now;
     }
+    
+    // FIXME - what about embedded assignments within short-circuit operations
     
     public void visitBinary(JCBinary that) { 
         JCExpression left = trExpr(that.lhs);
@@ -4606,6 +4638,7 @@ public class BasicBlocker extends JmlTreeScanner {
             right = trExpr(that.rhs);
         }
         if (that.getTag() == JCTree.PLUS && that.type == syms.stringType) {
+            // FIXME - review the handling of strings
             JCIdent concat = newAuxIdent("concat$",syms.stringType,that.pos,false);
             JCExpression nleft = left;
             JCExpression nright = right;
@@ -4621,12 +4654,7 @@ public class BasicBlocker extends JmlTreeScanner {
             result = now;
             return;
         }
-        JCBinary now = treeutils.makeBinary(that.pos,that.getTag(),that.operator,left,right);
-        now.operator = that.operator;
-        now.type = that.type;
-        //if (now.type == null) now.type = syms.booleanType; // HACK
-        now.pos = that.pos;
-        result = now;
+        result = treeutils.makeBinary(that.pos,that.getTag(),that.operator,left,right);
         if (that.getTag() == JCTree.DIV || that.getTag() == JCTree.MOD) {
             JCExpression e = treeutils.makeBinary(that.rhs.pos,JCTree.NE,that.rhs,zeroLiteral);
             e = treeutils.makeJmlBinary(that.rhs.pos,JmlToken.IMPLIES,condition,e);
@@ -4635,6 +4663,7 @@ public class BasicBlocker extends JmlTreeScanner {
         }
     }
     
+    // FIXME - review
     public void visitTypeCast(JCTypeCast that) { 
         JCExpression e = trExpr(that.getExpression());
         if (that.type.isPrimitive()) {
@@ -4658,16 +4687,16 @@ public class BasicBlocker extends JmlTreeScanner {
         }
     }
     
+    // FIXME - review
     public void visitTypeTest(JCInstanceOf that) {
         JCExpression e = trExpr(that.getExpression());
         Type t = trType(that.getType().type);
         result = makeInstanceof(e,e.pos,t,that.getType().pos);
     }
     
+    // FIXME - review this and callees
     public void visitIndexed(JCArrayAccess that) { 
         JCExpression array = trExpr(that.getExpression());
-//        checkForNull(array,that.pos,trueLiteral,null);
-        
         JCExpression index = trExpr(that.getIndex());
         checkArrayAccess(array,index,that.pos);
         
@@ -4719,6 +4748,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 e,pos,currentBlock.statements,pos,log.currentSourceFile());
     }
     
+    // FIXME - review
     public void visitSelect(JCFieldAccess that) {
         Symbol sym = that.sym;
         if (sym == null) {
@@ -4776,6 +4806,7 @@ public class BasicBlocker extends JmlTreeScanner {
         }
     }
     
+    // FIXME - review this
     public void visitIdent(JCIdent that) { 
         if (that.sym instanceof VarSymbol) {
             VarSymbol vsym = (VarSymbol)that.sym;
@@ -4812,6 +4843,7 @@ public class BasicBlocker extends JmlTreeScanner {
         } else if (that.type instanceof TypeVar) {
             result = newTypeIdentUse((TypeSymbol)that.sym,that.pos);
         } else {
+            // FIXME - what case is this?
             result = that;
         }
     }
@@ -4848,7 +4880,8 @@ public class BasicBlocker extends JmlTreeScanner {
     }
     
     // FIXME - embedded assignments to array elements are not implemented; no warning either
-    
+    // FIXME - is all implicit casting handled
+    // Note that the left and right expressions are translated.
     protected JCExpression doAssignment(Type restype, JCExpression left, JCExpression right, int pos) {
         if (left instanceof JCIdent) {
             JCIdent id = (JCIdent)left;
@@ -4857,8 +4890,6 @@ public class BasicBlocker extends JmlTreeScanner {
 
             // FIXME - set line and source
             addAssume(pos,Label.ASSIGNMENT,expr,newstatements);
-//            JmlStatementExpr assume = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME,Label.ASSIGNMENT,expr);
-//            newstatements.add(assume); 
             return left;
         } else if (left instanceof JCArrayAccess) {
             JCIdent arr = getArrayIdent(right.type);
@@ -4870,8 +4901,6 @@ public class BasicBlocker extends JmlTreeScanner {
 
             // FIXME - set line and source
             addAssume(pos,Label.ASSIGNMENT,expr,newstatements);
-//            JmlStatementExpr assume = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME,Label.ASSIGNMENT,expr);
-//            newstatements.add(assume); 
             newIdentIncarnation(heapVar,pos);
             return left;
         } else if (left instanceof JCFieldAccess) {
@@ -4884,16 +4913,15 @@ public class BasicBlocker extends JmlTreeScanner {
 
             // FIXME - set line and source
             addAssume(pos,Label.ASSIGNMENT,expr,newstatements);
-//            JmlStatementExpr assume = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME,Label.ASSIGNMENT,expr);
-//            newstatements.add(assume); 
             newIdentIncarnation(heapVar,pos);
             return left;
         } else {
-            log.noticeWriter.println("INCARNATION NOT IMPLERMENTED - visitAssign");
+            log.error("jml.internal","Unexpected case in BasicBlocker.doAssignment: " + left.getClass() + " " + left);
             return null;
         }
     }
     
+    // FIXME - what about implicit type casts
     // += -= *= /= %= >>= <<=  >>>= &= |= ^=
     public void visitAssignop(JCAssignOp that) { 
         JCExpression left = trExpr(that.lhs);
@@ -4909,6 +4937,7 @@ public class BasicBlocker extends JmlTreeScanner {
         result = doAssignment(that.type,left,e,that.pos);
     }
 
+    // FIXME - review
     public void visitVarDef(JCVariableDecl that) { 
         currentBlock.statements.add(comment(that));
         JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
@@ -4964,6 +4993,7 @@ public class BasicBlocker extends JmlTreeScanner {
         return type;
     }
     
+    // FIXME - review
     public void visitNewClass(JCNewClass that) {
         // FIXME - ignoring enclosing expressions; ignoring anonymous classes
         
@@ -5135,6 +5165,7 @@ public class BasicBlocker extends JmlTreeScanner {
         }
     }
     
+    // FIXME - review
     public void visitNewArray(JCNewArray that) { //that.dims, elems, elemtype
         // that.dims - the array of explicit dimensions, if they exist; empty list if the dimensions are implicit
         // that.elems - list of initializers
@@ -5294,10 +5325,10 @@ public class BasicBlocker extends JmlTreeScanner {
     public void visitErroneous(JCErroneous that)         { notImpl(that); }
     public void visitLetExpr(LetExpr that)               { notImpl(that); }
     
+    // Adds specs to a Java Variable Declaration
+    // FIXME - delegate to visitVarDef?
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         currentBlock.statements.add(comment(that));
-        // This includes ghost local declarations
-        // FIXME ??? ghost and model field declarations? // FIXME ??? java declarations?
         // FIXME - need to add various field specs tests
         JCIdent vd = newIdentIncarnation(that,that.pos);
         if (that.init != null) {
@@ -5427,10 +5458,7 @@ public class BasicBlocker extends JmlTreeScanner {
             right = trExpr(that.rhs);
         }
 
-        JmlBinary now = treeutils.makeJmlBinary(that.pos,that.op,left,right);
-        now.op = that.op;
-        now.type = that.type;
-        result = now;
+        result = treeutils.makeJmlBinary(that.pos,that.op,left,right);
     }
     
     // FIXME - how are these checked for definedness?
@@ -5464,6 +5492,8 @@ public class BasicBlocker extends JmlTreeScanner {
     public void visitJmlSetComprehension(JmlSetComprehension that) { notImpl(that); }
     
     public void visitJmlLblExpression(JmlLblExpression that) {
+        // The token is BSLBLANY, BSLBLPOS, BSLBLNEG. The substring(2) strips off the BS.
+        // The form of this string is parsed when the value is retrieved from the prover context
         String n = "$$" + that.token.toString().substring(2) + "$" + that.pos + "$" + that.label;
         JCIdent id = newAuxIdent(n,that.type,that.pos,false);
         JCExpression e = treeutils.makeEquality(that.pos,id,trExpr(that.expression));
@@ -5531,6 +5561,10 @@ public class BasicBlocker extends JmlTreeScanner {
     public void visitJmlCompilationUnit(JmlCompilationUnit that)   { shouldNotBeCalled(that); }
     public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
 
+    /** This method is not called for top-level classes, since the BasicBlocker is invoked
+     * directly for each method.
+     */
+    // FIXME - what about for anonymous classes or local classes or nested classes
     public void visitClassDef(JCClassDecl that) {
         log.noticeWriter.println("YES THIS IS CALLED - visitClassDef");
 //        scan(tree.mods);
@@ -5540,11 +5574,11 @@ public class BasicBlocker extends JmlTreeScanner {
         scan(that.defs); // FIXME - is this ever called for top level class; is it correct for a class definition statement?
     }
     
+    //public void visitJmlClassDecl(JmlClassDecl that) ; // OK to inherit - FIXME - when called?
+    
     @Override
     public void visitMethodDef(JCMethodDecl that)        { notImpl(that); }
     
-    //public void visitJmlClassDecl(JmlClassDecl that) ; // OK to inherit - FIXME - when called?
- 
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         log.noticeWriter.println("YES THIS IS CALLED - visitJMLMethodDecl");
