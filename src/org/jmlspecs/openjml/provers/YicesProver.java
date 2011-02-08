@@ -52,29 +52,6 @@ public class YicesProver extends AbstractProver implements IProver {
     @Override
     public String name() { return "yices"; }
 
-    //    /** The process that is the actual prover */
-    //    protected Process process = null;
-
-    //    /** The stream connection to send information to the prover process. */
-    //    //@ invariant process != null ==> toProver != null;
-    //    protected Writer toProver;
-    //    
-    //    /** The stream connection to read information from the prover process. */
-    //    //@ invariant process != null ==> fromProver != null;
-    //    protected Reader fromProver;
-    //    
-    //    /** The error stream connection to read information from the prover process. */
-    //    //@ invariant process != null ==> errors != null;
-    //    protected Reader errors;
-
-    /** A buffer to hold input */
-    // /*@ non_null */
-    //protected CharBuffer buf = CharBuffer.allocate(100000);
-
-    //    /** A buffer to hold input */
-    //    /*@ non_null */
-    //    char[] cbuf = new char[100000];
-
     /** A handy StringBuilder to build strings internally */
     /*@ non_null */
     protected StringBuilder builder = new StringBuilder();

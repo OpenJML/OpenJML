@@ -149,7 +149,11 @@ public class JmlEsc extends JmlTreeScanner {
         this.checkAssumptions = !JmlOption.isOption(context,"-noCheckAssumptions");
         escdebug = escdebug || Utils.instance(context).jmldebug;
         this.cfInfo = JmlOption.isOption(context,"-crossRefAssociatedInfo");
-        
+        pickProver();
+
+    }
+    
+    public void pickProver() {
         // Pick a prover to use
         proverToUse = JmlOption.value(context,JmlOption.PROVER);
         if (proverToUse == null) proverToUse = System.getProperty(Utils.defaultProverProperty);
@@ -158,7 +162,6 @@ public class JmlEsc extends JmlTreeScanner {
         //proverToUse = "cvc";
         //proverToUse = "simplify";
         //proverToUse = "smt";
-
     }
 
     /** Set to the currently owning class declaration while visiting JCClassDecl and its children. */

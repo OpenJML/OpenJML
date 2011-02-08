@@ -1,0 +1,69 @@
+NOTES and TODO items from code reviews and major features
+
+To review:
+- everything in OpenJML, JMLAnnotations, Specs, OpenJMLUI except
+JmlFlow
+
+
+
+To Do:
+JmlFlow - implement flow checks for JML statements and expressions
+review notes below about OpenJDK
+
+
+OpenJDK differences:
+[ 41 changed files: 12 visibility; 21 minor; 8 more major changes]
+com.sun.tools.doclets.formats.html
+    AbstractMemberWriter - 1 visibility
+    ConfigurationImpl - 2 visibility
+    HtmlDocletWriter - comment changes to avoid comments that look like JML
+com.sun.tools.doclets.internal.toolkit
+*   AbstractDoclet - visibility, plus an extra case to quietly exit in some circumstances
+com.sun.tools.doclets.internal.toolkit.builders
+    FieldBuilder - visibility changes
+    MemberSummaryBuilder - visibility changes
+com.sun.tools.javac.api
+*   DiagnosticFormatter - abstract method added
+com.sun.tools.javac.code
+    Symbol - documentation added
+com.sun.tools.javac.comp
+**  Attr        - visibility, hooks and bug fixes
+*   AttrContext        - visibility and new method
+**  Check        - visibility and small logic changes
+**  Enter        - visibility and small logic changes
+**  Flow        - visibility and small logic changes
+*   MemberEnter        - visibility and hooks - ONE CHANGE TO REVIEW
+*   Resolve        - visibility and A CHANGE TO REVIEW
+com.sun.tools.javac.jvm
+*   ClassReader - code moved to avoid circular initialization; debug method added
+com.sun.tools.javac.main
+**  JavaCompiler - visibility and small logic changes
+*   Main - visibility and always print error messages
+com.sun.tools.javac.parser
+**  DocCommentScanner - visibility and renaming  ::: is all the renaming necessary?
+**  JavacParser - visibility and some hooks
+**  Scanner - visibility and some changes to avoid inheritance
+com.sun.tools.javac.tree
+*   JCTree - uses a factory for Pretty
+*   Pretty - visibility changes; added a factory; a couple defensive programming additions
+*   TreeCopier - bug fix and additional method
+com.sun.tools.javac.util
+*   AbstractDiagnosticFormatter - additional hooks added
+*   AbstractLog - optimization
+*   BasicDiagnosticFormatter - hook added
+*   ForwardingDiagnosticFormatter - hook added
+*   JavacMessages - added debug information
+*   JCDiagnostic - added implementation of a new abstract method
+*   Log - added a flush (may not be needed?)
+*   Options - added a debugging method
+com.sun.tools.javadoc
+*   ClassDocImpl - two small changes
+*   DocEnv - visibility and bug fix
+    ExecutableMemberDocImpl - visibility
+    FieldDocImpl - visibility
+    JavadocClassReader - visibility
+    Messager - change to static
+    ProgramElementDocImpl - visibility
+    Start - visibility and hook - REVIEW THIS CHANGE FOR NECESSITY
+com.sun.tools.javap
+*   JavapTask - added an implementation of a new abstract method

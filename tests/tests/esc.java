@@ -277,7 +277,7 @@ public class esc extends EscBase {
                 
                 +"  public void m7a() {\n"
                 +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ decreases \\index;\n" // BAD
+                +"    //@ decreases \\index+10;\n" // BAD
                 +"    for (long k: a) {\n"
                 +"    }\n"
                 +"  }\n"
@@ -411,7 +411,7 @@ public class esc extends EscBase {
 
     // Test well-definedness within the implicit old
     public void testNonNullElements() {
-        //options.put("-showbb",""); options.put("-method", "m1x"); options.put("-trace","");
+        //options.put("-showbb",""); options.put("-method", "m1a"); options.put("-trace","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -898,13 +898,14 @@ public class esc extends EscBase {
     }
     
     public void testAssignables1() {
+        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
                 +"  int[] a; static int[] sa;\n"
                 
                 +"  //@ modifies \\everything;\n"
-                +"  public void m1() {\n"
+                +"  public void m1x() {\n"
                 +"    //@ assume k == 0;\n"
                 +"    c1(1);\n"
                 +"    //@ assert k == 0;\n"
@@ -2163,9 +2164,10 @@ public class esc extends EscBase {
     }
     
     public void testArraysMD2() {
+        //options.put("-method", "inst5x");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
-                +"  public void inst5(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; */  a[0] = a[1]; /*@ assert a[0][3] == a[1][3]; */}\n" // OK
+                +"  public void inst5x(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; */  a[0] = a[1]; /*@ assert a[0][3] == a[1][3]; */}\n" // OK
                 +"  public void inst5a(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; */ a[0] = a[1]; /*@ assert a[0][3] != a[1][3]; ; */}\n" // BAD
                 +"  public void inst6(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@assume a.length == 10;*/b = a; /*@ assert a[0] == b[0]; */}\n" // OK
                 +"  public void inst6a(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@assume a.length == 10;*/b = a; /*@ assert a[0] != b[0]; */}\n" // BAD

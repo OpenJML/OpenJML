@@ -54,14 +54,14 @@ public class JmlCheck extends Check {
         Check instance = context.get(checkKey); 
         if (instance == null)
             instance = new JmlCheck(context); // Registers itself in the super constructor
-        return (JmlCheck)instance; // If the registered instance is only an Attr, something is catastrophically wrong
+        return (JmlCheck)instance; // If the registered instance is only a Check, something is catastrophically wrong
     }
     
     /** Set externally in order to control errors about old variables needing to be static. */
     public boolean staticOldEnv = false;
     
     /** Set by setInJml in order to avoid errors about generic casts.*/
-    boolean isInJml = false;
+    protected boolean isInJml = false;
     
     /** public method to control the inJml flag */
     public boolean setInJml(Boolean inJml) {

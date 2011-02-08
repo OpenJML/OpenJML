@@ -11,18 +11,20 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
 /**
  * This extends Flow to add flow checks to specifications.  Flow checks for:<BR>
- * uninitialized statements<BR>
+ * uninitialized variables<BR>
  * assignments to final variables<BR>
  * unreachable statements<BR>
  * forward references<BR>
  * fall-through in cases<BR>
  * improper use of checked exceptions<BR>
  * exception never thrown in try<BR>
+ * redundant cast <BR>
  * The JML additions just make sure that ghost fields, model methods and model classes
  * are visited by the flow tree walker.
  *
@@ -30,30 +32,20 @@ import com.sun.tools.javac.util.Log;
  */  // FIXME - I think we need to implement the JML visit methods in order to do checks within JML expressions?
 public class JmlFlow extends Flow implements IJmlVisitor {
 
-    /** Registers a singleton factory for JmlFlow against the flowKey, so that there is
-     * just one instance per context.
+    /** Registers a singleton factory for JmlFlow against the flowKey; the factory
+     * produces a singleton (per context) instance of JmlFlow
      * @param context the context in which to register the instance
      */
     public static void preRegister(final Context context) {
         context.put(Flow.flowKey, new Context.Factory<Flow>() {
+            Flow instance = null;
             public Flow make() { 
-                return new JmlFlow(context);
+                if (instance == null) instance = new JmlFlow(context);
+                return instance;
             }
         });
     }
-    
-    /** Returns the instance for the given context
-     * 
-     * @param context the context in which we are working
-     * @return the non-null instance of JmlAttr for this context
-     */
-    public static JmlFlow instance(Context context) {
-        Flow instance = context.get(flowKey); 
-        if (instance == null)
-            instance = new JmlFlow(context); // Registers itself in the super constructor
-        return (JmlFlow)instance; // If the registered instance is only a Flow, something is catastrophically wrong
-    }
-    
+        
     /** The compilation context of this instance */
     protected Context context;
     
@@ -95,8 +87,9 @@ public class JmlFlow extends Flow implements IJmlVisitor {
         }
     }
     
-    // FIXME - document better why this is here
-    // is tree.meth null for some JML constructs?
+    //// These are implemented
+    
+    /** This is overridden in order to handle JML method call-like features (e.g. \typeof) */
     @Override
     public void visitApply(JCMethodInvocation tree) {
         if (tree.meth == null) return;
@@ -111,270 +104,236 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlBinary(JmlBinary that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlClassDecl(JmlClassDecl that) {
-        // TODO Auto-generated method stub
-        visitClassDef(that);
-    }
-
-    @Override
-    public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-        // TODO Auto-generated method stub
-        visitTopLevel(that);
-    }
-
-    @Override
-    public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
-        // TODO Auto-generated method stub
-        visitDoLoop(that);
-    }
-
-    @Override
-    public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
-        // TODO Auto-generated method stub
-        visitForeachLoop(that);
-    }
-
-    @Override
-    public void visitJmlForLoop(JmlForLoop that) {
-        // TODO Auto-generated method stub
-        visitForLoop(that);
-    }
-
-    @Override
-    public void visitJmlGroupName(JmlGroupName that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlImport(JmlImport that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlLblExpression(JmlLblExpression that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-        // TODO Auto-generated method stub
         visitMethodDef(that);
     }
 
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-        // TODO Auto-generated method stub
         visitApply(that);
     }
 
     @Override
-    public void visitJmlMethodSpecs(JmlMethodSpecs that) {
-        // TODO Auto-generated method stub
-        
+    public void visitJmlBinary(JmlBinary that) {
+        scan(that.lhs);
+        scan(that.rhs);
     }
 
     @Override
-    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-        // TODO Auto-generated method stub
-        
+    public void visitJmlClassDecl(JmlClassDecl that) {
+        visitClassDef(that);
     }
 
     @Override
-    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        // TODO Auto-generated method stub
-        
+    public void visitJmlCompilationUnit(JmlCompilationUnit that) {
+        visitTopLevel(that);
     }
 
     @Override
-    public void visitJmlSetComprehension(JmlSetComprehension that) {
-        // TODO Auto-generated method stub
-        
+    public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
+        visitDoLoop(that);
+    }
+
+    @Override
+    public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
+        visitForeachLoop(that);
+    }
+
+    @Override
+    public void visitJmlForLoop(JmlForLoop that) {
+        visitForLoop(that);
+    }
+    
+
+    @Override
+    public void visitJmlImport(JmlImport that) {
+        visitImport(that);
     }
 
     @Override
     public void visitJmlSingleton(JmlSingleton that) {
-        // TODO Auto-generated method stub
-        
+        // nothing to do
     }
 
     @Override
-    public void visitJmlSpecificationCase(JmlSpecificationCase that) {
-        // TODO Auto-generated method stub
-        
+    public void visitJmlLblExpression(JmlLblExpression that) {
+        scan(that.expression);
     }
 
     @Override
     public void visitJmlStatement(JmlStatement that) {
-        // TODO Auto-generated method stub
-        
+        scan(that.statement);
     }
 
     @Override
     public void visitJmlStatementDecls(JmlStatementDecls that) {
-        // TODO Auto-generated method stub
-        
+        for (JCStatement s: that.list) {
+            scan(s);
+        }
     }
 
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlStatementLoop(JmlStatementLoop that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlStatementSpec(JmlStatementSpec that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
-        // TODO Auto-generated method stub
-        
+        scanExpr(that.expression);
+        scanExpr(that.optionalExpression);
     }
 
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-        // TODO Auto-generated method stub
         visitVarDef(that);
     }
 
     @Override
     public void visitJmlWhileLoop(JmlWhileLoop that) {
-        // TODO Auto-generated method stub
         visitWhileLoop(that);
+    }
+    
+    @Override
+    public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
+        // No action to take
+    }
+
+    //// These are not
+
+    @Override
+    public void visitJmlGroupName(JmlGroupName that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlGroupNameg");
+    }
+
+    @Override
+    public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseConditional");
+    }
+
+    @Override
+    public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
+    }
+
+    @Override
+    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
+    }
+
+    @Override
+    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseGroup");
+    }
+
+    @Override
+    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseSigOnly");
+    }
+
+    @Override
+    public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseSignals");
+    }
+
+    @Override
+    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseStoreRef");
+    }
+
+    @Override
+    public void visitJmlMethodSpecs(JmlMethodSpecs that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodSpecs");
+    }
+
+    @Override
+    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
+        // FIXME - skipping primitive type tree
+    }
+
+    @Override
+    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        // FIXME - skipping quantified expression
+    }
+
+    @Override
+    public void visitJmlSetComprehension(JmlSetComprehension that) {
+        // FIXME: Skipping set comprehension
+    }
+
+    @Override
+    public void visitJmlSpecificationCase(JmlSpecificationCase that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlSpecificationCase");
+    }
+
+    @Override
+    public void visitJmlStatementLoop(JmlStatementLoop that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStatementLoop");
+    }
+
+    @Override
+    public void visitJmlStatementSpec(JmlStatementSpec that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStatementSpec");
+    }
+
+    @Override
+    public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
+//        scan(that.expression);
+//        scan(that.lo);
+//        scan(that.hi);
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
+    }
+
+    @Override
+    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
+        // FIXME: skipping store-ref expressions
+        // we could call scanExpr on each expression, but we have to watch for special expressions
+    }
+
+    @Override
+    public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConditional");
+    }
+
+    @Override
+    public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConstraint");
+    }
+
+    @Override
+    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
+    }
+
+    @Override
+    public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseExpr");
+    }
+
+    @Override
+    public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseIn");
+    }
+
+    @Override
+    public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseInitializer");
+    }
+
+    @Override
+    public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseMaps");
+    }
+
+    @Override
+    public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseMonitorsFor");
+    }
+
+    @Override
+    public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseRepresents");
     }
 
     public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
-        // TODO Auto-generated method stub
-        
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlConstraintMethodSig");
     }
 
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
-        // TODO Auto-generated method stub
-        
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlModelProgramStatement");
     }
 }
