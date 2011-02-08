@@ -581,7 +581,7 @@ public class Flow extends TreeScanner {
 
     /* ------------ Visitor methods for various sorts of trees -------------*/
 
-    public void moreClassDef(JCClassDecl tree) {}
+    public void moreClassDef(JCClassDecl tree) {} // Added an overridable hook
     
     public void visitClassDef(JCClassDecl tree) {
         if (tree.sym == null) return;
@@ -687,7 +687,7 @@ public class Flow extends TreeScanner {
                 }
             }
             
-            moreClassDef(tree);
+            moreClassDef(tree); // DRC - added this hook
 
             thrown = thrownPrev;
         } finally {

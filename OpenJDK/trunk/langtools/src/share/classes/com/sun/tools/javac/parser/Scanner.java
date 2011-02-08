@@ -1025,6 +1025,7 @@ public class Scanner implements Lexer {
                         if (isJavaIdentifierStart) {
                             scanIdent();
                         } else if (bp >= buflen || ch == EOI && bp+1 == buflen) { // JLS 3.5
+                        	// DRC - changed from bp == buflen to bp>=buflen to avoid TBD
                             token = EOF;
                             _pos = bp = eofPos;
                         } else {

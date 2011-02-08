@@ -32,6 +32,7 @@ import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.esc.BasicBlocker;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -621,6 +622,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlAttr.preRegister(context);  // registering a JML-aware type checker
         JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);
+        BasicBlocker.preRegister(context);
     }
     
     /** This is overridden so that serious internal bugs are reported as OpenJML

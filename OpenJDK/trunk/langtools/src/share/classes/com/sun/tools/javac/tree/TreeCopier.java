@@ -58,6 +58,7 @@ public class TreeCopier<P> implements TreeVisitor<JCTree,P> {
         return (T) (tree.accept(this, p));
     }
 
+	// DRC - added this method
     public <T extends JCTree> ListBuffer<T> copy(ListBuffer<T> trees) {
         ListBuffer<T> lb = new ListBuffer<T>();
         for (T t: trees.toList()) lb.append(t);

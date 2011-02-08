@@ -20,7 +20,7 @@ public class jmltypes extends TCBase {
         super.setUp();
     }
     
-    public void testOK() {
+    public void testUninitGhost() {
         helpTCF("A.java",
                 "import java.util.Vector; public class A { \n" +
                 " void m() {\n" +
@@ -38,6 +38,7 @@ public class jmltypes extends TCBase {
                 "  //@ set b = tt <: ttt;\n" +
                 " }\n" +
                 "}\n"
+                ,"/A.java:11: variable t might not have been initialized",27
                 );
     }
 

@@ -530,38 +530,6 @@ public class Log extends AbstractLog {
         errWriter.flush();
     }
 
-// Removed in Build 55.
-//    /** Return the one-based line number associated with a given pos
-//     * for the current source file.  Zero is returned if no line exists
-//     * for the given position.
-//     */
-//    public int getLineNumber(int pos) { // DRC - changed from protected to public
-//        if (findLine(pos))
-//            return line;
-//        return 0;
-//    }
-//
-//    /** Return the one-based column number associated with a given pos
-//     * for the current source file.  Zero is returned if no column exists
-//     * for the given position.
-//     */
-//    public int getColumnNumber(int pos) { // DRC - changed from protected to public
-//        if (findLine(pos)) {
-//            int column = 0;
-//            for (bp = lineStart; bp < pos; bp++) {
-//                if (bp >= bufLen)
-//                    return 0;
-//                if (buf[bp] == '\t')
-//                    column = (column / TabInc * TabInc) + TabInc;
-//                else
-//                    column++;
-//            }
-//            return column + 1; // positions are one-based
-//        }
-//        return 0;
-//    }
-
-
     public static String format(String fmt, Object... args) {
         return String.format((java.util.Locale)null, fmt, args);
     }
