@@ -557,6 +557,7 @@ public class BasicBlocker extends JmlTreeScanner {
         this.treeutils = JmlTreeUtils.instance(context);
         this.treetrans = JmlTranslator.instance(context);
         this.utils = Utils.instance(context);
+        this.scanMode = AST_JAVA_MODE;
         
         unique = 0;
         
@@ -4995,6 +4996,11 @@ public class BasicBlocker extends JmlTreeScanner {
     
     // FIXME - review
     public void visitNewClass(JCNewClass that) {
+        if (that.def != null) {
+            // We take time out here to go check the anonymous class
+            // FIXME - the method specs on a method in an anonymous class are not properly associated with the method
+            JmlEsc.instance(context).visitClassDef(that.def);
+        }
         // FIXME - ignoring enclosing expressions; ignoring anonymous classes
         
         boolean isHelper = false;
@@ -5565,25 +5571,27 @@ public class BasicBlocker extends JmlTreeScanner {
      * directly for each method.
      */
     // FIXME - what about for anonymous classes or local classes or nested classes
+    @Override
     public void visitClassDef(JCClassDecl that) {
-        log.noticeWriter.println("YES THIS IS CALLED - visitClassDef");
-//        scan(tree.mods);
-//        scan(tree.typarams);
-//        scan(tree.extending);
-//        scan(tree.implementing);
-        scan(that.defs); // FIXME - is this ever called for top level class; is it correct for a class definition statement?
+        // Nested classes are found in JmlEsc.  We get to this point if there is a local
+        // class declaration within method body.
+        
+        JmlEsc.instance(context).visitClassDef(that);
     }
+
+// Do not need to override this method
+//    @Override
+//    public void visitJmlClassDecl(JmlClassDecl that) {
+//        super.visitJmlClassDecl(that);
+//    }
     
-    //public void visitJmlClassDecl(JmlClassDecl that) ; // OK to inherit - FIXME - when called?
-    
+    /** This method should never be called */
     @Override
-    public void visitMethodDef(JCMethodDecl that)        { notImpl(that); }
+    public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
     
+    /** This method should never be called */
     @Override
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
-        log.noticeWriter.println("YES THIS IS CALLED - visitJMLMethodDecl");
-        //convertMethodBody(that.body); // FIXME - do the proof?? // Is it ever called? in local classes?
-    }
+    public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
     
 
     // FIXME - this will go away
@@ -5786,36 +5794,44 @@ public class BasicBlocker extends JmlTreeScanner {
      * a modification in the tree being walked: assignments, assignment-ops, 
      * increment and decrement operators, fields specified as modified by a
      * method call.
-     * 
-     * FIXME - is the tree already in reduced BasicBlock form?
-     * 
-     * @author David Cok
-     *
      */
+    // FIXME - is the tree already in reduced BasicBlock form?
     public static class TargetFinder extends JmlTreeScanner {
         
         private List<JCExpression> vars;
         
         public TargetFinder() {}
         
-        public static List<JCExpression> findVars(JCTree that, List<JCExpression> v) {
+        /** Finds variables in the given JCTree, adding them to the list that is the 
+         * second argument; the second argument is returned.
+         */
+        public static /*@Nullable*/List<JCExpression> findVars(JCTree that, /*@Nullable*/List<JCExpression> v) {
             if (that == null) return v;
             TargetFinder vf = new TargetFinder();
             return vf.find(that,v);
         }
         
-        public static List<JCExpression> findVars(Iterable<? extends JCTree> list, List<JCExpression> v) {
+        /** Finds variables in the given JCTrees, adding them to the list that is the 
+         * second argument; the second argument is returned.
+         */
+        public static List<JCExpression> findVars(Iterable<? extends JCTree> list, /*@Nullable*/List<JCExpression> v) {
             TargetFinder vf = new TargetFinder();
             return vf.find(list,v);
         }
         
-        public List<JCExpression> find(Iterable<? extends JCTree> list, List<JCExpression> v) {
+        /** Finds variables in the given JCTrees, adding them to the list that is the 
+         * second argument; the second argument is returned.
+         */
+        public List<JCExpression> find(Iterable<? extends JCTree> list, /*@Nullable*/List<JCExpression> v) {
             if (v == null) vars = new ArrayList<JCExpression>();
             else vars = v;
             for (JCTree t: list) t.accept(this);
             return vars;
         }
         
+        /** Finds variables in the given JCTrees, adding them to the list that is the 
+         * second argument; the second argument is returned.
+         */
         public List<JCExpression> find(JCTree that, List<JCExpression> v) {
             if (that == null) return v;
             if (v == null) vars = new ArrayList<JCExpression>();
@@ -5840,12 +5856,12 @@ public class BasicBlocker extends JmlTreeScanner {
         }
         
         // FIXME - also need targets of method calls, update statements of loops,
-        // initialization statements of loops
+        // initialization statements of loops, specs of method calls
 
     } 
 
     /** A Map that caches class info for a given class symbol */
-    @NonNull Map<Symbol,JmlClassInfo> classInfoMap = new HashMap<Symbol,JmlClassInfo>();
+    @NonNull protected Map<Symbol,JmlClassInfo> classInfoMap = new HashMap<Symbol,JmlClassInfo>();
 
     /** Returns the jmlClassInfo structure for a class, computing and caching 
      * it if necessary.
@@ -5975,6 +5991,7 @@ public class BasicBlocker extends JmlTreeScanner {
         return classInfo;
     }
 
+    // FIXME - Review
     /** This class converts a counterexample into more readable information */
     public static class Tracer extends JmlTreeScanner {
         
@@ -6139,6 +6156,7 @@ public class BasicBlocker extends JmlTreeScanner {
     } 
     
 
+    // FIXME - Review
     /** This class converts a counterexample into more readable information;
      * it uses the basic program form rather than using the Java AST. */
     public static class TracerBB extends JmlTreeScanner {
@@ -6257,6 +6275,7 @@ public class BasicBlocker extends JmlTreeScanner {
         // information and we need to match that as we interpret the counterexample
         // information in these methods.
         
+        // FIXME - Review
         protected boolean traceBlockStatements(BasicBlock b) throws IOException {
             w.append(" [ block " + b.id() + " ]\n");
             boolean sawFalseAssert = false;
@@ -6512,20 +6531,24 @@ public class BasicBlocker extends JmlTreeScanner {
         }
     }
     
-    static int count = 1000000;
+    /** This class requests values of subexpressions from the prover */
     public static class Subexpressor extends JmlTreeScanner {
+        static int count = 1000000;
         
         Context context;
         IProver prover;
         JmlTree.Maker factory;
         Names names;
         Symtab syms;
+        Writer w;
         final String prefix = "X$$$";
-        StringBuilder builder;
         List<JCBinary> exprs = new LinkedList<JCBinary>();
         Map<String,JCExpression> requests = new HashMap<String,JCExpression>();
-        Writer w;
         
+        /** Top-level call for the class - puts requests to the prover for each
+         * subexpression of the argument, returning the results in 'requests'.
+         * This method can be reused, but is not thread-safe.
+         */
         public void walk(JCExpression expr) throws IOException {
             exprs.clear();
             requests.clear();
@@ -6537,7 +6560,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 }
                 res = prover.check(true);
             } catch (ProverException ex) {
-                w.append(ex.toString());
+                w.append(ex.toString());  // FIXME - clean up the error reporting here and in the RUntimeExceptions just below.
                 w.append("\n");
                 return;
             }
@@ -6556,20 +6579,22 @@ public class BasicBlocker extends JmlTreeScanner {
             }
         }
         
+        /** Top-level call that returns a list of values (as Strings) corresponding to the list of 
+         * expressions in the argument */
         public List<String> getValues(JCExpression... exprlist) throws IOException {
             IProverResult res = null;
             List<JCIdent> ids = new LinkedList<JCIdent>();
             try {
                 for (JCExpression e: exprlist) {
                     JCIdent id = newIdent(e);
-                    JCExpression ex = factory.Binary(JCTree.EQ,id,e); // FIXME - position?
+                    JCExpression ex = factory.at(Position.NOPOS).Binary(JCTree.EQ,id,e);
                     ex.type = syms.booleanType;
                     ids.add(id);
                     prover.assume(ex);
                 }
                 res = prover.check(true);
             } catch (ProverException ex) {
-                w.append(ex.toString()); w.append("\n");
+                w.append(ex.toString()); w.append("\n"); // FIXME - better error response here and below
                 return null;
             }
             if (res == null) {
@@ -6590,14 +6615,16 @@ public class BasicBlocker extends JmlTreeScanner {
             return null;
         }
 
+        /** Returns the dynamic type of the variable given in the argument */
         public String getType(String eid) {
             try {
+                factory.at(Position.NOPOS);
                 JCIdent expr = factory.Ident(Names.instance(context).fromString(eid));
                 expr.type = syms.objectType;
-                JCExpression e = factory.at(0).JmlMethodInvocation(JmlToken.BSTYPEOF,expr);
+                JCExpression e = factory.JmlMethodInvocation(JmlToken.BSTYPEOF,expr);
                 e.type = syms.classType;
                 JCIdent id = newIdent(e);
-                JCExpression ex = factory.Binary(JCTree.EQ,id,e); // FIXME - position?
+                JCExpression ex = factory.at(Position.NOPOS).Binary(JCTree.EQ,id,e);
                 ex.type = syms.booleanType;
                 prover.assume(ex);
                 IProverResult res = prover.check(true);
@@ -6622,58 +6649,57 @@ public class BasicBlocker extends JmlTreeScanner {
         public Subexpressor(Context context, IProver prover, Writer w) {
             this.context = context;
             this.prover = prover;
-            this.factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
+            this.factory = JmlTree.Maker.instance(context);
             this.names = Names.instance(context);
             this.syms = Symtab.instance(context);
             this.w = w;
-            //builder = new StringBuilder();
-            
         }
         
         public void request(JCExpression expr) {
             JCIdent id = newIdent(expr);
             requests.put(id.name.toString(),expr);
-            JCBinary bin = factory.Binary(JCTree.EQ,id,expr);  // FIXME _ position?
+            JCBinary bin = factory.Binary(JCTree.EQ,id,expr);
             bin.type = syms.booleanType;
+            bin.pos = Position.NOPOS;
             exprs.add(bin);
         }
         
+        /** Creates a unique identifier with the type of the given expression */
         public JCIdent newIdent(JCExpression expr)  {
             Type t = expr.type;
-//            if (expr instanceof JCIdent && !((JCIdent)expr).sym.isStatic()) {
-//                // non-static fields are type (REF -> t)
-//            }
             Name n = names.fromString(prefix + (++count));
             JCIdent id = factory.Ident(n);
             id.type = t;
             return id;
         }
         
+        /** Scan the given JCTree, issuing a request() call for each subexpression encountered */
         public void scan(JCTree that) {
             super.scan(that);
-//            if (that instanceof JCIdent &&
-//                    ((JCIdent)that).sym != null &&
-//                    ((JCIdent)that).sym.owner != null &&
-//                    !((JCIdent)that).sym.isStatic()) return;  // These are maps that we don't handle for now - I think they just come up in HAVOC assumptions - FIXME
             if (that instanceof JCExpression &&
                     !(that instanceof JCParens) &&
                     !(that instanceof JCLiteral)) request((JCExpression)that);
         }
 
+        /** Scan the given JCTree, issuing a request() call for each subexpression encountered,
+         * but not for the argument itself */
         public void scanNoRequest(JCTree that) {
             super.scan(that);
         }
 
+        /** Overridden so that we request the arguments but not the method call itself.*/
         public void visitApply(JCMethodInvocation tree) {
             scanNoRequest(tree.meth);
             scan(tree.args);
         }
         
+        /** Don't request values for quantified expressions */
         public void visitJmlQuantifiedExpr(JmlQuantifiedExpr tree) {
             // do not scan the subexpressions of a quantified expression
         }
     }
     
+    /** This class computes metrics over a BasicBlock */
     public static class Counter extends JmlTreeScanner {
         
         int nodes = 0;  // nodes
@@ -6764,15 +6790,16 @@ public class BasicBlocker extends JmlTreeScanner {
         public String toString() {
             return "    " + blocks + " blocks; " + nodes + " nodes; " + maxBlockNodes + " max; " + assumes + " assumes; " + asserts + " asserts; " ;
         }
-        
     }
 
-    private ClassSymbol pureAnnotationSymbol = null;
+    /** Returns true if the given symbol is annotated as Pure */
     public boolean isPure(Symbol symbol) {
         if (pureAnnotationSymbol == null) {
-            pureAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotation.Pure"));
+            pureAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString(Utils.jmlAnnotationPackage+".Pure"));
         }
         return symbol.attribute(pureAnnotationSymbol)!=null;
     }
+    /** Caches the symbol for a Pure annotation, which is computed on demand. */
+    private ClassSymbol pureAnnotationSymbol = null;
 
 }
