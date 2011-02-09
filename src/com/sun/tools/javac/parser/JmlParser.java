@@ -22,6 +22,7 @@ import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -2382,7 +2383,9 @@ public class JmlParser extends EndPosParser {
             }
             return e;
         } else if (S.token() == LPAREN) {
-            return classCreatorRest(newpos, null, typeArgs, t);
+            JCNewClass anon = classCreatorRest(newpos, null, typeArgs, t);
+            if (anon.def != null) filterTypeBodyDeclarations((JmlClassDecl) anon.def, context);
+            return anon;
         } else if (S.token() == LBRACE) {
             return parseSetComprehension(t);
         } else {

@@ -220,7 +220,7 @@ public class JmlEsc extends JmlTreeScanner {
         //Pattern.compile("escjava[.]ast[.]ArrayRangeRefExpr[.]getTag[(].*"); 
         //Pattern.compile("escjava[.]sortedProver[.]Lifter[.]FnTerm[.]dump[(].*"); 
         Pattern[] avoids = {
-                Pattern.compile(".*anonymous.*"),
+//               Pattern.compile(".*anonymous.*"),
 
 //                Pattern.compile("escjava[.]sortedProver[.]Lifter[.]FnTerm[.]printTo[(].*"), // too much time
 //                Pattern.compile("escjava[.]sortedProver[.]Lifter[.]Term[.]toString[(].*"), // too much time
