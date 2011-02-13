@@ -69,6 +69,7 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 
 // FIXME - needs review
@@ -313,7 +314,16 @@ public class OpenJMLInterface {
             for (IJavaElement je: elements) {
                 if (je instanceof IMethod) {
                     MethodSymbol msym = convertMethod((IMethod)je);
-                    if (msym != null) api.doESC(msym);
+                    if (msym != null) {
+                    	utils.deleteMarkers(je.getResource(),null); // FIXME - would prefer to delete markers and highlighting on just the method.
+                    	IProverResult res = api.doESC(msym);
+                    	IProverResult.ICounterexample ce = res.counterexample();
+                    	if (ce != null && ce.getPath() != null) {
+                    		for (IProverResult.Span span: ce.getPath()) {
+                              utils.highlight(je.getResource(), span.start, span.end);
+                    		}
+                    	}
+                    }
                     else {} // ERROR - FIXME
                 } else if (je instanceof IType) {
                     ClassSymbol csym = convertType((IType)je);

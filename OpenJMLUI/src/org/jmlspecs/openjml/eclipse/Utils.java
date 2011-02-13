@@ -29,10 +29,12 @@ import java.util.zip.ZipFile;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
@@ -111,6 +113,9 @@ public class Utils {
 
     /** The ID of the marker, which must match that in the plugin file. */
     final public static @NonNull String JML_MARKER_ID = Activator.PLUGIN_ID + ".JMLProblem";
+
+    /** The ID of the marker, which must match that in the plugin file. */
+    final public static @NonNull String JML_HIGHLIGHT_ID = Activator.PLUGIN_ID + ".JMLHighlight";
 
     /** The ID of the marker, which must match that in the plugin file. */
     final public static @NonNull String ESC_MARKER_ID = Activator.PLUGIN_ID + ".JMLESCProblem";
@@ -699,10 +704,7 @@ public class Utils {
         IResource r = getSelectedResources(selection,window,shell).get(0);
         // FIXME - need to do this in another thread. ?
         String result = getInterface(JavaCore.create(r.getProject())).getCEValue(pos,end,s,r);
-        String msg = "This operation is not yet implemented\n\n" 
-            + "Seeking character range " + pos + " to " + end + " in " + r.getLocation().toString()
-            + "\n" + result;
-        showMessage(shell,"Counterexample value",msg);
+        showMessage(shell,"Counterexample value",result);
     }
     
     /**
@@ -1367,15 +1369,7 @@ public class Utils {
             if (!(t instanceof IResource)) continue;
             IResource resource = (IResource)t;
             try {
-                try {
-                	if (Activator.options.uiverbosity >= 2) Log.log("Deleting markers in " + resource.getName());
-                    resource.deleteMarkers(JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
-                    resource.deleteMarkers(ESC_MARKER_ID, false, IResource.DEPTH_INFINITE);
-                } catch (CoreException e) {
-                    String msg = "Failed to delete markers on " + resource.getProject();
-                    Log.errorlog(msg, e);
-                    Activator.getDefault().utils.showMessage(shell,"JML Plugin Exception",msg + " - " + e);
-                }
+                deleteMarkers(resource,shell);
             } catch (Exception e) {
                 Log.errorlog("Exception while deleting markers: " + e,e);
                 if ((maxdialogs--) > 0) {
@@ -1384,6 +1378,25 @@ public class Utils {
                             e.toString());
                 }           
             }
+        }
+    }
+    
+    /** Deletes the markers (and highlighting) in the given resource; 
+     * if the object is a container, markers are deleted for
+     * any resources in the container; other kinds of objects are ignored.
+     * @param resource the resource whose markers are to be deleted
+     * @param shell the current shell for dialogs (or null for default)
+     */
+    public void deleteMarkers(IResource resource, @Nullable Shell shell) {
+        try {
+        	if (Activator.options.uiverbosity >= 2) Log.log("Deleting markers in " + resource.getName());
+        	resource.deleteMarkers(JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
+        	resource.deleteMarkers(ESC_MARKER_ID, false, IResource.DEPTH_INFINITE);
+        	resource.deleteMarkers(JML_HIGHLIGHT_ID, false, IResource.DEPTH_INFINITE);
+        } catch (CoreException e) {
+        	String msg = "Failed to delete markers on " + resource.getProject();
+        	Log.errorlog(msg, e);
+        	Activator.getDefault().utils.showMessage(shell,"JML Plugin Exception",msg + " - " + e);
         }
     }
     
@@ -1426,6 +1439,34 @@ public class Utils {
             Log.errorlog("Core Exception while traversing Resource tree (mark for RAC)",e);
             // just continue
         }
+    }
+    
+    public void highlight(final IResource r, final int finalOffset, final int finalEnd) {
+		IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
+			public void run(IProgressMonitor monitor) throws CoreException {
+				IMarker marker = r.createMarker(Activator.PLUGIN_ID + ".JMLHighlight");
+//				marker.setAttribute(IMarker.LINE_NUMBER, 
+//									finalLineNumber >= 1? finalLineNumber : 1);
+//				if (column >= 0) {
+					marker.setAttribute(IMarker.CHAR_START, finalOffset); 
+					marker.setAttribute(IMarker.CHAR_END, finalEnd);
+//				}
+				// Note - it appears that CHAR_START is measured from the beginning of the
+				// file and overrides the line number when drawing the squiggly 
+				// The line number is used in the information about the problem in
+				// the Problem View
+
+				//marker.setAttribute(IMarker.SEVERITY,IMarker.SEVERITY_INFO);
+				//marker.setAttribute(IMarker.MESSAGE, finalErrorMessage);
+			}
+		};
+		try {
+			r.getWorkspace().run(runnable, null);
+		} catch (CoreException e) {
+            Log.errorlog("Core Exception while highlighting",e);
+            // just continue
+		}
+
     }
     
     public void clearForRac(ISelection selection, IWorkbenchWindow window, final @Nullable Shell shell) {

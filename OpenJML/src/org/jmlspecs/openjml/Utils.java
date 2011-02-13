@@ -6,11 +6,15 @@ import java.net.URL;
 import java.util.Properties;
 import java.util.Set;
 
+import org.jmlspecs.annotation.NonNull;
+
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -18,6 +22,7 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
@@ -103,6 +108,8 @@ public class Utils {
     
     ///////////////////////////////////////////////////////////////////////////////////////
     
+    protected Context context;
+    
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
     public static final Context.Key<Utils> utilsKey =
@@ -131,6 +138,7 @@ public class Utils {
      * @param context The compilation context
      */
     protected Utils(Context context) {
+        this.context = context;
         context.put(utilsKey, this);
         log = Log.instance(context);
     }
@@ -201,7 +209,32 @@ public class Utils {
          mods.flags &= ~JMLBIT;
      }
     
-    // FIXME - document
+     /** A cache for the symbol */
+     private ClassSymbol helperAnnotationSymbol = null;
+     /** Returns true if the given symbol has a helper annotation
+      * 
+      * @param symbol the symbol to check
+      * @return true if there is a helper annotation
+      */
+     public boolean isHelper(@NonNull Symbol symbol) {
+         if (helperAnnotationSymbol == null) {
+             helperAnnotationSymbol = ClassReader.instance(context).
+                 enterClass(Names.instance(context).fromString(jmlAnnotationPackage + ".Helper"));
+         }
+         return symbol.attribute(helperAnnotationSymbol)!=null;
+     }
+
+     /** Returns true if the given symbol is annotated as Pure */
+     public boolean isPure(Symbol symbol) {
+         if (pureAnnotationSymbol == null) {
+             pureAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(jmlAnnotationPackage+".Pure"));
+         }
+         return symbol.attribute(pureAnnotationSymbol)!=null;
+     }
+     /** Caches the symbol for a Pure annotation, which is computed on demand. */
+     private ClassSymbol pureAnnotationSymbol = null;
+
+     // FIXME - document
     public Object envString(/*@ non_null */Env<AttrContext> env) {
         return (env.tree instanceof JCCompilationUnit ? 
                 ((JCCompilationUnit)env.tree).sourcefile : 

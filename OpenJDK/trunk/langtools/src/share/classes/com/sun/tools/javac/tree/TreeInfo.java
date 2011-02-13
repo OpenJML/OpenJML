@@ -58,7 +58,7 @@ public class TreeInfo {
      */
     private Name[] opname = new Name[JCTree.MOD - JCTree.POS + 1];
 
-    private TreeInfo(Context context) {
+    protected TreeInfo(Context context) { // DRC - changed from private to protected
         context.put(treeInfoKey, this);
 
         Names names = Names.instance(context);

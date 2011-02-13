@@ -530,20 +530,32 @@
                definitionId="org.jmlspecs.eclipse.commands.SpecsEditor">
          </action>
          <action
+               label="RAC"
+               tooltip="Compiles JML runtime checks for selected objects"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$RAC"
+               toolbarPath="Normal/build.ext"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.RACT">
+         </action>
+         <action
                label="Compile RAC"
                tooltip="Compiles JML runtime checks for selected objects"
                class="org.jmlspecs.openjml.eclipse.MenuActions$RAC"
                menubarPath="JMLMenu/JMLGroup"
-               toolbarPath="Normal/build.ext"
                id="org.jmlspecs.openjml.eclipse.MenuActions.RAC"
                definitionId="org.jmlspecs.eclipse.commands.RAC">
+         </action>
+         <action
+               label="ESC"
+               tooltip="Performs JML static checks for selected objects"
+               class="org.jmlspecs.openjml.eclipse.MenuActions$CheckESC"
+               toolbarPath="Normal/build.ext"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.CheckESCT">
          </action>
          <action
                label="Static check (ESC)"
                tooltip="Performs JML static checks for selected objects"
                class="org.jmlspecs.openjml.eclipse.MenuActions$CheckESC"
                menubarPath="JMLMenu/JMLGroup"
-               toolbarPath="Normal/build.ext"
                id="org.jmlspecs.openjml.eclipse.MenuActions.CheckESC"
                definitionId="org.jmlspecs.eclipse.commands.CheckESC">
          </action>
@@ -580,6 +592,15 @@
     <attribute name="declarationInfo"/>
   </extension>
 
+  <extension
+         id="JMLHighlight"
+         name="JML Highlight"
+         point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.jdt.core.textmarker"/>
+    <persistent value="true"/>
+    <attribute name="declarationInfo"/>
+  </extension>
+
 <!-- FIXME - is the declarationInfo attribute actually used ? -->
 	
   <!-- This connects the JML markers to editor annotations  -->
@@ -597,6 +618,11 @@
   <extension
          point="org.eclipse.ui.editors.annotationTypes"
          id="JMLAnnotation">
+    <type
+            markerType="org.jmlspecs.OpenJMLUI.JMLHighlight"
+            name="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotation"
+            >
+    </type>
     <type
             markerType="org.jmlspecs.OpenJMLUI.JMLESCProblem"
             name="org.jmlspecs.OpenJMLUI.ESCProblemAnnotation"
@@ -630,6 +656,25 @@
   <!-- Provides the image for the annotations  -->
   <!-- NOTE: the annotationType must match the name, not the id, of the
   		annotationType defined above -->
+  <extension
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+    <specification
+            annotationType="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotation"
+            label="JML Execution Path"
+            overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orphKey"
+            verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrphKey"
+            highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrphKey"
+            textPreferenceKey="org.jmlspecs.openjml.eclipse.trphKey"
+            colorPreferenceKey="org.jmlspecs.openjml.eclipse.crphKey"
+            colorPreferenceValue="128,255,128"
+            textPreferenceValue="false"
+            overviewRulerPreferenceValue="false"
+            verticalRulerPreferenceValue="false"
+            highlightPreferenceValue="true"
+            presentationLayer="3"
+            >
+    </specification>
+  </extension>
   <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
     <specification

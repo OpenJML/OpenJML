@@ -350,6 +350,7 @@ public class JmlEsc extends JmlTreeScanner {
         JavaFileObject prev = log.useSource(source);
 
         boolean ok = false;
+        BasicProgram program = null;
             
         try {
             String name = node.sym.owner + "." + node.sym;
@@ -369,7 +370,7 @@ public class JmlEsc extends JmlTreeScanner {
                 try {
                     BasicBlocker.useAssertDefinitions = false;
                     BasicBlocker.useAssumeDefinitions = false;
-                    BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
+                    program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
                     metrics(node,program,name);
                 } finally {
                     BasicBlocker.useAssertDefinitions = a;
@@ -377,7 +378,7 @@ public class JmlEsc extends JmlTreeScanner {
                 }
             }
             if (useTree) VCmode = 1;
-            BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
+            program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
             
             if (doMetrics || timingTest == 1) metrics(node,program,name);
             if (doMetrics) return true;
@@ -416,8 +417,11 @@ public class JmlEsc extends JmlTreeScanner {
         }
         //progress(1,1,"Completed proof [" + (ok?"   ":"not") + " proved] of " + node.sym.getQualifiedName() + " [" + timer.elapsed()/1000. + "]");
         progress(1,1,"Completed proof attempt of " + node.sym.getQualifiedName() + " [" + timer.elapsed()/1000. + "] using " + proverToUse);
+        mostRecentProgram = program;
         return ok;
     }
+    
+    public BasicProgram mostRecentProgram = null;
  
     
     /** Returns the VC expression for a basic block
@@ -666,6 +670,8 @@ public class JmlEsc extends JmlTreeScanner {
     BasicBlock containingBlock;
     JCStatement targetStatement;
     
+    public IProver mostRecentProver = null;
+    
     /** Initiate proving of the VC for the method.  The given program must be
      * the BasicProgram corresponding to the given method declaration.
      * @param methodDecl the method whose implementation is being proved
@@ -836,7 +842,8 @@ public class JmlEsc extends JmlTreeScanner {
                     String cexample = displayCounterexampleInfo(methodDecl, program, p, r);
                     if (showCounterexample || escdebug) log.noticeWriter.println(cexample);
                 }
-                p.kill();
+                if (mostRecentProver != null) mostRecentProver.kill();
+                mostRecentProver = p;
             } else if (r.result() == IProverResult.UNSAT && (timingTest == 10 || timingTest==9)) {
                 if (escdebug) log.noticeWriter.println("Method satisfies its specifications (as far as I can tell)");
                 p.kill();
@@ -1400,7 +1407,7 @@ public class JmlEsc extends JmlTreeScanner {
         if (noinfo) {
             log.warning("esc.method.invalid",methodDecl.getName());
         } else {
-            Pattern pat2 = Pattern.compile("\\$\\$LBLPOS\\$(\\d+)\\$([^ ]+)");
+            Pattern pat2 = Pattern.compile("^\\$\\$LBLPOS\\$(\\d+)\\$([^ ]+)");
             for (Map.Entry<String,String> var: s.sortedEntries()) {
                 Matcher m = pat2.matcher(var.getKey());
                 if (var.getValue().equals("true") && m.find()) {
@@ -1410,7 +1417,7 @@ public class JmlEsc extends JmlTreeScanner {
                     if (escdebug) log.noticeWriter.println("Label " + label + " has value " + var.getValue());
                 }
             }
-            Pattern pat3 = Pattern.compile("\\$\\$LBLNEG\\$(\\d+)\\$([^ ]+)");
+            Pattern pat3 = Pattern.compile("^\\$\\$LBLNEG\\$(\\d+)\\$([^ ]+)");
             for (Map.Entry<String,String> var: s.sortedEntries()) {
                 Matcher m = pat3.matcher(var.getKey());
                 if (var.getValue().equals("false") && m.find()) {
@@ -1420,7 +1427,7 @@ public class JmlEsc extends JmlTreeScanner {
                     if (escdebug) log.noticeWriter.println("Label " + label + " has value " + var.getValue());
                 }
             }
-            Pattern pat4 = Pattern.compile("\\$\\$LBLANY\\$(\\d+)\\$([^ ]+)");
+            Pattern pat4 = Pattern.compile("^\\$\\$LBLANY\\$(\\d+)\\$([^ ]+)");
             for (Map.Entry<String,String> var: s.sortedEntries()) {
                 Matcher m = pat4.matcher(var.getKey());
                 if (m.find()) {

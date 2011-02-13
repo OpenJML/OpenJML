@@ -737,11 +737,11 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method m2",9
                 ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (Assert) in method m3",9
                 ,"/tt/TestJava.java:45: warning: The prover cannot establish an assertion (Postcondition) in method m6a",5
-                ,"/tt/TestJava.java:43: warning: Associated declaration",15
+                ,"/tt/TestJava.java:43: warning: Associated declaration",7
                 ,"/tt/TestJava.java:51: warning: The prover cannot establish an assertion (Postcondition) in method m6b",5
-                ,"/tt/TestJava.java:49: warning: Associated declaration",15
+                ,"/tt/TestJava.java:49: warning: Associated declaration",7
                 ,"/tt/TestJava.java:56: warning: The prover cannot establish an assertion (Postcondition) in method m6c",5
-                ,"/tt/TestJava.java:54: warning: Associated declaration",15
+                ,"/tt/TestJava.java:54: warning: Associated declaration",7
                 ,"/tt/TestJava.java:70: warning: The prover cannot establish an assertion (Assert) in method m7a",9
                 ,"/tt/TestJava.java:75: warning: The prover cannot establish an assertion (Assert) in method m7b",9
                 ,"/tt/TestJava.java:80: warning: The prover cannot establish an assertion (Assert) in method m7c",9
@@ -1456,7 +1456,7 @@ public class esc extends EscBase {
                 +"  public static void bbad() { i = i - 1; }\n"
                 +"}",
                 "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method bbad",22,
-                "/tt/TestJava.java:8: warning: Associated declaration", 15
+                "/tt/TestJava.java:8: warning: Associated declaration", 7
         );
     }
 
@@ -1470,7 +1470,7 @@ public class esc extends EscBase {
                 +"  public static int bbad(int ii) { if (ii==1) return -1; else if (ii==2) return -2; else if (ii==3) return -3; return 0; }\n"
                 +"}",
                 "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method bbad",112,
-                "/tt/TestJava.java:6: warning: Associated declaration",15
+                "/tt/TestJava.java:6: warning: Associated declaration",7
         );
     }
 
@@ -1570,9 +1570,9 @@ public class esc extends EscBase {
                 +"  public Object inst2bad(boolean b, @NonNull Object i, Object ii) { return ii; }\n"
                 +"}",
                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",74,
-                "/tt/TestJava.java:5: warning: Associated declaration",15,
+                "/tt/TestJava.java:5: warning: Associated declaration",7,
                 "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 69,
-                "/tt/TestJava.java:9: warning: Associated declaration",15
+                "/tt/TestJava.java:9: warning: Associated declaration",7
         );
     }
 
@@ -1591,9 +1591,9 @@ public class esc extends EscBase {
                 +"  public /*@ nullable*/Object inst2bad(boolean b,          Object i, /*@ nullable*/Object ii) { return ii; }\n"
                 +"}",
                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",102,
-                "/tt/TestJava.java:5: warning: Associated declaration",15,
+                "/tt/TestJava.java:5: warning: Associated declaration",7,
                 "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 97,
-                "/tt/TestJava.java:9: warning: Associated declaration",15
+                "/tt/TestJava.java:9: warning: Associated declaration",7
         );
     }
 
@@ -1611,9 +1611,9 @@ public class esc extends EscBase {
                 +"  public /*@ nullable*/Object inst2bad(boolean b,          Object i, /*@ nullable*/Object ii) { return ii; }\n"
                 +"}",
                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",102,
-                "/tt/TestJava.java:5: warning: Associated declaration",15,
+                "/tt/TestJava.java:5: warning: Associated declaration",7,
                 "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 97,
-                "/tt/TestJava.java:9: warning: Associated declaration",15
+                "/tt/TestJava.java:9: warning: Associated declaration",7
         );
     }
 
@@ -1631,9 +1631,9 @@ public class esc extends EscBase {
                 +"  public /*@ nullable*/Object inst2bad(boolean b,          Object i, /*@ nullable*/Object ii) { return ii; }\n"
                 +"}",
                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",102,
-                "/tt/TestJava.java:5: warning: Associated declaration",15,
+                "/tt/TestJava.java:5: warning: Associated declaration",7,
                 "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 97,
-                "/tt/TestJava.java:9: warning: Associated declaration",15
+                "/tt/TestJava.java:9: warning: Associated declaration",7
         );
     }
 
@@ -1661,7 +1661,7 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",43,
                 "/tt/TestJava.java:4: warning: Associated declaration",16,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",49,
-                "/tt/TestJava.java:16: warning: Associated declaration",15
+                "/tt/TestJava.java:16: warning: Associated declaration",7
         );
     }
 
@@ -1689,7 +1689,7 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",43,
                 "/tt/TestJava.java:4: warning: Associated declaration",16,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",49,
-                "/tt/TestJava.java:16: warning: Associated declaration",15
+                "/tt/TestJava.java:16: warning: Associated declaration",7
         );
     }
 
@@ -1730,11 +1730,11 @@ public class esc extends EscBase {
                 +"  public int instx3(boolean b, int i) { return m(m(i) + m(i)) + m(i); }\n"
                 +"}"
                 ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Postcondition) in method instx",58
-                ,"/tt/TestJava.java:23: warning: Associated declaration",15
+                ,"/tt/TestJava.java:23: warning: Associated declaration",7
                 ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method instx2",53
-                ,"/tt/TestJava.java:27: warning: Associated declaration",15
+                ,"/tt/TestJava.java:27: warning: Associated declaration",7
                 ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Postcondition) in method instx3",41
-                ,"/tt/TestJava.java:32: warning: Associated declaration",15
+                ,"/tt/TestJava.java:32: warning: Associated declaration",7
 
         );
     }
@@ -1786,11 +1786,11 @@ public class esc extends EscBase {
                 +"  public int instbad2() { return o.sn() + p.sn() + sj; }\n"
                 +"}"
                 ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method instbadx",27
-                ,"/tt/TestJava.java:27: warning: Associated declaration",15
+                ,"/tt/TestJava.java:27: warning: Associated declaration",7
                 ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method instbad",26
-                ,"/tt/TestJava.java:30: warning: Associated declaration",15
+                ,"/tt/TestJava.java:30: warning: Associated declaration",7
                 ,"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",27
-                ,"/tt/TestJava.java:34: warning: Associated declaration",15
+                ,"/tt/TestJava.java:34: warning: Associated declaration",7
         );
     }
 
@@ -2189,7 +2189,7 @@ public class esc extends EscBase {
                 +"  public void inst1a() { i=0; try { i = 1; return; } finally { i = 2; } }\n" // BAD
                 +"}",
                 "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method inst1a",44,
-                "/tt/TestJava.java:6: warning: Associated declaration",15
+                "/tt/TestJava.java:6: warning: Associated declaration",7
         );
     }
 
@@ -2203,7 +2203,7 @@ public class esc extends EscBase {
                 +"  public static void m() { i = i -1; }\n" // OK
                 +"}",
                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m",22,
-                "/tt/TestJava.java:5: warning: Associated declaration",15
+                "/tt/TestJava.java:5: warning: Associated declaration",7
         );
     }
 
@@ -2319,7 +2319,7 @@ public class esc extends EscBase {
                 +"  public int n1a(int a) { return m(-1); }\n"
                 +"}"
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m",25
-                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
         );
     }
 
@@ -2421,7 +2421,7 @@ public class esc extends EscBase {
                 +"    if (ii==3) return -3; \n"
                 +"    ii = 7;\n"
                 +"    return 0; }\n"
-                +"  public static int is;"
+                +"  public static int is;\n"
                 +"  //@ ensures is == 6;\n"
                 +"  public static int m3(int ii) { \n"
                 +"    try { ii = 0; \n"
@@ -2440,13 +2440,13 @@ public class esc extends EscBase {
                 +"    return 0; }\n"
                 +"}",
                 "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m",5,
-                "/tt/TestJava.java:4: warning: Associated declaration",15,
+                "/tt/TestJava.java:4: warning: Associated declaration",7,
                 "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Postcondition) in method mm",16,
-                "/tt/TestJava.java:12: warning: Associated declaration",15,
-                "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Postcondition) in method m3",20,
-                "/tt/TestJava.java:19: warning: Associated declaration",38,
-                "/tt/TestJava.java:29: warning: The prover cannot establish an assertion (Postcondition) in method m4",20,
-                "/tt/TestJava.java:26: warning: Associated declaration",15
+                "/tt/TestJava.java:12: warning: Associated declaration",7,
+                "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Postcondition) in method m3",20,
+                "/tt/TestJava.java:20: warning: Associated declaration",7,
+                "/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Postcondition) in method m4",20,
+                "/tt/TestJava.java:27: warning: Associated declaration",7
         );
     }
 

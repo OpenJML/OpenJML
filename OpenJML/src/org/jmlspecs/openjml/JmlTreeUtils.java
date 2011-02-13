@@ -4,6 +4,8 @@ import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.Flags.PUBLIC;
 import static com.sun.tools.javac.code.Flags.STATIC;
 
+import java.util.Map;
+
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
@@ -51,6 +53,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.Position;
 
 /** This class holds a number of utility functions that create fragments of AST trees
  * (using a factory); the created trees are fully type and symbol attributed and so
@@ -197,9 +200,21 @@ public class JmlTreeUtils {
         
     }
     
+    // FIXME - document
     public void setEnv(Env<AttrContext> env) {
         attrEnv = env;
     }
+    
+    // FIXME - document
+    public void copyEndPosition(JCTree newnode, JCTree srcnode) {
+        Map<JCTree,Integer> z = log.currentSource().getEndPosTable();
+        if (z != null) {
+        	int end = srcnode.getEndPosition(z);
+        	if (end != Position.NOPOS) z.put(newnode, end);
+        }
+    }
+
+
     
     /** Finds the symbol for the built-in operator with the given argument type
      * @param name the operation, e.g. ">="
@@ -371,6 +386,7 @@ public class JmlTreeUtils {
         JCUnary e = factory.at(pos).Unary(optag,expr);
         e.operator = findOpSymbol(optag,expr.type);
         e.type = e.operator.type.getReturnType();
+        copyEndPosition(e,expr);
         return e;
     }
 
@@ -394,6 +410,7 @@ public class JmlTreeUtils {
         JCBinary tree = factory.at(pos).Binary(optag, lhs, rhs);
         tree.operator = opSymbol;
         tree.type = optag == JCTree.EQ ? syms.booleanType : tree.operator.type.getReturnType();
+        copyEndPosition(tree,rhs);
         return tree;
     }
     

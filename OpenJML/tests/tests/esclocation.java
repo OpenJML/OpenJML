@@ -55,7 +55,7 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Postcondition) in method m",15
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",9
                 );
     }
     
@@ -73,7 +73,7 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Postcondition) in method m",5
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",9
                 );
     }
     
