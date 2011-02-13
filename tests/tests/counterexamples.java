@@ -48,7 +48,7 @@ public class counterexamples extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
     
@@ -233,9 +233,9 @@ public class counterexamples extends EscBase {
                 +"}\n"
                 
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1",17
-                ,"/tt/TestJava.java:3: warning: Associated declaration",30
+                ,"/tt/TestJava.java:3: warning: Associated declaration",22
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method m2",26
-                ,"/tt/TestJava.java:12: warning: Associated declaration",30
+                ,"/tt/TestJava.java:12: warning: Associated declaration",22
                 );
     }
 
@@ -270,9 +270,9 @@ public class counterexamples extends EscBase {
                 +"}\n"
                 
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method m1",7
-                ,"/tt/TestJava.java:3: warning: Associated declaration",30
+                ,"/tt/TestJava.java:3: warning: Associated declaration",22
                 ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Postcondition) in method m2",7
-                ,"/tt/TestJava.java:13: warning: Associated declaration",30
+                ,"/tt/TestJava.java:13: warning: Associated declaration",22
                 );
     }
     
@@ -309,7 +309,7 @@ public class counterexamples extends EscBase {
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1",9
                 ,"/tt/TestJava.java:3: warning: Associated declaration",7
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m2",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",30
+                ,"/tt/TestJava.java:7: warning: Associated declaration",22
                 );
     }
     
@@ -475,11 +475,11 @@ public class counterexamples extends EscBase {
                 +"}\n"
                 
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m1",8
-                ,"/tt/TestJava.java:3: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m2",10
-                ,"/tt/TestJava.java:19: warning: Associated declaration",32
+                ,"/tt/TestJava.java:19: warning: Associated declaration",24
                 ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Postcondition) in method m3",15
-                ,"/tt/TestJava.java:40: warning: Associated declaration",32
+                ,"/tt/TestJava.java:40: warning: Associated declaration",24
                 );
     }
     

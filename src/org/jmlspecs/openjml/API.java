@@ -21,12 +21,16 @@ import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.esc.BasicBlocker;
+import org.jmlspecs.openjml.esc.BasicBlocker.TracerBB;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
+import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -53,6 +57,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.Position;
 
 /** This class is a wrapper and publicly published API for the OpenJML tool 
  * functionality.  In principle, any external programmatic interaction with
@@ -609,6 +614,7 @@ public class API {
         public void scan(JCTree node) {
             if (node == null) return;
             int sp = node.getStartPosition();
+            if (sp == Position.NOPOS && node instanceof JmlMethodInvocation) sp = ((JmlMethodInvocation)node).pos;
             int ep = node.getEndPosition(tree.endPositions);
             // Do this specially because the range of a MethodDecl node does not include the specs
             if (node instanceof JmlMethodDecl) {
@@ -616,7 +622,11 @@ public class API {
                 super.scan(node);
                 if (found != ftree) parentMethod = (JmlMethodDecl)node;
             } else if (node instanceof JmlVariableDecl) {
+                JCTree ftree = found;
                 super.scan(node);
+                if (found == ftree && sp <= startpos && endpos <= ep) {
+                    found = node;
+                }
             } else if (sp <= startpos && endpos <= ep) {
                 found = node;
                 //System.out.println(startpos + " " + endpos + " " + sp + " " + ep + " " + node.getClass());
@@ -637,10 +647,16 @@ public class API {
     }
     
     /** The method on which ESC was run most recently */
-    protected MethodSymbol mostRecentProofMethod = null;
+    protected MethodSymbol mostRecentProofMethod = null; // FIXME - does this need to be static?
+    
+    protected BasicProgram mostRecentProgram = null; // FIXME - document
+    
+    protected IProver mostRecentProver = null; // FIXME
     
     // TODO: document
     public String getCEValue(int pos, int end, String text, String fileLocation) {
+        String msg = "Seeking character range " + pos + " to " + end + " in " + fileLocation.toString()
+            + "\n";
         fileLocation = fileLocation.replace('\\','/');
         if (mostRecentProofMethod == null) {
             return "No proof in which to evaluate the selection";
@@ -650,7 +666,7 @@ public class API {
             //System.out.println("Did not match " + tree.sourcefile.toString());
             boolean found = false;
             {
-                JmlCompilationUnit stree = tree. specsCompilationUnit;
+                JmlCompilationUnit stree = tree.specsCompilationUnit;
                 if (stree.sourcefile.toString().replace('\\','/').equals(fileLocation)) {
                     tree = stree;
                     found = true;
@@ -664,8 +680,34 @@ public class API {
         JCTree node = findNode(tree,pos,end);
         JmlMethodDecl parentMethod = finder.parentMethod;
         if (parentMethod.sym != mostRecentProofMethod) return "Selected text is not within the method of the most recent proof (which is " + mostRecentProofMethod + ")";
-        if (!(node instanceof JCTree.JCExpression)) return "Selected text is not an expression (" + node.getClass() + "): " + text;
-        return "Found expression node: " + node.toString();
+        String out;
+        if (node instanceof JmlVariableDecl) {
+            // This happens when we have selected a method parameter or the variable within a declaration
+            // continue
+            out = "Found declaration: " + ((JmlVariableDecl)node).name.toString() + "\n";
+        } else {
+            if (!(node instanceof JCTree.JCExpression)) return "Selected text is not an expression (" + node.getClass() + "): " + text;
+            out = "Found expression node: " + node.toString() + "\n";
+        }
+        ICounterexample ce = getProofResult(mostRecentProofMethod).counterexample();
+        if (ce == null) {
+        	out = "There is no counterexample information";
+        } else {
+        	JCTree logical = mostRecentProgram.toLogicalForm.get(node);
+        	if (logical == null) {
+        		out = out + "No corresponding logical form";
+        	} else {
+        		//out = out + "Logical form: " + logical.toString() + "\n";
+        		String value = ce.get(logical);
+        		if (value == null) value = ce.get(logical.toString());
+        		if (value == null) {
+        			out = out + "No value found";
+        		} else {
+        			out = out + "Value: " + value;
+        		}
+        	}
+        }
+        return out;
     }
     
     /** Executes static checking on the given method; assumes that all 
@@ -677,8 +719,12 @@ public class API {
     //@ ensures isOpen;
     public IProverResult doESC(MethodSymbol msym) {
         JmlMethodDecl decl = getJavaDecl(msym);
-        JmlEsc.instance(context).proveMethod(decl);
+        JmlEsc esc = JmlEsc.instance(context);
+        esc.proveMethod(decl);
         mostRecentProofMethod = msym;
+        mostRecentProgram = esc.mostRecentProgram;
+        mostRecentProver = esc.mostRecentProver;
+        
         return getProofResult(msym);
     }
     

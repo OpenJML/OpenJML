@@ -1,8 +1,5 @@
 package tests;
 
-import org.jmlspecs.openjml.esc.JmlEsc;
-
-import com.sun.tools.javac.util.Options;
 
 public class escm extends EscBase {
 
@@ -82,15 +79,15 @@ public class escm extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m",45
-                ,"/tt/TestJava.java:8: warning: Associated declaration",30
+                ,"/tt/TestJava.java:8: warning: Associated declaration",22
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method m",51
-                ,"/tt/TestJava.java:11: warning: Associated declaration",36
+                ,"/tt/TestJava.java:11: warning: Associated declaration",28
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Postcondition) in method m",44
-                ,"/tt/TestJava.java:12: warning: Associated declaration",30
+                ,"/tt/TestJava.java:12: warning: Associated declaration",22
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method m",30
-                ,"/tt/TestJava.java:12: warning: Associated declaration",30
+                ,"/tt/TestJava.java:12: warning: Associated declaration",22
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method m2",18
-                ,"/tt/TestJava.java:16: warning: Associated declaration",20
+                ,"/tt/TestJava.java:16: warning: Associated declaration",12
                 
                 );
     }
@@ -141,6 +138,96 @@ public class escm extends EscBase {
 
                 );
     }
+    
+    /** This tests that the specs of model classes and methods are checked */
+    public void testModelSpecs() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+
+                +"  public int m1(TestJava o) {\n"
+                +"       /*@ model class C {  \n"
+                +"           invariant false;\n" 
+                +"           void mc() {  }};*/ \n"  // Line 10
+                +"       /*@ model class D {  \n"
+                +"           ensures false;\n" 
+                +"           void md() {  }};*/ \n" 
+                +"       /*@ model class E {  \n"
+                +"           void me() {  assert false; }};*/ \n"
+                +"       //@ ghost E e;\n"
+                +"       return 0;\n"
+                +"  }\n"
+
+                +"  /*@ ensures false;\n"
+                +"      model void mm() {}*/\n"
+
+                +"  /*@ model void mn() {  assert false;  }*/\n"
+
+                +"  /*@ model public static class A {\n"
+                +"     invariant false;\n"
+                +"     public void m2() {\n"
+                +"     }*/\n"
+                +"  }\n"
+
+                +"}"
+                +"  /*@ model class B {\n"
+                +"     invariant false;\n"
+                +"     public void mb() {\n"
+                +"     }*/\n"
+                +"  }\n"
+
+                +"  /*@ model class BB {\n"
+                +"     ensures false;\n"
+                +"     public void mbb() {\n"
+                +"     }*/\n"
+                +"  }\n"
+
+
+
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Invariant) in method <init>",18
+                ,"/tt/TestJava.java:9: warning: Associated declaration",22
+                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method mc()",17
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method md",17
+                ,"/tt/TestJava.java:12: warning: Associated declaration",12
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method me",25
+                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (Postcondition) in method mm",18
+                ,"/tt/TestJava.java:19: warning: Associated declaration",7
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method mn",26
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Invariant) in method <init>",14
+                ,"/tt/TestJava.java:28: warning: Associated declaration",16
+                ,"/tt/TestJava.java:29: warning: Invariants+Preconditions appear to be contradictory in method mb()",18
+                ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Postcondition) in method mbb",18
+                ,"/tt/TestJava.java:33: warning: Associated declaration",6
+
+        );
+    }
+
+
+    // FIXME - not parsed correctly
+//    public void testAnon() {
+//        helpTCX("tt.TestJava","package tt; \n"
+//                +" import org.jmlspecs.annotation.*; \n"
+//                +"@NonNullByDefault public class TestJava { \n"
+//
+//                +"  public int m1(TestJava o) {\n"
+//                +"       //@ assert new TestJava() {  invariant false; int i; } == null; \n"  // Line 7
+//                +"       return 0;\n"
+//                +"  }\n"
+//                +"}\n"
+//
+//
+//        );
+
+
+        // TODO
+        // Need to check anonymous classes within specs
+        // Need to check non-static inner classes 
+        // Need to check anonymous classes for non-static classes
+//    }
    
 
 }

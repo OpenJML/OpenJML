@@ -17,6 +17,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.type.TypeKind;
@@ -66,6 +67,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
+import com.sun.tools.javac.util.Position;
 
 /**
  * This class is an extension of the Attr class; it adds visitors methods so
@@ -1172,7 +1174,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                 }
             }
+            Map<JCTree,Integer> currentTab = log.currentSource().getEndPosTable();
             JCAnnotation nonnullAnnotation = findMod(decl.mods,JmlToken.NONNULL);
+            int annotationPos = (nonnullAnnotation != null) ? nonnullAnnotation.getPreferredPosition() : Position.NOPOS;
+            int annotationEnd = (nonnullAnnotation != null) ? nonnullAnnotation.getEndPosition(currentTab) : Position.NOPOS;
             // restype is null for constructors, possibly void for methods
             if (decl.restype != null && decl.restype.type.tag != TypeTags.VOID && !decl.restype.type.isPrimitive()) {
                 boolean isNonnull = specs.isNonNull(decl.sym,decl.sym.enclClass());
@@ -1180,20 +1185,30 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JCExpression id = jmlF.JmlSingleton(JmlToken.BSRESULT);
                     id.type = decl.restype.type;
                     JCExpression e = makeBinary(JCTree.NE,id,nulllit,0);
-                if (nonnullAnnotation != null) e.pos = nonnullAnnotation.getPreferredPosition();
-                else e.pos = decl.getPreferredPosition();   // FIXME - fix the position of the non-null if using default
-                id.pos = e.pos; // FIXME - start and end as well?
-                JmlToken prev = currentClauseType;
-                currentClauseType = JmlToken.ENSURES;
-                attribExpr(e,env);
-                currentClauseType = prev;
-                clauses.append(jmlF.at(decl.pos).JmlMethodClauseExpr(JmlToken.ENSURES,e));
+                    if (nonnullAnnotation != null) {
+                        e.pos = annotationPos;
+                        currentTab.put(e,annotationEnd);
+                        currentTab.put(id,annotationEnd);
+                    } else {
+                        e.pos = decl.getPreferredPosition();   // FIXME - fix the position of the non-null if using default
+                    }
+                    id.pos = e.pos;
+                    JmlToken prev = currentClauseType;
+                    currentClauseType = JmlToken.ENSURES;
+                    attribExpr(e,env);
+                    currentClauseType = prev;
+                    JmlMethodClauseExpr cl = jmlF.at(e.pos).JmlMethodClauseExpr(JmlToken.ENSURES,e);
+                    currentTab.put(cl,annotationEnd);
+                    clauses.append(cl);
                 }
             }
-            if (desugaringPure = (findMod(decl.mods,JmlToken.PURE) != null)) {
+            JCAnnotation pure;
+            if (desugaringPure = ((pure = findMod(decl.mods,JmlToken.PURE)) != null)) {
                 JmlMethodClause c = jmlF.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE,
                         List.<JCExpression>of(jmlF.JmlSingleton(JmlToken.BSNOTHING)));
                 //attribStat(c,env);
+                c.pos = pure.pos;
+                currentTab.put(c,pure.getEndPosition(currentTab));
                 clauses.append(c);
             }
             if (methodSpecs == null) return;

@@ -26,6 +26,7 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Position;
 
 /**
  * A BasicProgram is an equivalent representation of a method:
@@ -82,7 +83,7 @@ public class BasicProgram {
         public JCExpression expr(Context context) {
             if (expr != null) return expr;
             expr = JmlTree.Maker.instance(context).Binary(JCTree.EQ,id,value);
-            expr.pos = this.pos;
+            expr.pos = id.pos;  // FIXME _ end position not set, do we need it?
             expr.type = Symtab.instance(context).booleanType;
             return expr;
         }
@@ -129,6 +130,9 @@ public class BasicProgram {
     @Pure @NonNull
     public List<BasicBlock> blocks() { return blocks; }
     
+    public Map<JCTree,JCTree> toLogicalForm = null;
+    
+    // FIXME E-document
     public JCIdent assumeCheckVar;
     
     /** The identifier for the starting block - must match one of the blocks. */
@@ -217,7 +221,7 @@ public class BasicProgram {
          */
         // BEFORE  b.succeeding -> List
         // AFTER   b.succeeding -> NONE; this.succeeding -> List
-        BasicBlock(@NonNull JCIdent id, @NonNull BasicBlock b) {
+        protected BasicBlock(@NonNull JCIdent id, @NonNull BasicBlock b) {
             this(id);
             List<BasicBlock> s = succeeding; // empty I expect
             succeeding = b.succeeding;

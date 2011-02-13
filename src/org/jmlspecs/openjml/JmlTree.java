@@ -1064,6 +1064,7 @@ public class JmlTree {
      * need to behave like Skip statements.
      */
     public static abstract class JmlAbstractStatement extends JCTree.JCSkip {
+        
         public String toString() {
             return JmlTree.toString(this);
         }
