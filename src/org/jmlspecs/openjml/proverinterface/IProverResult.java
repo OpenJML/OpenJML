@@ -76,10 +76,16 @@ public interface IProverResult {
     public static interface Item {}
 
     public static class Span {
+    	final static public int NORMAL = 0;
+    	final static public int TRUE = 1;
+    	final static public int FALSE = 2;
+    	final static public int EXCEPTION = 3;
+    	
         public int start;
         public int end;
-        public Span(int start, int end) { this.start = start; this.end = end; }
-        public String toString() { return "[" + start + ":" + end + "]"; }
+        public int type; // Fake enum
+        public Span(int start, int end, int type) { this.start = start; this.end = end; this.type = type;}
+        public String toString() { return "[" + start + ":" + end + " " + type + "]"; }
     }
 
     /** This interface describes a counterexample: a set of variable - value pairs 
@@ -104,7 +110,8 @@ public interface IProverResult {
 
         public void put(JCTree expr,String value);
         public void putMap(Map<String,String> map);
-
+        public Map<String,String> getMap();
+        
         public String get(JCTree expr);
 
         public void putPath(List<Span> path);

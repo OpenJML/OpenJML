@@ -1249,6 +1249,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         } else {
             for (JmlSpecificationCase c: cases) {
+                ListBuffer<JmlMethodClause> pr = copy(prefix);
                 if (c.token == JmlToken.MODEL_PROGRAM) {
                     newlist.append(c);  // FIXME - check that model programs are only at the outer level
                     continue;
@@ -1257,12 +1258,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JmlTree.Maker jmlF = (JmlTree.Maker)make;
                     JmlToken t = c.token;
                     if (t == JmlToken.NORMAL_BEHAVIOR || t == JmlToken.NORMAL_EXAMPLE) {
-                        prefix.append(jmlF.at(c.pos).JmlMethodClauseSignals(JmlToken.SIGNALS,null,falseLit));
+                        pr.append(jmlF.at(c.pos).JmlMethodClauseSignals(JmlToken.SIGNALS,null,falseLit));
                     } else if (t == JmlToken.EXCEPTIONAL_BEHAVIOR || t == JmlToken.EXCEPTIONAL_EXAMPLE) {
-                        prefix.append(jmlF.at(c.pos).JmlMethodClauseExpr(JmlToken.ENSURES,falseLit));
+                        pr.append(jmlF.at(c.pos).JmlMethodClauseExpr(JmlToken.ENSURES,falseLit));
                     }
                 }
-                ListBuffer<JmlMethodClause> pr = copy(prefix);
                 newlist.appendList(deNestHelper(pr,c.clauses,parent==null?c:parent,decl));
             }
         }

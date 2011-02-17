@@ -389,6 +389,7 @@ public class JmlEsc extends JmlTreeScanner {
                 }
                 //if (showTimes) log.noticeWriter.println("    ... prep           " +  t.elapsed()/1000.);
                 //log.noticeWriter.println("\t\t" + program.blocks().size() + " blocks, " + program.definitions().size() + " definitions, " + program.background().size() + " axioms, " + BasicBlocker.Counter.count(program) + " nodes");
+                progress(1,2,"Prover running on " + node.sym.owner.name + "." + node.name + " with prover " + proverToUse);
                 ok = prove(node,program);
                 if (showTimes) log.noticeWriter.println("    ... prep and prove " +  t.elapsed()/1000.);
                 if (showTimes) {
@@ -819,6 +820,7 @@ public class JmlEsc extends JmlTreeScanner {
             
             IProverResult r = p.check(YicesProver.evidence);
             proverResults.put(methodDecl.sym,r);
+            progress(1,2,"Prover reported " + r.result() + " for " + methodDecl.sym + " with prover " + proverToUse);
             //log.noticeWriter.println("Recorded proof for " + methodDecl.sym); log.noticeWriter.flush();
 
             if (showTimes) {
@@ -1325,83 +1327,83 @@ public class JmlEsc extends JmlTreeScanner {
             }
             if (found != null) {
                 Matcher m = found;
-                    String sname = m.group(0); // full name of the assertion
-                    String label = m.group(5); // the label part 
-                    int usepos = Integer.parseInt(m.group(1)); // the textual location of the assert statement
-                    int declpos = Integer.parseInt(m.group(2)); // the textual location of associated information (or same as usepos if no associated information)
-                    JavaFileObject jfo = null;
-                    String fintstr = m.group(4);
-                    if (fintstr != null) {
-                        Integer i = Integer.valueOf(fintstr);
-                        jfo = BasicBlocker.jfoArray.get(i);
-                    }
-                    int termpos = usepos;
-                    if (terminationValue != null &&
-                            (Label.POSTCONDITION.toString().equals(label) ||
-                                    Label.INVARIANT.toString().equals(label) ||
-                                    Label.CONSTRAINT.toString().equals(label) ||
-                                    Label.INITIALLY.toString().equals(label) ||
-                                    Label.SIGNALS.toString().equals(label) ||
-                                    Label.SIGNALS_ONLY.toString().equals(label))) {
-                        // terminationPosition is, 
-                        // if positive, the source code location of the return statement,
-                        // if negative, the negative of the source code location of
-                        //          the throw statement or method call of an exception exit
-                        // if 0, the method exits out the end of the block.  
-                        // In this last case, one would like to point the
-                        // error message to the end of the block, but since
-                        // we do not at the moment have support for 
-                        // end positions, we use the position of the 
-                        // method declaration. (TODO)
-                        if (terminationPosition == 0) termpos = usepos; 
-                        else if (terminationPosition > 0) termpos = terminationPosition;
-                        else                             termpos = -terminationPosition;
-                    }
-                    Name v = names.fromString(sname);
-                    BasicBlock bl = findContainingBlock(v,program);
-                    // A 'false' assertion is spurious if it happens in a block 
-                    // which is not executed (its block variable is 'true')
-                    // So we list the assertion if
-                    //      - we cannot find a block containing the assertion (just to be safe)
-                    //      - we find a block but find no value for the block variable (just to be safe)
-                    //      - the block variable is 'false' (not 'true') and there is a chain of false blocks back to the beginning
-                    if (bl == null || hasFeasibleChain(bl,s) ) {
-                        if (declpos != termpos || jfo != null) {
-                            
-                            JavaFileObject prev = log.currentSourceFile();
-                            if (!cfInfo) {
-                                log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName());
-
-                                if (jfo != null) log.useSource(jfo);
-                                log.warning(declpos,"esc.associated.decl","");
-
-                            } else {
-                                // This way of finding line numbers is a bit expensive - it reads in the
-                                // whole file and scans from the beginning.
-                                // Is there a way to use the endPos table?  FIXME
-                                
-                                int line = new DiagnosticSource(prev,log).getLineNumber(termpos);
-                                
-                                //if (jfo != null) log.useSource(jfo);
-                                int aline = new DiagnosticSource(jfo==null?prev:jfo,log).getLineNumber(declpos);
-                                //log.useSource(prev);
-
-                                String cf = !cfInfo ? "" : " [ cf. " + (jfo==null?prev:jfo).getName() + ", line " + aline + "]";
-                                log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName() + cf);
-
-                                if (jfo != null) log.useSource(jfo);
-                                String assocPos = !cfInfo ? "" : " [" + prev.getName() + ", line " + line + "]";
-                                log.warning(declpos,"esc.associated.decl",assocPos);
-                            }
-                            log.useSource(prev);
-                        } else {
-                            log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName());
-                        }
-                        //if (declpos != usepos) Log.printLines(log.noticeWriter,"Associated information");
-                        noinfo = false;
-                    }
+                String sname = m.group(0); // full name of the assertion
+                String label = m.group(5); // the label part 
+                int usepos = Integer.parseInt(m.group(1)); // the textual location of the assert statement
+                int declpos = Integer.parseInt(m.group(2)); // the textual location of associated information (or same as usepos if no associated information)
+                JavaFileObject jfo = null;
+                String fintstr = m.group(4);
+                if (fintstr != null) {
+                	Integer i = Integer.valueOf(fintstr);
+                	jfo = BasicBlocker.jfoArray.get(i);
                 }
-            
+                int termpos = usepos;
+                if (terminationValue != null &&
+                		(Label.POSTCONDITION.toString().equals(label) ||
+                				Label.INVARIANT.toString().equals(label) ||
+                				Label.CONSTRAINT.toString().equals(label) ||
+                				Label.INITIALLY.toString().equals(label) ||
+                				Label.SIGNALS.toString().equals(label) ||
+                				Label.SIGNALS_ONLY.toString().equals(label))) {
+                	// terminationPosition is, 
+                	// if positive, the source code location of the return statement,
+                	// if negative, the negative of the source code location of
+                	//          the throw statement or method call of an exception exit
+                	// if 0, the method exits out the end of the block.  
+                	// In this last case, one would like to point the
+                	// error message to the end of the block, but since
+                	// we do not at the moment have support for 
+                	// end positions, we use the position of the 
+                	// method declaration. (TODO)
+                	if (terminationPosition == 0) termpos = usepos; 
+                	else if (terminationPosition > 0) termpos = terminationPosition;
+                	else                             termpos = -terminationPosition;
+                }
+                Name v = names.fromString(sname);
+                BasicBlock bl = findContainingBlock(v,program);
+                // A 'false' assertion is spurious if it happens in a block 
+                // which is not executed (its block variable is 'true')
+                // So we list the assertion if
+                //      - we cannot find a block containing the assertion (just to be safe)
+                //      - we find a block but find no value for the block variable (just to be safe)
+                //      - the block variable is 'false' (not 'true') and there is a chain of false blocks back to the beginning
+                if (bl == null || hasFeasibleChain(bl,s) ) {
+                	if (declpos != termpos || jfo != null) {
+
+                		JavaFileObject prev = log.currentSourceFile();
+                		if (!cfInfo) {
+                			log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName());
+
+                			if (jfo != null) log.useSource(jfo);
+                			log.warning(declpos,"esc.associated.decl","");
+
+                		} else {
+                			// This way of finding line numbers is a bit expensive - it reads in the
+                			// whole file and scans from the beginning.
+                			// Is there a way to use the endPos table?  FIXME
+
+                			int line = new DiagnosticSource(prev,log).getLineNumber(termpos);
+
+                			//if (jfo != null) log.useSource(jfo);
+                			int aline = new DiagnosticSource(jfo==null?prev:jfo,log).getLineNumber(declpos);
+                			//log.useSource(prev);
+
+                			String cf = !cfInfo ? "" : " [ cf. " + (jfo==null?prev:jfo).getName() + ", line " + aline + "]";
+                			log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName() + cf);
+
+                			if (jfo != null) log.useSource(jfo);
+                			String assocPos = !cfInfo ? "" : " [" + prev.getName() + ", line " + line + "]";
+                			log.warning(declpos,"esc.associated.decl",assocPos);
+                		}
+                		log.useSource(prev);
+                	} else {
+                		log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName());
+                	}
+                	//if (declpos != usepos) Log.printLines(log.noticeWriter,"Associated information");
+                	noinfo = false;
+                }
+            }
+
         }
 
         if (noinfo) {
