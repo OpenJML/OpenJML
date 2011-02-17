@@ -30,6 +30,10 @@ public class Counterexample implements IProverResult.ICounterexample {
     public void putMap(Map<String,String> map) {
         this.map.putAll(map);
     }
+    
+    public Map<String,String> getMap() {
+        return this.map;
+    }
 
     public void put(JCTree expr,String value) {
         mapv.put(expr,value);

@@ -84,6 +84,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
+import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.osgi.framework.Bundle;
 
 // FIXME - review UI Utils class
@@ -1393,6 +1394,9 @@ public class Utils {
         	resource.deleteMarkers(JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
         	resource.deleteMarkers(ESC_MARKER_ID, false, IResource.DEPTH_INFINITE);
         	resource.deleteMarkers(JML_HIGHLIGHT_ID, false, IResource.DEPTH_INFINITE);
+        	resource.deleteMarkers(JML_HIGHLIGHT_ID + "True", false, IResource.DEPTH_INFINITE);
+        	resource.deleteMarkers(JML_HIGHLIGHT_ID + "False", false, IResource.DEPTH_INFINITE);
+        	resource.deleteMarkers(JML_HIGHLIGHT_ID + "Exception", false, IResource.DEPTH_INFINITE);
         } catch (CoreException e) {
         	String msg = "Failed to delete markers on " + resource.getProject();
         	Log.errorlog(msg, e);
@@ -1441,10 +1445,15 @@ public class Utils {
         }
     }
     
-    public void highlight(final IResource r, final int finalOffset, final int finalEnd) {
+    public void highlight(final IResource r, final int finalOffset, final int finalEnd, final int type) {
 		IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
-				IMarker marker = r.createMarker(Activator.PLUGIN_ID + ".JMLHighlight");
+				String name = type == IProverResult.Span.NORMAL ? ".JMLHighlight" : 
+								type == IProverResult.Span.TRUE ? ".JMLHighlightTrue" : 
+								type == IProverResult.Span.FALSE ? ".JMLHighlightFalse" :
+								type == IProverResult.Span.EXCEPTION ? ".JMLHighlightException" :
+									".JMLHighlight";
+				IMarker marker = r.createMarker(Activator.PLUGIN_ID + name);
 //				marker.setAttribute(IMarker.LINE_NUMBER, 
 //									finalLineNumber >= 1? finalLineNumber : 1);
 //				if (column >= 0) {
@@ -1456,7 +1465,7 @@ public class Utils {
 				// The line number is used in the information about the problem in
 				// the Problem View
 
-				//marker.setAttribute(IMarker.SEVERITY,IMarker.SEVERITY_INFO);
+				//marker.setAttribute(IMarker.SEVERITY,b == null ? 0 : b ? 2 : 1);
 				//marker.setAttribute(IMarker.MESSAGE, finalErrorMessage);
 			}
 		};

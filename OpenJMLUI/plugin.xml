@@ -598,7 +598,30 @@
          point="org.eclipse.core.resources.markers">
     <super type="org.eclipse.jdt.core.textmarker"/>
     <persistent value="true"/>
-    <attribute name="declarationInfo"/>
+  </extension>
+
+  <extension
+         id="JMLHighlightTrue"
+         name="JML Highlight"
+         point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.jdt.core.textmarker"/>
+    <persistent value="true"/>
+  </extension>
+
+  <extension
+         id="JMLHighlightFalse"
+         name="JML Highlight"
+         point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.jdt.core.textmarker"/>
+    <persistent value="true"/>
+  </extension>
+
+  <extension
+         id="JMLHighlightException"
+         name="JML Highlight"
+         point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.jdt.core.textmarker"/>
+    <persistent value="true"/>
   </extension>
 
 <!-- FIXME - is the declarationInfo attribute actually used ? -->
@@ -623,6 +646,23 @@
             name="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotation"
             >
     </type>
+
+    <type
+            markerType="org.jmlspecs.OpenJMLUI.JMLHighlightTrue"
+            name="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationTrue"
+            >
+    </type>
+    <type
+            markerType="org.jmlspecs.OpenJMLUI.JMLHighlightFalse"
+            name="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationFalse"
+            >
+    </type>
+    <type
+            markerType="org.jmlspecs.OpenJMLUI.JMLHighlightException"
+            name="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationException"
+            >
+    </type>
+
     <type
             markerType="org.jmlspecs.OpenJMLUI.JMLESCProblem"
             name="org.jmlspecs.OpenJMLUI.ESCProblemAnnotation"
@@ -666,6 +706,23 @@
             highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrphKey"
             textPreferenceKey="org.jmlspecs.openjml.eclipse.trphKey"
             colorPreferenceKey="org.jmlspecs.openjml.eclipse.crphKey"
+            colorPreferenceValue="255,255,128"
+            textPreferenceValue="false"
+            overviewRulerPreferenceValue="false"
+            verticalRulerPreferenceValue="false"
+            highlightPreferenceValue="true"
+            presentationLayer="3"
+            >
+    </specification>
+
+    <specification
+            annotationType="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationTrue"
+            label="JML Execution Path - True"
+            overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orphtKey"
+            verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrphtKey"
+            highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrphtKey"
+            textPreferenceKey="org.jmlspecs.openjml.eclipse.trphtKey"
+            colorPreferenceKey="org.jmlspecs.openjml.eclipse.crphtKey"
             colorPreferenceValue="128,255,128"
             textPreferenceValue="false"
             overviewRulerPreferenceValue="false"
@@ -674,6 +731,39 @@
             presentationLayer="3"
             >
     </specification>
+    <specification
+            annotationType="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationFalse"
+            label="JML Execution Path - False"
+            overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orphfKey"
+            verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrphfKey"
+            highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrphfKey"
+            textPreferenceKey="org.jmlspecs.openjml.eclipse.trphfKey"
+            colorPreferenceKey="org.jmlspecs.openjml.eclipse.crphfKey"
+            colorPreferenceValue="255,128,128"
+            textPreferenceValue="false"
+            overviewRulerPreferenceValue="false"
+            verticalRulerPreferenceValue="false"
+            highlightPreferenceValue="true"
+            presentationLayer="3"
+            >
+    </specification>
+    <specification
+            annotationType="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationException"
+            label="JML Execution Path - Exception"
+            overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpheKey"
+            verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpheKey"
+            highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpheKey"
+            textPreferenceKey="org.jmlspecs.openjml.eclipse.trpheKey"
+            colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpheKey"
+            colorPreferenceValue="255,176,64"
+            textPreferenceValue="false"
+            overviewRulerPreferenceValue="false"
+            verticalRulerPreferenceValue="false"
+            highlightPreferenceValue="true"
+            presentationLayer="3"
+            >
+    </specification>
+
   </extension>
   <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">

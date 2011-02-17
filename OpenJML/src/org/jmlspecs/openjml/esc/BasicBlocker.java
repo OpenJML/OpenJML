@@ -3338,7 +3338,7 @@ public class BasicBlocker extends JmlTreeScanner {
         if (inSpecExpression) {
             result = insertSpecMethodCall(that.pos,msym,obj,that.typeargs,newargs.toList());
         } else {
-            result = insertMethodCall(that.pos,msym,obj,that.getTypeArguments(),newargs.toList()); // typeargs ? FIXME
+            result = insertMethodCall(that,msym,obj,that.getTypeArguments(),newargs.toList()); // typeargs ? FIXME
         }
 
         popTypeArgs();
@@ -3697,7 +3697,8 @@ public class BasicBlocker extends JmlTreeScanner {
     // Note - obj and the args are already translated
     // pos is the preferred position of the method call (e.g. the left parenthesis)
     // FIXME - review and document
-    protected JCIdent insertMethodCall(int pos, MethodSymbol methodSym, JCExpression obj, List<JCExpression> typeargs, List<JCExpression> args) {
+    protected JCIdent insertMethodCall(JCMethodInvocation tree, MethodSymbol methodSym, JCExpression obj, List<JCExpression> typeargs, List<JCExpression> args) {
+        int pos = tree.pos;
         MethodSymbol baseMethodSym = methodSym;
         VarMap prevOldMap = oldMap;
         JCIdent prevThisId = thisId;
@@ -3909,7 +3910,7 @@ public class BasicBlocker extends JmlTreeScanner {
                                               treeutils.makeBinary(pos,JCTree.EQ,termVar,treeutils.makeBinary(pos,JCTree.MINUS,zeroLiteral,treeutils.makeIntLit(pos,pos)))
                                                 ,makeInstanceof(exceptionVar,pos,syms.exceptionType,pos)));
                 termExp = trSpecExpr(termExp,null);
-                addAssume(pos,Label.TERMINATION,termExp);
+                addAssume(tree.getStartPosition(),tree,Label.TERMINATION,termExp,currentBlock.statements);
 
                 // If there is a non-primitive result, we need to say that it is allocated (if not null)
                 if (!baseMethodSym.isConstructor() && !baseMethodSym.getReturnType().isPrimitive()) {
@@ -4054,7 +4055,10 @@ public class BasicBlocker extends JmlTreeScanner {
                 if (tryreturnStack.isEmpty()) {
                     follows(bexc,exceptionBlock);
                 } else {
-                    // Need to go to all the catchers of the top try block - FIXME
+                	List<BasicBlock> catchList = catchListStack.get(0);
+                	for (BasicBlock b: catchList) {
+                		follows(bexc,b);
+                	}
                 }
                 
                 // Now we have to complete the currentBlock and start brest
@@ -6293,6 +6297,8 @@ public class BasicBlocker extends JmlTreeScanner {
         /** The compilation context */
         @NonNull Context context;
         
+        Map<String,String> values;
+        
         Writer w;
         
         /** The prover that was used to create the counterexample */
@@ -6338,7 +6344,7 @@ public class BasicBlocker extends JmlTreeScanner {
             this.prover = prover;
             w = new StringWriter();
             w.append("COUNTEREXAMPLE TRACE \n\n");
-            Map<String,String> values = new HashMap<String,String>();
+            values = ce.getMap();
             this.subexp = new Subexpressor(context,prover,values,w);
             this.path = new LinkedList<IProverResult.Span>();
             
@@ -6353,7 +6359,7 @@ public class BasicBlocker extends JmlTreeScanner {
 //            	values.put(entry.getKey(),entry.getValue());
 //            }
             BasicBlock block = program.startBlock();
-            outer: while (traceBlockStatements(block)) {
+            outer: while (traceBlockStatements(block,ce)) {
                 for (BasicBlock next: block.succeeding()) {
                     String s = next.id().toString();
                     String value = ce.get(s);
@@ -6380,7 +6386,7 @@ public class BasicBlocker extends JmlTreeScanner {
         // information in these methods.
         
         // FIXME - Review
-        protected boolean traceBlockStatements(BasicBlock b) throws IOException {
+        protected boolean traceBlockStatements(BasicBlock b, ICounterexample ce) throws IOException {
             w.append(" [ block " + b.id() + " ]\n");
             boolean sawFalseAssert = false;
             String pos=null, lastpos;
@@ -6397,6 +6403,7 @@ public class BasicBlocker extends JmlTreeScanner {
                         for (BasicProgram.Definition def : program.definitions) {
                             if (def.id.name.equals(nm)) {
                                 expr = def.value;
+                                break;
                             }
                         }
 //                        for (JCExpression e : program.pdefinitions) {
@@ -6409,12 +6416,6 @@ public class BasicBlocker extends JmlTreeScanner {
                 lastpos = pos;
                 pos = getPosition(s.pos);
                 Label label = s.label;
-                if (label == Label.ASSIGNMENT || label == Label.EXPLICIT_ASSERT || label == Label.EXPLICIT_ASSUME
-                		|| label == Label.POSTCONDITION || label == Label.PRECONDITION || label == Label.BRANCHT || label == Label.BRANCHE) { 
-                    int sp = TreeInfo.getStartPos(s);
-                    int ep = TreeInfo.getEndPos(s,log.currentSource().getEndPosTable());
-                    if (sp >= 0 && ep >= sp) path.add(new IProverResult.Span(sp,ep)); // FIXME - don't think the end position is right for statements
-                }
                 if (label == Label.ASSUME_CHECK) {
                     // skip
                 } else if (s.token == JmlToken.ASSUME) {
@@ -6424,8 +6425,10 @@ public class BasicBlocker extends JmlTreeScanner {
                             JCBinary bin = (JCBinary)expr;
                             if (!(bin.lhs instanceof JCIdent)) { failure(label,expr); continue; }
                             Name n = ((JCIdent)bin.lhs).name;
-                            w.append(pos + "Assignment " + n + " = " + value((JCIdent)bin.lhs)
+                            String v = value((JCIdent)bin.lhs);
+                            w.append(pos + "Assignment " + n + " = " + v
                                     + "  [" + bin.rhs + "]\n");
+                            record(bin.lhs,v);
                             showSubexpressions(bin.rhs);
 
                         } else if (expr instanceof JmlBBArrayAssignment){
@@ -6465,8 +6468,10 @@ public class BasicBlocker extends JmlTreeScanner {
                         JCBinary bin = (JCBinary)expr;
                         if (!(bin.lhs instanceof JCIdent)) { failure(label,expr); continue; }
                         Name n = ((JCIdent)bin.lhs).name;
-                        w.append(pos + "ArgumentEvaluation " + n + " = " + value((JCIdent)bin.lhs)
+                        String v = value((JCIdent)bin.lhs);
+                        w.append(pos + "ArgumentEvaluation " + n + " = " + v
                                 + "  [" + bin.rhs + "]\n");
+                        record(bin.lhs,v);
                         showSubexpressions(bin.rhs);
 
                     } else if (label == Label.RECEIVER) {
@@ -6475,16 +6480,20 @@ public class BasicBlocker extends JmlTreeScanner {
                         JCBinary bin = (JCBinary)expr;
                         if (!(bin.lhs instanceof JCIdent)) { failure(label,expr); continue; }
                         Name n = ((JCIdent)bin.lhs).name;
-                        w.append(pos + "ReceiverEvaluation " + n + " = " + value((JCIdent)bin.lhs)
+                        String v = value((JCIdent)bin.lhs);
+                        w.append(pos + "ReceiverEvaluation " + n + " = " + v
                                 + "  [" + bin.rhs + "]\n");
+                        record(bin.lhs,v);
                         showSubexpressions(bin.rhs);
                     
                     } else if (label == Label.BRANCHC) {
                         if (!(expr instanceof JCBinary)) { failure(label,expr); continue; }
                         JCBinary bin = (JCBinary)expr;
                         if (!(bin.lhs instanceof JCIdent)) { failure(label,expr); continue; }
-                        w.append(pos + label + " = " + value((JCIdent)bin.lhs)
+                        String v = value((JCIdent)bin.lhs);
+                        w.append(pos + label + " = " + v
                                 + "  [" + bin.rhs + "]\n");
+                        record(bin.lhs,v);
                         showSubexpressions(bin.rhs);
                         
                     } else if (label == Label.LBL) {
@@ -6495,16 +6504,20 @@ public class BasicBlocker extends JmlTreeScanner {
                         String lbl = id.toString();
                         int k = lbl.lastIndexOf('$');
                         lbl = lbl.substring(k+1);
-                        w.append(pos + label + ": " + lbl + " = " + value(id)
+                        String v = value(id);
+                        w.append(pos + label + ": " + lbl + " = " + v
                                 + "  [" + bin.rhs + "]\n");
+                        record(id,v);
                         showSubexpressions(bin.rhs);
                         
                     } else if (label == Label.SWITCH_VALUE) {
                         if (!(expr instanceof JCBinary)) { failure(label,expr); continue; }
                         JCBinary bin = (JCBinary)expr;
                         if (!(bin.lhs instanceof JCIdent)) { failure(label,expr); continue; }
-                        w.append(pos + "switch value = " + value((JCIdent)bin.lhs)
+                        String v = value((JCIdent)bin.lhs);
+                        w.append(pos + "switch value = " + v
                                 + "  [" + bin.rhs + "]\n");
+                        record(bin.lhs,v);
                         showSubexpressions(bin.rhs);
                         
                     } else if (label == Label.SYN) {  // FIXME - rename the SYN types that are wanted
@@ -6526,6 +6539,7 @@ public class BasicBlocker extends JmlTreeScanner {
                             String value = ce.get(n.toString());
                             w.append(pos + label + " " + n + " = " + value + "\n");
                             JCExpression e = findDefinition(n);
+                            record(expr,value);
                             if (e != null) showSubexpressions(e);
                         } else {
                             w.append(pos + label + " " + expr + "\n");
@@ -6564,8 +6578,16 @@ public class BasicBlocker extends JmlTreeScanner {
                     } else if (label == Label.ARRAY_INIT) {
                         // Just print the expression - don't try to evaluate it
                         w.append(pos + label + " " + expr + "\n");
-                    } else if (label == Label.BRANCHT || label == Label.BRANCHE || label == Label.HAVOC) {
-                        // skip
+                    } else if (label == Label.BRANCHT || label == Label.HAVOC) {
+                    	// skip
+                    } else if (label == Label.BRANCHE) {
+                        if (expr instanceof JCUnary) {
+                        	JCExpression e = ((JCUnary)expr).getExpression();
+                        	if (e instanceof JCIdent) {
+                        		String value = value((JCIdent)e);
+                        		record(expr,value);
+                        	}
+                        }
                     } else {
                         w.append(pos + label + " " + expr + "\n");
                         showSubexpressions(expr);
@@ -6585,7 +6607,6 @@ public class BasicBlocker extends JmlTreeScanner {
                     showSubexpressions(expr);
                     if ("false".equals(value)) {
                         sawFalseAssert = true;
-                        return false;  // FIXME (do we want this?) - abrupt return here if we quit the trace reporting upon the first false assertion
                     }
                 } else if (s.token == JmlToken.COMMENT) {
                     w.append(pos);
@@ -6595,6 +6616,29 @@ public class BasicBlocker extends JmlTreeScanner {
                 } else {
                     log.error(pos,"esc.internal.error","Incorrect token type in traceBlockStatements: " + s.token.internedName());
                 }
+                if (label == Label.ASSIGNMENT || label == Label.EXPLICIT_ASSERT || label == Label.EXPLICIT_ASSUME
+                        || label == Label.POSTCONDITION || label == Label.PRECONDITION || label == Label.BRANCHT || label == Label.BRANCHE) { 
+                    int sp = TreeInfo.getStartPos(s);
+                    int ep = TreeInfo.getEndPos(s,log.currentSource().getEndPosTable());
+                    int type = IProverResult.Span.NORMAL;
+                    if (label != Label.ASSIGNMENT) {
+                        String result = values.get(expr.toString());
+                        type = result == null ? IProverResult.Span.NORMAL : result.equals("true") ? IProverResult.Span.TRUE : result.equals("false") ? IProverResult.Span.FALSE : IProverResult.Span.NORMAL; 
+                    }
+                    if (sp >= 0 && ep >= sp) path.add(new IProverResult.Span(sp,ep,type)); // FIXME - don't think the end position is right for statements
+                } else if (label == Label.TERMINATION){
+                    int sp = TreeInfo.getStartPos(s);
+                    int ep = TreeInfo.getEndPos(s,log.currentSource().getEndPosTable());
+                    int type = IProverResult.Span.NORMAL;
+                    {
+                    	JCExpression e = ((JCBinary)((JCBinary)expr).lhs).lhs;
+                        String result = values.get(e.toString());
+                        int k = result == null ? 0 : Integer.valueOf(result);
+                        type = k < 0 ? IProverResult.Span.EXCEPTION : IProverResult.Span.NORMAL; 
+                    }
+                    if (sp >= 0 && ep >= sp) path.add(new IProverResult.Span(sp,ep,type)); // FIXME - don't think the end position is right for statements
+                }
+                if (sawFalseAssert) break;// Stop reporting the trace if we encounter a false assertion
             }
             return !sawFalseAssert;
         }
@@ -6644,6 +6688,10 @@ public class BasicBlocker extends JmlTreeScanner {
                 return "<IOException>";
             }
             return "";
+        }
+        
+        public void record(JCExpression expr, String value) {
+        	subexp.values.put(expr.toString(),value);
         }
     }
     
