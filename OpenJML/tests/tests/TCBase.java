@@ -83,16 +83,26 @@ public abstract class TCBase extends JmlTestCase {
             
             if (print) JmlSpecs.instance(context).printDatabase();
             if (print) printErrors();
-            assertEquals("Wrong number of messages seen",list.length,2*collector.getDiagnostics().size());
             int i=0;
             int k = 0;
+            Object p1,p2,p3;
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
                 if (k >= list.length) break;
                 assertEquals("Message " + i + " mismatch",list[k++],noSource(dd));
-                if (k >= list.length) break;
-                assertEquals("Column for message " + i,((Integer)list[k++]).intValue(),dd.getColumnNumber());
+                p1 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
+                p2 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
+                p3 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
+                if (p3 != null) {
+                    
+                } else if (p1 != null) {
+                    assertEquals("Column for message " + i,((Integer)list[k++]).intValue(),dd.getColumnNumber());
+                } else {
+                    fail("No positions given for message " + i);
+                }
                 i++;
             }
+            if (k < list.length) fail("More errors than expected: " + collector.getDiagnostics().size());
+            if (i < collector.getDiagnostics().size()) fail("Fewer errors than expected: " + i + " " + collector.getDiagnostics().size());
             if (expectedExit == -1) expectedExit = list.length == 0?0:1;
             assertEquals("Wrong exit code",expectedExit, ex);
         } catch (Exception e) {

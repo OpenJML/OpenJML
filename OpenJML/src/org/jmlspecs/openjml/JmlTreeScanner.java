@@ -45,6 +45,11 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.lhs);
         scan(that.rhs);
     }
+    
+    public void visitJmlChoose(JmlChoose that) {
+        scan(that.orBlocks);
+        scan(that.elseBlock);
+    }
 
     public void visitJmlClassDecl(JmlClassDecl that) {
         visitClassDef(that);
@@ -202,6 +207,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
     public void visitJmlStatementLoop(JmlStatementLoop tree) {
         scan(tree.expression);
+        scan(tree.loopModifies);
     }
     
     public void visitJmlStatementSpec(JmlStatementSpec tree) {

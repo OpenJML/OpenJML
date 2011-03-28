@@ -1011,7 +1011,7 @@ public class Utils {
             if (r instanceof IJavaProject || r instanceof IProject) continue;
             if (r instanceof IPackageFragmentRoot) {
                 IPackageFragmentRoot pfr = (IPackageFragmentRoot)r;
-                f = (IResource)pfr;
+                f = pfr.getResource();
             } else if (r instanceof IFile && "jar".equals(((IFile)r).getFileExtension())) {
                 f = (IFile)r;
             } else if (!(r instanceof IFolder)) {

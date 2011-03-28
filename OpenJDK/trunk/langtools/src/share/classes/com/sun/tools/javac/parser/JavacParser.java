@@ -1338,7 +1338,13 @@ public class JavacParser implements Parser {
     }
 
     private JCArrayTypeTree bracketsOptCont(JCExpression t, int pos) {
-        accept(RBRACKET);
+    	if (S.token() != RBRACKET) { // DRCok - next few lines changed to create clearer error messages
+            accept(RBRACKET);
+            do { S.nextToken(); } while (S.token() != RBRACKET && S.token() != SEMI && S.token() != CUSTOM && S.token() != EOF);
+            if (S.token() == RBRACKET) S.nextToken();
+    	} else {
+            accept(RBRACKET);
+    	}
         t = bracketsOpt(t);
         return toP(F.at(pos).TypeArray(t));
     }
@@ -1972,7 +1978,7 @@ public class JavacParser implements Parser {
         long flags;
         ListBuffer<JCAnnotation> annotations = new ListBuffer<JCAnnotation>();
         int pos;
-        if (partial == null) {
+        if (partial == null || partial.pos == Position.NOPOS) { // DRCok - change to this line
             flags = 0;
             pos = S.pos();
         } else {
@@ -2254,9 +2260,7 @@ public class JavacParser implements Parser {
                     break;
             }
             if (checkForImports && mods == null && S.token() == IMPORT) {
-                // DRC - FIXME - temp fix since now append refuses a null
-                JCTree imp = importDeclaration();
-                if (imp != null) defs.append(imp);
+                defs.append(importDeclaration());
             } else {
                 JCTree def = typeDeclaration(mods);
                 if (keepDocComments && dc != null && docComments.get(def) == dc) {

@@ -72,6 +72,7 @@ public class JmlTree {
      */
     public interface JmlFactory extends JCTree.Factory {
         JmlBinary JmlBinary(JmlToken t, JCTree.JCExpression left, JCTree.JCExpression right);
+        JmlChoose JmlChoose(JmlToken token, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
         JmlConstraintMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes);
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlEnhancedForLoop JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs);
@@ -100,6 +101,7 @@ public class JmlTree {
         JmlStatement JmlStatement(JmlToken t, JCTree.JCStatement e);
         JmlStatementDecls JmlStatementDecls(ListBuffer<JCTree.JCStatement> list);
         JmlStatementLoop JmlStatementLoop(JmlToken t, JCTree.JCExpression e);
+        JmlStatementLoop JmlStatementLoop(JmlMethodClauseStoreRef clause);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
         JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
         JmlStoreRefKeyword JmlStoreRefKeyword(JmlToken t);
@@ -418,6 +420,12 @@ public class JmlTree {
             return new JmlStatementLoop(pos,t,e);
         }
 
+        /** Creates a JML loop specification statement (e.g. loop_invariant, decreases, ... )*/
+        @Override
+        public JmlStatementLoop JmlStatementLoop(JmlMethodClauseStoreRef clause) {
+            return new JmlStatementLoop(pos,clause);
+        }
+
         /** Creates a JML do-while loop node that wraps a Java loop statement and a set of loop specifications */
         @Override
         public JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs) {
@@ -531,6 +539,11 @@ public class JmlTree {
             JmlTypeClauseConstraint t = new JmlTypeClauseConstraint(pos,mods,e,sigs);
             t.source = Log.instance(context).currentSourceFile();
             return t;
+        }
+        
+        @Override
+        public JmlChoose JmlChoose(JmlToken token, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock) {
+            return new JmlChoose(pos,token,orBlocks,elseBlock);
         }
         
         @Override
@@ -849,6 +862,47 @@ public class JmlTree {
             return JmlTree.toString(this);
         }
 
+    }
+    
+    /** This class represents model program choose and choose_if statements. */
+    public static class JmlChoose extends JmlAbstractStatement {
+
+        JmlToken token;
+        public List<JCBlock> orBlocks;
+        /*@Nullable*/ public JCBlock elseBlock;
+
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlChoose(int pos, JmlToken token, List<JCBlock> orBlocks, /*@Nullable*/ JCBlock elseBlock) {
+            this.pos = pos;
+            this.token = token;
+            this.orBlocks = orBlocks;
+            this.elseBlock = elseBlock;
+        }
+        
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlChoose(this); 
+            } else {
+                // unexpectedVisitor(this,v);
+                super.accept(v);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlChoose(this, d);
+            } else {
+                // unexpectedVisitor(this,v);
+                return super.accept(v,d);
+            }
+        }
+        
+        @Override
+        public String toString() {
+            return JmlTree.toString(this);
+        }    
     }
     
       
@@ -1939,12 +1993,13 @@ public class JmlTree {
     }
 
     /** This class represents JML primitive types */
-    static public class JmlPrimitiveTypeTree extends JmlExpression {
+    static public class JmlPrimitiveTypeTree extends JCTree.JCPrimitiveTypeTree {
         
         public JmlToken token;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlPrimitiveTypeTree(int pos, JmlToken token) {
+        	super(TypeTags.NONE);
             this.pos = pos;
             this.token = token;
         }
@@ -2380,7 +2435,7 @@ public class JmlTree {
     }
 
     /** This class represents JML method specifications within the body of a method
-     * that then apply to the next statement (FIXME - this is not implemented in JML yet)
+     * that then apply to the next statement
      */
     public static class JmlStatementSpec extends JmlAbstractStatement {
         public JmlMethodSpecs statementSpecs;
@@ -2428,6 +2483,7 @@ public class JmlTree {
     public static class JmlStatementLoop extends JmlAbstractStatement {
         public JmlToken token;
         public JCTree.JCExpression expression;
+        public JmlMethodClauseStoreRef loopModifies;
         public VarSymbol sym; // FIXME - put this in the copy constructors etc.
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
@@ -2435,6 +2491,14 @@ public class JmlTree {
             this.pos = pos;
             this.token = token;
             this.expression = expression;
+            this.loopModifies = null;
+        }
+    
+        protected JmlStatementLoop(int pos, JmlMethodClauseStoreRef clause) {
+            this.pos = pos;
+            this.token = JmlToken.ASSIGNABLE;
+            this.expression = null;
+            this.loopModifies = clause;
         }
     
         @Override
@@ -2467,7 +2531,7 @@ public class JmlTree {
             }
         }
     }
-
+    
     /** This node represents a store-ref expression denoting an array range:
      *   a[*] or a[1 .. 2] or a[1 .. ]   FIXME - or is that a[1 .. *]
      * @author David Cok

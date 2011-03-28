@@ -5,34 +5,17 @@ import static com.sun.tools.javac.util.ListBuffer.lb;
 import static org.jmlspecs.openjml.JmlToken.*;
 
 import java.io.PrintStream;
-import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.Set;
 
-import org.jmlspecs.openjml.JmlInternalError;
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.TreeInfo;
-import com.sun.tools.javac.tree.TreeMaker;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCErroneous;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.*;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -113,15 +96,16 @@ public class JmlParser extends EndPosParser {
         JCTree.JCCompilationUnit u = super.parseCompilationUnit();
         if (u instanceof JmlCompilationUnit) {
             JmlCompilationUnit jmlcu = (JmlCompilationUnit) u;
-//            jmlcu.refinesClause = refinesClause;
-//            refinesClause = null;
-            // sort the sheep from the goats
+            // sort the JML declarations from the Java declarations
             ListBuffer<JCTree> list = new ListBuffer<JCTree>();
             for (JCTree t : u.defs) {
                 if (t instanceof JmlClassDecl) {
                     JmlClassDecl jcd = (JmlClassDecl) t;
                     jcd.toplevel = jmlcu;
                     if (utils.isJML(((JmlClassDecl) t).mods)) {
+                    	// These are declarations that were declared within
+                    	// a JML comment - they should have but might erroneously
+                    	// be missing a model modifier
                         jmlcu.parsedTopLevelModelTypes.add(jcd);
                     } else {
                         list.append(t);
@@ -165,18 +149,19 @@ public class JmlParser extends EndPosParser {
         }
         return t;
     }
-
+    
     /**
      * This parses a class, interface or enum declaration after the parser has
-     * seen a group of modifiers and an optional javadoc comment
+     * seen a group of modifiers and an optional javadoc comment. This can be a declaration
+     * at the top-level in the compilation unit, within a class body, or a local
+     * declaration in a method body.
      * 
      * @param mods
      *            the preceding modifiers and (java) annotations
      * @param dc
      *            the preceding javadoc comment
-     * @return a JCStatement that is a
+     * @return a JCStatement that is a declaration
      */
-    // FIXME - is this a local statement declaration?
     @Override
     protected JCStatement classOrInterfaceOrEnumDeclaration(JCModifiers mods,
             String dc) {
@@ -191,10 +176,27 @@ public class JmlParser extends EndPosParser {
                 if (!inJmlDeclaration) utils.setJML(mods);
                 inJmlDeclaration = true;
             }
-            s = super.classOrInterfaceOrEnumDeclaration(mods, dc);
+            if (S.token() == IMPORT && !isNone(mods)) {
+            	JCAnnotation a = utils.findMod(mods, names.fromString(Utils.jmlAnnotationPackage + ".Model"));
+            	if (a != null) {
+            		skipToSemi();
+            		int p = mods.annotations.head.pos;
+            		jmlerror(p,S.endPos(),"jml.illformed.model.import");
+            		s = toP(F.Exec(toP(F.at(p).Erroneous(List.<JCTree>nil()))));
+            		skipThroughSemi();
+            	} else {
+            		int p = mods.annotations.head.pos;
+            		s = toP(F.Exec(toP(F.at(p).Erroneous(List.<JCTree>nil()))));
+            		jmlerror(mods.getStartPosition(),mods.getEndPosition(endPositions),"jml.no.mods.on.import");
+            	}
+            	mods.flags = 0;
+            	mods.annotations = List.<JCAnnotation>nil();
+            } else {
+            	s = super.classOrInterfaceOrEnumDeclaration(mods, dc);
+            }
             // Can also be a JCErroneous
             if (s instanceof JmlClassDecl)
-                filterTypeBodyDeclarations((JmlClassDecl) s, context);
+                filterTypeBodyDeclarations((JmlClassDecl) s, context, jmlF);
             if (S.jmlToken == JmlToken.ENDJMLCOMMENT) {
                 S.nextToken();
             }
@@ -203,6 +205,24 @@ public class JmlParser extends EndPosParser {
         }
         return s;
     }
+    
+    /** This override is needed in order to manage the value of S.jmlKeyword.
+		In parsing a class body, the value starts out true; however, the value
+		might be false on entering this method if we are parsing the class body of
+		an anonymous class expression.
+	*/ 
+    @Override
+    List<JCTree> classOrInterfaceBody(Name className, boolean isInterface) {
+        boolean savedJmlKeyword = S.jmlkeyword;
+        S.setJmlKeyword(true);
+        try {
+            return super.classOrInterfaceBody(className,isInterface);
+        } finally {
+            S.setJmlKeyword(savedJmlKeyword);
+        }
+    
+    }
+
 
     /**
      * This parses a sequence of statements that can appear in a block. JML
@@ -219,17 +239,39 @@ public class JmlParser extends EndPosParser {
         int pos = -1;
         JCModifiers mods = null;
         while (S.token() != Token.RBRACE && S.token() != EOF) {
-            if (S._pos == pos) break; // FIXME - why?
+        	// If the following equality is true, then the scanner has made no
+        	// progress in the previous loop iteration. Presumably some error
+        	// has occurred; for example no next statement is recognized.
+        	// So we just abort the loop. Since the next token is not a right
+        	// brace, an error will be issued when an attempt is made to read
+        	// the right brace that closes the block.
+            if (S._pos == pos) break;
             pos = S._pos;
-            if (S.token() == CUSTOM) {
-                mods = modifiersOpt(); // read any additional modifiers (e.g.
+            mods = modifiersOpt(); // read any additional modifiers (e.g.
                                        // JML ones)
-            }
-            if (S.token() == CUSTOM) {
-                pushBackModifiers = mods;
-                mods = null;
-                JCStatement st = parseStatement();
-                list.append(st);
+            JmlToken jt = S.jmlToken();
+            if (jt != null) {
+            	
+            	if (isJmlTypeToken(jt)) {
+            		JCExpression t = parseType();
+            		ListBuffer<JCStatement> vdefs = new ListBuffer<JCStatement>();
+            		variableDeclarators(mods, t, vdefs);
+            		if (S.token() == Token.SEMI) {
+            			accept(SEMI);
+            		} else {
+            			accept(SEMI); // To get the error message
+            			skipThroughSemi();
+            		}
+            		for (JCStatement vdef: vdefs) {
+            			utils.setJML(((JmlVariableDecl)vdef).mods);
+            			list.append(vdef);
+            		}
+            	} else {
+            		pushBackModifiers = mods;
+            		mods = null;
+            		JCStatement st = parseStatement();
+            		list.append(st);
+            	}
             } else {
                 pushBackModifiers = mods;
                 mods = null;
@@ -365,40 +407,56 @@ public class JmlParser extends EndPosParser {
                     S.setJmlKeyword(true); // This comes a token too late.
                     needSemi = false;
 
-                } else if (jtoken == JmlToken.REFINING) {// FIXME - implement
-                    warnNotImplemented(S.pos(), "refining statement",
-                            "JmlParser");
-                    st = to(F.at(pos).Skip());
+                } else if (jtoken == JmlToken.ASSIGNABLE) {
+                    S.setJmlKeyword(false);
+                    JmlMethodClauseStoreRef cl = parseStoreRefClause();
+                    S.setJmlKeyword(true); // This comes a token too late.
+                    needSemi = false;
+                    st = to(jmlF.at(pos).JmlStatementLoop(cl));
+                    
+                } else if (jtoken == JmlToken.REFINING) {
                     S.nextToken();
+                    if (S.jmlToken() == JmlToken.ALSO){
+                        jmlerror(S.pos(),S.endPos(),"jml.invalid.also");
+                        S.nextToken();
+                    }
+                    JCModifiers mods = modifiersOpt();
+                    JmlMethodSpecs specs = parseMethodSpecs(mods);
+                    for (JmlSpecificationCase c: specs.cases) {
+                        if (!isNone(c.modifiers)) {
+                            jmlerror(c.modifiers.getStartPosition(),c.modifiers.getEndPosition(endPositions),
+                                    "jml.no.mods.in.refining");
+                        }
+                    }
+                    st = toP(jmlF.at(pos).JmlStatementSpec(specs)); // FIXME - test pos and endPos
+                    needSemi = false;
+
                 } else if (inModelProgram && jtoken == JmlToken.CHOOSE) {
-                    warnNotImplemented(S.pos(), "choose statement", "JmlParser");
-                    st = to(F.at(pos).Skip());
-                    parseChoose();
-                    return st; // FIXME - set jmlKeyword true???
+                    st = parseChoose();
+                    return toP(st); // FIXME - is this the correct end position?
                 } else if (inModelProgram && jtoken == JmlToken.CHOOSE_IF) {
-                    warnNotImplemented(S.pos(), "choose_if statement",
-                            "JmlParser");
-                    st = to(F.at(pos).Skip());
-                    parseChooseIf();
-                    return st; // FIXME - set jmlKeyword true???
+                    st = parseChooseIf();
+                    return toP(st); // FIXME - is this the correct end position?
                 } else if (inModelProgram && jtoken == JmlToken.INVARIANT) {
                     JCTree t = parseInvariantInitiallyAxiom(null);
                     st = jmlF.JmlModelProgramStatement(t);
-                    return st; // FIXME _ set jml keyuword?
+                    return st;
                 } else if (inModelProgram
                         && (spc = parseSpecificationCase(null, false)) != null) {
                     st = jmlF.JmlModelProgramStatement(spc);
-                    return st; // FIXME _ set jml keyuword?
-                } else if (isJmlTypeToken(jtoken)) {
-                    JCExpression t = parseType();
-                    st = variableDeclarator(pushBackModifiers, t, false, null);
-                    pushBackModifiers = null;
-                    S.setJmlKeyword(true); // FIXME - is this needed? or have we
-                                           // already done this
-                    accept(SEMI); // FIXME - does not allow multiple
-                                  // declarations
-                    utils.setJML(((JmlVariableDecl) st).mods);
                     return st;
+                    
+                    // A JML statement can also be a ghost declaration that begins with a JML type. These are parsed in
+                    // blockStatements() because they produce more than one statement at a time.
+                    // This (old) implementation only allowed one variable to be declared.
+//                } else if (isJmlTypeToken(jtoken)) {
+//                    JCExpression t = parseType();
+//                    ListBuffer<JCStatement> vdefs = new ListBuffer<JCStatement>();
+//                    variableDeclarators(null, t, vdefs);
+//                    st = vdefs.first();
+//                    accept(SEMI);
+//                    utils.setJML(((JmlVariableDecl) st).mods);
+//                    return st;
                 } else {
                     jmlerror(S.pos(),S.endPos(), "jml.unknown.statement", jtoken
                             .internedName());
@@ -444,27 +502,37 @@ public class JmlParser extends EndPosParser {
     }
 
     /** Parses a choose statement (the choose token is already read) */
-    public void parseChoose() {
+    public JmlChoose parseChoose() {
+        JmlToken jt = S.jmlToken();
         S.nextToken();
-        block();
+        ListBuffer<JCBlock> orBlocks = new ListBuffer<JCBlock>();
+        orBlocks.append(block()); // FIXME - here and below - what if block() returns null.
         while (S.jmlToken() == JmlToken.OR) {
             S.nextToken();
-            block();
+            orBlocks.append(block());
         }
+        return jmlF.JmlChoose(jt, orBlocks.toList(), null);
     }
 
-    /** Parses a choose_if statement (the choose_if token is already read) */
-   public void parseChooseIf() {
-        S.nextToken();
-        block();
-        while (S.jmlToken() == JmlToken.OR) {
-            S.nextToken();
-            block();
-        }
-        if (S.token() == Token.ELSE) {
-            S.nextToken();
-            block();
-        }
+    /** Parses a choose_if statement (the choose_if token is already read);
+     * choose_if statements differ from choose statements in that the first statement
+     * of a choose_if must be an assume statement. This is not checked here. */
+    
+    public JmlChoose parseChooseIf() {
+        JmlToken jt = S.jmlToken();
+        ListBuffer<JCBlock> orBlocks = new ListBuffer<JCBlock>();
+        JCBlock elseBlock = null;
+    	S.nextToken();
+        orBlocks.append(block());
+    	while (S.jmlToken() == JmlToken.OR) {
+    		S.nextToken();
+            orBlocks.append(block());
+    	}
+    	if (S.token() == Token.ELSE) {
+    		S.nextToken();
+    		elseBlock = block();
+    	}
+        return jmlF.JmlChoose(jt, orBlocks.toList(), elseBlock);
     }
 
     /**
@@ -479,18 +547,15 @@ public class JmlParser extends EndPosParser {
         new JmlDebugTreePrinter(out, endPositions).scan(t);
     }
 
-    // FIXME - document; where used?
-    public String docComment(JCTree tree) {
-        return docComments.get(tree);
-    }
-
     /** when true we are parsing declarations within a model method or class,
      * so the individual declarations are not themselves considered JML
      * declarations even though they may be within a JML comment.*/
     protected boolean inJmlDeclaration = false;
 
 
-    //FIXME - why overridden?
+    /** Overridden in order to parse JML declarations and clauses within
+     * the body of a class or interface.
+     */
     @Override
     protected List<JCTree> classOrInterfaceBodyDeclaration(Name className,
             boolean isInterface) {
@@ -605,50 +670,49 @@ public class JmlParser extends EndPosParser {
      * the JML declarations and associating them with the correct Java
      * declarations, issuing errors if they are in the wrong place.
      * 
-     * @param list
-     *            input list, in order, as parsed from the type body
-     * @return revised list, with all JML declarations removed and put in specs
-     *         structures
      */
-    // This is static because we need it from JmlCompiler and we don't have
-    // source for which to create a whole compiler (TODO - perhaps we should not
-    // cache all this sorting of declarations)
+    // This is static because it is called outside the parser as well
     static public void filterTypeBodyDeclarations(JmlClassDecl decl,
-            Context context) {
+            Context context, JmlTree.Maker jmlF) {
         Log log = Log.instance(context);
         List<JCTree> list = decl.defs;
         JmlSpecs.TypeSpecs typeSpecs = new JmlSpecs.TypeSpecs(decl);
         ListBuffer<JCTree> newlist = lb();
         Iterator<JCTree> iter = list.iterator();
+        JmlVariableDecl currentVarDecl = null;
         JmlVariableDecl mostRecentVarDecl = null;
-        JmlVariableDecl lastRecentVarDecl = null;
 
-        // FIXME : also jml.no.var.match jml.one.initializer.spec.only
-        // jml.misplaced.method.specs jml.initializer.block.allowed
         while (iter.hasNext()) {
             JCTree tree = iter.next();
-            lastRecentVarDecl = mostRecentVarDecl;
-            mostRecentVarDecl = null;
+            mostRecentVarDecl = currentVarDecl;
+            currentVarDecl = null;
             if (tree instanceof JmlVariableDecl) {
                 newlist.append(tree);
-                mostRecentVarDecl = (JmlVariableDecl) tree;
+                currentVarDecl = (JmlVariableDecl) tree;
             } else if (tree instanceof JmlTypeClauseIn
                     || tree instanceof JmlTypeClauseMaps) {
+            	/** in and maps clauses get attached to the just preceding
+            	 * variable declaration
+            	 */
                 if (tree instanceof JmlTypeClauseIn)
-                    ((JmlTypeClauseIn) tree).parentVar = lastRecentVarDecl;
-                if (lastRecentVarDecl == null) {
+                    ((JmlTypeClauseIn) tree).parentVar = mostRecentVarDecl;
+                if (mostRecentVarDecl == null) {
                     log.error(tree.pos, "jml.misplaced.var.spec",
                             ((JmlTypeClause) tree).token.internedName());
                 } else {
-                    if (lastRecentVarDecl.fieldSpecs == null) {
-                        lastRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
-                                lastRecentVarDecl.mods);
+                    if (mostRecentVarDecl.fieldSpecs == null) {
+                        mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
+                                mostRecentVarDecl.mods);
                     }
-                    lastRecentVarDecl.fieldSpecs.list
+                    mostRecentVarDecl.fieldSpecs.list
                             .append((JmlTypeClause) tree);
-                    mostRecentVarDecl = lastRecentVarDecl;
+                    currentVarDecl = mostRecentVarDecl;
                 }
             } else if (tree instanceof JmlMethodSpecs) {
+            	// Method specifications come before the declaration they specify.
+            	// They can apply to (a) a method declaration, (b) a ghost or model declaration
+            	// (c) a JML initializer clause, or (d) a Java initializer block.
+            	// All consecutive method spec clauses are grouped together into one JmlMethodSpecs
                 JmlMethodSpecs mspecs = (JmlMethodSpecs) tree;
                 if (iter.hasNext()) {
                     tree = iter.next();
@@ -664,7 +728,7 @@ public class JmlParser extends EndPosParser {
                     } else if (tree instanceof JmlTypeClauseInitializer) {
                         JmlTypeClauseInitializer tsp = (JmlTypeClauseInitializer) tree;
                         tsp.specs = mspecs;
-                        checkInitializer(tsp, typeSpecs, context);
+                        checkInitializer(tsp, typeSpecs, context, jmlF);
                     } else if (tree instanceof JCTree.JCBlock) {
                         typeSpecs.blocks
                                 .put((JCTree.JCBlock) tree,
@@ -679,24 +743,18 @@ public class JmlParser extends EndPosParser {
                     log.error(mspecs.pos, "jml.misplaced.method.spec");
                 }
             } else if (tree instanceof JmlTypeClauseDecl) {
+            	// A ghost or model declaration within a class
                 JmlTypeClauseDecl tcd = (JmlTypeClauseDecl) tree;
                 tree = tcd.decl;
                 if (tree instanceof JmlVariableDecl) {
-                    mostRecentVarDecl = (JmlVariableDecl) tcd.decl;
+                    currentVarDecl = (JmlVariableDecl) tcd.decl;
                 } else if (tree instanceof JmlMethodDecl) {
                     // OK
                 } else if (tree instanceof JmlClassDecl) {
                     JmlClassDecl jcd = (JmlClassDecl) tree;
                     typeSpecs.modelTypes.append(jcd);
                     // model types are their own specs
-                    jcd.specsDecls = List.<JmlClassDecl> of(jcd); // FIXME - not
-                                                                  // sure if
-                                                                  // this is
-                                                                  // used, or
-                                                                  // when the
-                                                                  // model types
-                                                                  // get
-                                                                  // filtered
+                    jcd.specsDecls = List.<JmlClassDecl> of(jcd);
                     tree = null; // model types are not in clauses
                     // OK
                 } else {
@@ -709,7 +767,7 @@ public class JmlParser extends EndPosParser {
             } else if (tree instanceof JmlTypeClause) {
                 if (tree instanceof JmlTypeClauseInitializer)
                     checkInitializer((JmlTypeClauseInitializer) tree,
-                            typeSpecs, context);
+                            typeSpecs, context, jmlF);
                 else
                     typeSpecs.clauses.append((JmlTypeClause) tree);
             } else {
@@ -737,7 +795,7 @@ public class JmlParser extends EndPosParser {
      */
     //@ modifies tspecs.initializerSpec, tspecs.staticInitializerSpec, log.errorOutput;
     static public void checkInitializer(JmlTypeClauseInitializer tsp,
-            JmlSpecs.TypeSpecs tspecs, Context context) {
+            JmlSpecs.TypeSpecs tspecs, Context context, JmlTree.Maker jmlF) {
         Log log = Log.instance(context);
         if (tsp.token == JmlToken.INITIALIZER) { // not static
             if (tspecs.initializerSpec != null) {
@@ -745,7 +803,7 @@ public class JmlParser extends EndPosParser {
             } else {
                 tspecs.clauses.append(tsp);
                 tspecs.initializerSpec = tsp;
-                if (tsp.specs == null) tsp.specs = new JmlMethodSpecs(); // FIXME - use factory?
+                if (tsp.specs == null) tsp.specs = jmlF.JmlMethodSpecs(List.<JmlTree.JmlSpecificationCase>nil());
             }
         } else { // static initializer
             if (tspecs.staticInitializerSpec != null) {
@@ -753,23 +811,13 @@ public class JmlParser extends EndPosParser {
             } else {
                 tspecs.clauses.append(tsp);
                 tspecs.staticInitializerSpec = tsp;
-                if (tsp.specs == null) tsp.specs = new JmlMethodSpecs(); // FIXME - use factory?
+                if (tsp.specs == null) tsp.specs = jmlF.JmlMethodSpecs(List.<JmlTree.JmlSpecificationCase>nil());
             }
         }
 
     }
 
-    protected JCTree collectInMap(Iterator<JCTree> iter,
-            ListBuffer<JmlTypeClause> list) {
-        while (true) {
-            if (!iter.hasNext()) return null;
-            JCTree tree = iter.next();
-            if (!(tree instanceof JmlTypeClauseIn || tree instanceof JmlTypeClauseMaps))
-                return tree;
-            list.append((JmlTypeClause) tree);
-        }
-    }
-
+    /** Parses a maps clause */
     public JmlTypeClauseMaps parseMaps(int pos, JCModifiers mods,
             ListBuffer<JCTree> list) {
         if (!isNone(mods))
@@ -777,8 +825,6 @@ public class JmlParser extends EndPosParser {
         S.setJmlKeyword(false);
         S.nextToken(); // skip over the maps token
         JCExpression e = parseMapsTarget();
-        // if (e.getTag() == JCTree.ERRONEOUS)
-        // return null; // presumes already advanced to SEMI
         ListBuffer<JmlGroupName> glist;
         if (S.jmlToken() != JmlToken.BSINTO) {
             jmlerror(S.pos(), S.endPos(), "jml.expected",
@@ -800,6 +846,7 @@ public class JmlParser extends EndPosParser {
         return toP(jmlF.at(pos).JmlTypeClauseMaps(e, glist.toList()));
     }
 
+    /** Parses the target portion (before the \\into) of a maps clause */
     public JCExpression parseMapsTarget() {
         int p = S.pos();
         if (S.token() != Token.IDENTIFIER) {
@@ -835,6 +882,7 @@ public class JmlParser extends EndPosParser {
         return result;
     }
 
+    /** Parses an in clause */
     public JmlTypeClauseIn parseIn(int pos, JCModifiers mods) {
         if (!isNone(mods))
             log.error(pos, "jml.no.mods.allowed", JmlToken.IN.internedName());
@@ -867,6 +915,7 @@ public class JmlParser extends EndPosParser {
         return tcl;
     }
 
+    /** Parses a represents clause */
     public JmlTypeClauseRepresents parseRepresents(JCModifiers mods) {
         S.setJmlKeyword(false);
         int pos = S.pos();
@@ -890,7 +939,7 @@ public class JmlParser extends EndPosParser {
         } else {
             log.error(S.pos(), "jml.bad.represents.token");
             e = null;
-            skipThroughSemi();
+            skipToSemi();
             suchThat = false;
         }
         S.setJmlKeyword(true);
@@ -909,32 +958,26 @@ public class JmlParser extends EndPosParser {
         return tcl;
     }
 
+    /** Parses a constraint clause */
     public JmlTypeClauseConstraint parseConstraint(JCModifiers mods) {
         int pos = S.pos();
         S.setJmlKeyword(false);
         S.nextToken();
         JCExpression e = parseExpression();
         S.setJmlKeyword(true);
-        ListBuffer<JmlConstraintMethodSig> sigs = new ListBuffer<JmlConstraintMethodSig>();
+        List<JmlConstraintMethodSig> sigs = null;
         if (S.token() == Token.FOR) {
             S.nextToken();
             if (S.jmlToken == JmlToken.BSEVERYTHING) {
                 S.nextToken();
-                // This is the default, so we just set the sigs to null
-                sigs = null;
+                // This is the default, so we just leave sigs null
             } else {
-                while (true) {
-                    JmlConstraintMethodSig m = parseConstraintMethod();
-                    if (m == null) break;
-                    sigs.append(m);
-                    if (S.token() != COMMA) break;
-                    S.nextToken();
-                }
+            	sigs = parseMethodNameList();
             }
         }
         if (mods == null) mods = jmlF.at(pos).Modifiers(0);
         JmlTypeClauseConstraint tcl = to(jmlF.at(pos).JmlTypeClauseConstraint(
-                mods, e, sigs == null ? null : sigs.toList()));
+                mods, e, sigs));
         tcl.source = log.currentSourceFile();
         if (S.token() != SEMI) {
             log.error(S.pos(), "jml.bad.construct", "constraint declaration");
@@ -944,16 +987,35 @@ public class JmlParser extends EndPosParser {
         }
         return tcl;
     }
+    
+    /** Parses a list of method-name; returns a possibly empty list; does not parse the terminating semicolon */
+    public List<JmlConstraintMethodSig> parseMethodNameList() {
+        S.setJmlKeyword(false);
+        ListBuffer<JmlConstraintMethodSig> sigs = new ListBuffer<JmlConstraintMethodSig>();
+        while (true) {
+            JmlConstraintMethodSig m = parseMethodName();
+            if (m == null) {
+            	skipToCommaOrParenOrSemi();
+            } else {
+            	sigs.append(m);
+            }
+            if (S.token() != COMMA) break;
+            S.nextToken();
+        }
+        S.setJmlKeyword(true);
+        return sigs.toList();
+    }
 
-    // FIXME - check and fix this - also gets used for callable so change name?
-    public JmlConstraintMethodSig parseConstraintMethod() {
-        Token t = S.token();
-        if (t != Token.IDENTIFIER && t != Token.THIS && t != Token.SUPER)
-            return null;
+    /** Parses a method-name */
+    public JmlConstraintMethodSig parseMethodName() {
         int initpos = S.pos();
         int p = initpos;
-        Name n;
-        if (S.token() == Token.IDENTIFIER) {
+        Name n = null;
+        JCTree newType = null;
+    	if (S.token() == Token.NEW) {
+    		newType = parseType();
+    		// FIXME - check that it is a reference type
+    	} else if (S.token() == Token.IDENTIFIER) {
             n = ident();
         } else if (S.token() == Token.THIS) {
             n = names._this;
@@ -962,26 +1024,42 @@ public class JmlParser extends EndPosParser {
             n = names._super;
             S.nextToken();
         } else {
-            n = null;
+            log.error(S.pos(), "jml.bad.construct", "constraint method");
+            return null;
         }
-        JCExpression id = jmlF.at(p).Ident(n);
-        do {
-            if (S.token() != Token.DOT) break;
-            S.nextToken();
-            p = S.pos();
-            if (S.token() == Token.IDENTIFIER) {
-                n = ident();
-            } else if (S.token() == Token.THIS) {
-                n = names._this;
-                S.nextToken();
-            } else if (S.token() == Token.SUPER) {
-                n = names._super;
-                S.nextToken();
-            } else {
-                // / FIXME -error
-            }
-            id = jmlF.at(p).Select(id, n);
-        } while (true);
+        JCExpression id = null;
+        if (newType == null) {
+        	id = jmlF.at(p).Ident(n);
+        	boolean first = true;
+        	while (S.token() == Token.DOT) {
+        		S.nextToken();
+        		p = S.pos();
+        		if (S.token() == Token.IDENTIFIER) {
+        			n = ident();
+        		} else if (S.token() == Token.THIS) {
+        			n = names._this;
+        			S.nextToken();
+        		} else if (S.token() == Token.STAR) {
+        			// * may only be the only thing after any dot, if it is present
+        			if (!first) {
+            			jmlerror(S.pos(), S.endPos(), "jml.expected", "identifier or this, since a * may only be used after the first dot");
+        			}
+        			n = names.asterisk;
+        			S.nextToken();
+        			if (S.token() == Token.DOT) {
+            			jmlerror(S.pos(), S.endPos(), "jml.expected", "no dot, since a dot may not be used after a *");
+        			}
+        		} else {
+        			jmlerror(S.pos(), S.endPos(), "jml.expected", "identifier or this");
+        			break;
+        		}
+        		id = jmlF.at(p).Select(id, n);
+        		first = false;
+        		if (n == names.asterisk) {
+        	        return jmlF.at(initpos).JmlConstraintMethodSig(id,null);
+        		}
+        	} 
+        }
         ListBuffer<JCExpression> args = null;
         if (S.token() == Token.LPAREN) {
             args = new ListBuffer<JCExpression>();
@@ -995,18 +1073,19 @@ public class JmlParser extends EndPosParser {
                     args.append(arg);
                 }
                 if (S.token() != RPAREN) {
-                    // ERROR
+                    jmlerror(S.pos(),S.endPos(),"jml.expected","comma or right parenthesis");
                 } else {
                     S.nextToken();
                 }
             } else {
-                S.nextToken();
+                S.nextToken(); // consume the RPAREN
             }
         }
         return jmlF.at(initpos).JmlConstraintMethodSig(id,
                 args == null ? null : args.toList());
     }
 
+    /** Parse a readable or writable clause */
     public JmlTypeClauseConditional parseReadableWritable(JCModifiers mods,
             JmlToken token) {
         int p = S.pos();
@@ -1039,6 +1118,7 @@ public class JmlParser extends EndPosParser {
         return toP(jmlF.at(p).JmlTypeClauseConditional(mods, token, id, e));
     }
 
+    /** Parse a monitors_for clause */
     public JmlTypeClauseMonitorsFor parseMonitorsFor(JCModifiers mods) {
         int p = S.pos();
         S.setJmlKeyword(false);
@@ -1153,10 +1233,6 @@ public class JmlParser extends EndPosParser {
         return sp;
     }
 
-    // /** Tokens that can end a model program (until we parse it properly) */
-    // public final static Set<JmlToken> stops = EnumSet.of(ALSO, IMPLIES_THAT,
-    // FOR_EXAMPLE, ENDJMLCOMMENT);
-
     /**
      * Returns true if no modifiers or annotations (of any kind) have been set
      * 
@@ -1178,7 +1254,7 @@ public class JmlParser extends EndPosParser {
         JmlToken ijt = S.jmlToken();
         if (ijt == ALSO) {
             if (!isNone(mods)) {
-                log.error(S.pos(), "jml.no.mods.allowed", ijt.internedName());
+                jmlerror(mods.getStartPosition(), S.endPos(), "jml.no.mods.allowed", ijt.internedName());
                 mods = null;
             }
             S.nextToken();
@@ -1216,7 +1292,7 @@ public class JmlParser extends EndPosParser {
             j.sourcefile = log.currentSourceFile();
             return j;
         } else if (jt == null && S.jml && also != null) {
-            log.error(S.pos(), "jml.invalid.keyword.in.spec", S.stringVal());
+            jmlerror(S.pos(), S.endPos(), "jml.invalid.keyword.in.spec", S.stringVal());
             skipThroughSemi();
             // Call it lightweight
         } else {
@@ -1244,24 +1320,19 @@ public class JmlParser extends EndPosParser {
         return j;
     }
 
+    /** Issues a warning that the named construct is parsed and ignored */
     public void warnNotImplemented(int pos, String construct, String location) {
         if (JmlOption.isOption(context, JmlOption.SHOW_NOT_IMPLEMENTED))
             log.warning(pos, "jml.unimplemented.construct", construct,
                             location);
     }
 
+    /** Parses a model program; presumes the current token is model_program */
     public JmlSpecificationCase parseModelProgram(JCModifiers mods,
             boolean code, JmlToken also) {
-        JmlToken jt = S.jmlToken();
         int pos = S.pos();
-        S.nextToken();
-
-        // skip the whole model program - FIXME parse it someday
-        // skip up to ALSO/IMPLIES_THAT/FOR_EXAMPLE or ENDJMLCOMMENT or EOF
-
-        if (inJmlDeclaration) {
-            log.noticeWriter.println("ALREADY IN JML DECLARATION"); // FIXME
-        }
+        S.nextToken(); // skip over the model_program token
+        
         JCBlock stat;
         JmlSpecificationCase spc;
         try {
@@ -1274,19 +1345,6 @@ public class JmlParser extends EndPosParser {
             inJmlDeclaration = false;
             inModelProgram = false;
         }
-
-        // warnNotImplemented(pos,"model program",
-        // "JmlParser.getSpecificationCase()");
-        // int count = 0;
-        // do {
-        // S.nextToken();
-        // jt = S.jmlToken();
-        // if (S.token() == LBRACE) count++;
-        // else if (S.token() == RBRACE) count--;
-        // } while (S.token() != EOF && count != 0);
-        // JmlSpecificationCase spc =
-        // toP(jmlF.at(pos).JmlSpecificationCase(mods,code,MODEL_PROGRAM,also,List.<JmlMethodClause>nil()));
-        // if (jt == ENDJMLCOMMENT || S.token() == RBRACE) S.nextToken();
         return spc;
     }
 
@@ -1306,7 +1364,7 @@ public class JmlParser extends EndPosParser {
             list.append(g);
         } while (S.jmlToken == ALSO);
         if (S.jmlToken != SPEC_GROUP_END) {
-            log.error(S.pos(), "jml.invalid.spec.group.end");
+            jmlerror(S.pos(), S.endPos(), "jml.invalid.spec.group.end");
             while (S.jmlToken() != JmlToken.ENDJMLCOMMENT && S.token() != EOF)
                 S.nextToken();
             if (S.token() != EOF) S.nextToken();
@@ -1382,9 +1440,13 @@ public class JmlParser extends EndPosParser {
                 warnNotImplemented(S.pos(), jt.internedName(),
                         "JmlParser.getClause()");
                 S.nextToken();
+                JmlStoreRefKeyword refkeyword = parseOptStoreRefKeyword();
+                if (refkeyword == null) {
+                	parseMethodNameList();
+                }
                 S.setJmlKeyword(true);
-                skipThroughSemi(); // FIXME - needs implementation
-                e = toP(jmlF.at(S.pos()).Erroneous());
+                accept(SEMI);
+                e = toP(jmlF.at(S.pos()).Erroneous()); // FIXME - implement
                 res = toP(jmlF.at(pos).JmlMethodClauseExpr(jt, e)); 
                 // just so something is returned, for now, since
                 // null means end of input
@@ -1399,10 +1461,10 @@ public class JmlParser extends EndPosParser {
             case BREAKS:
             case RETURNS:
                 if (!inModelProgram) {
-                    // FIXME - misplaced
+                	jmlerror(S.pos(),S.endPos(),"jml.misplaced.modelprogram.statement",jt.toString());
                 }
-                // FIXME _ continues, breaks may have an optional label
                 res = parseExprClause();
+                // FIXME _ continues, breaks may have an optional label
                 break;
 
             default:
@@ -1417,7 +1479,8 @@ public class JmlParser extends EndPosParser {
         return res;
     }
 
-    public JCExpression expressionOrNotSpecified() {
+    /** Parses either a \\not_specified token or a JML expression */
+    public JCExpression parsePredicateOrNotSpecified() {
         if (S.jmlToken() == BSNOTSPECIFIED) {
             S.nextToken();
             return toP(jmlF.at(S.pos()).JmlSingleton(BSNOTSPECIFIED));
@@ -1427,7 +1490,7 @@ public class JmlParser extends EndPosParser {
     }
 
     /**
-     * Parses a requires method specification clause
+     * Parses a method specification clause that takes a predicate-or-not-specified argument
      * 
      * @return the parsed JmlMethodClause
      */
@@ -1435,7 +1498,7 @@ public class JmlParser extends EndPosParser {
         JmlToken jt = S.jmlToken();
         int pos = S.pos();
         S.nextToken();
-        JCExpression e = expressionOrNotSpecified();
+        JCExpression e = parsePredicateOrNotSpecified();
         S.setJmlKeyword(true);
         if (S.token() != Token.SEMI) {
             syntaxError(S.pos(), null, "jml.invalid.expression.or.missing.semi");
@@ -1443,7 +1506,8 @@ public class JmlParser extends EndPosParser {
         } else {
             S.nextToken(); // skip SEMI
         }
-        return toP(jmlF.at(pos).JmlMethodClauseExpr(jt, e));
+        JmlMethodClauseExpr cl = jmlF.at(pos).JmlMethodClauseExpr(jt, e);
+        return toP(cl);
     }
 
     /**
@@ -1464,7 +1528,7 @@ public class JmlParser extends EndPosParser {
             t = to(jmlF.at(S.pos()).Ident(names.fromString("java")));
             t = to(jmlF.at(S.pos()).Select(t, names.fromString("lang")));
             t = to(jmlF.at(S.pos()).Select(t, names.fromString("Exception")));
-            e = expressionOrNotSpecified();
+            e = parsePredicateOrNotSpecified();
         } else {
             S.nextToken();
             // Get type
@@ -1483,7 +1547,7 @@ public class JmlParser extends EndPosParser {
                 if (S.token() == Token.SEMI) {
                     e = toP(jmlF.at(S.pos()).Literal(TypeTags.BOOLEAN, 1)); // Boolean.TRUE));
                 } else {
-                    e = expressionOrNotSpecified();
+                    e = parsePredicateOrNotSpecified();
                 }
             }
         }
@@ -1513,8 +1577,7 @@ public class JmlParser extends EndPosParser {
         S.nextToken();
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
 
-        if (S.jmlToken() == BSNOTHING) { // FIXME - can have multiple nothing
-            // and everything
+        if (S.jmlToken() == BSNOTHING) {
             S.setJmlKeyword(true);
             S.nextToken();
             if (S.token() != SEMI) {
@@ -1539,10 +1602,15 @@ public class JmlParser extends EndPosParser {
                 } else if (S.token() == COMMA) {
                     S.nextToken();
                     continue;
+                } else if (typ instanceof JCErroneous) {
+                    S.setJmlKeyword(true);
+                    skipThroughSemi();
+                    break;
                 } else if (S.jmlToken() == ENDJMLCOMMENT) {
                     syntaxError(S.pos(), null, "jml.missing.semi");
                 } else {
                     syntaxError(S.pos(), null, "jml.missing.comma");
+                    continue;
                 }
                 // error
                 S.setJmlKeyword(true);
@@ -1571,7 +1639,7 @@ public class JmlParser extends EndPosParser {
         if (S.token() == Token.SEMI) {
             S.nextToken();
         } else {
-            log.error(S.pos(), "jml.bad.construct", jt.internedName()
+            jmlerror(S.pos(), S.endPos(), "jml.bad.construct", jt.internedName()
                     + " specification");
             skipThroughSemi();
         }
@@ -1587,7 +1655,7 @@ public class JmlParser extends EndPosParser {
         JmlToken jt = S.jmlToken();
         JCExpression p = null;
         S.nextToken();
-        JCExpression e = expressionOrNotSpecified();
+        JCExpression e = parsePredicateOrNotSpecified();
         if (S.token() == Token.IF) { // The if is not allowed if the
             // expression is not_specified, but we test that
             // during type checking
@@ -1608,7 +1676,7 @@ public class JmlParser extends EndPosParser {
     }
 
     /** Parses "assignable" <store-ref-list> ";" */
-    public JmlMethodClause parseStoreRefClause() {
+    public JmlMethodClauseStoreRef parseStoreRefClause() {
         JmlToken jt = S.jmlToken();
         int pos = S.pos();
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
@@ -1651,15 +1719,13 @@ public class JmlParser extends EndPosParser {
      *         store-ref-keyword;
      */
     public ListBuffer<JCExpression> parseStoreRefList(boolean strictId) {
-        JmlToken jt = S.jmlToken();
-        int p = S.pos();
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
-        if (!strictId
-                && (jt == BSNOTHING || jt == BSEVERYTHING || jt == BSNOTSPECIFIED)) {
-            JCExpression s = to(jmlF.at(p).JmlStoreRefKeyword(jt));
-            S.nextToken();
-            list.append(s);
-            return list;
+        if (!strictId) {
+            JCExpression s = parseOptStoreRefKeyword();
+            if (s != null) {
+            	list.append(s);
+                return list;
+            }
         }
         while (true) {
             JCExpression r = parseStoreRef(false);
@@ -1677,6 +1743,18 @@ public class JmlParser extends EndPosParser {
                 if (r == null) return list;
             }
         }
+    }
+    
+    /** Parses a storeRefKeyword or returns null (with no error message) */
+    public JmlStoreRefKeyword parseOptStoreRefKeyword() {
+        JmlToken jt = S.jmlToken();
+        int p = S.pos();
+        if (jt == BSNOTHING || jt == BSEVERYTHING || jt == BSNOTSPECIFIED) {
+        	JmlStoreRefKeyword s = to(jmlF.at(p).JmlStoreRefKeyword(jt));
+            S.nextToken();
+            return s;
+        }
+        return null;
     }
 
     /**
@@ -1827,9 +1905,6 @@ public class JmlParser extends EndPosParser {
                         break;
                     }
                     continue;
-                    // } else if (!strictId && S.token() == STAR) {
-                    // t = to(jmlF.at(t.pos).JmlStoreRefArrayRange(t,lo,null));
-                    // continue;
                 } else {
                     log.error(S.pos(),
                             "jml.invalid.expression.succeeding.token");
@@ -1905,19 +1980,18 @@ public class JmlParser extends EndPosParser {
      * @return the annotation expression
      */
     protected/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlToken jt,
-            int position) {
+            int position, int endpos) {
         Class<?> c = jt.annotationType;
         if (c == null) return null;
-        // FIXME - I think this can be done in one step now.
         JCExpression t = to(F.at(position).Ident(names.fromString("org")));
         t = to(F.at(position).Select(t, names.fromString("jmlspecs")));
         t = to(F.at(position).Select(t, names.fromString("annotation")));
         t = to(F.at(position).Select(t, names.fromString(c.getSimpleName())));
-        JCAnnotation ann = to(F.at(position).Annotation(t,
-                List.<JCExpression> nil()));
+        JCAnnotation ann = to(F.at(position).Annotation(t, List.<JCExpression> nil()));
+        storeEnd(ann, endpos);
         return ann;
     }
-
+    
     /**
      * Reads any JML modifiers, combining them with the input to produce a new
      * JCModifiers object
@@ -1930,12 +2004,19 @@ public class JmlParser extends EndPosParser {
         ListBuffer<JCAnnotation> annotations = new ListBuffer<JCAnnotation>();
         if (partial != null) annotations.appendList(partial.annotations);
         int pos = Position.NOPOS;
-        if (partial != null) pos = partial.pos;
-        while (S.token() == Token.CUSTOM) {
-            JmlToken j = S.jmlToken();
+        int last = Position.NOPOS;
+        if (partial != null) {
+        	pos = partial.pos;
+        }
+        JmlToken j;
+        while ((j=S.jmlToken()) != null ) {
             if (JmlToken.modifiers.contains(j)) {
-                JCAnnotation a = tokenToAnnotationAST(j, S._pos);
-                if (a != null) annotations.append(a);
+            	last = S.endPos();
+                JCAnnotation a = tokenToAnnotationAST(j, S._pos, last);
+                if (a != null) {
+                	annotations.append(a);
+                	if (pos == Position.NOPOS) pos = a.getStartPosition(); 
+                }
                 // a is null if no annotation is defined for the modifier;
                 // we just silently ignore that situation
                 // (this is true at the moment for math annotations, but could
@@ -1948,6 +2029,7 @@ public class JmlParser extends EndPosParser {
                 // FIXME - do we want to save this anywhere; check that it
                 // matches the declaration; check that it is not used on
                 // something other than a declaration?
+                // Also setJmlKeyword back to true
                 S.setJmlKeyword(false);
             } else {
                 // Not a modifier
@@ -1957,25 +2039,27 @@ public class JmlParser extends EndPosParser {
         }
         JCModifiers mods = F.at(pos).Modifiers(
                 partial == null ? 0 : partial.flags, annotations.toList());
-        storeEnd(mods, pos == Position.NOPOS ? pos : S.prevEndPos());
+        if (last != Position.NOPOS) storeEnd(mods, last);
         return mods;
     }
-
-    /** Parses a type expression */
+    
     @Override
-    public JCExpression parseType() {
-        if (isJmlTypeToken(S.jmlToken())) {
-            // FIXME?
-        }
-        JCExpression t = super.parseType();
-        boolean start = false;
-        if (S.jmlToken == STARTJMLCOMMENT) {
-            S.nextToken();
-            start = true;
-        }
-        if (start && S.jmlToken == ENDJMLCOMMENT) S.nextToken();
-        return t;
+    public JCPrimitiveTypeTree basicType() {
+    	JmlToken jt = S.jmlToken();
+    	if (jt == null) {
+    		return super.basicType();
+    	} else if (jt == JmlToken.BSTYPEUC || jt == JmlToken.BSBIGINT  || jt == JmlToken.BSREAL ) {
+    		JCPrimitiveTypeTree t = to(jmlF.at(S.pos()).JmlPrimitiveTypeTree(jt));
+    		S.nextToken();
+    		return t;
+    	} else {
+    		jmlerror(S.pos(),S.endPos(), "jml.expected", "JML type token");
+    		JCPrimitiveTypeTree t = to(F.at(S.pos()).TypeIdent(typetag(Token.VOID)));
+    		S.nextToken();
+    		return t;
+    	}
     }
+
 
     // Have to replicate this method because we cannot just add the JML
     // operators into the token set for the Java operators.
@@ -2073,14 +2157,11 @@ public class JmlParser extends EndPosParser {
     protected JCExpression term3() {
         List<JCExpression> typeArgs = null;
         // No JML function expects type arguments. If they did we would parse
-        // them here (before seeing
-        // the JML token). But we can't do that just to check, because
-        // super.term3() down below
-        // expects to parse them itself. So if someone does write type arguments
-        // for a JML function
+        // them here (before seeing the JML token). But we can't do that just 
+        // to check, because super.term3() down below expects to parse them 
+        // itself. So if someone does write type arguments for a JML function
         // the code will fall into the super.term3() call and the token will not
-        // be recognized -
-        // no chance for a nice error message.
+        // be recognized - no chance for a nice error message.
         if (S.token() == Token.CUSTOM) {
             JCExpression t;
             JmlToken jt = S.jmlToken();
@@ -2093,9 +2174,9 @@ public class JmlParser extends EndPosParser {
                 return t;
             }
             switch (jt) {
-                case BSRESULT:
+                case BSRESULT:// FIXME - what can follow this?
                 case BSINDEX:
-                case BSVALUES:
+                case BSVALUES:// FIXME - what can follow this?
                 case BSLOCKSET: // FIXME - what can follow this?
                     t = to(jmlF.at(p).JmlSingleton(jt));
                     S.nextToken();
@@ -2103,11 +2184,9 @@ public class JmlParser extends EndPosParser {
                         JCExpression res = syntaxError(S.pos(), null,
                                 "jml.no.args.allowed", jt.internedName());
                         primarySuffix(t, typeArgs); // Parse arguments and
-                        // ignore, both to do as
-                        // much
+                        // ignore, both to do as much
                         // type checking as possible and to skip valid
-                        // constructs to avoid
-                        // extra errors
+                        // constructs to avoid extra errors
                         return res;
                     } else {
                         return primarySuffix(t, typeArgs);
@@ -2126,11 +2205,9 @@ public class JmlParser extends EndPosParser {
 
                 case BSTYPELC:
                     S.nextToken();
-                    // FIXME - check that typeargs is null
                     if (S.token() != Token.LPAREN) {
                         return syntaxError(p, List.<JCTree> nil(),
-                                "jml.args.required", jt); // FIXME - check that
-                        // name of token is OK
+                                "jml.args.required", jt);
                     } else {
                         accept(Token.LPAREN);
                         JCExpression e;
@@ -2168,7 +2245,6 @@ public class JmlParser extends EndPosParser {
                         return syntaxError(p, null, "jml.args.required", jt
                                 .internedName());
                     } else {
-                        // FIXME - check no typeargs
                         int pp = S._pos;
                         List<JCExpression> args = arguments();
                         JCExpression te = toP(jmlF.at(pp).JmlMethodInvocation(
@@ -2200,32 +2276,6 @@ public class JmlParser extends EndPosParser {
                         return ne.parse(this, typeArgs);
                     }
 
-                    // case BSELEMTYPE:
-                    // case BSTYPEOF:
-                    // case BSOLD:
-                    // case BSPRE:
-                    // case BSNOWARN:
-                    // case BSNOWARNOP:
-                    // case BSWARN:
-                    // case BSWARNOP:
-                    // case BSBIGINT_MATH:
-                    // case BSSAFEMATH:
-                    // case BSJAVAMATH:
-                    // S.nextToken();
-                    // if (S.token() != Token.LPAREN) {
-                    // if (jt == BSMAX) {
-                    // return parseQuantifiedExpr(p, jt);
-                    // }
-                    // return syntaxError(p, null, "jml.args.required", jt
-                    // .internedName());
-                    // } else {
-                    // // - check no typeargs
-                    // int pp = S._pos;
-                    // List<JCExpression> args = arguments();
-                    // t = toP(jmlF.at(pp).JmlMethodInvocation(jt, args));
-                    // return primarySuffix(t, typeArgs);
-                    // }
-
                 case BSNOTMODIFIED:
                 case BSNOTASSIGNED:
                 case BSONLYACCESSED:
@@ -2242,9 +2292,9 @@ public class JmlParser extends EndPosParser {
                     S.nextToken();
                     return parseQuantifiedExpr(p, jt);
 
-                case BSPEER:
                 case NONNULL:
                 case NULLABLE:
+                case BSPEER:
                 case BSREADONLY:
                 case BSREP:
                 case READONLY:
@@ -2262,11 +2312,23 @@ public class JmlParser extends EndPosParser {
                     return parseLblExpr(p, jt);
 
                 case BSONLYCALLED:
-                    // FIXME - needs implementation
                     warnNotImplemented(S.pos(), jt.internedName(),
-                            "JmlParser.term3(), as type modifiers");
+                            "\\only_called");
                     S.nextToken();
-                    skipThroughRightParen();
+                    if (S.token() != LPAREN) {
+                        accept(LPAREN); // fails
+                        skipThroughRightParen();
+                    } else {
+                        accept(LPAREN);
+                        parseMethodNameList();
+                        if (S.token() != RPAREN) {
+                            accept(RPAREN); // fails
+                            skipThroughRightParen();
+                        } else {
+                            accept(RPAREN);
+                        }
+                    }
+                    // FIXME - needs implementation
                     return toP(jmlF.at(p).Erroneous());
 
                 default:
@@ -2334,7 +2396,7 @@ public class JmlParser extends EndPosParser {
     }
 
     // MAINTENANCE ISSUE:
-    // This is a copy from Parser, so we can add in parseSetComprehension
+    // This is a copy from JavacParser, so we can add in parseSetComprehension
     JCExpression creator(int newpos, List<JCExpression> typeArgs) {
         switch (S.token()) {
             case BYTE:
@@ -2384,12 +2446,11 @@ public class JmlParser extends EndPosParser {
             return e;
         } else if (S.token() == LPAREN) {
             JCNewClass anon = classCreatorRest(newpos, null, typeArgs, t);
-            if (anon.def != null) filterTypeBodyDeclarations((JmlClassDecl) anon.def, context);
+            if (anon.def != null) filterTypeBodyDeclarations((JmlClassDecl) anon.def, context, jmlF);
             return anon;
         } else if (S.token() == LBRACE) {
             return parseSetComprehension(t);
         } else {
-            // recovery? FIXME
             syntaxError(S.pos(), null, "expected3", "\'(\'", "\'{\'", "\'[\'");
             t = toP(F.at(newpos).NewClass(null, typeArgs, t,
                     List.<JCExpression> nil(), null));
@@ -2415,20 +2476,41 @@ public class JmlParser extends EndPosParser {
 
     /** Parses: "{" [ <modifiers> ] <type> <identifier> "|" <expression> "}" */
     public JCExpression parseSetComprehension(JCExpression type) {
-        // FIXME - the following will parse error-free input. Need to be robust
-        // against errors
+        JCExpression sc = null;
         int begin = S.pos();
-        accept(LBRACE);
-        JCModifiers mods = modifiersOpt();
-        int tpos = S.pos();
-        JCTree.JCExpression t = parseType();
-        Name n = ident();
-        JCTree.JCVariableDecl v = toP(jmlF.at(tpos).VarDef(mods, n, t, null));
-        accept(BAR);
-        JCExpression predicate = parseExpression();
-        accept(RBRACE);
-        JmlSetComprehension sc = toP(jmlF.at(begin).JmlSetComprehension(type,
-                v, predicate));
+        if (S.token() != LBRACE) {
+            accept(LBRACE); // fails
+        } else {
+            accept(LBRACE);
+            JCModifiers mods = modifiersOpt();
+            int tpos = S.pos();
+            JCTree.JCExpression t = parseType();
+            if (t != null && !(t instanceof JCErroneous)) {
+                Name n = ident();
+                if (n != names.error) {
+                    JCTree.JCVariableDecl v = toP(jmlF.at(tpos).VarDef(mods, n, t, null));
+                    if (S.token() != BAR) {
+                        accept(BAR); // fails
+                    } else {
+                        accept(BAR);
+                        JCExpression predicate = parseExpression();
+                        if (predicate != null && !(predicate instanceof JCErroneous)) {
+                            if (S.token() != RBRACE) {
+                                accept(RBRACE); // fails
+                            } else {
+                                accept(RBRACE);
+                                sc = toP(jmlF.at(begin).JmlSetComprehension(type,
+                                        v, predicate));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (sc == null) {
+            skipThroughRightBrace();
+            sc = jmlF.Erroneous();
+        }
         return sc;
     }
 
@@ -2467,6 +2549,7 @@ public class JmlParser extends EndPosParser {
     }
 
     /** Overridden in order to absorb the pushBackModifiers */
+    @Override
     public <T extends ListBuffer<? super JCVariableDecl>> T variableDeclarators(
             JCModifiers mods, JCExpression type, T vdefs) {
         if (pushBackModifiers != null && isNone(mods)) {
@@ -2478,6 +2561,7 @@ public class JmlParser extends EndPosParser {
         return t;
     }
 
+    @Override
     protected <T extends ListBuffer<? super JCVariableDecl>> T variableDeclaratorsRest(
             int pos, JCModifiers mods, JCExpression type, Name name,
             boolean reqInit, String dc, T vdefs) {
@@ -2487,6 +2571,19 @@ public class JmlParser extends EndPosParser {
         return super.variableDeclaratorsRest(pos, mods, type, name, reqInit,
                 dc, vdefs);
     }
+    
+    @Override
+    public JCExpression variableInitializer() {
+    	S.setJmlKeyword(false);
+    	try {
+    		return super.variableInitializer();
+    	} finally {
+    		// We should be looking at a comma or a semicolon or a right brace,
+    		// so we are not too late to set this
+    		S.setJmlKeyword(true);
+    	}
+    }
+
 
     /**
      * This is overridden to try to get <:, <# and <=# with the right precedence
@@ -2509,7 +2606,7 @@ public class JmlParser extends EndPosParser {
 
     JmlToken topOpJmlToken;
 
-    // MAINTENANCE ISSUE - Duplicated from Parser.java in order to track Jml
+    // MAINTENANCE ISSUE - Duplicated from JavacParser.java in order to track Jml
     // tokens
     JCExpression term2Rest(JCExpression t, int minprec) {
         List<JCExpression[]> savedOd = odStackSupply.elems;
@@ -2594,6 +2691,28 @@ public class JmlParser extends EndPosParser {
                 && S.jmlToken() != JmlToken.ENDJMLCOMMENT)
             S.nextToken();
     }
+    
+    /**
+     * Skips up to but not including a right-parenthesis or comma or EOF or
+     * ENDJMLCOMMENT
+     */
+    protected void skipToCommaOrParenOrSemi() {
+        while (S.token() != Token.RPAREN && S.token() != Token.COMMA && S.token() != Token.SEMI
+                && S.token() != Token.EOF
+                && S.jmlToken() != JmlToken.ENDJMLCOMMENT)
+            S.nextToken();
+    }
+
+    /**
+     * Skips up to a EOF or ENDJMLCOMMENT or up to and including a right
+     * brace
+     */
+    public void skipThroughRightBrace() {
+        while (S.token() != Token.RBRACE && S.token() != Token.EOF
+                && S.jmlToken() != JmlToken.ENDJMLCOMMENT)
+            S.nextToken();
+        if (S.token() != Token.EOF) S.nextToken();
+    }
 
     /**
      * Skips up to a EOF or ENDJMLCOMMENT or up to and including a right
@@ -2613,10 +2732,15 @@ public class JmlParser extends EndPosParser {
         return toP(F.at(pos).Erroneous(errs));
     }
     
+    // FIXME - do we need to set errorEndPos in the following?
+    
     public void jmlerror(int begin, int end, String key, Object... args) {
         log.error(new JmlScanner.DiagnosticPositionSE(begin,end-1),key,args);
     }
     public void jmlerror(int begin, int preferred, int end, String key, Object... args) {
         log.error(new JmlScanner.DiagnosticPositionSE(begin,preferred,end-1),key,args);
     }
+    
+    // FIXME - check the use of Token.CUSTOM vs. null
+    // FIXME - review the remaining uses of log.error vs. jmlerror
 }

@@ -145,13 +145,15 @@ public class JmlProblemRequestor implements IProblemRequestor {
 										finalLineNumber >= 1? finalLineNumber : 1);
 					if (column >= 0) {
 						marker.setAttribute(IMarker.CHAR_START, finalOffset); 
-						marker.setAttribute(IMarker.CHAR_END, finalEnd);
+						marker.setAttribute(IMarker.CHAR_END, finalEnd); // One beyond the last highlighted
 					}
 					// Note - it appears that CHAR_START is measured from the beginning of the
 					// file and overrides the line number when drawing the squiggly 
 					// The line number is used in the information about the problem in
 					// the Problem View
 
+					// Note - if the marked characters are the line termination characters,
+					// no highlighting happens, though the marker still appears as a problem.
 					marker.setAttribute(IMarker.SEVERITY,finalSeverity);
 					marker.setAttribute(IMarker.MESSAGE, finalErrorMessage);
 				}

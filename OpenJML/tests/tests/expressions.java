@@ -57,7 +57,7 @@ public class expressions extends ParseBase {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s));
             JmlParser p = ((JmlFactory)fac).newParser(s,false,true,true,true);
-            if (jml && p instanceof JmlParser) {
+            if (jml) {
                 p.getScanner().setJml(jml);
             }
             JCTree.JCExpression e = p.parseExpression();
@@ -74,14 +74,29 @@ public class expressions extends ParseBase {
             if (collector.getDiagnostics().size() != 0) {
                 fail("Saw unexpected errors");
             }
-            if (out.size()*2 != list.length) {
-                assertEquals("Incorrect number of nodes listed",list.length/2,out.size());
-            }
+//            if (out.size()*2 != list.length) {
+//                assertEquals("Incorrect number of nodes listed",list.length/2,out.size());
+//            }
+            Object p1, p2, p3;
             for (JCTree t: out) {
                 assertEquals("Class not matched at token " + k, list[i++], t.getClass());
-                assertEquals("Preferred position for token " + k, list[i++], t.getPreferredPosition());
+                p1 = list[i++];
+                p2 = (i < list.length && list[i] instanceof Integer) ? list[i++] : null;
+                p3 = (i < list.length && list[i] instanceof Integer) ? list[i++] : null;
+                if (p3 != null) {
+                    assertEquals("Start position for token " + k, p1, t.getStartPosition());
+                    assertEquals("Preferred position for token " + k, p2, t.getPreferredPosition());
+                    assertEquals("End position for token " + k, p3, p.getEndPos(t));
+                } else if (p2 != null) {
+                    assertEquals("Start position for token " + k, p1, t.getStartPosition());
+                    assertEquals("End position for token " + k, p2, p.getEndPos(t));
+                } else {
+                    assertEquals("Preferred position for token " + k, p1, t.getPreferredPosition());
+                }
                 ++k;
             }
+            if ( i != list.length) fail("Incorrect number of nodes listed");
+
             if (p.getScanner().token() != Token.EOF) fail("Not at end of input");
         } catch (Exception e) {
             e.printStackTrace(System.out);
@@ -113,36 +128,36 @@ public class expressions extends ParseBase {
     public void testSomeJava() {
         jml = false;
         helpExpr("a",
-                JCIdent.class ,0);
+                JCIdent.class ,0,0,1);
         helpExpr("aaa",
-                JCIdent.class ,0);
+                JCIdent.class ,0,0,3);
     }
 
     /** Test scanning Java binary expression to check node positions */
     public void testBinary() {
         jml = false;
         helpExpr("aa+bbb",
-                JCBinary.class, 2,
-                JCIdent.class ,0,
-                JCIdent.class ,3);
+                JCBinary.class, 0,2,6,
+                JCIdent.class ,0,0,2,
+                JCIdent.class ,3,3,6);
     }
 
     /** Test scanning Java binary expression to check node positions */
     public void testJCBinary() {
         jml = false;
         helpExpr("a+b*c",
-                JCBinary.class, 0,// 1, // TODO - fix positions in binary trees
-                  JCIdent.class ,0,
-                  JCBinary.class, 3,
-                    JCIdent.class ,2,
-                    JCIdent.class ,4
+                JCBinary.class, 0,0,5, // 1, // TODO - fix preferred position in binary trees
+                  JCIdent.class ,0,0,1,
+                  JCBinary.class, 2,3,5,
+                    JCIdent.class ,2,2,3,
+                    JCIdent.class ,4,4,5
                 );
         helpExpr("a*b+c",
-                JCBinary.class, 3,
-                  JCBinary.class, 1,
-                    JCIdent.class ,0,
-                    JCIdent.class ,2,
-                  JCIdent.class ,4
+                JCBinary.class, 0,3,5,
+                  JCBinary.class, 0,1,3,
+                    JCIdent.class ,0,0,1,
+                    JCIdent.class ,2,2,3,
+                  JCIdent.class ,4,4,5
                 );
     }
 
@@ -157,49 +172,49 @@ public class expressions extends ParseBase {
     /** Test scanning JML inequivalence expression */
     public void testJMLBinary2() {
         helpExpr("a <=!=>b",
-                JmlBinary.class, 2,
-                JCIdent.class ,0,
-                JCIdent.class ,7);
+                JmlBinary.class, 2,2,8, // FIXME - start position
+                JCIdent.class ,0,0,1,
+                JCIdent.class ,7,7,8);
     }
 
     /** Test scanning JML implies expression */
     public void testJMLBinary3() {
         helpExpr("a ==>  b",
-                JmlBinary.class, 2,
-                JCIdent.class ,0,
-                JCIdent.class ,7);
+                JmlBinary.class, 2,2,8, // FIXME - start position
+                JCIdent.class ,0,0,1,
+                JCIdent.class ,7,7,8);
     }
 
     /** Test scanning JML reverse implies expression */
     public void testJMLBinary4() {
         helpExpr("a <==  b",
-                JmlBinary.class, 2,
-                JCIdent.class ,0,
-                JCIdent.class ,7);
+                JmlBinary.class, 2,2,8, // FIXME - start position
+                JCIdent.class ,0,0,1,
+                JCIdent.class ,7,7,8);
     }
 
     /** Test JML left association for <==> */
     public void testJMLprecedence() {
         helpExpr("a <==> b <==> c <==> d",
-                JmlBinary.class, 16,
-                JmlBinary.class, 9,
-                JmlBinary.class, 2,
-                JCIdent.class ,0,
-                JCIdent.class ,7,
-                JCIdent.class ,14,
-                JCIdent.class ,21);
+                JmlBinary.class, 16,16,22, // FIXME - start position
+                JmlBinary.class, 9,9,15, // FIXME - start position
+                JmlBinary.class, 2,2,8, // FIXME - start position
+                JCIdent.class ,0,0,1,
+                JCIdent.class ,7,7,8,
+                JCIdent.class ,14,14,15,
+                JCIdent.class ,21,21,22);
     }
 
     /** Test JML right association for ==> */
     public void testJMLprecedence1() {
         helpExpr("a ==>  b ==>  c ==>  d",
-                JmlBinary.class, 2,
-                JCIdent.class ,0,
-                JmlBinary.class, 9,
-                JCIdent.class ,7,
-                JmlBinary.class, 16,
-                JCIdent.class ,14,
-                JCIdent.class ,21);
+                JmlBinary.class, 2,2,22, // FIXME - start position
+                JCIdent.class ,0,0,1,
+                JmlBinary.class, 9,9,22, // FIXME - start position
+                JCIdent.class ,7,7,8,
+                JmlBinary.class, 16,16,22, // FIXME - start position
+                JCIdent.class ,14,14,15,
+                JCIdent.class ,21,21,22);
     }
 
     /** Test JML left association for <== */

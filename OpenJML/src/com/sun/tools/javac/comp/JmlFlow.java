@@ -118,6 +118,12 @@ public class JmlFlow extends Flow implements IJmlVisitor {
         scan(that.lhs);
         scan(that.rhs);
     }
+    
+    @Override
+    public void visitJmlChoose(JmlChoose that) {
+        scan(that.orBlocks);
+        scan(that.elseBlock);
+    }
 
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
@@ -267,7 +273,7 @@ public class JmlFlow extends Flow implements IJmlVisitor {
 
     @Override
     public void visitJmlStatementSpec(JmlStatementSpec that) {
-        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStatementSpec");
+        // Is called, but nothing to check
     }
 
     @Override

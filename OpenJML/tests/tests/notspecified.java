@@ -33,7 +33,6 @@ public class notspecified extends TCBase {
     public void testNotSpecified1a() {
         helpTCF("A.java","public class A { //@ signals_only \\not_specified; \n public void m(boolean i) {}}"
                 ,"/A.java:1: The type or expression near here is invalid (or not implemented): ( token \\not_specified in JmlParser.term3())",35
-                ,"/A.java:1: Missing comma or otherwise ill-formed type name",35
                 );        // Not allowed
 
     }

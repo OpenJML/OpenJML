@@ -711,7 +711,7 @@
             overviewRulerPreferenceValue="false"
             verticalRulerPreferenceValue="false"
             highlightPreferenceValue="true"
-            presentationLayer="3"
+            presentationLayer="2"
             >
     </specification>
 
@@ -728,7 +728,7 @@
             overviewRulerPreferenceValue="false"
             verticalRulerPreferenceValue="false"
             highlightPreferenceValue="true"
-            presentationLayer="3"
+            presentationLayer="2"
             >
     </specification>
     <specification
@@ -744,7 +744,7 @@
             overviewRulerPreferenceValue="false"
             verticalRulerPreferenceValue="false"
             highlightPreferenceValue="true"
-            presentationLayer="3"
+            presentationLayer="2"
             >
     </specification>
     <specification
@@ -755,12 +755,12 @@
             highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpheKey"
             textPreferenceKey="org.jmlspecs.openjml.eclipse.trpheKey"
             colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpheKey"
-            colorPreferenceValue="255,176,64"
+            colorPreferenceValue="255,192,64"
             textPreferenceValue="false"
             overviewRulerPreferenceValue="false"
             verticalRulerPreferenceValue="false"
             highlightPreferenceValue="true"
-            presentationLayer="3"
+            presentationLayer="2"
             >
     </specification>
 

@@ -60,6 +60,15 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: op, opcode, operator
         result = r;
     }
+    
+    @Override
+    public void visitJmlChoose(JmlChoose that) {
+        JmlChoose r = that;
+        r.orBlocks = translate(that.orBlocks);
+        r.elseBlock = translate(that.elseBlock);
+        // Not translating: token
+        result = r;
+    }
 
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
@@ -308,6 +317,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlStatementLoop(JmlStatementLoop that) {
         JmlStatementLoop r = that;
         r.expression = translate(that.expression);
+        r.loopModifies = translate(that.loopModifies);
         result = r;
         // Not translating: token, line, source - FIXME
     }

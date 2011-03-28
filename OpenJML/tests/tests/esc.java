@@ -2192,6 +2192,58 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:6: warning: Associated declaration",7
         );
     }
+    
+    public void testTryWithMethodCall() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava  {\n"
+                +"//@ public exceptional_behavior requires b;  signals (Exception e) true; signals (RuntimeException e) true;\n"
+                +"//@ also\n"
+                +"//@ public normal_behavior requires !b; ensures true;\n"
+                +"public static void ex(boolean b) throws RuntimeException {\n"
+                +"    if (b) throw new RuntimeException();\n"
+                +"}\n"
+                +"static int sk; int k;\n"
+                +"\n" // Line 10
+                +"//@ requires k < 0;\n"
+                +"//@ ensures true;\n"
+                +"//@ also\n"
+                +"//@ requires k > 0;\n"
+                +"//@ ensures \\result == 1;\n"
+                +"public int m1() {\n"
+                +"    int i = 1;\n"
+                +"    try {\n"
+                +"        ex(true);\n"
+                +"        i = 1;\n"  // Line 20
+                +"    } catch (Exception e) {\n"
+                +"        //@ assert e != null;\n"
+                +"        i = 2;\n"
+                +"    }\n"
+                +"    return i;\n"
+                +"}\n"
+                +"\n"
+                +"//@ requires k < 0;\n"
+                +"//@ ensures true;\n"
+                +"//@ also\n" // Line 30
+                +"//@ requires k > 0;\n"
+                +"//@ ensures \\result == 1;\n"
+                +"public int m2() {\n"
+                +"    int i = 1;\n"
+                +"    try {\n"
+                +"        ex(false);\n"
+                +"        i = 0;\n"
+                +"    } catch (Exception e) {\n"
+                +"        //@ assert e != null;\n"
+                +"        i = 1;\n" // Line 40
+                +"    }\n"
+                +"    return i;\n"
+                +"}\n"
+                +"}"
+                ,"/tt/TestJava.java:25: warning: The prover cannot establish an assertion (Postcondition) in method m1",5
+                ,"/tt/TestJava.java:15: warning: Associated declaration",5
+                ,"/tt/TestJava.java:42: warning: The prover cannot establish an assertion (Postcondition) in method m2",5
+                ,"/tt/TestJava.java:32: warning: Associated declaration",5
+        );
+    }
 
 
     public void testMisc() {
@@ -2388,17 +2440,15 @@ public class esc extends EscBase {
                 +"  //@ requires i == 3;\n"
                 +"  //@ ensures \\result == i;\n"
                 +"  //@ pure\n"
-                +"  public int m(int i) { return i; }\n"
+                +"  public int m(int i) { return i; }\n"  // OK
                 +"  //@ requires a >= 1 && a <= 3;\n"
                 +"  //@ ensures \\result == a;\n"
-                +"  public int m1(int a) { return m(a); }\n"
+                +"  public int m1(int a) { return m(a); }\n" // OK
                 +"  //@ ensures \\result == a;\n"
-                +"  public int m1a(int a) { return m(-1); }\n"
+                +"  public int m1a(int a) { return m(-1); }\n" // Precondition ERROR
                 +"}",
-                //"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Postcondition) in method m1a",14,
-                //"/tt/TestJava.java:22: warning: Associated declaration",15,
                 "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Precondition) in method m1a",35,
-                "/tt/TestJava.java:15: warning: Associated declaration",7
+                "/tt/TestJava.java:15: warning: Associated declaration",16
         );
     }
 

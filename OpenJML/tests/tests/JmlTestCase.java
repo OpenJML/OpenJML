@@ -211,7 +211,12 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     public void printErrors() {
         System.out.println("ERRORS " + collector.getDiagnostics().size() + " " + getName());
         for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
-            System.out.println(noSource(dd) + " col=" + dd.getColumnNumber());
+            long line = dd.getLineNumber();
+            long start = dd.getStartPosition();
+            long pos = dd.getPosition();
+            long end = dd.getEndPosition();
+            long col = dd.getColumnNumber();
+            System.out.println(noSource(dd) + "line=" + line + " col=" + col + " start=" + (start-pos+col) + " end=" + (end-pos+col));
         }
     }
 

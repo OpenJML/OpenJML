@@ -20,6 +20,7 @@ import com.sun.source.tree.TreeVisitor;
 public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
 
     R visitJmlBinary(JmlBinary that, P p)                     ;
+    R visitJmlChoose(JmlChoose that, P p)                     ;
     R visitJmlClassDecl(JmlClassDecl that, P p)               ;
     R visitJmlCompilationUnit(JmlCompilationUnit that, P p)   ;
     R visitJmlConstraintMethodSig(JmlConstraintMethodSig that, P p);

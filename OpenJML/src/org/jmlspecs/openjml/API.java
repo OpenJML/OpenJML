@@ -226,12 +226,13 @@ public class API {
      */
     protected int enterAndCheck(@NonNull List<JCCompilationUnit> list) throws IOException {
         JmlCompiler jcomp = (JmlCompiler)JmlCompiler.instance(context);
+        JmlTree.Maker maker = JmlTree.Maker.instance(context);
         for (JCCompilationUnit jcu: list) {
             for (JCTree t: jcu.defs) {
-                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).typeSpecs == null) JmlParser.filterTypeBodyDeclarations((JmlClassDecl)t,context);
+                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).typeSpecs == null) JmlParser.filterTypeBodyDeclarations((JmlClassDecl)t,context,maker);
             }
             for (JmlClassDecl t: ((JmlCompilationUnit)jcu).parsedTopLevelModelTypes) {
-                if (t.typeSpecs == null) JmlParser.filterTypeBodyDeclarations(t,context);
+                if (t.typeSpecs == null) JmlParser.filterTypeBodyDeclarations(t,context, maker);
             }
         }
 
@@ -662,19 +663,19 @@ public class API {
             return "No proof in which to evaluate the selection";
         }
         JmlCompilationUnit tree = (JmlCompilationUnit)Enter.instance(context).getEnv((TypeSymbol)mostRecentProofMethod.owner).toplevel;
-        if (!tree.sourcefile.toString().replace('\\','/').equals(fileLocation)) {
+        if (!tree.sourcefile.getName().replace('\\','/').equals(fileLocation)) {
             //System.out.println("Did not match " + tree.sourcefile.toString());
             boolean found = false;
             {
                 JmlCompilationUnit stree = tree.specsCompilationUnit;
-                if (stree.sourcefile.toString().replace('\\','/').equals(fileLocation)) {
+                if (stree.sourcefile.getName().replace('\\','/').equals(fileLocation)) {
                     tree = stree;
                     found = true;
                 }
                 //System.out.println("Did not match " + stree.sourcefile.toString());
             }
             if (!found) {
-                System.out.println("No Match for " + fileLocation);
+                System.out.println("No Match for " + tree.specsCompilationUnit.sourcefile.getName());
             }
         }
         JCTree node = findNode(tree,pos,end);

@@ -1052,6 +1052,8 @@ public class JmlSpecs {
     /** Returns the default nullity for the given class - don't call this until
      * classes have been entered and annotations have been attributed.  If the
      * argument is null, then the default nullity as set on the command-line is returned.
+     * Note that the default nullity for the class is cached in the class specs once
+     * computed, to avoid recompuation.
      * @param csymbol the class whose default nullity is to be determined; if
      *   null the default system nullity setting (pre the command-line) is returned
      * @return JmlToken.NULLABLE or JmlToken.NONNULL
@@ -1091,12 +1093,23 @@ public class JmlSpecs {
         return spec.defaultNullity;
     }
 
+    /** Caches the symbol for the org.jmlspecs.annotation.NonNull */
     ClassSymbol nonnullAnnotationSymbol = null;
+    /** Caches the symbol for the org.jmlspecs.annotation.Nullable */
     ClassSymbol nullableAnnotationSymbol = null;
+    
+    /** Returns whether the given symbol is non-null (either explicitly or by
+     * default); the second parameter is the enclosing class.
+     * @param symbol the symbol whose nullity is being checked - either a VarDef (a 
+     * parameter declaration) or a MethodDef (for the return type)
+     * @param csymbol the enclosing class, from which any default comes
+     * @return true if the symbol is non-null explicitly or by default
+     */
     public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
         if (nonnullAnnotationSymbol == null) {
             nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Utils.nonnullAnnotation));
         }
+        // Find the annotation on the given symbol, if any
         Attribute.Compound attr = symbol.attribute(nonnullAnnotationSymbol);
         if (attr!=null) return true;
         if (nullableAnnotationSymbol == null) {
