@@ -115,18 +115,29 @@ abstract public class ParseBase extends JmlTestCase {
             int k = 0;
             if (print) {
                 for (JCTree t: actual) {
-                    System.out.println(t.getClass() + " " + t.getPreferredPosition());
+                    System.out.println(t.getClass() + " " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + parser.getEndPos(t));
                 }
             }
             if (print) printErrors();
-            if (actual.size()*2 != expected.length) {
-                fail("Incorrect number of nodes listed " + (expected.length/2) + " vs. " + actual.size());
-            }
+            Object p1, p2, p3;
             for (JCTree t: actual) {
                 assertEquals("Class not matched at token " + k, expected[i++], t.getClass());
-                assertEquals("Preferred position for token " + k, expected[i++], t.getPreferredPosition());
+                p1 = expected[i++];
+                p2 = (i < expected.length && expected[i] instanceof Integer) ? expected[i++] : null;
+                p3 = (i < expected.length && expected[i] instanceof Integer) ? expected[i++] : null;
+                if (p3 != null) {
+                    assertEquals("Start position for token " + k, p1, t.getStartPosition());
+                    assertEquals("Preferred position for token " + k, p2, t.getPreferredPosition());
+                    assertEquals("End position for token " + k, p3, parser.getEndPos(t));
+                } else if (p2 != null) {
+                    assertEquals("Start position for token " + k, p1, t.getStartPosition());
+                    assertEquals("End position for token " + k, p2, parser.getEndPos(t));
+                } else {
+                    assertEquals("Preferred position for token " + k, p1, t.getPreferredPosition());
+                }
                 ++k;
             }
+            if ( i != expected.length) fail("Incorrect number of nodes listed");
             if (parser.getScanner().token() != Token.EOF) fail("Not at end of input");
         } catch (AssertionFailedError e) {
             if (!print) printTree(actual);
@@ -139,7 +150,7 @@ abstract public class ParseBase extends JmlTestCase {
     public void printTree(List<JCTree> list) {
         System.out.println("NODES FOR " + getName());
         for (JCTree t: list) {
-            System.out.println(t.getClass() + " " + t.getPreferredPosition());
+            System.out.println(t.getClass() + " " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + parser.getEndPos(t));
         }
     }
 

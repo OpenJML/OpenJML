@@ -109,11 +109,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
-        this.resolve = (JmlResolve)JmlResolve.instance(context);
+        this.resolve = JmlResolve.instance(context);
         this.enter = (JmlEnter)JmlEnter.instance(context);
         this.names = Names.instance(context);
         this.org_jmlspecs_lang = names.fromString("org.jmlspecs.lang");
-        this.jmlF = (JmlTree.Maker)JmlTree.Maker.instance(context);
+        this.jmlF = JmlTree.Maker.instance(context);
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
         this.modelName = names.fromString(JmlToken.MODEL.internedName());
@@ -679,7 +679,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // Now go through everything in the spec file.  Some of it
         // will be duplicates of the stuff in the java file.  Some of
         // it will be ghost/model declarations that need to be entered 
-        // into the class's scope.  ALl class declarations are already matched
+        // into the class's scope.  All class declarations are already matched
         // and/or entered.
 
         JavaFileObject prevSource = null;

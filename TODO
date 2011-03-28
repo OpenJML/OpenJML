@@ -1,3 +1,16 @@
+Product pieces
+- typechecker for JML and extensions
+- user guide
+- API
+- ESC
+- RAC
+- jmldoc
+- Eclipse integration
+- counterexample exploration
+- set of Java annotations
+Integration with JMLUnitNG, Joe's project
+
+
 NOTES and TODO items from code reviews and major features
 
 To review:

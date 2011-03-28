@@ -9,9 +9,10 @@ public class escm extends EscBase {
         options.put("-noPurityCheck","");
 //        options.put("-jmlverbose",   "");
 //        options.put("-showbb","");
+//        options.put("-method","me");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
-        //options.put("-trace",   "");
+ //       options.put("-trace",   "");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
     }
@@ -60,13 +61,13 @@ public class escm extends EscBase {
                 +"  public int a;\n"
                 +"  public static int b;\n"
                 
-                +"  public void m1(TestJava o) {\n"
-                +"       class C { /*@ ensures false; */ void m() {  }};\n"
+                +"  public void me(TestJava o) {\n"
+                +"       class C { /*@ ensures false; */ void mc() {  }};\n"
                 +"       C x;\n"
-                +"       class D { void m() {  }};\n" // Line 10
-                +"       D y = new D() { /*@ ensures false; */ void m() {}};\n"
-                +"       class E { /*@ ensures false; */void m() {  }};\n"
-                +"       E z = new E() {  void m() {}};\n"
+                +"       class D { void md() {  }};\n" // Line 10
+                +"       D y = new D() { /*@ ensures false; */ void md() {}};\n"
+                +"       class E { /*@ ensures false; */void me() {  }};\n"
+                +"       E z = new E() {  void me() {}};\n"
                 +"  }\n"
                 
                 +"  public static class A {\n"
@@ -78,13 +79,13 @@ public class escm extends EscBase {
 
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m",45
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method mc",45
                 ,"/tt/TestJava.java:8: warning: Associated declaration",22
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method m",51
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method md",51
                 ,"/tt/TestJava.java:11: warning: Associated declaration",28
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Postcondition) in method m",44
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Postcondition) in method me",44
                 ,"/tt/TestJava.java:12: warning: Associated declaration",22
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method m",30
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method me",30
                 ,"/tt/TestJava.java:12: warning: Associated declaration",22
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method m2",18
                 ,"/tt/TestJava.java:16: warning: Associated declaration",12

@@ -12,12 +12,15 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
@@ -205,35 +208,51 @@ public class Utils {
      * 
      * @param mods The modifiers in which to set the JML flag
      */
-     public void unsetJML(/*@ non_null */ JCModifiers mods) {
-         mods.flags &= ~JMLBIT;
-     }
+    public void unsetJML(/*@ non_null */ JCModifiers mods) {
+        mods.flags &= ~JMLBIT;
+    }
+
+    /** A cache for the symbol */
+    private ClassSymbol helperAnnotationSymbol = null;
+    /** Returns true if the given symbol has a helper annotation
+     * 
+     * @param symbol the symbol to check
+     * @return true if there is a helper annotation
+     */
+    public boolean isHelper(@NonNull Symbol symbol) {
+        if (helperAnnotationSymbol == null) {
+            helperAnnotationSymbol = ClassReader.instance(context).
+            enterClass(Names.instance(context).fromString(jmlAnnotationPackage + ".Helper"));
+        }
+        return symbol.attribute(helperAnnotationSymbol)!=null;
+    }
+
+    /** Returns true if the given symbol is annotated as Pure */
+    public boolean isPure(Symbol symbol) {
+        if (pureAnnotationSymbol == null) {
+            pureAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(jmlAnnotationPackage+".Pure"));
+        }
+        return symbol.attribute(pureAnnotationSymbol)!=null;
+    }
+    /** Caches the symbol for a Pure annotation, which is computed on demand. */
+    private ClassSymbol pureAnnotationSymbol = null;
+
+    public boolean isJMLStatic(Symbol sym) {
+        // non-static Simple identifier is OK
+        // If the owner of the field is an interface, it
+        // is by default static. However, it might be a
+        // JML field marked as instance.
+        if (!sym.isStatic()) return false;
+        if (isJML(sym.flags())) {
+            Symbol csym = sym.owner;
+            if ((csym.flags() & Flags.INTERFACE) != 0) {
+                // TODO - should cleanup this reference to JmlAttr from Utils
+                if (JmlAttr.instance(context).hasAnnotation(sym,JmlToken.INSTANCE)) return false;
+            } 
+        }
+        return true;
+    }
     
-     /** A cache for the symbol */
-     private ClassSymbol helperAnnotationSymbol = null;
-     /** Returns true if the given symbol has a helper annotation
-      * 
-      * @param symbol the symbol to check
-      * @return true if there is a helper annotation
-      */
-     public boolean isHelper(@NonNull Symbol symbol) {
-         if (helperAnnotationSymbol == null) {
-             helperAnnotationSymbol = ClassReader.instance(context).
-                 enterClass(Names.instance(context).fromString(jmlAnnotationPackage + ".Helper"));
-         }
-         return symbol.attribute(helperAnnotationSymbol)!=null;
-     }
-
-     /** Returns true if the given symbol is annotated as Pure */
-     public boolean isPure(Symbol symbol) {
-         if (pureAnnotationSymbol == null) {
-             pureAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(jmlAnnotationPackage+".Pure"));
-         }
-         return symbol.attribute(pureAnnotationSymbol)!=null;
-     }
-     /** Caches the symbol for a Pure annotation, which is computed on demand. */
-     private ClassSymbol pureAnnotationSymbol = null;
-
      // FIXME - document
     public Object envString(/*@ non_null */Env<AttrContext> env) {
         return (env.tree instanceof JCCompilationUnit ? 
@@ -315,7 +334,7 @@ public class Utils {
                 // FIXME this is not going to work for unattributed and not-fully qualified annotations
                 String s = a.annotationType.toString();
                 if (m.toString().equals(s)) return a;
-                if (m.toString().equals("org.jmlspecs.annotation."+s)) return a; // FIXME - fix attribution of annotations in MemberEnter
+                if (m.toString().equals(jmlAnnotationPackage + "."+s)) return a; // FIXME - fix attribution of annotations in MemberEnter
             }
         }
         return null;

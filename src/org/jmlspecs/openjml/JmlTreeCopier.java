@@ -84,6 +84,11 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.type = that.type;
         return copy;
     }
+    
+    public JCTree visitJmlChoose(JmlChoose that, Void p) {
+        // FIXME - needs implementation
+        return null;
+    }
 
     public JCTree visitJmlClassDecl(JmlClassDecl that, Void p) {
         JmlClassDecl copy = (JmlClassDecl)super.visitClass(that,p);
@@ -376,6 +381,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlStatementLoop copy = M.at(that.pos).JmlStatementLoop(
                 that.token,
                 copy(that.expression,p));
+        copy.loopModifies = copy(that.loopModifies,p);
         copy.type = that.type;
         return copy;
     }

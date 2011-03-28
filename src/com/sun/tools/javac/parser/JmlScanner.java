@@ -449,7 +449,7 @@ public class JmlScanner extends DocCommentScanner {
                         // class that is not in a JML comment
                         // error - the entire model import statement must be in
                         // the JML comment
-                        jmlError(_pos, "jml.illformed.model.import"); // TODO - end position
+                        jmlError(_pos, "jml.illformed.model.import"); // TODO - end position // FIXME - this is not triggered
                         skipThroughChar(';');
                     } else if (token() == Token.IMPORT) {
                         jmlToken = JmlToken.MODEL;
@@ -636,7 +636,7 @@ public class JmlScanner extends DocCommentScanner {
                 super.nextToken();
                 docComment = dc;
                 if (!jml) {
-                    jmlError(_pos, "jml.illformed.model.import"); // TODO - end position
+                    jmlError(_pos, "jml.illformed.model.import"); // TODO - end position // FIXME - is not triggered
                     skipThroughChar(';');
                     // FIXME - is this only true for model import statements?
                     // error - the entire model import statement must be in the

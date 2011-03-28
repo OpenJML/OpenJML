@@ -213,7 +213,10 @@ public class JmlEsc extends JmlTreeScanner {
         String name = node.sym.owner + "." + node.sym;
 
         String methodToDo = Options.instance(context).get(JmlOption.METHOD.optionName());
-        if (methodToDo != null && !name.contains(methodToDo)) return ;  // TODO - pattern match? include class name?
+        if (methodToDo != null && !name.contains(methodToDo)) {
+            if (escdebug) log.noticeWriter.println("Skipping " + name + " because it does not contain " + methodToDo);
+            return ;  // TODO - pattern match? include class name?
+        }
 
         Pattern doPattern = 
             null; 
@@ -1335,7 +1338,7 @@ public class JmlEsc extends JmlTreeScanner {
                 String fintstr = m.group(4);
                 if (fintstr != null) {
                 	Integer i = Integer.valueOf(fintstr);
-                	jfo = BasicBlocker.jfoArray.get(i);
+                	jfo = BasicBlocker.getFileForInt(i);
                 }
                 int termpos = usepos;
                 if (terminationValue != null &&

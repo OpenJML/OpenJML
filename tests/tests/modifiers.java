@@ -220,14 +220,14 @@ public class modifiers extends TCBase {
     
     @Test public void testCUMods3() {
         helpTCF("t/A.java","package t; /*@ pure */ import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}"
-                ,"/t/A.java:1: class, interface, or enum expected", 24
+                ,"/t/A.java:1: No modifiers are allowed on an import statement", 16
                 ,"/t/A.java:2: duplicate annotation",21
                 );
     }
     
     @Test public void testCUMods4() {
         helpTCF("t/A.java","package t; @Pure import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}"
-                ,"/t/A.java:1: class, interface, or enum expected", 18
+                ,"/t/A.java:1: No modifiers are allowed on an import statement", 12
                 ,"/t/A.java:2: duplicate annotation",21
                 );
     }
@@ -877,7 +877,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  //@ public also behavior requires true;\n" +
                 "  void m() {} }"
-                ,"/A.java:2: No modifiers are allowed prior to a also token",14
+                ,"/A.java:2: No modifiers are allowed prior to a also token",7
                 );
     }
      
@@ -885,7 +885,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  //@ pure also behavior requires true;\n" +
                 "  void m() {} }"
-                ,"/A.java:2: No modifiers are allowed prior to a also token",12
+                ,"/A.java:2: No modifiers are allowed prior to a also token",7
                 );
     }
      
