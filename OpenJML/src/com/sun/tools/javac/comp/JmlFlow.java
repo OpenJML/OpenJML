@@ -207,6 +207,11 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     }
 
     @Override
+    public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
+        Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseCallable");
+    }
+
+    @Override
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
         Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseConditional");
     }

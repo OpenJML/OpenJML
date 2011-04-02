@@ -18,6 +18,7 @@ import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -1374,6 +1375,12 @@ public class JmlEsc extends JmlTreeScanner {
                 	if (declpos != termpos || jfo != null) {
 
                 		JavaFileObject prev = log.currentSourceFile();
+                        // The suppress call here suppresses reporting warnings, but not actually testing them.
+                        // We moved the suppression to avoid putting assert tests in, but here is where to 
+                        // turn off the reporting.
+//                		if (Nowarns.instance(context).suppress(log.currentSource(), termpos, label)) {
+//                		    // nothing to do
+//                		} else 
                 		if (!cfInfo) {
                 			log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName());
 
@@ -1473,6 +1480,10 @@ public class JmlEsc extends JmlTreeScanner {
      * @param methodSignature the name or signature of the method being tested
      */
     public void reportAssumptionProblem(String label, int pos, String methodSignature) {
+        // The suppress call here suppresses reporting warnings, but not actually testing them.
+        // We moved the suppression to avoid putting assert tests in, but here is where to 
+        // turn off the reporting.
+        //if (Nowarns.instance(context).suppress(log.currentSource(), pos, label)) return;
         if (label.equals(Label.BRANCHT.toString())) {
             log.warning(Math.abs(pos),"esc.infeasible.branch","then",methodSignature);
             if (escdebug) log.noticeWriter.println("Branch is infeasible at " + pos);

@@ -16,7 +16,7 @@ public class statements extends TCBase {
     }
 
     public void testForWithModifies() {
-        helpTCF("A.java"," class A { void m() { \n //@ loop_invariant i>=0; decreasing -i; modifies i; \n for (int i=0; i<10; i++) {}  \n}}"
+        helpTCF("A.java"," class A { int k; void m() { \n //@  modifies k; loop_invariant i>=0; decreasing -i;\n for (int i=0; i<10; i++) {}  \n}}"
                 );
     }
 
@@ -48,27 +48,27 @@ public class statements extends TCBase {
     }
 
     public void testForWithModifies6() {
-        helpTCF("A.java"," class A { void m() { \n //@ modifies i[; \n for (int i=0; i<10; i++) {}  \n}}"
+        helpTCF("A.java"," class A { int k; void m() { \n //@ modifies k[; \n for (int i=0; i<10; i++) {}  \n}}"
                 ,"/A.java:2: illegal start of expression",17
                 ,"/A.java:2: An invalid expression or succeeding token near here",17
                 );
     }
 
     public void testForWithModifies6a() {
-        helpTCF("A.java"," class A { void m() { \n //@ modifies i.; \n for (int i=0; i<10; i++) {}  \n}}"
+        helpTCF("A.java"," class A { int k; void m() { \n //@ modifies k.; \n for (int i=0; i<10; i++) {}  \n}}"
                 ,"/A.java:2: Expected an identifier or star after the dot",17
                 );
     }
 
     public void testForWithModifies7() {
-        helpTCF("A.java"," class A { void m() { \n //@ modifies i i i; \n for (int i=0; i<10; i++) {}  \n}}"
+        helpTCF("A.java"," class A { int k; void m() { \n //@ modifies k k k; \n for (int i=0; i<10; i++) {}  \n}}"
                 ,"/A.java:2: Missing comma or otherwise ill-formed type name",17
                 ,"/A.java:2: Missing comma or otherwise ill-formed type name",19
                 );
     }
 
     public void testForWithModifies8() {
-        helpTCF("A.java"," class A { void m() { \n //@ modifies i,,; \n for (int i=0; i<10; i++) {}  \n}}"
+        helpTCF("A.java"," class A { int k; void m() { \n //@ modifies k,,; \n for (int i=0; i<10; i++) {}  \n}}"
                 ,"/A.java:2: Incorrectly formed or terminated store-reference near here",17
                 ,"/A.java:2: Incorrectly formed or terminated store-reference near here",18
                 );

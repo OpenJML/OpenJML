@@ -152,6 +152,14 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
+    public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
+        JmlMethodClauseCallable r = that;
+        r.keyword = translate(that.keyword);
+        r.methodSignatures = translate(that.methodSignatures);
+        result = r;
+    }
+
+    @Override
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
         JmlMethodClauseConditional r = that;
         r.expression = translate(that.expression);
@@ -258,6 +266,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         r.decls = translate(that.decls);
         r.range = translate(that.range);
         r.value = translate(that.value);
+        r.racexpr = translate(that.racexpr);
         result = r;
         // Not translating: op
     }
@@ -317,7 +326,6 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlStatementLoop(JmlStatementLoop that) {
         JmlStatementLoop r = that;
         r.expression = translate(that.expression);
-        r.loopModifies = translate(that.loopModifies);
         result = r;
         // Not translating: token, line, source - FIXME
     }

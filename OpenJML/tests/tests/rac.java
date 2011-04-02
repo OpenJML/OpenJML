@@ -23,6 +23,7 @@ public class rac extends RacBase {
         options.put("-noPurityCheck",""); // System specs have a lot of purity errors, so turn this off for now
         options.put("-noInternalSpecs",   ""); // Faster with this option; should work either way
 //        options.put("-jmldebug",   "");
+        expectedNotes = 0;
     }
 
     /** Basic Hello World test, with no RAC tests triggered */
@@ -100,9 +101,22 @@ public class rac extends RacBase {
     /** Failed precondition */
     public void testPrecondition2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(0); System.out.println(\"END\"); }\n" +
-                " /*@ requires i != 0; */ static void m(int i) {} " +
+                " /*@ requires i != 0; */ \n" +
+                " static void m(int i) {} " +
                 "}"
                 ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"END"
+                );
+    }
+    
+    /** Failed precondition with nowarn */
+    public void testPrecondition2NoWarn() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "m(0); \n" +
+                "System.out.println(\"END\"); }\n" +
+                " /*@ requires i != 0; */ \n" +
+                " static void m(int i) {} //@ nowarn Precondition;\n" +
+                "}"
                 ,"END"
                 );
     }
@@ -149,6 +163,15 @@ public class rac extends RacBase {
                 " /*@ ensures k == 0; */ \nstatic int m(int i) { k = i; return 13; } " +
                 "}"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"END"
+                );
+    }
+
+    public void testPostcondition1Nowarn() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
+                " /*@ ensures k == 0; */ /*@ nowarn Postcondition;*/\n"+
+                " static int m(int i) { k = i; return 13; } " +
+                "}"
                 ,"END"
                 );
     }
@@ -1270,6 +1293,177 @@ public class rac extends RacBase {
                 +"}}"
                 ,"/tt/A.java:3: JML model field is not implemented: i"
                 ,"A 0"
+                ,"END"
+        );
+    }
+    
+    /** Forall, exists quantifier */
+    public void testForallQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost boolean n = (\\forall int i; 0<=i && i<=5; i >= 2); \n "
+                +"//@ ghost boolean nn = (\\exists int i; 0<=i && i<=5; i >= 2); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A false true"
+                ,"END"
+        );
+    }
+    
+    /** Forall, exists quantifier */
+    public void testForallQuantifier2() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost boolean n = (\\forall int i; 0<=i && i<=5; i >= 0); \n "
+                +"//@ ghost boolean nn = (\\exists int i; 0<=i && i<=5; i >= 6); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A true false"
+                ,"END"
+        );
+    }
+    
+    /** Forall, exists quantifier */
+    public void testForallQuantifier3() {
+        expectedErrors = 2;
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost boolean n = (\\forall int i; ; i >= 0); \n "
+                +"//@ ghost boolean nn = (\\exists int i; i == 4; i >= 6); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"/tt/A.java:3: warning: OpenJML is not able to execute this quantified expression for runtime assertion checking",25
+                ,"/tt/A.java:4: warning: OpenJML is not able to execute this quantified expression for runtime assertion checking",26
+                ,"A true true"
+                ,"END"
+        );
+    }
+    
+    /** Numof quantifier */
+    public void testCountQuantifier3() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost long n = (\\num_of int i; 0 <= i && i < 5; i >= 2); \n "
+                +"//@ ghost long nn = (\\num_of int i; 0 <= i && i < 5; false); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 3 0"
+                ,"END"
+        );
+    }
+    
+    /** Sum quantifier */
+    public void testSumQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost int n = (\\sum int i; 0<i && i<=5; i+1); \n "
+                +"//@ ghost int nn = (\\sum int i; 0<i && i<0; i+1); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 20 0"
+                ,"END"
+        );
+    }
+    
+    /** Sum quantifier */
+    public void testProdQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost int n = (\\product int i; 0<i && i<=5; i+1); \n "
+                +"//@ ghost int nn = (\\product int i; 0<i && i<0; i+1); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 720 1"
+                ,"END"
+        );
+    }
+    
+    /** Max quantifier */
+    public void testMaxQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost int n = (\\max int i; 0<=i && i<=5 && (i%2)==0; i+1); \n "
+                +"//@ ghost int nn = (\\max int i; 0<i && i<0; i+1); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 5 0"
+                ,"END"
+        );
+    }
+    
+    /** Min quantifier */
+    public void testMinQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost int n = (\\min int i; 0<=i && i<=5 && (i%2)==1; i+1); \n "
+                +"//@ ghost int nn = (\\min int i; 0<i && i<0; i+1); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 2 0"
+                ,"END"
+        );
+    }
+    
+    /** Max quantifier */
+    public void testMaxLongQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost long n = (\\max int i; 0<=i && i<=5 && (i%2)==0; (long)i+1); \n "
+                +"//@ ghost long nn = (\\max int i; 0<i && i<0; i+1); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 5 0"
+                ,"END"
+        );
+    }
+    
+    /** Min quantifier */
+    public void testMinLongQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost long n = (\\min int i; 0<=i && i<=5 && (i%2)==1; (long)i+1); \n "
+                +"//@ ghost long nn = (\\min int i; 0<i && i<0; i+1); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 2 0"
+                ,"END"
+        );
+    }
+    
+    /** Max quantifier */
+    public void testMaxDoubleQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost double n = (\\max int i; 0<=i && i<=5 && (i%2)==0; (double)i+1); \n "
+                +"//@ ghost double nn = (\\max int i; 0<i && i<0; i+1); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 5.0 0.0"
+                ,"END"
+        );
+    }
+    
+    /** Min quantifier */
+    public void testMinDoubleQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost double n = (\\min int i; 0<=i && i<=5 && (i%2)==1; (double)i+1); \n "
+                +"//@ ghost double nn = (\\min int i; 0<i && i<0; (double)i+1); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 2.0 0.0"
                 ,"END"
         );
     }

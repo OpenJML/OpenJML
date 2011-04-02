@@ -12,17 +12,12 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.parser.Scanner.CommentStyle;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.JCDiagnostic;
-import com.sun.tools.javac.util.JavacMessages;
-import com.sun.tools.javac.util.LayoutCharacters;
-import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Options;
-import com.sun.tools.javac.util.Position;
+import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
 
@@ -114,12 +109,11 @@ public class JmlScanner extends DocCommentScanner {
             JmlScanner sc;
             if (input instanceof CharBuffer) {
                 sc = new JmlScanner(this, (CharBuffer) input);
+                init(sc);
             } else {
                 char[] array = input.toString().toCharArray();
                 sc = (JmlScanner)newScanner(array, array.length, true);
             }
-            sc.keys = Utils.instance(context).commentKeys;
-            
             return sc;
         }
 
@@ -132,18 +126,26 @@ public class JmlScanner extends DocCommentScanner {
         @Override
         public Scanner newScanner(char[] input, int inputLength, boolean keepDocComments) {
             JmlScanner j = new JmlScanner(this, input, inputLength);
-            j.noJML = JmlOption.isOption(context, JmlOption.NOJML);
+            init(j);
             return j;
         }
 
         @Override
         public Scanner newScanner(CharSequence input, boolean keepDocComments) {
             JmlScanner j = new JmlScanner(this, CharBuffer.wrap(input));
-            j.noJML = JmlOption.isOption(context, JmlOption.NOJML);
+            init(j);
             return j;
+        }
+        
+        private void init(JmlScanner j) {
+            j.noJML = JmlOption.isOption(context, JmlOption.NOJML);
+            j.keys = Utils.instance(context).commentKeys;
+            j.nowarns = Nowarns.instance(context);
         }
 
     }
+    
+    public Nowarns nowarns;
 
     /**
      * A flag that, when true, causes all JML constructs to be ignored; it is
@@ -273,67 +275,73 @@ public class JmlScanner extends DocCommentScanner {
 
         int k = bp;
         scanChar();
-        if (ch == '+' || ch == '-') {   // FIXME - fix the following block to be robust against premature end-of-comment
-            // Also accept //+@ as the beginning of a JML
-            // annotation
-            boolean someplus = ch == '+';
-            boolean someminus = ch == '-';
-            boolean foundplus = false;
-            scanChar();
-            if (ch == '@') {
-                // no keys
-                if (someminus) { // FIXME - use someplus in conjunction with a parsePlus option?
-                    bp = bpend;
-                    ch = chend;
-                    super.processComment(style);
-                    return;
-                }
-            }
-            while (ch != '@') {
-                if (!Character.isJavaIdentifierStart(ch)) {
-                    // Not a valid JML comment - just return
-                    // Restart at the end
-                    bp = bpend;
-                    ch = chend;
-                    super.processComment(style);
-                    return;
-                }
-                // Check for keys
-                scanIdent();
-                Name key = name();
-                if (keys.contains(key)) {
-                    if (ch == '+') foundplus = true;
-                    else {
-                        // negative key found - return
-                        bp = bpend;
-                        ch = chend;
-                        super.processComment(style);
-                        return;
-                    }
-                }
-                if (ch != '+' && ch != '-') {
-                    // Not a valid JML comment - just return
-                    // Restart at the end
-                    bp = bpend;
-                    ch = chend;
-                    super.processComment(style);
-                    return;
-                }
-                if (ch == '+') someplus = true;
-                else if (ch == '-') someminus = true;
-                scanChar();
-            }
-            if (!foundplus && someplus && someminus) {
+        boolean someplus = false;
+        boolean someminus = false;
+        boolean foundplus = false;
+//        if (ch == '+' || ch == '-') {   // FIXME - fix the following block to be robust against premature end-of-comment
+//            // Also accept //+@ as the beginning of a JML
+//            // annotation
+//            boolean someplus = ch == '+';
+//            boolean someminus = ch == '-';
+//            boolean foundplus = false;
+//            scanChar();
+//            if (ch == '@') {
+//                // no keys
+//                if (someminus) { // FIXME - use someplus in conjunction with a parsePlus option?
+//                    bp = bpend;
+//                    ch = chend;
+//                    super.processComment(style);
+//                    return;
+//                }
+//            }
+        while (ch != '@') {
+            if (ch != '+' && ch != '-') {
+                // Not a valid JML comment - just return
                 // Restart at the end
                 bp = bpend;
                 ch = chend;
                 super.processComment(style);
                 return;
             }
+            
+            boolean isplus = ch == '+';
+            scanChar();
+            if (ch == '@') {
+                // Old -style //+@ or //-@ comments
+                // Just skip them // TODO perhaps use parsePlus?
+                if (isplus) break;
+                bp = bpend;
+                ch = chend;
+                super.processComment(style);
+                return;
+            }
+            if (isplus) someplus = true;
+            else        someminus = true;
+            if (!Character.isJavaIdentifierStart(ch)) {
+                // Not a valid JML comment - just return
+                // Restart at the end
+                bp = bpend;
+                ch = chend;
+                super.processComment(style);
+                return;
+            }
+            // Check for keys
+            scanIdent();
+            Name key = name();
+            sp = 0;
+            if (keys.contains(key)) {
+                if (isplus) foundplus = true;
+                else {
+                    // negative key found - return
+                    bp = bpend;
+                    ch = chend;
+                    super.processComment(style);
+                    return;
+                }
+            }
         }
-
-        // If there is not an '@' next, there is no JML comment
-        if (ch != '@') {
+        if (!foundplus && someplus) {
+            // There were pluses but not the plus we were looking for
             // Restart at the end
             bp = bpend;
             ch = chend;
@@ -674,8 +682,6 @@ public class JmlScanner extends DocCommentScanner {
     }
 
     public void scanNowarn() {
-        // int nowarnPos = pos();
-        JavaFileObject file = log.currentSourceFile();
         while (ch == ' ' || ch == '\t' || ch == LayoutCharacters.FF)
             scanChar(); // skip spaces
         while (Character.isLetter(ch)) {
@@ -685,7 +691,7 @@ public class JmlScanner extends DocCommentScanner {
             } while (Character.isLetter(ch));
             String label = String.valueOf(buf, p, bp - p); // TODO Check this
                                                            // for unicode
-            handleNowarn(file, p, label);
+            handleNowarn(log.currentSource(), p, label);
 
             while (ch == ' ' || ch == '\t' || ch == LayoutCharacters.FF
                     || ch == ',')
@@ -727,7 +733,8 @@ public class JmlScanner extends DocCommentScanner {
      * @param label
      *            The label in the pragma
      */
-    protected void handleNowarn(JavaFileObject file, int pos, String label) {
+    protected void handleNowarn(DiagnosticSource file, int pos, String label) {
+        nowarns.addItem(file,pos,label);
         // log.noticeWriter.println("NOWARN " + nowarnPos + " " + label);
         // TODO - eventually do something here
     }

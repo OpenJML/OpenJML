@@ -64,6 +64,8 @@ public class compiler extends TestCase {
         errOutput = errOutput.toString().replace("\\","/");
         if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;
         if (print) System.out.println("EXPECTING: " + output[0]);
+        if (print) System.out.println("ACTUAL OUT: " + actualOutput);
+        if (print) System.out.println("ACTUAL ERR: " + errOutput);
         if (capture) try {
             String tail = exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
             if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + errOutput);
@@ -77,13 +79,15 @@ public class compiler extends TestCase {
             }
             if (output.length > 1) {
                 expected = output[1].replace("${PROJ}",projHome);
-                if (print) System.out.println("TEST: " + getName() + " STANDARD OUT: " + eol + actualOutput);
+                int k = actualOutput.indexOf("Note:");
+                String actual = k>=0 ? actualOutput.substring(0,k) : actualOutput; 
+                if (print) System.out.println("TEST: " + getName() + " STANDARD OUT: " + eol + actual);
                 if (all == 0) {
-                    assertEquals("The standard out is wrong",expected+tail,actualOutput);
+                    assertEquals("The standard out is wrong",expected+tail,actual);
                 } else if (all == -1) {
-                    assertEquals("The standard out is wrong",expected,actualOutput);
+                    assertEquals("The standard out is wrong",expected,actual);
                 } else if (all == 2 && actualOutput.indexOf(expected) == -1) {
-                    fail("Output does not end with: " + expected + eol + "Instead is: " + actualOutput);
+                    fail("Output does not end with: " + expected + eol + "Instead is: " + actual);
                 }
             }
             assertEquals("The exit code is wrong",exitcode,e);
@@ -357,6 +361,146 @@ public class compiler extends TestCase {
                           },1,1
                           ,""
                           ,"testfiles/testSuperRead/B.jml:3: This JML modifier is not allowed for a type declaration"
+                          );
+    }
+    
+    /** Tests an invalid use of key */
+    @Test
+    public void testKeys0() {
+        helper(new String[]
+                          { "-classpath","bin", 
+                            "-sourcepath","testfiles",
+                            "-specspath","testfiles",
+                            "-noPurityCheck",
+                            "testfiles/testKeys/D.java"
+                          },0,0
+                          ,""
+                          ,""
+                          );
+    }
+    
+    /** Tests a single negative key that guards a line with an error */
+    @Test
+    public void testKeys1() {
+        helper(new String[]
+                          { "-classpath","bin", 
+                            "-sourcepath","testfiles",
+                            "-specspath","testfiles",
+                            "-noPurityCheck",
+                            "testfiles/testKeys/A.java"
+                          },1,1
+                          ,"testfiles/testKeys/A.java:4: cannot find symbol"
+                          ,""
+                          );
+    }
+    
+    /** Tests a single negative key that guards a line with an error */
+    @Test
+    public void testKeys1a() {
+        helper(new String[]
+                          { "-classpath","bin", 
+                            "-sourcepath","testfiles",
+                            "-specspath","testfiles",
+                            "-noPurityCheck",
+                            "-keys","K2",
+                            "testfiles/testKeys/A.java"
+                          },1,1
+                          ,"testfiles/testKeys/A.java:4: cannot find symbol"
+                          ,""
+                          );
+    }
+    
+    /** Tests a single negative key that guards a line with an error */
+    @Test
+    public void testKeys2() {
+        helper(new String[]
+                          { "-classpath","bin", 
+                            "-sourcepath","testfiles",
+                            "-specspath","testfiles",
+                            "-noPurityCheck",
+                            "-keys","K1",
+                            "testfiles/testKeys/A.java"
+                          },0,1
+                          ,""
+                          );
+    }
+    
+    /** Tests a single positive key that guards a line with an error */
+    @Test
+    public void testKeys3() {
+        helper(new String[]
+                          { "-classpath","bin", 
+                            "-sourcepath","testfiles",
+                            "-specspath","testfiles",
+                            "-noPurityCheck",
+                            "-keys","K2",
+                            "testfiles/testKeys/B.java"
+                          },1,1
+                          ,"testfiles/testKeys/B.java:4: cannot find symbol"
+                          ,""
+                          );
+    }
+    
+    /** Tests a single positive key that guards a line with an error */
+    @Test
+    public void testKeys4() {
+        helper(new String[]
+                          { "-classpath","bin", 
+                            "-sourcepath","testfiles",
+                            "-specspath","testfiles",
+                            "-noPurityCheck",
+                            "testfiles/testKeys/B.java"
+                          },0,0
+                          ,""
+                          ,""
+                          );
+    }
+    
+    /** Tests a single positive key that guards a line with an error */
+    @Test
+    public void testKeys4a() {
+        helper(new String[]
+                          { "-classpath","bin", 
+                            "-sourcepath","testfiles",
+                            "-specspath","testfiles",
+                            "-noPurityCheck",
+                            "-keys","K3",
+                            "testfiles/testKeys/B.java"
+                          },0,0
+                          ,""
+                          ,""
+                          );
+    }
+    
+    /** Tests a single positive key that guards a line with an error */
+    @Test
+    public void testKeys5() {
+        helper(new String[]
+                          { "-classpath","bin", 
+                            "-sourcepath","testfiles",
+                            "-specspath","testfiles",
+                            "-noPurityCheck",
+                            "-keys","K4,K2",
+                            "testfiles/testKeys/C.java"
+                          },0,0
+                          ,""
+                          ,""
+                          );
+    }
+    
+    /** Tests a single positive key that guards a line with an error */
+    @Test
+    public void testKeys6() {
+        helper(new String[]
+                          { "-classpath","bin", 
+                            "-sourcepath","testfiles",
+                            "-specspath","testfiles",
+                            "-noPurityCheck",
+                            "-keys","K2,K3",
+                            "testfiles/testKeys/C.java"
+                          },1,1
+                          ,"testfiles/testKeys/C.java:10: cannot find symbol"
+                          ,""
                           );
     }
     

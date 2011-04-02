@@ -121,6 +121,7 @@ abstract public class ParseBase extends JmlTestCase {
             if (print) printErrors();
             Object p1, p2, p3;
             for (JCTree t: actual) {
+                if (i>=expected.length) break;
                 assertEquals("Class not matched at token " + k, expected[i++], t.getClass());
                 p1 = expected[i++];
                 p2 = (i < expected.length && expected[i] instanceof Integer) ? expected[i++] : null;

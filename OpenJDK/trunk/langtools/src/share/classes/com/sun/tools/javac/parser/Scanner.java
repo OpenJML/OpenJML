@@ -106,7 +106,7 @@ public class Scanner implements Lexer {
     /** A character buffer for literals.
      */
     private char[] sbuf = new char[128];
-    private int sp;
+    protected int sp; // DRC - changed to protected from private
 
     /** The input buffer, index of next chacter to be read,
      *  index of one past last character in buffer.

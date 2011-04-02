@@ -675,7 +675,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
 
     void finishSpecClass(JmlClassDecl specsDecl, Env<AttrContext> env) {
-        if (true || utils.jmldebug) log.noticeWriter.println("FINISHING SPEC CLASS " + specsDecl.sym.fullname);
+        if (utils.jmldebug) log.noticeWriter.println("FINISHING SPEC CLASS " + specsDecl.sym.fullname);
         // Now go through everything in the spec file.  Some of it
         // will be duplicates of the stuff in the java file.  Some of
         // it will be ghost/model declarations that need to be entered 
@@ -1187,6 +1187,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 if ((Flags.ABSTRACT & matchf & ~specf) != 0 && isInterface) diffs &= ~Flags.ABSTRACT; 
                 if ((Flags.STATIC & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.STATIC; 
                 if ((Flags.FINAL & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.FINAL; 
+                if ((diffs & Flags.FINAL) != 0 && javaClassSym.isAnonymous()) diffs &= ~Flags.FINAL;
                 if (diffs != 0) Log.instance(context).error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
             }
             // FIXME - check that both are Enum; check that both are Annotation
@@ -1727,6 +1728,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (specMethodDecl.body != null && specMethodDecl.sourcefile.getKind() != Kind.SOURCE
                     && !((JmlAttr)attr).isModel(specMethodDecl.mods)
                     && !inModelTypeDeclaration
+                    && match.owner == javaClassSymbol   // FIXME - this is here to avoid errors on methods of anonymous classes within specifications within a .jml file - it might not be fully robust
+                                                           // FIXME - should test other similar locations - e.g. model classes, model methods, methods within local class declarations in model methods or methods of model classes
                     && (specMethodDecl.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
                 log.error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.enclClass().fullname + "." + match.toString());
             }

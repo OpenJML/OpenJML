@@ -1,8 +1,6 @@
 package tests;
 
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.tree.JCTree.*;
 
@@ -171,6 +169,143 @@ public class compilationUnit extends ParseBase {
         JCFieldAccess.class, 4,4,8,
         JCIdent.class, 4,4,8
                       );
+        checkMessages();
+    }
+    
+    public void testRefining() {
+        checkCompilationUnit("class A { void m() { /*@ refining requires true; ensures true; */ m(); }}",
+              JmlCompilationUnit.class, 0,0,73,
+              JmlClassDecl.class, 0,0,73,
+              JCModifiers.class, -1,-1,-1,
+              JmlMethodDecl.class, 10,15,72,
+              JCModifiers.class, -1,-1,-1,
+              JCPrimitiveTypeTree.class, 10,10,14,
+              JCBlock.class, 19,19,72,
+              JmlStatementSpec.class, 25, 25, 62, 
+              JmlMethodSpecs.class, 34, 34, 62,
+              JmlSpecificationCase.class, 34,34,62,
+              JCModifiers.class, -1,-1,-1,
+              JmlMethodClauseExpr.class, 34,34,48,
+              JCLiteral.class, 43,43,47,
+              JmlMethodClauseExpr.class, 49,49,62,
+              JCLiteral.class, 57,57,61,
+              JCExpressionStatement.class, 66,66,70,
+              JCMethodInvocation.class, 66,67,69,
+              JCIdent.class, 66,66,67
+        );
+        checkMessages();
+    }
+    
+    public void testRefining2() {
+        checkCompilationUnit("class A { void m() { /*@          requires true; ensures true; */ m(); }}",
+              JmlCompilationUnit.class, 0,0,73,
+              JmlClassDecl.class, 0,0,73,
+              JCModifiers.class, -1,-1,-1,
+              JmlMethodDecl.class, 10,15,72,
+              JCModifiers.class, -1,-1,-1,
+              JCPrimitiveTypeTree.class, 10,10,14,
+              JCBlock.class, 19,19,72,
+              JmlStatementSpec.class, 34,34, 62,
+              JmlMethodSpecs.class, 34, 34, 62,
+              JmlSpecificationCase.class, 34,34,62,
+              JCModifiers.class, -1,-1,-1,
+              JmlMethodClauseExpr.class, 34,34,48,
+              JCLiteral.class, 43,43,47,
+              JmlMethodClauseExpr.class, 49,49,62,
+              JCLiteral.class, 57,57,61,
+              JCExpressionStatement.class, 66,66,70,
+              JCMethodInvocation.class, 66,67,69,
+              JCIdent.class, 66,66,67
+        );
+        checkMessages();
+    }
+    
+    public void testRequires() {
+        checkCompilationUnit("class A { /*@ requires true; requires \\not_specified; */ void m() {}}",
+                JmlCompilationUnit.class, 0,0,69,
+                JmlClassDecl.class, 0,0,69,
+                JCModifiers.class, -1,-1,-1,
+                JmlMethodDecl.class, 57,62,68,
+
+                JmlMethodSpecs.class, 14,14,53,
+                JmlSpecificationCase.class, 14,14,53,
+                JCModifiers.class, -1,-1,-1,
+                JmlMethodClauseExpr.class, 14,14,28,
+                JCLiteral.class, 23,23,27,
+                JmlMethodClauseExpr.class, 29,29,53,
+                JmlSingleton.class, 38,38,52,
+                
+                JCModifiers.class, -1,-1,-1,
+                JCPrimitiveTypeTree.class, 57,57,61,
+                    // FIXME - should have a JCIdent, parameters?
+                JCBlock.class, 66,66,68
+                );
+        
+        checkMessages();
+    }
+    
+    public void testEnsures() {
+        checkCompilationUnit("class A { /*@ ensures  true; ensures  \\not_specified; */ void m() {}}",
+                JmlCompilationUnit.class, 0,0,69,
+                JmlClassDecl.class, 0,0,69,
+                JCModifiers.class, -1,-1,-1,
+                JmlMethodDecl.class, 57,62,68,
+
+                JmlMethodSpecs.class, 14,14,53,
+                JmlSpecificationCase.class, 14,14,53,
+                JCModifiers.class, -1,-1,-1,
+                JmlMethodClauseExpr.class, 14,14,28,
+                JCLiteral.class, 23,23,27,
+                JmlMethodClauseExpr.class, 29,29,53,
+                JmlSingleton.class, 38,38,52,
+                
+                JCModifiers.class, -1,-1,-1,
+                JCPrimitiveTypeTree.class, 57,57,61,
+                    // FIXME - should have a JCIdent, parameters?
+                JCBlock.class, 66,66,68
+                );
+        
+        checkMessages();
+    }
+    
+    public void testCallable() {
+        checkCompilationUnit("class A { /*@ callable \\nothing   ; */ void m() {}}",
+                JmlCompilationUnit.class, 0,0,51,
+                JmlClassDecl.class, 0,0,51,
+                JCModifiers.class, -1,-1,-1,
+                JmlMethodDecl.class, 39,44,50, // FIXME - specs are not inside the method decl
+                
+                JmlMethodSpecs.class, 14,14,35,
+                JmlSpecificationCase.class, 14,14,35,
+                JCModifiers.class, -1,-1,-1,
+                JmlMethodClauseCallable.class, 14,14,35,
+                JmlStoreRefKeyword.class, 23,23,31,
+                
+                JCModifiers.class, -1,-1,-1,
+                JCPrimitiveTypeTree.class, 39,39,43,
+                JCBlock.class, 48,48,50
+                );        
+        checkMessages();
+    }
+    
+    public void testCallable2() {
+        checkCompilationUnit("class A { /*@ callable \\everything; */ void m() {}}",
+                JmlCompilationUnit.class, 0,0,51,
+                JmlClassDecl.class, 0,0,51,
+                JCModifiers.class, -1,-1,-1,
+                JmlMethodDecl.class, 39,44,50, // FIXME - specs are not inside the method decl
+                
+                JmlMethodSpecs.class, 14,14,35,
+                JmlSpecificationCase.class, 14,14,35,
+                JCModifiers.class, -1,-1,-1,
+                JmlMethodClauseCallable.class, 14,14,35,
+                JmlStoreRefKeyword.class, 23,23,34,
+                
+                JCModifiers.class, -1,-1,-1,
+                JCPrimitiveTypeTree.class, 39,39,43,
+                JCBlock.class, 48,48,50
+                );
+        
         checkMessages();
     }
     

@@ -14,7 +14,7 @@ import java.util.Map;
  *
  */
 public class Utils {
-    
+
     //@ public normal_behavior
     //@    ensures \result.size() == 0;
     static public /*@non_null pure */ <E> org.jmlspecs.lang.JMLList<E> defaultEmpty() {
@@ -451,6 +451,38 @@ public class Utils {
             // TODO Auto-generated method stub
             return 0;
         }
-
     }
+    
+    public static interface ValueBool {
+        public boolean value(final int lo, final int hi);
+     }
+
+    public static interface ValueInt {
+        public int value(final int lo, final int hi);
+     }
+
+    public static interface ValueShort {
+        public short value(int lo, int hi);
+     }
+
+    public static interface ValueChar {
+        public char value(int lo, int hi);
+     }
+
+    public static interface ValueLong {
+        public long value(int lo, int hi);
+     }
+
+    public static interface ValueFloat {
+        public float value(int lo, int hi);
+     }
+
+    public static interface ValueDouble {
+        public double value(int lo, int hi);
+     }
+
+    public static interface Value<T> {
+        public T value();
+     }
+
 }
