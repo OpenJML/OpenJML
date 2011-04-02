@@ -16,6 +16,7 @@ import static org.jmlspecs.openjml.JmlToken.*;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -24,15 +25,7 @@ import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.*;
-import org.jmlspecs.openjml.IJmlVisitor;
-import org.jmlspecs.openjml.JmlCompiler;
-import org.jmlspecs.openjml.JmlInternalError;
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 
@@ -67,6 +60,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.Position;
 
@@ -733,8 +727,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JavaFileObject prevSource = null;
         try {
             if (jmethod.methodSpecsCombined == null) {
-                log.noticeWriter.println("METHOD SPECS NOT COMBINED " + m.sym.owner + " " + m.sym);
+                //log.noticeWriter.println("METHOD SPECS NOT COMBINED " + m.sym.owner + " " + m.sym);
+                        // The following line does happen with anonymous classes implementing an interface, with no constructor given
+                        // but what about FINISHING SPEC CLASS
                 jmethod.methodSpecsCombined = new JmlSpecs.MethodSpecs(jmethod.mods,jmethod.cases); // BUG recovery?  FIXME - i think this happens with default constructors
+                specs.putSpecs(m.sym,jmethod.methodSpecsCombined);
             }
 
             // Do this before we walk the method body
@@ -2209,6 +2206,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
         }
     }
+    
+    public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
+        // FIXME - implement the checks
+    }
 
     /** This is an implementation that does the type attribution for 
      * duration, working_space, measured_by clauses
@@ -2766,10 +2767,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             currentClauseType = tree.token;
             if (tree.token == JmlToken.LOOP_INVARIANT) {
                 attribExpr(tree.expression,loopEnv,syms.booleanType);
-            } else if (tree.token == JmlToken.ASSIGNABLE) {
-                for (JCExpression e: tree.loopModifies.list) {
-                    attribExpr(e,loopEnv,Type.noType);
-                }
             } else {
                 attribExpr(tree.expression,loopEnv,syms.longType);  // FIXME - what type to use
             }
@@ -3048,7 +3045,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 
             case BSMAX:
             case BSMIN:
-                attribExpr(that.value, localEnv, syms.longType); // FIXME - int? long? numeric? bigint? double?
+                attribExpr(that.value, localEnv, Type.noType); // FIXME - int? long? numeric? bigint? double?
                 resultType = that.value.type;
                 break;
 
@@ -3064,8 +3061,185 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         result = check(that, resultType, VAL, pkind, pt);
         localEnv.info.scope.leave();
+        
+        if (Options.instance(context).get(JmlOption.RAC.optionName()) != null) {
+            createRacExpr(that);
+            if (that.racexpr != null) {
+                that.racexpr.accept(this);
+            }
+        }
         return;
     }
+    
+    public void createRacExpr(JmlQuantifiedExpr q) {
+        //if (Options.instance(context).get(JmlOption.RAC.optionName()) == null) return;
+        try {
+            if (q.range == null) return;
+            if (!RACCheck.allInternal(q.value,q.decls.toList())) return; 
+            if (q.range != null && !RACCheck.allInternal(q.range,q.decls.toList())) return; 
+            JmlTree.Maker F = factory;
+
+            // Misc items
+            JCVariableDecl vardecl = q.decls.first();
+            JCExpression vartype = vardecl.vartype;
+            Type restype = q.type;
+            JCStatement rettrue = F.Return(F.Literal(TypeTags.BOOLEAN, 1));
+            JCStatement retfalse = F.Return(F.Literal(TypeTags.BOOLEAN, 0));
+            JCExpression methodName = F.Ident(names.fromString("org"));
+            methodName = F.Select(methodName, names.fromString("jmlspecs"));
+            methodName = F.Select(methodName, names.fromString("utils"));
+            methodName = F.Select(methodName, names.fromString("Utils"));
+            
+            // Determine core computation
+            // forall:  if (range && !value) return false;
+            // exists:  if (range && value) return true;
+            // numof:   if (range && value) ++count;
+            // sum:     if (range) sum += value;
+            
+            JCVariableDecl initialDecl = null;
+            JCVariableDecl valueDecl = null;
+            JCVariableDecl firstDecl = null;
+            JCIf ifstatement;
+            JCStatement retStat;
+            JCExpression cond = q.value;
+            if (q.op == JmlToken.BSFORALL || q.op == JmlToken.BSEXISTS) { 
+                if (q.op == JmlToken.BSFORALL) cond = F.Unary(JCTree.NOT, cond); 
+                cond = F.Binary(JCTree.AND, q.range, cond);
+                ifstatement = F.If(cond, q.op == JmlToken.BSFORALL? retfalse : rettrue , null);
+                retStat = F.Return(F.Literal(TypeTags.BOOLEAN,q.op == JmlToken.BSFORALL ? 1 : 0));
+                methodName = F.Select(methodName, names.fromString("ValueBool"));
+            } else if (q.op == JmlToken.BSNUMOF) {
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.TypeIdent(TypeTags.INT), F.Literal(TypeTags.INT,0));
+                cond = F.Binary(JCTree.AND, q.range, cond);
+                ifstatement = F.If(cond, F.Exec(F.Unary(JCTree.PREINC, F.Ident(initialDecl.name))) , null);
+                retStat = F.Return(F.Ident(initialDecl.name));
+                methodName = F.Select(methodName, names.fromString("ValueInt"));
+            } else if (q.op == JmlToken.BSSUM) {
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_sum$$$"), F.TypeIdent(TypeTags.INT), F.Literal(TypeTags.INT,0));
+                ifstatement = F.If(q.range, F.Exec(F.Assignop(JCTree.PLUS_ASG, F.Ident(initialDecl.name), cond)) , null);
+                retStat = F.Return(F.Ident(initialDecl.name));
+                methodName = F.Select(methodName, names.fromString("ValueInt"));
+            } else if (q.op == JmlToken.BSPRODUCT) {
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_prod$$$"), F.TypeIdent(TypeTags.INT), F.Literal(TypeTags.INT,1));
+                ifstatement = F.If(q.range, F.Exec(F.Assignop(JCTree.MUL_ASG, F.Ident(initialDecl.name), cond)) , null);
+                retStat = F.Return(F.Ident(initialDecl.name));
+                methodName = F.Select(methodName, names.fromString("ValueInt"));
+            } else if (q.op == JmlToken.BSMAX) {
+                firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_max$$$"), F.Type(restype), F.Literal(restype.tag,0));
+                valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
+                ifstatement = F.If(F.Binary(
+                                    JCTree.AND,
+                                    q.range, 
+                                    F.Binary(
+                                            JCTree.OR, 
+                                            F.Binary(
+                                                    JCTree.GT, 
+                                                    F.Assign(F.Ident(valueDecl.name), q.value), 
+                                                    F.Ident(initialDecl.name)
+                                                    ), 
+                                            F.Ident(firstDecl.name)
+                                            )
+                                    ),
+                                   F.Block(0, 
+                                           List.<JCStatement>of(
+                                                   F.Exec(F.Assign(F.Ident(initialDecl.name), F.Ident(valueDecl.name))),
+                                                   F.Exec(F.Assign(F.Ident(firstDecl.name), F.Literal(TypeTags.BOOLEAN,0)))
+                                                   )
+                                           ),
+                                   null);
+                retStat = F.Return(F.Ident(initialDecl.name));
+                String s = restype.tag == TypeTags.INT ? "ValueInt" :
+                        restype.tag == TypeTags.LONG ? "ValueLong" :
+                        restype.tag == TypeTags.DOUBLE ? "ValueDouble" : "ValueInt";
+                methodName = F.Select(methodName, names.fromString(s));
+            } else if (q.op == JmlToken.BSMIN) {
+                firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_min$$$"), F.Type(restype), F.Literal(restype.tag,0));
+                valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
+                ifstatement = F.If(F.Binary(
+                        JCTree.AND,
+                        q.range, 
+                        F.Binary(
+                                JCTree.OR, 
+                                F.Binary(
+                                        JCTree.LT, 
+                                        F.Assign(F.Ident(valueDecl.name), q.value), 
+                                        F.Ident(initialDecl.name)
+                                        ), 
+                                F.Ident(firstDecl.name)
+                                )
+                        ),
+                       F.Block(0, 
+                               List.<JCStatement>of(
+                                       F.Exec(F.Assign(F.Ident(initialDecl.name), F.Ident(valueDecl.name))),
+                                       F.Exec(F.Assign(F.Ident(firstDecl.name), F.Literal(TypeTags.BOOLEAN,0)))
+                                       )
+                               ),
+                       null);
+                retStat = F.Return(F.Ident(initialDecl.name));
+                String s = restype.tag == TypeTags.INT ? "ValueInt" :
+                    restype.tag == TypeTags.LONG ? "ValueLong" :
+                    restype.tag == TypeTags.DOUBLE ? "ValueDouble" : "ValueInt";
+                methodName = F.Select(methodName, names.fromString(s));
+            } else {
+                return;
+            }
+
+            // presume int
+            JCBinary locomp = (JCBinary)((JCBinary)q.range).lhs;
+            JCBinary hicomp = (JCBinary)((JCBinary)q.range).rhs;
+            if (locomp.getTag() == JCTree.AND) {
+                hicomp = (JCBinary)locomp.rhs;
+                locomp = (JCBinary)locomp.lhs;
+            } else if (hicomp.getTag() == JCTree.AND) {
+                hicomp = (JCBinary)hicomp.lhs;
+            }
+            JCExpression lo = locomp.lhs;
+            JCExpression hi = hicomp.rhs;
+
+            Name loname = names.fromString("lo$$$");
+            Name hiname = names.fromString("hi$$$");
+            Name indexname = vardecl.name;
+
+            JCVariableDecl lodef = F.VarDef(F.Modifiers(Flags.FINAL),loname,vartype,null);
+            JCVariableDecl hidef = F.VarDef(F.Modifiers(Flags.FINAL),hiname,vartype,null);
+            JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Ident(loname));
+            
+            JCStatement inc = F.Exec(F.Unary(JCTree.PREINC, F.Ident(indexname)));
+
+            JCWhileLoop whilestatement =
+                    F.WhileLoop(
+                            F.Binary(hicomp.getTag(), F.Ident(indexname), F.Ident(hiname)),
+                            F.Block(0,List.<JCStatement>of(ifstatement,inc)));
+            
+            
+            JCMethodDecl methodDecl = F.MethodDef(
+                    F.Modifiers(Flags.PUBLIC), 
+                    names.fromString("value"),
+                    F.Type(restype), // result type
+                    List.<JCTypeParameter>nil(), // type parameters
+                    List.<JCVariableDecl>of(lodef,hidef), // parameters
+                    List.<JCExpression>nil(), // thrown types
+                    initialDecl == null ? F.Block(0,List.<JCStatement>of(indexdef,whilestatement,retStat)) :
+                    valueDecl == null ?   F.Block(0,List.<JCStatement>of(initialDecl,indexdef,whilestatement,retStat)) :
+                                          F.Block(0,List.<JCStatement>of(firstDecl,initialDecl,valueDecl,indexdef,whilestatement,retStat)),
+                    null); // default value
+            List<JCTree> defs = List.<JCTree>of(methodDecl);
+            JCClassDecl classDecl = F.AnonymousClassDef(F.Modifiers(0), defs) ;
+            JCExpression anon = F.NewClass(null,List.<JCExpression>nil(),methodName,List.<JCExpression>nil(),classDecl);
+            JCExpression call = F.Apply(List.<JCExpression>nil(),F.Select(anon,names.fromString("value")),List.<JCExpression>of(lo,hi));
+            q.racexpr = call;
+
+        } catch (Exception e) {
+            // Ignore exceptions - the finally block takes care of it
+        } finally {
+//FIXME            if (q.racexpr == null) log.warning(q.pos(),"jml.quantified.expression.not.translatable");
+        }
+        return;
+
+    }
+
     
     public void visitJmlSetComprehension(JmlSetComprehension that) {
         // that.type must be a subtype of JMLSetType                    FIXME - not checked
@@ -3914,11 +4088,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     public void visitJmlStatementLoop(JmlStatementLoop that) {
-        if (that.loopModifies == null) {
-            attribExpr(that.expression,env);
-        } else {
-            // FIXME - needs attribution
-        }
+        attribExpr(that.expression,env);
     }
 
     public void visitJmlChoose(JmlChoose that) {
@@ -4002,7 +4172,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public Type attribExpr(JCTree tree, Env<AttrContext> env, Type pt) {
         Type type = super.attribExpr(tree,env,pt);
         if (tree.type == null) {
-            log.noticeWriter.println("FAILED TO SET EXPRESSION TYPE " + tree.getClass() + " " + tree);
+            log.noticeWriter.println("FAILED TO SET EXPRESSION TYPE " + tree.getClass() + " " + tree); // FIXME - review , convert to internal error?
         }
         return type;
     }
@@ -4039,6 +4209,79 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     public void jmlerror(JCTree tree, String key, Object... args) {
         log.error(new JmlScanner.DiagnosticPositionSE(tree.pos,tree.getEndPosition(log.currentSource().getEndPosTable())),key,args);
+    }
+    
+    public static class RACCopy extends JmlTreeCopier {
+        
+        public RACCopy(Context context) {
+            super(context, JmlTree.Maker.instance(context));
+        }
+        
+        public static JCExpression copy(JCExpression that, Context context) {
+            return new RACCopy(context).copy(that,(Void)null);  // FIXME - should use a factory
+        }
+        
+    }
+    
+    public static class RACCheck extends JmlTreeScanner {
+        
+        public static class RCheckEx extends RuntimeException {}
+        
+        boolean checkInternal;
+        List<JCVariableDecl> decls;
+        
+        public RACCheck(List<JCVariableDecl> decls) {
+            this.decls = decls;
+        }
+        
+        public static boolean allInternal(JCExpression expr, List<JCVariableDecl> decls) {
+            try {
+                RACCheck s = new RACCheck(decls);
+                s.checkInternal = true;
+                expr.accept(s);
+                return true;
+            } catch (RCheckEx e) {
+                return false;
+            }
+        }
+        
+        public static boolean allExternal(JCExpression expr, List<JCVariableDecl> decls) {
+            try {
+                RACCheck s = new RACCheck(decls);
+                s.checkInternal = false;
+                expr.accept(s);
+                return true;
+            } catch (RCheckEx e) {
+                return false;
+            }
+        }
+        
+        @Override
+        public void visitIdent(JCIdent that) {
+            // FIXME - only want to make this determination for variables, not methods or classes
+            Symbol n = that.sym;
+            Iterator<JCVariableDecl> iter = decls.iterator();
+            while (iter.hasNext()) {
+                JCVariableDecl d = iter.next();
+                if (d.sym.equals(n)) {
+                    // identifier matches a quantifier declaration
+                    // so it is definitely internal
+                    if (checkInternal) return;
+                    throw new RCheckEx();
+                }
+            }
+            // No matches found so the identifier is
+            // definitely external
+            if (checkInternal) throw new RCheckEx();
+        }
+        
+        @Override
+        public void visitJmlSingleton(JmlSingleton that) {
+            if (that.token == JmlToken.BSRESULT) {
+                // external
+                if (checkInternal) throw new RCheckEx();
+            }
+        }
     }
 
 

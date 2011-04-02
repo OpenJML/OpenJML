@@ -84,6 +84,8 @@ public class JmlTree {
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(JmlToken t, ListBuffer<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(JmlToken t, JCTree.JCExpression e);
+        JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword);
+        JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlConstraintMethodSig> methodSignatures);
         JmlMethodClauseConditional JmlMethodClauseConditional(JmlToken t, JCTree.JCExpression e, JCTree.JCExpression predicate);
         JmlMethodClauseSignals JmlMethodClauseSignals(JmlToken t, JCTree.JCVariableDecl var, JCTree.JCExpression e);
         JmlMethodClauseSignalsOnly JmlMethodClauseSignalsOnly(JmlToken t, List<JCTree.JCExpression> e);
@@ -101,7 +103,6 @@ public class JmlTree {
         JmlStatement JmlStatement(JmlToken t, JCTree.JCStatement e);
         JmlStatementDecls JmlStatementDecls(ListBuffer<JCTree.JCStatement> list);
         JmlStatementLoop JmlStatementLoop(JmlToken t, JCTree.JCExpression e);
-        JmlStatementLoop JmlStatementLoop(JmlMethodClauseStoreRef clause);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
         JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
         JmlStoreRefKeyword JmlStoreRefKeyword(JmlToken t);
@@ -420,12 +421,6 @@ public class JmlTree {
             return new JmlStatementLoop(pos,t,e);
         }
 
-        /** Creates a JML loop specification statement (e.g. loop_invariant, decreases, ... )*/
-        @Override
-        public JmlStatementLoop JmlStatementLoop(JmlMethodClauseStoreRef clause) {
-            return new JmlStatementLoop(pos,clause);
-        }
-
         /** Creates a JML do-while loop node that wraps a Java loop statement and a set of loop specifications */
         @Override
         public JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs) {
@@ -588,6 +583,16 @@ public class JmlTree {
         }
         
         @Override
+        public JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword) {
+        	return new JmlMethodClauseCallable(pos,keyword,null);
+        }
+        
+        @Override
+        public JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlConstraintMethodSig> methodSignatures) {
+        	return new JmlMethodClauseCallable(pos,null,methodSignatures);
+        }
+        
+        @Override
         public JmlMethodClauseConditional JmlMethodClauseConditional(JmlToken t, JCTree.JCExpression e, JCTree.JCExpression p) {
             return new JmlMethodClauseConditional(pos,t,e,p);
         }
@@ -680,7 +685,8 @@ public class JmlTree {
     public static final int JMLSTATEMENTEXPR = JMLSTATEMENTLOOP + 1;
     public static final int JMLSTATEMENTDECLS = JMLSTATEMENTEXPR + 1;
     public static final int JMLMETHODCLAUSEGROUP = JMLSTATEMENTDECLS + 1;
-    public static final int JMLMETHODCLAUSEDECL = JMLMETHODCLAUSEGROUP + 1;
+    public static final int JMLMETHODCLAUSECALLABLE = JMLMETHODCLAUSEGROUP + 1;
+    public static final int JMLMETHODCLAUSEDECL = JMLMETHODCLAUSECALLABLE + 1;
     public static final int JMLMETHODCLAUSEEXPR = JMLMETHODCLAUSEDECL + 1;
     public static final int JMLMETHODCLAUSECONDITIONAL = JMLMETHODCLAUSEEXPR + 1;
     public static final int JMLMETHODCLAUSESIGNALS = JMLMETHODCLAUSECONDITIONAL + 1;
@@ -1617,6 +1623,52 @@ public class JmlTree {
 //    
     }
 
+    /** This class represents a method specification clause that has just an
+     * expression (e.g. requires, ensures).
+     */
+    public static class JmlMethodClauseCallable extends JmlMethodClause {
+
+        public JmlStoreRefKeyword keyword;
+        public List<JmlConstraintMethodSig> methodSignatures;
+
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlMethodClauseCallable(int pos, JmlStoreRefKeyword keyword, List<JmlConstraintMethodSig> methodSignatures) {
+            this.pos = pos;
+            this.keyword = keyword;
+            this.methodSignatures = methodSignatures;
+        }
+
+        @Override
+        public int getTag() {
+            return JMLMETHODCLAUSECALLABLE;
+        }
+        
+        @Override
+        public Kind getKind() { 
+            return Kind.OTHER; // See note above
+        }
+        
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlMethodClauseCallable(this); 
+            } else {
+                //System.out.println("A JmlMethodClauseExpr expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseCallable(this, d);
+            } else {
+                System.out.println("A JmlMethodClauseCallable expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+    }
+    
     
     /** This class represents a forall or old method specification clause.*/
     public static class JmlMethodClauseDecl extends JmlMethodClause {
@@ -2059,6 +2111,9 @@ public class JmlTree {
         /** The value - e.g. a predicate for forall, a numeric value for sum, etc. */
         public JCExpression value;
         
+        /** A (partial) expression used in RAC, but constructed here for convenience */
+        public JCExpression racexpr;
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlQuantifiedExpr(int pos, JmlToken op,
                 ListBuffer<JCVariableDecl> decls,
@@ -2068,8 +2123,9 @@ public class JmlTree {
             this.decls = decls;
             this.range = range;
             this.value = value;
+            this.racexpr = null;
         }
-    
+        
         @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
@@ -2483,7 +2539,6 @@ public class JmlTree {
     public static class JmlStatementLoop extends JmlAbstractStatement {
         public JmlToken token;
         public JCTree.JCExpression expression;
-        public JmlMethodClauseStoreRef loopModifies;
         public VarSymbol sym; // FIXME - put this in the copy constructors etc.
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
@@ -2491,14 +2546,6 @@ public class JmlTree {
             this.pos = pos;
             this.token = token;
             this.expression = expression;
-            this.loopModifies = null;
-        }
-    
-        protected JmlStatementLoop(int pos, JmlMethodClauseStoreRef clause) {
-            this.pos = pos;
-            this.token = JmlToken.ASSIGNABLE;
-            this.expression = null;
-            this.loopModifies = clause;
         }
     
         @Override

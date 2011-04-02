@@ -216,7 +216,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
             long pos = dd.getPosition();
             long end = dd.getEndPosition();
             long col = dd.getColumnNumber();
-            System.out.println(noSource(dd) + "line=" + line + " col=" + col + " start=" + (start-pos+col) + " end=" + (end-pos+col));
+            System.out.println(noSource(dd) + " line=" + line + " col=" + col + " pos=" + pos + " start=" + start + " end=" + end);
         }
     }
 

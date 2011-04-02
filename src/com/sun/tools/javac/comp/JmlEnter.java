@@ -11,12 +11,8 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.*;
 
-import org.jmlspecs.openjml.JmlInternalError;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
@@ -239,6 +235,12 @@ public class JmlEnter extends Enter {
 
         }
         context.get(Main.IProgressReporter.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
+    }
+    
+    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        // Visit the rgular tree? FIXME
+        that.racexpr.accept(this);
+        
     }
 
     // This presumes that the overridden method just calls classEnter on each element of defs, with the given context.

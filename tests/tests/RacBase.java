@@ -28,6 +28,7 @@ public abstract class RacBase extends JmlTestCase {
     int expectedExit = 0;
     int expectedRACExit = 0;
     int expectedErrors = 0;
+    int expectedNotes;
     boolean jdkrac = false;
 
     /** The java executable */
@@ -87,6 +88,7 @@ public abstract class RacBase extends JmlTestCase {
         expectedExit = 0;
         expectedRACExit = 0;
         expectedErrors = 0;
+        expectedNotes = 2;
         print = false;
     }
     
@@ -125,9 +127,11 @@ public abstract class RacBase extends JmlTestCase {
     public void helpTCX(String classname, String s, Object... list) {
 
         if (this.getClass() == racsystem.class) {
-            System.out.println("racsystem tests disabled");
-            return;  // FIXME - turning off these tests for now
+//            System.out.println("racsystem tests disabled");
+//            return;  // FIXME - turning off these tests for now
         }
+        String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
+        StreamGobbler out=null,err=null;
         try {
             ListBuffer<JavaFileObject> files = new ListBuffer<JavaFileObject>();
             String filename = classname.replace(".","/")+".java";
@@ -144,11 +148,13 @@ public abstract class RacBase extends JmlTestCase {
 //                System.out.println("TP3: " + print + " " + expectedErrors);
 //                print = true;
 //            }
-            if (print || collector.getDiagnostics().size()!=expectedErrors) printErrors();
-            assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
+            
+            if (print || collector.getDiagnostics().size()!=(expectedErrors+expectedNotes)) printErrors();
+            assertEquals("Errors seen",expectedErrors+expectedNotes,collector.getDiagnostics().size());
             for (int i=0; i<expectedErrors; i++) {
-                assertEquals("Error " + i, list[2*i].toString(), noSource(collector.getDiagnostics().get(i)));
-                assertEquals("Error " + i, ((Integer)list[2*i+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
+                int k = 2*i + 2*expectedNotes;
+                assertEquals("Error " + i, list[k].toString(), noSource(collector.getDiagnostics().get(i)));
+                assertEquals("Error " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
             if (ex != 0) return;
@@ -157,15 +163,13 @@ public abstract class RacBase extends JmlTestCase {
             rac[rac.length-1] = classname;
             Process p = Runtime.getRuntime().exec(rac);
             
-            StreamGobbler out = new StreamGobbler(p.getInputStream());
-            StreamGobbler err = new StreamGobbler(p.getErrorStream());
+            out = new StreamGobbler(p.getInputStream());
+            err = new StreamGobbler(p.getErrorStream());
             out.start();
             err.start();
             if (timeout(p,10000)) { // 10 second timeout
                 fail("Process did not complete within the timeout period");
             }
-            
-            String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
             
             int i = expectedErrors*2;
             String data = out.input();
@@ -194,7 +198,20 @@ public abstract class RacBase extends JmlTestCase {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionFailedError e) {
-            if (!print && !noExtraPrinting) printErrors();
+            if (!print && !noExtraPrinting) {
+                if (out != null) {
+                    String[] lines = out.input().split(term);
+                    for (String line: lines) {
+                        System.out.println("OUT: " + line);
+                    }
+                }
+                if (err != null) {
+                    String[] lines = err.input().split(term);
+                    for (String line: lines) {
+                        System.out.println("ERR: " + line);
+                    }
+                }
+            }
             throw e;
         } finally {
 //            if (r != null) 

@@ -22,6 +22,7 @@ import org.jmlspecs.openjml.JmlInternalError;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTranslator;
@@ -1625,6 +1626,7 @@ public class BasicBlocker extends JmlTreeScanner {
     
     // FIXME - REVIEW and document
     protected void addAssert(Label label, JCExpression that, int declpos, List<JCStatement> statements, int usepos, JavaFileObject source, JCTree statement) {
+        if (Nowarns.instance(context).suppress(source,usepos,label.toString())) return;
         if (useAssertDefinitions && label != Label.ASSUME_CHECK) {
             //if (extraEnv) { usepos++; declpos++; }
             String n;

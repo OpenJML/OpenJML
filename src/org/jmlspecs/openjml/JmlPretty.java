@@ -3,6 +3,7 @@ package org.jmlspecs.openjml;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Iterator;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTree.*;
@@ -19,6 +20,7 @@ import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Log;
 
 public class JmlPretty extends Pretty implements IJmlVisitor {
 
@@ -219,6 +221,24 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
 
+    public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
+        try { 
+            print(JmlToken.CALLABLE);
+            print(" ");
+            if (that.keyword != null) {
+                that.keyword.accept(this);
+            } else {
+                Iterator<JmlConstraintMethodSig> iter = that.methodSignatures.iterator();
+                iter.next().accept(this);
+                while (iter.hasNext()) {
+                    print(", ");
+                    iter.next().accept(this);
+                }
+            }
+            print("; ");
+        } catch (IOException e) { perr(that,e); }
+    }
+
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
         try { 
             print(that.token.internedName());
@@ -404,14 +424,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatementLoop(JmlStatementLoop that) {
         try { 
             if (useJMLComments) print("//@ ");
-            if (that.loopModifies == null) {
-                print(that.token.internedName());
-                print(" ");
-                that.expression.accept(this);
-                print(";");
-            } else {
-                that.loopModifies.accept(this);
-            }
+            print(that.token.internedName());
+            print(" ");
+            that.expression.accept(this);
+            print(";");
         } catch (IOException e) { perr(that,e); }
     }
 

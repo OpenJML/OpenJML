@@ -85,24 +85,28 @@ public abstract class TCBase extends JmlTestCase {
             if (print) printErrors();
             int i=0;
             int k = 0;
-            Object p1,p2,p3;
+            Object p1,p2,p3,p4;
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
                 if (k >= list.length) break;
                 assertEquals("Message " + i + " mismatch",list[k++],noSource(dd));
                 p1 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
                 p2 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
                 p3 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                if (p3 != null) {
-                    
+                p4 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
+                if (p4 != null) {
+                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
+                    assertEquals("Start for message " + i,((Integer)p2).intValue(),dd.getStartPosition());
+                    assertEquals("End for message " + i,((Integer)p3).intValue(),dd.getEndPosition());
+                    assertEquals("Position for message " + i,((Integer)p4).intValue(),dd.getPosition());
                 } else if (p1 != null) {
-                    assertEquals("Column for message " + i,((Integer)list[k++]).intValue(),dd.getColumnNumber());
+                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                 } else {
                     fail("No positions given for message " + i);
                 }
                 i++;
             }
-            if (k < list.length) fail("More errors than expected: " + collector.getDiagnostics().size());
-            if (i < collector.getDiagnostics().size()) fail("Fewer errors than expected: " + i + " " + collector.getDiagnostics().size());
+            if (k < list.length) fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected");
+            if (i < collector.getDiagnostics().size()) fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")");
             if (expectedExit == -1) expectedExit = list.length == 0?0:1;
             assertEquals("Wrong exit code",expectedExit, ex);
         } catch (Exception e) {

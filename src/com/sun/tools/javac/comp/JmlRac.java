@@ -1782,6 +1782,29 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         }
         return;
     }
+    
+//    (\\sum T i; a<i && i < b; q(i)) 
+//    new Object() { int hashCode() { T i = a; T s = 0; while (i <= b) { if (a<i && i<b) s += q(i); } return s; } 
+    @Override
+    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        if (that.racexpr != null) {
+            that.racexpr.accept(this);
+            // result is set
+        } else if (that.op == JmlToken.BSFORALL) {
+            result = trueLit;
+        } else if (that.op == JmlToken.BSEXISTS) {
+            result = trueLit;
+        } else if (that.op == JmlToken.BSSUM) {
+            result = treeutils.makeLit(0,syms.intType,0);
+        } else if (that.op == JmlToken.BSNUMOF) {
+            result = treeutils.makeLit(0,syms.intType,0);
+
+        } else {
+            Log.instance(context).error(that.pos(), "jml.unknown.construct",that.op.internedName(),"visitJmlQuantifiedExpr");
+        }
+    }
+
+
 
     // FIXME - check this
     @Override
@@ -1984,6 +2007,16 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
             make.at(p);
             switch (tree.token) {
                 case ASSERT:
+                {
+                    if (Nowarns.instance(context).suppress(tree.source, p, tree.label.toString())) break;
+                    result = make.If(
+                            translate(tree.expression),
+                            make.at(p).Skip(),
+                            methodCall(tree,translate(tree.optionalExpression)));
+                    result.pos = tree.pos;
+                    break;
+                }
+
                 case ASSUME:
                 {
                     result = make.If(
@@ -2131,7 +2164,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 
     // TODO _ check this
     public void visitJmlWhileLoop(JmlWhileLoop that) {
-        if (that.loopSpecs.isEmpty()) {
+        if (that.loopSpecs == null || that.loopSpecs.isEmpty()) {
             super.visitWhileLoop(that);
             return;
         }
@@ -2275,6 +2308,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 
                 // generate tests for preconditions
                 if (methodSpecs != null && !isConstructor) {
+
                     JCExpression pre = methodSpecs.cases.size() == 0 ? trueLit : falseLit;
                     int num = 0;
                     String position = null;
@@ -2307,7 +2341,8 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                         pre = treeutils.makeOr(pre.pos,pre,treeutils.makeIdent(spc.pos,vd.sym));
                     }
                     if (num > 1) position = position(source,tree.pos);
-                    if (pre != trueLit) {
+                    if (pre != trueLit  &&
+                            !Nowarns.instance(context).suppress(source, tree.pos , Label.PRECONDITION.toString())) {
                         JCIf ifstat = make.If(treeutils.makeUnary(pre.pos,JCTree.NOT,pre),methodCallPre(position,pre),null);
                         ifstat.pos = pre.pos;
                         preconditionEvaluations.append(ifstat);
@@ -2333,7 +2368,8 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 //                            if (c.token == JmlToken.REQUIRES) spre = treeutils.makeBinary(c.pos,JCTree.AND,spre,(((JmlMethodClauseExpr)c).expression));
 //                        }
                         for (JmlMethodClause c: spc.clauses) {
-                            if (c.token == JmlToken.ENSURES) {
+                            if (c.token == JmlToken.ENSURES &&
+                                    !Nowarns.instance(context).suppress(source, c.pos, Label.POSTCONDITION.toString())) {
                                 try {
                                     make.at(c.pos);
                                     JCExpression post = treeutils.makeBinary(c.pos,JCTree.AND,spre,treeutils.makeUnary(c.pos,JCTree.NOT,translate(((JmlMethodClauseExpr)c).expression)));

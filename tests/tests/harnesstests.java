@@ -13,19 +13,19 @@ public class harnesstests extends TCBase {
     // These test that the harness fails gracefully
     /** Test that harness reports a missing error */
     public void testHarness() {
-        helpFailure("Wrong number of messages seen expected:<1> but was:<0>",
+        helpFailure("Fewer errors observed (0) than expected",
                 " class A {}","X");
     }
 
     /** Test that harness reports an unexpected error */
     public void testHarness1() {
-        helpFailure("Wrong number of messages seen expected:<0> but was:<6>",
+        helpFailure("More errors observed (3) than expected (0)",
         " class A { QQ }");
     }
 
     /** Test that harness reports a missing argument */
     public void testHarness2() {
-        helpFailure("Wrong number of messages seen expected:<1> but was:<6>",
+        helpFailure("Message 0 mismatch expected:<:1: <identifier> expected> but was:</TEST.java:1: <identifier> expected>",
                 " class A { QQ }",":1: <identifier> expected");
     }
 

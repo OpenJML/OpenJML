@@ -532,13 +532,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         if (options.get(JmlOption.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);
         
-        String keysString = options.get(JmlOption.KEYS.optionName());
-        utils.commentKeys = new HashSet<Name>();
-        if (keysString != null) {
-            String[] keys = keysString.split(",");
-            for (String k: keys) utils.commentKeys.add(Names.instance(context).fromString(k));
-        }
-        
         String cmd = options.get(JmlOption.COMMAND.optionName());
         utils.rac = "rac".equals(cmd) || (cmd == null && options.get(JmlOption.RAC.optionName()) != null);
         utils.esc = "esc".equals(cmd) || (cmd == null && options.get(JmlOption.ESC.optionName()) != null);
@@ -549,7 +542,16 @@ public class Main extends com.sun.tools.javac.main.Main {
             Log.instance(context).noticeWriter.println("Invalid argument to the -command option: " + cmd); // FIXME - change to a wanring
         }
         if (!picked) utils.check = true;
-    }
+
+        String keysString = options.get(JmlOption.KEYS.optionName());
+        utils.commentKeys = new HashSet<Name>();
+        if (keysString != null) {
+            String[] keys = keysString.split(",");
+            for (String k: keys) utils.commentKeys.add(Names.instance(context).fromString(k));
+        }
+        if (utils.esc) utils.commentKeys.add(Names.instance(context).fromString("ESC")); 
+        if (utils.rac) utils.commentKeys.add(Names.instance(context).fromString("RAC")); 
+}
     
 
 

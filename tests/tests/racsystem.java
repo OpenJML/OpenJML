@@ -14,7 +14,8 @@ public class racsystem extends RacBase {
      */
     // The bootclasspath here consists of the JDK library files (RAC-compiled) plus
     // utilities that they depend on - the content of jmlruntime.jar.
-    String[] sysrac = new String[]{jdk, "-Xbootclasspath/p:jdkbin"+z+"bin-runtime", "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
+//    String[] sysrac = new String[]{jdk, "-Xbootclasspath/p:jdkbin"+z+"bin-runtime", "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
+    String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
 
     protected void setUp() throws Exception {
         rac = sysrac;
@@ -29,66 +30,67 @@ public class racsystem extends RacBase {
         //print = true;
     }
 
-    /** Testing with getting a stack trace */
-    public void testFile2() {
-        expectedRACExit = 1; 
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
-                +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
-                +"System.out.println(\"END\"); }"
-                +"static void m() {\n"
-                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-                +"}"
-                +"}"
-                
-                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
-                ,"\tat java.io.File.compareTo(File.java:1)"
-                ,"\tat tt.TestJava.m(TestJava.java:5)"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"
-                );
-    }
-
-    /** Testing with getting a stack trace - Exception does not catch it */
-    public void testFile2a() {
-        expectedRACExit = 1;
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
-                +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
-                +"System.out.println(\"END\"); }"
-                +"static void m() {\n"
-                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-                +"}"
-                +"}"
-                
-                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
-                ,"\tat java.io.File.compareTo(File.java:1)"
-                ,"\tat tt.TestJava.m(TestJava.java:5)"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"
-                );
-    }
-
-    /** Testing with getting a stack trace - Error does catch it */
-    public void testFile2c() {
-        expectedRACExit = 0;
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
-                +"try { m(); } catch (Error e) { e.printStackTrace(System.out); } \n"
-                +"System.out.println(\"END\"); }"
-                +"static void m() {\n"
-                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-                +"}"
-                +"}"
-                
-                ,"org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
-                ,"\tat java.io.File.compareTo(File.java:1)"
-                ,"\tat tt.TestJava.m(TestJava.java:5)"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"
-                ,"END"
-                );
-    }
+    // FIXME - not testing rac-compiled JDK files
+//    /** Testing with getting a stack trace */
+//    public void testFile2() {
+//        expectedRACExit = 1; 
+//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
+//                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
+//                +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
+//                +"System.out.println(\"END\"); }"
+//                +"static void m() {\n"
+//                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
+//                +"}"
+//                +"}"
+//                
+//                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
+//                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
+//                ,"\tat java.io.File.compareTo(File.java:1)"
+//                ,"\tat tt.TestJava.m(TestJava.java:5)"
+//                ,"\tat tt.TestJava.main(TestJava.java:3)"
+//                );
+//    }
+//
+//    /** Testing with getting a stack trace - Exception does not catch it */
+//    public void testFile2a() {
+//        expectedRACExit = 1;
+//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
+//                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
+//                +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
+//                +"System.out.println(\"END\"); }"
+//                +"static void m() {\n"
+//                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
+//                +"}"
+//                +"}"
+//                
+//                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
+//                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
+//                ,"\tat java.io.File.compareTo(File.java:1)"
+//                ,"\tat tt.TestJava.m(TestJava.java:5)"
+//                ,"\tat tt.TestJava.main(TestJava.java:3)"
+//                );
+//    }
+//
+//    /** Testing with getting a stack trace - Error does catch it */
+//    public void testFile2c() {
+//        expectedRACExit = 0;
+//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
+//                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
+//                +"try { m(); } catch (Error e) { e.printStackTrace(System.out); } \n"
+//                +"System.out.println(\"END\"); }"
+//                +"static void m() {\n"
+//                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
+//                +"}"
+//                +"}"
+//                
+//                ,"org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
+//                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
+//                ,"\tat java.io.File.compareTo(File.java:1)"
+//                ,"\tat tt.TestJava.m(TestJava.java:5)"
+//                ,"\tat tt.TestJava.main(TestJava.java:3)"
+//                ,"END"
+//                );
+//    }
     
 
     /** Testing with getting a stack trace using showStack */
@@ -105,51 +107,51 @@ public class racsystem extends RacBase {
                 
                 ,"/tt/TestJava.java:6: JML assertion is false"
                 ,"org.jmlspecs.utils.Utils$JmlAssertionError: /tt/TestJava.java:6: JML assertion is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:40)"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:44)"
                 ,"\tat tt.TestJava.m(TestJava.java:6)"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"
                 );
     }
     
-    public void testFile3() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"try { m(); } catch (Exception e) {  } \n"
-                +"System.out.println(\"END\"); }"
-                +"static void m() {\n"
-                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-                +"}"
-                +"}"
-                ,"File.refines-spec:77: JML precondition is false"
-                ,"File.refines-spec:115: JML unexpected exception"
-                ,"END"
-                );
-    }
-    
-    public void testFile() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.utils.Utils.showStack = true; \n"
-                +"try { m(); } catch (Exception e) {  } \n"
-                +"System.out.println(\"END\"); }"
-                +"static void m() throws Exception {\n"
-                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-                +"}"
-                +"}"
-                ,"File.refines-spec:77: JML precondition is false"
-                ,"org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:40)"
-                ,"\tat java.io.File.compareTo(File.java:1)"
-                ,"\tat tt.TestJava.m(TestJava.java:5)"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"
-                ,"File.refines-spec:115: JML unexpected exception"
-                ,"org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:115: JML unexpected exception"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:40)"
-                ,"\tat java.io.File.compareTo(File.java:1)"
-                ,"\tat tt.TestJava.m(TestJava.java:5)"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"
-                ,"END"
-                );
-    }
+//    public void testFile3() {
+//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
+//                +"try { m(); } catch (Exception e) {  } \n"
+//                +"System.out.println(\"END\"); }"
+//                +"static void m() {\n"
+//                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
+//                +"}"
+//                +"}"
+//                ,"File.refines-spec:77: JML precondition is false"
+//                ,"File.refines-spec:115: JML unexpected exception"
+//                ,"END"
+//                );
+//    }
+//    
+//    public void testFile() {
+//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
+//                +"org.jmlspecs.utils.Utils.showStack = true; \n"
+//                +"try { m(); } catch (Exception e) {  } \n"
+//                +"System.out.println(\"END\"); }"
+//                +"static void m() throws Exception {\n"
+//                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
+//                +"}"
+//                +"}"
+//                ,"File.refines-spec:77: JML precondition is false"
+//                ,"org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
+//                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:40)"
+//                ,"\tat java.io.File.compareTo(File.java:1)"
+//                ,"\tat tt.TestJava.m(TestJava.java:5)"
+//                ,"\tat tt.TestJava.main(TestJava.java:3)"
+//                ,"File.refines-spec:115: JML unexpected exception"
+//                ,"org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:115: JML unexpected exception"
+//                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:40)"
+//                ,"\tat java.io.File.compareTo(File.java:1)"
+//                ,"\tat tt.TestJava.m(TestJava.java:5)"
+//                ,"\tat tt.TestJava.main(TestJava.java:3)"
+//                ,"END"
+//                );
+//    }
 
     /** Not sure what this is supposed to test (TODO) */
     public void testHashCode() {
@@ -187,6 +189,7 @@ public class racsystem extends RacBase {
      * did work.
      */
     public void testMain2() {
+        expectedNotes = 0;
         options.put("-noInternalSpecs","");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String... args) { \n"

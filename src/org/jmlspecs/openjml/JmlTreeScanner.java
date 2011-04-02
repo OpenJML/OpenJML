@@ -26,10 +26,10 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     public final int SPEC_MODE = 2;
     
     /** The mode in which subtrees are scanned:  <BR>
-     * AST_MODE scans the tree as it
+     * AST_JAVA_MODE scans the tree as it
      * was parsed, ignoring convenience fields in which links to specs are
      * placed, and ignoring the specs CU; <BR>
-     * AST_WITH_JML_MODE scans the tree as an individual compilation unit
+     * AST_JML_MODE scans the tree as an individual compilation unit
      * (no specs in other files, but including the specs that are part of that file)<BR>
      * SPEC_MODE ignores parsed specs and instead scans through the
      * summaries of specs (that come from the specification files).
@@ -105,6 +105,11 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.expression);
     }
 
+    public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
+        scan(tree.keyword);
+        scan(tree.methodSignatures);
+    }
+
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional tree) {
         scan(tree.expression);
         scan(tree.predicate);
@@ -139,7 +144,6 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     }
 
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-        visitMethodDef(that);
         if (scanMode == SPEC_MODE) {
             JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
             scan(ms.mods);
@@ -148,6 +152,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         if (scanMode == AST_JML_MODE) {
             scan(that.cases);
         }
+        visitMethodDef(that);
     }
 
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
@@ -172,6 +177,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.decls);
         scan(that.range);
         scan(that.value);
+        scan(that.racexpr);
     }
 
     public void visitJmlSetComprehension(JmlSetComprehension that) {
@@ -207,7 +213,6 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
     public void visitJmlStatementLoop(JmlStatementLoop tree) {
         scan(tree.expression);
-        scan(tree.loopModifies);
     }
     
     public void visitJmlStatementSpec(JmlStatementSpec tree) {

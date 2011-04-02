@@ -45,7 +45,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     protected JmlTree.Maker M;
     
     /** Creates a new copier, whose new nodes are generated from the given factory*/
-    JmlTreeCopier(Context context, JmlTree.Maker maker) {
+    protected JmlTreeCopier(Context context, JmlTree.Maker maker) {
         super(maker);
         this.M = maker;
         this.context = context;
@@ -192,6 +192,21 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.label,
                 copy(that.expression,p)).setType(that.type);
     }
+    
+    // FIXME - missing copying end positions, here and probably elsewhere
+
+    @Override
+    public JCTree visitJmlMethodClauseCallable(JmlMethodClauseCallable that, Void p) {
+        JmlMethodClauseCallable copy;
+        if (that.keyword != null) {
+            copy = M.at(that.pos).JmlMethodClauseCallable(that.keyword);
+        } else {
+            copy = M.at(that.pos).JmlMethodClauseCallable(copy(that.methodSignatures,p));
+        }
+        copy.sourcefile = that.sourcefile;
+        copy.type = that.type;
+        return copy;
+    }
 
     @Override
     public JCTree visitJmlMethodClauseConditional(JmlMethodClauseConditional that, Void p) {
@@ -306,11 +321,14 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlQuantifiedExpr(JmlQuantifiedExpr that, Void p) {
-        return M.at(that.pos).JmlQuantifiedExpr(
+        JmlQuantifiedExpr q =  M.at(that.pos).JmlQuantifiedExpr(
                 that.op,
                 copy(that.decls,p),
                 copy(that.range,p),
-                copy(that.value,p)).setType(that.type);
+                copy(that.value,p));
+        q.racexpr = copy(that.racexpr);
+        q.setType(that.type);
+        return q;
     }
 
     @Override
@@ -381,7 +399,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlStatementLoop copy = M.at(that.pos).JmlStatementLoop(
                 that.token,
                 copy(that.expression,p));
-        copy.loopModifies = copy(that.loopModifies,p);
         copy.type = that.type;
         return copy;
     }
