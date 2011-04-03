@@ -2770,14 +2770,14 @@ public class JmlParser extends EndPosParser {
      * begin up to and not including end; the identified line is that of the begin
      * position. */
     public void jmlerror(int begin, int end, String key, Object... args) {
-        log.error(new JmlScanner.DiagnosticPositionSE(begin,end-1),key,args);
+        log.error(new JmlScanner.DiagnosticPositionSE(begin,end-1),key,args); // TODO - not unicode friendly
     }
      /** Creates an error message for which the source is a range of characters, from
       * begin up to and not including end; it also specifies a preferred location to highlight
       * if the output format can only identify a single location; the preferred location is
       * also the line that is identified. */
     public void jmlerror(int begin, int preferred, int end, String key, Object... args) {
-        log.error(new JmlScanner.DiagnosticPositionSE(begin,preferred,end-1),key,args);
+        log.error(new JmlScanner.DiagnosticPositionSE(begin,preferred,end-1),key,args);// TODO - not unicode friendly
     }
     
     // FIXME - check the use of Token.CUSTOM vs. null

@@ -2696,6 +2696,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
                  
             case BSONLYCALLED: // FIXME - needs implementation
+            case BSONLYASSIGNED: // FIXME - needs implementation
+            case BSONLYACCESSED: // FIXME - needs implementation
+            case BSONLYCAPTURED: // FIXME - needs implementation
+            case BSNOTASSIGNED: // FIXME - needs implementation
+            case BSNOTMODIFIED: // FIXME - needs implementation
             default:
                 log.error(tree.pos,"jml.unknown.construct",token.internedName(),"JmlAttr.visitApply");
                 result = tree.type = syms.errType;
