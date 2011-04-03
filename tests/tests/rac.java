@@ -1335,8 +1335,8 @@ public class rac extends RacBase {
                 +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/tt/A.java:3: warning: OpenJML is not able to execute this quantified expression for runtime assertion checking",25
-                ,"/tt/A.java:4: warning: OpenJML is not able to execute this quantified expression for runtime assertion checking",26
+//                ,"/tt/A.java:3: warning: OpenJML is not able to execute this quantified expression for runtime assertion checking",25
+//                ,"/tt/A.java:4: warning: OpenJML is not able to execute this quantified expression for runtime assertion checking",26
                 ,"A true true"
                 ,"END"
         );

@@ -200,6 +200,25 @@ public class assignable extends TCBase {
                 );
     }
 
+    public void testAccessibleIdent() {
+        helpTC(" class A { int k; boolean b; \n//@ accessible k;\n void m(){} }");
+    }
+
+    public void testAccessibleBadIdent() {
+        helpTC(" class A { int k; boolean b; \n//@ accessible m;\n void m(){} }",
+                "/TEST.java:2: cannot find symbol\n  symbol:   variable m\n  location: class A",16);
+    }
+
+    public void testCapturesIdent() {
+        helpTC(" class A { int k; boolean b; \n//@ captures k;\n void m(){} }");
+    }
+
+    public void testCapturesBadIdent() {
+        helpTC(" class A { int k; boolean b; \n//@ captures m;\n void m(){} }",
+                "/TEST.java:2: cannot find symbol\n  symbol:   variable m\n  location: class A",14);
+    }
+
+
 
 
 }

@@ -318,15 +318,56 @@ public class scanner extends JmlTestCase {
     }
     
 
-    // FIXME - bug in Scanner - processComment is not called if a line comment - test this for a block comment also
-    // is at the very end of the input buffer, even with a line terminator
-//    @Test public void testLineComment1() {
-//        helpScanner("//@ requires",new Enum<?>[]{SJML,REQUIRES,EOF},null);
-//    }
-//
-//    @Test public void testLineComment2() {
-//        helpScanner("//@ requires\n",new Enum<?>[]{SJML,REQUIRES,EJML,EOF},null);
-//    }
+    /** Test an empty Java line comment */
+    @Test public void testEmptyJavaComment() {
+        helpScanner("//",
+                new Enum<?>[]{},
+                new int[]{});
+    }
+
+    /** Test a mismatched comment ending */
+    @Test public void testMisMatchedJMLComment() {
+        helpScanner("//@*/ requires",
+                new Enum<?>[]{SJML,STAR,SLASH,REQUIRES,EOF},
+                null);
+    }
+
+    /** Test an empty JML line comment */
+    @Test public void testEmptyJMLComment() {
+        helpScanner("//\n//@requires",
+                new Enum<?>[]{SJML,REQUIRES,EOF},
+                null);
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment() {
+        helpScanner("//@requires //@ requires",
+                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EOF},
+                null);
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment3() {
+        helpScanner("/*@requires /*@ requires */ requires */ public",
+                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EJML,IDENTIFIER,STAR,SLASH,PUBLIC,EOF},
+                null);
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment2() {
+        helpScanner("/*@requires //@ requires */ public",
+                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EJML,PUBLIC,EOF},
+                null);
+    }
+
+    @Test public void testLineComment1() {
+        helpScanner("//@ requires",new Enum<?>[]{SJML,REQUIRES,EOF},null);
+    }
+
+    // NOTE: The scanner absorbs ending whitespace into the EOF.
+    @Test public void testLineComment2() {
+        helpScanner("//@ requires\n",new Enum<?>[]{SJML,REQUIRES,EOF},null);
+    }
 
     /** Test that a line comment ends with a NL character */
     @Test public void testLineComment3() {
@@ -494,6 +535,20 @@ public class scanner extends JmlTestCase {
         sc.nextToken();
         assertEquals(CHARLITERAL,sc.token());
         assertEquals("\t",sc.stringVal());
+    }
+    
+    @Test public void testDotDot() {
+        helpScanner("//@..",
+                new Enum<?>[]{DOT_DOT,EOF},
+                new int[]{3,5,5,5},
+                0);
+    }
+    
+    @Test public void testDotDot2() {
+        helpScanner("//@ modifies a[b .. c];",
+                new Enum<?>[]{SJML,ASSIGNABLE,IDENTIFIER,LBRACKET,IDENTIFIER,DOT_DOT,IDENTIFIER,RBRACKET,SEMI,EOF},
+                null,
+                0);
     }
     
 
