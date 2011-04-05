@@ -30,6 +30,8 @@ import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.mirror.type.PrimitiveType;
+import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.IdentifierTree;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
@@ -799,37 +801,49 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on non-model non-constructor methods */
     public final JmlToken[] allowedMethodAnnotations =
         new JmlToken[] {
-        MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET 
+        MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET,
+        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+
     };
     
     /** The annotations allowed on non-model non-constructor methods in interfaces */
     public final JmlToken[] allowedInterfaceMethodAnnotations =
         new JmlToken[] {
-        MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY 
+        MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY,
+        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+
     };
     
     /** The annotations allowed on model non-constructor methods */
     public final JmlToken[] allowedModelMethodAnnotations =
         new JmlToken[] {
-        MODEL, PURE, NONNULL, NULLABLE, HELPER, EXTRACT, QUERY, SECRET 
+        MODEL, PURE, NONNULL, NULLABLE, HELPER, EXTRACT, QUERY, SECRET,
+        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+
     };
     
     /** The annotations allowed on model non-constructor interface methods */
     public final JmlToken[] allowedInterfaceModelMethodAnnotations =
         new JmlToken[] {
-        MODEL, PURE, NONNULL, NULLABLE, HELPER, QUERY, SECRET
+        MODEL, PURE, NONNULL, NULLABLE, HELPER, QUERY, SECRET,
+        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+
     };
     
     /** The annotations allowed on non-model constructors */
     public final JmlToken[] allowedConstructorAnnotations =
         new JmlToken[] {
-        MODEL, PURE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT 
+        MODEL, PURE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT,
+        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+
     };
     
     /** The annotations allowed on model constructors */
     public final  JmlToken[] allowedModelConstructorAnnotations =
         new JmlToken[] {
-        MODEL, PURE, HELPER, EXTRACT 
+        MODEL, PURE, HELPER, EXTRACT ,
+        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+
     };
     
     /** Does the various checks of method/constructor modifiers */
@@ -1499,19 +1513,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public JmlToken[] allowedFieldModifiers = new JmlToken[] {
             SPEC_PUBLIC, SPEC_PROTECTED, MODEL, GHOST,
-            NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET
+            NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET,
+            PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
        };
        
     public JmlToken[] allowedGhostFieldModifiers = new JmlToken[] {
-            GHOST, NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET
+            GHOST, NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET,
+            PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
        };
        
     public JmlToken[] allowedModelFieldModifiers = new JmlToken[] {
-            MODEL, NONNULL, NULLABLE, INSTANCE, SECRET
+            MODEL, NONNULL, NULLABLE, INSTANCE, SECRET,
+            PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
        };
        
     public JmlToken[] allowedFormalParameterModifiers = new JmlToken[] {
-            NONNULL, NULLABLE, READONLY, REP, PEER, SECRET
+            NONNULL, NULLABLE, READONLY, REP, PEER, SECRET,
        };
        
     public JmlToken[] allowedLocalVarModifiers = new JmlToken[] {
@@ -3077,11 +3094,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void createRacExpr(JmlQuantifiedExpr q) {
-        //if (Options.instance(context).get(JmlOption.RAC.optionName()) == null) return;
         try {
             if (q.range == null) return;
-            if (!RACCheck.allInternal(q.value,q.decls.toList())) return; 
-            if (q.range != null && !RACCheck.allInternal(q.range,q.decls.toList())) return; 
+            List<JCVariableDecl> decls = q.decls.toList();
+            //JCTree c = RACCopy.copy(q.value,context,decls);
+            
+            if (!RACCheck.allInternal(q.value,decls)) return; 
+            if (q.range != null && !RACCheck.allInternal(q.range,decls)) return; 
             JmlTree.Maker F = factory;
 
             // Misc items
@@ -3190,6 +3209,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } else {
                 return;
             }
+            
+            // Some current assumptions
+            if (decls.length() != 1) return;
+            if (decls.head.type.tag != TypeTags.INT) return;
 
             // presume int
             JCBinary locomp = (JCBinary)((JCBinary)q.range).lhs;
@@ -4218,13 +4241,61 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public static class RACCopy extends JmlTreeCopier {
         
-        public RACCopy(Context context) {
+        java.util.List<JCExpression> arguments = new java.util.ArrayList<JCExpression>();
+        List<JCVariableDecl> decls;
+        Names names = Names.instance(context);
+        
+        public RACCopy(Context context, List<JCVariableDecl> decls) {
             super(context, JmlTree.Maker.instance(context));
         }
         
-        public static JCExpression copy(JCExpression that, Context context) {
-            return new RACCopy(context).copy(that,(Void)null);  // FIXME - should use a factory
+        public static JCExpression copy(JCExpression that, Context context, List<JCVariableDecl> decls) {
+            return new RACCopy(context,decls).copy(that,(Void)null);
         }
+        
+        @Override
+        public JCTree visitBinary(BinaryTree node, Void p) {
+            JCExpression expr = (JCExpression)node;
+            if (RACCheck.allInternal(expr,decls)) {
+                return expr;
+            }
+            if (RACCheck.allExternal(expr,decls)) {
+                int n = arguments.size();
+                arguments.add(expr);
+                JCExpression arg = M.Apply(List.<JCExpression>nil(),
+                        M.Select(M.Ident(names.fromString("args")),names.fromString("get")),
+                        List.<JCExpression>of(M.Literal(TypeTags.INT,n))
+                        );
+                arg = M.TypeCast(M.Type(expr.type),arg);
+                return arg;
+            }
+            return super.visitBinary(node,p);
+        }
+        
+        @Override
+        public JCTree visitIdentifier(IdentifierTree node, Void p) {
+            JCIdent expr = (JCIdent)node;
+            if (!(expr.sym instanceof Symbol.VarSymbol)) { //Method and class symbols can be internal or external 
+                return super.visitIdentifier(node,p);
+            }
+            
+            if (RACCheck.allInternal(expr,decls)) {
+                return expr;
+            }
+            if (RACCheck.allExternal(expr,decls)) {
+                int n = arguments.size();
+                arguments.add(expr);
+                JCExpression arg = M.Apply(List.<JCExpression>nil(),
+                        M.Select(M.Ident(names.fromString("args")),names.fromString("get")),
+                        List.<JCExpression>of(M.Literal(TypeTags.INT,n))
+                        );
+                arg = M.TypeCast(M.Type(expr.type),arg);
+                return arg;
+            }
+            // Include this for symmetry, but we acually should never get to this point
+            return super.visitIdentifier(node,p);
+        }
+
         
     }
     
@@ -4265,6 +4336,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitIdent(JCIdent that) {
             // FIXME - only want to make this determination for variables, not methods or classes
             Symbol n = that.sym;
+            if (!(n instanceof Symbol.VarSymbol)) return; //Method and class symbols can be internal or external 
             Iterator<JCVariableDecl> iter = decls.iterator();
             while (iter.hasNext()) {
                 JCVariableDecl d = iter.next();

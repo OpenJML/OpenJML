@@ -17,7 +17,6 @@ import com.sun.tools.javac.util.Log;
 
 public class scanner extends JmlTestCase {
 
-    final static JmlToken SJML = STARTJMLCOMMENT;
     final static JmlToken EJML = ENDJMLCOMMENT;
     
     ScannerFactory fac;
@@ -215,36 +214,50 @@ public class scanner extends JmlTestCase {
     /** Tests that JML keywords are found in a JML comment */
     @Test public void testJmlKeywordsInJml() {
         helpScanner("/*@requires ensures pure */",
-                new Enum<?>[]{SJML,REQUIRES,ENSURES,PURE,EJML,},
-                new int[]{2,3,3,11,12,19,20,24,25,26});
+                new Enum<?>[]{REQUIRES,ENSURES,PURE,EJML,},
+                new int[]{3,11,12,19,20,24,25,27});
+    }
+    
+    /** Tests that JML keywords are found in a JML comment */
+    @Test public void testJmlKeywordsInJmlA() {
+        helpScanner("//@requires ensures pure \n ",
+                new Enum<?>[]{REQUIRES,ENSURES,PURE,EJML,EOF},
+                new int[]{3,11,12,19,20,24,25,26,27,27});
+    }
+    
+    /** Tests that JML keywords are found in a JML comment with nowarn */
+    @Test public void testJmlKeywordsInJmlWithNoWarn() {
+        helpScanner("/*@nowarn A; nowarn B,requires,C; requires ensures pure */",
+                new Enum<?>[]{REQUIRES,ENSURES,PURE,EJML,},
+                new int[]{34,42,43,50,51,55,56,58});
     }
     
     /** Tests that JML keywords are not found in a Java comment */
     @Test public void testJmlKeywordsNotInJavaComment() {
         helpScanner("/* requires */ /*@requires */",
-                new Enum<?>[]{SJML,REQUIRES,EJML,},
-                new int[]{17,18,18,26,27,28});
+                new Enum<?>[]{REQUIRES,EJML,},
+                new int[]{18,26,27,29});
     }
     
     /** Tests that JML keywords are not found after a JML comment ends */
     @Test public void testJmlKeywordsAfterJml() {
         helpScanner("/*@requires */requires ensures pure",
-                new Enum<?>[]{SJML,REQUIRES,EJML,IDENTIFIER,IDENTIFIER,IDENTIFIER,},
-                new int[]{2,3,3,11,12,13,14,22,23,30,31,35});
+                new Enum<?>[]{REQUIRES,EJML,IDENTIFIER,IDENTIFIER,IDENTIFIER,},
+                new int[]{3,11,12,14,14,22,23,30,31,35});
     }
     
     /** Tests JML operators */
     @Test public void testOperators() {
         helpScanner("/*@ ==> <== <: <==> <=!=> -> <- */",
-                new Enum<?>[]{SJML,IMPLIES,REVERSE_IMPLIES,SUBTYPE_OF,EQUIVALENCE,INEQUIVALENCE,RIGHT_ARROW,LEFT_ARROW,EJML},
-                new int[]{2,3, 4,7, 8,11, 12,14, 15,19, 20,25, 26,28, 29,31, 32,33});
+                new Enum<?>[]{IMPLIES,REVERSE_IMPLIES,SUBTYPE_OF,EQUIVALENCE,INEQUIVALENCE,RIGHT_ARROW,LEFT_ARROW,EJML},
+                new int[]{4,7, 8,11, 12,14, 15,19, 20,25, 26,28, 29,31, 32,34});
     }
     
     /** Tests the Java operators related to JML operators */
     @Test public void testOperators1() {
         helpScanner("/*@ ==  <=  <  */",
-                new Enum<?>[]{SJML,EQEQ,LTEQ,LT,EJML},
-                new int[]{2,3,4,6,8,10,12,13,15,16});
+                new Enum<?>[]{EQEQ,LTEQ,LT,EJML},
+                new int[]{4,6,8,10,12,13,15,17});
     }
     
     /** Tests JML operators when in Java land */
@@ -256,14 +269,14 @@ public class scanner extends JmlTestCase {
     
     @Test public void testBadOperator() {
         helpScanner("/*@ <=! + */",
-                new Enum<?>[]{SJML,LTEQ,BANG,PLUS,EJML},
-                new int[]{2,3,4,6,6,7,8,9,10,11});
+                new Enum<?>[]{LTEQ,BANG,PLUS,EJML},
+                new int[]{4,6,6,7,8,9,10,12});
     }
 
     @Test public void testBadOperator2() {
         helpScanner("/*@ <=!= + */",
-                new Enum<?>[]{SJML,LTEQ,BANGEQ,PLUS,EJML},
-                new int[]{2,3,4,6,6,8,9,10,11,12});
+                new Enum<?>[]{LTEQ,BANGEQ,PLUS,EJML},
+                new int[]{4,6,6,8,9,10,11,13});
     }
 
     // NOTE:  In the test strings, backslash characters must be escaped.  So
@@ -273,45 +286,45 @@ public class scanner extends JmlTestCase {
     /** Test that a backslash token is found */
     @Test public void testBackslash() {
         helpScanner("/*@ \\result */",
-                new Enum<?>[]{SJML,BSRESULT,EJML},
+                new Enum<?>[]{BSRESULT,EJML},
                 null);
     }
     
     /** Test that two immediately consecutive backslash tokens are found */
     @Test public void testBackslash1() {
         helpScanner("/*@ \\result\\result */",
-                new Enum<?>[]{SJML,BSRESULT,BSRESULT,EJML},
+                new Enum<?>[]{BSRESULT,BSRESULT,EJML},
                 null);
     }
     
     /** Test that backslash tokens are found immediately after a line termination */
     @Test public void testBackslash2() {
         helpScanner("/*@ \\result \n\\result*/",
-                new Enum<?>[]{SJML,BSRESULT,BSRESULT,EJML},
+                new Enum<?>[]{BSRESULT,BSRESULT,EJML},
                 null);
     }
     
     /** Test that a backslash token without the backslash is a regular identifier */
     @Test public void testBackslash3() {
         helpScanner("/*@ \\result result*/",
-                new Enum<?>[]{SJML,BSRESULT,IDENTIFIER,EJML},
+                new Enum<?>[]{BSRESULT,IDENTIFIER,EJML},
                 null);
     }
     
     /** Test for an invalid backslash identifier */
     @Test public void testBackslash5() {
         helpScanner("/*@ \\xyz result*/",
-                new Enum<?>[]{SJML,IDENTIFIER,EJML},
+                new Enum<?>[]{ERROR,IDENTIFIER,EJML},
                 null,
                 1);
-        checkMessages(new String[]{"/TEST.java:1: This backslash token is unknown: xyz"},
+        checkMessages(new String[]{"/TEST.java:1: This backslash token is unknown: \\xyz"},
                       new int[]{5});
     }
 
     /** Test for a JML backslash with no identifier */
     @Test public void testBackslash6() {
         helpScanner("/*@ \\ \\result*/",
-                new Enum<?>[]{SJML,BSRESULT,EJML},
+                new Enum<?>[]{ERROR,BSRESULT,EJML},
                 null,
                 1);
         checkMessages("/TEST.java:1: A backslash in a JML comment expects to be followed by a valid identifier",5);
@@ -328,79 +341,136 @@ public class scanner extends JmlTestCase {
     /** Test a mismatched comment ending */
     @Test public void testMisMatchedJMLComment() {
         helpScanner("//@*/ requires",
-                new Enum<?>[]{SJML,STAR,SLASH,REQUIRES,EOF},
+                new Enum<?>[]{STAR,SLASH,REQUIRES,EOF},
                 null);
     }
 
     /** Test an empty JML line comment */
     @Test public void testEmptyJMLComment() {
         helpScanner("//\n//@requires",
-                new Enum<?>[]{SJML,REQUIRES,EOF},
+                new Enum<?>[]{REQUIRES,EOF},
                 null);
     }
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJMLComment() {
         helpScanner("//@requires //@ requires",
-                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EOF},
+                new Enum<?>[]{REQUIRES,REQUIRES,EOF},
                 null);
     }
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJMLComment3() {
         helpScanner("/*@requires /*@ requires */ requires */ public",
-                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EJML,IDENTIFIER,STAR,SLASH,PUBLIC,EOF},
+                new Enum<?>[]{REQUIRES,REQUIRES,EJML,IDENTIFIER,STAR,SLASH,PUBLIC,EOF},
+                null);
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment4() {
+        helpScanner("/*@requires //@ requires  \n requires */ public",
+                new Enum<?>[]{REQUIRES,REQUIRES,REQUIRES,EJML,PUBLIC,EOF},
                 null);
     }
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJMLComment2() {
         helpScanner("/*@requires //@ requires */ public",
-                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EJML,PUBLIC,EOF},
+                new Enum<?>[]{REQUIRES,REQUIRES,EJML,PUBLIC,EOF},
                 null);
     }
 
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment5() {
+        helpScanner("//@requires /*@ requires\n requires */ requires",
+                new Enum<?>[]{REQUIRES,REQUIRES,EJML,IDENTIFIER,STAR, SLASH,IDENTIFIER,EOF},
+                null);
+    }
+
+    /** Test an embedded Java comment */
+    @Test public void testEmbeddedJavaComment() {
+        helpScanner("//@requires // requires",
+                new Enum<?>[]{REQUIRES,EOF},
+                null);
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJavaComment2() {
+        helpScanner("//@requires /* requires */ ensures ",
+                new Enum<?>[]{REQUIRES,ENSURES,EOF},
+                null);
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJavaComment3() { // FIXME 
+        helpScanner("//@requires /* requires ensures \n signals */ modifies ",
+                new Enum<?>[]{REQUIRES,ASSIGNABLE,EOF},
+                null);
+    }
+
+    /** Test an embedded Java comment */
+    @Test public void testEmbeddedJavaComment4() {
+        helpScanner("/*@requires // modifies \n ensures */ signals ",
+                new Enum<?>[]{REQUIRES,ENSURES,EJML,IDENTIFIER,EOF},
+                null);
+    }
+
+    // FIXME - should we make these have some meaning (result is not necessarily correct)
+//    /** Test an embedded Java comment */
+//    @Test public void testEmbeddedJavaComment5() {
+//        helpScanner("/*@requires /* modifies \n ensures */ signals ",
+//                new Enum<?>[]{REQUIRES,ENSURES,EJML,IDENTIFIER,EOF},
+//                null);
+//    }
+//
+//    /** Test an embedded Java comment */
+//    @Test public void testEmbeddedJavaComment6() {
+//        helpScanner("/*@requires /* modifies \n ensures */ requires */ signals ",
+//                new Enum<?>[]{REQUIRES,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
+//                null);
+//    }
+
     @Test public void testLineComment1() {
-        helpScanner("//@ requires",new Enum<?>[]{SJML,REQUIRES,EOF},null);
+        helpScanner("//@ requires",new Enum<?>[]{REQUIRES,EOF},null);
     }
 
     // NOTE: The scanner absorbs ending whitespace into the EOF.
     @Test public void testLineComment2() {
-        helpScanner("//@ requires\n",new Enum<?>[]{SJML,REQUIRES,EOF},null);
+        helpScanner("//@ requires\n",new Enum<?>[]{REQUIRES,EOF},null);
     }
 
     /** Test that a line comment ends with a NL character */
     @Test public void testLineComment3() {
         helpScanner("//@ requires\n ",
-                new Enum<?>[]{SJML,REQUIRES,EJML},
-                new int[]{2,3,4,12,12,13});
+                new Enum<?>[]{REQUIRES,EJML},
+                new int[]{4,12,12,13});
     }
 
     /** Test that a line comment ends with a CR character */
     @Test public void testLineComment4() {
         helpScanner("//@ requires\r ",
-                new Enum<?>[]{SJML,REQUIRES,EJML},
+                new Enum<?>[]{REQUIRES,EJML},
                 null);
     }
 
     /** Test that a line comment ends with a CR NL combination */
     @Test public void testLineComment5() {
         helpScanner("//@ requires\r\n",
-                new Enum<?>[]{SJML,REQUIRES,EJML},
+                new Enum<?>[]{REQUIRES,EJML},
                 null);
     }
 
     /** Test that JML identifiers are not found after a JML line comment ends*/
     @Test public void testLineComment6() {
         helpScanner("//@ requires\nrequires",
-                new Enum<?>[]{SJML,REQUIRES,EJML,IDENTIFIER},
+                new Enum<?>[]{REQUIRES,EJML,IDENTIFIER},
                 null);
     }
     
     /** Test that an @ at the end of a line comment is found */
     @Test public void testLineComment7() {
         helpScanner("//@ requires @\n ",
-                new Enum<?>[]{SJML,REQUIRES,MONKEYS_AT,EJML},
+                new Enum<?>[]{REQUIRES,MONKEYS_AT,EJML},
                 null);
     }
     
@@ -425,11 +495,10 @@ public class scanner extends JmlTestCase {
                 null);
     }
     
-                                // FIXME - the behavior with a bad backslash is not entirely right, though it causes no trouble
     /** Test a bad backslash */
     @Test public void testLineComment11() {
         helpScanner("//@@x\\@@@\nrequires ",
-                new Enum<?>[]{SJML,IDENTIFIER,ERROR,MONKEYS_AT,MONKEYS_AT,MONKEYS_AT,EJML,IDENTIFIER},
+                new Enum<?>[]{IDENTIFIER,ERROR,MONKEYS_AT,MONKEYS_AT,MONKEYS_AT,EJML,IDENTIFIER},
                 null,1);
         checkMessages("/TEST.java:1: A backslash in a JML comment expects to be followed by a valid identifier",6);
     }
@@ -437,91 +506,128 @@ public class scanner extends JmlTestCase {
     /** Test a bad backslash */
     @Test public void testLineComment11a() {
         helpScanner("//@@\\@x@@\nrequires ",
-                new Enum<?>[]{SJML,MONKEYS_AT,IDENTIFIER,MONKEYS_AT,MONKEYS_AT,EJML,IDENTIFIER},
+                new Enum<?>[]{ERROR,MONKEYS_AT,IDENTIFIER,MONKEYS_AT,MONKEYS_AT,EJML,IDENTIFIER},
                 null,1);
         checkMessages("/TEST.java:1: A backslash in a JML comment expects to be followed by a valid identifier",5);
     }
     
     @Test public void testMultiLine() {
         helpScanner("/*@ requires\nrequires@*/",
-                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EJML},
+                new Enum<?>[]{REQUIRES,REQUIRES,EJML},
                 null);
     }
 
     @Test public void testMultiLine1() {
         helpScanner("/*@ requires\n  requires@*/",
-                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EJML},
+                new Enum<?>[]{REQUIRES,REQUIRES,EJML},
                 null);
     }
 
     @Test public void testMultiLine2() {
         helpScanner("/*@ requires\n@requires@*/",
-                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EJML},
+                new Enum<?>[]{REQUIRES,REQUIRES,EJML},
                 null);
     }
 
     @Test public void testMultiLine3() {
         helpScanner("/*@ requires\n@@@requires@*/",
-                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EJML},
+                new Enum<?>[]{REQUIRES,REQUIRES,EJML},
                 null);
     }
 
     @Test public void testMultiLine4() {
         helpScanner("/*@ requires\n @requires@*/",
-                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EJML},
+                new Enum<?>[]{REQUIRES,REQUIRES,EJML},
                 null);
     }
 
     @Test public void testMultiLine5() {
         helpScanner("/*@ requires\n  @@@requires@*/",
-                new Enum<?>[]{SJML,REQUIRES,REQUIRES,EJML},
+                new Enum<?>[]{REQUIRES,REQUIRES,EJML},
                 null);
     }
 
     @Test public void testMultiLineError() {
         helpScanner("/*@ \\result\n  @@@\\xyz@*/",
-                new Enum<?>[]{SJML,BSRESULT,ERROR,EJML},
-                new int[]{2,3,4,11,17,21,21,22},  // FIXME - what should the pos of the start and end JML be?
+                new Enum<?>[]{BSRESULT,ERROR,EJML,EOF},
+                new int[]{4,11,17,21,21,24,24,24},
                 1);
-        checkMessages("/TEST.java:2: This backslash token is unknown: xyz",6);
+        checkMessages("/TEST.java:2: This backslash token is unknown: \\xyz",6);
     }
 
     @Test public void testInformalComment() {
         helpScanner("/*@ \\result(* requires *)*/",
-                new Enum<?>[]{SJML,BSRESULT,INFORMAL_COMMENT,EJML},
-                new int[]{2,3,4,11,11,25,25,26},
+                new Enum<?>[]{BSRESULT,INFORMAL_COMMENT,EJML},
+                new int[]{4,11,11,25,25,27},
                 0);
     }
     @Test public void testInformalComment2() {
         helpScanner("/*@ \\result(* requires *****)*/",
-                new Enum<?>[]{SJML,BSRESULT,INFORMAL_COMMENT,EJML},
-                new int[]{2,3,4,11,11,29,29,30},
+                new Enum<?>[]{BSRESULT,INFORMAL_COMMENT,EJML},
+                new int[]{4,11,11,29,29,31},
                 0);
     }
     @Test public void testInformalComment3() {
         helpScanner("/*@ \\result(* requires **** *)*/",
-                new Enum<?>[]{SJML,BSRESULT,INFORMAL_COMMENT,EJML},
-                new int[]{2,3,4,11,11,30,30,31},
+                new Enum<?>[]{BSRESULT,INFORMAL_COMMENT,EJML},
+                new int[]{4,11,11,30,30,32},
                 0);
     }
     
 
-    // FIXME - unclosed informal comment
-//  // Testing an unclosed informal comment in a BLOCK comment
-//    @Test public void testInformalComment4() {
-//        helpScanner("/*@ \\result(* requires **** */",
-//                new Enum<?>[]{SJML,BSRESULT,INFORMAL_COMMENT,EJML},
-//                new int[]{2,3,4,11,11,30,30,31},
-//                0);
-//    }
+    // Testing an unclosed informal comment in a BLOCK comment
+    @Test public void testInformalComment4() {
+        helpScanner("/*@ \\result(* requires **** */",
+                new Enum<?>[]{BSRESULT,INFORMAL_COMMENT,EJML},
+                new int[]{4,11,11,28,28,30},
+                1);
+        checkMessages("/TEST.java:1: The informal expression is not closed",13);
+    }
     
-//    // Testing an unclosed informal comment in a LINE comment
-//    @Test public void testInformalComment5() {
-//        helpScanner("//@ \\result(* requires **** \n public",
-//                new Enum<?>[]{SJML,BSRESULT,INFORMAL_COMMENT,EJML},
-//                new int[]{2,3,4,11,11,30,30,31},
-//                0);
-//    }
+    // Testing an unclosed informal comment in a BLOCK comment
+    @Test public void testInformalComment4a() {
+        helpScanner("/*@ \\result(* requires *\n*** */",
+                new Enum<?>[]{BSRESULT,INFORMAL_COMMENT,EJML},
+                new int[]{4,11,11,29,29,31},
+                1);
+        checkMessages("/TEST.java:1: The informal expression is not closed",13);
+    }
+    
+    // Testing an unclosed informal comment in a BLOCK comment
+    @Test public void testInformalComment4b() {
+        helpScanner("/*@ \\result(* requires *\n*** ",
+                new Enum<?>[]{ERROR,EOF},
+                null, //new int[]{4,11,11,30,30,31},
+                1);
+        checkMessages("/TEST.java:1: unclosed comment",1);
+    }
+    
+    // Testing an unclosed informal comment in a LINE comment
+    @Test public void testInformalComment5() {
+        helpScanner("//@ \\result(* requires **** \n public",
+                new Enum<?>[]{BSRESULT,INFORMAL_COMMENT,EJML,PUBLIC,EOF},
+                new int[]{4,11,11,28,28,29,30,36,36,36},
+                1);
+        checkMessages("/TEST.java:1: The informal expression is not closed",13);
+    }
+    
+    // Testing an unclosed informal comment in a LINE comment
+    @Test public void testInformalComment5a() {
+        helpScanner("//@ \\result(* requires *****",
+                new Enum<?>[]{BSRESULT,INFORMAL_COMMENT,EOF},
+                new int[]{4,11,11,28,28,28},
+                1);
+        checkMessages("/TEST.java:1: The informal expression is not closed",13);
+    }
+    
+    // Testing an unclosed informal comment in a LINE comment
+    @Test public void testInformalComment6() {
+        helpScanner("//@ \\result(* requires ***\"*) \" requires\n",
+                new Enum<?>[]{BSRESULT,INFORMAL_COMMENT,ERROR,EOF},
+                new int[]{4,11,11,29,30,40,41,41},
+                1);
+        checkMessages("/TEST.java:1: unclosed string literal",31);
+    }
     
     @Test public void testStringLiteral() {
         Scanner sc = fac.newScanner("\"\\tA\\\\B\"", true);
@@ -545,11 +651,100 @@ public class scanner extends JmlTestCase {
     }
     
     @Test public void testDotDot2() {
-        helpScanner("//@ modifies a[b .. c];",
-                new Enum<?>[]{SJML,ASSIGNABLE,IDENTIFIER,LBRACKET,IDENTIFIER,DOT_DOT,IDENTIFIER,RBRACKET,SEMI,EOF},
+        helpScanner("//@ modifies ..;",
+                new Enum<?>[]{ASSIGNABLE,DOT_DOT,SEMI,EOF},
                 null,
                 0);
     }
     
+    @Test public void testDotDot2a() {
+        helpScanner("//@ 123..456;",
+                new Enum<?>[]{INTLITERAL,DOT_DOT,INTLITERAL,SEMI,EOF},
+                null,
+                0);
+    }
+    
+    @Test public void testDotDot3() {
+        helpScanner("//@ modifies a[b .. c];",
+                new Enum<?>[]{ASSIGNABLE,IDENTIFIER,LBRACKET,IDENTIFIER,DOT_DOT,IDENTIFIER,RBRACKET,SEMI,EOF},
+                null,
+                0);
+    }
+ 
+    @Test public void testDotDot4() {
+        helpScanner("//@ modifies a[0..4];",
+                new Enum<?>[]{ASSIGNABLE,IDENTIFIER,LBRACKET,INTLITERAL,DOT_DOT,INTLITERAL,RBRACKET,SEMI,EOF},
+                null,
+                0);
+    }
+ 
+    @Test public void testDotDot4a() {
+        helpScanner("//@ modifies a[0 ..4];",
+                new Enum<?>[]{ASSIGNABLE,IDENTIFIER,LBRACKET,INTLITERAL,DOT_DOT,INTLITERAL,RBRACKET,SEMI,EOF},
+                null,
+                0);
+    }
+ 
+    @Test public void testDotDot5() {
+        helpScanner("//@ modifies ..234;",
+                new Enum<?>[]{ASSIGNABLE,DOT_DOT,INTLITERAL,SEMI,EOF},
+                null,
+                0);
+    }
+    
+    @Test public void testDotDot6() {
+        helpScanner("//@ modifies .234;",
+                new Enum<?>[]{ASSIGNABLE,DOUBLELITERAL,SEMI,EOF},
+                null,
+                0);
+    }
+    
+    @Test public void testDotDot7() {
+        helpScanner("//@ modifies 0.234;",
+                new Enum<?>[]{ASSIGNABLE,DOUBLELITERAL,SEMI,EOF},
+                null,
+                0);
+    }
+    
+    @Test public void testDotDot8() {
+        helpScanner("//@ modifies a[0. .4];",
+                new Enum<?>[]{ASSIGNABLE,IDENTIFIER,LBRACKET,DOUBLELITERAL,DOUBLELITERAL,RBRACKET,SEMI,EOF},
+                null,
+                0);
+    }
+ 
+    @Test public void testDotDot9() {
+        helpScanner("//@ 0xApA\n ",
+                new Enum<?>[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
+                null,
+                1);
+        checkMessages("/TEST.java:1: malformed floating point literal",5);
+    }
+ 
+    @Test public void testDotDot10() {
+        helpScanner("//@ 1.0eZ \n ",
+                new Enum<?>[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
+                null,
+                1);
+        checkMessages("/TEST.java:1: malformed floating point literal",5);
+    }
+ 
+    @Test public void testDotDot11() {
+        helpScanner("//@ 0xA.0pZ\n ",
+                new Enum<?>[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
+                null,
+                1);
+        checkMessages("/TEST.java:1: malformed floating point literal",5);
+    }
+ 
+    @Test public void testDotDot12() {
+        helpScanner("//@ 0xA.Z\n ",
+                new Enum<?>[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
+                null,
+                1);
+        checkMessages("/TEST.java:1: malformed floating point literal",5);
+    }
+ 
+
 
 }

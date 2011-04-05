@@ -8,6 +8,7 @@ import com.sun.tools.javac.tree.JCTree.JCErroneous;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCSkip;
 
 public class nowarn extends ParseBase {
 
@@ -29,7 +30,7 @@ public class nowarn extends ParseBase {
     }
     
     public void testNowarn2() {
-        checkCompilationUnit("package /*@ nowarn Z ZZ ZZZ; */t; //@ nowarn X,A,B; \n/*@ nowarn Y,,YY,,,YYY; */ class A{}",
+        checkCompilationUnit("package /*@ nowarn Z ZZ ZZZ; */t; //@ nowarn X,A,B; \n/*@ nowarn Y, YY,  YYY; */ class A{}",
                 JmlCompilationUnit.class,0,
                 JCIdent.class, 31,
                 JmlClassDecl.class, 80,
@@ -38,7 +39,7 @@ public class nowarn extends ParseBase {
     }
     
     public void testNowarn3() {
-        checkCompilationUnit("package /*@ nowarn Z ; nowarn Q; */t; //@ nowarn X,A,B; \n/*@ nowarn Y,,YY,,,YYY; */ class A{}",
+        checkCompilationUnit("package /*@ nowarn Z ; nowarn Q; */t; //@ nowarn X,A,B; \n/*@ nowarn Y, YY,  YYY; */ class A{}",
                 JmlCompilationUnit.class,0,
                 JCIdent.class, 35,
                 JmlClassDecl.class, 84,
@@ -52,8 +53,8 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 24,
                 JmlClassDecl.class, 56,
                 JCModifiers.class, -1);
-        checkMessages("/TEST.java:1: warning: A nowarn pragma must end with a semicolon",13,
-                "/TEST.java:1: warning: A nowarn pragma must end with a semicolon",32);
+        checkMessages("/TEST.java:1: warning: A nowarn pragma must end with a semicolon",23,
+                "/TEST.java:1: warning: A nowarn pragma must end with a semicolon",40);
     }
     
     public void testNowarn5() {
@@ -62,8 +63,8 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 24,
                 JmlClassDecl.class, 56,
                 JCModifiers.class, -1);
-        checkMessages("/TEST.java:1: warning: A nowarn pragma must end with a semicolon",13,
-                "/TEST.java:1: warning: A nowarn pragma must end with a semicolon",32);
+        checkMessages("/TEST.java:1: warning: A nowarn pragma must end with a semicolon",23,
+                "/TEST.java:1: warning: A nowarn pragma must end with a semicolon",40);
     }
     
     public void testNowarn6() {
@@ -72,7 +73,7 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 28,
                 JmlClassDecl.class, 33,
                 JCModifiers.class, -1);
-        checkMessages("/TEST.java:1: warning: A nowarn pragma must end with a semicolon",13);
+        checkMessages("/TEST.java:1: warning: A nowarn pragma must end with a semicolon",27);
     }
     
     
@@ -103,7 +104,7 @@ public class nowarn extends ParseBase {
                 JCFieldAccess.class, 16,
                 JCIdent.class, 16
         );
-        checkMessages("/TEST.java:2: warning: A nowarn pragma must end with a semicolon",10);
+        checkMessages("/TEST.java:2: warning: A nowarn pragma must end with a semicolon",19);
     }
     
     public void testNowarnC() {
@@ -138,17 +139,15 @@ public class nowarn extends ParseBase {
                 JCFieldAccess.class, 16,
                 JCIdent.class, 16
                 );
-        checkMessages("/TEST.java:2: warning: A nowarn pragma must end with a semicolon",10);
+        checkMessages("/TEST.java:2: warning: A nowarn pragma must end with a semicolon",39);
     }
   
-    public void testNowarnE() {  // TODO - the error recovery could be improved here
+    public void testNowarnE() {
         checkCompilationUnit("package t; \n/*@  nowarn C! ; */ class A{}",
                 JmlCompilationUnit.class,0,
                 JCIdent.class, 8,
-                JCErroneous.class, 27,
                 JmlClassDecl.class, 32,
                 JCModifiers.class, -1);
-        checkMessages("/TEST.java:2: An illegal character found in a nowarn pragma",14,
-                "/TEST.java:2: class, interface, or enum expected",16);
+        checkMessages("/TEST.java:2: Expected an identifier here in the nowarn pragma",14);
     }
 }

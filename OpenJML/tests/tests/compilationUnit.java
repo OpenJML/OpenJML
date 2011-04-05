@@ -34,7 +34,7 @@ public class compilationUnit extends ParseBase {
     /** One refines clause with no package or imports */
     public void testRefines() {
         checkCompilationUnit("/*@ refines \"A.xxx\"; */ class A{}",
-                JmlCompilationUnit.class,2,
+                JmlCompilationUnit.class,4,
                 JCErroneous.class, 4,
                 JmlClassDecl.class, 24,
                 JCModifiers.class, -1);
@@ -160,9 +160,9 @@ public class compilationUnit extends ParseBase {
     /** Tests parsing a traditional JML annotation */
     public void testAnnotation2() {
         checkCompilationUnit("/*@ pure */ class A {}",
-        JmlCompilationUnit.class, 2,2,22, // FIXME - start,preferred positions
+        JmlCompilationUnit.class, 4,4,22,
         JmlClassDecl.class, 4,12,22,
-        JCModifiers.class, 4,4,10, // FIXME - end
+        JCModifiers.class, 4,4,11, // FIXME - end
         JCAnnotation.class, 4,4,8,
         JCFieldAccess.class, 4,4,8,
         JCFieldAccess.class, 4,4,8,

@@ -439,7 +439,7 @@ public class Scanner implements Lexer {
 
     /** Read fractional part of floating point number.
      */
-    private void scanFraction() {
+    protected void scanFraction() { // DRC - changed to protected to be able to snag .. between ints
         skipIllegalUnderscores();
         if ('0' <= ch && ch <= '9') {
             scanDigits(10);
@@ -465,7 +465,7 @@ public class Scanner implements Lexer {
 
     /** Read fractional part and 'd' or 'f' suffix of floating point number.
      */
-    private void scanFractionAndSuffix() {
+    protected void scanFractionAndSuffix() { // DRC - changed private to protected
         this.radix = 10;
         scanFraction();
         if (ch == 'f' || ch == 'F') {

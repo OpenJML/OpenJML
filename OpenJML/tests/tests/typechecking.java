@@ -640,5 +640,31 @@ public class typechecking extends TCBase {
         );
     }
 
+    public void testBadModelImport1() {
+        helpTCF("A.java","//@ import java.util.List;\n public class A {\n //@ ghost List k;\n List n;  \n }"
+                ,"/A.java:1: An import statement in a JML comment must have a model modifier",5
+        );
+    }
+    
+    public void testBadModelImport2() {
+        helpTCF("A.java","/*@ model */ import java.util.List;\n public class A {\n  \n }"
+                ,"/A.java:1: A model import declaration must be completely within a JML comment",5
+        );
+    }
+    
+    public void testBadModelImport2a() {
+        helpTCF("A.java","/*@ model */  public class A {\n  \n }"
+                ,"/A.java:1: A Java declaration (not within a JML annotation) may not be either ghost or model",22
+        );
+    }
+    
+    public void testBadModelImport3() {
+        helpTCF("A.java","/*@ model import */ java.util.List;\n public class A {\n  \n }"
+                ,"/A.java:1: <identifier> expected",17
+                ,"/A.java:1: package <error>.java.util does not exist",30
+                ,"/A.java:1: package <error>.java.util does not exist",30
+        );
+    }
+    
     
 }
