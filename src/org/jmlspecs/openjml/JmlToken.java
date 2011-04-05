@@ -15,7 +15,7 @@ import java.util.Map;
 // implemented, and we could not extend that.
 // TODO - we should think about how to re-design JmlToken so that it is extensible.
 public enum JmlToken {
-    STARTJMLCOMMENT("<JMLSTART>"),
+//    STARTJMLCOMMENT("<JMLSTART>"),
     ENDJMLCOMMENT("<JMLEND>"),
     
     // These are statement types

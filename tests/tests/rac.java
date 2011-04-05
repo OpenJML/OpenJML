@@ -1327,7 +1327,7 @@ public class rac extends RacBase {
     
     /** Forall, exists quantifier */
     public void testForallQuantifier3() {
-        expectedErrors = 2;
+        expectedErrors = 0;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; ; i >= 0); \n "
@@ -1394,6 +1394,21 @@ public class rac extends RacBase {
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 5 0"
+                ,"END"
+        );
+    }
+    
+    /** Max quantifier, with function call */
+    public void testMaxQuantifier2() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"  public static int inc(int i) { return i + 10; }\n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost int n = (\\max int i; 0<=i && i<=5 && (i%2)==0; inc(i)); \n "
+                +"//@ ghost int nn = (\\max int i; -9<=i && i<=5 ; Math.abs(i)); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 14 9"
                 ,"END"
         );
     }
