@@ -1356,6 +1356,36 @@ public class rac extends RacBase {
         );
     }
     
+    /** Numof quantifier */
+    public void testCountQuantifierExt() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static int m = 2;\n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost int nnn = new org.jmlspecs.utils.Utils.ValueInt() { public int value(final int lo, final int hi, final Object[] args) { int count = 0; int i = lo; while (i <= hi) { if (i>=lo && i<=hi) count++; i++; } return count; }}.value(0,0,new Object[]{});\n"
+                +"//@ ghost int n = (\\num_of int i; 0 <= i && i < 5; i >= m); \n "
+                +"//@ ghost int nn = (\\num_of int i; 0 <= i && i < 5; m > 0); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn ); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 3 5"
+                ,"END"
+        );
+    }
+    
+    /** Numof quantifier */
+    public void testCountQuantifierExtE() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static int m = 2;\n"
+                +"//@ ensures (\\num_of int i; 0 <= i && i < 5; i >= m) == 3;\n"
+                +"//@ ensures (\\num_of int i; 0 <= i && i < 5; i >= m) == 4;\n"
+                +"public static void main(String[] argv) { \n "
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"END"
+                ,"/tt/A.java:4: JML postcondition is false"
+        );
+    }
+    
     /** Sum quantifier */
     public void testSumQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"

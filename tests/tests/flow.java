@@ -59,6 +59,28 @@ public class flow extends TCBase {
         ,"/$A/A.jml:2: illegal forward reference",19
         );
     }
+    
+    /** Flow checks for quantified expression */
+    public void testQuantifiedFlow() {
+        helpTCF("A.java","public class A { \n"
+                +" public static void m() {\n"
+                +"  //@ ghost int n = (\\num_of int i; 0<i && i<5; n>i);\n"
+                +"}}"
+                ,"/A.java:3: variable n might not have been initialized",49
+                );
+                
+    }
+
+    /** Flow checks for a non-executable quantified expression */
+    public void testQuantifiedNonExFlow() {
+        helpTCF("A.java","public class A { \n"
+                +" public static void m() {\n"
+                +"  //@ ghost int n = (\\num_of int i; ; n>i);\n"
+                +"}}"
+                ,"/A.java:3: variable n might not have been initialized",39
+                );
+                
+    }
 
 
 

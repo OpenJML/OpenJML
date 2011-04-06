@@ -1177,7 +1177,9 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlBinary(this); 
             } else {
-                unexpectedVisitor(this,v);
+                lhs.accept(v);
+                rhs.accept(v);
+                //unexpectedVisitor(this,v);
             }
         }
 

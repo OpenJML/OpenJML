@@ -31,7 +31,9 @@ import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.mirror.type.PrimitiveType;
 import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.MemberSelectTree;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
@@ -705,6 +707,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     VarSymbol currentSecretContext = null;
     VarSymbol currentQueryContext = null;
+    
+    boolean implementationAllowed = false;
+    
+    @Override
+    public void visitNewClass(JCNewClass tree) {
+        boolean prev = implementationAllowed;
+        try {
+            implementationAllowed= true;
+            super.visitNewClass(tree);
+        } finally {
+            implementationAllowed = prev;
+        }
+    }
     
     /** This is overridden in order to do correct checking of whether a method body is
      * present or not.
@@ -3082,25 +3097,34 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
         }
         result = check(that, resultType, VAL, pkind, pt);
-        localEnv.info.scope.leave();
         
         if (Options.instance(context).get(JmlOption.RAC.optionName()) != null) {
-            createRacExpr(that);
+            if (that.racexpr == null) createRacExpr(that);
             if (that.racexpr != null) {
-                that.racexpr.accept(this);
+                attribExpr(that.racexpr, localEnv, resultType); // This puts in the default constructor, which the check call does not
+                //check(that.racexpr,resultType, VAL, pkind, pt); // But this has the right environment
             }
         }
+        localEnv.info.scope.leave();
         return;
     }
+    
+    public boolean implementationAllowed() {
+        return implementationAllowed;
+    }
+
     
     public void createRacExpr(JmlQuantifiedExpr q) {
         try {
             if (q.range == null) return;
-            List<JCVariableDecl> decls = q.decls.toList();
-            //JCTree c = RACCopy.copy(q.value,context,decls);
             
-            if (!RACCheck.allInternal(q.value,decls)) return; 
-            if (q.range != null && !RACCheck.allInternal(q.range,decls)) return; 
+            List<JCVariableDecl> decls = q.decls.toList();
+            ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
+            JCExpression newvalue = JmlAttr.RACCopy.copy(q.value,context,decls,args);
+            JCExpression newrange = JmlAttr.RACCopy.copy(q.range,context,decls,args);
+            
+//            if (!RACCheck.allInternal(q.value,decls)) return; 
+//            if (q.range != null && !RACCheck.allInternal(q.range,decls)) return; 
             JmlTree.Maker F = factory;
 
             // Misc items
@@ -3125,36 +3149,32 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JCVariableDecl firstDecl = null;
             JCIf ifstatement;
             JCStatement retStat;
-            JCExpression cond = q.value;
+            JCExpression cond = newvalue;
             if (q.op == JmlToken.BSFORALL || q.op == JmlToken.BSEXISTS) { 
                 if (q.op == JmlToken.BSFORALL) cond = F.Unary(JCTree.NOT, cond); 
-                cond = F.Binary(JCTree.AND, q.range, cond);
+                cond = F.Binary(JCTree.AND, newrange, cond);
                 ifstatement = F.If(cond, q.op == JmlToken.BSFORALL? retfalse : rettrue , null);
                 retStat = F.Return(F.Literal(TypeTags.BOOLEAN,q.op == JmlToken.BSFORALL ? 1 : 0));
-                methodName = F.Select(methodName, names.fromString("ValueBool"));
             } else if (q.op == JmlToken.BSNUMOF) {
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.TypeIdent(TypeTags.INT), F.Literal(TypeTags.INT,0));
-                cond = F.Binary(JCTree.AND, q.range, cond);
+                cond = F.Binary(JCTree.AND, newrange, cond);
                 ifstatement = F.If(cond, F.Exec(F.Unary(JCTree.PREINC, F.Ident(initialDecl.name))) , null);
                 retStat = F.Return(F.Ident(initialDecl.name));
-                methodName = F.Select(methodName, names.fromString("ValueInt"));
             } else if (q.op == JmlToken.BSSUM) {
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_sum$$$"), F.TypeIdent(TypeTags.INT), F.Literal(TypeTags.INT,0));
-                ifstatement = F.If(q.range, F.Exec(F.Assignop(JCTree.PLUS_ASG, F.Ident(initialDecl.name), cond)) , null);
+                ifstatement = F.If(newrange, F.Exec(F.Assignop(JCTree.PLUS_ASG, F.Ident(initialDecl.name), cond)) , null);
                 retStat = F.Return(F.Ident(initialDecl.name));
-                methodName = F.Select(methodName, names.fromString("ValueInt"));
             } else if (q.op == JmlToken.BSPRODUCT) {
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_prod$$$"), F.TypeIdent(TypeTags.INT), F.Literal(TypeTags.INT,1));
-                ifstatement = F.If(q.range, F.Exec(F.Assignop(JCTree.MUL_ASG, F.Ident(initialDecl.name), cond)) , null);
+                ifstatement = F.If(newrange, F.Exec(F.Assignop(JCTree.MUL_ASG, F.Ident(initialDecl.name), cond)) , null);
                 retStat = F.Return(F.Ident(initialDecl.name));
-                methodName = F.Select(methodName, names.fromString("ValueInt"));
             } else if (q.op == JmlToken.BSMAX) {
                 firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_max$$$"), F.Type(restype), F.Literal(restype.tag,0));
                 valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
                 ifstatement = F.If(F.Binary(
                                     JCTree.AND,
-                                    q.range, 
+                                    newrange, 
                                     F.Binary(
                                             JCTree.OR, 
                                             F.Binary(
@@ -3173,17 +3193,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                            ),
                                    null);
                 retStat = F.Return(F.Ident(initialDecl.name));
-                String s = restype.tag == TypeTags.INT ? "ValueInt" :
-                        restype.tag == TypeTags.LONG ? "ValueLong" :
-                        restype.tag == TypeTags.DOUBLE ? "ValueDouble" : "ValueInt";
-                methodName = F.Select(methodName, names.fromString(s));
             } else if (q.op == JmlToken.BSMIN) {
                 firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_min$$$"), F.Type(restype), F.Literal(restype.tag,0));
                 valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
                 ifstatement = F.If(F.Binary(
                         JCTree.AND,
-                        q.range, 
+                        newrange, 
                         F.Binary(
                                 JCTree.OR, 
                                 F.Binary(
@@ -3202,13 +3218,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                ),
                        null);
                 retStat = F.Return(F.Ident(initialDecl.name));
-                String s = restype.tag == TypeTags.INT ? "ValueInt" :
-                    restype.tag == TypeTags.LONG ? "ValueLong" :
-                    restype.tag == TypeTags.DOUBLE ? "ValueDouble" : "ValueInt";
-                methodName = F.Select(methodName, names.fromString(s));
             } else {
                 return;
             }
+            String s = restype.tag == TypeTags.INT ? "ValueInt" :
+                restype.tag == TypeTags.BOOLEAN ? "ValueBool" :
+                restype.tag == TypeTags.LONG ? "ValueLong" :
+                restype.tag == TypeTags.DOUBLE ? "ValueDouble" : "ValueInt";
+            Name className = names.fromString(s);
+            methodName = F.Select(methodName, className);
+            
             
             // Some current assumptions
             if (decls.length() != 1) return;
@@ -3228,10 +3247,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             Name loname = names.fromString("lo$$$");
             Name hiname = names.fromString("hi$$$");
+            Name argsname = names.fromString("args");
             Name indexname = vardecl.name;
 
             JCVariableDecl lodef = F.VarDef(F.Modifiers(Flags.FINAL),loname,vartype,null);
             JCVariableDecl hidef = F.VarDef(F.Modifiers(Flags.FINAL),hiname,vartype,null);
+            JCVariableDecl argsdef = F.VarDef(F.Modifiers(Flags.FINAL),argsname,
+                                            F.TypeArray(F.Type(syms.objectType)),null);
             JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Ident(loname));
             
             JCStatement inc = F.Exec(F.Unary(JCTree.PREINC, F.Ident(indexname)));
@@ -3247,7 +3269,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     names.fromString("value"),
                     F.Type(restype), // result type
                     List.<JCTypeParameter>nil(), // type parameters
-                    List.<JCVariableDecl>of(lodef,hidef), // parameters
+                    List.<JCVariableDecl>of(lodef,hidef,argsdef), // parameters
                     List.<JCExpression>nil(), // thrown types
                     initialDecl == null ? F.Block(0,List.<JCStatement>of(indexdef,whilestatement,retStat)) :
                     valueDecl == null ?   F.Block(0,List.<JCStatement>of(initialDecl,indexdef,whilestatement,retStat)) :
@@ -3255,8 +3277,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     null); // default value
             List<JCTree> defs = List.<JCTree>of(methodDecl);
             JCClassDecl classDecl = F.AnonymousClassDef(F.Modifiers(0), defs) ;
-            JCExpression anon = F.NewClass(null,List.<JCExpression>nil(),methodName,List.<JCExpression>nil(),classDecl);
-            JCExpression call = F.Apply(List.<JCExpression>nil(),F.Select(anon,names.fromString("value")),List.<JCExpression>of(lo,hi));
+            JCNewClass anon = F.NewClass(null,List.<JCExpression>nil(),methodName,List.<JCExpression>nil(),classDecl);
+            anon.constructor = new MethodSymbol(0, names.init, syms.unknownType, syms.noSymbol);
+            anon.constructorType = syms.unknownType;
+
+            List<JCExpression> values = args.toList();
+            
+            JCExpression newarray = F.NewArray(F.Type(syms.objectType),List.<JCExpression>nil(),values);
+            JCExpression call = F.Apply(List.<JCExpression>nil(),F.Select(anon,names.fromString("value")),List.<JCExpression>of(lo,hi,newarray));
             q.racexpr = call;
 
         } catch (Exception e) {
@@ -4144,13 +4172,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             that.typeSpecsCombined = that.typeSpecs = new JmlSpecs.TypeSpecs(that);
         }
         
-        visitClassDef(that);
+//        JmlMemberEnter me = ((JmlMemberEnter)JmlMemberEnter.instance(context));
+//        boolean prev = me.inModelTypeDeclaration;
+//        if (implementationAllowed) me.inModelTypeDeclaration = true;
+//        try {
+            visitClassDef(that);
+//        } finally {
+//            me.inModelTypeDeclaration = prev;
+//        }
     }
 
     public void visitClassDef(JCClassDecl tree) {
         // The superclass calls classEnter if the env is owned by a VAR or MTH.
         // But JML has the case of an anonymous class that occurs in a class
-        // specification (e.g. an invariant)
+        // specification (e.g. an invariant), or in a method clause (so it is
+        // owned by the method)
         if ((env.info.scope.owner.kind & (VAR | MTH)) == 0 && tree.sym == null) {
             enter.classEnter(tree, env);
         }
@@ -4241,36 +4277,60 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public static class RACCopy extends JmlTreeCopier {
         
-        java.util.List<JCExpression> arguments = new java.util.ArrayList<JCExpression>();
         List<JCVariableDecl> decls;
         Names names = Names.instance(context);
+        ListBuffer<JCExpression> arguments;
         
-        public RACCopy(Context context, List<JCVariableDecl> decls) {
+        public RACCopy(Context context, List<JCVariableDecl> decls, ListBuffer<JCExpression> args) {
             super(context, JmlTree.Maker.instance(context));
+            this.decls = decls;
+            this.arguments = args;
         }
         
-        public static JCExpression copy(JCExpression that, Context context, List<JCVariableDecl> decls) {
-            return new RACCopy(context,decls).copy(that,(Void)null);
+        public static JCExpression copy(JCExpression that, Context context, List<JCVariableDecl> decls, ListBuffer<JCExpression> args) {
+            return new RACCopy(context,decls,args).copy(that,(Void)null);
         }
         
-        @Override
-        public JCTree visitBinary(BinaryTree node, Void p) {
-            JCExpression expr = (JCExpression)node;
-            if (RACCheck.allInternal(expr,decls)) {
-                return expr;
+        public <T extends JCTree> T copy(T tree, Void p) {
+            if (tree == null) return null;
+            if (!(tree instanceof JCIdent)) {
+
+                JCExpression expr = (JCExpression)tree;
+                if (RACCheck.allInternal(expr,decls)) {
+                    return (T)expr;
+                }
+                if (RACCheck.allExternal(expr,decls)) {
+                    if (expr.type.tag != TypeTags.METHOD) {
+                        int n = arguments.size();
+                        arguments.add(expr);
+                        JCExpression arg = M.Indexed(M.Ident(names.fromString("args")),M.Literal(TypeTags.INT,n));
+                        arg = M.TypeCast(M.Type(expr.type),arg);
+                        return (T)arg;
+                    }
+                }
             }
-            if (RACCheck.allExternal(expr,decls)) {
-                int n = arguments.size();
-                arguments.add(expr);
-                JCExpression arg = M.Apply(List.<JCExpression>nil(),
-                        M.Select(M.Ident(names.fromString("args")),names.fromString("get")),
-                        List.<JCExpression>of(M.Literal(TypeTags.INT,n))
-                        );
-                arg = M.TypeCast(M.Type(expr.type),arg);
-                return arg;
-            }
-            return super.visitBinary(node,p);
+
+            return (T) (tree.accept(this, p));
         }
+
+//        @Override
+//        public JCTree visitBinary(BinaryTree node, Void p) {
+//            JCExpression expr = (JCExpression)node;
+//            if (RACCheck.allInternal(expr,decls)) {
+//                return expr;
+//            }
+//            if (RACCheck.allExternal(expr,decls)) {
+//                int n = arguments.size();
+//                arguments.add(expr);
+//                JCExpression arg = M.Apply(List.<JCExpression>nil(),
+//                        M.Select(M.Ident(names.fromString("args")),names.fromString("get")),
+//                        List.<JCExpression>of(M.Literal(TypeTags.INT,n))
+//                        );
+//                arg = M.TypeCast(M.Type(expr.type),arg);
+//                return arg;
+//            }
+//            return super.visitBinary(node,p);
+//        }
         
         @Override
         public JCTree visitIdentifier(IdentifierTree node, Void p) {
@@ -4285,10 +4345,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (RACCheck.allExternal(expr,decls)) {
                 int n = arguments.size();
                 arguments.add(expr);
-                JCExpression arg = M.Apply(List.<JCExpression>nil(),
-                        M.Select(M.Ident(names.fromString("args")),names.fromString("get")),
-                        List.<JCExpression>of(M.Literal(TypeTags.INT,n))
-                        );
+                JCExpression arg = M.Indexed(M.Ident(names.fromString("args")),M.Literal(TypeTags.INT,n));
                 arg = M.TypeCast(M.Type(expr.type),arg);
                 return arg;
             }
@@ -4334,7 +4391,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         @Override
         public void visitIdent(JCIdent that) {
-            // FIXME - only want to make this determination for variables, not methods or classes
             Symbol n = that.sym;
             if (!(n instanceof Symbol.VarSymbol)) return; //Method and class symbols can be internal or external 
             Iterator<JCVariableDecl> iter = decls.iterator();
