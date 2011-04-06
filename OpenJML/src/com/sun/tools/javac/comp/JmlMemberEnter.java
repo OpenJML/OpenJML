@@ -148,7 +148,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         currentClass = (JmlClassDecl)tree;
         int prevMode = modeOfFileBeingChecked;  // FIXME _ suspect this is not accurate
         modeOfFileBeingChecked = ((JmlCompilationUnit)env.toplevel).mode;
-        if ((JmlCompilationUnit.isForBinary(modeOfFileBeingChecked)) && !JmlAttr.instance(context).isModel(tree.mods)) { 
+        if ((JmlCompilationUnit.isForBinary(modeOfFileBeingChecked)) && !JmlAttr.instance(context).isModel(tree.mods)
+                && !(tree.sym.toString().startsWith("$anonymous$"))) { 
             finishSpecClass((JmlClassDecl)tree,env); 
             modeOfFileBeingChecked = prevMode;
             currentClass = prevClass;
@@ -200,7 +201,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             // First we scan through the Java parts of the spec file
             // Various checks happen in the appropriate visitMethods
             
-            boolean isModel = ((JmlAttr)JmlAttr.instance(context)).isModel(specsDecl.mods);
+            boolean isModel = JmlAttr.instance(context).isModel(specsDecl.mods) || JmlAttr.instance(context).implementationAllowed;
             inModelTypeDeclaration = isModel;
             
             log.useSource(specsDecl.sourcefile);
@@ -2310,7 +2311,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // Only enter the method if this is a JML method or if we are processing
         // a Java file
         
-        if (isJMLMethod || isClassModel || !isSpecFile) super.visitMethodDef(tree);
+        if (isJMLMethod || isClassModel || !isSpecFile || tree.sym == null) {
+            super.visitMethodDef(tree);
+        }
         if (utils.jmldebug) log.noticeWriter.println("      ENTERING MEMBER " + tree.sym + " IN " + tree.sym.owner);
         if (removedStatic) {
             tree.sym.flags_field |= Flags.STATIC;
@@ -2398,7 +2401,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      * otherwise.  This is to distinguish behaviors of Java declarations within
      * model types from those not in model types.
      */
-    protected boolean inModelTypeDeclaration = false;
+    public boolean inModelTypeDeclaration = false;
     
     private boolean isInJml = false;
     public boolean setInJml(boolean inJml) {

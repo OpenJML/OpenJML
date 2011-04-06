@@ -454,35 +454,35 @@ public class Utils {
     }
     
     public static interface ValueBool {
-        public boolean value(final int lo, final int hi);
+        public boolean value(final int lo, final int hi, final Object[] args);
      }
 
     public static interface ValueInt {
-        public int value(final int lo, final int hi);
+        public int value(final int lo, final int hi, final Object[] args);
      }
 
     public static interface ValueShort {
-        public short value(int lo, int hi);
+        public short value(int lo, int hi, final Object[] args);
      }
 
     public static interface ValueChar {
-        public char value(int lo, int hi);
+        public char value(int lo, int hi, final Object[] args);
      }
 
     public static interface ValueLong {
-        public long value(int lo, int hi);
+        public long value(int lo, int hi, final Object[] args);
      }
 
     public static interface ValueFloat {
-        public float value(int lo, int hi);
+        public float value(int lo, int hi, final Object[] args);
      }
 
     public static interface ValueDouble {
-        public double value(int lo, int hi);
+        public double value(int lo, int hi, final Object[] args);
      }
 
     public static interface Value<T> {
-        public T value();
+        public T value(int lo, int hi, final Object[] args);
      }
 
 }

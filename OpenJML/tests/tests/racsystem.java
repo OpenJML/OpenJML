@@ -96,6 +96,7 @@ public class racsystem extends RacBase {
     /** Testing with getting a stack trace using showStack */
     public void testFile2d() {
         expectedRACExit = 0;
+        expectedNotes = 4;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.showStack = true; \n"
                 +"m();\n"
@@ -155,6 +156,7 @@ public class racsystem extends RacBase {
 
     /** Not sure what this is supposed to test (TODO) */
     public void testHashCode() {
+        expectedNotes = 4;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.showStack = true; \n"
                 +"int i = ( new Object().hashCode()); \n"
@@ -172,6 +174,7 @@ public class racsystem extends RacBase {
      * did work.
      */
     public void testMain() {
+        expectedNotes = 4;
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String[] args) { \n"
                 +"  System.out.println(\"START\"); \n"

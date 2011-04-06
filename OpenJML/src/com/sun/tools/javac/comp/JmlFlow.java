@@ -10,9 +10,12 @@ import org.jmlspecs.openjml.JmlTree.*;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
 /**
@@ -30,6 +33,8 @@ import com.sun.tools.javac.util.Log;
  *
  * @author David Cok
  */  // FIXME - I think we need to implement the JML visit methods in order to do checks within JML expressions?
+// FIXME - these might apply to JML clauses: redundant cast, forward references, uninit variables
+
 public class JmlFlow extends Flow implements IJmlVisitor {
 
     /** Registers a singleton factory for JmlFlow against the flowKey; the factory
@@ -48,6 +53,8 @@ public class JmlFlow extends Flow implements IJmlVisitor {
         
     /** The compilation context of this instance */
     protected Context context;
+    
+    protected java.util.List<List<JCVariableDecl>> quantDeclStack = new java.util.LinkedList<List<JCVariableDecl>>();
     
     /** A constructor, but use instance() to generate new instances of this class. */
     protected JmlFlow(Context context) {
@@ -253,12 +260,29 @@ public class JmlFlow extends Flow implements IJmlVisitor {
 
     @Override
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-        // FIXME - skipping primitive type tree
+        // FIXME - check array dimensions?
     }
 
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        // FIXME - skipping quantified expression
+        quantDeclStack.add(0,that.decls.toList());
+        if (that.racexpr != null) {
+            scanExpr(that.racexpr);
+        } else {
+            scanExpr(that.range);
+            scanExpr(that.value);
+        }
+        quantDeclStack.remove(0);
+    }
+    
+    @Override
+    public void visitIdent(JCIdent that) {
+        for (List<JCVariableDecl> list: quantDeclStack) {
+            for (JCVariableDecl decl: list) {
+                if (decl.sym.equals(that.sym)) return;
+            }
+        }
+        super.visitIdent(that);
     }
 
     @Override

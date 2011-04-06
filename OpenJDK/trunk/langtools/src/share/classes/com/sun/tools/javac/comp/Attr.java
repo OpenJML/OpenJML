@@ -2091,6 +2091,11 @@ public class Attr extends JCTree.Visitor {
         result = check(tree, owntype, VAR, pkind, pt);
     }
     
+    // DRC - added this method, but review
+    public boolean implementationAllowed() {
+        return false;
+    }
+    
     public void visitIdent(JCIdent tree) {
         Symbol sym;
         boolean varArgs = false;
@@ -2143,8 +2148,9 @@ public class Attr extends JCTree.Visitor {
             // If symbol is a local variable accessed from an embedded
             // inner class check that it is final.
             if (v.owner.kind == MTH &&
-                    v.owner.enclClass() != env.info.scope.owner.enclClass() && // DRC added so that variables used in initializers (e.g. in old clauses) do not have to be final
-                v.owner != env.info.scope.owner &&
+                    v.owner.enclClass() != env.info.scope.owner.enclClass() && // DRC added so that variables used in initializers (e.g. in old clauses) do not have to be final - FIXME - recheck this
+                    !implementationAllowed() && // DRC added so that loop variables in racexpr are not final - FIXME
+                    v.owner != env.info.scope.owner &&
                 (v.flags_field & FINAL) == 0) {
                 log.error(tree.pos(),
                           "local.var.accessed.from.icls.needs.final",

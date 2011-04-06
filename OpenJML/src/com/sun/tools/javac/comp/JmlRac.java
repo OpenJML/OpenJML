@@ -1798,7 +1798,6 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
             result = treeutils.makeLit(0,syms.intType,0);
         } else if (that.op == JmlToken.BSNUMOF) {
             result = treeutils.makeLit(0,syms.intType,0);
-
         } else {
             Log.instance(context).error(that.pos(), "jml.unknown.construct",that.op.internedName(),"visitJmlQuantifiedExpr");
         }

@@ -172,12 +172,27 @@ public abstract class RacBase extends JmlTestCase {
             }
             
             int i = expectedErrors*2;
+            if (print) {
+                String data = out.input();
+                if (data.length() > 0) {
+                    String[] lines = data.split(term);
+                    for (String line: lines) {
+                        System.out.println("OUT: " + line);
+                    }
+                }
+                data = err.input();
+                if (data.length() > 0) {
+                    String[] lines = data.split(term);
+                    for (String line: lines) {
+                        System.out.println("ERR: " + line);
+                    }
+                }
+            }
             String data = out.input();
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String line: lines) {
-                    if (print) { System.out.println("OUT: " + line); }
-                    if (!print && i < list.length) assertEquals("Output line " + i, list[i], line);
+                    if (i < list.length) assertEquals("Output line " + i, list[i], line);
                     i++;
                 }
             }
@@ -185,8 +200,7 @@ public abstract class RacBase extends JmlTestCase {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String line: lines) {
-                    if (print) { System.out.println("ERR: " + line); }
-                    if (!print && i < list.length) assertEquals("Output line " + i, list[i], line);
+                    if (i < list.length) assertEquals("Output line " + i, list[i], line);
                     i++;
                 }
             }
