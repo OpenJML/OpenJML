@@ -20,6 +20,7 @@ public class rac extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
+        options.put("-showNotImplemented", "");
         options.put("-noPurityCheck",""); // System specs have a lot of purity errors, so turn this off for now
         options.put("-noInternalSpecs",   ""); // Faster with this option; should work either way
 //        options.put("-jmldebug",   "");
@@ -1327,7 +1328,7 @@ public class rac extends RacBase {
     
     /** Forall, exists quantifier */
     public void testForallQuantifier3() {
-        expectedErrors = 0;
+        expectedErrors = 2;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; ; i >= 0); \n "
@@ -1335,9 +1336,23 @@ public class rac extends RacBase {
                 +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-//                ,"/tt/A.java:3: warning: OpenJML is not able to execute this quantified expression for runtime assertion checking",25
-//                ,"/tt/A.java:4: warning: OpenJML is not able to execute this quantified expression for runtime assertion checking",26
-                ,"A true true"
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: Variable declaration containing JML quantifier expression",25
+                ,"/tt/A.java:4: Note: Not implemented for runtime assertion checking: Variable declaration containing JML quantifier expression",26
+                ,"A false false"
+                ,"END"
+        );
+    }
+    
+    /** Numof quantifier */
+    public void testCountQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost long n1 = (\\num_of int i; 0 <= i && i <= 5; true); \n "
+                +"//@ ghost long n2 = (\\num_of int i; 0 < i && i < 5; true); \n "
+                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 6 4"
                 ,"END"
         );
     }
@@ -1443,6 +1458,146 @@ public class rac extends RacBase {
         );
     }
     
+    /**  quantifier over short */
+    public void testShortQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost short n1 = (\\max int i; 0<=i && i<=5; (short)(i+10)); \n "
+                +"//@ ghost short n2 = (\\min int i; 0<=i && i<=5; (short)(i+10)); \n "
+                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 15 10"
+                ,"END"
+        );
+    }
+    
+    /**  quantifier over short */
+    public void testShortQuantifierB() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost short n1 = (\\max short i; 2<=i && i<=5; i); \n "
+                +"//@ ghost short n2 = (\\min short i; 2<=i && i<=5; i); \n "
+                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 5 2"
+                ,"END"
+        );
+    }
+    
+    /**  quantifier over byte */
+    public void testByteQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost byte n1 = (\\max int i; 2<=i && i<=5; (byte)i); \n "
+                +"//@ ghost byte n2 = (\\min int i; 2<=i && i<=5; (byte)i); \n "
+                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 5 2"
+                ,"END"
+        );
+    }
+    
+    /**  quantifier over byte */
+    public void testByteQuantifierB() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost byte n1 = (\\max byte i; 2<=i && i<=5; i); \n "
+                +"//@ ghost byte n2 = (\\min byte i; 2<=i && i<=5; i); \n "
+                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 5 2"
+                ,"END"
+        );
+    }
+    
+    /**  quantifier over long */
+    public void testLongQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost long n1 = (\\max int i; 0<=i && i<=5; (i+10L)); \n "
+                +"//@ ghost long n2 = (\\min int i; 0<=i && i<=5; (i+10L)); \n "
+                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 15 10"
+                ,"END"
+        );
+    }
+    
+    /**  quantifier over long */
+    public void testLongQuantifierB() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost long n1 = (\\max long i; 0<=i && i<=5; (i+10L)); \n "
+                +"//@ ghost long n2 = (\\min long i; 0<=i && i<=5; (i+10L)); \n "
+                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 15 10"
+                ,"END"
+        );
+    }
+    
+    /**  quantifier over double */
+    public void testDoubleQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost double n1 = (\\max int i; 0<=i && i<=5; (double)(i+10.5)); \n "
+                +"//@ ghost double n2 = (\\min int i; 0<=i && i<=5; (double)(i+10.5)); \n "
+                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 15.5 10.5"
+                ,"END"
+        );
+    }
+    
+    /**  quantifier over float */
+    public void testFloatQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost float n1 = (\\max int i; 0<=i && i<=5; (float)(i+10.5)); \n "
+                +"//@ ghost float n2 = (\\min int i; 0<=i && i<=5; (float)(i+10.5)); \n "
+                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 15.5 10.5"
+                ,"END"
+        );
+    }
+    
+    /**  quantifier over char */
+    public void testCharQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost char n1 = (\\max int i; 'a'<i && i<='q'; (char)i); \n "
+                +"//@ ghost char n2 = (\\min int i; 'a'<i && i<='q'; (char)i); \n "
+                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A q b"
+                ,"END"
+        );
+    }
+    
+    /**  quantifier over char */
+    public void testCharQuantifierB() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost char n1 = (\\max char i; 'a'<i && i<='q'; i); \n "
+                +"//@ ghost char n2 = (\\min char i; 'a'<i && i<='q'; i); \n "
+                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A q b"
+                ,"END"
+        );
+    }
+    
     /** Min quantifier */
     public void testMinQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
@@ -1499,7 +1654,7 @@ public class rac extends RacBase {
         );
     }
     
-    /** Min quantifier */
+    /** double quantifier */
     public void testMinDoubleQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
@@ -1509,6 +1664,41 @@ public class rac extends RacBase {
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 2.0 0.0"
+                ,"END"
+        );
+    }
+    
+    /** boolean quantifier */
+    public void testBooleanQuantifier() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +" boolean bb = true;"
+                +"//@ ghost int n = (\\sum boolean i; bb; (i?2:5)); \n "
+                +"//@ ghost int nn = (\\sum boolean i; !i; (i?2:5)); \n "
+                +"//@ ghost int nnn = (\\sum boolean i; i; (i?2:5)); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn + \" \" + nnn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 7 5 2"
+                ,"END"
+        );
+    }
+    
+    /** Object quantifier */
+    public void testObjectQuantifier() {
+        expectedNotes = 2;
+        helpTCX("tt.A","package tt; import java.util.*; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +" List<Object> list = new LinkedList<Object>();\n"
+                +"//@ ghost int n = (\\num_of Object o; list.contains(o); true); \n "
+                +" Object oo = new Object(); list.add(new Object());\n"
+                +"//@ ghost int nn = (\\num_of Object o; list.contains(o) && true; true); \n "
+                +" list.add(oo);\n"
+                +"//@ ghost int nnn = (\\num_of Object o; list.contains(o) && o == oo; true); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn + \" \" + nnn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 0 1 1"
                 ,"END"
         );
     }
@@ -1641,12 +1831,12 @@ public class rac extends RacBase {
                 +"int mb() { return 0; }\n"
                 +"}"
                 ,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom",5
-                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration expression",5
+                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration expression",15
                 ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration expression",5
                 ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration expression",9
                 ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration expression",9
-                ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",20
+                ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",24
                 ,"/tt/A.java:13: Note: Not implemented for runtime assertion checking: set statement containing \\duration expression",9
                 ,"/tt/A.java:14: Note: Not implemented for runtime assertion checking: debug statement containing \\duration expression",9
                 ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration expression",5
@@ -1657,8 +1847,8 @@ public class rac extends RacBase {
                 ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: duration clause",5
                 ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: working_space clause",5
                 ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",5
-                ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",16
-                ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",18
+                ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",20
+                ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",25
                 ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration expression",5
                 ,"END"
                 );

@@ -1573,6 +1573,7 @@ public class JmlTree {
     /** This class represents JML function invocations (e.g. \typeof, \old, ...);
      * note that the method expression may be null if the JML token is present. */
     public static class JmlMethodInvocation extends JCMethodInvocation {
+        public int startpos;
         public JmlToken token;
         public Label label = null; // FIXME - explain this
         
@@ -1585,7 +1586,8 @@ public class JmlTree {
         {
             super(List.<JCExpression>nil(),null,args);
             this.token = token;
-            this.pos = pos;
+            this.pos = pos; // preferred position
+            this.startpos = pos;
         }
         
         /** Creates a method invocation like a Java method invocation, except without type qualifiers */
@@ -1595,7 +1597,13 @@ public class JmlTree {
         {
             super(List.<JCExpression>nil(),method,args);
             this.token = null;
-            this.pos = pos;
+            this.pos = pos; // preferred position
+            this.startpos = pos;
+        }
+        
+        @Override
+        public int getStartPosition() {
+            return meth == null ? startpos : super.getStartPosition();
         }
         
         @Override

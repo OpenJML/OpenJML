@@ -44,7 +44,8 @@ public class Elemtype extends ExpressionExtension {
         } else {
             int pp = scanner.pos();
             List<JCExpression> args = parser.arguments();
-            JCExpression t = toP(parser.maker().at(pp).JmlMethodInvocation(jt, args));
+            JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(jt, args));
+            t.startpos = p;
             return parser.primarySuffix(t, typeArgs);
         }
 

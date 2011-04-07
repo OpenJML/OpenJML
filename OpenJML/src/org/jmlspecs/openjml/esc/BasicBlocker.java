@@ -1472,6 +1472,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 Type transType = trType(base.type); // Translated in case it is a type variable
                 addClassPredicate(transType);
                 JCIdent baseId = newIdentUse(base.sym,pos);
+                // FIXME - set startpos
                 JCExpression t = factory.at(pos).JmlMethodInvocation(JmlToken.BSTYPEOF,com.sun.tools.javac.util.List.<JCExpression>of(baseId));
                 t.type = syms.classType;
                 JCExpression lit = makeTypeLiteral(transType,pos);
@@ -2373,6 +2374,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 	spre = treeutils.makeBooleanLiteral(Position.NOPOS, true);
                 	// FIXME - fix position?
                 }
+                // FIXME - set startpos for JmlMethodInvocation
                 JCExpression nspre = factory.at(spre.getStartPosition()).JmlMethodInvocation(JmlToken.BSOLD,com.sun.tools.javac.util.List.of(spre));
                 copyEndPosition(nspre,spre);
                 nspre.type = spre.type;
@@ -3610,6 +3612,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     ListBuffer<JCExpression> lb = new ListBuffer<JCExpression>();
                     lb.append(arg);
                     result = factory.at(that.pos).JmlMethodInvocation(token,lb.toList());
+                    ((JmlMethodInvocation)result).startpos = that.startpos;
                     result.type = syms.classType;
                     toLogicalForm.put(that,result);
                     return;

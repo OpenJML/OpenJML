@@ -25,6 +25,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.jvm.ClassReader;
+import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -34,6 +35,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
+import com.sun.tools.javac.util.Options;
 
 /** This translator mutates an AST for runtime assertion checking.  The result
  * is passed on to the code-generation phase, so any changes to the AST must
@@ -1219,16 +1221,24 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         try {
             super.visitVarDef(that);
         } catch (JmlRacNotImplemented ex) {
-            notImplemented(that.pos(),"Variable declaration containing " + ex.location + " expression");
+            notImplemented(ex.pos,"Variable declaration containing " + ex.location + " expression");
             // Presuming it is just the initializer - attempt to carry on
+            // But the compiler checked for initialization, so we have to initialize the variable to something
             result = that;
-            that.init = null;
+            Type t = that.init.type;
+            if (that.init.type.tag < TypeTags.VOID) {
+                that.init = JmlTree.Maker.instance(context).Literal(that.init.type.tag,0);
+                that.init.type = t;
+            } else {
+                that.init = JmlTree.Maker.instance(context).Literal(TypeTags.BOT,null);
+                that.init.type = Symtab.instance(context).botType;
+            }
         }
 
         that = (JCVariableDecl)result;
         
         // Put in a check for initializing a non-null variable with a null value
-        if (that.init != null && !that.init.type.isPrimitive() && specs.isNonNull(that.sym,that.sym.enclClass())) {
+        if (that.init != null && that.init.type != null && !that.init.type.isPrimitive() && specs.isNonNull(that.sym,that.sym.enclClass())) {
             // FIXME _ fix this back at the declaration of $$values$...
             if (!that.getName().toString().startsWith("$$values$")) 
                 that.init = makeNullCheck(that.pos,that.init,NULL_INITIALIZATION + " " + that.getName(),
@@ -1328,7 +1338,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                             ((JmlTypeClauseExpr)c).expression = translate(((JmlTypeClauseExpr)c).expression);
                             currentClassInfo.translatedInitiallys.append((JmlTypeClauseExpr)c);
                         } catch (JmlRacNotImplemented ex) {
-                            notImplemented(c.pos(),c.token.internedName() + " clause containing " + ex.location + " expression");
+                            notImplemented(ex.pos,c.token.internedName() + " clause containing " + ex.location + " expression");
                         }
                     } else {
                         notImplemented(c.pos(),token.internedName());
@@ -1531,7 +1541,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 
     // FIXME - check this
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
-        if (that.loopSpecs.isEmpty()) {
+        if (that.loopSpecs == null || that.loopSpecs.isEmpty()) {
             super.visitDoLoop(that);
             return;
         }
@@ -1551,7 +1561,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 
     // FIXME - check this
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
-        if (that.loopSpecs.isEmpty()) {
+        if (that.loopSpecs == null || that.loopSpecs.isEmpty()) {
             super.visitForeachLoop(that);
             return;
         }
@@ -1571,7 +1581,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 
     // FIXME - check this
     public void visitJmlForLoop(JmlForLoop that) {
-        if (that.loopSpecs.isEmpty()) {
+        if (that.loopSpecs == null || that.loopSpecs.isEmpty()) {
             super.visitForLoop(that);
             return;
         }
@@ -1790,17 +1800,20 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         if (that.racexpr != null) {
             that.racexpr.accept(this);
             // result is set
-        } else if (that.op == JmlToken.BSFORALL) {
-            result = trueLit;
-        } else if (that.op == JmlToken.BSEXISTS) {
-            result = trueLit;
-        } else if (that.op == JmlToken.BSSUM) {
-            result = treeutils.makeLit(0,syms.intType,0);
-        } else if (that.op == JmlToken.BSNUMOF) {
-            result = treeutils.makeLit(0,syms.intType,0);
         } else {
-            Log.instance(context).error(that.pos(), "jml.unknown.construct",that.op.internedName(),"visitJmlQuantifiedExpr");
+            throw new JmlRacNotImplemented(that.pos,that.pos,"JML quantifier");
         }
+//        } else if (that.op == JmlToken.BSFORALL) {
+//            result = trueLit;
+//        } else if (that.op == JmlToken.BSEXISTS) {
+//            result = trueLit;
+//        } else if (that.op == JmlToken.BSSUM) {
+//            result = treeutils.makeLit(0,syms.intType,0);
+//        } else if (that.op == JmlToken.BSNUMOF) {
+//            result = treeutils.makeLit(0,syms.intType,0);
+//        } else {
+//            Log.instance(context).error(that.pos(), "jml.unknown.construct",that.op.internedName(),"visitJmlQuantifiedExpr");
+//        }
     }
 
 
@@ -2801,17 +2814,36 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 //    }
     
     public void notImplemented(DiagnosticPosition pos, String feature) {
-        // FIXME - control with an option
-        JavaFileObject prev = log.useSource(source);
-        log.note(pos,"jml.not.implemented.rac",feature);
-        log.useSource(prev);
+        if (Options.instance(context).isSet(JmlOption.SHOW_NOT_IMPLEMENTED.optionName())) {
+            JavaFileObject prev = log.useSource(source);
+            log.note(pos.getStartPosition(),"jml.not.implemented.rac",feature);
+            log.useSource(prev);
+        }
+    }
+
+    public void notImplemented(int start, int end, String feature) {
+        if (Options.instance(context).isSet(JmlOption.SHOW_NOT_IMPLEMENTED.optionName())) {
+            JavaFileObject prev = log.useSource(source);
+            log.note(new JmlScanner.DiagnosticPositionSE(start,end),"jml.not.implemented.rac",feature);
+            log.useSource(prev);
+        }
     }
 
 
-    
+    /** This exception class is used to exit out of walking an AST when a feature is
+     * encountered that is not implemented in RAC. It should be caught at some top-level
+     * where the non-implementation can be handled. For example, it is caught at the clause
+     * level so that the clause itself can be ignored (and appropriately reported). It should
+     * not be caught at nested expression levels unless the intention is to ignore sub-expressions.
+     */
     static public class JmlRacNotImplemented extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         DiagnosticPosition pos;
         String location;
+        protected JmlRacNotImplemented(int start, int end, String location) {
+            this.pos = new JmlScanner.DiagnosticPositionSE(start,end);
+            this.location = location;
+        }
         protected JmlRacNotImplemented(DiagnosticPosition pos, String location) {
             this.pos = pos;
             this.location = location;

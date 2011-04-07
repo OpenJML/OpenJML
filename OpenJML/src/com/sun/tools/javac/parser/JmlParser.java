@@ -27,6 +27,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
@@ -2314,6 +2315,7 @@ public class JmlParser extends EndPosParser {
                     return t;
 
                 case BSTYPELC:
+                    int start = S.pos();
                     S.nextToken();
                     if (S.token() != Token.LPAREN) {
                         return syntaxError(p, List.<JCTree> nil(),
@@ -2336,6 +2338,7 @@ public class JmlParser extends EndPosParser {
                             S.nextToken();
                         // FIXME - this should be a type literal
                         e = toP(jmlF.at(p).JmlMethodInvocation(jt, List.of(e)));
+                        ((JmlMethodInvocation)e).startpos = start;
                         return primarySuffix(e, null);
                     }
 
@@ -2348,6 +2351,7 @@ public class JmlParser extends EndPosParser {
                 case BSDURATION:
                 case BSISINITIALIZED:
                 case BSINVARIANTFOR:
+                    int startx = S.pos();
                     S.nextToken();
                     if (S.token() != Token.LPAREN) {
                         if (jt == BSMAX) {
@@ -2356,10 +2360,12 @@ public class JmlParser extends EndPosParser {
                         return syntaxError(p, null, "jml.args.required",
                                 jt.internedName());
                     } else {
-                        int pp = S._pos;
+                        int preferred = S.pos();
                         List<JCExpression> args = arguments();
-                        JCExpression te = toP(jmlF.at(pp).JmlMethodInvocation(
-                                jt, args));
+                        JCExpression te = jmlF.at(preferred).JmlMethodInvocation(
+                                jt, args);
+                        ((JmlMethodInvocation)te).startpos = startx;
+                        te = toP(te);
                         if (jt == BSREACH || jt == BSMAX) {
                             te = primaryTrailers(te, null);
                         }
