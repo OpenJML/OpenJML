@@ -244,7 +244,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return (JmlAttr)instance; // If the registered instance is only an Attr, something is catastrophically wrong
     }
     
-    ClassSymbol createClass(String fqName) {
+    protected ClassSymbol createClass(String fqName) {
         return classReader.enterClass(names.fromString(fqName));
     }
     
@@ -1087,7 +1087,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param pos the soursce position of the node (e.g. of the operator)
      * @return the constructed node
      */
-    JCExpression makeBinary(int optag, JCExpression lhs, JCExpression rhs, int pos) {
+    protected JCExpression makeBinary(int optag, JCExpression lhs, JCExpression rhs, int pos) {
         if (optag == JCTree.OR && lhs == falseLit) return rhs;
         if (optag == JCTree.AND && lhs == trueLit) return rhs;
         JCBinary tree = make.at(pos).Binary(optag, lhs, rhs);
@@ -1101,7 +1101,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param pos the source position at which to place the new node
      * @return the constructed node
      */
-    JCIdent makeIdent(JCVariableDecl decl, int pos) {
+    protected JCIdent makeIdent(JCVariableDecl decl, int pos) {
         JCIdent id = make.at(pos).Ident(decl.name);
         id.sym = decl.sym;
         id.type = decl.type;
@@ -1110,7 +1110,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     // TODO _ document
     protected JCVariableDecl makeVariableDecl(Name name, Type type, JCExpression init, int pos) {
-        JmlTree.Maker factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
+        JmlTree.Maker factory = JmlTree.Maker.instance(context);
         VarSymbol vsym = new VarSymbol(0, name, type, null);
         vsym.pos = pos;
         JCVariableDecl decl = factory.at(pos).VarDef(vsym,init);
@@ -1122,7 +1122,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      *  @param type       The literal's type.
      *  @param value      The literal's value.
      */
-    JCLiteral makeLit(Type type, Object value) {
+    protected JCLiteral makeLit(Type type, Object value) {
         return make.Literal(type.tag, value).setType(type);
     }
 
@@ -3128,8 +3128,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JmlTree.Maker F = factory;
 
             // Misc items
-            JCVariableDecl vardecl = q.decls.first();
-            JCExpression vartype = vardecl.vartype;
             Type restype = q.type;
             JCStatement rettrue = F.Return(F.Literal(TypeTags.BOOLEAN, 1));
             JCStatement retfalse = F.Return(F.Literal(TypeTags.BOOLEAN, 0));
@@ -3147,35 +3145,30 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JCVariableDecl initialDecl = null;
             JCVariableDecl valueDecl = null;
             JCVariableDecl firstDecl = null;
-            JCIf ifstatement;
+            JCStatement update;
             JCStatement retStat;
             JCExpression cond = newvalue;
             if (q.op == JmlToken.BSFORALL || q.op == JmlToken.BSEXISTS) { 
                 if (q.op == JmlToken.BSFORALL) cond = F.Unary(JCTree.NOT, cond); 
-                cond = F.Binary(JCTree.AND, newrange, cond);
-                ifstatement = F.If(cond, q.op == JmlToken.BSFORALL? retfalse : rettrue , null);
+                update = F.If(cond, q.op == JmlToken.BSFORALL? retfalse : rettrue , null);
                 retStat = F.Return(F.Literal(TypeTags.BOOLEAN,q.op == JmlToken.BSFORALL ? 1 : 0));
             } else if (q.op == JmlToken.BSNUMOF) {
-                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.TypeIdent(TypeTags.INT), F.Literal(TypeTags.INT,0));
-                cond = F.Binary(JCTree.AND, newrange, cond);
-                ifstatement = F.If(cond, F.Exec(F.Unary(JCTree.PREINC, F.Ident(initialDecl.name))) , null);
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.Type(restype), F.Literal(restype.tag,0));
+                update = F.If(cond, F.Exec(F.Unary(JCTree.PREINC, F.Ident(initialDecl.name))) , null);
                 retStat = F.Return(F.Ident(initialDecl.name));
             } else if (q.op == JmlToken.BSSUM) {
-                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_sum$$$"), F.TypeIdent(TypeTags.INT), F.Literal(TypeTags.INT,0));
-                ifstatement = F.If(newrange, F.Exec(F.Assignop(JCTree.PLUS_ASG, F.Ident(initialDecl.name), cond)) , null);
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_sum$$$"), F.Type(restype), F.Literal(restype.tag,0));
+                update = F.Exec(F.Assignop(JCTree.PLUS_ASG, F.Ident(initialDecl.name), cond));
                 retStat = F.Return(F.Ident(initialDecl.name));
             } else if (q.op == JmlToken.BSPRODUCT) {
-                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_prod$$$"), F.TypeIdent(TypeTags.INT), F.Literal(TypeTags.INT,1));
-                ifstatement = F.If(newrange, F.Exec(F.Assignop(JCTree.MUL_ASG, F.Ident(initialDecl.name), cond)) , null);
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_prod$$$"), F.Type(restype), F.Literal(restype.tag,1));
+                update = F.Exec(F.Assignop(JCTree.MUL_ASG, F.Ident(initialDecl.name), cond));
                 retStat = F.Return(F.Ident(initialDecl.name));
             } else if (q.op == JmlToken.BSMAX) {
                 firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_max$$$"), F.Type(restype), F.Literal(restype.tag,0));
                 valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
-                ifstatement = F.If(F.Binary(
-                                    JCTree.AND,
-                                    newrange, 
-                                    F.Binary(
+                update = F.If(F.Binary(
                                             JCTree.OR, 
                                             F.Binary(
                                                     JCTree.GT, 
@@ -3184,7 +3177,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                                     ), 
                                             F.Ident(firstDecl.name)
                                             )
-                                    ),
+                                   ,
                                    F.Block(0, 
                                            List.<JCStatement>of(
                                                    F.Exec(F.Assign(F.Ident(initialDecl.name), F.Ident(valueDecl.name))),
@@ -3197,9 +3190,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_min$$$"), F.Type(restype), F.Literal(restype.tag,0));
                 valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
-                ifstatement = F.If(F.Binary(
-                        JCTree.AND,
-                        newrange, 
+                update = F.If(
                         F.Binary(
                                 JCTree.OR, 
                                 F.Binary(
@@ -3209,7 +3200,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                         ), 
                                 F.Ident(firstDecl.name)
                                 )
-                        ),
+                        ,
                        F.Block(0, 
                                List.<JCStatement>of(
                                        F.Exec(F.Assign(F.Ident(initialDecl.name), F.Ident(valueDecl.name))),
@@ -3223,45 +3214,67 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             String s = restype.tag == TypeTags.INT ? "ValueInt" :
                 restype.tag == TypeTags.BOOLEAN ? "ValueBool" :
-                restype.tag == TypeTags.LONG ? "ValueLong" :
-                restype.tag == TypeTags.DOUBLE ? "ValueDouble" : "ValueInt";
+                    restype.tag == TypeTags.LONG ? "ValueLong" :
+                        restype.tag == TypeTags.DOUBLE ? "ValueDouble" : 
+                            restype.tag == TypeTags.FLOAT ? "ValueFloat" : 
+                                restype.tag == TypeTags.SHORT ? "ValueShort" : 
+                                    restype.tag == TypeTags.BYTE ? "ValueByte" : 
+                                        restype.tag == TypeTags.CHAR ? "ValueChar" : 
+                                            "ValueInt";
+            // FIXME - include bigint support, real?
             Name className = names.fromString(s);
             methodName = F.Select(methodName, className);
             
+            java.util.List<Bound> bounds = new java.util.LinkedList<Bound>();
+            JCExpression innerexpr = determineRacBounds(decls,newrange,bounds);
+            if (innerexpr == null) return;
+            JCStatement innerStatement = F.If(innerexpr, update, null);
             
-            // Some current assumptions
-            if (decls.length() != 1) return;
-            if (decls.head.type.tag != TypeTags.INT) return;
-
-            // presume int
-            JCBinary locomp = (JCBinary)((JCBinary)q.range).lhs;
-            JCBinary hicomp = (JCBinary)((JCBinary)q.range).rhs;
-            if (locomp.getTag() == JCTree.AND) {
-                hicomp = (JCBinary)locomp.rhs;
-                locomp = (JCBinary)locomp.lhs;
-            } else if (hicomp.getTag() == JCTree.AND) {
-                hicomp = (JCBinary)hicomp.lhs;
-            }
-            JCExpression lo = locomp.lhs;
-            JCExpression hi = hicomp.rhs;
-
-            Name loname = names.fromString("lo$$$");
-            Name hiname = names.fromString("hi$$$");
             Name argsname = names.fromString("args");
-            Name indexname = vardecl.name;
-
-            JCVariableDecl lodef = F.VarDef(F.Modifiers(Flags.FINAL),loname,vartype,null);
-            JCVariableDecl hidef = F.VarDef(F.Modifiers(Flags.FINAL),hiname,vartype,null);
             JCVariableDecl argsdef = F.VarDef(F.Modifiers(Flags.FINAL),argsname,
-                                            F.TypeArray(F.Type(syms.objectType)),null);
-            JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Ident(loname));
-            
-            JCStatement inc = F.Exec(F.Unary(JCTree.PREINC, F.Ident(indexname)));
+                    F.TypeArray(F.Type(syms.objectType)),null);
 
-            JCWhileLoop whilestatement =
-                    F.WhileLoop(
-                            F.Binary(hicomp.getTag(), F.Ident(indexname), F.Ident(hiname)),
-                            F.Block(0,List.<JCStatement>of(ifstatement,inc)));
+            for (Bound bound: bounds) {
+                JCExpression vartype = bound.decl.vartype;
+                Name indexname = bound.decl.name;
+                String var = indexname.toString();
+                if (bound.decl.type.tag == TypeTags.BOOLEAN) {
+                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Literal(TypeTags.BOOLEAN,0));//false
+                    JCStatement negate = F.Exec(F.Assign(F.Ident(indexname),F.Unary(JCTree.NOT, F.Ident(indexname))));
+                    JCDoWhileLoop dowhilestatement =
+                        F.DoLoop(
+                                F.Block(0,List.<JCStatement>of(innerStatement,negate)),
+                                F.Ident(indexname)
+                                );
+                    innerStatement = F.Block(0,List.<JCStatement>of(indexdef,dowhilestatement));
+                } else if (bound.decl.type.tag == TypeTags.CLASS) {
+                    // foreach (T i: selected) 
+                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Literal(TypeTags.BOOLEAN,0));//false
+                    JCEnhancedForLoop foreach =
+                        F.ForeachLoop(
+                                indexdef,
+                                bound.lo,
+                                innerStatement);
+                    innerStatement = foreach;
+                    
+                } else {
+                    Name loname = names.fromString("$$$lo_" + var);
+                    Name hiname = names.fromString("$$$hi_" + var);
+                    JCVariableDecl lodef = F.VarDef(F.Modifiers(0),loname,vartype,bound.lo);
+                    JCVariableDecl hidef = F.VarDef(F.Modifiers(0),hiname,vartype,bound.hi);
+                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Ident(loname));
+
+                    JCStatement inc = F.Exec(F.Unary(JCTree.PREINC, F.Ident(indexname)));
+
+                    JCWhileLoop whilestatement =
+                        F.WhileLoop(
+                                F.Binary(bound.hi_equal ? JCTree.LE : JCTree.LT, F.Ident(indexname), F.Ident(hiname)),
+                                F.Block(0,List.<JCStatement>of(innerStatement,inc)));
+                    innerStatement = bound.lo_equal ?
+                              F.Block(0,List.<JCStatement>of(lodef,hidef,indexdef,whilestatement))
+                            : F.Block(0,List.<JCStatement>of(lodef,hidef,indexdef,inc,whilestatement));
+                }
+            }
             
             
             JCMethodDecl methodDecl = F.MethodDef(
@@ -3269,11 +3282,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     names.fromString("value"),
                     F.Type(restype), // result type
                     List.<JCTypeParameter>nil(), // type parameters
-                    List.<JCVariableDecl>of(lodef,hidef,argsdef), // parameters
+                    List.<JCVariableDecl>of(argsdef), // parameters
                     List.<JCExpression>nil(), // thrown types
-                    initialDecl == null ? F.Block(0,List.<JCStatement>of(indexdef,whilestatement,retStat)) :
-                    valueDecl == null ?   F.Block(0,List.<JCStatement>of(initialDecl,indexdef,whilestatement,retStat)) :
-                                          F.Block(0,List.<JCStatement>of(firstDecl,initialDecl,valueDecl,indexdef,whilestatement,retStat)),
+                    initialDecl == null ? F.Block(0,List.<JCStatement>of(innerStatement,retStat)) :
+                    valueDecl == null ?   F.Block(0,List.<JCStatement>of(initialDecl,innerStatement,retStat)) :
+                                          F.Block(0,List.<JCStatement>of(firstDecl,initialDecl,valueDecl,innerStatement,retStat)),
                     null); // default value
             List<JCTree> defs = List.<JCTree>of(methodDecl);
             JCClassDecl classDecl = F.AnonymousClassDef(F.Modifiers(0), defs) ;
@@ -3284,16 +3297,85 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             List<JCExpression> values = args.toList();
             
             JCExpression newarray = F.NewArray(F.Type(syms.objectType),List.<JCExpression>nil(),values);
-            JCExpression call = F.Apply(List.<JCExpression>nil(),F.Select(anon,names.fromString("value")),List.<JCExpression>of(lo,hi,newarray));
+            JCExpression call = F.Apply(List.<JCExpression>nil(),F.Select(anon,names.fromString("value")),List.<JCExpression>of(newarray));
             q.racexpr = call;
-
         } catch (Exception e) {
             // Ignore exceptions - the finally block takes care of it
         } finally {
-//FIXME            if (q.racexpr == null) log.warning(q.pos(),"jml.quantified.expression.not.translatable");
+            // The error message is output in JmlRac
+            //if (q.racexpr == null && Options.instance(context).isSet(JmlOption.SHOW_NOT_IMPLEMENTED.optionName())) log.warning(q.pos(),"jml.quantified.expression.not.translatable");
         }
         return;
 
+    }
+    
+    protected static class Bound {
+        public JCVariableDecl decl;
+        public JCExpression lo;
+        public JCExpression hi;
+        boolean lo_equal;
+        boolean hi_equal;
+    }
+    
+    /** If appropriate bounds can be determined for all defined variables, the method returns the
+     * remaining expression and fills in the Bound list (first element is innermost loop); if appropriate
+     * bounds cannot be determined, the method returns null.
+     */
+    public JCExpression determineRacBounds(List<JCVariableDecl> decls, JCExpression range, java.util.List<Bound> bounds) {
+        // Some current assumptions
+        if (decls.length() != 1) return null;
+        if (decls.head.type.tag == TypeTags.DOUBLE) return null;
+        if (decls.head.type.tag == TypeTags.FLOAT) return null;
+        
+        if (decls.head.type.tag == TypeTags.BOOLEAN) {
+            Bound b = new Bound();
+            b.decl = decls.head;
+            b.lo = null;
+            b.hi = null;
+            bounds.add(0,b);
+            return range;
+        }
+        if (decls.head.type.tag == TypeTags.CLASS) {
+            if (range instanceof JCBinary && ((JCBinary)range).getTag() != JCTree.AND) return null;
+            JCExpression check = 
+                range instanceof JCBinary? ((JCBinary)range).lhs : range;
+            if (!(check instanceof JCMethodInvocation)) return null;
+            JCMethodInvocation mi = (JCMethodInvocation)check;
+            if (!(mi.meth instanceof JCFieldAccess)) return null;
+            JCFieldAccess fa = (JCFieldAccess)mi.meth;
+            if (!fa.name.toString().equals("contains") && !fa.name.toString().equals("has")) return null;
+            Bound b = new Bound();
+            b.decl = decls.head;
+            b.lo = fa.selected;
+            // FIXME - should check whether fa.selected is Iterable
+            b.hi = null;
+            bounds.add(0,b);
+            return check == range ? check : // FIXME - could be set to true 
+                ((JCBinary)range).rhs;
+        }
+
+
+        try {
+            // presume int
+            JCBinary locomp = (JCBinary)((JCBinary)range).lhs;
+            JCBinary hicomp = (JCBinary)((JCBinary)range).rhs;
+            if (locomp.getTag() == JCTree.AND) {
+                hicomp = (JCBinary)locomp.rhs;
+                locomp = (JCBinary)locomp.lhs;
+            } else if (hicomp.getTag() == JCTree.AND) {
+                hicomp = (JCBinary)hicomp.lhs;
+            }
+            Bound b = new Bound();
+            b.decl = decls.head;
+            b.lo = locomp.lhs;
+            b.hi = hicomp.rhs;
+            b.lo_equal = locomp.getTag() == JCTree.LE;
+            b.hi_equal = hicomp.getTag() == JCTree.LE;
+            bounds.add(0,b);
+        } catch (Exception e) {
+            return null;
+        }
+        return range;
     }
 
     
