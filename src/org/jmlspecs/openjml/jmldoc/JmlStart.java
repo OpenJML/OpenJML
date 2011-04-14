@@ -2,6 +2,7 @@ package org.jmlspecs.openjml.jmldoc;
 
 import org.jmlspecs.openjml.JmlOption;
 
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javadoc.Start;
 
 /**
@@ -17,8 +18,9 @@ public class JmlStart extends Start {
      * standard doclet.
      * @param name name of application
      */
-    public JmlStart(String name) {
+    public JmlStart(String name, Context context) {
         super(name,"org.jmlspecs.openjml.jmldoc.HtmlJmlDoclet");
+        this.context = context;
     }
     
     /** Overrides the usage method to add information about jmldoc-specific options */

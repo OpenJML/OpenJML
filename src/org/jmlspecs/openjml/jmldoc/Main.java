@@ -80,7 +80,9 @@ public class Main extends org.jmlspecs.openjml.Main {
                     new org.jmlspecs.openjml.jmldoc.ConfigurationJml();  // stores an instance in a static location
                     jmlContext = new Context();
                     jmlContext.put(IProgressReporter.class,new PrintProgressReporter(jmlContext,System.out));
-                    Start jdoc = new JmlStart("jmldoc");//,"org.jmlspecs.openjml.jmldoc.StandardJml");
+                    Context c = new Context();
+                    Start jdoc = new JmlStart("jmldoc",c);//,"org.jmlspecs.openjml.jmldoc.StandardJml");
+                    init(c);
                     registerTools(jmlContext,new PrintWriter(System.out,true),null);
                     Utils.instance(jmlContext).doc = true;
                     JavacFileManager.preRegister(jmlContext); // can't create it until Log has been set up - is it? FIXME
@@ -102,6 +104,10 @@ public class Main extends org.jmlspecs.openjml.Main {
             errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
         }
         return errorcode;
+    }
+    
+    public static void init(Context context) {
+        DocEnvJml.preRegister(context);
     }
     
     /** Internal method used to process and remove from the argument list any

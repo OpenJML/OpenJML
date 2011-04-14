@@ -67,7 +67,7 @@ public class compiler extends TestCase {
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
         if (print) System.out.println("ACTUAL ERR: " + errOutput);
         if (capture) try {
-            String tail = exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
+            String tail = "";
             if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + errOutput);
             String expected = output[0].replace("${PROJ}",projHome);
             if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);

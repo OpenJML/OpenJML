@@ -271,6 +271,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     //@ requires args != null && \nonnullelements(args);
     public static int execute(String[] args) {
+        if (args != null) for (String a: args) if ("-doc".equals(a)) return org.jmlspecs.openjml.jmldoc.Main.execute(args);
         return execute(args,false);  // The boolean: true - errors to stdErr, false - errors to stdOut
     }
 
@@ -317,7 +318,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     Main compiler = new Main(applicationName, writer, diagListener, (String[])null);
                     //lastRun = compiler;
                     errorcode = compiler.compile(args);
-                    if (errorcode != 0) writer.println("ENDING with exit code " + errorcode); // TODO - not sure we want this - but we'll need to change the tests
+                    if (errorcode != 0 && Options.instance(compiler.context).get(JmlOption.JMLTESTING.optionName()) != null) writer.println("ENDING with exit code " + errorcode); // TODO - not sure we want this - but we'll need to change the tests
                 }
             }
         } catch (Exception e) {

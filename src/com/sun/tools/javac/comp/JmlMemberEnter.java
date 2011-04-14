@@ -149,7 +149,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         int prevMode = modeOfFileBeingChecked;  // FIXME _ suspect this is not accurate
         modeOfFileBeingChecked = ((JmlCompilationUnit)env.toplevel).mode;
         if ((JmlCompilationUnit.isForBinary(modeOfFileBeingChecked)) && !JmlAttr.instance(context).isModel(tree.mods)
-                && !(tree.sym.toString().startsWith("$anonymous$"))) { 
+                && !(tree.sym.toString().startsWith("$anonymous$"))) { // FIXME - do something more robust than checking the name
             finishSpecClass((JmlClassDecl)tree,env); 
             modeOfFileBeingChecked = prevMode;
             currentClass = prevClass;
@@ -190,7 +190,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             }
             // FIXME to handle whole specs sequence
             if (jtree.specsDecls.size() == 0) {
-                log.noticeWriter.println("NO SPECS FOR " + jtree.sym.flatName());
+                // This happens for classes nested in org.jmlspecs.utils.Utils, since
+                // they have no specs within the corresponding .jml file - perhaps they should.  TODO
+                
+                // In the meantime, we do not complain.
+                //log.noticeWriter.println("NO SPECS FOR " + jtree.sym.flatName());
+                
                 // The class should at least have been given itself as specs
                 // We try to recover at this point by doing so
                 jtree.specsDecls.add(jtree);
@@ -209,7 +214,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             inSpecFile = specsDecl.sourcefile == null ? false : specsDecl.sourcefile.getKind() != Kind.SOURCE; // Could be a Java file in the specs sequence
             prevClass = currentClass;
             currentClass = jtree;
+            Env<AttrContext> prev = this.env;
+            this.env = env;
             checkTypeMatch(jtree,specsDecl);
+            this.env = prev;
+            
             // Misc checks on the Java declarations
             for (JCTree that: specsDecl.defs) {
                 if (that instanceof JCTree.JCBlock) {
@@ -1158,6 +1167,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 // FIXME - how can we tell where in which specs file the mismatched modifiers are
                 // SHould probably check this in the combining step
             }
+            // FIXME - this is needed, but it is using the environment from the java class, not the 
+            // spec class, and so it is using the import statements in the .java file, not those in the .jml file
+            attr.attribAnnotationTypes(specsClassDecl.mods.annotations, baseEnv(javaDecl,env));  // FIXME - this is done later; is it needed here?
+
             checkSameAnnotations(javaDecl.mods,specsClassDecl.mods);
             // FIXME - check that both are Enum; check that both are Annotation
         }
@@ -1720,7 +1733,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     if (!javasym.name.equals(vv.name)) {
                         log.error(vv.pos(),"jml.mismatched.param.names",i,
                                 match.enclClass().fullname + "." + match.toString(),
-                                vv.name, javasym.name);
+                                javasym.name, vv.name);
                     }
                 }
             }
@@ -1841,7 +1854,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         attr.attribAnnotationTypes(classDecl.mods.annotations, baseEnv(classDecl,env));  // FIXME - this is done later; is it needed here?
         
         { // Copied (and edited) from MemberEnter.java 
-            JmlAttr attr = (JmlAttr)JmlAttr.instance(context);
+            JmlAttr attr = JmlAttr.instance(context);
             ClassSymbol c = classSym;
             ClassType ct = (ClassType)c.type;
             Env<AttrContext> env = enter.typeEnvs.get(c);

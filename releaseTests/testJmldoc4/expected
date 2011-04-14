@@ -10,68 +10,122 @@ Compiling with JML
                         ^
   symbol:   class EM_public
   location: class Vis
-error: cannot find symbol
+..\testfiles\jmldoc3\data\Vis.java:85: cannot find symbol
+//@ model public static enum EM_public { EMA }
+                                         ^
   symbol:   class EM_public
-  location: class Vis.EM_public
+  location: class EM_public
 ..\testfiles\jmldoc3\data\Vis.java:87: cannot find symbol
 //@ model protected static enum EM_protected { EMB }
                            ^
   symbol:   class EM_protected
   location: class Vis
+..\testfiles\jmldoc3\data\Vis.java:87: cannot find symbol
+//@ model protected static enum EM_protected { EMB }
+                                               ^
+  symbol:   class EM_protected
+  location: class EM_protected
 ..\testfiles\jmldoc3\data\Vis.java:89: cannot find symbol
 //@ model static enum EM_package { EMC }
                  ^
   symbol:   class EM_package
   location: class Vis
+..\testfiles\jmldoc3\data\Vis.java:89: cannot find symbol
+//@ model static enum EM_package { EMC }
+                                   ^
+  symbol:   class EM_package
+  location: class EM_package
 ..\testfiles\jmldoc3\data\Vis.java:91: cannot find symbol
 //@ model private static enum EM_private { EMD }
                          ^
   symbol:   class EM_private
   location: class Vis
+..\testfiles\jmldoc3\data\Vis.java:91: cannot find symbol
+//@ model private static enum EM_private { EMD }
+                                           ^
+  symbol:   class EM_private
+  location: class EM_private
 ..\testfiles\jmldoc3\data\Vis.java:189: cannot find symbol
 //@ model public static enum EMs_public { EMAs }
                         ^
   symbol:   class EMs_public
   location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:189: cannot find symbol
+//@ model public static enum EMs_public { EMAs }
+                                          ^
+  symbol:   class EMs_public
+  location: class EMs_public
 ..\testfiles\jmldoc3\data\Vis.java:191: cannot find symbol
 //@ model protected static enum EMs_protected { EMBs }
                            ^
   symbol:   class EMs_protected
   location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:191: cannot find symbol
+//@ model protected static enum EMs_protected { EMBs }
+                                                ^
+  symbol:   class EMs_protected
+  location: class EMs_protected
 ..\testfiles\jmldoc3\data\Vis.java:193: cannot find symbol
 //@ model static enum EMs_package { EMCs }
                  ^
   symbol:   class EMs_package
   location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:193: cannot find symbol
+//@ model static enum EMs_package { EMCs }
+                                    ^
+  symbol:   class EMs_package
+  location: class EMs_package
 ..\testfiles\jmldoc3\data\Vis.java:195: cannot find symbol
 //@ model private static enum EMs_private { EMDs }
                          ^
   symbol:   class EMs_private
   location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:195: cannot find symbol
+//@ model private static enum EMs_private { EMDs }
+                                            ^
+  symbol:   class EMs_private
+  location: class EMs_private
 ..\testfiles\jmldoc3\data\tp\PVis.java:60: cannot find symbol
 //@ model public static enum EMp_public { EMAp }
                         ^
   symbol:   class EMp_public
-  location: class tp.PVis
-error: cannot find symbol
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:60: cannot find symbol
+//@ model public static enum EMp_public { EMAp }
+                                          ^
   symbol:   class EMp_public
-  location: class tp.PVis.EMp_public
+  location: class EMp_public
 ..\testfiles\jmldoc3\data\tp\PVis.java:62: cannot find symbol
 //@ model protected static enum EMp_protected { EMBp }
                            ^
   symbol:   class EMp_protected
-  location: class tp.PVis
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:62: cannot find symbol
+//@ model protected static enum EMp_protected { EMBp }
+                                                ^
+  symbol:   class EMp_protected
+  location: class EMp_protected
 ..\testfiles\jmldoc3\data\tp\PVis.java:64: cannot find symbol
 //@ model static enum EMp_package { EMCp }
                  ^
   symbol:   class EMp_package
-  location: class tp.PVis
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:64: cannot find symbol
+//@ model static enum EMp_package { EMCp }
+                                    ^
+  symbol:   class EMp_package
+  location: class EMp_package
 ..\testfiles\jmldoc3\data\tp\PVis.java:66: cannot find symbol
 //@ model private static enum EMp_private { EMDp }
                          ^
   symbol:   class EMp_private
-  location: class tp.PVis
-14 errors
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:66: cannot find symbol
+//@ model private static enum EMp_private { EMDp }
+                                            ^
+  symbol:   class EMp_private
+  location: class EMp_private
+24 errors
 Generating doc\Vis.html...
 Generating doc\Vis.A_protected.html...
 Generating doc\Vis.A_public.html...

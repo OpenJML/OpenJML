@@ -4918,18 +4918,26 @@ public class BasicBlocker extends JmlTreeScanner {
             result = e;
         } else {
             Type type = trType(that.getType().type);
-            JCExpression nnull = treeutils.makeEqObject(that.pos,e,nullLiteral);
-            JCExpression inst = makeNNInstanceof(e,e.pos,type,that.clazz.pos);
+            JCExpression nnull = treeutils.makeEqObject(that.pos,e,nullLiteral); // e == null
+            JCExpression inst = makeNNInstanceof(e,e.pos,type,that.clazz.pos); // \typeof(e) <: \type(type)
             inst = treeutils.makeBinary(that.pos,JCTree.OR,nnull,inst);
             JCExpression test = treeutils.makeJmlBinary(e.getStartPosition(),JmlToken.IMPLIES,condition,inst);
             addAssert(inSpecExpression?Label.UNDEFINED_BADCAST:Label.POSSIBLY_BADCAST,
                     trSpecExpr(test,null),that.pos,currentBlock.statements,that.pos,log.currentSourceFile(),that);
 
+            
             addClassPredicate(type);
             JCExpression lit = makeTypeLiteral(type,that.getType().getStartPosition());
-            if (true||inSpecExpression) lit = trSpecExpr(lit,null);
+            if (true||inSpecExpression) lit = trSpecExpr(lit,null); // FIXME = true?
             JCTypeCast now = factory.at(that.pos).TypeCast(lit,e);
             now.type = that.type;
+            
+            JCExpression nullcond = treeutils.makeJmlBinary(that.pos,JmlToken.IMPLIES, condition,
+                    treeutils.makeJmlBinary(that.pos, JmlToken.EQUIVALENCE, 
+                            treeutils.makeEqObject(that.pos,now,nullLiteral), 
+                            nnull));
+            addAssume(e.getStartPosition(),Label.IMPLICIT_ASSUME,nullcond);
+            
             result = now;
         }
         toLogicalForm.put(that,result);
@@ -4971,6 +4979,15 @@ public class BasicBlocker extends JmlTreeScanner {
         JCExpression e = treeutils.makeBinary(pos,JCTree.NE,objTrans,zeroLiteral);
         e = treeutils.makeJmlBinary(pos,JmlToken.IMPLIES,c,e);
         addAssert(label != null ? label : inSpecExpression?Label.UNDEFINED_DIV0:Label.POSSIBLY_DIV0,
+                e,pos,currentBlock.statements,pos,log.currentSourceFile(),precondition); // FIXME - positions?
+    }
+    
+    protected void checkForNegative(JCExpression objTrans, int pos, JCExpression precondition, Label label) {
+        //if (objTrans == thisId) return; // 'this' is always non-null
+        JCExpression c = precondition == trueLiteral ? condition : treeutils.makeBinary(condition.pos,JCTree.AND,condition,precondition);
+        JCExpression e = treeutils.makeBinary(pos,JCTree.GE,objTrans,zeroLiteral);
+        e = treeutils.makeJmlBinary(pos,JmlToken.IMPLIES,c,e);
+        addAssert(label != null ? label : inSpecExpression?Label.UNDEFINED_NEGATIVESIZE:Label.POSSIBLY_NEGATIVESIZE,
                 e,pos,currentBlock.statements,pos,log.currentSourceFile(),precondition); // FIXME - positions?
     }
     
@@ -5509,6 +5526,8 @@ public class BasicBlocker extends JmlTreeScanner {
             for (ind = 0; ind<ndims; ind++) {
 
                 JCExpression len = trExpr(that.dims.get(ind));
+                // FIXME - need the precondition
+                checkForNegative(len,len.pos,trueLiteral,Label.POSSIBLY_NEGATIVESIZE);
                 if (ind == 0) {
                     // <newarray>.length == <len>
                     e = new JmlBBFieldAccess(lengthIdent,newarray);

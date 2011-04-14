@@ -50,9 +50,8 @@ ${RTH} testJmlVersion "java -jar openjml.jar -version" || RES=$(($RES+1))
 ## Checks the help message (when there are no arguments)
 ${RTH} testJmlHelp "java -jar openjml.jar" || RES=$(($RES+1))
 
-## FIXME
 ## Checks the help message (when there is a -help option)
-##../releaseTests/releaseTestHelper testJmlHelp "java -jar openjml.jar -help" || RES=$(($RES+1))
+${RTH} testJmlHelp "java -jar openjml.jar -help" || RES=$(($RES+1))
 
 
 echo "public class A { /*@ invariant 0; */ }" > A.java
@@ -101,7 +100,7 @@ fi
 ${RTH} testOK4 "java -jar openjml.jar -specspath . B.java -noInternalSpecs" || RES=$(($RES+1))
 
 ## Checks a valid file with no internal runtime library - should fail to find annotations
-${RTH} testRuntime1 "java -jar openjml.jar C.java -classpath . -noPurityCheck -noInternalRuntime" || RES=$(($RES+1))
+${RTH} testRuntime1 "java -jar openjml.jar C.java -jmltesting -classpath . -noPurityCheck -noInternalRuntime" || RES=$(($RES+1))
 
 ## ANNOTATIONS might be an absolute or relative path.  We are currently in
 ## OpenJML/temp-release so if absolute we want ${ANNOTATIONS}, if relative we want ../${ANNOTATIONS}
@@ -124,34 +123,34 @@ ${RTH} testRuntime5 "java -jar openjml.jar D.java -noPurityCheck " || RES=$(($RE
 
 export SWITCHSLASH=YES
 ## Checks using no paths - fails to find super class, uses specs in java file
-${RTH} testPath1 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java " || RES=$(($RES+1))
+${RTH} testPath1 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java " || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testPath2 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data" || RES=$(($RES+1))
+${RTH} testPath2 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data" || RES=$(($RES+1))
 
 ## Checks using specs path - finds specs but not super class
-${RTH} testPath3 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -specspath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
+${RTH} testPath3 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -specspath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
 
 ## Checks using source path - finds specs but not super class
-${RTH} testPath4 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
+${RTH} testPath4 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
 
 ## Checks using source path (specs and java) - finds specs and super class
-${RTH} testPath5 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
+${RTH} testPath5 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
 
 ## Checks using source path (java then specs) - finds super class; uses jml file for specs even though it is later on the search path
-${RTH} testPath6 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath6 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using source path and specs path - uses specs file, finds super class
-${RTH} testPath7 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath7 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using class path (specs and java) - finds specs and super class
-${RTH} testPath8 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
+${RTH} testPath8 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
 
 ## Checks using class path (java then specs) - finds super class; uses jml file for specs
-${RTH} testPath9 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath9 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using class path and specs path - uses specs file, finds super class
-${RTH} testPath10 "java -jar openjml.jar -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath10 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 export SWITCHSLASH=
 
@@ -163,7 +162,7 @@ export SWITCHSLASH=
 
 ## Checks an invalid file
 export SWITCHSLASH=YES
-${RTH} testCheck1 "java -jar openjml.jar -noPurityCheck -specspath . A.java" || RES=$(($RES+1))
+${RTH} testCheck1 "java -jar openjml.jar -jmltesting -noPurityCheck -specspath . A.java" || RES=$(($RES+1))
 export SWITCHSLASH=
 
 if [[ "${COMSPEC}" == "" ]]; then
@@ -172,10 +171,8 @@ if [[ "${COMSPEC}" == "" ]]; then
     exit ${RES}
 fi
 
-export DIFFJMLDOC="diff -r "
 
-## Skipping jmodoc tests until they can be ported to 1.7 - FIXME
-if [[ "SKIP" == "" ]]; then
+export DIFFJMLDOC="diff -r "
 
 ### Note: package-tree.html is excluded because it is non-deterministic
 
@@ -216,6 +213,7 @@ rm -rf doc ../testfiles/jmldoc6/actual
 ${RTH} testJmldoc6 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc6/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc6/actual; }
 
+
 ## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc7/actual
 ${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck -dir ../testfiles/jmldoc3/data -dir ../testfiles/jmldoc3/data/tp" || { RES=$(($RES+1)); }
@@ -231,7 +229,11 @@ rm -rf doc ../testfiles/jmldoc7/actual
 ${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -noPurityCheck -dirs ../testfiles/jmldoc3/data ../testfiles/jmldoc3/data/tp  -notimestamp" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc7/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc7/actual; }
 
-fi
+
+
+##if [[ "SKIP" == "" ]]; then
+
+##fi
 
 if [[ ${RES} -eq 0 ]]; then echo "All tests succeeded"; else echo ${RES} tests failed  ; fi
 
