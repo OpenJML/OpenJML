@@ -433,7 +433,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         enclosingClassEnv = env;
 
         boolean prevIsInJmlDeclaration = isInJmlDeclaration;
-        isInJmlDeclaration = utils.isJML(c.flags());
+        isInJmlDeclaration = implementationAllowed || utils.isJML(c.flags());
         ((JmlCheck)chk).setInJml(isInJmlDeclaration);
         if (utils.jmldebug) log.noticeWriter.println("ATTRIBUTING-BODY " + c.fullname + " " + (isInJmlDeclaration?"inJML":"notInJML") + " WAS " + (prevIsInJmlDeclaration?"inJML":"notInJML"));
         JavaFileObject prev = log.useSource(((JmlCompilationUnit)env.toplevel).sourcefile);  // FIXME - no write for multiple source files
@@ -4254,13 +4254,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             that.typeSpecsCombined = that.typeSpecs = new JmlSpecs.TypeSpecs(that);
         }
         
-//        JmlMemberEnter me = ((JmlMemberEnter)JmlMemberEnter.instance(context));
-//        boolean prev = me.inModelTypeDeclaration;
-//        if (implementationAllowed) me.inModelTypeDeclaration = true;
+
+//        boolean prev = isInJmlDeclaration;
+//        if (implementationAllowed) isInJmlDeclaration = true;
 //        try {
             visitClassDef(that);
 //        } finally {
-//            me.inModelTypeDeclaration = prev;
+//            isInJmlDeclaration = prev;
 //        }
     }
 

@@ -99,7 +99,7 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
             ClassSymbol msym = mdecl.sym;
             if (!shouldDocumentModel(currentDocEnv,msym)) continue;
             if (!Utils.isInherited(msym,currentClassSym)) continue;
-            ClassDoc modelClass = new ClassDocImpl(((ClassDocImpl)classDoc).docenv(),msym,mdecl.docComment,mdecl,null);
+            ClassDoc modelClass = new ClassDocJml(((ClassDocImpl)classDoc).docenv(),msym,mdecl.docComment,mdecl,null);
             list.add(modelClass);
         } 
         
@@ -138,7 +138,7 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
             ClassSymbol msym = cdecl.sym;
             //if (!denv.shouldDocument(msym)) continue; // FIXME - explain why the line below instead of this one
             if (!denv.isVisible(msym)) continue;
-            ClassDoc modelClass = new ClassDocImpl(((ClassDocImpl)classDoc).docenv(),msym,cdecl.docComment,cdecl,null);
+            ClassDoc modelClass = new ClassDocJml(((ClassDocImpl)classDoc).docenv(),msym,cdecl.docComment,cdecl,null);
             list.add(modelClass);
         }
         if (list.isEmpty()) return;

@@ -115,7 +115,7 @@ public class DocEnv {
      *
      * @param context      Context for this javadoc instance.
      */
-    private DocEnv(Context context) {
+    protected DocEnv(Context context) { // DRC - changed from private to protected
         context.put(docEnvKey, this);
 
         messager = Messager.instance0(context);
@@ -546,12 +546,12 @@ public class DocEnv {
     }
 
 
-    private Map<ClassSymbol, ClassDocImpl> classMap =
+    protected Map<ClassSymbol, ClassDocImpl> classMap = // DRC - changed from private to protected
             new HashMap<ClassSymbol, ClassDocImpl>();
     /**
      * Return the ClassDoc (or a subtype) of this class symbol.
      */
-    ClassDocImpl getClassDoc(ClassSymbol clazz) {
+    protected ClassDocImpl getClassDoc(ClassSymbol clazz) { // DRC - changed from package to protected
         ClassDocImpl result = classMap.get(clazz);
         if (result != null) return result;
         if (isAnnotationType(clazz)) {
@@ -566,7 +566,7 @@ public class DocEnv {
     /**
      * Create the ClassDoc (or a subtype) for a class symbol.
      */
-    void makeClassDoc(ClassSymbol clazz, String docComment, JCClassDecl tree, Position.LineMap lineMap) {
+    protected void makeClassDoc(ClassSymbol clazz, String docComment, JCClassDecl tree, Position.LineMap lineMap) { // DRC - changed from package to protected
         ClassDocImpl result = classMap.get(clazz);
         if (result != null) {
             if (docComment != null) result.setRawCommentText(docComment);
@@ -581,11 +581,11 @@ public class DocEnv {
         classMap.put(clazz, result);
     }
 
-    private static boolean isAnnotationType(ClassSymbol clazz) {
+    protected static boolean isAnnotationType(ClassSymbol clazz) { // DRC - changed from private to protected
         return ClassDocImpl.isAnnotationType(clazz);
     }
 
-    private static boolean isAnnotationType(JCClassDecl tree) {
+    protected static boolean isAnnotationType(JCClassDecl tree) { // DRC - changed from private to protected
         return (tree.mods.flags & Flags.ANNOTATION) != 0;
     }
 

@@ -332,7 +332,7 @@ public class JmlParser extends EndPosParser {
                     inJmlDeclaration = true;
                     List<JCTree.JCStatement> dlist = super.blockStatements();
                     inJmlDeclaration = prevInJmlDeclaration;
-                    if (inJmlDeclaration) {
+                    if (inJmlDeclaration || inLocalOrAnonClass) {
                         // In this case we are in the body of a model method.
                         // Within the body we don't mark any local variables
                         // or classes as ghost or model (with setJML).
@@ -650,7 +650,7 @@ public class JmlParser extends EndPosParser {
                 // into super.classOrInterfaceBodyDeclaration
                 mods = null;
                 boolean startsInJml = S.jml;
-                if (startsInJml) {
+                if (startsInJml && !inLocalOrAnonClass) {
                     boolean prevInJmlDeclaration = inJmlDeclaration;
                     inJmlDeclaration = true;
                     List<JCTree> t = super.classOrInterfaceBodyDeclaration(
@@ -2566,10 +2566,13 @@ public class JmlParser extends EndPosParser {
             }
             return e;
         } else if (S.token() == LPAREN) {
+            boolean prev = inLocalOrAnonClass;
+            inLocalOrAnonClass = true;
             JCNewClass anon = classCreatorRest(newpos, null, typeArgs, t);
             if (anon.def != null)
                 filterTypeBodyDeclarations((JmlClassDecl) anon.def, context,
                         jmlF);
+            inLocalOrAnonClass = prev;
             return anon;
         } else if (S.token() == LBRACE) {
             return parseSetComprehension(t);
@@ -2580,6 +2583,8 @@ public class JmlParser extends EndPosParser {
             return toP(F.at(newpos).Erroneous(List.<JCTree> of(t)));
         }
     }
+    
+    protected boolean inLocalOrAnonClass = false;
 
     /**
      * Parses: <identifier> <expression>
@@ -2891,5 +2896,5 @@ public class JmlParser extends EndPosParser {
     // FIXME - review the remaining uses of log.error vs. jmlerror
     // FIXME - refactor to better match the grammar as a top-down parser
     // FIXME - refactor for extension
-    
+    // FIXME - need to sort out the various modes - isJml isJmlDeclaration isLocalOrAnonClass...
 }

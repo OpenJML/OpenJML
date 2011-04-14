@@ -3,7 +3,7 @@ package org.jmlspecs.utils;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-
+import org.jmlspecs.annotation.*; // Keep this to match the .jml file, for now
 
 /** 
  * This class contains utility methods used in internal translations for both
@@ -49,13 +49,14 @@ public class Utils {
      * @param v value to be tested 
      * @return the object which is the last argument
      */
+    //@ ensures \result == v;
     public static <T> T nonNullCheck(String message, T v) {
         if (v == null) assertionFailure(message);
         return v;
     }
     
-    /** Reports aJML assertion failure with the given message if the second argument is null
-     * @param message the message to report if the second argument is null
+    /** Reports aJML assertion failure with the given message if the second argument is false
+     * @param message the message to report if the second argument is false
      * @param b value to be tested 
      * @param v value to be returned 
      * @return the object which is the last argument

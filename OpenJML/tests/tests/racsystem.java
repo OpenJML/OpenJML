@@ -96,7 +96,7 @@ public class racsystem extends RacBase {
     /** Testing with getting a stack trace using showStack */
     public void testFile2d() {
         expectedRACExit = 0;
-        expectedNotes = 4;
+        expectedNotes = 2;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.showStack = true; \n"
                 +"m();\n"
@@ -156,7 +156,7 @@ public class racsystem extends RacBase {
 
     /** Not sure what this is supposed to test (TODO) */
     public void testHashCode() {
-        expectedNotes = 4;
+        expectedNotes = 2;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.showStack = true; \n"
                 +"int i = ( new Object().hashCode()); \n"
@@ -174,7 +174,7 @@ public class racsystem extends RacBase {
      * did work.
      */
     public void testMain() {
-        expectedNotes = 4;
+        expectedNotes = 2;
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String[] args) { \n"
                 +"  System.out.println(\"START\"); \n"
@@ -188,8 +188,7 @@ public class racsystem extends RacBase {
     }
     
     /** This tests a bug in which matching with no specs file to a main
-     * routine with String... did not work.  Here we use String[] which
-     * did work.
+     * routine with String... did not work.  
      */
     public void testMain2() {
         expectedNotes = 0;

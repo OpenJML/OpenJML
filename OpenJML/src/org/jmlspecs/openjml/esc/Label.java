@@ -148,6 +148,9 @@ public class Label {
     /** Used to designate an undefined pure expression because of a potential null reference */
     /*@ non_null*/ public final static Label UNDEFINED_NULL = new Label("UndefinedNullReference");
     
+    /** Used to designate an undefined pure expression because of a potential negative size */
+    /*@ non_null*/ public final static Label UNDEFINED_NEGATIVESIZE = new Label("UndefinedNegativeSize");
+    
     /** Used to designate an undefined pure expression because of a potential negative index */
     /*@ non_null*/ public final static Label UNDEFINED_NEGATIVEINDEX = new Label("UndefinedNegativeIndex");
     
@@ -171,6 +174,9 @@ public class Label {
     
     /** Used to designate a possible exception because of a potential initialization of non_null target with null value */
     /*@ non_null*/ public final static Label POSSIBLY_NULL_INITIALIZATION = new Label("PossiblyNullInitialization");
+    
+    /** Used to designate a possible exception because of a potential negative size */
+    /*@ non_null*/ public final static Label POSSIBLY_NEGATIVESIZE = new Label("PossiblyNegativeSize");
     
     /** Used to designate a possible exception because of a potential negative index */
     /*@ non_null*/ public final static Label POSSIBLY_NEGATIVEINDEX = new Label("PossiblyNegativeIndex");

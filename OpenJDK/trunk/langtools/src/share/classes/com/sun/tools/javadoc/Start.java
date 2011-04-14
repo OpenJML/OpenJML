@@ -52,6 +52,8 @@ import static com.sun.tools.javac.code.Flags.*;
  */
 public class Start {  // DRC - changed to public from package-default
     
+    protected Context context; // DRC - added to allow setting before methods are called
+    
     private final String defaultDocletClassName;
     private final ClassLoader docletParentClassLoader;
 
@@ -221,7 +223,7 @@ public class Start {  // DRC - changed to public from package-default
         ListBuffer<String> subPackages = new ListBuffer<String>();
         ListBuffer<String> excludedPackages = new ListBuffer<String>();
 
-        Context context = new Context();
+        Context context = this.context != null ? this.context : new Context(); // DRC - modified was: Context context = new Context();
         // Setup a new Messager, using the same initial parameters as the
         // existing Messager, except that this one will be able to use any
         // options that may be set up below.

@@ -550,10 +550,10 @@ public class JmlEnter extends Enter {
 
         JmlSpecs.TypeSpecs nspecs = null;
         if (tspecs.refiningSpecDecls != null && !tspecs.refiningSpecDecls.isEmpty()) {
-            nspecs = tspecs.refiningSpecDecls.get(0).typeSpecs;  // first or last?
+            nspecs = tspecs.refiningSpecDecls.get(0).typeSpecs;  // first or last - current usage there is only ever one
         } else if (specTypeDecl != null) {
-            log.noticeWriter.println("Unexpected lack of refining specs: " + specTypeDecl.name);
-            // DOes this happen?  DO we set refiningSpecDecls FIXME
+            // This can happen when we are using source files for runtime Utils classes, which probably happens
+            // only in test scenarios
             nspecs = specTypeDecl.typeSpecs;
         } else {
             String msg = "Unexpected control branch taken in JmlEnter.combineSpecs";

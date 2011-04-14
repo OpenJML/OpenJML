@@ -47,6 +47,7 @@ public enum JmlOption implements IOption {
     KEYS("-keys",true,"Identifiers for optional JML comments"),
     JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much (included in -verbose)")
         { public void process(Options options) { options.put(PROGRESS.name,""); }},
+    JMLTESTING("-jmltesting",false,"Only used to generate tracing information during testing"),
     PROGRESS("-progress",false,"Shows progress through compilation phases, includes -jmlverbose")
         { public void process(Options options) { options.put(JMLVERBOSE.name,""); }},
     //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove

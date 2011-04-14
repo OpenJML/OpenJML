@@ -479,7 +479,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         if (that.lhs instanceof JCFieldAccess) checkFieldAssignable((JCFieldAccess)that.lhs,that.pos);
         else if (that.lhs instanceof JCIdent) {
             Symbol sym = ((JCIdent)that.lhs).sym;
-            if (!sym.isLocal()) that.lhs = checkIdentAssignable((JCIdent)that.lhs,that.pos);
+// FIXME            if (!sym.isLocal()) that.lhs = checkIdentAssignable((JCIdent)that.lhs,that.pos);
         } else if (that.lhs instanceof JCArrayAccess) {
             checkArrayAssignable((JCArrayAccess)that.lhs,that.pos);
         }
@@ -1793,8 +1793,6 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         return;
     }
     
-//    (\\sum T i; a<i && i < b; q(i)) 
-//    new Object() { int hashCode() { T i = a; T s = 0; while (i <= b) { if (a<i && i<b) s += q(i); } return s; } 
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         if (that.racexpr != null) {
@@ -1803,17 +1801,6 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         } else {
             throw new JmlRacNotImplemented(that.pos,that.pos,"JML quantifier");
         }
-//        } else if (that.op == JmlToken.BSFORALL) {
-//            result = trueLit;
-//        } else if (that.op == JmlToken.BSEXISTS) {
-//            result = trueLit;
-//        } else if (that.op == JmlToken.BSSUM) {
-//            result = treeutils.makeLit(0,syms.intType,0);
-//        } else if (that.op == JmlToken.BSNUMOF) {
-//            result = treeutils.makeLit(0,syms.intType,0);
-//        } else {
-//            Log.instance(context).error(that.pos(), "jml.unknown.construct",that.op.internedName(),"visitJmlQuantifiedExpr");
-//        }
     }
 
 
@@ -1824,7 +1811,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         result = that;
         switch (that.token) {
             case BSRESULT:
-                JCIdent id = make.Ident(attr.resultName); // Why is this in attr?
+                JCIdent id = make.Ident(attr.resultName); // FIXME Why is this in attr?
                 id.sym = currentMethodInfo.resultDecl.sym;
                 id.type = currentMethodInfo.resultDecl.type;
                 result = id;
@@ -2675,11 +2662,10 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         }
     }
 
-    //
-//    public void visitJmlSetComprehension(JmlSetComprehension that) {
-//        // FIXME - implement
-//        
-//    }
+
+    public void visitJmlSetComprehension(JmlSetComprehension that) {
+        throw new JmlRacNotImplemented(that.pos(),"Set Comprehension");
+    }
 
     @Override
     public void visitReturn(JCReturn tree) {

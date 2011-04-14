@@ -402,8 +402,8 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod7() { 
         addMockFile("$A/A.jml","public class A { public void m(int j, Object k); }");
         helpTCF("A.java","public class A{ void m(boolean i) {}  public String m(int i, Object mm) { return null; } }",
-                "/$A/A.jml:1: Parameter 0 of method A.m(int,java.lang.Object) has name j in the .java file but i in the specification (they should be the same)",36,
-                "/$A/A.jml:1: Parameter 1 of method A.m(int,java.lang.Object) has name k in the .java file but mm in the specification (they should be the same)",46,
+                "/$A/A.jml:1: Parameter 0 of method A.m(int,java.lang.Object) has name i in the .java file but j in the specification (they should be the same)",36,
+                "/$A/A.jml:1: Parameter 1 of method A.m(int,java.lang.Object) has name mm in the .java file but k in the specification (they should be the same)",46,
                 "/$A/A.jml:1: The return types of method A.m(int,java.lang.Object) are different in the specification and java files: void vs. java.lang.String",25); 
     }
     
@@ -987,6 +987,13 @@ public class modifiers extends TCBase {
                 ,"/A.java:6: illegal combination of modifiers: public and private", 22
                 ,"/A.java:7: This JML modifier is not allowed for a invariant clause", 7
                 ,"/A.java:8: This JML modifier is not allowed for a invariant clause", 7
+                );
+    }
+     
+    @Test public void testInvariant2() {
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ int m() { return 0; } \n" +
+                "  //@ invariant (new A() { int m() { return 5; } }) != null; \n" +
+                "  void p() {} }"
                 );
     }
      

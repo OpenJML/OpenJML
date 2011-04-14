@@ -23,6 +23,11 @@ To Do:
 JmlFlow - implement flow checks for JML statements and expressions
 review notes below about OpenJDK
 
+Jmldoc:
+- nested model classes are written with fully qualified names and without links to their own pages
+- some errors on Enums in generating jmldoc* tests
+- model enums
+
 
 OpenJDK differences:
 [ 41 changed files: 12 visibility; 21 minor; 8 more major changes]

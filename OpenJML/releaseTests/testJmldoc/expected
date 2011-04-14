@@ -11,10 +11,20 @@ Compiling with JML
                            ^
   symbol:   class mconsts
   location: class AEnum
-error: cannot find symbol
+..\testfiles\jmldoc1\data\AEnum.java:21: cannot find symbol
+//@ model protected static enum mconsts { MEA, MEB }
+                                          ^
   symbol:   class mconsts
-  location: class AEnum.mconsts
-2 errors
+  location: class mconsts
+..\testfiles\jmldoc1\data\AEnum.java:21: cannot find symbol
+//@ model protected static enum mconsts { MEA, MEB }
+                                               ^
+  symbol:   class mconsts
+  location: class mconsts
+..\testfiles\jmldoc1\data\A.java:126: Pure methods may not assign to any fields: a
+//@ modifies a;
+             ^
+4 errors
 Generating doc\A.html...
 Generating doc\A.Annot.html...
 Generating doc\A.B.html...

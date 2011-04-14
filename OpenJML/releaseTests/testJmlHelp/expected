@@ -49,6 +49,7 @@ JML options:
   -nullableByDefault         Makes references nullable by default
   -keys                      Identifiers for optional JML comments
   -jmlverbose                Like -verbose, but only jml information and not as much (included in -verbose)
+  -jmltesting                Only used to generate tracing information during testing
   -progress                  Shows progress through compilation phases, includes -jmlverbose
   -trace                     ESC: Enables tracing of counterexamples
   -showbb                    ESC: Debug output of Basic Block program
@@ -60,4 +61,3 @@ JML options:
   -crossRefAssociatedInfo    >...
   -method                    The method name on which to run ESC
   -prover                    The prover to use to check verification conditions
-ENDING with exit code 2

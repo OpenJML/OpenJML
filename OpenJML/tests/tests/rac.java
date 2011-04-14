@@ -535,9 +535,31 @@ public class rac extends RacBase {
                 );
         
     }
+
+    // FIXME - want typeof to return a JML type with type parameter information
+    public void testTypeOf4() {
+        helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
+                "m(new LinkedList<String>()); m(new LinkedList<Integer>());  m(new HashSet<Integer>()); System.out.println(\"END\"); } \n" +
+                " //@ requires (\\lbl CLS \\typeof(i)) .equals( \\type(LinkedList<Integer>) ); \n" +
+                " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
+                "}"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.HashSet"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class java.util.HashSet"
+                ,"END"
+                );
+        
+    }
     
+
     public void testNonnullelement() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpTCX("tt.TestJava","package tt; public class TestJava { static int z = 0; public static void main(String[] args) { \n" +
                 "String[] s2null = new String[]{null,\"B\"}; \n" +
                 "String[] s2 = new String[]{\"A\",\"B\"}; \n" +
                 "m(new Object[]{}); \n" +
@@ -547,7 +569,7 @@ public class rac extends RacBase {
                 "//@ assert \\nonnullelements(s2,s2null); \n" +
                 "//@ assert \\nonnullelements(s2,s2); \n" +
                         // Tests shortcut evaluation
-                "//@ assert \\nonnullelements(s2null,new Integer[]{5/0}); \n" +
+                "//@ assert \\nonnullelements(s2null,new Integer[]{5/z}); \n" +
                 "System.out.println(\"END\"); } \n" +
                 " static void m(Object[] o) { \n" +
                 "//@ assert (\\lblpos ELEM \\nonnullelements(o)); \n" +
@@ -1686,7 +1708,7 @@ public class rac extends RacBase {
     
     /** Object quantifier */
     public void testObjectQuantifier() {
-        expectedNotes = 2;
+        expectedNotes = 0;
         helpTCX("tt.A","package tt; import java.util.*; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +" List<Object> list = new LinkedList<Object>();\n"
@@ -2008,6 +2030,26 @@ public class rac extends RacBase {
                 ,"/$A/tt/B.java:2: JML static invariant is false"
                 ,"/tt/A.java:2: JML static invariant is false" // checking invariant on main
                 );
+    }
+    
+    public void testAssignable() {
+        helpTCX("tt.A","package tt; public class A {\n"
+                +"  static int j,k;\n"
+                +"  //@ requires i > 0;\n"
+                +"  //@ modifies j;\n"
+                +"  //@ ensures j == i;\n"
+                +"  public static void setj(int i) {\n"
+                +"    k = i;\n"
+                +"  }\n"
+                +"  //@ ensures j == 1;\n"
+                +"  public static void main(String[] args) {\n"
+                +"    setj(0);\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/A.java:3: JML precondition is false"
+                ,"/tt/A.java:9: JML postcondition is false"
+        );
+
     }
 
 }

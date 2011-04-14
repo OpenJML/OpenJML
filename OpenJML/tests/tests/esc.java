@@ -1557,6 +1557,32 @@ public class esc extends EscBase {
         );
     }
 
+    // Tests that a cast is nonnull if the argument is
+    public void testNonNull5() {
+        options.put("-nullableByDefault",null);
+        //options.put("-showbb", "");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                +"  public Integer inst() { \n"
+                +"    @NonNull Object o = new Integer(0);\n"
+                +"    @NonNull Integer i = (Integer)o;\n"
+                +"    return i;\n"
+                +"  }\n"
+                +"  public Integer inst1() { \n"
+                +"    @Nullable Object o = new Integer(0);\n"
+                +"    @NonNull Integer i = (Integer)o;\n"
+                +"    return i;\n"
+                +"  }\n"
+                +"  public Integer inst2() { \n"
+                +"    @Nullable Object o = null;\n"
+                +"    @NonNull Integer i = (Integer)o;\n"
+                +"    return i;\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method inst2",22
+        );
+    }
+
     public void testNonNullParam() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
