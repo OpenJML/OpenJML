@@ -113,7 +113,7 @@ public abstract class AbstractDoclet {
      *
      * @see com.sun.javadoc.RootDoc
      */
-    private void startGeneration(RootDoc root) throws Exception {
+    protected void startGeneration(RootDoc root) throws Exception { // DRC - changed from private to protected
         if (root.classes().length == 0) {
             configuration.message.
                 error("doclet.No_Public_Classes_To_Document");

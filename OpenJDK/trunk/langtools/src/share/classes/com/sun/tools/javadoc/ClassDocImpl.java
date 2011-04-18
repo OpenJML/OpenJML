@@ -641,7 +641,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
      * Adds all inner classes of this class, and their
      * inner classes recursively, to the list l.
      */
-    void addAllClasses(ListBuffer<ClassDocImpl> l, boolean filtered) {
+    protected void addAllClasses(ListBuffer<ClassDocImpl> l, boolean filtered) { // DRC - changed from package to protected visibility
         try {
             if (isSynthetic()) return;
             // sometimes synthetic classes are not marked synthetic

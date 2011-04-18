@@ -1454,7 +1454,7 @@ public class BasicBlocker extends JmlTreeScanner {
             JCExpression pexpr = trSpecExpr(pre.expression,pre.source());
             if (expr == falseLiteral) expr = pexpr;
             else {
-                expr = treeutils.makeBinary(expr.pos,JCTree.OR,expr,pexpr);
+                expr = treeutils.makeBinary(expr.pos,JCTree.BITOR,expr,pexpr);
             }
         }
         expr.pos = expr.getStartPosition();
@@ -1541,7 +1541,7 @@ public class BasicBlocker extends JmlTreeScanner {
             pre = trSpecExpr(pre,req.source());
             if (expr == null) expr = pre;
             else {
-            	expr = treeutils.makeOr(p,expr,pre);
+            	expr = treeutils.makeBitOr(p,expr,pre);
             	copyEndPosition(expr,pre);
             }
         }
@@ -2342,7 +2342,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 }
                 if (pre == null) pre = spre;
                 else {
-                	pre = treeutils.makeBinary(pre.pos,JCTree.OR,pre,spre);
+                	pre = treeutils.makeBinary(pre.pos,JCTree.BITOR,pre,spre);
                 	copyEndPosition(pre,spre);
                 }
                 treetrans.popSource();
@@ -4045,7 +4045,7 @@ public class BasicBlocker extends JmlTreeScanner {
                         JCExpression pexpr = trSpecExpr(pre.expression,pre.source());
                         if (exprr == null) exprr = pexpr;
                         else {
-                            exprr = treeutils.makeBinary(exprr.pos,JCTree.OR,exprr,pexpr);
+                            exprr = treeutils.makeBinary(exprr.pos,JCTree.BITOR,exprr,pexpr);
                             copyEndPosition(exprr,pexpr);
                         }
                         source = pre.source();
@@ -4826,6 +4826,7 @@ public class BasicBlocker extends JmlTreeScanner {
         JCConditional now = factory.Conditional(cond,truepart,falsepart);
         now.type = that.type;
         now.pos = that.pos;
+        copyEndPosition(now,that);
         result = now;
         toLogicalForm.put(that,result);
     }
@@ -4846,6 +4847,7 @@ public class BasicBlocker extends JmlTreeScanner {
         JCUnary now = factory.at(that.pos).Unary(that.getTag(),arg);
         now.operator = that.operator;
         now.type = that.type;
+        copyEndPosition(now,that);
         result = now;
         toLogicalForm.put(that,result);
     }
@@ -4901,7 +4903,7 @@ public class BasicBlocker extends JmlTreeScanner {
         }
         result = treeutils.makeBinary(that.pos,that.getTag(),that.operator,left,right);
         if (that.getTag() == JCTree.DIV || that.getTag() == JCTree.MOD) {
-            JCExpression e = treeutils.makeBinary(that.rhs.pos,JCTree.NE,that.rhs,zeroLiteral);
+            JCExpression e = treeutils.makeBinary(that.rhs.pos,JCTree.NE,right,zeroLiteral);
             e = treeutils.makeJmlBinary(that.rhs.pos,JmlToken.IMPLIES,condition,e);
             addAssert(inSpecExpression?Label.UNDEFINED_DIV0:Label.POSSIBLY_DIV0,
                     e,that.pos,currentBlock.statements,that.pos,log.currentSourceFile(),that);
@@ -4940,6 +4942,7 @@ public class BasicBlocker extends JmlTreeScanner {
             
             result = now;
         }
+        copyEndPosition(result,that);
         toLogicalForm.put(that,result);
     }
     
@@ -4948,6 +4951,7 @@ public class BasicBlocker extends JmlTreeScanner {
         JCExpression e = trExpr(that.getExpression());
         Type t = trType(that.getType().type);
         result = makeInstanceof(e,e.pos,t,that.getType().pos);
+        copyEndPosition(result,that);
         toLogicalForm.put(that,result);
     }
     
@@ -6827,8 +6831,16 @@ public class BasicBlocker extends JmlTreeScanner {
                 } else {
                     log.error(pos,"esc.internal.error","Incorrect token type in traceBlockStatements: " + s.token.internedName());
                 }
-                if (label == Label.ASSIGNMENT || label == Label.EXPLICIT_ASSERT || label == Label.EXPLICIT_ASSUME
-                        || label == Label.PRECONDITION || label == Label.BRANCHT || label == Label.BRANCHE
+                if (label == Label.PRECONDITION) {
+//                    int sp = TreeInfo.getStartPos(expr);
+//                    int ep = TreeInfo.getEndPos(expr,log.currentSource().getEndPosTable());
+//                    int type = IProverResult.Span.NORMAL;
+//                    String result = values.get(expr.toString());
+//                    type = result == null ? IProverResult.Span.NORMAL : result.equals("true") ? IProverResult.Span.TRUE : result.equals("false") ? IProverResult.Span.FALSE : IProverResult.Span.NORMAL; 
+//                    if (sp >= 0 && ep >= sp) path.add(new IProverResult.Span(sp,ep,type)); // FIXME - don't think the end position is right for statements
+                    doLogicalSubExprs(expr);
+                } else if (label == Label.ASSIGNMENT || label == Label.EXPLICIT_ASSERT || label == Label.EXPLICIT_ASSUME
+                        || label == Label.BRANCHT || label == Label.BRANCHE
                         || label == Label.SWITCH_VALUE) { 
                     int sp = TreeInfo.getStartPos(s);
                     int ep = TreeInfo.getEndPos(s,log.currentSource().getEndPosTable());
@@ -6902,6 +6914,63 @@ public class BasicBlocker extends JmlTreeScanner {
                 if (sawFalseAssert) break;// Stop reporting the trace if we encounter a false assertion
             }
             return !sawFalseAssert;
+        }
+        
+        public int doExpr(JCExpression expr, boolean show) {
+            int sp = TreeInfo.getStartPos(expr);
+            int ep = TreeInfo.getEndPos(expr,log.currentSource().getEndPosTable());
+            int type = IProverResult.Span.NORMAL;
+            String result = values.get(expr.toString());
+            type = result == null ? IProverResult.Span.NORMAL : result.equals("true") ? IProverResult.Span.TRUE : result.equals("false") ? IProverResult.Span.FALSE : IProverResult.Span.NORMAL; 
+            if (show && sp >= 0 && ep >= sp) path.add(new IProverResult.Span(sp,ep,type)); // FIXME - don't think the end position is right for statements
+            return type;
+        }
+        
+        public int doLogicalSubExprs(JCExpression expr) {
+        	int r = -10;
+            if (expr instanceof JCBinary) {
+                int op = expr.getTag();
+                JCBinary bin = (JCBinary)expr;
+                if (op == JCTree.OR) {
+                    r = doLogicalSubExprs(bin.lhs);
+                	if (r != IProverResult.Span.TRUE) {
+                        r = doLogicalSubExprs(bin.rhs);
+                	}
+                } else if (op == JCTree.AND) {
+                    r = doLogicalSubExprs(bin.lhs);
+                    if (r != IProverResult.Span.FALSE) {
+                        r = doLogicalSubExprs(bin.rhs);
+                    }
+                } else if (op == JCTree.BITOR) {
+                    r = doLogicalSubExprs(bin.lhs);
+                    int rr = doLogicalSubExprs(bin.rhs);
+                    r = (rr==IProverResult.Span.TRUE) ? rr : r;
+                } else {
+                	r = doExpr(expr,true);
+                }
+            } else if (expr instanceof JmlBinary) {
+                JmlBinary bin = (JmlBinary)expr;
+                JmlToken op = bin.op;
+                if (op == JmlToken.IMPLIES) {
+                    r = doLogicalSubExprs(bin.lhs);
+                	if (r != IProverResult.Span.FALSE) {
+                        r = doLogicalSubExprs(bin.rhs);
+                	}
+                } else if (op == JmlToken.REVERSE_IMPLIES) {
+                    r = doLogicalSubExprs(bin.lhs);
+                	if (r != IProverResult.Span.TRUE) {
+                        r = doLogicalSubExprs(bin.rhs);
+                	}
+                } else {
+                    r = doLogicalSubExprs(bin.rhs);
+                    r = doExpr(expr,false);
+                }
+            } else {
+                r = doExpr(expr,true);
+            }
+
+            // FIXME - also do NOT, conditional expression, boolean ==, EQUIVALENCE, INEQUIVALENCE
+            return r;
         }
         
         public JCExpression findDefinition(Name name) {
@@ -7000,6 +7069,9 @@ public class BasicBlocker extends JmlTreeScanner {
                 for (JCBinary bin: exprs) {
                     JCIdent id = (JCIdent)bin.lhs;
                     String value = nce.get(id.toString());
+                    if (value != null && id.type.tag == TypeTags.CHAR) {
+                    	value = ((Character)(char)Integer.parseInt(value)).toString() + " (" + value + ")";
+                    }
                     if (value == null) value = "?";
                     w.append("                                " + value + "\t = " + bin.rhs + "\n");
                     values.put(bin.rhs.toString(), value);
@@ -7038,9 +7110,14 @@ public class BasicBlocker extends JmlTreeScanner {
                     if (value == null) value = "?";
                     out.add(value);
                     if (values != null) {
-                        String e = exprlist[k++].toString();
+                        JCExpression ee = exprlist[k];
+                        String e = ee.toString();
+                        if (ee.type.tag == TypeTags.CHAR) {
+                            e = ((Character)(char)Integer.parseInt(e)).toString();
+                        }
                         values.put(e,value);
                         //System.out.println("MAPPING: " + e + " " + value);
+                        k++; // FIXME - increment inside or outside the if statement
                     }
                 }
                 prover.reassertCounterexample(nce);

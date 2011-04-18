@@ -40,6 +40,17 @@ public class HtmlJmlDoclet extends HtmlDoclet {
         return doclet.start(doclet, root);
     }
 
+    
+    protected void startGeneration(RootDoc root) throws Exception { // DRC - changed from private to protected
+        if (root.classes().length == 0) {
+            configuration.message.
+                error("doclet.No_Public_Classes_To_Document");
+            return;
+        }
+        //doJmlParsing(root);
+        super.startGeneration(root);
+    }
+
     /** Overrides in order to declare this a valid doclet, since the parent class
      * only likes itself.
      */

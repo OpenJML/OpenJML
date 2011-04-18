@@ -2337,7 +2337,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                         spre.pos = spc.pos;
                         JCExpressionStatement ex = make.at(spre.pos).Exec(spre);
                         preconditionEvaluations.append(ex);
-                        pre = treeutils.makeOr(pre.pos,pre,treeutils.makeIdent(spc.pos,vd.sym));
+                        pre = treeutils.makeBitOr(pre.pos,pre,treeutils.makeIdent(spc.pos,vd.sym));
                     }
                     if (num > 1) position = position(source,tree.pos);
                     if (pre != trueLit  &&

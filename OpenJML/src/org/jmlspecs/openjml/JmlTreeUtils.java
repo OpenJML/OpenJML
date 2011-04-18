@@ -129,6 +129,7 @@ public class JmlTreeUtils {
     protected JCIdent utilsClassIdent;
     protected Symbol andSymbol;
     protected Symbol orSymbol;
+    protected Symbol bitorSymbol;
     protected Symbol notSymbol;
     protected Symbol objecteqSymbol;
     protected Symbol objectneSymbol;
@@ -179,6 +180,7 @@ public class JmlTreeUtils {
         utilsClassIdent.sym = utilsClassIdent.type.tsym;
         andSymbol = findOpSymbol("&&",syms.booleanType);
         orSymbol = findOpSymbol("||",syms.booleanType);
+        bitorSymbol = findOpSymbol("|",syms.booleanType);
         notSymbol = findOpSymbol("!",syms.booleanType);
         objecteqSymbol = findOpSymbol("==",syms.objectType);
         objectneSymbol = findOpSymbol("!=",syms.objectType);
@@ -467,6 +469,11 @@ public class JmlTreeUtils {
     /** Makes the AST for a short-circuit boolean OR expression */
     public JCExpression makeOr(int pos, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,JCTree.OR,orSymbol,lhs,rhs);
+    }
+
+    /** Makes the AST for a non-short-circuit boolean OR expression */
+    public JCExpression makeBitOr(int pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.BITOR,bitorSymbol,lhs,rhs);
     }
 
     /** Makes the AST for the Java equivalent of a JML IMPLIES expression */
