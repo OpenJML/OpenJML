@@ -2455,7 +2455,7 @@ public class JmlParser extends EndPosParser {
                     return toP(jmlF.at(p).Erroneous());
             }
         }
-        return super.term3();
+        return toP(super.term3());
     }
 
     protected boolean inCreator = false;

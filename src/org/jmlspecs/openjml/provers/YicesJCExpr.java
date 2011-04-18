@@ -426,9 +426,11 @@ public class YicesJCExpr extends JmlTreeScanner {
                 result.append("= ");
                 break;
             case JCTree.AND:
+            case JCTree.BITAND: // FIXME - need different op for integer operands
                 result.append("and ");
                 break;
             case JCTree.OR:
+            case JCTree.BITOR: // FIXME - need different op for integer operands
                 result.append("or ");
                 break;
             case JCTree.PLUS:
@@ -493,9 +495,7 @@ public class YicesJCExpr extends JmlTreeScanner {
             case JCTree.GT:
                 result.append("> ");
                 break;
-            case JCTree.BITAND:
             case JCTree.BITXOR:
-            case JCTree.BITOR:
             case JCTree.SL:
             case JCTree.SR:
             case JCTree.USR:
