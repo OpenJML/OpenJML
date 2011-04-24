@@ -299,8 +299,10 @@ public class JmlParser extends EndPosParser {
             // the right brace that closes the block.
             if (S._pos == pos) break;
             pos = S._pos;
-            mods = modifiersOpt(); // read any additional modifiers (e.g.
+            if (S.token() != Token.SYNCHRONIZED) {
+                mods = modifiersOpt(); // read any additional modifiers (e.g.
                                    // JML ones)
+            }
             JmlToken jt = S.jmlToken();
             if (jt != null) {
 

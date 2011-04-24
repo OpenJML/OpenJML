@@ -2051,5 +2051,12 @@ public class rac extends RacBase {
         );
 
     }
+    
+    public void testSynchronized() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i; \n synchronized (this) { i = 0; } \n}}"
+                );
+    }
+
+
 
 }

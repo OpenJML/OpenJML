@@ -86,7 +86,7 @@ public class compiler extends TestCase {
                     assertEquals("The standard out is wrong",expected+tail,actual);
                 } else if (all == -1) {
                     assertEquals("The standard out is wrong",expected,actual);
-                } else if (all == 2 && actualOutput.indexOf(expected) == -1) {
+                } else if (all == 1 && actualOutput.indexOf(expected) == -1) {
                     fail("Output does not end with: " + expected + eol + "Instead is: " + actual);
                 }
             }
@@ -108,7 +108,7 @@ public class compiler extends TestCase {
      * produce the help message. */
     @Test
     public void testNoArgs() throws Exception {
-        String failureMessage = "Usage: jml <options> <source files>" + eol +
+        String failureMessage = "Usage: openjml <options> <source files>" + eol +
                                 "where possible options include:" + eol;
         helper(new String[]{},2,1,"",failureMessage);
     }
@@ -361,6 +361,49 @@ public class compiler extends TestCase {
                           },1,1
                           ,""
                           ,"testfiles/testSuperRead/B.jml:3: This JML modifier is not allowed for a type declaration"
+                          );
+    }
+    
+    /** Tests the -java option */
+    @Test
+    public void testJavaOption() {
+        helper(new String[]
+                          { "-java", 
+                            "-classpath","testfiles",
+                            "testfiles/testSpecErrors/A.java"
+                          },0,0
+                          ,""
+                          ,"");
+        
+    }
+    
+    /** Tests the -java option must be first*/
+    @Test
+    public void testJavaOption2() {
+        helper(new String[]
+                          {  
+                            "-classpath","testfiles",
+                            "-java",
+                            "-noPurityCheck",
+                            "testfiles/testNoErrors/A.java"
+                          },0,1
+                          ,""
+                          ,"The -java option is ignored unless it is the first command-line argument"
+                          );
+        
+    }
+    
+    /** Tests that we get errors without the -java option */
+    @Test
+    public void testJavaOption1() {
+        print = true;
+        helper(new String[]
+                          { "-classpath","testfiles/testSpecErrors", 
+                            "-noPurityCheck",
+                            "testfiles/testSpecErrors/A.java"
+                          },1,0
+                          ,""
+                          ,"testfiles/testSpecErrors/A.jml:4: incompatible types\r\n    //@ ghost int i = true; // Error to provoke a message\r\n                      ^\r\n  required: int\r\n  found:    boolean\r\n1 error\r\n"
                           );
     }
     

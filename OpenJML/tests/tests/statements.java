@@ -197,6 +197,26 @@ public class statements extends TCBase {
                 );
     }
 
+    public void testSynchronized1() {
+        helpTCF("A.java"," class A { Object o; void m() { int i; \n synchronized (this) { i = 0; } \n}}"
+                );
+    }
+
+    public void testSynchronized2() {
+        helpTCF("A.java"," class A { Object o; void m() { int i; \n synchronized (this) { i = 0; } \n}}"
+                );
+    }
+
+    public void testSynchronized3() {
+        helpTCF("A.java"," class A { Object o; synchronized void m() { int i; \n  { i = 0; } \n}}"
+                );
+    }
+
+    public void testSynchronized() {
+        helpTCF("A.java"," public class A { void m() { \n synchronized (this) { ; } \n}}"
+                );
+    }
+
 
 // TODO - need tests for hence_by; test for local specification cases; tests for pure methods in expressions
 }
