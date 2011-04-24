@@ -302,14 +302,16 @@ public class Main extends com.sun.tools.javac.main.Main {
                 log.error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
                 errorcode = com.sun.tools.javac.main.Main.EXIT_CMDERR; // 2
             } else {
-                // We have to interpret the -useJavaCompiler option before we start
+                // We have to interpret the -java option before we start
                 // the compiler (which does the normal option processing).
                 // Since this is rare, we'll require that it be the first
                 // option.
                 boolean useJavaCompiler = args.length > 0 &&
                         args[0].equals(JmlOption.USEJAVACOMPILER.optionName());
                 if (useJavaCompiler) {
-                    errorcode = com.sun.tools.javac.Main.compile(args);
+                    String[] newargs = new String[args.length-1];
+                    System.arraycopy(args,1,newargs,0,newargs.length);
+                    errorcode = com.sun.tools.javac.Main.compile(newargs);
                 } else if (args.length > 0 && args[0].equals(interactiveOption)) {
                     // interactive mode
                     errorcode = new org.jmlspecs.openjml.Interactive().run(args);
@@ -525,6 +527,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (options.get(JmlOption.JMLVERBOSE.optionName()) != null) {
             // ??? FIXME Utils.jmlverbose = true;
             options.put(JmlOption.PROGRESS.optionName(),"");
+        }
+        
+        if (options.get(JmlOption.USEJAVACOMPILER.optionName()) != null) {
+            Log.instance(context).noticeWriter.println("The -java option is ignored unless it is the first command-line argument"); // FIXME - change to a warning
         }
         
         if (options.get(JmlOption.PROGRESS.optionName()) != null) {
