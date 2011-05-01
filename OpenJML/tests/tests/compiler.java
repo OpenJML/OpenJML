@@ -396,7 +396,6 @@ public class compiler extends TestCase {
     /** Tests that we get errors without the -java option */
     @Test
     public void testJavaOption1() {
-        print = true;
         helper(new String[]
                           { "-classpath","testfiles/testSpecErrors", 
                             "-noPurityCheck",
