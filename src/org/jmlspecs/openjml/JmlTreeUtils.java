@@ -9,6 +9,8 @@ import java.util.Map;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -442,6 +444,16 @@ public class JmlTreeUtils {
         tree.operator = null; // FIXME - add in appropriate operator based on type?
         tree.type = syms.booleanType;
         return tree;
+    }
+    
+    public JmlStatementExpr makeAssume(int pos, Label label, JCExpression expr) {
+        JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME, label, expr);
+        return e;
+    }
+
+    public JmlStatementExpr makeAssert(int pos, Label label, JCExpression expr) {
+        JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlToken.ASSERT, label, expr);
+        return e;
     }
 
     /** Returns the 'larger' of the two types as numeric types are compared */

@@ -1708,7 +1708,7 @@ public class rac extends RacBase {
     
     /** Object quantifier */
     public void testObjectQuantifier() {
-        expectedNotes = 0;
+        expectedNotes = 2;
         helpTCX("tt.A","package tt; import java.util.*; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +" List<Object> list = new LinkedList<Object>();\n"

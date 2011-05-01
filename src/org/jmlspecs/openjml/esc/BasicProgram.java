@@ -69,17 +69,33 @@ public class BasicProgram {
     //@ non_null
     protected JCIdent startId;
     
+    /** This class represents a definition
+     * <UL>
+     * <LI>id: the identifier being defined
+     * <LI>value: the defined value for the identifier
+     * <LI>expr: an expression that is (id == value)
+     * <LI>pos: a character position for the definition
+     * </UL>
+     */
     static public class Definition {
+        /** The character position for the definition */
     	public int pos;
+    	/** The identifier being defined */
         public JCIdent id;
+        /** The defined value of the identifier */
         public JCExpression value;
-        public JCExpression expr;
+        /** An expression representing (id == value) */
+        private JCExpression expr;
+        
+        /** Constructor for a new definition */
         public Definition(int pos, JCIdent id, JCExpression value) {
         	this.pos = pos;
             this.id = id;
             this.value = value;
             this.expr = null;
         }
+        
+        /** Returns the lazily created equalilty for the definition */
         public JCExpression expr(Context context) {
             if (expr != null) return expr;
             expr = JmlTree.Maker.instance(context).Binary(JCTree.EQ,id,value);
