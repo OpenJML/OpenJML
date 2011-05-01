@@ -396,35 +396,35 @@ public class Main extends com.sun.tools.javac.main.Main {
         while (i<args.length) {
             i = processJmlArg(args,i,options,newargs,files);
         }
-        newargs.addAll(computeDependencyClosure(files));
-        
+        //newargs.addAll(computeDependencyClosure(files));
+        newargs.addAll(files);
         return newargs.toArray(new String[newargs.size()]);
     }
     
     public java.util.List<String> computeDependencyClosure(java.util.List<String> files) {
         // fill out dependencies
         java.util.List<String> newargs = new ArrayList<String>();
-        Dependencies d = Dependencies.instance(context);
-        Set<JavaFileObject> done = new HashSet<JavaFileObject>();
-        java.util.List<JavaFileObject> todo = new LinkedList<JavaFileObject>();
-        JavacFileManager jfm = (JavacFileManager)context.get(JavaFileManager.class);;
+//        Dependencies d = Dependencies.instance(context);
+        Set<String> done = new HashSet<String>();
+        java.util.List<String> todo = new LinkedList<String>();
+        //JavacFileManager jfm = (JavacFileManager)context.get(JavaFileManager.class);; // FIXME - this causes Lint to be initialized before the Java options are registered
         for (String s: files) {
             // FIXME - don't hardcode this list of suffixes here
             if (Utils.instance(context).hasValidSuffix(s)) {
-                todo.add(jfm.getFileForInput(s));
+                todo.add(s);
             }
         }
         while (!todo.isEmpty()) {
-            JavaFileObject o = todo.remove(0);
+            String o = todo.remove(0);
             if (done.contains(o)) continue;
             done.add(o);
 //            if (o.getName().endsWith(".java")) newargs.add("C:" + o.toUri().getPath()); // FIXME - a hack to get the full path
-            if (o.getName().endsWith(".java")) newargs.add(o.toUri().getPath()); // FIXME FOR REAL - this needs to be made sane
-            Set<JavaFileObject> affected = d.getAffected(o);
-            if (affected != null) {
-                todo.addAll(affected);
-                //Log.instance(context).noticeWriter.println("Adding " + affected.size() + " dependencies for " + o);
-            }
+            if (o.endsWith(".java")) newargs.add(o); // FIXME FOR REAL - this needs to be made sane
+//            Set<JavaFileObject> affected = d.getAffected(o);
+//            if (affected != null) {
+//                todo.addAll(affected);
+//                //Log.instance(context).noticeWriter.println("Adding " + affected.size() + " dependencies for " + o);
+//            }
         }
         return newargs;
     }
@@ -477,6 +477,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     i++;
                 }
             }
+            Utils utils = Utils.instance(context);
             while (!todo.isEmpty()) {
                 File file = todo.remove(0);
                 if (file.isDirectory()) {
@@ -485,8 +486,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                 } else if (!file.isFile()) {
                     out.println("Not a file or directory: " + file); // FIXME - make a warning?
-//                } else if (file.getName().endsWith(".java")) {
-//                    remainingArgs.add(file.toString());
+                } else if (!utils.hasValidSuffix(file.getName())) {
+                    //remainingArgs.add(file.toString());
                 } else {
                     files.add(file.toString());
                 }
@@ -572,6 +573,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     public List<File> processArgs(String[] args) {
         args = processJmlArgs(args,Options.instance(this.context));
         List<File> files = super.processArgs(args);
+        //args.addAll(computeDependencyClosure(files));
         setupOptions();
         return files;
     }
