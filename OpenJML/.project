@@ -33,4 +33,11 @@
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>net.sourceforge.metrics.nature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src-SMT</name>
+			<type>2</type>
+			<location>C:/cygwin/home/dcok/eclipseProjects/SMTProjects/SMT/src</location>
+		</link>
+	</linkedResources>
 </projectDescription>

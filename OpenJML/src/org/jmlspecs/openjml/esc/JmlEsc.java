@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.esc;
 import static com.sun.tools.javac.util.JCDiagnostic.DiagnosticType.WARNING;
 
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.*;
@@ -11,15 +12,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlPretty;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeScanner;
-import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjml.Nowarns;
-import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
@@ -37,6 +30,12 @@ import org.jmlspecs.openjml.provers.AbstractProver;
 import org.jmlspecs.openjml.provers.CVC3Prover;
 import org.jmlspecs.openjml.provers.SimplifyProver;
 import org.jmlspecs.openjml.provers.YicesProver;
+import org.smtlib.ICommand;
+import org.smtlib.IResponse;
+import org.smtlib.IResponse.IError;
+import org.smtlib.ISolver;
+import org.smtlib.IVisitor.VisitorException;
+import org.smtlib.SMT;
 
 import com.sun.tools.javac.api.DiagnosticFormatter;
 import com.sun.tools.javac.code.Flags;
@@ -331,12 +330,120 @@ public class JmlEsc extends JmlTreeScanner {
         boolean cancelled = pr == null ? false : pr.report(ticks,level,message);
         if (cancelled) throw new PropagatedException(new Main.JmlCanceledException("ESC operation cancelled"));
     }
+    
+    
+    public boolean newProveMethod(JCMethodDecl decl) {
+        boolean print = true;
+        log.noticeWriter.println("NEW PROOF OF " + decl.name);
+        
+        if (print) {
+            JmlPretty.write(decl.body);
+        }
+        
+        JmlMethodDecl tree = (JmlMethodDecl)decl;
+        //JmlClassDecl currentClassDecl = JmlSpecs.instance(context).get((ClassSymbol)node.sym.owner).decl;
+        JmlClassDecl currentClassDecl = (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)decl.sym.owner).tree;
+        
+        // Get the denested specs for the method - FIXME - when might they be null?
+        JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
+
+        JCBlock newblock = JmlAssertionAdder.convertMethodBody(decl,context,true);
+        
+        if (newblock == null) {
+            if (print) log.noticeWriter.println("BLOCK IS NULL");
+            return false;
+        }
+        
+        if (print) log.noticeWriter.println(JmlPretty.write(newblock));
+        
+        BasicProgram program = new BasicBlocker2(context).convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl);
+        
+        if (print) log.noticeWriter.println(program.toString());
+        
+        ICommand.IScript script = new SMTTranslator(context).convert(program);
+                
+        if (print) try {
+            org.smtlib.sexpr.Printer.write(new PrintWriter(log.noticeWriter),script);
+            log.noticeWriter.println();
+            log.noticeWriter.println();
+        } catch (VisitorException e) {
+        }
+        
+        SMT smt = new SMT();
+        smt.processCommandLine(new String[]{"-L","C:/cygwin/home/dcok/eclipseProjects/SMTProjects/SMT/logics"}, smt.smtConfig);
+        
+        String solverName = "z3";
+        String exec = solverName.equals("test") ? null : System.getProperty("openjml.prover." + solverName);
+        ISolver solver = smt.startSolver(smt.smtConfig,solverName,exec);
+        
+        smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
+        
+        if (print) log.noticeWriter.println("EXECUTION");
+        IResponse r = script.execute(solver);
+        if (r.isError()) return false;
+        if (print) log.noticeWriter.println(smt.smtConfig.defaultPrinter.toString(r));
+        if (r.toString().equals("unsat")) {// FIXME - should have a better means of checking this
+            log.noticeWriter.println("Method checked OK");
+        } else {
+            log.noticeWriter.println("Some assertion not valid"); // FIXME - counterexample
+        }
+        return true;
+    }
+    
+    public class SMTListener implements org.smtlib.Log.IListener {
+        org.smtlib.IPrinter printer;
+        com.sun.tools.javac.util.Log log;
+        
+        SMTListener(Log log, org.smtlib.IPrinter printer) {
+            this.log = log;
+            this.printer = printer;
+        }
+        
+        @Override
+        public void logOut(String msg) {
+            log.noticeWriter.println(msg);
+        }
+
+        @Override
+        public void logOut(IResponse result) {
+            log.noticeWriter.println(printer.toString(result));
+        }
+
+        @Override
+        public void logError(String msg) {
+            log.error("jml.internal",msg);
+        }
+
+        @Override
+        public void logError(IError result) {
+            log.error("jml.internal",printer.toString(result));
+        }
+
+        @Override
+        public void logDiag(String msg) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        public void indent(String chars) {
+            // TODO Auto-generated method stub
+            
+        }
+        
+    }
+    
+
     /** This is the entry point to attempt a proof of the given method.  It 
      * presumes that the method (and any it relies on is entered and typechecked.
      * @param node the method to prove
      * @return ???FIXME???
      */
     public boolean proveMethod(@NonNull JCMethodDecl node) {
+        
+        if (Options.instance(context).get("-newesc") != null) {
+            return newProveMethod(node);
+        }
         
         progress(1,2,"Starting proof of " + node.sym.owner.name + "." + node.name + " with prover " + proverToUse);
         Utils.Timer timer = new Utils.Timer();

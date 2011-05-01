@@ -865,6 +865,25 @@ public class esc extends EscBase {
                 +"    //@ assert sk == 0;\n" // FAILS
                 +"  }\n"
                 
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m2a",9
+                );
+    }
+    
+    public void testAssignables6() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
+                
                 +"  //@ requires a != null && a.length > 10;\n"
                 +"  //@ modifies \\everything;\n"
                 +"  public void m3() {\n"
@@ -896,6 +915,29 @@ public class esc extends EscBase {
                 +"    c1(0);\n"
                 +"    //@ assert sa[0] == 0;\n" // FAILS
                 +"  }\n"
+                
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m3a",-17
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",-17
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m3a",-9
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m4a",-18
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",-18
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Assert) in method m4a",-9
+                );
+    }
+    
+    public void testAssignables5() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
                 
                 +"  //@ requires sa != null && sa.length > 10;\n"
                 +"  //@ modifies \\everything;\n"
@@ -946,17 +988,9 @@ public class esc extends EscBase {
                 +"  //@ modifies \\nothing;\n"
                 +"  public void c1(int i) { } \n"
                 +"}"
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m1a",9
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m2a",9
-                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m3a",-17
-                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",-17
-                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Assert) in method m3a",-9
-                ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m4a",-18
-                ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",-18
-                ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (Assert) in method m4a",-9
-                ,"/tt/TestJava.java:69: warning: The prover cannot establish an assertion (Assert) in method m5a",9
-                ,"/tt/TestJava.java:81: warning: The prover cannot establish an assertion (Assert) in method m6a",9
-                ,"/tt/TestJava.java:91: warning: The prover cannot establish an assertion (Assert) in method m7a",9
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m5a",9
+                ,"/tt/TestJava.java:29: warning: The prover cannot establish an assertion (Assert) in method m6a",9
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (Assert) in method m7a",9
                 );
     }
     
@@ -2105,20 +2139,34 @@ public class esc extends EscBase {
                 +"  public void inst2(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  /*@ assert a[1][2]; */ }\n" // OK
                 +"  public void inst2a(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  /*@ assert !a[1][2]; */ }\n" // BAD
                 +"  public void inst3(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  a[1][2] = false; /*@ assert !a[1][2]; */ }\n" // OK
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst2a",154
+        );
+    }
+    
+    public void testArraysMD4() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
                 +"  public void inst3a(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  a[1][2] = true ; /*@ assert a[1][3]; */ }\n" // BAD
                 +"  public void inst3b(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  a[1][2] = true ; /*@ assert a[0][2]; */ }\n" // BAD - a[0] might be null; even if it isn't a[0][2] is not necessarily true
                 +"  public void inst3c(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; assume a[0] != null; */  a[1][2] = false; /*@ assert a[0][2]; */ }\n" // BAD
+                +"}"
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Assert) in method inst3a",171
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullReference) in method inst3b",182
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3c",-203
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method inst3c",-192
+        );
+    }
+    
+    public void testArraysMD5() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
                 +"  public void inst3d(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; assume a[0] != null; assume a[0].length > 5; */  a[1][2] = false; /*@ assert a[0][2]; */ }\n" // BAD
                 +"  public void inst4(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[0] != null; assume a[1].length == 5; assume a[0].length == 3; *//*@ assume a[0][0]; */  a[1][0] = false; /*@ assert a[0][0]; */ }\n" // OK
                 +"  public void inst4a(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[0] != null; assume a[1].length == 5; assume a[0].length == 3; *//*@ assume a[0][0]; */  a[1][0] = false; /*@ assert !a[0][0]; */ }\n" // BAD
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst2a",154
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method inst3a",171
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullReference) in method inst3b",182
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3c",-203
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method inst3c",-192
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method inst3d",216
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method inst4a",217
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Assert) in method inst3d",216
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method inst4a",217
         );
     }
     
@@ -2130,13 +2178,21 @@ public class esc extends EscBase {
                 +"  public void inst5a(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; */ a[0] = a[1]; /*@ assert a[0][3] != a[1][3]; ; */}\n" // BAD
                 +"  public void inst6(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@assume a.length == 10;*/b = a; /*@ assert a[0] == b[0]; */}\n" // OK
                 +"  public void inst6a(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@assume a.length == 10;*/b = a; /*@ assert a[0] != b[0]; */}\n" // BAD
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst5a",144
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method inst6a",118
+        );
+    }
+    
+    public void testArraysMD3() {
+        //options.put("-method", "inst5x");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
                 +"  public void inst7(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@ assume b.length == 10 && a.length == 10 && b[0] != null && a[0] != null && b[0].length == 5 && a[0].length==6;*/ b[0][0] = true; b = a; a[0][0] = false; /*@ assert !b[0][0]; */}\n" // OK
                 +"  public void inst7a(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@ assume b.length == 10 && a.length == 10 && b[0] != null && a[0] != null && b[0].length == 5 && a[0].length==6;*/  b[0][0] = true; b = a; a[0][0] = false; /*@ assert b[0][0]; */}\n" // BAD
                 +"  public void inst8(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@ assume b.length == 10 && a.length == 12;*/ b = a; a[0] = null; /*@ assert b != null; assert a != null; assert b.length == 12; assert a.length == 12; */}\n" // OK
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst5a",144
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method inst6a",118
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method inst7a",242
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst7a",242
         );
     }
     

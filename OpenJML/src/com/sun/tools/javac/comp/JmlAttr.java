@@ -433,7 +433,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         enclosingClassEnv = env;
 
         boolean prevIsInJmlDeclaration = isInJmlDeclaration;
-        isInJmlDeclaration = implementationAllowed || utils.isJML(c.flags());
+        isInJmlDeclaration = utils.isJML(c.flags()); // REMOVED implementationAllowed ||
         ((JmlCheck)chk).setInJml(isInJmlDeclaration);
         if (utils.jmldebug) log.noticeWriter.println("ATTRIBUTING-BODY " + c.fullname + " " + (isInJmlDeclaration?"inJML":"notInJML") + " WAS " + (prevIsInJmlDeclaration?"inJML":"notInJML"));
         JavaFileObject prev = log.useSource(((JmlCompilationUnit)env.toplevel).sourcefile);  // FIXME - no write for multiple source files
@@ -555,7 +555,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 enclosingMethodEnv = env.dup(env.tree,a);
             }
             super.visitBlock(tree);
-            if (!isStatic(env.enclMethod.mods.flags)) {
+            //if (!isStatic(env.enclMethod.mods.flags)) {
+            if (env.info.staticLevel == 0) {
                 ((JmlMethodDecl)env.enclMethod)._this = (VarSymbol)thisSym(tree.pos(),enclosingMethodEnv);
             }
             
