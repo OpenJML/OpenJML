@@ -29,8 +29,9 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.jvm.ClassReader;
-import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCCatch;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -47,7 +48,6 @@ import com.sun.tools.javac.tree.JCTree.JCThrow;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -401,6 +401,15 @@ public class JmlTreeUtils {
     public JCExpression makeNot(int pos, JCExpression arg) {
         return makeUnary(pos,JCTree.NOT,arg);
     }
+
+    /** Makes an attributed assignment expression; the expression type is the type of the lhs. */
+    public JCAssign makeAssign(int pos, JCExpression lhs, JCExpression rhs) {
+        JCAssign tree = factory.at(pos).Assign(lhs, rhs);
+        tree.type = lhs.type;
+        copyEndPosition(tree,rhs);
+        return tree;
+    }
+    
 
     /** Make an attributed binary expression.
      *  @param pos      The pseudo-position at which to place the node

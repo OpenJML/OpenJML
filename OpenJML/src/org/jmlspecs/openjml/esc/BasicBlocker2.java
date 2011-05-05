@@ -260,7 +260,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * with the assume count variable; if so, then there is an easy mechanism to test whether 
      * the assumptions are feasible.
      */
-    public static boolean useAssumeDefinitions = true;
+    public static boolean useAssumeDefinitions = false;
     
 
     // THE FOLLOWING ARE ALL FIXED STRINGS
@@ -808,12 +808,12 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @return the new name
      */
     protected Name encodedName(VarSymbol sym, int incarnationPosition) {
-        return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "$" : ("$" + sym.pos + "$")) + incarnationPosition + "$" + (unique++));
+        return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition + "___" + (unique++));
     }
     
     // FIXME - review and document
     protected Name encodedName(TypeSymbol tp, int incarnationPosition) {
-        return names.fromString(tp.name + "$" + incarnationPosition);
+        return names.fromString(tp.name + "_" + incarnationPosition);
     }
     
     // FIXME - review and document
@@ -1285,6 +1285,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
         // e will be translated when the assumption statement (incl. terminationVar) is processed
         addUntranslatedAssume(methodDecl.body.pos,Label.SYN,e,bodyBlock.statements);
 
+        // Add declarations of method parameters
+        for (JCVariableDecl d: methodDecl.params) {
+            bodyBlock.statements.add(d);
+        }
         // Then the program
         bodyBlock.statements.addAll(block.getStatements());
         follows(startBlock,bodyBlock);
@@ -1753,6 +1757,17 @@ public class BasicBlocker2 extends JmlTreeScanner {
         return st;
     }
     
+    protected JmlStatementExpr addAssumeNoDef(int startpos, JCTree endpos, Label label, JCExpression that, List<JCStatement> statements) {
+        if (startpos < 0) startpos = that.pos; // FIXME - temp 
+        factory.at(startpos);
+        JmlStatementExpr st;
+        st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,that);
+        copyEndPosition(st,endpos);
+        st.type = null; // statements do not have a type
+        statements.add(st);
+        return st;
+    }
+    
     /** Adds a new UNTRANSLATED assume statement to the end of the given statements list; the statements list
      * should be a list of statements that will be processed (and translated) at some later time;
      * the assume statement is
@@ -2129,6 +2144,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      */
     protected VarMap initMap(BasicBlock block) {
         VarMap newMap = new VarMap();
+        currentMap = newMap;
         if (block.preceding.size() == 0) {
             // keep the empty one
         } else if (block.preceding.size() == 1) {
@@ -2144,6 +2160,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
             // This assumption is added to the end of the preceding block.
             // We pick the name for the new block as the one with the maximum incarnation number.
             // TODO: Note that it is not clear where to declare the identifier for the new block.
+            
+            // In this version, we take the minimum incarnation, so that it is defined before all the 
+            // blocks
             List<VarMap> all = new LinkedList<VarMap>();
             VarMap combined = new VarMap();
             int maxe = -1;
@@ -2157,14 +2176,24 @@ public class BasicBlocker2 extends JmlTreeScanner {
             for (VarSymbol sym: combined.keySet()) {
                 Name maxName = null;
                 int max = -1;
+                int num = 0;
                 for (VarMap m: all) {
                     Integer i = m.get(sym);
+                    if (i != max) num++;
                     if (i > max) {
                         max = i;
                         maxName = m.getName(sym);
                     }
                 }
-                newMap.put(sym,max,maxName);
+                Name newName = maxName;
+                if (num > 1) {
+                    max++;
+                    JCIdent id = newIdentIncarnation(sym,max); // relies on the uniqueness value to be different
+                    // Need to declare this before all relevant blocks, so we do it at the very beginning
+                    program.declarations.add(id);
+                    newName = id.name;
+                }
+                newMap.put(sym,max,newName);
 
                 for (BasicBlock b: block.preceding) {
                     VarMap m = blockmaps.get(b);
@@ -3312,9 +3341,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
         // list of new variables
         String condName = BRANCHCONDITION_PREFIX + pos;
         JCIdent vd = newAuxIdent(condName,syms.booleanType,pos,true);
+        program.declarations.add(vd);
         currentMap.put((VarSymbol)vd.sym,pos,vd.sym.name); // FIXME - fold this into a newAuxIdent call?
         JCExpression newexpr = treeutils.makeBinary(that.cond.pos,JCTree.EQ,vd,that.cond);
-        addAssume(pos,that,Label.BRANCHC,newexpr,currentBlock.statements);
+        addAssumeNoDef(pos,that,Label.BRANCHC,newexpr,currentBlock.statements);
         
         // Now create an (unprocessed) block for everything that follows the
         // if statement
@@ -3349,9 +3379,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
     }
     
     public void visitExec(JCExpressionStatement that)    { 
-        currentBlock.statements.add(comment(that));
+        //currentBlock.statements.add(comment(that)); // The comment is added in JmlAssertionAdder
         // This includes assignments and stand-alone method invocations
-        that.expr.accept(this);
+        scan(that.expr);
         // ignore the result; any statements are already added
     }
     
@@ -5110,8 +5140,21 @@ public class BasicBlocker2 extends JmlTreeScanner {
     public Map<JCTree,JCTree> toLogicalForm = new HashMap<JCTree,JCTree>();
     public Map<JCTree,String> toValue = new HashMap<JCTree,String>();
     
-//    // FIXME - review this
-//    public void visitIdent(JCIdent that) { 
+    // FIXME - review this
+    public void visitIdent(JCIdent that) {
+        if (that.sym instanceof Symbol.VarSymbol){ 
+            Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
+            JCIdent id = newIdentUse(vsym,that.pos);
+            that.name = id.name;
+            //copyEndPosition(id,that);
+        } else if (that.sym == null) {
+            // Temporary variables that are introduced by decomposing expressions do not have associated symbols
+            // They are also only used once and only used locally, so we do not track them for DSA purposes
+            // Just skip
+        } else {
+            System.out.println("THIS KIND OF IDENT IS NOT HANDLED: " + that);
+        }
+
 //        if (that.sym instanceof VarSymbol) {
 //            VarSymbol vsym = (VarSymbol)that.sym;
 //            Symbol owner = that.sym.owner;
@@ -5131,7 +5174,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //                now.pos = that.pos;
 //                now.type = that.type;
 //                now.sym = vsym;
-//                result = trExpr(now);
+//                result = (now);
 //            } else if (signalsVar != null && vsym == signalsVar.sym) {
 //                result = newIdentUse((VarSymbol)exceptionVar.sym,that.pos);
 //            } else if (vsym.name == names._this) {
@@ -5152,7 +5195,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //            result = that;
 //        }
 //        toLogicalForm.put(that,result);
-//    }
+    }
     
     // FIXME -document
     private Map<String,Integer> strings = new HashMap<String,Integer>();
@@ -5181,28 +5224,31 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //        toLogicalForm.put(that,result);
 //    }
 //    
-//    public void visitAssign(JCAssign that) { 
-//        JCExpression left = trExpr(that.lhs);
-//        JCExpression right = trExpr(that.rhs);
-//        result = doAssignment(that.type,left,right,that.pos,that);
-//        copyEndPosition(result,that);
+    public void visitAssign(JCAssign that) {
+        scan(that.lhs);
+        scan(that.rhs);
+        JCExpression left = that.lhs;
+        JCExpression right = (that.rhs);
+        result = doAssignment(that.type,left,right,that.pos,that);
+        copyEndPosition(result,that);
 //        toLogicalForm.put(that.lhs,result);
 //        toLogicalForm.put(that,result);
-//    }
+    }
 //    
-//    // FIXME - embedded assignments to array elements are not implemented; no warning either
-//    // FIXME - is all implicit casting handled
-//    // Note that the left and right expressions are translated.
-//    protected JCExpression doAssignment(Type restype, JCExpression left, JCExpression right, int pos, JCExpression statement) {
-//        if (left instanceof JCIdent) {
-//            JCIdent id = (JCIdent)left;
-//            left = newIdentIncarnation(id,left.pos);
-//            JCBinary expr = treeutils.makeEquality(pos,left,right);
+    // FIXME - embedded assignments to array elements are not implemented; no warning either
+    // FIXME - is all implicit casting handled
+    // Note that the left and right expressions are translated.
+    protected JCExpression doAssignment(Type restype, JCExpression left, JCExpression right, int pos, JCExpression statement) {
+        if (left instanceof JCIdent) {
+            JCIdent id = (JCIdent)left;
+            JCIdent newid = newIdentIncarnation(id,left.pos);
+            currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, right));
+//            JCBinary expr = treeutils.makeEquality(pos,newid,right);
 //            copyEndPosition(expr,right);
 //            
 //            // FIXME - set line and source
 //            addAssume(TreeInfo.getStartPos(statement),statement,Label.ASSIGNMENT,expr,newstatements);
-//            return left;
+            return newid;
 //        } else if (left instanceof JCArrayAccess) {
 //            JCIdent arr = getArrayIdent(right.type);
 //            JCExpression ex = ((JCArrayAccess)left).indexed;
@@ -5227,11 +5273,11 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //            addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,newstatements);
 //            newIdentIncarnation(heapVar,pos);
 //            return left;
-//        } else {
-//            log.error("jml.internal","Unexpected case in BasicBlocker.doAssignment: " + left.getClass() + " " + left);
-//            return null;
-//        }
-//    }
+        } else {
+            log.error("jml.internal","Unexpected case in BasicBlocker.doAssignment: " + left.getClass() + " " + left);
+            return null;
+        }
+    }
 //    
 //    // FIXME - what about implicit type casts
 //    // += -= *= /= %= >>= <<=  >>>= &= |= ^=
@@ -5260,6 +5306,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             // initializer because the initializer is in the scope of the newly
             // declared variable.  Actually if there is such a situation, it 
             // will likely generate an error about use of an uninitialized variable.
+            scan(that.init);
             JCExpression init = (that.init);
             JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.EQ,lhs,init);
             addAssume(TreeInfo.getStartPos(that),Label.ASSIGNMENT,expr,newstatements);
@@ -5659,6 +5706,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     // Adds specs to a Java Variable Declaration
     // FIXME - delegate to visitVarDef?
     public void visitJmlVariableDecl(JmlVariableDecl that) {
+        if (that.init != null) scan(that.init);
         currentBlock.statements.add(that);
 //        currentBlock.statements.add(comment(that));
 //        // FIXME - need to add various field specs tests

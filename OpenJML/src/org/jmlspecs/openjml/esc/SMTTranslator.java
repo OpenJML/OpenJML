@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.esc;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlToken;
@@ -15,11 +16,15 @@ import org.smtlib.ISort;
 import org.smtlib.command.C_assert;
 import org.smtlib.command.C_check_sat;
 import org.smtlib.command.C_declare_fun;
+import org.smtlib.command.C_declare_sort;
 import org.smtlib.command.C_define_fun;
 import org.smtlib.command.C_set_logic;
+import org.smtlib.command.C_set_option;
 import org.smtlib.impl.Command;
 import org.smtlib.impl.Factory;
 
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
@@ -49,6 +54,7 @@ import com.sun.tools.javac.tree.JCTree.JCWildcard;
 import com.sun.tools.javac.tree.JCTree.TypeBoundKind;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Names;
 
 public class SMTTranslator extends JmlTreeScanner {
 
@@ -58,11 +64,18 @@ public class SMTTranslator extends JmlTreeScanner {
     /** The symbol table for this compilation context */
     protected Symtab syms;
     
+    protected Names names;
+    
     /** The factory for creating SMTLIB expressions */
     protected Factory F;
     
     /** SMTLIB subexpressions - the result of each visit call */
     protected IExpr result;
+    
+    protected ISort refSort;
+    protected IExpr.ISymbol nullRef;
+    protected IExpr.ISymbol thisRef;
+    
     
     /** The SMTLIB script as it is being constructed */
     protected Command.Script script; // FIXME - make abstract
@@ -70,6 +83,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public SMTTranslator(Context context) {
         log = Log.instance(context);
         syms = Symtab.instance(context);
+        names = Names.instance(context);
     }
     
     public ICommand.IScript convert(BasicProgram program) {
@@ -78,15 +92,39 @@ public class SMTTranslator extends JmlTreeScanner {
         ICommand c;
         
         // set the logic
+        c = new C_set_option(F.keyword(":produce-models",null),F.symbol("true",null));
+        script.add(c);
         c = new C_set_logic(F.symbol("AUFLIRA",null));
         script.add(c);
         
         // add background statements
+        c = new C_declare_sort(F.symbol("REF",null),F.numeral(0));
+        script.add(c);
+        c = new C_declare_fun(nullRef = F.symbol("NULL",null),new LinkedList<ISort>(), refSort = F.createSortExpression(F.symbol("REF",null)));
+        script.add(c);
+        c = new C_declare_fun(thisRef = F.symbol("this",null),new LinkedList<ISort>(), refSort);
+        script.add(c);
+        c = new C_assert(F.fcn(F.symbol("distinct",null), thisRef, nullRef));
+        script.add(c);
+        
         for (JCExpression e: program.background()) {
             try {
                 e.accept(this);
                 IExpr ex = result;
                 c = new C_assert(ex);
+                script.add(c);
+            } catch (RuntimeException ee) {
+                // skip - error already issued
+            }
+        }
+        
+        // add declarations
+        
+        for (JCIdent id: program.declarations) {
+            try {
+                c = new C_declare_fun(F.symbol(id.toString(), null),
+                        new LinkedList<ISort>(),
+                        convertSort(id.type));
                 script.add(c);
             } catch (RuntimeException ee) {
                 // skip - error already issued
@@ -144,7 +182,7 @@ public class SMTTranslator extends JmlTreeScanner {
             for (BasicProgram.BasicBlock bb: block.succeeding) {
                 args.add(F.symbol(bb.id.name.toString(),null));
             }
-            tail = F.fcn(F.symbol("or",null),args,null);
+            tail = F.fcn(F.symbol("and",null),args,null);
         }
         IExpr ex = convert(iter,tail);
         LinkedList<IExpr> args = new LinkedList<IExpr>();
@@ -215,8 +253,10 @@ public class SMTTranslator extends JmlTreeScanner {
             throw new RuntimeException();
         } else if (t.equals(syms.booleanType)) {
             return F.Bool();
-        } else if (t.tsym == (syms.intType.tsym)) { 
+        } else if (t.tsym == syms.intType.tsym) { 
             return F.createSortExpression(F.symbol("Int", null));
+        } else if (t.tag == syms.objectType.tag) {
+            return refSort;
         } else {
             log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
             throw new RuntimeException();
@@ -291,9 +331,9 @@ public class SMTTranslator extends JmlTreeScanner {
             case JCTree.EQ:
                 result = F.fcn(F.symbol("=",null), args, null);
                 break;
-//            case JCTree.NE:
-//                result = F.fcn(F.symbol("=",null), args, null);
-//                break;
+            case JCTree.NE:
+                result = F.fcn(F.symbol("distinct",null), args, null);
+                break;
             case JCTree.AND:
                 result = F.fcn(F.symbol("and",null), args, null);
                 break;
@@ -367,19 +407,44 @@ public class SMTTranslator extends JmlTreeScanner {
     }
 
     public void visitSelect(JCFieldAccess tree) {
-        notImpl(tree);
-        super.visitSelect(tree);
+        // o.f becomes f[o] where f has sort (Array REF type)
+        doFieldAccess(tree.selected,tree.sym);
+    }
+    
+    protected void doFieldAccess(JCExpression object, Symbol field) {
+        if (true) {
+            ISort arrsort = F.createSortExpression(F.symbol("Array", null),refSort,convertSort(field.type));
+            List<ISort> args = new LinkedList<ISort>();
+            ICommand c = new C_declare_fun(F.symbol(field.name.toString(),null),
+                    args,arrsort);
+            script.add(c);
+        }
+        result = F.fcn(F.symbol("select", null),F.symbol(field.name.toString(),null),
+                object == null ? thisRef: convertExpr(object));
+        
     }
 
     public void visitIdent(JCIdent tree) {
-        result = F.symbol(tree.name.toString(),null);
+        if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this) {
+            // a select from this
+            doFieldAccess(null,tree.sym);
+        } else {
+            result = F.symbol(tree.name.toString(),null);
+        } 
     }
 
     public void visitLiteral(JCLiteral tree) {
+        // FIXME - need real, double, char, byte
         if (tree.typetag == TypeTags.BOOLEAN) {
            result = F.symbol("true",null); 
         } else if (tree.typetag == TypeTags.INT) {
             result = F.numeral(Integer.parseInt(tree.toString()));
+        } else if (tree.typetag == TypeTags.LONG) {
+            result = F.numeral(Integer.parseInt(tree.toString()));
+        } else if (tree.typetag == TypeTags.SHORT) {
+            result = F.numeral(Integer.parseInt(tree.toString()));
+        } else if (tree.typetag == TypeTags.BOT) {
+            result = nullRef;
         } else {
             notImpl(tree);
             super.visitLiteral(tree);
