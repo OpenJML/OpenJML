@@ -20,29 +20,9 @@ public class escnew extends EscBase {
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
     }
- 
-    // FIXME - causes a prover failure
-//    public void testCollect() {
-//        options.put("-showbb","");
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
-//                +"  //@ invariant \\type(Short) <: \\type(java.lang.Long);\n"
-//                +"  public String m(java.lang.Integer i, Number b) {\n"
-//                +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
-//                +"    boolean bb = b instanceof Double;\n"
-//                +"    Object o = (Class<?>)v.getClass();\n"
-//                +"    v.add(0,new Integer(0));\n"  // FIXME add(0,0) fails because of a lack of autoboxing
-//                +"    bb = v.elements().hasMoreElements();\n"
-//                +"    return null; \n"
-//                +"  }\n"
-//                +"}\n"
-//              );
-//    }
 
-    
-    // Just testing a binary method
-    // It gave trouble because the specs were missing
-    public void testGen() {
+    // Just testing binary and unary 
+    public void testBinaryUnary() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -72,7 +52,208 @@ public class escnew extends EscBase {
                 
                 
                 +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+                ,"/tt/TestJava.java:14: warning: Associated declaration",7
                 );
     }
+
+    public void testConditional() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result == i;\n"
+                +"  public int m1bad(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result >= i;\n"
+                +"  public int m1ok(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                );
+    }
+
+    public void testBoolOpsParens() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result;\n"
+                +"  public boolean m1bad(boolean p, boolean q) {\n"
+                +"    return p == q;\n"
+                +"  }\n"
+                
+                +"  //@ requires p && q;\n"
+                +"  //@ ensures \\result;\n"
+                +"  public boolean m1ok(boolean p, boolean q) {\n"
+                +"    return ((p == q)) ;\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result;\n"
+                +"  public boolean m2bad(boolean p, boolean q) {\n"
+                +"    return p != q;\n"
+                +"  }\n"
+                
+                +"  //@ requires p && !q;\n"
+                +"  //@ ensures \\result;\n"
+                +"  public boolean m2ok(boolean p, boolean q) {\n"
+                +"    return p != q ;\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result;\n"
+                +"  public boolean m3bad(boolean p, boolean q) {\n"
+                +"    return p == !q;\n"
+                +"  }\n"
+                
+                +"  //@ requires p && !q;\n"
+                +"  //@ ensures \\result;\n"
+                +"  public boolean m3ok(boolean p, boolean q) {\n"
+                +"    return p == !q ;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+                ,"/tt/TestJava.java:14: warning: Associated declaration",7
+                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                ,"/tt/TestJava.java:24: warning: Associated declaration",7
+                );
+    }
+
+    public void testSelect() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public int f;\n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m1bad() {\n"
+                +"    return this.f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires this.f == 1;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m1ok() {\n"
+                +"    return this.f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m2bad() {\n"
+                +"    return f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires f == 1;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m2ok() {\n"
+                +"    return f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires f == 1;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m3bad(TestJava p) {\n"
+                +"    return p.f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures true;\n"
+                +"  public int m3bad2(/*@nullable*/ TestJava p) {\n"
+                +"    return p.f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires p.f == 1;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m3ok(TestJava p) {\n"
+                +"    return p.f ;\n"
+                +"  }\n"
+                
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:5: warning: Associated declaration",7
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+                ,"/tt/TestJava.java:15: warning: Associated declaration",7
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                ,"/tt/TestJava.java:25: warning: Associated declaration",7
+                ,"/tt/TestJava.java:32: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3bad2",13
+                );
+    }
+
+    public void testExplicitAssert() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires true;\n"
+                +"  public void m1bad(int i) {\n"
+                +"    //@ assert i == 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i == 0;\n"
+                +"  public void m1ok(int i) {\n"
+                +"    //@ assert i == 0 ;\n"
+                +"  }\n"
+                
+                +"  public void m1okb(int i) {\n"
+                +"    //@ assume i == 0 ;\n"
+                +"    //@ assert i == 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  public void m2bad(int i) {\n"
+                +"    assert i == 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i == 0;\n"
+                +"  public void m2ok(int i) {\n"
+                +"    assert i == 0 : \"ASD\" ;\n"
+                +"  }\n"
+                
+                +"  public void m2okb(int i) {\n"
+                +"    //@ assume i == 0 ;\n"
+                +"    assert i == 0 ;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m2bad",12
+                );
+    }
+    
+    public void testAssignment() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1bad(boolean i) {\n"
+                +"    int x = 0 ;\n"
+                +"    if (i) x = 1; else x = 2; ;\n"
+                +"    x = x + 1 ;\n"
+                +"    //@ assert x < 3 ;\n"
+                +"  }\n"
+                
+                +"  public void m1ok(boolean i) {\n"
+                +"    int x = 0 ;\n"
+                +"    if (i) x = 1; else x = 2; ;\n"
+                +"    x = x + 1 ;\n"
+                +"    //@ assert x < 4 ;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
+                );    }
 
 }

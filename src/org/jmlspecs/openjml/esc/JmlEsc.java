@@ -31,6 +31,7 @@ import org.jmlspecs.openjml.provers.CVC3Prover;
 import org.jmlspecs.openjml.provers.SimplifyProver;
 import org.jmlspecs.openjml.provers.YicesProver;
 import org.smtlib.ICommand;
+import org.smtlib.IExpr;
 import org.smtlib.IResponse;
 import org.smtlib.IResponse.IError;
 import org.smtlib.ISolver;
@@ -334,9 +335,15 @@ public class JmlEsc extends JmlTreeScanner {
     
     public boolean newProveMethod(JCMethodDecl decl) {
         boolean print = true;
-        log.noticeWriter.println("NEW PROOF OF " + decl.name);
+        if (decl.name.toString().equals("<init>")) {
+            log.noticeWriter.println("SKIPPING PROOF OF " + decl.name);
+            return true;
+        }
+        proverToUse = "z3";
+        progress(1,2,"Starting proof of " + decl.sym.owner.name + "." + decl.name + " with prover " + proverToUse);
         
         if (print) {
+            log.noticeWriter.println("STARTING PROOF OF " + decl.name);
             JmlPretty.write(decl.body);
         }
         
@@ -347,7 +354,8 @@ public class JmlEsc extends JmlTreeScanner {
         // Get the denested specs for the method - FIXME - when might they be null?
         JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
 
-        JCBlock newblock = JmlAssertionAdder.convertMethodBody(decl,context,true);
+        JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true);
+        JCBlock newblock = assertionAdder.convertMethodBody(decl);
         
         if (newblock == null) {
             if (print) log.noticeWriter.println("BLOCK IS NULL");
@@ -372,22 +380,116 @@ public class JmlEsc extends JmlTreeScanner {
         SMT smt = new SMT();
         smt.processCommandLine(new String[]{"-L","C:/cygwin/home/dcok/eclipseProjects/SMTProjects/SMT/logics"}, smt.smtConfig);
         
-        String solverName = "z3";
-        String exec = solverName.equals("test") ? null : System.getProperty("openjml.prover." + solverName);
-        ISolver solver = smt.startSolver(smt.smtConfig,solverName,exec);
+        String exec = proverToUse.equals("test") ? null : System.getProperty("openjml.prover." + proverToUse);
+        ISolver solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
         
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
         
         if (print) log.noticeWriter.println("EXECUTION");
         IResponse r = script.execute(solver);
-        if (r.isError()) return false;
+        if (r.isError()) {
+            log.error("jml.esc.badscript", decl.getName(), smt.smtConfig.defaultPrinter.toString(r));
+            return false;
+        }
         if (print) log.noticeWriter.println(smt.smtConfig.defaultPrinter.toString(r));
         if (r.toString().equals("unsat")) {// FIXME - should have a better means of checking this
-            log.noticeWriter.println("Method checked OK");
+            if (print) log.noticeWriter.println("Method checked OK");
         } else {
-            log.noticeWriter.println("Some assertion not valid"); // FIXME - counterexample
+            if (print) log.noticeWriter.println("Some assertion not valid"); // FIXME - counterexample
+            reportInvalidAssertion(program,smt,solver,decl);
         }
         return true;
+    }
+    
+    public void reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl) {
+
+        boolean ok = reportInvalidAssertion(program.startBlock(),smt,solver,decl);
+        if (!ok) {
+            System.out.println("COULD NOT FIND INVALID ASSERTION");
+            // COULD NOT FIND
+        }
+        
+//        for (Map.Entry<String,DiagnosticPositionSES> entry: assertionAdder.positionMap.entrySet()) {
+//            
+//            String n = entry.getKey();
+//            org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(n,null);
+//            IResponse resp = solver.get_value(s);
+//            IExpr e = ((IResponse.IValueResponse)resp).values().get(0).second();
+//            System.out.println(n + " :: " + resp);
+//            if (e instanceof IExpr.ISymbol && e.toString().equals("true")) {
+//                System.out.println("    " + assertionAdder.positionMap.get(n));
+//            }
+//        }
+
+    }
+    
+    public boolean getBoolValue(String id, SMT smt, ISolver solver) {
+        org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id,null);
+        IResponse resp = solver.get_value(s);
+        org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
+        return !se.toString().equals("false");
+    }
+    
+    public int getIntValue(String id, SMT smt, ISolver solver) {
+        org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id,null);
+        IResponse resp = solver.get_value(s);
+        org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
+        return Integer.parseInt(se.toString());
+    }
+
+    int resultpos = 0;
+
+    /** Returns true if an invalid assertion was found and reported */
+    public boolean reportInvalidAssertion(BasicProgram.BasicBlock block, SMT smt, ISolver solver, JCMethodDecl decl) {
+        String id = block.id.name.toString();
+        boolean value = getBoolValue(id,smt,solver);
+        if (value) return false;
+        
+        // FIXME - would like to have a range, not just a single position point,
+        // for both the 'pos' value below, which is the position of the return statement
+        // Also for the postcondition assertion.
+        
+        // The termination variable is assigned the location of the result statement
+        // that occurs on the counterexample path.
+        // TODO: we may not need to put this in the actual proof script - we could 
+        // determine it after the fact from the counterexample path
+        //resultpos = getIntValue(JmlAssertionAdder.terminationString,smt,solver);
+        
+        
+        for (JCStatement stat: block.statements()) {
+            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSERT) {
+                JmlStatementExpr assertStat = (JmlStatementExpr)stat;
+                JCExpression e = assertStat.expression;
+                id = ((JCIdent)e).name.toString();
+                value = getBoolValue(id,smt,solver);
+                if (!value) {
+                    
+                    String cf = "";//!cfInfo ? "" : " [ cf. " + (jfo==null?prev:jfo).getName() + ", line " + aline + "]";
+                    if (resultpos == 0) resultpos = decl.pos;
+                    if (assertStat.label == Label.POSTCONDITION) {
+                        log.warning(resultpos,"esc.assertion.invalid",assertStat.label,decl.getName() + cf);
+                        log.warning(assertStat.pos, "jml.associated.decl");
+                    } else {
+                        log.warning(assertStat.pos,"esc.assertion.invalid",assertStat.label,decl.getName() + cf);                        
+                    }
+                    
+//                    if (jfo != null) log.useSource(jfo);
+//                    String assocPos = !cfInfo ? "" : " [" + prev.getName() + ", line " + line + "]";
+//                    log.warning(declpos,"esc.associated.decl",assocPos);
+
+                    // log the error
+                    return true;
+                }
+            }
+            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).label == Label.RETURN) {
+                resultpos = stat.pos;
+            }
+        }
+        for (BasicBlock b: block.succeeding) {
+            value = reportInvalidAssertion(b,smt,solver,decl);
+            if (value) return true;
+        }
+        return false;
     }
     
     public class SMTListener implements org.smtlib.Log.IListener {
