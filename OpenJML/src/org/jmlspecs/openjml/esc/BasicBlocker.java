@@ -606,7 +606,7 @@ public class BasicBlocker extends JmlTreeScanner {
         falseLiteral.type = syms.booleanType;
         nullLiteral = factory.at(0).Literal(TypeTags.BOT,0);
         nullLiteral.type = syms.objectType;
-        zeroLiteral = treeutils.makeIntLit(0,0);
+        zeroLiteral = treeutils.makeIntLiteral(0,0);
         zeroLiteral.type = syms.intType;
         
         // This is the field name used to access the allocation time of an object
@@ -2673,7 +2673,7 @@ public class BasicBlocker extends JmlTreeScanner {
             if (loopspec.token == JmlToken.DECREASES) {
                 int p = loopspec.getStartPosition();
                 JCIdent v = newIdentUse(loopspec.sym,p); // FIXME - probably not the right use position
-                JCExpression e = treeutils.makeBinary(p,JCTree.GT,v,trSpecExpr(treeutils.makeIntLit(p,0),log.currentSourceFile()));
+                JCExpression e = treeutils.makeBinary(p,JCTree.GT,v,trSpecExpr(treeutils.makeIntLiteral(p,0),log.currentSourceFile()));
                 addAssert(Label.LOOP_DECREASES_NEGATIVE,e,p,currentBlock.statements,body.getStartPosition(),log.currentSourceFile(),loopspec);
             }
         }
@@ -2797,7 +2797,7 @@ public class BasicBlocker extends JmlTreeScanner {
             JCIdent idd = (JCIdent)factory.at(pos+1).Ident(decl);
             id.type = decl.type;
             JCAssign asg = factory.at(idd.pos).Assign(idd,
-                    treeutils.makeBinary(idd.pos,JCTree.PLUS,id,treeutils.makeIntLit(pos,1)));
+                    treeutils.makeBinary(idd.pos,JCTree.PLUS,id,treeutils.makeIntLiteral(pos,1)));
             asg.type = syms.intType;
             JCExpressionStatement update = factory.at(idd.pos).Exec(asg);
             com.sun.tools.javac.util.List<JCExpressionStatement> updateList = com.sun.tools.javac.util.List.<JCExpressionStatement>of(update);
@@ -2815,7 +2815,7 @@ public class BasicBlocker extends JmlTreeScanner {
             
             // add 0 <= $$index && $$index <= <expr>.length
             // as an additional loop invariant
-            JCExpression e1 = treeutils.makeBinary(pos,JCTree.LE,treeutils.makeIntLit(pos,0),id);
+            JCExpression e1 = treeutils.makeBinary(pos,JCTree.LE,treeutils.makeIntLiteral(pos,0),id);
             JCExpression e2 = treeutils.makeBinary(pos,JCTree.LE,id,fa);
             JCExpression e3 = treeutils.makeBinary(pos,JCTree.AND,e1,e2);
             JmlStatementLoop inv =factory.at(pos).JmlStatementLoop(JmlToken.LOOP_INVARIANT,e3);
@@ -2912,7 +2912,7 @@ public class BasicBlocker extends JmlTreeScanner {
             if (loopspec.token == JmlToken.DECREASES) {
                 int p = loopspec.getStartPosition();
                 JCIdent v = newIdentUse(loopspec.sym,p);
-                JCExpression e = treeutils.makeBinary(p,JCTree.GE,v,treeutils.makeIntLit(p,0));
+                JCExpression e = treeutils.makeBinary(p,JCTree.GE,v,treeutils.makeIntLiteral(p,0));
                 addAssert(Label.LOOP_DECREASES_NEGATIVE,e,p,currentBlock.statements,body.getStartPosition(),log.currentSourceFile(),loopspec); // FIXME - track which continue is causing a problem?
             }
         }
@@ -3385,7 +3385,7 @@ public class BasicBlocker extends JmlTreeScanner {
         }
         int pos = that.getStartPosition();
         JCIdent id = newIdentIncarnation(terminationVar,pos);
-        JCLiteral lit = treeutils.makeIntLit(pos,pos);
+        JCLiteral lit = treeutils.makeIntLiteral(pos,pos);
         JCExpression e = treeutils.makeBinary(pos,JCTree.EQ,id,lit);
         addAssume(pos,that,Label.RETURN,e,currentBlock.statements);
         if (tryreturnStack.isEmpty()) {
@@ -3413,7 +3413,7 @@ public class BasicBlocker extends JmlTreeScanner {
         
         int pos = that.getStartPosition();
         JCIdent id = newIdentIncarnation(terminationVar,pos);
-        JCLiteral lit = treeutils.makeIntLit(pos,-pos);
+        JCLiteral lit = treeutils.makeIntLiteral(pos,-pos);
         JCExpression expr = treeutils.makeBinary(pos,JCTree.EQ,id,lit);
         addAssume(TreeInfo.getStartPos(that),Label.SYN,expr); // <terminationVar> = -pos
         
@@ -4100,7 +4100,7 @@ public class BasicBlocker extends JmlTreeScanner {
                                         JCTree.OR,
                                         treeutils.makeBinary(pos,JCTree.EQ,termVar,zeroLiteral),treeutils.makeBinary(pos,
                                               JCTree.AND,
-                                              treeutils.makeBinary(pos,JCTree.EQ,termVar,treeutils.makeBinary(pos,JCTree.MINUS,zeroLiteral,treeutils.makeIntLit(pos,pos)))
+                                              treeutils.makeBinary(pos,JCTree.EQ,termVar,treeutils.makeBinary(pos,JCTree.MINUS,zeroLiteral,treeutils.makeIntLiteral(pos,pos)))
                                                 ,makeInstanceof(exceptionVar,pos,syms.exceptionType,pos)));
                 termExp = trSpecExpr(termExp,null);
                 addAssume(tree.getStartPosition(),tree,Label.TERMINATION,termExp,currentBlock.statements);
@@ -4744,7 +4744,7 @@ public class BasicBlocker extends JmlTreeScanner {
         JCIdent id;
         String n = ASSUME_CHECK_PREFIX + pos + "$" + label.toString();
         if (useCountedAssumeCheck) {
-            JCExpression count = treeutils.makeIntLit(pos,pos);
+            JCExpression count = treeutils.makeIntLiteral(pos,pos);
             e = treeutils.makeBinary(pos,JCTree.NE,assumeCheckCountVar,count);
             id = newAuxIdent(n,syms.booleanType,pos,false);
             //e = treeutils.makeBinary(pos,JCTree.EQ,id,e);
@@ -4838,7 +4838,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 tag == JCTree.PREDEC || tag == JCTree.PREINC) {
             int op = tag == JCTree.PREDEC || tag == JCTree.POSTDEC ?
                     JCTree.MINUS : JCTree.PLUS;
-            JCExpression e = treeutils.makeBinary(that.pos,op,arg,treeutils.makeIntLit(that.pos,1));
+            JCExpression e = treeutils.makeBinary(that.pos,op,arg,treeutils.makeIntLiteral(that.pos,1));
             result = doAssignment(that.type,arg,e,that.pos+1,that);
             if (tag == JCTree.POSTDEC || tag == JCTree.POSTINC) result = arg;
             return;
@@ -5593,7 +5593,7 @@ public class BasicBlocker extends JmlTreeScanner {
             // an initializer, but no dimensions given
 
             int num = newelems.size();
-            JCExpression len = treeutils.makeIntLit(pos,num);
+            JCExpression len = treeutils.makeIntLiteral(pos,num);
 
             // <newarray>.length == <len>
             e = new JmlBBFieldAccess(lengthIdent,newarray);
@@ -5606,7 +5606,7 @@ public class BasicBlocker extends JmlTreeScanner {
             for (JCExpression ee: newelems) {
                 // create an assumption about each element of the new array, 
                 // given the initializer value (which might be a new array itself)
-                JCLiteral lit = treeutils.makeIntLit(ee.pos,i++);
+                JCLiteral lit = treeutils.makeIntLiteral(ee.pos,i++);
                 e = new JmlBBArrayAccess(getArrayIdent(ee.type),newarray,lit);
                 e.pos = ee.pos;
                 e.type = ee.type;

@@ -280,7 +280,7 @@ public class JmlTreeUtils {
         return tree;
     }
     
-    /** Make an attributed tree representing a literal - NOT FOR BOOLEAN VALUES.
+    /** Make an attributed tree representing a literal - NOT FOR BOOLEAN or NULL VALUES.
      *  @param pos        The node position
      *  @param type       The literal's type.
      *  @param value      The literal's value.
@@ -289,8 +289,13 @@ public class JmlTreeUtils {
         return factory.at(pos).Literal(type.tag, value).setType(type.constType(value));
     }
     
+    public JCLiteral makeDuplicateLiteral(int pos, JCLiteral lit) {
+        // Note that that.typetag can be different from that.type.tag - e.g for null values
+        return factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+    }
+    
     /** Make an attributed tree representing an integer literal. */
-    public JCLiteral makeIntLit(int pos, int value) {
+    public JCLiteral makeIntLiteral(int pos, int value) {
         return factory.at(pos).Literal(TypeTags.INT, value).setType(syms.intType.constType(value));
     }
 
@@ -299,7 +304,6 @@ public class JmlTreeUtils {
         lit.type = syms.classType;
         return lit;
     }
-
     
     /** Makes a constant boolean literal AST node.
      * @param pos the position to use for the node
@@ -511,6 +515,13 @@ public class JmlTreeUtils {
     /** Makes the AST for a reference inequality (!=) expression */
     public JCBinary makeNeqObject(int pos, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,JCTree.NE,objectneSymbol,lhs, rhs);
+    }
+    
+    
+    public JCFieldAccess makeLength(int pos, JCExpression array) {
+        JCFieldAccess fa = (JCFieldAccess)factory.at(pos).Select(array, syms.lengthVar);
+        fa.type = syms.intType;
+        return fa;
     }
 
     /** Makes a new variable declaration for helper variables in the AST translation;

@@ -10,6 +10,7 @@ import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.smtlib.ICommand;
+import org.smtlib.ICommand.IScript;
 import org.smtlib.IExpr;
 import org.smtlib.IExpr.IDeclaration;
 import org.smtlib.ISort;
@@ -20,13 +21,14 @@ import org.smtlib.command.C_declare_sort;
 import org.smtlib.command.C_define_fun;
 import org.smtlib.command.C_set_logic;
 import org.smtlib.command.C_set_option;
-import org.smtlib.impl.Command;
 import org.smtlib.impl.Factory;
+import org.smtlib.impl.Script;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -74,11 +76,13 @@ public class SMTTranslator extends JmlTreeScanner {
     
     protected ISort refSort;
     protected IExpr.ISymbol nullRef;
+    protected IExpr.ISymbol lengthRef;
     protected IExpr.ISymbol thisRef;
     
     
     /** The SMTLIB script as it is being constructed */
-    protected Command.Script script; // FIXME - make abstract
+    protected IScript script; // FIXME - make abstract
+    protected List<ICommand> commands;
     
     public SMTTranslator(Context context) {
         log = Log.instance(context);
@@ -88,31 +92,41 @@ public class SMTTranslator extends JmlTreeScanner {
     
     public ICommand.IScript convert(BasicProgram program) {
         F = new org.smtlib.impl.Factory();
-        script = new Command.Script();
+        script = new Script();
         ICommand c;
+        commands = script.commands();
         
         // set the logic
         c = new C_set_option(F.keyword(":produce-models",null),F.symbol("true",null));
-        script.add(c);
+        commands.add(c);
         c = new C_set_logic(F.symbol("AUFLIRA",null));
-        script.add(c);
+        commands.add(c);
         
         // add background statements
-        c = new C_declare_sort(F.symbol("REF",null),F.numeral(0));
-        script.add(c);
-        c = new C_declare_fun(nullRef = F.symbol("NULL",null),new LinkedList<ISort>(), refSort = F.createSortExpression(F.symbol("REF",null)));
-        script.add(c);
-        c = new C_declare_fun(thisRef = F.symbol("this",null),new LinkedList<ISort>(), refSort);
-        script.add(c);
-        c = new C_assert(F.fcn(F.symbol("distinct",null), thisRef, nullRef));
-        script.add(c);
+        c = new C_declare_sort(F.symbol("REF"),F.numeral(0));
+        commands.add(c);
+        c = new C_declare_fun(nullRef = F.symbol("NULL"),new LinkedList<ISort>(), refSort = F.createSortExpression(F.symbol("REF")));
+        commands.add(c);
+        c = new C_declare_fun(thisRef = F.symbol("this"),new LinkedList<ISort>(), refSort);
+        commands.add(c);
+        c = new C_assert(F.fcn(F.symbol("distinct"), thisRef, nullRef));
+        commands.add(c);
+        List<ISort> args = new LinkedList<ISort>();
+        c = new C_declare_fun(lengthRef = F.symbol("length"),args, F.createSortExpression(F.symbol("Array"),refSort,F.createSortExpression(F.symbol("Int",null))));
+        commands.add(c);
+        args = new LinkedList<ISort>();
+        args.add(refSort);
+        c = new C_declare_fun(F.symbol("asIntArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),F.createSortExpression(F.symbol("Int"))));
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("asRefArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),refSort));
+        commands.add(c);
         
         for (JCExpression e: program.background()) {
             try {
                 e.accept(this);
                 IExpr ex = result;
                 c = new C_assert(ex);
-                script.add(c);
+                commands.add(c);
             } catch (RuntimeException ee) {
                 // skip - error already issued
             }
@@ -122,10 +136,10 @@ public class SMTTranslator extends JmlTreeScanner {
         
         for (JCIdent id: program.declarations) {
             try {
-                c = new C_declare_fun(F.symbol(id.toString(), null),
+                c = new C_declare_fun(F.symbol(id.toString()),
                         new LinkedList<ISort>(),
                         convertSort(id.type));
-                script.add(c);
+                commands.add(c);
             } catch (RuntimeException ee) {
                 // skip - error already issued
             }
@@ -139,7 +153,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         new LinkedList<IDeclaration>(),
                         convertSort(e.id.type),
                         result);
-                script.add(c);
+                commands.add(c);
             } catch (RuntimeException ee) {
                 // skip - error already issued
             }
@@ -150,7 +164,7 @@ public class SMTTranslator extends JmlTreeScanner {
         // all the block variables first
         for (BasicProgram.BasicBlock b: program.blocks()) {
             ICommand cc = new C_declare_fun(F.symbol(b.id.toString(),null), new LinkedList<ISort>(), F.Bool());
-            script.add(cc);
+            commands.add(cc);
         }
         
         // add blocks
@@ -158,14 +172,14 @@ public class SMTTranslator extends JmlTreeScanner {
             convertBasicBlock(b);
         }
         
-        LinkedList<IExpr> args = new LinkedList<IExpr>();
-        args.add(F.symbol(program.startId().name.toString(),null));
-        IExpr negStartID = F.fcn(F.symbol("not",null), args, null);
+        LinkedList<IExpr> argss = new LinkedList<IExpr>();
+        argss.add(F.symbol(program.startId().name.toString(),null));
+        IExpr negStartID = F.fcn(F.symbol("not",null), argss, null);
         ICommand cc = new C_assert(negStartID);
-        script.add(cc);
+        commands.add(cc);
         
         cc = new C_check_sat();
-        script.add(cc);
+        commands.add(cc);
         
         return script;
     }
@@ -174,22 +188,22 @@ public class SMTTranslator extends JmlTreeScanner {
         Iterator<JCStatement> iter = block.statements.iterator();
         IExpr tail; 
         if (block.succeeding.isEmpty()) {
-            tail = F.symbol("true",null);
+            tail = F.symbol("true");
         } else if (block.succeeding.size() == 1) {
             tail = F.symbol(block.succeeding.get(0).id.name.toString(),null);
         } else {
             ArrayList<IExpr> args = new ArrayList<IExpr>();
             for (BasicProgram.BasicBlock bb: block.succeeding) {
-                args.add(F.symbol(bb.id.name.toString(),null));
+                args.add(F.symbol(bb.id.name.toString()));
             }
-            tail = F.fcn(F.symbol("and",null),args,null);
+            tail = F.fcn(F.symbol("and"),args,null);
         }
         IExpr ex = convert(iter,tail);
         LinkedList<IExpr> args = new LinkedList<IExpr>();
-        args.add(F.symbol(block.id.toString(),null));
+        args.add(F.symbol(block.id.toString()));
         args.add(ex);
-        ex = F.fcn(F.symbol("=",null),args,null);
-        script.add(new C_assert(ex));
+        ex = F.fcn(F.symbol("="),args);
+        commands.add(new C_assert(ex));
     }
     
     public IExpr convert(Iterator<JCStatement> iter, IExpr tail) {
@@ -213,7 +227,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         new LinkedList<IDeclaration>(),
                         convertSort(decl.type),
                         init);
-                 script.add(c);
+                 commands.add(c);
                  return convert(iter,tail);
             } else if (stat instanceof JmlStatementExpr) {
                 IExpr ex = convert(iter,tail);
@@ -257,6 +271,11 @@ public class SMTTranslator extends JmlTreeScanner {
             return F.createSortExpression(F.symbol("Int", null));
         } else if (t.tag == syms.objectType.tag) {
             return refSort;
+        } else if (t instanceof ArrayType) {
+            return refSort;
+//            ArrayType atype = (ArrayType)t;
+//            Type elemtype = atype.getComponentType();
+//            return F.createSortExpression(F.symbol("Array",null), F.createSortExpression(F.symbol("Int", null)), convertSort(elemtype));
         } else {
             log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
             throw new RuntimeException();
@@ -295,7 +314,7 @@ public class SMTTranslator extends JmlTreeScanner {
     }
 
     public void visitAssignop(JCAssignOp tree) {
-        notImpl(tree);
+        notImpl(tree); // This should never be implemented
         super.visitAssignop(tree);
     }
 
@@ -362,7 +381,10 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.fcn(F.symbol("*",null), args, null);
                 break;
             case JCTree.DIV:
-                result = F.fcn(F.symbol("/",null), args, null);
+                if (tree.type.tag == TypeTags.INT)
+                    result = F.fcn(F.symbol("div",null), args, null);
+                else
+                    result = F.fcn(F.symbol("/",null), args, null);
                 break;
             case JCTree.MOD:
                 result = F.fcn(F.symbol("mod",null), args, null);
@@ -402,8 +424,20 @@ public class SMTTranslator extends JmlTreeScanner {
     }
 
     public void visitIndexed(JCArrayAccess tree) {
-        notImpl(tree);
-        super.visitIndexed(tree);
+        scan(tree.indexed);
+        IExpr array = result;
+        scan(tree.index);
+        IExpr index = result;
+        if (tree.type.tag == syms.intType.tag) {
+            result = F.fcn(F.symbol("asIntArray",null), array);
+            result = F.fcn(F.symbol("select",null),result,index);
+        } else if (!tree.type.isPrimitive()) {
+            result = F.fcn(F.symbol("asRefArray",null), array);
+            result = F.fcn(F.symbol("select",null),result,index);
+        } else {
+            System.out.println("NOT IMPLEMENTED in visitIndexed");
+            // result = ??? // FIXME
+        }
     }
 
     public void visitSelect(JCFieldAccess tree) {
@@ -412,14 +446,14 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     protected void doFieldAccess(JCExpression object, Symbol field) {
-        if (true) {
-            ISort arrsort = F.createSortExpression(F.symbol("Array", null),refSort,convertSort(field.type));
+        if (field != syms.lengthVar) {
+            ISort arrsort = F.createSortExpression(F.symbol("Array"),refSort,convertSort(field.type));
             List<ISort> args = new LinkedList<ISort>();
-            ICommand c = new C_declare_fun(F.symbol(field.name.toString(),null),
+            ICommand c = new C_declare_fun(F.symbol(field.name.toString()),
                     args,arrsort);
-            script.add(c);
+            commands.add(c);
         }
-        result = F.fcn(F.symbol("select", null),F.symbol(field.name.toString(),null),
+        result = F.fcn(F.symbol("select", null),F.symbol(field.name.toString()),
                 object == null ? thisRef: convertExpr(object));
         
     }
@@ -429,14 +463,14 @@ public class SMTTranslator extends JmlTreeScanner {
             // a select from this
             doFieldAccess(null,tree.sym);
         } else {
-            result = F.symbol(tree.name.toString(),null);
+            result = F.symbol(tree.name.toString());
         } 
     }
 
     public void visitLiteral(JCLiteral tree) {
         // FIXME - need real, double, char, byte
         if (tree.typetag == TypeTags.BOOLEAN) {
-           result = F.symbol("true",null); 
+           result = F.symbol(((Boolean)tree.getValue()) ?"true":"false",null); 
         } else if (tree.typetag == TypeTags.INT) {
             result = F.numeral(Integer.parseInt(tree.toString()));
         } else if (tree.typetag == TypeTags.LONG) {
