@@ -29,6 +29,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Pair;
 
 /**
@@ -330,7 +331,7 @@ public class JmlCompiler extends JavaCompiler {
         }
         
         if (utils.esc) {
-            new JmlTranslator(context).translate(env);
+            if (Options.instance(context).get("-newesc") == null) new JmlTranslator(context).translate(env);
             //log.noticeWriter.println(JmlPretty.write(env.tree));
             esc(env);
             

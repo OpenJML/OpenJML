@@ -1256,6 +1256,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     attribExpr(e,env);
                     currentClauseType = prev;
                     JmlMethodClauseExpr cl = jmlMaker.at(annotationPos).JmlMethodClauseExpr(JmlToken.ENSURES,e);
+                    cl.sourcefile = decl.source();
                     endPosTable.put(cl,annotationEnd);
                     clauses.append(cl);
                 }

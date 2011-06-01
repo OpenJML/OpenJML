@@ -609,7 +609,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         falseLiteral.type = syms.booleanType;
         nullLiteral = factory.at(0).Literal(TypeTags.BOT,0);
         nullLiteral.type = syms.objectType;
-        zeroLiteral = treeutils.makeIntLit(0,0);
+        zeroLiteral = treeutils.makeIntLiteral(0,0);
         zeroLiteral.type = syms.intType;
         
         // This is the field name used to access the allocation time of an object
@@ -621,6 +621,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         /** This is the symbol to access the length of an array */
         lengthSym = syms.lengthVar;
         lengthIdent = newAuxIdent(lengthSym,0);
+        
 
     }
     
@@ -1241,8 +1242,6 @@ public class BasicBlocker2 extends JmlTreeScanner {
         blocksCompleted = new ArrayList<BasicBlock>();
         blockLookup = new java.util.HashMap<String,BasicBlock>();
         
-        thisId = newAuxIdent(THIS,methodDecl.sym.owner.type,pos,false);
-        currentThisId = thisId;
         
 
 //        if (methodDecl.getReturnType() != null) {
@@ -1308,6 +1307,12 @@ public class BasicBlocker2 extends JmlTreeScanner {
         
         newdefs.add(new BasicProgram.Definition(0,terminationVar,zeroLiteral));
         currentMap.put(terminationSym,0,terminationVar.name);
+
+        if (this.methodDecl._this != null) {
+            currentMap.put(this.methodDecl._this, currentMap.everythingIncarnation, this.methodDecl._this.name);
+            thisId = newAuxIdent(this.methodDecl._this.name.toString(),methodDecl.sym.owner.type,pos,false);
+            currentThisId = thisId;
+        }
 
         // FIXME - these no longer belong here, I think
         newIdentIncarnation(heapVar,0);
@@ -2720,7 +2725,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
                 int p = loopspec.getStartPosition();
                 JCIdent v = newIdentUse(loopspec.sym,p); // FIXME - probably not the right use position
                 //JCExpression e = treeutils.makeBinary(p,JCTree.GT,v,trSpecExpr(treeutils.makeIntLit(p,0),log.currentSourceFile()));
-                JCExpression e = treeutils.makeBinary(p,JCTree.GT,v,(treeutils.makeIntLit(p,0)));
+                JCExpression e = treeutils.makeBinary(p,JCTree.GT,v,(treeutils.makeIntLiteral(p,0)));
                 addAssert(Label.LOOP_DECREASES_NEGATIVE,e,p,currentBlock.statements,body.getStartPosition(),log.currentSourceFile(),loopspec);
             }
         }
@@ -2845,7 +2850,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             JCIdent idd = (JCIdent)factory.at(pos+1).Ident(decl);
             id.type = decl.type;
             JCAssign asg = factory.at(idd.pos).Assign(idd,
-                    treeutils.makeBinary(idd.pos,JCTree.PLUS,id,treeutils.makeIntLit(pos,1)));
+                    treeutils.makeBinary(idd.pos,JCTree.PLUS,id,treeutils.makeIntLiteral(pos,1)));
             asg.type = syms.intType;
             JCExpressionStatement update = factory.at(idd.pos).Exec(asg);
             com.sun.tools.javac.util.List<JCExpressionStatement> updateList = com.sun.tools.javac.util.List.<JCExpressionStatement>of(update);
@@ -2863,7 +2868,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             
             // add 0 <= $$index && $$index <= <expr>.length
             // as an additional loop invariant
-            JCExpression e1 = treeutils.makeBinary(pos,JCTree.LE,treeutils.makeIntLit(pos,0),id);
+            JCExpression e1 = treeutils.makeBinary(pos,JCTree.LE,treeutils.makeIntLiteral(pos,0),id);
             JCExpression e2 = treeutils.makeBinary(pos,JCTree.LE,id,fa);
             JCExpression e3 = treeutils.makeBinary(pos,JCTree.AND,e1,e2);
             JmlStatementLoop inv =factory.at(pos).JmlStatementLoop(JmlToken.LOOP_INVARIANT,e3);
@@ -2960,7 +2965,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             if (loopspec.token == JmlToken.DECREASES) {
                 int p = loopspec.getStartPosition();
                 JCIdent v = newIdentUse(loopspec.sym,p);
-                JCExpression e = treeutils.makeBinary(p,JCTree.GE,v,treeutils.makeIntLit(p,0));
+                JCExpression e = treeutils.makeBinary(p,JCTree.GE,v,treeutils.makeIntLiteral(p,0));
                 addAssert(Label.LOOP_DECREASES_NEGATIVE,e,p,currentBlock.statements,body.getStartPosition(),log.currentSourceFile(),loopspec); // FIXME - track which continue is causing a problem?
             }
         }
@@ -3463,7 +3468,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         int pos = that.getStartPosition();
         JCIdent id = newIdentIncarnation(terminationVar,pos);
         currentBlock.statements.add(treeutils.makeVariableDecl(id.name,id.type,null,pos));
-        JCLiteral lit = treeutils.makeIntLit(pos,-pos);
+        JCLiteral lit = treeutils.makeIntLiteral(pos,-pos);
         JCExpression expr = treeutils.makeBinary(pos,JCTree.EQ,id,lit);
         addAssume(TreeInfo.getStartPos(that),Label.SYN,expr); // <terminationVar> = -pos
         
@@ -4799,7 +4804,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         JCIdent id;
         String n = ASSUME_CHECK_PREFIX + pos + "" + label.toString();
         if (useCountedAssumeCheck) {
-            JCExpression count = treeutils.makeIntLit(pos,pos);
+            JCExpression count = treeutils.makeIntLiteral(pos,pos);
             e = treeutils.makeBinary(pos,JCTree.NE,assumeCheckCountVar,count);
             id = newAuxIdent(n,syms.booleanType,pos,false);
             //e = treeutils.makeBinary(pos,JCTree.EQ,id,e);
@@ -5707,6 +5712,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     // FIXME - delegate to visitVarDef?
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         if (that.init != null) scan(that.init);
+        if (that.sym != null) currentMap.put(that.sym, currentMap.everythingIncarnation, that.name);
         currentBlock.statements.add(that);
 //        currentBlock.statements.add(comment(that));
 //        // FIXME - need to add various field specs tests

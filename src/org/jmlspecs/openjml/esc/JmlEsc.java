@@ -344,7 +344,7 @@ public class JmlEsc extends JmlTreeScanner {
         
         if (print) {
             log.noticeWriter.println("STARTING PROOF OF " + decl.name);
-            JmlPretty.write(decl.body);
+            log.noticeWriter.println(JmlPretty.write(decl.body));
         }
         
         JmlMethodDecl tree = (JmlMethodDecl)decl;
@@ -426,8 +426,19 @@ public class JmlEsc extends JmlTreeScanner {
     public boolean getBoolValue(String id, SMT smt, ISolver solver) {
         org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id,null);
         IResponse resp = solver.get_value(s);
-        org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
-        return !se.toString().equals("false");
+        if (resp instanceof org.smtlib.sexpr.ISexpr.ISeq){
+            org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
+            return !se.toString().equals("false");
+        } else if (resp instanceof IResponse.IError) {
+            log.error("jml.internal.notsobad", ((IResponse.IError)resp).errorMsg());
+            return true;
+        } else if (resp == null) {
+            log.error("jml.internal.notsobad", "Could not find value of assertion: " + id);
+            return true;
+        } else {
+            log.error("jml.internal.notsobad", "Unexpected response on requesting value of assertion: " + smt.smtConfig.defaultPrinter.toString(resp));
+            return true;
+        }
     }
     
     public int getIntValue(String id, SMT smt, ISolver solver) {
@@ -481,9 +492,11 @@ public class JmlEsc extends JmlTreeScanner {
                     return true;
                 }
             }
-            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).label == Label.RETURN) {
-                resultpos = stat.pos;
-            }
+//            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).label == Label.RETURN) {
+//                resultpos = stat.pos;
+//            }
+            // FIXME - hardcoded string that is also used in JmlAssertionAdder
+            if (stat instanceof JCVariableDecl && ((JCVariableDecl)stat).name.toString().startsWith("RESULT")) resultpos = stat.pos;
         }
         for (BasicBlock b: block.succeeding) {
             value = reportInvalidAssertion(b,smt,solver,decl);

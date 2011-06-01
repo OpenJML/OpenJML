@@ -1106,6 +1106,7 @@ public class JmlSpecs {
      * @return true if the symbol is non-null explicitly or by default
      */
     public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
+        if (symbol.type.isPrimitive()) return false;
         if (nonnullAnnotationSymbol == null) {
             nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Utils.nonnullAnnotation));
         }

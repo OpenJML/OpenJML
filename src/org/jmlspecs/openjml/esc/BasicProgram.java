@@ -184,6 +184,13 @@ public class BasicProgram {
                 pw.println();
                 w.flush();
             }
+            for (JCIdent e: declarations) {
+                pw.print(e.name.toString());
+                pw.print(" : ");
+                pw.print(e.type.toString());
+                pw.println();
+                w.flush();
+            }
             for (Definition e: definitions) {
                 e.id.accept(pw);
                 pw.print(" ::: ");
