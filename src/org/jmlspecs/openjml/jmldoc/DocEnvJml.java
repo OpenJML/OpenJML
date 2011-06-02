@@ -18,7 +18,7 @@ public class DocEnvJml extends DocEnv {
     
     public static void preRegister(final Context context) {
         context.put(docEnvKey, new Context.Factory<DocEnv>() {
-            public DocEnv make() {
+            public DocEnv make(Context context) {
                 return new DocEnvJml(context);
             }
         });

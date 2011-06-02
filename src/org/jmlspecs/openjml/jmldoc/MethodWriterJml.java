@@ -66,12 +66,13 @@ public class MethodWriterJml extends MethodWriterImpl {
      *
      * @param method the method being documented.
      */
-    @Override
-    public void writeTags(@NonNull MethodDoc method) {
-        super.writeTags(method);
-        writeJmlSpecs(method);
-    }
-    
+    // FIXME - major change in b144
+//    @Override
+//    public void writeTags(@NonNull MethodDoc method) {
+//        super.writeTags(method);
+//        writeJmlSpecs(method);
+//    }
+//    
     /** Write the JML specifications for the given method.
      * 
      * @param method the method whose specs are to be written
@@ -185,10 +186,11 @@ loop:   while (e != null && e.sym != null) {
      * methods.
      * @param classDoc the class whose model methods are to be documented
      */
-    public void writeFooter(@NonNull ClassDoc classDoc) {
-        super.writeFooter(classDoc);
-        writeJmlModelMethods(classDoc);
-    }
+    // FIXME - major change in b144
+//    public void writeFooter(@NonNull ClassDoc classDoc) {
+//        super.writeFooter(classDoc);
+//        writeJmlModelMethods(classDoc);
+//    }
     
     /** Write out HTML documentation on JML model methods.
      * 
@@ -226,52 +228,55 @@ loop:   while (e != null && e.sym != null) {
       writer.println();
       
       boolean isFirst = true;
-      for (JmlMethodDecl tc: list) {
-          MethodDoc md = new MethodDocImpl(((ClassDocImpl)classDoc).docenv(),tc.sym,tc.docComment,tc,null);
-          // Method header
-          writeMethodHeader(md,isFirst); isFirst = false;
-          
-          // signature
-          writeSignature(md);
-          
-          // deprecation
-          writeDeprecated(md);
-          
-          // field comments
-          writeComments(classDoc,md);
-          
-          // tag info
-          writeTags(md); // includes writeJmlSpecs(md);
-
-          // Method footer
-          writeMethodFooter();
-      }
-      
-      
-      //Footer
-      super.writeFooter(classDoc);
+      // FIXME - major change in b144
+//      for (JmlMethodDecl tc: list) {
+//          MethodDoc md = new MethodDocImpl(((ClassDocImpl)classDoc).docenv(),tc.sym,tc.docComment,tc,null);
+//          // Method header
+//          writeMethodHeader(md,isFirst); isFirst = false;
+//          
+//          // signature
+//          writeSignature(md);
+//          
+//          // deprecation
+//          writeDeprecated(md);
+//          
+//          // field comments
+//          writeComments(classDoc,md);
+//          
+//          // tag info
+//          writeTags(md); // includes writeJmlSpecs(md);
+//
+//          // Method footer
+//          writeMethodFooter();
+//      }
+//      
+//      
+//      //Footer
+//      super.writeFooter(classDoc);
       
         
     }
 
-    /** Overridden to follow the member summary footer with the summary of
-     * JML model methods.
-     * @param classDoc the class that owns the methods and model methods
-     */
-    public void writeMemberSummaryFooter(@NonNull ClassDoc classDoc) {
-        super.writeMemberSummaryFooter(classDoc);
-        writeJmlMethodSummary(classDoc);
-    }
+    // FIXME - major change in b144
+//    /** Overridden to follow the member summary footer with the summary of
+//     * JML model methods.
+//     * @param classDoc the class that owns the methods and model methods
+//     */
+//    public void writeMemberSummaryFooter(@NonNull ClassDoc classDoc) {
+//        super.writeMemberSummaryFooter(classDoc);
+//        writeJmlMethodSummary(classDoc);
+//    }
 
-    /** Overridden to follow the summary footer for inherited methods
-     * with the summary of inherited
-     * JML model methods.
-     * @param classDoc the class whose inherited methods are being documented
-     */
-    public void writeInheritedMemberSummaryFooter(ClassDoc classDoc) {
-        writeJmlInheritedMemberSummaryFooter(classDoc);
-        super.writeInheritedMemberSummaryFooter(classDoc);
-    }
+    // FIXME - major change in b144
+//    /** Overridden to follow the summary footer for inherited methods
+//     * with the summary of inherited
+//     * JML model methods.
+//     * @param classDoc the class whose inherited methods are being documented
+//     */
+//    public void writeInheritedMemberSummaryFooter(ClassDoc classDoc) {
+//        writeJmlInheritedMemberSummaryFooter(classDoc);
+//        super.writeInheritedMemberSummaryFooter(classDoc);
+//    }
     
     /** Writes out information about the inherited model methods for the given
      * class.
@@ -296,17 +301,18 @@ loop:   while (e != null && e.sym != null) {
             }
         }
         
-        // If there are any, emit documentation
-        if (!list.isEmpty()) {
-            writer.br();
-            writer.strong("Inherited JML model methods: ");
-            Collections.sort(list);
-            boolean isFirst = true;
-            for (MethodDoc method: list) {
-                writer.printInheritedSummaryMember(this, classDoc, method, isFirst);
-                isFirst = false;
-            }
-        }
+        // FIXME - major change in b144
+//        // If there are any, emit documentation
+//        if (!list.isEmpty()) {
+//            writer.br();
+//            writer.strong("Inherited JML model methods: ");
+//            Collections.sort(list);
+//            boolean isFirst = true;
+//            for (MethodDoc method: list) {
+//                writer.printInheritedSummaryMember(this, classDoc, method, isFirst);
+//                isFirst = false;
+//            }
+//        }
     }
     
     /** Writes out documentation for JML model methods.
@@ -331,23 +337,24 @@ loop:   while (e != null && e.sym != null) {
         Collections.sort(list);
         writeJmlMethodSummaryHeader(classDoc);
         // The following loop is copied with modifications from MemberSummaryBuilder.buildSummary
-        for (int i = 0; i<list.size(); i++) {
-            MethodDoc member = list.get(i);
-            Tag[] firstSentenceTags = member.firstSentenceTags();
-            if (firstSentenceTags.length == 0) {
-                //Inherit comments from overridden or implemented method if
-                //necessary.
-                DocFinder.Output inheritedDoc =
-                    DocFinder.search(new DocFinder.Input(member));
-                if (inheritedDoc.holder != null &&
-                        inheritedDoc.holder.firstSentenceTags().length > 0) {
-                    firstSentenceTags = inheritedDoc.holder.firstSentenceTags();
-                }
-            }
-            writeMemberSummary(classDoc, member, firstSentenceTags,
-                i == 0, i == list.size() - 1);
-        }
-        super.writeMemberSummaryFooter(classDoc);
+        // FIXME - major change in b144
+//        for (int i = 0; i<list.size(); i++) {
+//            MethodDoc member = list.get(i);
+//            Tag[] firstSentenceTags = member.firstSentenceTags();
+//            if (firstSentenceTags.length == 0) {
+//                //Inherit comments from overridden or implemented method if
+//                //necessary.
+//                DocFinder.Output inheritedDoc =
+//                    DocFinder.search(new DocFinder.Input(member));
+//                if (inheritedDoc.holder != null &&
+//                        inheritedDoc.holder.firstSentenceTags().length > 0) {
+//                    firstSentenceTags = inheritedDoc.holder.firstSentenceTags();
+//                }
+//            }
+//            writeMemberSummary(classDoc, member, firstSentenceTags,
+//                i == 0, i == list.size() - 1);
+//        }
+//        super.writeMemberSummaryFooter(classDoc);
     }
     
     /** Writes the beginning of the HTML for a (model) method summary.
@@ -368,15 +375,16 @@ loop:   while (e != null && e.sym != null) {
         super.printModifier(member);
     }
 
-    /** This override has the effect of always printing out annotation information
-     * when a method signature is written; in particular, in javadoc it is not
-     * written out in the parameters within the member summary section.
-     * @param member the Doc element whose information is being printed
-     * @param includeAnnotations boolean switch now being ignored
-     */
-    @Override
-    protected void writeParameters(ExecutableMemberDoc member,
-            boolean includeAnnotations) {
-        super.writeParameters(member,true);
-    }
+    // FIXME - major change in b144
+//    /** This override has the effect of always printing out annotation information
+//     * when a method signature is written; in particular, in javadoc it is not
+//     * written out in the parameters within the member summary section.
+//     * @param member the Doc element whose information is being printed
+//     * @param includeAnnotations boolean switch now being ignored
+//     */
+//    @Override
+//    protected void writeParameters(ExecutableMemberDoc member,
+//            boolean includeAnnotations) {
+//        super.writeParameters(member,true);
+//    }
 }

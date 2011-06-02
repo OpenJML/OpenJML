@@ -18,28 +18,30 @@ public class MemberSummaryBuilderJml extends MemberSummaryBuilder {
         super(configuration);
     }
     
-    public void buildFieldsSummary(XMLNode node) {
-        super.buildFieldsSummary(node);
-        MemberSummaryWriter w = memberSummaryWriters[VisibleMemberMap.FIELDS];
-        ((FieldWriterJml)w).checkJmlSummary(classDoc);
-    }
+    // FIXME - major change in b144
+//    public void buildFieldsSummary(XMLNode node) {
+//        super.buildFieldsSummary(node);
+//        MemberSummaryWriter w = memberSummaryWriters[VisibleMemberMap.FIELDS];
+//        ((FieldWriterJml)w).checkJmlSummary(classDoc);
+//    }
 
-    public void buildFieldsInheritedSummary(XMLNode node) {
-        super.buildFieldsInheritedSummary(node);
-        MemberSummaryWriter w = memberSummaryWriters[VisibleMemberMap.FIELDS];
-        VisibleMemberMap visibleMemberMap = visibleMemberMaps[VisibleMemberMap.FIELDS];
-        for (Iterator iter = visibleMemberMap.getVisibleClassesList().iterator(); iter.hasNext();) {
-            ClassDoc inhclass = (ClassDoc) (iter.next());
-            if (! (inhclass.isPublic() ||
-                    Util.isLinkable(inhclass, configuration))) {
-                continue;
-            }
-            if (inhclass == classDoc) {
-                continue;
-            }
-            List inhmembers = visibleMemberMap.getMembersFor(inhclass);
-            ((FieldWriterJml)w).checkJmlInheritedSummary(classDoc,inhmembers);
-        }
-    }
+    // FIXME - major change in b144
+//    public void buildFieldsInheritedSummary(XMLNode node) {
+//        super.buildFieldsInheritedSummary(node);
+//        MemberSummaryWriter w = memberSummaryWriters[VisibleMemberMap.FIELDS];
+//        VisibleMemberMap visibleMemberMap = visibleMemberMaps[VisibleMemberMap.FIELDS];
+//        for (Iterator iter = visibleMemberMap.getVisibleClassesList().iterator(); iter.hasNext();) {
+//            ClassDoc inhclass = (ClassDoc) (iter.next());
+//            if (! (inhclass.isPublic() ||
+//                    Util.isLinkable(inhclass, configuration))) {
+//                continue;
+//            }
+//            if (inhclass == classDoc) {
+//                continue;
+//            }
+//            List inhmembers = visibleMemberMap.getMembersFor(inhclass);
+//            ((FieldWriterJml)w).checkJmlInheritedSummary(classDoc,inhmembers);
+//        }
+//    }
 
 }

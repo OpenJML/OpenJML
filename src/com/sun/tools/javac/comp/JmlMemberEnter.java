@@ -121,7 +121,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
     public static void preRegister(final Context context) {
         context.put(memberEnterKey, new Context.Factory<MemberEnter>() {
-            public MemberEnter make() {
+            public MemberEnter make(Context context) {
                 return new JmlMemberEnter(context);
             }
         });

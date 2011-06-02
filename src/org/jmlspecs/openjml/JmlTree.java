@@ -10,15 +10,13 @@ import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.TreeVisitor;
-import com.sun.tools.javac.code.Scope;
-import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Scope.ImportScope;
+import com.sun.tools.javac.code.Scope.StarImportScope;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.tree.JCTree;
@@ -144,7 +142,7 @@ public class JmlTree {
         public static void preRegister(final Context context) {
             context.put(treeMakerKey, new Context.Factory<TreeMaker>() {
                 @Override
-                public Maker make() {
+                public Maker make(Context context) {
                     return new Maker(context);
                 }
             });
@@ -248,7 +246,7 @@ public class JmlTree {
         public JmlClassDecl ClassDef(JCModifiers mods,
                 Name name,
                 List<JCTypeParameter> typarams,
-                JCTree extending,
+                JCExpression extending,
                 List<JCExpression> implementing,
                 List<JCTree> defs) {
             JmlClassDecl tree = new JmlClassDecl(mods,name,typarams,extending,implementing,defs,null);
@@ -282,7 +280,7 @@ public class JmlTree {
                 List<JCExpression> thrown,
                 JCBlock body,
                 JCExpression defaultValue) {
-            JmlMethodDecl tree = new JmlMethodDecl(mods,name,restype,typarams,params,null,thrown,body,defaultValue,null); // DRC Introduced null parameter to deal with new/evolved signature.
+            JmlMethodDecl tree = new JmlMethodDecl(mods,name,restype,typarams,params,thrown,body,defaultValue,null); // DRC Introduced null parameter to deal with new/evolved signature.
             tree.pos = pos;
             tree.sourcefile = Log.instance(context).currentSourceFile();
             return tree;
@@ -298,7 +296,6 @@ public class JmlTree {
                     Type(mtype.getReturnType()),
                     TypeParams(mtype.getTypeArguments()),
                     Params(mtype.getParameterTypes(), m),
-                    null, // DRC Introduced null parameter to deal with new/evolved signature.
                     Types(mtype.getThrownTypes()),
                     body,
                     null,
@@ -802,8 +799,8 @@ public class JmlTree {
                 List<JCTree> defs,
                 JavaFileObject sourcefile,
                 PackageSymbol packge,
-                Scope namedImportScope,
-                Scope starImportScope) {
+                ImportScope namedImportScope,
+                StarImportScope starImportScope) {
             super(packageAnnotations,pid,defs,sourcefile,packge,namedImportScope,starImportScope);
         }
         
@@ -960,7 +957,7 @@ public class JmlTree {
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlClassDecl(JCModifiers mods, Name name,
-                List<JCTypeParameter> typarams, JCTree extending,
+                List<JCTypeParameter> typarams, JCExpression extending,
                 List<JCExpression> implementing, List<JCTree> defs,
                 ClassSymbol sym) {
             super(mods, name, typarams, extending, implementing, defs, sym);
@@ -1016,10 +1013,9 @@ public class JmlTree {
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodDecl(JCModifiers mods, Name name, JCExpression restype,
                 List<JCTypeParameter> typarams, List<JCVariableDecl> params,
-                List<JCTypeAnnotation> receiver,
                 List<JCExpression> thrown, JCBlock body,
                 JCExpression defaultValue, MethodSymbol sym) {
-            super(mods, name, restype, typarams, params, receiver, thrown, body, defaultValue, sym);
+            super(mods, name, restype, typarams, params, thrown, body, defaultValue, sym);
             specsDecl = null;
             sourcefile = null;
         }

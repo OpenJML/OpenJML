@@ -60,13 +60,14 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
         currentClassSym = Utils.findNewClassSymbol(classdoc);
     }
 
-    /** Overrides the super class method in order to write out any specs after the tags.
-     * @param method the constructor begin documented
-     */
-    public void writeTags(@NonNull ConstructorDoc method) {
-        super.writeTags(method);
-        writeJmlSpecs(method);
-    }
+    // FIXME - major change in b144
+//    /** Overrides the super class method in order to write out any specs after the tags.
+//     * @param method the constructor begin documented
+//     */
+//    public void writeTags(@NonNull ConstructorDoc method) {
+//        super.writeTags(method);
+//        writeJmlSpecs(method);
+//    }
     
     /** Writes out the JML specifications for the constructor.
      * 
@@ -121,15 +122,16 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
         return true;
     }
     
-    /** Overrides the parent method in order to write out details about
-     * JML model constructors after the footer for the Java constructors
-     * is written.
-     * @param classDoc the class whose constructors are being documented
-     */
-    public void writeFooter(@NonNull ClassDoc classDoc) {
-        super.writeFooter(classDoc);
-        writeJmlModelConstructors(classDoc);
-    }
+    // FIXME - major change in b144
+//    /** Overrides the parent method in order to write out details about
+//     * JML model constructors after the footer for the Java constructors
+//     * is written.
+//     * @param classDoc the class whose constructors are being documented
+//     */
+//    public void writeFooter(@NonNull ClassDoc classDoc) {
+//        super.writeFooter(classDoc);
+//        writeJmlModelConstructors(classDoc);
+//    }
     
     public void writeJmlModelConstructors(@NonNull ClassDoc classDoc) {
      // Hard coding this
@@ -165,40 +167,42 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
       writer.printTableHeadingBackground("JML Model Constructor Detail");
       writer.println();
       
-      boolean isFirst = true;
-      for (JmlMethodDecl tc: list) {
-          ConstructorDoc md = new ConstructorDocImpl(((ClassDocImpl)classDoc).docenv(),tc.sym,tc.docComment,tc,null);
-          // Method header
-          writeConstructorHeader(md,isFirst); isFirst = false;
-          
-          // signature
-          writeSignature(md);
-          
-          // deprecation
-          writeDeprecated(md);
-          
-          // field comments
-          writeComments(md);
-          
-          // tag info
-          // FIXME super.writeTags(md);
-          writeJmlSpecs(md);
-          
-          // Method footer
-          writeConstructorFooter();
-      }
-      
-      
-      //Footer
-      super.writeFooter(classDoc);
+      // FIXME - major change in b144
+//      boolean isFirst = true;
+//      for (JmlMethodDecl tc: list) {
+//          ConstructorDoc md = new ConstructorDocImpl(((ClassDocImpl)classDoc).docenv(),tc.sym,tc.docComment,tc,null);
+//          // Method header
+//          writeConstructorHeader(md,isFirst); isFirst = false;
+//          
+//          // signature
+//          writeSignature(md);
+//          
+//          // deprecation
+//          writeDeprecated(md);
+//          
+//          // field comments
+//          writeComments(md);
+//          
+//          // tag info
+//          // FIXME super.writeTags(md);
+//          writeJmlSpecs(md);
+//          
+//          // Method footer
+//          writeConstructorFooter();
+//      }
+//      
+//      
+//      //Footer
+//      super.writeFooter(classDoc);
       
         
     }
 
-    public void writeMemberSummaryFooter(ClassDoc classDoc) {
-        super.writeMemberSummaryFooter(classDoc);
-        writeJmlConstructorSummary(classDoc);
-    }
+    // FIXME - major change in b144
+//    public void writeMemberSummaryFooter(ClassDoc classDoc) {
+//        super.writeMemberSummaryFooter(classDoc);
+//        writeJmlConstructorSummary(classDoc);
+//    }
 
     // There are no inherited constructors
     
@@ -265,10 +269,11 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
 //                    firstSentenceTags = inheritedDoc.holder.firstSentenceTags();
 //                }
 //            }
-            writeMemberSummary(classDoc, member, firstSentenceTags,
-                i == 0, i == list.size() - 1);
+            // FIXME - major change in b144
+//            writeMemberSummary(classDoc, member, firstSentenceTags,
+//                i == 0, i == list.size() - 1);
         }
-        super.writeMemberSummaryFooter(classDoc);
+//        super.writeMemberSummaryFooter(classDoc);
     }
     
     public void writeJmlConstructorSummaryHeader(ClassDoc classDoc) {
@@ -286,16 +291,17 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
         super.printModifier(member);
     }
 
-    /** This override has the effect of always printing out annotation information
-     * when a method signature is written; in particular, in javadoc it is not
-     * written out in the parameters within the constructor summary section.
-     * @param member the Doc element whose information is being printed
-     * @param includeAnnotations boolean switch now being ignored
-     */
-    @Override
-    protected void writeParameters(ExecutableMemberDoc member,
-            boolean includeAnnotations) {
-        super.writeParameters(member,true);
-    }
+    // FIXME - major change in b144
+//    /** This override has the effect of always printing out annotation information
+//     * when a method signature is written; in particular, in javadoc it is not
+//     * written out in the parameters within the constructor summary section.
+//     * @param member the Doc element whose information is being printed
+//     * @param includeAnnotations boolean switch now being ignored
+//     */
+//    @Override
+//    protected void writeParameters(ExecutableMemberDoc member,
+//            boolean includeAnnotations) {
+//        super.writeParameters(member,true);
+//    }
 
 }

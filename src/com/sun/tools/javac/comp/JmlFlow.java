@@ -44,7 +44,7 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     public static void preRegister(final Context context) {
         context.put(Flow.flowKey, new Context.Factory<Flow>() {
             Flow instance = null;
-            public Flow make() { 
+            public Flow make(Context context) { 
                 if (instance == null) instance = new JmlFlow(context);
                 return instance;
             }

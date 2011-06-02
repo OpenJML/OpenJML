@@ -3,6 +3,7 @@ package com.sun.tools.javac.comp;
 import static com.sun.tools.javac.code.Flags.ABSTRACT;
 import static com.sun.tools.javac.code.Flags.AccessFlags;
 import static com.sun.tools.javac.code.Flags.INTERFACE;
+import static com.sun.tools.javac.code.Flags.ENUM;
 import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.code.Flags.SYNTHETIC;
 import static com.sun.tools.javac.code.Kinds.AMBIGUOUS;
@@ -13,6 +14,8 @@ import static com.sun.tools.javac.code.Kinds.VAR;
 import static com.sun.tools.javac.code.Kinds.WRONG_MTHS;
 import static com.sun.tools.javac.code.TypeTags.CLASS;
 import static com.sun.tools.javac.code.TypeTags.TYPEVAR;
+
+import java.util.Set;
 
 import org.jmlspecs.openjml.JmlCompiler;
 import org.jmlspecs.openjml.JmlSpecs;
@@ -102,7 +105,7 @@ public class JmlResolve extends Resolve {
      */
     public static void preRegister(final Context context) {
         context.put(Resolve.resolveKey, new Context.Factory<Resolve>() {
-            public Resolve make() {
+            public Resolve make(Context context) {
                 return new JmlResolve(context);
             }
         });
@@ -485,10 +488,14 @@ public class JmlResolve extends Resolve {
             Symbol bestSoFar,
             boolean allowBoxing,
             boolean useVarargs,
-            boolean operator) {
+            boolean operator,
+            Set<TypeSymbol> seen) {
         for (Type ct = intype; ct.tag == CLASS; ct = noSuper? Type.noType : types.supertype(ct)) {
+            while (ct.tag == TYPEVAR)
+                ct = ct.getUpperBound();
             ClassSymbol c = (ClassSymbol)ct.tsym;
-            if (!allowJML && (c.flags() & (ABSTRACT | INTERFACE)) == 0 && !noSuper)
+            if (!seen.add(c)) return bestSoFar;
+            if (!allowJML && (c.flags() & (ABSTRACT | INTERFACE | ENUM)) == 0 && !noSuper)
                 abstractok = false;
             for (Scope.Entry e = c.members().lookup(name);
                         e.scope != null;
@@ -503,6 +510,9 @@ public class JmlResolve extends Resolve {
                             operator);
                 }
             }
+            if (name == names.init)
+                break;
+            //- System.out.println(" - " + bestSoFar);
             if (abstractok) {
                 Symbol concrete = methodNotFound;
                 if ((bestSoFar.flags() & ABSTRACT) == 0)
@@ -513,7 +523,7 @@ public class JmlResolve extends Resolve {
                     bestSoFar = findMethod(env, site, name, argtypes,
                             typeargtypes,
                             l.head, abstractok, bestSoFar,
-                            allowBoxing, useVarargs, operator);
+                            allowBoxing, useVarargs, operator, seen);
                 }
                 if (concrete != bestSoFar &&
                         concrete.kind < ERR  && bestSoFar.kind < ERR &&
@@ -576,7 +586,7 @@ public class JmlResolve extends Resolve {
       */
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
-         if (utils.jmldebug) log.noticeWriter.println("LOADING REQUESTED " + name + " " + ClassReader.isClassAlreadyRead(context,name));
+         if (utils.jmldebug) log.noticeWriter.println("LOADING REQUESTED " + name ); // FIXME - what happened to this in b144? : + " " + ClassReader.isClassAlreadyRead(context,name));
          Symbol s = super.loadClass(env, name);
          // Here s can be a type or a package or not exist 
          // s may not exist because it is being tested whether such a type exists

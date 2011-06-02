@@ -42,42 +42,43 @@ public class ClassWriterJml extends ClassWriterImpl {
     }
     
 
-    /** This overrides the parent class method in order to append the JML specs
-     * of a class (e.g. invariants) after the class description near the beginning
-     * of the javadoc output.
-     */
-    @Override
-    public void writeClassDescription() {
-        super.writeClassDescription();
-        ClassSymbol newsym = null;
-        if (classDoc instanceof ClassDocImpl) {
-            ClassSymbol oldsym = ((ClassDocImpl)classDoc).tsym;
-            Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
-            Name newname = Names.instance(context).fromString(oldsym.flatname.toString());
-            newsym = Symtab.instance(context).classes.get(newname);
-            TypeSpecs tspecs = JmlSpecs.instance(context).get(newsym);
-            String ss = Utils.jmlAnnotations(newsym);
-            headerPrinted = false;
-            boolean hsp = hasSpecsToPrint(tspecs);
-            if (hsp || ss.length()!=0){
-                printSpecHeader("JML Specifications");
-                if (ss.length()!=0) {
-                    strong("Annotations:");
-                    print(ss);
-                    br();
-                }
-                if (hsp) printSpecs(tspecs);
-            }
-            
-            for (ClassSymbol ssym: Utils.getSupers(newsym)) {
-                printInheritedSpecs(context,ssym);
-            }
-
-            if (headerPrinted) printSpecEnd();
-                
-        }
-        p();
-    }
+    // FIXME - major change in b144
+//    /** This overrides the parent class method in order to append the JML specs
+//     * of a class (e.g. invariants) after the class description near the beginning
+//     * of the javadoc output.
+//     */
+//    @Override
+//    public void writeClassDescription() {
+//        super.writeClassDescription();
+//        ClassSymbol newsym = null;
+//        if (classDoc instanceof ClassDocImpl) {
+//            ClassSymbol oldsym = ((ClassDocImpl)classDoc).tsym;
+//            Context context = org.jmlspecs.openjml.jmldoc.Main.jmlContext;
+//            Name newname = Names.instance(context).fromString(oldsym.flatname.toString());
+//            newsym = Symtab.instance(context).classes.get(newname);
+//            TypeSpecs tspecs = JmlSpecs.instance(context).get(newsym);
+//            String ss = Utils.jmlAnnotations(newsym);
+//            headerPrinted = false;
+//            boolean hsp = hasSpecsToPrint(tspecs);
+//            if (hsp || ss.length()!=0){
+//                printSpecHeader("JML Specifications");
+//                if (ss.length()!=0) {
+//                    strong("Annotations:");
+//                    print(ss);
+//                    br();
+//                }
+//                if (hsp) printSpecs(tspecs);
+//            }
+//            
+//            for (ClassSymbol ssym: Utils.getSupers(newsym)) {
+//                printInheritedSpecs(context,ssym);
+//            }
+//
+//            if (headerPrinted) printSpecEnd();
+//                
+//        }
+//        p();
+//    }
     
     /** Prints the given specs (any clauses that are not declarations, e.g.
      * not field or method declarations).

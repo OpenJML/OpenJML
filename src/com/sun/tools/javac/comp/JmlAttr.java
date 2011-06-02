@@ -226,7 +226,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public static void preRegister(final Context context) {
         context.put(Attr.attrKey, new Context.Factory<Attr>() {
-            public Attr make() {
+            public Attr make(Context context) {
                 return new JmlAttr(context); // Registers itself on construction
             }
         });

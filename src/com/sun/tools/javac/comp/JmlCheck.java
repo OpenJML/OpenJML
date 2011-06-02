@@ -39,7 +39,7 @@ public class JmlCheck extends Check {
      */
     public static void preRegister(final Context context) {
         context.put(Check.checkKey, new Context.Factory<Check>() {
-            public Check make() {
+            public Check make(Context context) {
                 return new JmlCheck(context); // Registers itself on construction
             }
         });

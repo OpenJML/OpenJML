@@ -48,8 +48,8 @@ import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCTypeCast;
-import com.sun.tools.javac.tree.JCTree.JCTypeDisjunction;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
+import com.sun.tools.javac.tree.JCTree.JCTypeUnion;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWildcard;
@@ -500,9 +500,9 @@ public class SMTTranslator extends JmlTreeScanner {
         super.visitTypeApply(tree);
     }
 
-    public void visitTypeDisjunction(JCTypeDisjunction tree) {
+    public void visitTypeUnion(JCTypeUnion tree) {
         notImpl(tree);
-        super.visitTypeDisjunction(tree);
+        super.visitTypeUnion(tree);
     }
 
     public void visitTypeParameter(JCTypeParameter tree) {
