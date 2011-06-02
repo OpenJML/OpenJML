@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -31,6 +31,7 @@ import com.sun.tools.classfile.AccessFlags;
 import com.sun.tools.classfile.AnnotationDefault_attribute;
 import com.sun.tools.classfile.Attribute;
 import com.sun.tools.classfile.Attributes;
+import com.sun.tools.classfile.BootstrapMethods_attribute;
 import com.sun.tools.classfile.CharacterRangeTable_attribute;
 import com.sun.tools.classfile.Code_attribute;
 import com.sun.tools.classfile.CompilationID_attribute;
@@ -47,10 +48,8 @@ import com.sun.tools.classfile.LocalVariableTable_attribute;
 import com.sun.tools.classfile.LocalVariableTypeTable_attribute;
 import com.sun.tools.classfile.RuntimeInvisibleAnnotations_attribute;
 import com.sun.tools.classfile.RuntimeInvisibleParameterAnnotations_attribute;
-import com.sun.tools.classfile.RuntimeInvisibleTypeAnnotations_attribute;
 import com.sun.tools.classfile.RuntimeVisibleAnnotations_attribute;
 import com.sun.tools.classfile.RuntimeVisibleParameterAnnotations_attribute;
-import com.sun.tools.classfile.RuntimeVisibleTypeAnnotations_attribute;
 import com.sun.tools.classfile.Signature_attribute;
 import com.sun.tools.classfile.SourceDebugExtension_attribute;
 import com.sun.tools.classfile.SourceFile_attribute;
@@ -153,22 +152,39 @@ public class AttributeWriter extends BasicWriter
         return null;
     }
 
+    public Void visitBootstrapMethods(BootstrapMethods_attribute attr, Void p) {
+        println(Attribute.BootstrapMethods + ":");
+        for (int i = 0; i < attr.bootstrap_method_specifiers.length ; i++) {
+            BootstrapMethods_attribute.BootstrapMethodSpecifier bsm = attr.bootstrap_method_specifiers[i];
+            indent(+1);
+            print(i + ": #" + bsm.bootstrap_method_ref + " ");
+            println(constantWriter.stringValue(bsm.bootstrap_method_ref));
+            indent(+1);
+            println("Method arguments:");
+            indent(+1);
+            for (int j = 0; j < bsm.bootstrap_arguments.length; j++) {
+                print("#" + bsm.bootstrap_arguments[j] + " ");
+                println(constantWriter.stringValue(bsm.bootstrap_arguments[j]));
+            }
+            indent(-3);
+        }
+        return null;
+    }
+
     public Void visitCharacterRangeTable(CharacterRangeTable_attribute attr, Void ignore) {
         println("CharacterRangeTable:");
         indent(+1);
         for (int i = 0; i < attr.character_range_table.length; i++) {
             CharacterRangeTable_attribute.Entry e = attr.character_range_table[i];
-            print("    " + e.start_pc + ", " +
-                    e.end_pc + ", " +
-                    Integer.toHexString(e.character_range_start) + ", " +
-                    Integer.toHexString(e.character_range_end) + ", " +
-                    Integer.toHexString(e.flags));
+            print(String.format("    %2d, %2d, %6x, %6x, %4x",
+                    e.start_pc, e.end_pc,
+                    e.character_range_start, e.character_range_end,
+                    e.flags));
             tab();
-            print("// ");
-            print(e.start_pc + ", " +
-                    e.end_pc + ", " +
-                    (e.character_range_start >> 10) + ":" + (e.character_range_start & 0x3ff) + ", " +
-                    (e.character_range_end >> 10) + ":" + (e.character_range_end & 0x3ff));
+            print(String.format("// %2d, %2d, %4d:%02d, %4d:%02d",
+                    e.start_pc, e.end_pc,
+                    (e.character_range_start >> 10), (e.character_range_start & 0x3ff),
+                    (e.character_range_end >> 10), (e.character_range_end & 0x3ff)));
             if ((e.flags & CharacterRangeTable_attribute.CRT_STATEMENT) != 0)
                 print(", statement");
             if ((e.flags & CharacterRangeTable_attribute.CRT_BLOCK) != 0)
@@ -187,6 +203,7 @@ public class AttributeWriter extends BasicWriter
                 print(", branch-true");
             if ((e.flags & CharacterRangeTable_attribute.CRT_BRANCH_FALSE) != 0)
                 print(", branch-false");
+            println();
         }
         indent(-1);
         return null;
@@ -383,30 +400,6 @@ public class AttributeWriter extends BasicWriter
 
     public Void visitRuntimeInvisibleAnnotations(RuntimeInvisibleAnnotations_attribute attr, Void ignore) {
         println("RuntimeInvisibleAnnotations:");
-        indent(+1);
-        for (int i = 0; i < attr.annotations.length; i++) {
-            print(i + ": ");
-            annotationWriter.write(attr.annotations[i]);
-            println();
-        }
-        indent(-1);
-        return null;
-    }
-
-    public Void visitRuntimeVisibleTypeAnnotations(RuntimeVisibleTypeAnnotations_attribute attr, Void ignore) {
-        println("RuntimeVisibleTypeAnnotations:");
-        indent(+1);
-        for (int i = 0; i < attr.annotations.length; i++) {
-            print(i + ": ");
-            annotationWriter.write(attr.annotations[i]);
-            println();
-        }
-        indent(-1);
-        return null;
-    }
-
-    public Void visitRuntimeInvisibleTypeAnnotations(RuntimeInvisibleTypeAnnotations_attribute attr, Void ignore) {
-        println("RuntimeInvisibleTypeAnnotations:");
         indent(+1);
         for (int i = 0; i < attr.annotations.length; i++) {
             print(i + ": ");

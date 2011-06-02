@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -58,9 +58,11 @@ import javax.annotation.processing.Processor;
  * standard file manager such as the one returned by {@linkplain
  * #getStandardFileManager getStandardFileManager}.
  *
- * <p>An instance implementing this interface must conform to the Java
- * Language Specification and generate class files conforming to the
- * Java Virtual Machine specification.  The versions of these
+ * <p>An instance implementing this interface must conform to
+ * <cite>The Java&trade; Language Specification</cite>
+ * and generate class files conforming to
+ * <cite>The Java&trade; Virtual Machine Specification</cite>.
+ * The versions of these
  * specifications are defined in the {@linkplain Tool} interface.
  *
  * Additionally, an instance of this interface supporting {@link
@@ -137,9 +139,9 @@ import javax.annotation.processing.Processor;
  *       StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
  *       compiler.getTask(null, fileManager, diagnostics, null, null, compilationUnits).call();
  *
- *       for (Diagnostic diagnostic : diagnostics.getDiagnostics())
- *           System.out.format("Error on line %d in %d%n",
- *                             diagnostic.getLineNumber()
+ *       for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics())
+ *           System.out.format("Error on line %d in %s%n",
+ *                             diagnostic.getLineNumber(),
  *                             diagnostic.getSource().toUri());
  *
  *       fileManager.close();</pre>

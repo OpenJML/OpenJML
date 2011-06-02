@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -101,9 +101,22 @@ public interface TypeElement extends Element, Parameterizable, QualifiedNameable
      * an empty name if none
      *
      * @see Elements#getBinaryName
-     * @jls3 6.7 Fully Qualified Names and Canonical Names
+     * @jls 6.7 Fully Qualified Names and Canonical Names
      */
     Name getQualifiedName();
+
+
+    /**
+     * Returns the simple name of this type element.
+     *
+     * For an anonymous class, an empty name is returned.
+     *
+     * @return the simple name of this class or interface,
+     * an empty name for an anonymous class
+     *
+     */
+    @Override
+    Name getSimpleName();
 
     /**
      * Returns the direct superclass of this type element.
@@ -132,4 +145,16 @@ public interface TypeElement extends Element, Parameterizable, QualifiedNameable
      * if there are none
      */
     List<? extends TypeParameterElement> getTypeParameters();
+
+
+    /**
+     * Returns the package of a top-level type and returns the
+     * immediately lexically enclosing element for a {@linkplain
+     * NestingKind#isNested nested} type.
+     *
+     * @return the package of a top-level type, the immediately
+     * lexically enclosing element for a nested type
+     */
+    @Override
+    Element getEnclosingElement();
 }

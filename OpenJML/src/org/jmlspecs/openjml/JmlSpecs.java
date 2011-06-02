@@ -177,7 +177,7 @@ public class JmlSpecs {
     // construction time.
     public static void preRegister(final Context context) {
         context.put(specsKey, new Context.Factory<JmlSpecs>() {
-            public JmlSpecs make() {
+            public JmlSpecs make(Context context) {
                 return new JmlSpecs(context);
             }
         });

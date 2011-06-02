@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,6 +32,7 @@ import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.lang.model.SourceVersion;
@@ -44,11 +45,13 @@ import static javax.tools.StandardLocation.*;
 
 import com.sun.tools.javac.comp.Annotate;
 import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Lint.LintCategory;
 import com.sun.tools.javac.code.Type.*;
 import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.file.BaseFileObject;
 import com.sun.tools.javac.util.*;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 import static com.sun.tools.javac.code.Flags.*;
 import static com.sun.tools.javac.code.Kinds.*;
@@ -73,6 +76,8 @@ public class ClassReader implements Completer {
     /** The context key for the class reader. */
     protected static final Context.Key<ClassReader> classReaderKey =
         new Context.Key<ClassReader>();
+
+    public static final int INITIAL_BUFFER_SIZE = 0x0fff0;
 
     Annotate annotate;
 
@@ -102,6 +107,15 @@ public class ClassReader implements Completer {
      */
     boolean allowAnnotations;
 
+    /** Switch: allow simplified varargs.
+     */
+    boolean allowSimplifiedVarargs;
+
+   /** Lint option: warn about classfile issues
+     */
+    boolean lintClassfile;
+
+
     /** Switch: preserve parameter names from the variable table.
      */
     public boolean saveParameterNames;
@@ -123,9 +137,6 @@ public class ClassReader implements Completer {
 
     /** The symbol table. */
     Symtab syms;
-
-    /** The scope counter */
-    Scope.ScopeCounter scopeCounter;
 
     Types types;
 
@@ -173,7 +184,7 @@ public class ClassReader implements Completer {
 
     /** The buffer containing the currently read class file.
      */
-    byte[] buf = new byte[0x0fff0];
+    byte[] buf = new byte[INITIAL_BUFFER_SIZE];
 
     /** The current input pointer.
      */
@@ -193,10 +204,6 @@ public class ClassReader implements Completer {
     /** The minor version number of the class file being read. */
     int minorVersion;
 
-    /** Switch: debug output for JSR 308-related operations.
-     */
-    boolean debugJSR308;
-
     /** A table to hold the constant pool indices for method parameter
      * names, as given in LocalVariableTable attributes.
      */
@@ -206,6 +213,11 @@ public class ClassReader implements Completer {
      * Whether or not any parameter names have been found.
      */
     boolean haveParameterNameIndices;
+
+    /**
+     * The set of attribute names for which warnings have been generated for the current class
+     */
+    Set<Name> warnedAttrs = new HashSet<Name>();
 
     /** Get the ClassReader instance for this invocation. */
     public static ClassReader instance(Context context) {
@@ -227,9 +239,9 @@ public class ClassReader implements Completer {
         if (classes != null) return;
 
         if (definitive) {
-            assert packages == null || packages == syms.packages;
+            Assert.check(packages == null || packages == syms.packages);
             packages = syms.packages;
-            assert classes == null || classes == syms.classes;
+            Assert.check(classes == null || classes == syms.classes);
             classes = syms.classes;
         } else {
             packages = new HashMap<Name, PackageSymbol>();
@@ -249,14 +261,13 @@ public class ClassReader implements Completer {
 
         names = Names.instance(context);
         syms = Symtab.instance(context);
-        init(syms, definitive);   // DRC - moved from below to avoid circular initialization
-        scopeCounter = Scope.ScopeCounter.instance(context);
         types = Types.instance(context);
         fileManager = context.get(JavaFileManager.class);
         if (fileManager == null)
             throw new AssertionError("FileManager initialization error");
         diagFactory = JCDiagnostic.Factory.instance(context);
 
+        init(syms, definitive);
         log = Log.instance(context);
 
         Options options = Options.instance(context);
@@ -267,6 +278,7 @@ public class ClassReader implements Completer {
         allowGenerics    = source.allowGenerics();
         allowVarargs     = source.allowVarargs();
         allowAnnotations = source.allowAnnotations();
+        allowSimplifiedVarargs = source.allowSimplifiedVarargs();
         saveParameterNames = options.isSet("save-parameter-names");
         cacheCompletionFailure = options.isUnset("dev");
         preferSource = "source".equals(options.get("-Xprefer"));
@@ -277,7 +289,8 @@ public class ClassReader implements Completer {
             : null;
 
         typevars = new Scope(syms.noSymbol);
-        debugJSR308 = options.isSet("TA:reader");
+
+        lintClassfile = Lint.instance(context).isEnabled(LintCategory.CLASSFILE);
 
         initAttributeReaders();
     }
@@ -417,7 +430,11 @@ public class ClassReader implements Completer {
             }
             case CONSTANT_Class:
             case CONSTANT_String:
+            case CONSTANT_MethodType:
                 bp = bp + 2;
+                break;
+            case CONSTANT_MethodHandle:
+                bp = bp + 3;
                 break;
             case CONSTANT_Fieldref:
             case CONSTANT_Methodref:
@@ -425,6 +442,7 @@ public class ClassReader implements Completer {
             case CONSTANT_NameandType:
             case CONSTANT_Integer:
             case CONSTANT_Float:
+            case CONSTANT_InvokeDynamic:
                 bp = bp + 4;
                 break;
             case CONSTANT_Long:
@@ -493,6 +511,15 @@ public class ClassReader implements Completer {
         case CONSTANT_Double:
             poolObj[i] = new Double(getDouble(index + 1));
             break;
+        case CONSTANT_MethodHandle:
+            skipBytes(4);
+            break;
+        case CONSTANT_MethodType:
+            skipBytes(3);
+            break;
+        case CONSTANT_InvokeDynamic:
+            skipBytes(5);
+            break;
         default:
             throw badClassFile("bad.const.pool.tag", Byte.toString(tag));
         }
@@ -513,7 +540,7 @@ public class ClassReader implements Completer {
         int index =  poolIdx[i];
         int len = getChar(index + 1);
         int start = index + 3;
-        assert buf[start] == '[' || buf[start + len - 1] != ';';
+        Assert.check(buf[start] == '[' || buf[start + len - 1] != ';');
         // by the above assertion, the following test can be
         // simplified to (buf[start] == '[')
         return (buf[start] == '[' || buf[start + len - 1] == ';')
@@ -863,20 +890,35 @@ public class ClassReader implements Completer {
 
     protected enum AttributeKind { CLASS, MEMBER };
     protected abstract class AttributeReader {
-        AttributeReader(Name name, Version version, Set<AttributeKind> kinds) {
+        AttributeReader(Name name, ClassFile.Version version, Set<AttributeKind> kinds) {
             this.name = name;
             this.version = version;
             this.kinds = kinds;
         }
 
         boolean accepts(AttributeKind kind) {
-            return kinds.contains(kind) && majorVersion >= version.major;
+            if (kinds.contains(kind)) {
+                if (majorVersion > version.major || (majorVersion == version.major && minorVersion >= version.minor))
+                    return true;
+
+                if (lintClassfile && !warnedAttrs.contains(name)) {
+                    JavaFileObject prev = log.useSource(currentClassFile);
+                    try {
+                        log.warning(LintCategory.CLASSFILE, (DiagnosticPosition) null, "future.attr",
+                                name, version.major, version.minor, majorVersion, minorVersion);
+                    } finally {
+                        log.useSource(prev);
+                    }
+                    warnedAttrs.add(name);
+                }
+            }
+            return false;
         }
 
         abstract void read(Symbol sym, int attrLen);
 
         final Name name;
-        final Version version;
+        final ClassFile.Version version;
         final Set<AttributeKind> kinds;
     }
 
@@ -889,7 +931,7 @@ public class ClassReader implements Completer {
 
     protected Map<Name, AttributeReader> attributeReaders = new HashMap<Name, AttributeReader>();
 
-    protected void initAttributeReaders() {
+    private void initAttributeReaders() {
         AttributeReader[] readers = {
             // v45.3 attributes
 
@@ -1009,7 +1051,7 @@ public class ClassReader implements Completer {
                         readingClassAttr = true;
                         try {
                             ClassType ct1 = (ClassType)c.type;
-                            assert c == currentOwner;
+                            Assert.check(c == currentOwner);
                             ct1.typarams_field = readTypeParams(nextChar());
                             ct1.supertype_field = sigToType();
                             ListBuffer<Type> is = new ListBuffer<Type>();
@@ -1091,20 +1133,6 @@ public class ClassReader implements Completer {
                 }
             },
 
-            // v51 attributes
-            new AttributeReader(names.RuntimeVisibleTypeAnnotations, V51, CLASS_OR_MEMBER_ATTRIBUTE) {
-                void read(Symbol sym, int attrLen) {
-                    attachTypeAnnotations(sym);
-                }
-            },
-
-            new AttributeReader(names.RuntimeInvisibleTypeAnnotations, V51, CLASS_OR_MEMBER_ATTRIBUTE) {
-                void read(Symbol sym, int attrLen) {
-                    attachTypeAnnotations(sym);
-                }
-            },
-
-
             // The following attributes for a Code attribute are not currently handled
             // StackMapTable
             // SourceDebugExtension
@@ -1133,6 +1161,9 @@ public class ClassReader implements Completer {
         ClassSymbol self = (ClassSymbol)sym;
         ClassSymbol c = readClassSymbol(nextChar());
         NameAndType nt = (NameAndType)readPool(nextChar());
+
+        if (c.members_field == null)
+            throw badClassFile("bad.enclosing.class", self, c);
 
         MethodSymbol m = findMethod(nt, c.members_field, self.flags());
         if (nt != null && m == null)
@@ -1289,7 +1320,8 @@ public class ClassReader implements Completer {
                     sym.flags_field |= PROPRIETARY;
                 else
                     proxies.append(proxy);
-                if (majorVersion >= V51.major && proxy.type.tsym == syms.polymorphicSignatureType.tsym) {
+                if (majorVersion >= V51.major &&
+                    proxy.type.tsym == syms.polymorphicSignatureType.tsym) {
                     sym.flags_field |= POLYMORPHIC_SIGNATURE;
                 }
             }
@@ -1311,17 +1343,6 @@ public class ClassReader implements Completer {
         }
         if (pnum != numParameters) {
             throw badClassFile("bad.runtime.invisible.param.annotations", meth);
-        }
-    }
-
-    void attachTypeAnnotations(final Symbol sym) {
-        int numAttributes = nextChar();
-        if (numAttributes != 0) {
-            ListBuffer<TypeAnnotationProxy> proxies =
-                ListBuffer.lb();
-            for (int i = 0; i < numAttributes; i++)
-                proxies.append(readTypeAnnotation());
-            annotate.later(new TypeAnnotationCompleter(sym, proxies.toList()));
         }
     }
 
@@ -1361,121 +1382,6 @@ public class ClassReader implements Completer {
         return new CompoundAnnotationProxy(t, pairs.toList());
     }
 
-    TypeAnnotationProxy readTypeAnnotation() {
-        CompoundAnnotationProxy proxy = readCompoundAnnotation();
-        TypeAnnotationPosition position = readPosition();
-
-        if (debugJSR308)
-            System.out.println("TA: reading: " + proxy + " @ " + position
-                    + " in " + log.currentSourceFile());
-
-        return new TypeAnnotationProxy(proxy, position);
-    }
-
-    TypeAnnotationPosition readPosition() {
-        byte tag = nextByte();
-
-        if (!TargetType.isValidTargetTypeValue(tag))
-            throw this.badClassFile("bad.type.annotation.value", tag);
-
-        TypeAnnotationPosition position = new TypeAnnotationPosition();
-        TargetType type = TargetType.fromTargetTypeValue(tag);
-
-        position.type = type;
-
-        switch (type) {
-        // type case
-        case TYPECAST:
-        case TYPECAST_GENERIC_OR_ARRAY:
-        // object creation
-        case INSTANCEOF:
-        case INSTANCEOF_GENERIC_OR_ARRAY:
-        // new expression
-        case NEW:
-        case NEW_GENERIC_OR_ARRAY:
-            position.offset = nextChar();
-            break;
-         // local variable
-        case LOCAL_VARIABLE:
-        case LOCAL_VARIABLE_GENERIC_OR_ARRAY:
-            int table_length = nextChar();
-            position.lvarOffset = new int[table_length];
-            position.lvarLength = new int[table_length];
-            position.lvarIndex = new int[table_length];
-
-            for (int i = 0; i < table_length; ++i) {
-                position.lvarOffset[i] = nextChar();
-                position.lvarLength[i] = nextChar();
-                position.lvarIndex[i] = nextChar();
-            }
-            break;
-         // method receiver
-        case METHOD_RECEIVER:
-            // Do nothing
-            break;
-        // type parameters
-        case CLASS_TYPE_PARAMETER:
-        case METHOD_TYPE_PARAMETER:
-            position.parameter_index = nextByte();
-            break;
-        // type parameter bounds
-        case CLASS_TYPE_PARAMETER_BOUND:
-        case CLASS_TYPE_PARAMETER_BOUND_GENERIC_OR_ARRAY:
-        case METHOD_TYPE_PARAMETER_BOUND:
-        case METHOD_TYPE_PARAMETER_BOUND_GENERIC_OR_ARRAY:
-            position.parameter_index = nextByte();
-            position.bound_index = nextByte();
-            break;
-         // wildcard
-        case WILDCARD_BOUND:
-        case WILDCARD_BOUND_GENERIC_OR_ARRAY:
-            position.wildcard_position = readPosition();
-            break;
-         // Class extends and implements clauses
-        case CLASS_EXTENDS:
-        case CLASS_EXTENDS_GENERIC_OR_ARRAY:
-            position.type_index = nextChar();
-            break;
-        // throws
-        case THROWS:
-            position.type_index = nextChar();
-            break;
-        case CLASS_LITERAL:
-        case CLASS_LITERAL_GENERIC_OR_ARRAY:
-            position.offset = nextChar();
-            break;
-        // method parameter: not specified
-        case METHOD_PARAMETER_GENERIC_OR_ARRAY:
-            position.parameter_index = nextByte();
-            break;
-        // method type argument: wasn't specified
-        case NEW_TYPE_ARGUMENT:
-        case NEW_TYPE_ARGUMENT_GENERIC_OR_ARRAY:
-        case METHOD_TYPE_ARGUMENT:
-        case METHOD_TYPE_ARGUMENT_GENERIC_OR_ARRAY:
-            position.offset = nextChar();
-            position.type_index = nextByte();
-            break;
-        // We don't need to worry abut these
-        case METHOD_RETURN_GENERIC_OR_ARRAY:
-        case FIELD_GENERIC_OR_ARRAY:
-            break;
-        case UNKNOWN:
-            break;
-        default:
-            throw new AssertionError("unknown type: " + position);
-        }
-
-        if (type.hasLocation()) {
-            int len = nextChar();
-            ListBuffer<Integer> loc = ListBuffer.lb();
-            for (int i = 0; i < len; i++)
-                loc = loc.append((int)nextByte());
-            position.location = loc.toList();
-        }
-
-        return position;
-    }
     Attribute readAttributeValue() {
         char c = (char) buf[bp++];
         switch (c) {
@@ -1561,7 +1467,7 @@ public class ClassReader implements Completer {
         public void accept(Visitor v) { ((ProxyVisitor)v).visitCompoundAnnotationProxy(this); }
         @Override
         public String toString() {
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             buf.append("@");
             buf.append(type.tsym.getQualifiedName());
             buf.append("/*proxy*/{");
@@ -1703,18 +1609,31 @@ public class ClassReader implements Completer {
             // type.tsym.flatName() should == proxy.enumFlatName
             TypeSymbol enumTypeSym = proxy.enumType.tsym;
             VarSymbol enumerator = null;
-            for (Scope.Entry e = enumTypeSym.members().lookup(proxy.enumerator);
-                 e.scope != null;
-                 e = e.next()) {
-                if (e.sym.kind == VAR) {
-                    enumerator = (VarSymbol)e.sym;
-                    break;
+            CompletionFailure failure = null;
+            try {
+                for (Scope.Entry e = enumTypeSym.members().lookup(proxy.enumerator);
+                     e.scope != null;
+                     e = e.next()) {
+                    if (e.sym.kind == VAR) {
+                        enumerator = (VarSymbol)e.sym;
+                        break;
+                    }
                 }
             }
+            catch (CompletionFailure ex) {
+                failure = ex;
+            }
             if (enumerator == null) {
-                log.error("unknown.enum.constant",
-                          currentClassFile, enumTypeSym, proxy.enumerator);
-                result = new Attribute.Error(enumTypeSym.type);
+                if (failure != null) {
+                    log.warning("unknown.enum.constant.reason",
+                              currentClassFile, enumTypeSym, proxy.enumerator,
+                              failure.getDiagnostic());
+                } else {
+                    log.warning("unknown.enum.constant",
+                              currentClassFile, enumTypeSym, proxy.enumerator);
+                }
+                result = new Attribute.Enum(enumTypeSym.type,
+                        new VarSymbol(0, proxy.enumerator, syms.botType, enumTypeSym));
             } else {
                 result = new Attribute.Enum(enumTypeSym.type, enumerator);
             }
@@ -1788,45 +1707,6 @@ public class ClassReader implements Completer {
         }
     }
 
-    class TypeAnnotationCompleter extends AnnotationCompleter {
-
-        List<TypeAnnotationProxy> proxies;
-
-        TypeAnnotationCompleter(Symbol sym,
-                List<TypeAnnotationProxy> proxies) {
-            super(sym, List.<CompoundAnnotationProxy>nil());
-            this.proxies = proxies;
-        }
-
-        List<Attribute.TypeCompound> deproxyTypeCompoundList(List<TypeAnnotationProxy> proxies) {
-            ListBuffer<Attribute.TypeCompound> buf = ListBuffer.lb();
-            for (TypeAnnotationProxy proxy: proxies) {
-                Attribute.Compound compound = deproxyCompound(proxy.compound);
-                Attribute.TypeCompound typeCompound = new Attribute.TypeCompound(compound, proxy.position);
-                buf.add(typeCompound);
-            }
-            return buf.toList();
-        }
-
-        @Override
-        public void enterAnnotation() {
-            JavaFileObject previousClassFile = currentClassFile;
-            try {
-                currentClassFile = classFile;
-                List<Attribute.TypeCompound> newList = deproxyTypeCompoundList(proxies);
-              if (debugJSR308)
-              System.out.println("TA: reading: adding " + newList
-                      + " to symbol " + sym + " in " + log.currentSourceFile());
-                sym.typeAnnotations = ((sym.typeAnnotations == null)
-                                        ? newList
-                                        : newList.prependList(sym.typeAnnotations));
-
-            } finally {
-                currentClassFile = previousClassFile;
-            }
-        }
-    }
-
 
 /************************************************************************
  * Reading Symbols
@@ -1854,7 +1734,7 @@ public class ClassReader implements Completer {
             // instance, however, there is no reliable way to tell so
             // we never strip this$n
             if (!currentOwner.name.isEmpty())
-                type = new MethodType(type.getParameterTypes().tail,
+                type = new MethodType(adjustMethodParams(flags, type.getParameterTypes()),
                                       type.getReturnType(),
                                       type.getThrownTypes(),
                                       syms.methodClass);
@@ -1872,6 +1752,21 @@ public class ClassReader implements Completer {
         if (saveParameterNames)
             setParameterNames(m, type);
         return m;
+    }
+
+    private List<Type> adjustMethodParams(long flags, List<Type> args) {
+        boolean isVarargs = (flags & VARARGS) != 0;
+        if (isVarargs) {
+            Type varargsElem = args.last();
+            ListBuffer<Type> adjustedArgs = ListBuffer.lb();
+            for (Type t : args) {
+                adjustedArgs.append(t != varargsElem ?
+                    t :
+                    ((ArrayType)t).makeVarargs());
+            }
+            args = adjustedArgs.toList();
+        }
+        return args.tail;
     }
 
     /**
@@ -1953,6 +1848,13 @@ public class ClassReader implements Completer {
         sym.savedParameterNames = paramNames.reverse();
     }
 
+    /**
+     * skip n bytes
+     */
+    void skipBytes(int n) {
+        bp = bp + n;
+    }
+
     /** Skip a field or method
      */
     void skipMember() {
@@ -1990,7 +1892,7 @@ public class ClassReader implements Completer {
         ClassType ct = (ClassType)c.type;
 
         // allocate scope for members
-        c.members_field = new Scope.ClassScope(c, scopeCounter);
+        c.members_field = new Scope(c);
 
         // prepare type variable table
         typevars = typevars.dup(currentOwner);
@@ -2040,9 +1942,9 @@ public class ClassReader implements Completer {
         if (ct.interfaces_field == null)
             ct.interfaces_field = is.reverse();
 
-        if (fieldCount != nextChar()) assert false;
+        Assert.check(fieldCount == nextChar());
         for (int i = 0; i < fieldCount; i++) enterMember(c, readField());
-        if (methodCount != nextChar()) assert false;
+        Assert.check(methodCount == nextChar());
         for (int i = 0; i < methodCount; i++) enterMember(c, readMethod());
 
         typevars = typevars.leave();
@@ -2151,7 +2053,7 @@ public class ClassReader implements Completer {
     public ClassSymbol defineClass(Name name, Symbol owner) {
         ClassSymbol c = new ClassSymbol(0, name, owner);
         if (owner.kind == PCK)
-            assert classes.get(c.flatname) == null : c;
+            Assert.checkNull(classes.get(c.flatname), c);
         c.completer = this;
         return c;
     }
@@ -2286,16 +2188,17 @@ public class ClassReader implements Completer {
             throw new CompletionFailure(c, "user-selected completion failure by class name");
         }
         currentOwner = c;
+        warnedAttrs.clear();
         JavaFileObject classfile = c.classfile;
         if (classfile != null) {
             JavaFileObject previousClassFile = currentClassFile;
             try {
-                assert !filling :
-                    "Filling " + classfile.toUri() +
-                    " during " + previousClassFile;
+                if (filling) {
+                    Assert.error("Filling " + classfile.toUri() + " during " + previousClassFile);
+                }
                 currentClassFile = classfile;
                 if (verbose) {
-                    printVerbose("loading", currentClassFile.toString());
+                    log.printVerbose("loading", currentClassFile.toString());
                 }
                 if (classfile.getKind() == JavaFileObject.Kind.CLASS) {
                     filling = true;
@@ -2368,8 +2271,14 @@ public class ClassReader implements Completer {
                 }
             }
         }
+        /*
+         * ensureCapacity will increase the buffer as needed, taking note that
+         * the new buffer will always be greater than the needed and never
+         * exactly equal to the needed size or bp. If equal then the read (above)
+         * will infinitely loop as buf.length - bp == 0.
+         */
         private static byte[] ensureCapacity(byte[] buf, int needed) {
-            if (buf.length < needed) {
+            if (buf.length <= needed) {
                 byte[] old = buf;
                 buf = new byte[Integer.highestOneBit(needed) << 1];
                 System.arraycopy(old, 0, buf, 0, old.length);
@@ -2432,7 +2341,7 @@ public class ClassReader implements Completer {
     public PackageSymbol enterPackage(Name fullname) {
         PackageSymbol p = packages.get(fullname);
         if (p == null) {
-            assert !fullname.isEmpty() : "rootPackage missing!";
+            Assert.check(!fullname.isEmpty(), "rootPackage missing!");
             p = new PackageSymbol(
                 Convert.shortName(fullname),
                 enterPackage(Convert.packagePart(fullname)));
@@ -2558,13 +2467,13 @@ public class ClassReader implements Completer {
                     for (File file : fm.getLocation(SOURCE_PATH)) {
                         path = path.prepend(file);
                     }
-                    printVerbose("sourcepath", path.reverse().toString());
+                    log.printVerbose("sourcepath", path.reverse().toString());
                 } else if (wantSourceFiles) {
                     List<File> path = List.nil();
                     for (File file : fm.getLocation(CLASS_PATH)) {
                         path = path.prepend(file);
                     }
-                    printVerbose("sourcepath", path.reverse().toString());
+                    log.printVerbose("sourcepath", path.reverse().toString());
                 }
                 if (wantClassFiles) {
                     List<File> path = List.nil();
@@ -2574,7 +2483,7 @@ public class ClassReader implements Completer {
                     for (File file : fm.getLocation(CLASS_PATH)) {
                         path = path.prepend(file);
                     }
-                    printVerbose("classpath",  path.reverse().toString());
+                    log.printVerbose("classpath",  path.reverse().toString());
                 }
             }
         }
@@ -2615,7 +2524,6 @@ public class ClassReader implements Completer {
                     String binaryName = fileManager.inferBinaryName(currentLoc, fo);
                     String simpleName = binaryName.substring(binaryName.lastIndexOf(".") + 1);
                     if (SourceVersion.isIdentifier(simpleName) ||
-                        fo.getKind() == JavaFileObject.Kind.CLASS ||
                         simpleName.equals("package-info"))
                         includeClassFile(p, fo);
                     break;
@@ -2625,14 +2533,6 @@ public class ClassReader implements Completer {
                 }
             }
         }
-
-    /** Output for "-verbose" option.
-     *  @param key The key to look up the correct internationalized string.
-     *  @param arg An argument for substitution into the output string.
-     */
-    private void printVerbose(String key, CharSequence arg) {
-        log.printNoteLines("verbose." + key, arg);
-    }
 
     /** Output for "-checkclassfile" option.
      *  @param key The key to look up the correct internationalized string.
@@ -2758,11 +2658,5 @@ public class ClassReader implements Completer {
         public int hashCode() {
             return name.hashCode();
         }
-    }
-    
-    /** This method added for debugging information */
-    public static boolean isClassAlreadyRead(Context context, Name flatname) {
-        Symbol sym = instance(context).classes.get(flatname);
-        return  sym != null && sym.completer == null;
     }
 }

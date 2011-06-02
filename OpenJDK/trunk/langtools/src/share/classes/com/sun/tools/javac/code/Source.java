@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -131,6 +131,12 @@ public enum Source {
     public boolean allowMulticatch() {
         return compareTo(JDK1_7) >= 0;
     }
+    public boolean allowImprovedRethrowAnalysis() {
+        return compareTo(JDK1_7) >= 0;
+    }
+    public boolean allowImprovedCatchAnalysis() {
+        return compareTo(JDK1_7) >= 0;
+    }
     public boolean allowEnums() {
         return compareTo(JDK1_5) >= 0;
     }
@@ -174,10 +180,13 @@ public enum Source {
     public boolean allowUnderscoresInLiterals() {
         return compareTo(JDK1_7) >= 0;
     }
-    public boolean allowExoticIdentifiers() {
+    public boolean allowStringsInSwitch() {
         return compareTo(JDK1_7) >= 0;
     }
-    public boolean allowStringsInSwitch() {
+    public boolean allowSimplifiedVarargs() {
+        return compareTo(JDK1_7) >= 0;
+    }
+    public boolean allowObjectToPrimitiveCast() {
         return compareTo(JDK1_7) >= 0;
     }
     public static SourceVersion toSourceVersion(Source source) {

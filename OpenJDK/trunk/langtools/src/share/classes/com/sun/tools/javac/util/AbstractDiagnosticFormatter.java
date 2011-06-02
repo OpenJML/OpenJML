@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -125,7 +125,7 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
     public String formatDiagnostic(JCDiagnostic d, Locale locale, String format) { return formatDiagnostic(d,locale); } // DRC - added - the new argument is used in the overrides
 
     public String formatPosition(JCDiagnostic d, PositionKind pk,Locale l) {
-        assert (d.getPosition() != Position.NOPOS);
+        Assert.check(d.getPosition() != Position.NOPOS);
         return String.valueOf(getPosition(d, pk));
     }
     //where

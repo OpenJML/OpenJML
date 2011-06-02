@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -33,8 +33,10 @@ import com.sun.tools.javac.util.List;
 
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.code.Attribute.RetentionPolicy;
+import com.sun.tools.javac.code.Lint.LintCategory;
 import com.sun.tools.javac.comp.Check;
 
+import static com.sun.tools.javac.code.Scope.*;
 import static com.sun.tools.javac.code.Type.*;
 import static com.sun.tools.javac.code.TypeTags.*;
 import static com.sun.tools.javac.code.Symbol.*;
@@ -69,12 +71,12 @@ public class Types {
         new Context.Key<Types>();
 
     final Symtab syms;
-    final Scope.ScopeCounter scopeCounter;
     final JavacMessages messages;
     final Names names;
     final boolean allowBoxing;
+    final boolean allowCovariantReturns;
+    final boolean allowObjectToPrimitiveCast;
     final ClassReader reader;
-    final Source source;
     final Check chk;
     List<Warner> warnStack = List.nil();
     final Name capturedName;
@@ -90,11 +92,12 @@ public class Types {
     protected Types(Context context) {
         context.put(typesKey, this);
         syms = Symtab.instance(context);
-        scopeCounter = Scope.ScopeCounter.instance(context);
         names = Names.instance(context);
-        allowBoxing = Source.instance(context).allowBoxing();
+        Source source = Source.instance(context);
+        allowBoxing = source.allowBoxing();
+        allowCovariantReturns = source.allowCovariantReturns();
+        allowObjectToPrimitiveCast = source.allowObjectToPrimitiveCast();
         reader = ClassReader.instance(context);
-        source = Source.instance(context);
         chk = Check.instance(context);
         capturedName = names.fromString("<captured wildcard>");
         messages = JavacMessages.instance(context);
@@ -272,12 +275,35 @@ public class Types {
     public boolean isConvertible(Type t, Type s, Warner warn) {
         boolean tPrimitive = t.isPrimitive();
         boolean sPrimitive = s.isPrimitive();
-        if (tPrimitive == sPrimitive)
+        if (tPrimitive == sPrimitive) {
+            checkUnsafeVarargsConversion(t, s, warn);
             return isSubtypeUnchecked(t, s, warn);
+        }
         if (!allowBoxing) return false;
         return tPrimitive
             ? isSubtype(boxedClass(t).type, s)
             : isSubtype(unboxedType(t), s);
+    }
+    //where
+    private void checkUnsafeVarargsConversion(Type t, Type s, Warner warn) {
+        if (t.tag != ARRAY || isReifiable(t)) return;
+        ArrayType from = (ArrayType)t;
+        boolean shouldWarn = false;
+        switch (s.tag) {
+            case ARRAY:
+                ArrayType to = (ArrayType)s;
+                shouldWarn = from.isVarargs() &&
+                        !to.isVarargs() &&
+                        !isReifiable(from);
+                break;
+            case CLASS:
+                shouldWarn = from.isVarargs() &&
+                        isSubtype(from, s);
+                break;
+        }
+        if (shouldWarn) {
+            warn.warn(LintCategory.VARARGS);
+        }
     }
 
     /**
@@ -301,9 +327,18 @@ public class Types {
      */
     public boolean isSubtypeUnchecked(Type t, Type s, Warner warn) {
         if (t.tag == ARRAY && s.tag == ARRAY) {
-            return (((ArrayType)t).elemtype.tag <= lastBaseTag)
-                ? isSameType(elemtype(t), elemtype(s))
-                : isSubtypeUnchecked(elemtype(t), elemtype(s), warn);
+            if (((ArrayType)t).elemtype.tag <= lastBaseTag) {
+                return isSameType(elemtype(t), elemtype(s));
+            } else {
+                ArrayType from = (ArrayType)t;
+                ArrayType to = (ArrayType)s;
+                if (from.isVarargs() &&
+                        !to.isVarargs() &&
+                        !isReifiable(from)) {
+                    warn.warn(LintCategory.VARARGS);
+                }
+                return isSubtypeUnchecked(elemtype(t), elemtype(s), warn);
+            }
         } else if (isSubtype(t, s)) {
             return true;
         }
@@ -319,9 +354,9 @@ public class Types {
             Type t2 = asSuper(t, s.tsym);
             if (t2 != null && t2.isRaw()) {
                 if (isReifiable(s))
-                    warn.silentUnchecked();
+                    warn.silentWarn(LintCategory.UNCHECKED);
                 else
-                    warn.warnUnchecked();
+                    warn.warn(LintCategory.UNCHECKED);
                 return true;
             }
         }
@@ -377,6 +412,7 @@ public class Types {
                     return
                         s.tag == BOT || s.tag == CLASS ||
                         s.tag == ARRAY || s.tag == TYPEVAR;
+                case WILDCARD: //we shouldn't be here - avoids crash (see 7034495)
                 case NONE:
                     return false;
                 default:
@@ -641,7 +677,7 @@ public class Types {
                         if (!set.remove(new SingletonType(x)))
                             return false;
                     }
-                    return (set.size() == 0);
+                    return (set.isEmpty());
                 }
                 return t.tsym == s.tsym
                     && visit(t.getEnclosingType(), s.getEnclosingType())
@@ -838,26 +874,26 @@ public class Types {
                     return isSameType(t, s);
             }
 
-            void debugContainsType(WildcardType t, Type s) {
-                System.err.println();
-                System.err.format(" does %s contain %s?%n", t, s);
-                System.err.format(" %s U(%s) <: U(%s) %s = %s%n",
-                                  upperBound(s), s, t, U(t),
-                                  t.isSuperBound()
-                                  || isSubtypeNoCapture(upperBound(s), U(t)));
-                System.err.format(" %s L(%s) <: L(%s) %s = %s%n",
-                                  L(t), t, s, lowerBound(s),
-                                  t.isExtendsBound()
-                                  || isSubtypeNoCapture(L(t), lowerBound(s)));
-                System.err.println();
-            }
+//            void debugContainsType(WildcardType t, Type s) {
+//                System.err.println();
+//                System.err.format(" does %s contain %s?%n", t, s);
+//                System.err.format(" %s U(%s) <: U(%s) %s = %s%n",
+//                                  upperBound(s), s, t, U(t),
+//                                  t.isSuperBound()
+//                                  || isSubtypeNoCapture(upperBound(s), U(t)));
+//                System.err.format(" %s L(%s) <: L(%s) %s = %s%n",
+//                                  L(t), t, s, lowerBound(s),
+//                                  t.isExtendsBound()
+//                                  || isSubtypeNoCapture(L(t), lowerBound(s)));
+//                System.err.println();
+//            }
 
             @Override
             public Boolean visitWildcardType(WildcardType t, Type s) {
                 if (s.tag >= firstPartialTag)
                     return containedBy(s, t);
                 else {
-                    // debugContainsType(t, s);
+//                    debugContainsType(t, s);
                     return isSameWildcard(t, s)
                         || isCaptureOf(s, t)
                         || ((t.isExtendsBound() || isSubtypeNoCapture(L(t), lowerBound(s))) &&
@@ -917,11 +953,15 @@ public class Types {
             return true;
 
         if (t.isPrimitive() != s.isPrimitive())
-            return allowBoxing && (isConvertible(t, s, warn) || isConvertible(s, t, warn));
-
+            return allowBoxing && (
+                    isConvertible(t, s, warn)
+                    || (allowObjectToPrimitiveCast &&
+                        s.isPrimitive() &&
+                        isSubtype(boxedClass(s).type, t)));
         if (warn != warnStack.head) {
             try {
                 warnStack = warnStack.prepend(warn);
+                checkUnsafeVarargsConversion(t, s, warn);
                 return isCastable.visit(t,s);
             } finally {
                 warnStack = warnStack.tail;
@@ -964,7 +1004,7 @@ public class Types {
 
                 if (s.tag == TYPEVAR) {
                     if (isCastable(t, s.getUpperBound(), Warner.noWarnings)) {
-                        warnStack.head.warnUnchecked();
+                        warnStack.head.warn(LintCategory.UNCHECKED);
                         return true;
                     } else {
                         return false;
@@ -980,8 +1020,8 @@ public class Types {
                         if (!visit(intf, s))
                             return false;
                     }
-                    if (warnStack.head.unchecked == true)
-                        oldWarner.warnUnchecked();
+                    if (warnStack.head.hasLint(LintCategory.UNCHECKED))
+                        oldWarner.warn(LintCategory.UNCHECKED);
                     return true;
                 }
 
@@ -996,13 +1036,13 @@ public class Types {
                         || isSubtype(erasure(s), erasure(t))) {
                         if (!upcast && s.tag == ARRAY) {
                             if (!isReifiable(s))
-                                warnStack.head.warnUnchecked();
+                                warnStack.head.warn(LintCategory.UNCHECKED);
                             return true;
                         } else if (s.isRaw()) {
                             return true;
                         } else if (t.isRaw()) {
                             if (!isUnbounded(s))
-                                warnStack.head.warnUnchecked();
+                                warnStack.head.warn(LintCategory.UNCHECKED);
                             return true;
                         }
                         // Assume |a| <: |b|
@@ -1027,20 +1067,16 @@ public class Types {
                             highSub = (lowSub == null) ? null : asSub(bHigh, aHigh.tsym);
                         }
                         if (highSub != null) {
-                            assert a.tsym == highSub.tsym && a.tsym == lowSub.tsym
-                                : a.tsym + " != " + highSub.tsym + " != " + lowSub.tsym;
+                            if (!(a.tsym == highSub.tsym && a.tsym == lowSub.tsym)) {
+                                Assert.error(a.tsym + " != " + highSub.tsym + " != " + lowSub.tsym);
+                            }
                             if (!disjointTypes(aHigh.allparams(), highSub.allparams())
                                 && !disjointTypes(aHigh.allparams(), lowSub.allparams())
                                 && !disjointTypes(aLow.allparams(), highSub.allparams())
                                 && !disjointTypes(aLow.allparams(), lowSub.allparams())) {
-                                if (s.isInterface() &&
-                                        !t.isInterface() &&
-                                        t.isFinal() &&
-                                        !isSubtype(t, s)) {
-                                    return false;
-                                } else if (upcast ? giveWarning(a, b) :
+                                if (upcast ? giveWarning(a, b) :
                                     giveWarning(b, a))
-                                    warnStack.head.warnUnchecked();
+                                    warnStack.head.warn(LintCategory.UNCHECKED);
                                 return true;
                             }
                         }
@@ -1077,7 +1113,7 @@ public class Types {
                     return true;
                 case TYPEVAR:
                     if (isCastable(s, t, Warner.noWarnings)) {
-                        warnStack.head.warnUnchecked();
+                        warnStack.head.warn(LintCategory.UNCHECKED);
                         return true;
                     } else {
                         return false;
@@ -1085,7 +1121,8 @@ public class Types {
                 case CLASS:
                     return isSubtype(t, s);
                 case ARRAY:
-                    if (elemtype(t).tag <= lastBaseTag) {
+                    if (elemtype(t).tag <= lastBaseTag ||
+                            elemtype(s).tag <= lastBaseTag) {
                         return elemtype(t).tag == elemtype(s).tag;
                     } else {
                         return visit(elemtype(t), elemtype(s));
@@ -1105,7 +1142,7 @@ public class Types {
                     if (isSubtype(t, s)) {
                         return true;
                     } else if (isCastable(t.bound, s, Warner.noWarnings)) {
-                        warnStack.head.warnUnchecked();
+                        warnStack.head.warn(LintCategory.UNCHECKED);
                         return true;
                     } else {
                         return false;
@@ -1320,6 +1357,13 @@ public class Types {
         default:
             return null;
         }
+    }
+
+    public Type elemtypeOrType(Type t) {
+        Type elemtype = elemtype(t);
+        return elemtype != null ?
+            elemtype :
+            t;
     }
 
     /**
@@ -1666,9 +1710,9 @@ public class Types {
             bt.supertype_field = bounds.head;
             bt.interfaces_field = bounds.tail;
         }
-        assert bt.supertype_field.tsym.completer != null
-            || !bt.supertype_field.isInterface()
-            : bt.supertype_field;
+        Assert.check(bt.supertype_field.tsym.completer != null
+                || !bt.supertype_field.isInterface(),
+            bt.supertype_field);
         return bt;
     }
 
@@ -1797,7 +1841,7 @@ public class Types {
                         // t.interfaces_field is null after
                         // completion, we can assume that t is not the
                         // type of a class/interface declaration.
-                        assert t != t.tsym.type : t.toString();
+                        Assert.check(t != t.tsym.type, t);
                         List<Type> actuals = t.allparams();
                         List<Type> formals = t.tsym.type.allparams();
                         if (t.hasErasedSupertypes()) {
@@ -1948,14 +1992,18 @@ public class Types {
      * signature</em> of the other.  This is <b>not</b> an equivalence
      * relation.
      *
-     * @see "The Java Language Specification, Third Ed. (8.4.2)."
+     * @jls section 8.4.2.
      * @see #overrideEquivalent(Type t, Type s)
      * @param t first signature (possibly raw).
      * @param s second signature (could be subjected to erasure).
      * @return true if t is a sub signature of s.
      */
     public boolean isSubSignature(Type t, Type s) {
-        return hasSameArgs(t, s) || hasSameArgs(t, erasure(s));
+        return isSubSignature(t, s, true);
+    }
+
+    public boolean isSubSignature(Type t, Type s, boolean strict) {
+        return hasSameArgs(t, s, strict) || hasSameArgs(t, erasure(s), strict);
     }
 
     /**
@@ -1963,7 +2011,7 @@ public class Types {
      * equivalence</em>.  This is the natural extension of
      * isSubSignature to an equivalence relation.
      *
-     * @see "The Java Language Specification, Third Ed. (8.4.2)."
+     * @jls section 8.4.2.
      * @see #isSubSignature(Type t, Type s)
      * @param t a signature (possible raw, could be subjected to
      * erasure).
@@ -1986,26 +2034,26 @@ public class Types {
             final MethodSymbol cachedImpl;
             final Filter<Symbol> implFilter;
             final boolean checkResult;
-            final Scope.ScopeCounter scopeCounter;
+            final int prevMark;
 
             public Entry(MethodSymbol cachedImpl,
                     Filter<Symbol> scopeFilter,
                     boolean checkResult,
-                    Scope.ScopeCounter scopeCounter) {
+                    int prevMark) {
                 this.cachedImpl = cachedImpl;
                 this.implFilter = scopeFilter;
                 this.checkResult = checkResult;
-                this.scopeCounter = scopeCounter;
+                this.prevMark = prevMark;
             }
 
-            boolean matches(Filter<Symbol> scopeFilter, boolean checkResult, Scope.ScopeCounter scopeCounter) {
+            boolean matches(Filter<Symbol> scopeFilter, boolean checkResult, int mark) {
                 return this.implFilter == scopeFilter &&
                         this.checkResult == checkResult &&
-                        this.scopeCounter.val() >= scopeCounter.val();
+                        this.prevMark == mark;
             }
         }
 
-        MethodSymbol get(MethodSymbol ms, TypeSymbol origin, boolean checkResult, Filter<Symbol> implFilter, Scope.ScopeCounter scopeCounter) {
+        MethodSymbol get(MethodSymbol ms, TypeSymbol origin, boolean checkResult, Filter<Symbol> implFilter) {
             SoftReference<Map<TypeSymbol, Entry>> ref_cache = _map.get(ms);
             Map<TypeSymbol, Entry> cache = ref_cache != null ? ref_cache.get() : null;
             if (cache == null) {
@@ -2013,10 +2061,11 @@ public class Types {
                 _map.put(ms, new SoftReference<Map<TypeSymbol, Entry>>(cache));
             }
             Entry e = cache.get(origin);
+            CompoundScope members = membersClosure(origin.type);
             if (e == null ||
-                    !e.matches(implFilter, checkResult, scopeCounter)) {
-                MethodSymbol impl = implementationInternal(ms, origin, Types.this, checkResult, implFilter);
-                cache.put(origin, new Entry(impl, implFilter, checkResult, scopeCounter));
+                    !e.matches(implFilter, checkResult, members.getMark())) {
+                MethodSymbol impl = implementationInternal(ms, origin, checkResult, implFilter);
+                cache.put(origin, new Entry(impl, implFilter, checkResult, members.getMark()));
                 return impl;
             }
             else {
@@ -2024,16 +2073,16 @@ public class Types {
             }
         }
 
-        private MethodSymbol implementationInternal(MethodSymbol ms, TypeSymbol origin, Types types, boolean checkResult, Filter<Symbol> implFilter) {
-            for (Type t = origin.type; t.tag == CLASS || t.tag == TYPEVAR; t = types.supertype(t)) {
+        private MethodSymbol implementationInternal(MethodSymbol ms, TypeSymbol origin, boolean checkResult, Filter<Symbol> implFilter) {
+            for (Type t = origin.type; t.tag == CLASS || t.tag == TYPEVAR; t = supertype(t)) {
                 while (t.tag == TYPEVAR)
                     t = t.getUpperBound();
                 TypeSymbol c = t.tsym;
                 for (Scope.Entry e = c.members().lookup(ms.name, implFilter);
                      e.scope != null;
-                     e = e.next()) {
+                     e = e.next(implFilter)) {
                     if (e.sym != null &&
-                             e.sym.overrides(ms, origin, types, checkResult))
+                             e.sym.overrides(ms, origin, Types.this, checkResult))
                         return (MethodSymbol)e.sym;
                 }
             }
@@ -2043,9 +2092,42 @@ public class Types {
 
     private ImplementationCache implCache = new ImplementationCache();
 
-    public MethodSymbol implementation(MethodSymbol ms, TypeSymbol origin, Types types, boolean checkResult, Filter<Symbol> implFilter) {
-        return implCache.get(ms, origin, checkResult, implFilter, scopeCounter);
+    public MethodSymbol implementation(MethodSymbol ms, TypeSymbol origin, boolean checkResult, Filter<Symbol> implFilter) {
+        return implCache.get(ms, origin, checkResult, implFilter);
     }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="compute transitive closure of all members in given site">
+    public CompoundScope membersClosure(Type site) {
+        return membersClosure.visit(site);
+    }
+
+    UnaryVisitor<CompoundScope> membersClosure = new UnaryVisitor<CompoundScope>() {
+
+        public CompoundScope visitType(Type t, Void s) {
+            return null;
+        }
+
+        @Override
+        public CompoundScope visitClassType(ClassType t, Void s) {
+            ClassSymbol csym = (ClassSymbol)t.tsym;
+            if (csym.membersClosure == null) {
+                CompoundScope membersClosure = new CompoundScope(csym);
+                for (Type i : interfaces(t)) {
+                    membersClosure.addSubScope(visit(i));
+                }
+                membersClosure.addSubScope(visit(supertype(t)));
+                membersClosure.addSubScope(csym.members());
+                csym.membersClosure = membersClosure;
+            }
+            return csym.membersClosure;
+        }
+
+        @Override
+        public CompoundScope visitTypeVar(TypeVar t, Void s) {
+            return visit(t.getUpperBound());
+        }
+    };
     // </editor-fold>
 
     /**
@@ -2058,10 +2140,24 @@ public class Types {
      * where correspondence is by position in the type parameter list.
      */
     public boolean hasSameArgs(Type t, Type s) {
+        return hasSameArgs(t, s, true);
+    }
+
+    public boolean hasSameArgs(Type t, Type s, boolean strict) {
+        return hasSameArgs(t, s, strict ? hasSameArgs_strict : hasSameArgs_nonstrict);
+    }
+
+    private boolean hasSameArgs(Type t, Type s, TypeRelation hasSameArgs) {
         return hasSameArgs.visit(t, s);
     }
     // where
-        private TypeRelation hasSameArgs = new TypeRelation() {
+        private class HasSameArgs extends TypeRelation {
+
+            boolean strict;
+
+            public HasSameArgs(boolean strict) {
+                this.strict = strict;
+            }
 
             public Boolean visitType(Type t, Type s) {
                 throw new AssertionError();
@@ -2076,7 +2172,7 @@ public class Types {
             @Override
             public Boolean visitForAll(ForAll t, Type s) {
                 if (s.tag != FORALL)
-                    return false;
+                    return strict ? false : visitMethodType(t.asMethodType(), s);
 
                 ForAll forAll = (ForAll)s;
                 return hasSameBounds(t, forAll)
@@ -2088,6 +2184,10 @@ public class Types {
                 return false;
             }
         };
+
+        TypeRelation hasSameArgs_strict = new HasSameArgs(true);
+        TypeRelation hasSameArgs_nonstrict = new HasSameArgs(false);
+
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="subst">
@@ -2221,6 +2321,13 @@ public class Types {
 
         @Override
         public Type visitForAll(ForAll t, Void ignored) {
+            if (Type.containsAny(to, t.tvars)) {
+                //perform alpha-renaming of free-variables in 't'
+                //if 'to' types contain variables that are free in 't'
+                List<Type> freevars = newInstances(t.tvars);
+                t = new ForAll(freevars,
+                        Types.this.subst(t.qtype, t.tvars, freevars));
+            }
             List<Type> tvars1 = substBounds(t.tvars, from, to);
             Type qtype1 = subst(t.qtype);
             if (tvars1 == t.tvars && qtype1 == t.qtype) {
@@ -2329,6 +2436,54 @@ public class Types {
         };
     // </editor-fold>
 
+    public Type createMethodTypeWithParameters(Type original, List<Type> newParams) {
+        return original.accept(methodWithParameters, newParams);
+    }
+    // where
+        private final MapVisitor<List<Type>> methodWithParameters = new MapVisitor<List<Type>>() {
+            public Type visitType(Type t, List<Type> newParams) {
+                throw new IllegalArgumentException("Not a method type: " + t);
+            }
+            public Type visitMethodType(MethodType t, List<Type> newParams) {
+                return new MethodType(newParams, t.restype, t.thrown, t.tsym);
+            }
+            public Type visitForAll(ForAll t, List<Type> newParams) {
+                return new ForAll(t.tvars, t.qtype.accept(this, newParams));
+            }
+        };
+
+    public Type createMethodTypeWithThrown(Type original, List<Type> newThrown) {
+        return original.accept(methodWithThrown, newThrown);
+    }
+    // where
+        private final MapVisitor<List<Type>> methodWithThrown = new MapVisitor<List<Type>>() {
+            public Type visitType(Type t, List<Type> newThrown) {
+                throw new IllegalArgumentException("Not a method type: " + t);
+            }
+            public Type visitMethodType(MethodType t, List<Type> newThrown) {
+                return new MethodType(t.argtypes, t.restype, newThrown, t.tsym);
+            }
+            public Type visitForAll(ForAll t, List<Type> newThrown) {
+                return new ForAll(t.tvars, t.qtype.accept(this, newThrown));
+            }
+        };
+
+    public Type createMethodTypeWithReturn(Type original, Type newReturn) {
+        return original.accept(methodWithReturn, newReturn);
+    }
+    // where
+        private final MapVisitor<Type> methodWithReturn = new MapVisitor<Type>() {
+            public Type visitType(Type t, Type newReturn) {
+                throw new IllegalArgumentException("Not a method type: " + t);
+            }
+            public Type visitMethodType(MethodType t, Type newReturn) {
+                return new MethodType(t.argtypes, newReturn, t.thrown, t.tsym);
+            }
+            public Type visitForAll(ForAll t, Type newReturn) {
+                return new ForAll(t.tvars, t.qtype.accept(this, newReturn));
+            }
+        };
+
     // <editor-fold defaultstate="collapsed" desc="createErrorType">
     public Type createErrorType(Type originalType) {
         return new ErrorType(originalType, syms.errSymbol);
@@ -2424,7 +2579,7 @@ public class Types {
     }
     // where
         private String typaramsString(List<Type> tvars) {
-            StringBuffer s = new StringBuffer();
+            StringBuilder s = new StringBuilder();
             s.append('<');
             boolean first = true;
             for (Type t : tvars) {
@@ -2435,7 +2590,7 @@ public class Types {
             s.append('>');
             return s.toString();
         }
-        private void appendTyparamString(TypeVar t, StringBuffer buf) {
+        private void appendTyparamString(TypeVar t, StringBuilder buf) {
             buf.append(t);
             if (t.bound == null ||
                 t.bound.tsym.getQualifiedName() == names.java_lang_Object)
@@ -2609,7 +2764,7 @@ public class Types {
                 act2 = act2.tail;
                 typarams = typarams.tail;
             }
-            assert(act1.isEmpty() && act2.isEmpty() && typarams.isEmpty());
+            Assert.check(act1.isEmpty() && act2.isEmpty() && typarams.isEmpty());
             return new ClassType(class1.getEnclosingType(), merged.toList(), class1.tsym);
         }
 
@@ -2721,13 +2876,27 @@ public class Types {
             // calculate lub(A, B)
             while (ts.head.tag != CLASS && ts.head.tag != TYPEVAR)
                 ts = ts.tail;
-            assert !ts.isEmpty();
-            List<Type> cl = closure(ts.head);
+            Assert.check(!ts.isEmpty());
+            //step 1 - compute erased candidate set (EC)
+            List<Type> cl = erasedSupertypes(ts.head);
             for (Type t : ts.tail) {
                 if (t.tag == CLASS || t.tag == TYPEVAR)
-                    cl = intersect(cl, closure(t));
+                    cl = intersect(cl, erasedSupertypes(t));
             }
-            return compoundMin(cl);
+            //step 2 - compute minimal erased candidate set (MEC)
+            List<Type> mec = closureMin(cl);
+            //step 3 - for each element G in MEC, compute lci(Inv(G))
+            List<Type> candidates = List.nil();
+            for (Type erasedSupertype : mec) {
+                List<Type> lci = List.of(asSuper(ts.head, erasedSupertype.tsym));
+                for (Type t : ts) {
+                    lci = intersect(lci, List.of(asSuper(t, erasedSupertype.tsym)));
+                }
+                candidates = candidates.appendList(lci);
+            }
+            //step 4 - let MEC be { G1, G2 ... Gn }, then we have that
+            //lub = lci(Inv(G1)) & lci(Inv(G2)) & ... & lci(Inv(Gn))
+            return compoundMin(candidates);
 
         default:
             // calculate lub(A, B[])
@@ -2741,6 +2910,18 @@ public class Types {
         }
     }
     // where
+        List<Type> erasedSupertypes(Type t) {
+            ListBuffer<Type> buf = lb();
+            for (Type sup : closure(t)) {
+                if (sup.tag == TYPEVAR) {
+                    buf.append(sup);
+                } else {
+                    buf.append(erasure(sup));
+                }
+            }
+            return buf.toList();
+        }
+
         private Type arraySuperType = null;
         private Type arraySuperType() {
             // initialized lazily to avoid problems during compiler startup
@@ -2772,6 +2953,8 @@ public class Types {
     public Type glb(Type t, Type s) {
         if (s == null)
             return t;
+        else if (t.isPrimitive() || s.isPrimitive())
+            return syms.errType;
         else if (isSubtypeNoCapture(t, s))
             return t;
         else if (isSubtypeNoCapture(s, t))
@@ -2873,8 +3056,7 @@ public class Types {
 
     /**
      * Return-Type-Substitutable.
-     * @see <a href="http://java.sun.com/docs/books/jls/">The Java
-     * Language Specification, Third Ed. (8.4.5)</a>
+     * @jls section 8.4.5
      */
     public boolean returnTypeSubstitutable(Type r1, Type r2) {
         if (hasSameArgs(r1, r2))
@@ -2895,13 +3077,13 @@ public class Types {
 
         if (hasSameArgs(r1, r2))
             return covariantReturnType(r1.getReturnType(), r2res, warner);
-        if (!source.allowCovariantReturns())
+        if (!allowCovariantReturns)
             return false;
         if (isSubtypeUnchecked(r1.getReturnType(), r2res, warner))
             return true;
         if (!isSubtype(r1.getReturnType(), erasure(r2res)))
             return false;
-        warner.warnUnchecked();
+        warner.warn(LintCategory.UNCHECKED);
         return true;
     }
 
@@ -2912,7 +3094,7 @@ public class Types {
     public boolean covariantReturnType(Type t, Type s, Warner warner) {
         return
             isSameType(t, s) ||
-            source.allowCovariantReturns() &&
+            allowCovariantReturns &&
             !t.isPrimitive() &&
             !s.isPrimitive() &&
             isAssignable(t, s, warner);
@@ -2925,6 +3107,15 @@ public class Types {
      */
     public ClassSymbol boxedClass(Type t) {
         return reader.enterClass(syms.boxedName[t.tag]);
+    }
+
+    /**
+     * Return the boxed type if 't' is primitive, otherwise return 't' itself.
+     */
+    public Type boxedTypeOrType(Type t) {
+        return t.isPrimitive() ?
+            boxedClass(t).type :
+            t;
     }
 
     /**
@@ -2945,7 +3136,7 @@ public class Types {
 
     // <editor-fold defaultstate="collapsed" desc="Capture conversion">
     /*
-     * JLS 3rd Ed. 5.1.10 Capture Conversion:
+     * JLS 5.1.10 Capture Conversion:
      *
      * Let G name a generic type declaration with n formal type
      * parameters A1 ... An with corresponding bounds U1 ... Un. There
@@ -2978,7 +3169,7 @@ public class Types {
      * Capture conversion is not applied recursively.
      */
     /**
-     * Capture conversion as specified by JLS 3rd Ed.
+     * Capture conversion as specified by the JLS.
      */
 
     public List<Type> capture(List<Type> ts) {
@@ -3090,7 +3281,7 @@ public class Types {
         boolean reverse = false;
         Type target = to;
         if ((to.tsym.flags() & INTERFACE) == 0) {
-            assert (from.tsym.flags() & INTERFACE) != 0;
+            Assert.check((from.tsym.flags() & INTERFACE) != 0);
             reverse = true;
             to = from;
             from = target;
@@ -3108,8 +3299,8 @@ public class Types {
             commonSupers = commonSupers.tail;
         }
         if (giveWarning && !isReifiable(reverse ? from : to))
-            warn.warnUnchecked();
-        if (!source.allowCovariantReturns())
+            warn.warn(LintCategory.UNCHECKED);
+        if (!allowCovariantReturns)
             // reject if there is a common method signature with
             // incompatible return types.
             chk.checkCompatibleAbstracts(warn.pos(), from, to);
@@ -3125,24 +3316,24 @@ public class Types {
         boolean reverse = false;
         Type target = to;
         if ((to.tsym.flags() & INTERFACE) == 0) {
-            assert (from.tsym.flags() & INTERFACE) != 0;
+            Assert.check((from.tsym.flags() & INTERFACE) != 0);
             reverse = true;
             to = from;
             from = target;
         }
-        assert (from.tsym.flags() & FINAL) != 0;
+        Assert.check((from.tsym.flags() & FINAL) != 0);
         Type t1 = asSuper(from, to.tsym);
         if (t1 == null) return false;
         Type t2 = to;
         if (disjointTypes(t1.getTypeArguments(), t2.getTypeArguments()))
             return false;
-        if (!source.allowCovariantReturns())
+        if (!allowCovariantReturns)
             // reject if there is a common method signature with
             // incompatible return types.
             chk.checkCompatibleAbstracts(warn.pos(), from, to);
         if (!isReifiable(target) &&
             (reverse ? giveWarning(t2, t1) : giveWarning(t1, t2)))
-            warn.warnUnchecked();
+            warn.warn(LintCategory.UNCHECKED);
         return true;
     }
 
@@ -3366,8 +3557,8 @@ public class Types {
         public Type visitCapturedType(CapturedType t, Void s) {
             Type bound = visitWildcardType(t.wildcard, null);
             return (bound.contains(t)) ?
-                    (high ? syms.objectType : syms.botType) :
-                        bound;
+                    erasure(bound) :
+                    bound;
         }
 
         @Override
@@ -3375,7 +3566,7 @@ public class Types {
             if (rewriteTypeVars) {
                 Type bound = high ?
                     (t.bound.contains(t) ?
-                        syms.objectType :
+                        erasure(t.bound) :
                         visit(t.bound)) :
                     syms.botType;
                 return rewriteAsWildcardType(bound, t);

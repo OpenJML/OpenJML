@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -43,7 +43,7 @@ public class Flags {
     private Flags() {} // uninstantiable
 
     public static String toString(long flags) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         String sep = "";
         for (Flag s : asFlagSet(flags)) {
             buf.append(sep);
@@ -231,13 +231,13 @@ public class Flags {
     public static final long PROPRIETARY = 1L<<38;
 
     /**
-     * Flag that marks a disjunction var in a multi-catch clause
+     * Flag that marks a a multi-catch parameter
      */
-    public static final long DISJUNCTION = 1L<<39;
+    public static final long UNION = 1L<<39;
 
     /**
      * Flag that marks a signature-polymorphic invoke method.
-     * (These occur inside java.dyn.MethodHandle.)
+     * (These occur inside java.lang.invoke.MethodHandle.)
      */
     public static final long POLYMORPHIC_SIGNATURE = 1L<<40;
 
@@ -251,6 +251,11 @@ public class Flags {
      * Flag that marks an 'effectively final' local variable
      */
     public static final long EFFECTIVELY_FINAL = 1L<<42;
+
+    /**
+     * Flag that marks non-override equivalent methods with the same signature
+     */
+    public static final long CLASH = 1L<<43;
 
     /** Modifier masks.
      */

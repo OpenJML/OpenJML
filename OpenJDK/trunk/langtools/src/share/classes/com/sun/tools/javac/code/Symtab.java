@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,6 +26,8 @@
 package com.sun.tools.javac.code;
 
 import java.util.*;
+import javax.lang.model.type.TypeVisitor;
+import javax.lang.model.element.ElementVisitor;
 
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.List;
@@ -74,7 +76,6 @@ public class Symtab {
     public final JCNoType voidType = new JCNoType(TypeTags.VOID);
 
     private final Names names;
-    private final Scope.ScopeCounter scopeCounter;
     private final ClassReader reader;
     private final Target target;
 
@@ -126,9 +127,9 @@ public class Symtab {
     public final Type serializableType;
     public final Type methodHandleType;
     public final Type polymorphicSignatureType;
-    public final Type invokeDynamicType;
     public final Type throwableType;
     public final Type errorType;
+    public final Type interruptedExceptionType;
     public final Type illegalArgumentExceptionType;
     public final Type exceptionType;
     public final Type runtimeExceptionType;
@@ -154,6 +155,7 @@ public class Symtab {
     public final Type proprietaryType;
     public final Type systemType;
     public final Type autoCloseableType;
+    public final Type trustMeType;
 
     /** The symbol representing the length field of an array.
      */
@@ -341,11 +343,15 @@ public class Symtab {
         context.put(symtabKey, this);
 
         names = Names.instance(context);
-        scopeCounter = Scope.ScopeCounter.instance(context);
         target = Target.instance(context);
 
         // Create the unknown type
-        unknownType = new Type(TypeTags.UNKNOWN, null);
+        unknownType = new Type(TypeTags.UNKNOWN, null) {
+            @Override
+            public <R, P> R accept(TypeVisitor<R, P> v, P p) {
+                return v.visitUnknown(this, p);
+            }
+        };
 
         // create the basic builtin symbols
         rootPackage = new PackageSymbol(names.empty, null);
@@ -355,13 +361,20 @@ public class Symtab {
                     return messages.getLocalizedString("compiler.misc.unnamed.package");
                 }
             };
-        noSymbol = new TypeSymbol(0, names.empty, Type.noType, rootPackage);
+        noSymbol = new TypeSymbol(0, names.empty, Type.noType, rootPackage) {
+            public <R, P> R accept(ElementVisitor<R, P> v, P p) {
+                return v.visitUnknown(this, p);
+            }
+        };
         noSymbol.kind = Kinds.NIL;
 
         // create the error symbols
         errSymbol = new ClassSymbol(PUBLIC|STATIC|ACYCLIC, names.any, null, rootPackage);
-        unknownSymbol = new ClassSymbol(PUBLIC|STATIC|ACYCLIC, names.fromString("<any?>"), null, rootPackage);
         errType = new ErrorType(errSymbol, Type.noType);
+
+        unknownSymbol = new ClassSymbol(PUBLIC|STATIC|ACYCLIC, names.fromString("<any?>"), null, rootPackage);
+        unknownSymbol.members_field = new Scope.ErrorScope(unknownSymbol);
+        unknownSymbol.type = unknownType;
 
         // initialize builtin types
         initType(byteType, "byte", "Byte");
@@ -382,13 +395,15 @@ public class Symtab {
 
         // VGJ
         boundClass = new ClassSymbol(PUBLIC|ACYCLIC, names.Bound, noSymbol);
+        boundClass.members_field = new Scope.ErrorScope(boundClass);
 
         // the builtin class of all methods
         methodClass = new ClassSymbol(PUBLIC|ACYCLIC, names.Method, noSymbol);
+        methodClass.members_field = new Scope.ErrorScope(boundClass);
 
         // Create class to hold all predefined constants and operations.
         predefClass = new ClassSymbol(PUBLIC|ACYCLIC, names.empty, rootPackage);
-        Scope scope = new Scope.ClassScope(predefClass, scopeCounter);
+        Scope scope = new Scope(predefClass);
         predefClass.members_field = scope;
 
         // Enter symbols for basic types.
@@ -419,11 +434,11 @@ public class Symtab {
         cloneableType = enterClass("java.lang.Cloneable");
         throwableType = enterClass("java.lang.Throwable");
         serializableType = enterClass("java.io.Serializable");
-        methodHandleType = enterClass("java.dyn.MethodHandle");
-        polymorphicSignatureType = enterClass("java.dyn.MethodHandle$PolymorphicSignature");
-        invokeDynamicType = enterClass("java.dyn.InvokeDynamic");
+        methodHandleType = enterClass("java.lang.invoke.MethodHandle");
+        polymorphicSignatureType = enterClass("java.lang.invoke.MethodHandle$PolymorphicSignature");
         errorType = enterClass("java.lang.Error");
         illegalArgumentExceptionType = enterClass("java.lang.IllegalArgumentException");
+        interruptedExceptionType = enterClass("java.lang.InterruptedException");
         exceptionType = enterClass("java.lang.Exception");
         runtimeExceptionType = enterClass("java.lang.RuntimeException");
         classNotFoundExceptionType = enterClass("java.lang.ClassNotFoundException");
@@ -461,7 +476,9 @@ public class Symtab {
                              new MethodType(List.<Type>nil(), voidType,
                                             List.of(exceptionType), methodClass),
                              autoCloseableType.tsym);
+        trustMeType = enterClass("java.lang.SafeVarargs");
 
+        synthesizeEmptyInterfaceIfMissing(autoCloseableType);
         synthesizeEmptyInterfaceIfMissing(cloneableType);
         synthesizeEmptyInterfaceIfMissing(serializableType);
         synthesizeEmptyInterfaceIfMissing(polymorphicSignatureType);
@@ -478,7 +495,7 @@ public class Symtab {
         proprietarySymbol.completer = null;
         proprietarySymbol.flags_field = PUBLIC|ACYCLIC|ANNOTATION|INTERFACE;
         proprietarySymbol.erasure_field = proprietaryType;
-        proprietarySymbol.members_field = new Scope.ClassScope(proprietarySymbol, scopeCounter);
+        proprietarySymbol.members_field = new Scope(proprietarySymbol);
         proprietaryType.typarams_field = List.nil();
         proprietaryType.allparams_field = List.nil();
         proprietaryType.supertype_field = annotationType;
@@ -490,7 +507,7 @@ public class Symtab {
         ClassType arrayClassType = (ClassType)arrayClass.type;
         arrayClassType.supertype_field = objectType;
         arrayClassType.interfaces_field = List.of(cloneableType, serializableType);
-        arrayClass.members_field = new Scope.ClassScope(arrayClass, scopeCounter);
+        arrayClass.members_field = new Scope(arrayClass);
         lengthVar = new VarSymbol(
             PUBLIC | FINAL,
             names.length,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -64,7 +64,6 @@ import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
 
-import static com.sun.tools.javac.code.Flags.*;
 import static com.sun.tools.javac.code.Kinds.*;
 
 /**
@@ -148,6 +147,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
     /**
      * Return true if this is a class, not an interface.
      */
+    @Override
     public boolean isClass() {
         return !Modifier.isInterface(getModifiers());
     }
@@ -156,6 +156,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
      * Return true if this is a ordinary class,
      * not an enumeration, exception, an error, or an interface.
      */
+    @Override
     public boolean isOrdinaryClass() {
         if (isEnum() || isInterface() || isAnnotationType()) {
             return false;
@@ -173,6 +174,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
      * Return true if this is an enumeration.
      * (For legacy doclets, return false.)
      */
+    @Override
     public boolean isEnum() {
         return (getFlags() & Flags.ENUM) != 0
                &&
@@ -183,6 +185,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
      * Return true if this is an interface, but not an annotation type.
      * Overridden by AnnotationTypeDocImpl.
      */
+    @Override
     public boolean isInterface() {
         return Modifier.isInterface(getModifiers());
     }
@@ -190,6 +193,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
     /**
      * Return true if this is an exception class
      */
+    @Override
     public boolean isException() {
         if (isEnum() || isInterface() || isAnnotationType()) {
             return false;
@@ -205,6 +209,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
     /**
      * Return true if this is an error class
      */
+    @Override
     public boolean isError() {
         if (isEnum() || isInterface() || isAnnotationType()) {
             return false;
@@ -276,6 +281,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
     /**
      * Return the package that this class is contained in.
      */
+    @Override
     public PackageDoc containingPackage() {
         PackageDocImpl p = env.getPackageDoc(tsym.packge());
         if (p.setDocPath == false) {
@@ -375,6 +381,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
      * Return the qualified name and any type parameters.
      * Each parameter is a type variable with optional bounds.
      */
+    @Override
     public String toString() {
         return classToString(env, tsym, true);
     }
@@ -402,7 +409,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
      * qualified by their enclosing class(es) only.
      */
     static String classToString(DocEnv env, ClassSymbol c, boolean full) {
-        StringBuffer s = new StringBuffer();
+        StringBuilder s = new StringBuilder();
         if (!c.isInner()) {             // if c is not an inner class
             s.append(getClassName(c, full));
         } else {
@@ -450,10 +457,12 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
      * Return the modifier string for this class. If it's an interface
      * exclude 'abstract' keyword from the modifier string
      */
+    @Override
     public String modifiers() {
         return Modifier.toString(modifierSpecifier());
     }
 
+    @Override
     public int modifierSpecifier() {
         int modifiers = getModifiers();
         return (isInterface() || isAnnotationType())
@@ -1287,6 +1296,7 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
      * Return the source position of the entity, or null if
      * no position is available.
      */
+    @Override
     public SourcePosition position() {
         if (tsym.sourcefile == null) return null;
         return SourcePositionImpl.make(tsym.sourcefile,

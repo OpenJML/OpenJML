@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -37,8 +37,8 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharsetDecoder;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.attribute.Attributes;
 import java.nio.file.attribute.BasicFileAttributes;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
@@ -153,7 +153,7 @@ abstract class PathFileObject implements JavaFileObject {
 
     @Override
     public Kind getKind() {
-        return BaseFileManager.getKind(path.getName().toString());
+        return BaseFileManager.getKind(path.getFileName().toString());
     }
 
     @Override
@@ -164,14 +164,14 @@ abstract class PathFileObject implements JavaFileObject {
             return false;
         }
         String sn = simpleName + kind.extension;
-        String pn = path.getName().toString();
+        String pn = path.getFileName().toString();
         if (pn.equals(sn)) {
             return true;
         }
         if (pn.equalsIgnoreCase(sn)) {
             try {
                 // allow for Windows
-                return path.toRealPath(false).getName().toString().equals(sn);
+                return path.toRealPath(LinkOption.NOFOLLOW_LINKS).getFileName().toString().equals(sn);
             } catch (IOException e) {
             }
         }
@@ -200,13 +200,13 @@ abstract class PathFileObject implements JavaFileObject {
 
     @Override
     public InputStream openInputStream() throws IOException {
-        return path.newInputStream();
+        return Files.newInputStream(path);
     }
 
     @Override
     public OutputStream openOutputStream() throws IOException {
         ensureParentDirectoriesExist();
-        return path.newOutputStream();
+        return Files.newOutputStream(path);
     }
 
     @Override
@@ -242,14 +242,13 @@ abstract class PathFileObject implements JavaFileObject {
     @Override
     public Writer openWriter() throws IOException {
         ensureParentDirectoriesExist();
-        return new OutputStreamWriter(path.newOutputStream(), fileManager.getEncodingName());
+        return new OutputStreamWriter(Files.newOutputStream(path), fileManager.getEncodingName());
     }
 
     @Override
     public long getLastModified() {
         try {
-            BasicFileAttributes attrs = Attributes.readBasicFileAttributes(path);
-            return attrs.lastModifiedTime().toMillis();
+            return Files.getLastModifiedTime(path).toMillis();
         } catch (IOException e) {
             return -1;
         }
@@ -258,7 +257,7 @@ abstract class PathFileObject implements JavaFileObject {
     @Override
     public boolean delete() {
         try {
-            path.delete();
+            Files.delete(path);
             return true;
         } catch (IOException e) {
             return false;
@@ -267,7 +266,7 @@ abstract class PathFileObject implements JavaFileObject {
 
     public boolean isSameFile(PathFileObject other) {
         try {
-            return path.isSameFile(other.path);
+            return Files.isSameFile(path, other.path);
         } catch (IOException e) {
             return false;
         }
@@ -296,8 +295,7 @@ abstract class PathFileObject implements JavaFileObject {
 
     private long size() {
         try {
-            BasicFileAttributes attrs = Attributes.readBasicFileAttributes(path);
-            return attrs.size();
+            return Files.size(path);
         } catch (IOException e) {
             return -1;
         }

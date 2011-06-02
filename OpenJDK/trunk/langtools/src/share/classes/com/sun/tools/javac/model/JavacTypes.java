@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -72,10 +72,15 @@ public class JavacTypes implements javax.lang.model.util.Types {
     }
 
     public Element asElement(TypeMirror t) {
-        Type type = cast(Type.class, t);
-        if (type.tag != TypeTags.CLASS && type.tag != TypeTags.TYPEVAR)
-            return null;
-        return type.asElement();
+        switch (t.getKind()) {
+            case DECLARED:
+            case ERROR:
+            case TYPEVAR:
+                Type type = cast(Type.class, t);
+                return type.asElement();
+            default:
+                return null;
+        }
     }
 
     public boolean isSameType(TypeMirror t1, TypeMirror t2) {

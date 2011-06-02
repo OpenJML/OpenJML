@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -400,6 +400,10 @@ public class Start {  // DRC - changed to public from package-default
         // pass off control to the doclet
         boolean ok = root != null;
         if (ok) ok = docletInvoker.start(root);
+
+        Messager docletMessager = Messager.instance0(context);
+        messager.nwarnings += docletMessager.nwarnings;
+        messager.nerrors += docletMessager.nerrors;
 
         // We're done.
         if (compOpts.get("-verbose") != null) {

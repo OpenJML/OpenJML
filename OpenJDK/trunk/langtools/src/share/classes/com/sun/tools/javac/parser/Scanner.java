@@ -143,7 +143,7 @@ public class Scanner implements Lexer {
         allowBinaryLiterals = source.allowBinaryLiterals();
         allowHexFloats = source.allowHexFloats();
         allowUnderscoresInLiterals = source.allowBinaryLiterals();
-        allowExoticIdentifiers = source.allowExoticIdentifiers();  // for invokedynamic
+        //allowExoticIdentifiers = source.allowExoticIdentifiers();  // for invokedynamic // DRCok - removed in b144?s
     }
 
     private static final boolean hexFloatsWork = hexFloatsWork();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -168,6 +168,7 @@ public class RecognizedOptions {
         O,
         XJCOV,
         XD,
+        AT,
         SOURCEFILE);
 
     static Set<OptionName> javacFileManagerOptions = EnumSet.of(
@@ -565,12 +566,27 @@ public class RecognizedOptions {
             }
         },
 
+        // This option exists only for the purpose of documenting itself.
+        // It's actually implemented by the CommandLine class.
+        new Option(AT,                   "opt.arg.file",         "opt.AT") {
+            @Override
+            String helpSynopsis() {
+                hasSuffix = true;
+                return super.helpSynopsis();
+            }
+            @Override
+            public boolean process(Options options, String option) {
+                throw new AssertionError
+                    ("the @ flag should be caught by CommandLine.");
+            }
+        },
+
         /*
          * TODO: With apt, the matches method accepts anything if
          * -XclassAsDecls is used; code elsewhere does the lookup to
          * see if the class name is both legal and found.
          *
-         * In apt, the process method adds the candiate class file
+         * In apt, the process method adds the candidate class file
          * name to a separate list.
          */
         new HiddenOption(SOURCEFILE) {

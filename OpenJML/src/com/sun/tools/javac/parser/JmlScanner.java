@@ -90,7 +90,7 @@ public class JmlScanner extends DocCommentScanner {
         public static void preRegister(final Context context) {
             context.put(scannerFactoryKey,
                     new Context.Factory<ScannerFactory>() {
-                        public ScannerFactory make() {
+                        public ScannerFactory make(Context context) {
                             return new JmlScanner.JmlFactory(context);
                         }
                     });

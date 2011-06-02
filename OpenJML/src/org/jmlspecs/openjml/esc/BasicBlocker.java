@@ -198,7 +198,7 @@ public class BasicBlocker extends JmlTreeScanner {
         if (context.get(BasicBlocker.class) != null) return;
         context.put(BasicBlocker.class, new Context.Factory<BasicBlocker>() {
             @Override
-            public BasicBlocker make() {
+            public BasicBlocker make(Context context) {
                 return new BasicBlocker(context);
             }
         });

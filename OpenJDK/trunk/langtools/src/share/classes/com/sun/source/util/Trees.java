@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -38,6 +38,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.JavaCompiler.CompilationTask;
 
+import com.sun.source.tree.CatchTree;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.MethodTree;
@@ -52,6 +53,7 @@ import com.sun.source.tree.Tree;
 public abstract class Trees {
     /**
      * Gets a Trees object for a given CompilationTask.
+     * @param task the compilation task for which to get the Trees object
      * @throws IllegalArgumentException if the task does not support the Trees API.
      */
     public static Trees instance(CompilationTask task) {
@@ -61,7 +63,8 @@ public abstract class Trees {
     }
 
     /**
-     * Gets a Trees object for a given CompilationTask.
+     * Gets a Trees object for a given ProcessingEnvironment.
+     * @param env the processing environment for which to get the Trees object
      * @throws IllegalArgumentException if the env does not support the Trees API.
      */
     public static Trees instance(ProcessingEnvironment env) {
@@ -163,6 +166,12 @@ public abstract class Trees {
     public abstract Scope getScope(TreePath path);
 
     /**
+     * Gets the doc comment, if any, for the Tree node identified by a given TreePath.
+     * Returns null if no doc comment was found.
+     */
+    public abstract String getDocComment(TreePath path);
+
+    /**
      * Checks whether a given type is accessible in a given scope.
      * @param scope the scope to be checked
      * @param type the type to be checked
@@ -199,4 +208,11 @@ public abstract class Trees {
     public abstract void printMessage(Diagnostic.Kind kind, CharSequence msg,
             com.sun.source.tree.Tree t,
             com.sun.source.tree.CompilationUnitTree root);
+
+    /**
+     * Gets the lub of an exception parameter declared in a catch clause.
+     * @param tree the tree for the catch clause
+     * @return The lub of the exception parameter
+     */
+    public abstract TypeMirror getLub(CatchTree tree);
 }

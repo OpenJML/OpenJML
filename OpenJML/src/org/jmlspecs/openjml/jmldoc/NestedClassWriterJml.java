@@ -53,25 +53,27 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
         currentDocEnv = ((ClassDocImpl)classdoc).docenv();
     }
     
-    /** This is overridden to tack onto the end of the nested class information
-     * any information about nested JML classes.
-     * @param classDoc the classDoc whose nested members are being described
-     */
-    public void writeMemberSummaryFooter(@NonNull ClassDoc classDoc) {
-        super.writeMemberSummaryFooter(classDoc);
-        writeJmlNestedClassSummary(classDoc);
-    }
+    // FIXME - major change in b144
+//    /** This is overridden to tack onto the end of the nested class information
+//     * any information about nested JML classes.
+//     * @param classDoc the classDoc whose nested members are being described
+//     */
+//    public void writeMemberSummaryFooter(@NonNull ClassDoc classDoc) {
+//        super.writeMemberSummaryFooter(classDoc);
+//        writeJmlNestedClassSummary(classDoc);
+//    }
 
-    /** This is overridden to tack onto the end of the inherited 
-     * nested class information
-     * any information about inherited nested JML classes.
-     * @param classDoc the classDoc whose nested members are being described
-     */
-    @Override
-    public void writeInheritedMemberSummaryFooter(@NonNull ClassDoc classDoc) {
-        writeJmlInheritedNestedClassSummaryFooter(classDoc);
-        super.writeInheritedMemberSummaryFooter(classDoc);
-    }
+    // FIXME - major change in b144
+//    /** This is overridden to tack onto the end of the inherited 
+//     * nested class information
+//     * any information about inherited nested JML classes.
+//     * @param classDoc the classDoc whose nested members are being described
+//     */
+//    @Override
+//    public void writeInheritedMemberSummaryFooter(@NonNull ClassDoc classDoc) {
+//        writeJmlInheritedNestedClassSummaryFooter(classDoc);
+//        writer.writeInheritedMemberSummaryFooter(classDoc);
+//    }
     
     /** This is used in place of DocEnv.shouldDocument because model methods are
      * marked as synthetic and thus not allowed by DocEnv.
@@ -108,10 +110,11 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
             writer.strong("Inherited JML model classes and interfaces: ");
             Collections.sort(list);
             boolean isFirst = true;
-            for (ClassDoc nestedClass: list) {
-                writer.printInheritedSummaryMember(this, classDoc, nestedClass, isFirst);
-                isFirst = false;
-            }
+            // FIXME - major change in b144
+//            for (ClassDoc nestedClass: list) {
+//                writer.printInheritedSummaryMember(this, classDoc, nestedClass, isFirst);
+//                isFirst = false;
+//            }
         }
     }
 
@@ -145,13 +148,15 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
         Collections.sort(list);
         writeJmlNestedClassSummaryHeader(classDoc);
         // The following loop is copied with modifications from MemberSummaryBuilder.buildSummary
-        for (int i = 0; i<list.size(); i++) {
-            ClassDoc member = list.get(i);
-            Tag[] firstSentenceTags = member.firstSentenceTags();
-            writeMemberSummary(classDoc, member, firstSentenceTags,
-                i == 0, i == list.size() - 1);
-        }
-        super.writeMemberSummaryFooter(classDoc);
+        // FIXME - major change in b144
+//        for (int i = 0; i<list.size(); i++) {
+//            ClassDoc member = list.get(i);
+//            Tag[] firstSentenceTags = member.firstSentenceTags();
+//            writeMemberSummary(classDoc, member, firstSentenceTags,
+//                i == 0, i == list.size() - 1);
+//        }
+        // FIXME - major change in b144
+//        super.writeMemberSummaryFooter(classDoc);
     }
     
     /** This writes out the header for the block of information about

@@ -46,7 +46,7 @@ public class JmlCompiler extends JavaCompiler {
      */
     public static void preRegister(final Context context) {
         context.put(compilerKey, new Context.Factory<JavaCompiler>() {
-            public JmlCompiler make() {
+            public JmlCompiler make(Context context) {
                 return new JmlCompiler(context);  // registers itself
             }
         });

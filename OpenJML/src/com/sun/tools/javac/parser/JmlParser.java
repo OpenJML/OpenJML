@@ -2544,7 +2544,7 @@ public class JmlParser extends EndPosParser {
         mode = TYPE;
         if (S.token() == LT) {
             checkGenerics();
-            t = typeArguments(t);
+            t = typeArguments(t,false); // FIXME - true or false:
         }
         while (S.token() == DOT) {
             int pos = S.pos();
@@ -2552,7 +2552,7 @@ public class JmlParser extends EndPosParser {
             t = toP(F.at(pos).Select(t, ident()));
             if (S.token() == LT) {
                 checkGenerics();
-                t = typeArguments(t);
+                t = typeArguments(t,false); // FIXME - true or false:
             }
         }
         mode = oldmode;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -51,6 +51,7 @@ import com.sun.source.util.TaskListener;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Lint.LintCategory;
 import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
@@ -304,6 +305,13 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     protected JavaCompiler delegateCompiler;
 
     /**
+     * Command line options.
+     */
+    protected Options options;
+
+    protected Context context;
+
+    /**
      * Flag set if any annotation processing occurred.
      **/
     protected boolean annotationProcessingOccurred;
@@ -313,11 +321,9 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
      **/
     protected boolean implicitSourceFilesRead;
 
-    protected Context context;
-
     /** Construct a new compiler using a shared context.
      */
-    public JavaCompiler(final Context context) {
+    public JavaCompiler(Context context) {
         this.context = context;
         context.put(compilerKey, this);
 
@@ -359,7 +365,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
 
         reader.sourceCompleter = this;
 
-        Options options = Options.instance(context);
+        options = Options.instance(context);
 
         verbose       = options.isSet(VERBOSE);
         sourceOutput  = options.isSet(PRINTSOURCE); // used to be -s
@@ -375,6 +381,15 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         devVerbose    = options.isSet("dev");
         processPcks   = options.isSet("process.packages");
         werror        = options.isSet(WERROR);
+
+        if (source.compareTo(Source.DEFAULT) < 0) {
+            if (options.isUnset(XLINT_CUSTOM, "-" + LintCategory.OPTIONS.option)) {
+                if (fileManager instanceof BaseFileManager) {
+                    if (((BaseFileManager) fileManager).isDefaultBootClassPath())
+                        log.warning(LintCategory.OPTIONS, "source.no.bootclasspath", source.name);
+                }
+            }
+        }
 
         verboseCompilePolicy = options.isSet("verboseCompilePolicy");
 
@@ -576,7 +591,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                                       null, List.<JCTree>nil());
         if (content != null) {
             if (verbose) {
-                printVerbose("parsing.started", filename);
+                log.printVerbose("parsing.started", filename);
             }
             if (taskListener != null) {
                 TaskEvent e = new TaskEvent(TaskEvent.Kind.PARSE, filename);
@@ -585,7 +600,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             Parser parser = parserFactory.newParser(content, keepComments(), genEndPos, lineDebugInfo);
             tree = parser.parseCompilationUnit();
             if (verbose) {
-                printVerbose("parsing.done", Long.toString(elapsed(msec)));
+                log.printVerbose("parsing.done", Long.toString(elapsed(msec)));
             }
         }
 
@@ -626,6 +641,19 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             return t;
         } finally {
             log.useSource(prev);
+        }
+    }
+
+    /** Resolve an identifier which may be the binary name of a class or
+     * the Java name of a class or package.
+     * @param name      The name to resolve
+     */
+    public Symbol resolveBinaryNameOrIdent(String name) {
+        try {
+            Name flatname = names.fromString(name.replace("/", "."));
+            return reader.loadClass(flatname);
+        } catch (CompletionFailure ignore) {
+            return resolveIdent(name);
         }
     }
 
@@ -673,7 +701,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                 //new Pretty(out, true).printUnit(env.toplevel, cdef);
                 Pretty.instance(out, true).printUnit(env.toplevel, cdef);  // DRC - changed to use a factory
                 if (verbose)
-                    printVerbose("wrote.file", outFile);
+                    log.printVerbose("wrote.file", outFile);
             } finally {
                 out.close();
             }
@@ -789,7 +817,13 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             throw new AssertionError("attempt to reuse JavaCompiler");
         hasBeenUsed = true;
 
+        // forcibly set the equivalent of -Xlint:-options, so that no further
+        // warnings about command line options are generated from this point on
+        options.put(XLINT_CUSTOM + "-" + LintCategory.OPTIONS.option, "true");
+        options.remove(XLINT_CUSTOM + LintCategory.OPTIONS.option);
+
         start_msec = now();
+
         try {
             initProcessAnnotations(processors);
 
@@ -804,7 +838,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             elapsed_msec = delegateCompiler.elapsed_msec;
         } catch (Abort ex) {
             if (devVerbose)
-                ex.printStackTrace();
+                ex.printStackTrace(System.err);
         } finally {
             if (procEnvImpl != null)
                 procEnvImpl.close();
@@ -847,16 +881,16 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                 break;
 
             default:
-                assert false: "unknown compile policy";
+                Assert.error("unknown compile policy");
             }
         } catch (Abort ex) {
             if (devVerbose)
-                ex.printStackTrace();
+                ex.printStackTrace(System.err);
         }
 
         if (verbose) {
             elapsed_msec = elapsed(start_msec);
-            printVerbose("total", Long.toString(elapsed_msec));
+            log.printVerbose("total", Long.toString(elapsed_msec));
         }
 
         reportDeferredDiagnostics();
@@ -962,7 +996,6 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     public void initProcessAnnotations(Iterable<? extends Processor> processors) {
         // Process annotations if processing is not disabled and there
         // is at least one Processor available.
-        Options options = Options.instance(context);
         if (options.isSet(PROC, "none")) {
             processAnnotations = false;
         } else if (procEnvImpl == null) {
@@ -1021,7 +1054,6 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             // If there are no annotation processors present, and
             // annotation processing is to occur with compilation,
             // emit a warning.
-            Options options = Options.instance(context);
             if (options.isSet(PROC, "only")) {
                 log.warning("proc.proc-only.requested.no.procs");
                 todo.clear();
@@ -1049,7 +1081,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                 } else {
                     boolean errors = false;
                     for (String nameStr : classnames) {
-                        Symbol sym = resolveIdent(nameStr);
+                        Symbol sym = resolveBinaryNameOrIdent(nameStr);
                         if (sym == null || (sym.kind == Kinds.PCK && !processPcks)) {
                             log.error("proc.cant.find.class", nameStr);
                             errors = true;
@@ -1065,7 +1097,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                                     classSymbols = classSymbols.prepend((ClassSymbol)sym);
                                 continue;
                             }
-                            assert sym.kind == Kinds.PCK;
+                            Assert.check(sym.kind == Kinds.PCK);
                             log.warning("proc.package.does.not.exist", nameStr);
                             pckSymbols = pckSymbols.prepend((PackageSymbol)sym);
                         } catch (CompletionFailure e) {
@@ -1085,8 +1117,8 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                 if (c != this)
                     annotationProcessingOccurred = c.annotationProcessingOccurred = true;
                 // doProcessing will have handled deferred diagnostics
-                assert c.log.deferDiagnostics == false;
-                assert c.log.deferredDiagnostics.size() == 0;
+                Assert.check(c.log.deferDiagnostics == false
+                        && c.log.deferredDiagnostics.size() == 0);
                 return c;
             } finally {
                 procEnvImpl.close();
@@ -1107,9 +1139,13 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     }
 
     boolean explicitAnnotationProcessingRequested() {
-        Options options = Options.instance(context);
         return
             explicitAnnotationProcessingRequested ||
+            explicitAnnotationProcessingRequested(options);
+    }
+
+    static boolean explicitAnnotationProcessingRequested(Options options) {
+        return
             options.isSet(PROCESSOR) ||
             options.isSet(PROCESSORPATH) ||
             options.isSet(PROC, "only") ||
@@ -1141,7 +1177,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         if (verboseCompilePolicy)
             printNote("[attribute " + env.enclClass.sym + "]");
         if (verbose)
-            printVerbose("checking.attribution", env.enclClass.sym);
+            log.printVerbose("checking.attribution", env.enclClass.sym);
 
         if (taskListener != null) {
             TaskEvent e = new TaskEvent(TaskEvent.Kind.ANALYZE, env.toplevel, env.enclClass.sym);
@@ -1153,7 +1189,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                                   env.enclClass.sym.sourcefile :
                                   env.toplevel.sourcefile);
         try {
-            attr.attribClass(env.tree.pos(), env.enclClass.sym);
+            attr.attrib(env);
             if (errorCount() > 0 && !shouldStop(CompileState.ATTR)) {
                 //if in fail-over mode, ensure that AST expression nodes
                 //are correctly initialized (e.g. they have a type/symbol)
@@ -1323,7 +1359,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                         return;
                     List<JCTree> pdef = lower.translateTopLevelClass(env, env.tree, localMake);
                     if (pdef.head != null) {
-                        assert pdef.tail.isEmpty();
+                        Assert.check(pdef.tail.isEmpty());
                         results.add(new Pair<Env<AttrContext>, JCClassDecl>(env, (JCClassDecl)pdef.head));
                     }
                 }
@@ -1507,7 +1543,8 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         }
 
     public void reportDeferredDiagnostics() {
-        if (annotationProcessingOccurred
+        if (errorCount() == 0
+                && annotationProcessingOccurred
                 && implicitSourceFilesRead
                 && implicitSourcePolicy == ImplicitSourcePolicy.UNSET) {
             if (explicitAnnotationProcessingRequested())
@@ -1559,14 +1596,6 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
 
     protected void printNote(String lines) {
         Log.printLines(log.noticeWriter, lines);
-    }
-
-    /** Output for "-verbose" option.
-     *  @param key The key to look up the correct internationalized string.
-     *  @param arg An argument for substitution into the output string.
-     */
-    protected void printVerbose(String key, Object arg) {
-        log.printNoteLines("verbose." + key, arg);
     }
 
     /** Print numbers of errors and warnings.

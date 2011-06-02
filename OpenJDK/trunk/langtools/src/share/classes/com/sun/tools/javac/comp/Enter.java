@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,16 +30,17 @@ import javax.tools.JavaFileObject;
 import javax.tools.JavaFileManager;
 
 import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Scope.*;
+import com.sun.tools.javac.code.Symbol.*;
+import com.sun.tools.javac.code.Type.*;
 import com.sun.tools.javac.jvm.*;
+import com.sun.tools.javac.main.RecognizedOptions.PkgInfo;
 import com.sun.tools.javac.tree.*;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 
-import com.sun.tools.javac.code.Type.*;
-import com.sun.tools.javac.code.Symbol.*;
-import com.sun.tools.javac.main.RecognizedOptions.PkgInfo;
-import com.sun.tools.javac.tree.JCTree.*;
 
 import static com.sun.tools.javac.code.Flags.*;
 import static com.sun.tools.javac.code.Kinds.*;
@@ -94,7 +95,6 @@ public class Enter extends JCTree.Visitor {
 
     Log log;
     Symtab syms;
-    Scope.ScopeCounter scopeCounter;
     Check chk;
     TreeMaker make;
     ClassReader reader;
@@ -122,7 +122,6 @@ public class Enter extends JCTree.Visitor {
         reader = ClassReader.instance(context);
         make = TreeMaker.instance(context);
         syms = Symtab.instance(context);
-        scopeCounter = Scope.ScopeCounter.instance(context);
         chk = Check.instance(context);
         memberEnter = MemberEnter.instance(context);
         types = Types.instance(context);
@@ -191,7 +190,7 @@ public class Enter extends JCTree.Visitor {
      */
     public Env<AttrContext> classEnv(JCClassDecl tree, Env<AttrContext> env) {
         Env<AttrContext> localEnv =
-            env.dup(tree, env.info.dup(new Scope.ClassScope(tree.sym, scopeCounter)));
+            env.dup(tree, env.info.dup(new Scope(tree.sym)));
         localEnv.enclClass = tree;
         localEnv.outer = env;
         localEnv.info.isSelfCall = false;
@@ -207,8 +206,8 @@ public class Enter extends JCTree.Visitor {
         Env<AttrContext> localEnv = new Env<AttrContext>(tree, new AttrContext());
         localEnv.toplevel = tree;
         localEnv.enclClass = predefClassDef;
-        tree.namedImportScope = new Scope.ImportScope(tree.packge);
-        tree.starImportScope = new Scope.ImportScope(tree.packge);
+        tree.namedImportScope = new ImportScope(tree.packge);
+        tree.starImportScope = new StarImportScope(tree.packge);
         localEnv.info.scope = tree.namedImportScope;
         localEnv.info.lint = lint;
         return localEnv;
@@ -327,7 +326,7 @@ public class Enter extends JCTree.Visitor {
             c.flatname = names.fromString(tree.packge + "." + name);
             c.sourcefile = tree.sourcefile;
             c.completer = null;
-            c.members_field = new Scope.ClassScope(c, scopeCounter);
+            c.members_field = new Scope(c);
             tree.packge.package_info = c;
         }
         classEnter(tree.defs, topEnv);
@@ -403,7 +402,7 @@ public class Enter extends JCTree.Visitor {
         c.completer = memberEnter;
         c.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, c, tree);
         c.sourcefile = env.toplevel.sourcefile;
-        c.members_field = new Scope.ClassScope(c, scopeCounter);
+        c.members_field = new Scope(c);
 
         ClassType ct = (ClassType)c.type;
         if (owner.kind != PCK && (c.flags_field & STATIC) == 0) {

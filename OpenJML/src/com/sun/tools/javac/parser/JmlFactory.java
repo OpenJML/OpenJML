@@ -38,7 +38,7 @@ public class JmlFactory extends ParserFactory {
     public static void preRegister(final Context context) {
         context.put(parserFactoryKey, new Context.Factory<ParserFactory>() {
             @Override
-            public ParserFactory make() {
+            public ParserFactory make(Context context) {
                 return new JmlFactory(context);
             }
         });

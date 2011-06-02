@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,6 +27,7 @@ package com.sun.tools.javac.comp;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCTypeCast;
+import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.code.*;
@@ -204,19 +205,20 @@ public class Infer {
      *  Throw a NoInstanceException if this not possible.
      */
     void maximizeInst(UndetVar that, Warner warn) throws NoInstanceException {
+        List<Type> hibounds = Type.filter(that.hibounds, errorFilter);
         if (that.inst == null) {
-            if (that.hibounds.isEmpty())
+            if (hibounds.isEmpty())
                 that.inst = syms.objectType;
-            else if (that.hibounds.tail.isEmpty())
-                that.inst = that.hibounds.head;
+            else if (hibounds.tail.isEmpty())
+                that.inst = hibounds.head;
             else
-                that.inst = types.glb(that.hibounds);
+                that.inst = types.glb(hibounds);
         }
         if (that.inst == null ||
             that.inst.isErroneous())
             throw ambiguousNoInstanceException
                 .setMessage("no.unique.maximal.instance.exists",
-                            that.qtype, that.hibounds);
+                            that.qtype, hibounds);
     }
     //where
         private boolean isSubClass(Type t, final List<Type> ts) {
@@ -240,37 +242,46 @@ public class Infer {
             return true;
         }
 
+    private Filter<Type> errorFilter = new Filter<Type>() {
+        @Override
+        public boolean accepts(Type t) {
+            return !t.isErroneous();
+        }
+    };
+
     /** Instantiate undetermined type variable to the lub of all its lower bounds.
      *  Throw a NoInstanceException if this not possible.
      */
     void minimizeInst(UndetVar that, Warner warn) throws NoInstanceException {
+        List<Type> lobounds = Type.filter(that.lobounds, errorFilter);
         if (that.inst == null) {
-            if (that.lobounds.isEmpty())
+            if (lobounds.isEmpty())
                 that.inst = syms.botType;
-            else if (that.lobounds.tail.isEmpty())
-                that.inst = that.lobounds.head.isPrimitive() ? syms.errType : that.lobounds.head;
+            else if (lobounds.tail.isEmpty())
+                that.inst = lobounds.head.isPrimitive() ? syms.errType : lobounds.head;
             else {
-                that.inst = types.lub(that.lobounds);
+                that.inst = types.lub(lobounds);
             }
             if (that.inst == null || that.inst.tag == ERROR)
                     throw ambiguousNoInstanceException
                         .setMessage("no.unique.minimal.instance.exists",
-                                    that.qtype, that.lobounds);
+                                    that.qtype, lobounds);
             // VGJ: sort of inlined maximizeInst() below.  Adding
             // bounds can cause lobounds that are above hibounds.
-            if (that.hibounds.isEmpty())
+            List<Type> hibounds = Type.filter(that.hibounds, errorFilter);
+            if (hibounds.isEmpty())
                 return;
             Type hb = null;
-            if (that.hibounds.tail.isEmpty())
-                hb = that.hibounds.head;
-            else for (List<Type> bs = that.hibounds;
+            if (hibounds.tail.isEmpty())
+                hb = hibounds.head;
+            else for (List<Type> bs = hibounds;
                       bs.nonEmpty() && hb == null;
                       bs = bs.tail) {
-                if (isSubClass(bs.head, that.hibounds))
+                if (isSubClass(bs.head, hibounds))
                     hb = types.fromUnknownFun.apply(bs.head);
             }
             if (hb == null ||
-                !types.isSubtypeUnchecked(hb, that.hibounds, warn) ||
+                !types.isSubtypeUnchecked(hb, hibounds, warn) ||
                 !types.isSubtypeUnchecked(that.inst, hb, warn))
                 throw ambiguousNoInstanceException;
         }
@@ -305,7 +316,8 @@ public class Infer {
             uv.hibounds = hibounds.toList();
         }
         Type qtype1 = types.subst(that.qtype, that.tvars, undetvars);
-        if (!types.isSubtype(qtype1, to)) {
+        if (!types.isSubtype(qtype1,
+                qtype1.tag == UNDETVAR ? types.boxedTypeOrType(to) : to)) {
             throw unambiguousNoInstanceException
                 .setMessage("infer.no.conforming.instance.exists",
                             that.tvars, that.qtype, to);
@@ -451,10 +463,9 @@ public class Infer {
             // quantify result type with them
             final List<Type> inferredTypes = insttypes.toList();
             final List<Type> all_tvars = tvars; //this is the wrong tvars
-            final MethodType mt2 = new MethodType(mt.argtypes, null, mt.thrown, syms.methodClass);
-            mt2.restype = new ForAll(restvars.toList(), mt.restype) {
+            return new UninferredMethodType(mt, restvars.toList()) {
                 @Override
-                public List<Type> getConstraints(TypeVar tv, ConstraintKind ck) {
+                List<Type> getConstraints(TypeVar tv, ConstraintKind ck) {
                     for (Type t : restundet.toList()) {
                         UndetVar uv = (UndetVar)t;
                         if (uv.qtype == tv) {
@@ -467,55 +478,114 @@ public class Infer {
                     }
                     return List.nil();
                 }
-
                 @Override
-                public Type inst(List<Type> inferred, Types types) throws NoInstanceException {
-                    List<Type> formals = types.subst(mt2.argtypes, tvars, inferred);
-                    if (!rs.argumentsAcceptable(capturedArgs, formals,
-                           allowBoxing, useVarargs, warn)) {
-                      // inferred method is not applicable
-                      throw invalidInstanceException.setMessage("inferred.do.not.conform.to.params", formals, argtypes);
-                    }
+                void check(List<Type> inferred, Types types) throws NoInstanceException {
+                    // check that actuals conform to inferred formals
+                    checkArgumentsAcceptable(env, capturedArgs, getParameterTypes(), allowBoxing, useVarargs, warn);
                     // check that inferred bounds conform to their bounds
                     checkWithinBounds(all_tvars,
                            types.subst(inferredTypes, tvars, inferred), warn);
                     if (useVarargs) {
-                        chk.checkVararg(env.tree.pos(), formals, msym, env);
+                        chk.checkVararg(env.tree.pos(), getParameterTypes(), msym);
                     }
-                    return super.inst(inferred, types);
             }};
-            return mt2;
-        }
-        else if (!rs.argumentsAcceptable(capturedArgs, mt.getParameterTypes(), allowBoxing, useVarargs, warn)) {
-            // inferred method is not applicable
-            throw invalidInstanceException.setMessage("inferred.do.not.conform.to.params", mt.getParameterTypes(), argtypes);
         }
         else {
+            // check that actuals conform to inferred formals
+            checkArgumentsAcceptable(env, capturedArgs, mt.getParameterTypes(), allowBoxing, useVarargs, warn);
             // return instantiated version of method type
             return mt;
         }
     }
     //where
 
-        /** Try to instantiate argument type `that' to given type `to'.
-         *  If this fails, try to insantiate `that' to `to' where
-         *  every occurrence of a type variable in `tvars' is replaced
-         *  by an unknown type.
+        /**
+         * A delegated type representing a partially uninferred method type.
+         * The return type of a partially uninferred method type is a ForAll
+         * type - when the return type is instantiated (see Infer.instantiateExpr)
+         * the underlying method type is also updated.
          */
-        private Type instantiateArg(ForAll that,
-                                    Type to,
-                                    List<Type> tvars,
-                                    Warner warn) throws InferenceException {
-            List<Type> targs;
-            try {
-                return instantiateExpr(that, to, warn);
-            } catch (NoInstanceException ex) {
-                Type to1 = to;
-                for (List<Type> l = tvars; l.nonEmpty(); l = l.tail)
-                    to1 = types.subst(to1, List.of(l.head), List.of(syms.unknownType));
-                return instantiateExpr(that, to1, warn);
+        static abstract class UninferredMethodType extends DelegatedType {
+
+            final List<Type> tvars;
+
+            public UninferredMethodType(MethodType mtype, List<Type> tvars) {
+                super(METHOD, new MethodType(mtype.argtypes, null, mtype.thrown, mtype.tsym));
+                this.tvars = tvars;
+                asMethodType().restype = new UninferredReturnType(tvars, mtype.restype);
+            }
+
+            @Override
+            public MethodType asMethodType() {
+                return qtype.asMethodType();
+            }
+
+            @Override
+            public Type map(Mapping f) {
+                return qtype.map(f);
+            }
+
+            void instantiateReturnType(Type restype, List<Type> inferred, Types types) throws NoInstanceException {
+                //update method type with newly inferred type-arguments
+                qtype = new MethodType(types.subst(getParameterTypes(), tvars, inferred),
+                                       restype,
+                                       types.subst(UninferredMethodType.this.getThrownTypes(), tvars, inferred),
+                                       UninferredMethodType.this.qtype.tsym);
+                check(inferred, types);
+            }
+
+            abstract void check(List<Type> inferred, Types types) throws NoInstanceException;
+
+            abstract List<Type> getConstraints(TypeVar tv, ConstraintKind ck);
+
+            class UninferredReturnType extends ForAll {
+                public UninferredReturnType(List<Type> tvars, Type restype) {
+                    super(tvars, restype);
+                }
+                @Override
+                public Type inst(List<Type> actuals, Types types) {
+                    Type newRestype = super.inst(actuals, types);
+                    instantiateReturnType(newRestype, actuals, types);
+                    return newRestype;
+                }
+                @Override
+                public List<Type> getConstraints(TypeVar tv, ConstraintKind ck) {
+                    return UninferredMethodType.this.getConstraints(tv, ck);
+                }
             }
         }
+
+        private void checkArgumentsAcceptable(Env<AttrContext> env, List<Type> actuals, List<Type> formals,
+                boolean allowBoxing, boolean useVarargs, Warner warn) {
+            try {
+                rs.checkRawArgumentsAcceptable(env, actuals, formals,
+                       allowBoxing, useVarargs, warn);
+            }
+            catch (Resolve.InapplicableMethodException ex) {
+                // inferred method is not applicable
+                throw invalidInstanceException.setMessage(ex.getDiagnostic());
+            }
+        }
+
+    /** Try to instantiate argument type `that' to given type `to'.
+     *  If this fails, try to insantiate `that' to `to' where
+     *  every occurrence of a type variable in `tvars' is replaced
+     *  by an unknown type.
+     */
+    private Type instantiateArg(ForAll that,
+                                Type to,
+                                List<Type> tvars,
+                                Warner warn) throws InferenceException {
+        List<Type> targs;
+        try {
+            return instantiateExpr(that, to, warn);
+        } catch (NoInstanceException ex) {
+            Type to1 = to;
+            for (List<Type> l = tvars; l.nonEmpty(); l = l.tail)
+                to1 = types.subst(to1, List.of(l.head), List.of(syms.unknownType));
+            return instantiateExpr(that, to1, warn);
+        }
+    }
 
     /** check that type parameters are within their bounds.
      */
@@ -526,7 +596,8 @@ public class Infer {
         for (List<Type> tvs = tvars, args = arguments;
              tvs.nonEmpty();
              tvs = tvs.tail, args = args.tail) {
-            if (args.head instanceof UndetVar) continue;
+            if (args.head instanceof UndetVar ||
+                    tvars.head.getUpperBound().isErroneous()) continue;
             List<Type> bounds = types.subst(types.getBounds((TypeVar)tvs.head), tvars, arguments);
             if (!types.isSubtypeUnchecked(args.head, bounds, warn))
                 throw invalidInstanceException
@@ -537,43 +608,39 @@ public class Infer {
 
     /**
      * Compute a synthetic method type corresponding to the requested polymorphic
-     * method signature. If no explicit return type is supplied, a provisional
-     * return type is computed (just Object in case of non-transitional 292)
+     * method signature. The target return type is computed from the immediately
+     * enclosing scope surrounding the polymorphic-signature call.
      */
     Type instantiatePolymorphicSignatureInstance(Env<AttrContext> env, Type site,
                                             Name name,
                                             MethodSymbol spMethod,  // sig. poly. method or null if none
-                                            List<Type> argtypes,
-                                            List<Type> typeargtypes) {
+                                            List<Type> argtypes) {
         final Type restype;
-        if (rs.allowTransitionalJSR292 && typeargtypes.nonEmpty()) {
-            restype = typeargtypes.head;
-        } else {
-            //The return type for a polymorphic signature call is computed from
-            //the enclosing tree E, as follows: if E is a cast, then use the
-            //target type of the cast expression as a return type; if E is an
-            //expression statement, the return type is 'void' - otherwise the
-            //return type is simply 'Object'. A correctness check ensures that
-            //env.next refers to the lexically enclosing environment in which
-            //the polymorphic signature call environment is nested.
 
-            switch (env.next.tree.getTag()) {
-                case JCTree.TYPECAST:
-                    JCTypeCast castTree = (JCTypeCast)env.next.tree;
-                    restype = (castTree.expr == env.tree) ?
-                        castTree.clazz.type :
-                        syms.objectType;
-                    break;
-                case JCTree.EXEC:
-                    JCTree.JCExpressionStatement execTree =
-                            (JCTree.JCExpressionStatement)env.next.tree;
-                    restype = (execTree.expr == env.tree) ?
-                        syms.voidType :
-                        syms.objectType;
-                    break;
-                default:
-                    restype = syms.objectType;
-            }
+        //The return type for a polymorphic signature call is computed from
+        //the enclosing tree E, as follows: if E is a cast, then use the
+        //target type of the cast expression as a return type; if E is an
+        //expression statement, the return type is 'void' - otherwise the
+        //return type is simply 'Object'. A correctness check ensures that
+        //env.next refers to the lexically enclosing environment in which
+        //the polymorphic signature call environment is nested.
+
+        switch (env.next.tree.getTag()) {
+            case JCTree.TYPECAST:
+                JCTypeCast castTree = (JCTypeCast)env.next.tree;
+                restype = (TreeInfo.skipParens(castTree.expr) == env.tree) ?
+                    castTree.clazz.type :
+                    syms.objectType;
+                break;
+            case JCTree.EXEC:
+                JCTree.JCExpressionStatement execTree =
+                        (JCTree.JCExpressionStatement)env.next.tree;
+                restype = (TreeInfo.skipParens(execTree.expr) == env.tree) ?
+                    syms.voidType :
+                    syms.objectType;
+                break;
+            default:
+                restype = syms.objectType;
         }
 
         List<Type> paramtypes = Type.map(argtypes, implicitArgType);
@@ -598,4 +665,4 @@ public class Infer {
                     return t;
                 }
         };
-}
+    }

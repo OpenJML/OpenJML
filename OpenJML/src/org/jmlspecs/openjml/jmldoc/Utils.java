@@ -142,7 +142,7 @@ public class Utils {
 
         writer.tableCaptionEnd();
         
-        if (mw != null) mw.printSummaryTableHeader(classDoc);
+       // if (mw != null) mw.printSummaryTableHeader(classDoc); // DRCok - does not compiler with b144, but what should it be?
 }
     
     /** Returns true if Symbol msym should be in the inherited list for the given

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -69,12 +69,17 @@ public class Check {
     private final boolean skipAnnotations;
     private boolean warnOnSyntheticConflicts;
     private boolean suppressAbortOnBadClassFile;
+    private boolean enableSunApiLintControl;
     private final TreeInfo treeinfo;
 
     // The set of lint options currently in effect. It is initialized
     // from the context, and then is set/reset as needed by Attr as it
     // visits all the various parts of the trees during attribution.
     private Lint lint;
+
+    // The method being analyzed in Attr - it is set/reset as needed by
+    // Attr as it visits new method declarations.
+    private MethodSymbol method;
 
     public static Check instance(Context context) {
         Check instance = context.get(checkKey);
@@ -102,17 +107,18 @@ public class Check {
         allowGenerics = source.allowGenerics();
         allowAnnotations = source.allowAnnotations();
         allowCovariantReturns = source.allowCovariantReturns();
+        allowSimplifiedVarargs = source.allowSimplifiedVarargs();
         complexInference = options.isSet(COMPLEXINFERENCE);
         skipAnnotations = options.isSet("skipAnnotations");
         warnOnSyntheticConflicts = options.isSet("warnOnSyntheticConflicts");
         suppressAbortOnBadClassFile = options.isSet("suppressAbortOnBadClassFile");
+        enableSunApiLintControl = options.isSet("enableSunApiLintControl");
 
         Target target = Target.instance(context);
         syntheticNameChar = target.syntheticNameChar();
 
         boolean verboseDeprecated = lint.isEnabled(LintCategory.DEPRECATION);
         boolean verboseUnchecked = lint.isEnabled(LintCategory.UNCHECKED);
-        boolean verboseVarargs = lint.isEnabled(LintCategory.VARARGS);
         boolean verboseSunApi = lint.isEnabled(LintCategory.SUNAPI);
         boolean enforceMandatoryWarnings = source.enforceMandatoryWarnings();
 
@@ -120,10 +126,10 @@ public class Check {
                 enforceMandatoryWarnings, "deprecated", LintCategory.DEPRECATION);
         uncheckedHandler = new MandatoryWarningHandler(log, verboseUnchecked,
                 enforceMandatoryWarnings, "unchecked", LintCategory.UNCHECKED);
-        unsafeVarargsHandler = new MandatoryWarningHandler(log, verboseVarargs,
-                enforceMandatoryWarnings, "varargs", LintCategory.VARARGS);
         sunApiHandler = new MandatoryWarningHandler(log, verboseSunApi,
                 enforceMandatoryWarnings, "sunapi", null);
+
+        deferredLintHandler = DeferredLintHandler.immediateHandler;
     }
 
     /** Switch: generics enabled?
@@ -137,6 +143,10 @@ public class Check {
     /** Switch: covariant returns enabled?
      */
     boolean allowCovariantReturns;
+
+    /** Switch: simplified varargs enabled?
+     */
+    boolean allowSimplifiedVarargs;
 
     /** Switch: -complexinference option set?
      */
@@ -159,13 +169,13 @@ public class Check {
      */
     private MandatoryWarningHandler uncheckedHandler;
 
-    /** A handler for messages about unchecked or unsafe vararg method decl.
-     */
-    private MandatoryWarningHandler unsafeVarargsHandler;
-
     /** A handler for messages about using proprietary API.
      */
     private MandatoryWarningHandler sunApiHandler;
+
+    /** A handler for deferred lint warnings.
+     */
+    private DeferredLintHandler deferredLintHandler;
 
 /* *************************************************************************
  * Errors and Warnings
@@ -174,6 +184,18 @@ public class Check {
     Lint setLint(Lint newLint) {
         Lint prev = lint;
         lint = newLint;
+        return prev;
+    }
+
+    DeferredLintHandler setDeferredLintHandler(DeferredLintHandler newDeferredLintHandler) {
+        DeferredLintHandler prev = deferredLintHandler;
+        deferredLintHandler = newDeferredLintHandler;
+        return prev;
+    }
+
+    MethodSymbol setMethod(MethodSymbol newMethod) {
+        MethodSymbol prev = method;
+        method = newMethod;
         return prev;
     }
 
@@ -199,9 +221,9 @@ public class Check {
      *  @param pos        Position to be used for error reporting.
      *  @param sym        The deprecated symbol.
      */
-    void warnUnsafeVararg(DiagnosticPosition pos, Type elemType) {
-        if (!lint.isSuppressed(LintCategory.VARARGS))
-            unsafeVarargsHandler.report(pos, "varargs.non.reifiable.type", elemType);
+    void warnUnsafeVararg(DiagnosticPosition pos, String key, Object... args) {
+        if (lint.isEnabled(LintCategory.VARARGS) && allowSimplifiedVarargs)
+            log.warning(LintCategory.VARARGS, pos, key, args);
     }
 
     /** Warn about using proprietary API.
@@ -224,7 +246,6 @@ public class Check {
     public void reportDeferredDiagnostics() {
         deprecationHandler.reportDeferredDiagnostic();
         uncheckedHandler.reportDeferredDiagnostic();
-        unsafeVarargsHandler.reportDeferredDiagnostic();
         sunApiHandler.reportDeferredDiagnostic();
     }
 
@@ -494,43 +515,18 @@ public class Check {
      *  @param a             The type that should be bounded by bs.
      *  @param bs            The bound.
      */
-    private void checkExtends(DiagnosticPosition pos, Type a, TypeVar bs) {
+    private boolean checkExtends(Type a, TypeVar bs) {
          if (a.isUnbound()) {
-             return;
+             return true;
          } else if (a.tag != WILDCARD) {
              a = types.upperBound(a);
-             for (List<Type> l = types.getBounds(bs); l.nonEmpty(); l = l.tail) {
-                 if (!types.isSubtype(a, l.head)) {
-                     log.error(pos, "not.within.bounds", a);
-                     return;
-                 }
-             }
+             return types.isSubtype(a, bs.bound);
          } else if (a.isExtendsBound()) {
-             if (!types.isCastable(bs.getUpperBound(), types.upperBound(a), Warner.noWarnings))
-                 log.error(pos, "not.within.bounds", a);
+             return types.isCastable(bs.getUpperBound(), types.upperBound(a), Warner.noWarnings);
          } else if (a.isSuperBound()) {
-             if (types.notSoftSubtype(types.lowerBound(a), bs.getUpperBound()))
-                 log.error(pos, "not.within.bounds", a);
+             return !types.notSoftSubtype(types.lowerBound(a), bs.getUpperBound());
          }
-     }
-
-    /** Check that a type is within some bounds.
-     *
-     *  Used in TypeApply to verify that, e.g., X in V<X> is a valid
-     *  type argument.
-     *  @param pos           Position to be used for error reporting.
-     *  @param a             The type that should be bounded by bs.
-     *  @param bs            The bound.
-     */
-    private void checkCapture(JCTypeApply tree) {
-        List<JCExpression> args = tree.getTypeArguments();
-        for (Type arg : types.capture(tree.type).getTypeArguments()) {
-            if (arg.tag == TYPEVAR && arg.getUpperBound().isErroneous()) {
-                log.error(args.head.pos, "not.within.bounds", args.head.type);
-                break;
-            }
-            args = args.tail;
-        }
+         return true;
      }
 
     /** Check that type is different from 'void'.
@@ -670,71 +666,188 @@ public class Check {
             return true;
     }
 
-    /** Check that the type inferred using the diamond operator does not contain
-     *  non-denotable types such as captured types or intersection types.
-     *  @param t the type inferred using the diamond operator
+    /** Check that usage of diamond operator is correct (i.e. diamond should not
+     * be used with non-generic classes or in anonymous class creation expressions)
      */
-    List<Type> checkDiamond(ClassType t) {
-        DiamondTypeChecker dtc = new DiamondTypeChecker();
-        ListBuffer<Type> buf = ListBuffer.lb();
-        for (Type arg : t.getTypeArguments()) {
-            if (!dtc.visit(arg, null)) {
-                buf.append(arg);
-            }
-        }
-        return buf.toList();
-    }
-
-    static class DiamondTypeChecker extends Types.SimpleVisitor<Boolean, Void> {
-        public Boolean visitType(Type t, Void s) {
-            return true;
-        }
-        @Override
-        public Boolean visitClassType(ClassType t, Void s) {
-            if (t.isCompound()) {
-                return false;
-            }
-            for (Type targ : t.getTypeArguments()) {
-                if (!visit(targ, s)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        @Override
-        public Boolean visitCapturedType(CapturedType t, Void s) {
-            return false;
+    Type checkDiamond(JCNewClass tree, Type t) {
+        if (!TreeInfo.isDiamond(tree) ||
+                t.isErroneous()) {
+            return checkClassType(tree.clazz.pos(), t, true);
+        } else if (tree.def != null) {
+            log.error(tree.clazz.pos(),
+                    "cant.apply.diamond.1",
+                    t, diags.fragment("diamond.and.anon.class", t));
+            return types.createErrorType(t);
+        } else if (t.tsym.type.getTypeArguments().isEmpty()) {
+            log.error(tree.clazz.pos(),
+                "cant.apply.diamond.1",
+                t, diags.fragment("diamond.non.generic", t));
+            return types.createErrorType(t);
+        } else if (tree.typeargs != null &&
+                tree.typeargs.nonEmpty()) {
+            log.error(tree.clazz.pos(),
+                "cant.apply.diamond.1",
+                t, diags.fragment("diamond.and.explicit.params", t));
+            return types.createErrorType(t);
+        } else {
+            return t;
         }
     }
 
-    void checkVarargMethodDecl(JCMethodDecl tree) {
+    void checkVarargsMethodDecl(Env<AttrContext> env, JCMethodDecl tree) {
         MethodSymbol m = tree.sym;
-        //check the element type of the vararg
+        if (!allowSimplifiedVarargs) return;
+        boolean hasTrustMeAnno = m.attribute(syms.trustMeType.tsym) != null;
+        Type varargElemType = null;
         if (m.isVarArgs()) {
-            Type varargElemType = types.elemtype(tree.params.last().type);
-            if (!types.isReifiable(varargElemType)) {
-                warnUnsafeVararg(tree.params.head.pos(), varargElemType);
+            varargElemType = types.elemtype(tree.params.last().type);
+        }
+        if (hasTrustMeAnno && !isTrustMeAllowedOnMethod(m)) {
+            if (varargElemType != null) {
+                log.error(tree,
+                        "varargs.invalid.trustme.anno",
+                        syms.trustMeType.tsym,
+                        diags.fragment("varargs.trustme.on.virtual.varargs", m));
+            } else {
+                log.error(tree,
+                            "varargs.invalid.trustme.anno",
+                            syms.trustMeType.tsym,
+                            diags.fragment("varargs.trustme.on.non.varargs.meth", m));
             }
+        } else if (hasTrustMeAnno && varargElemType != null &&
+                            types.isReifiable(varargElemType)) {
+            warnUnsafeVararg(tree,
+                            "varargs.redundant.trustme.anno",
+                            syms.trustMeType.tsym,
+                            diags.fragment("varargs.trustme.on.reifiable.varargs", varargElemType));
+        }
+        else if (!hasTrustMeAnno && varargElemType != null &&
+                !types.isReifiable(varargElemType)) {
+            warnUnchecked(tree.params.head.pos(), "unchecked.varargs.non.reifiable.type", varargElemType);
         }
     }
+    //where
+        private boolean isTrustMeAllowedOnMethod(Symbol s) {
+            return (s.flags() & VARARGS) != 0 &&
+                (s.isConstructor() ||
+                    (s.flags() & (STATIC | FINAL)) != 0);
+        }
 
     /**
      * Check that vararg method call is sound
      * @param pos Position to be used for error reporting.
      * @param argtypes Actual arguments supplied to vararg method.
      */
-    void checkVararg(DiagnosticPosition pos, List<Type> argtypes, Symbol msym, Env<AttrContext> env) {
-        Env<AttrContext> calleeLintEnv = env;
-        while (calleeLintEnv.info.lint == null)
-            calleeLintEnv = calleeLintEnv.next;
-        Lint calleeLint = calleeLintEnv.info.lint.augment(msym.attributes_field, msym.flags());
+    void checkVararg(DiagnosticPosition pos, List<Type> argtypes, Symbol msym) {
         Type argtype = argtypes.last();
-        if (!types.isReifiable(argtype) && !calleeLint.isSuppressed(Lint.LintCategory.VARARGS)) {
+        if (!types.isReifiable(argtype) &&
+                (!allowSimplifiedVarargs ||
+                msym.attribute(syms.trustMeType.tsym) == null ||
+                !isTrustMeAllowedOnMethod(msym))) {
             warnUnchecked(pos,
                               "unchecked.generic.array.creation",
                               argtype);
         }
     }
+
+    /**
+     * Check that type 't' is a valid instantiation of a generic class
+     * (see JLS 4.5)
+     *
+     * @param t class type to be checked
+     * @return true if 't' is well-formed
+     */
+    public boolean checkValidGenericType(Type t) {
+        return firstIncompatibleTypeArg(t) == null;
+    }
+    //WHERE
+        private Type firstIncompatibleTypeArg(Type type) {
+            List<Type> formals = type.tsym.type.allparams();
+            List<Type> actuals = type.allparams();
+            List<Type> args = type.getTypeArguments();
+            List<Type> forms = type.tsym.type.getTypeArguments();
+            ListBuffer<Type> tvars_buf = new ListBuffer<Type>();
+
+            // For matching pairs of actual argument types `a' and
+            // formal type parameters with declared bound `b' ...
+            while (args.nonEmpty() && forms.nonEmpty()) {
+                // exact type arguments needs to know their
+                // bounds (for upper and lower bound
+                // calculations).  So we create new TypeVars with
+                // bounds substed with actuals.
+                tvars_buf.append(types.substBound(((TypeVar)forms.head),
+                                                  formals,
+                                                  actuals));
+                args = args.tail;
+                forms = forms.tail;
+            }
+
+            args = type.getTypeArguments();
+            List<Type> tvars_cap = types.substBounds(formals,
+                                      formals,
+                                      types.capture(type).allparams());
+            while (args.nonEmpty() && tvars_cap.nonEmpty()) {
+                // Let the actual arguments know their bound
+                args.head.withTypeVar((TypeVar)tvars_cap.head);
+                args = args.tail;
+                tvars_cap = tvars_cap.tail;
+            }
+
+            args = type.getTypeArguments();
+            List<Type> tvars = tvars_buf.toList();
+
+            while (args.nonEmpty() && tvars.nonEmpty()) {
+                Type actual = types.subst(args.head,
+                    type.tsym.type.getTypeArguments(),
+                    tvars_buf.toList());
+                if (!isTypeArgErroneous(actual) &&
+                        !tvars.head.getUpperBound().isErroneous() &&
+                        !checkExtends(actual, (TypeVar)tvars.head)) {
+                    return args.head;
+                }
+                args = args.tail;
+                tvars = tvars.tail;
+            }
+
+            args = type.getTypeArguments();
+            tvars = tvars_buf.toList();
+
+            for (Type arg : types.capture(type).getTypeArguments()) {
+                if (arg.tag == TYPEVAR &&
+                        arg.getUpperBound().isErroneous() &&
+                        !tvars.head.getUpperBound().isErroneous() &&
+                        !isTypeArgErroneous(args.head)) {
+                    return args.head;
+                }
+                tvars = tvars.tail;
+                args = args.tail;
+            }
+
+            return null;
+        }
+        //where
+        boolean isTypeArgErroneous(Type t) {
+            return isTypeArgErroneous.visit(t);
+        }
+
+        Types.UnaryVisitor<Boolean> isTypeArgErroneous = new Types.UnaryVisitor<Boolean>() {
+            public Boolean visitType(Type t, Void s) {
+                return t.isErroneous();
+            }
+            @Override
+            public Boolean visitTypeVar(TypeVar t, Void s) {
+                return visit(t.getUpperBound());
+            }
+            @Override
+            public Boolean visitCapturedType(CapturedType t, Void s) {
+                return visit(t.getUpperBound()) ||
+                        visit(t.getLowerBound());
+            }
+            @Override
+            public Boolean visitWildcardType(WildcardType t, Void s) {
+                return visit(t.type);
+            }
+        };
 
     /** Check that given modifiers are legal for given symbol and
      *  return modifiers together with any implicit modififiers for that symbol.
@@ -948,11 +1061,20 @@ public class Check {
         @Override
         public void visitTypeApply(JCTypeApply tree) {
             if (tree.type.tag == CLASS) {
-                List<Type> formals = tree.type.tsym.type.allparams();
-                List<Type> actuals = tree.type.allparams();
                 List<JCExpression> args = tree.arguments;
                 List<Type> forms = tree.type.tsym.type.getTypeArguments();
-                ListBuffer<Type> tvars_buf = new ListBuffer<Type>();
+
+                Type incompatibleArg = firstIncompatibleTypeArg(tree.type);
+                if (incompatibleArg != null) {
+                    for (JCTree arg : tree.arguments) {
+                        if (arg.type == incompatibleArg) {
+                            log.error(arg, "not.within.bounds", incompatibleArg, forms.head);
+                        }
+                        forms = forms.tail;
+                     }
+                 }
+
+                forms = tree.type.tsym.type.getTypeArguments();
 
                 boolean is_java_lang_Class = tree.type.tsym.flatName() == names.java_lang_Class;
 
@@ -962,45 +1084,9 @@ public class Check {
                     validateTree(args.head,
                             !(isOuter && is_java_lang_Class),
                             false);
-
-                    // exact type arguments needs to know their
-                    // bounds (for upper and lower bound
-                    // calculations).  So we create new TypeVars with
-                    // bounds substed with actuals.
-                    tvars_buf.append(types.substBound(((TypeVar)forms.head),
-                                                      formals,
-                                                      actuals));
-
                     args = args.tail;
                     forms = forms.tail;
                 }
-
-                args = tree.arguments;
-                List<Type> tvars_cap = types.substBounds(formals,
-                                          formals,
-                                          types.capture(tree.type).allparams());
-                while (args.nonEmpty() && tvars_cap.nonEmpty()) {
-                    // Let the actual arguments know their bound
-                    args.head.type.withTypeVar((TypeVar)tvars_cap.head);
-                    args = args.tail;
-                    tvars_cap = tvars_cap.tail;
-                }
-
-                args = tree.arguments;
-                List<Type> tvars = tvars_buf.toList();
-
-                while (args.nonEmpty() && tvars.nonEmpty()) {
-                    Type actual = types.subst(args.head.type,
-                        tree.type.tsym.type.getTypeArguments(),
-                        tvars_buf.toList());
-                    checkExtends(args.head.pos(),
-                                 actual,
-                                 (TypeVar)tvars.head);
-                    args = args.tail;
-                    tvars = tvars.tail;
-                }
-
-                checkCapture(tree);
 
                 // Check that this type is either fully parameterized, or
                 // not parameterized at all.
@@ -1034,6 +1120,7 @@ public class Check {
                     log.error(tree.pos(), "improperly.formed.type.param.missing");
             }
         }
+
         public void visitSelectInternal(JCFieldAccess tree) {
             if (tree.type.tsym.isStatic() &&
                 tree.selected.type.isParameterized()) {
@@ -1047,11 +1134,6 @@ public class Check {
                 // otherwise validate the rest of the expression
                 tree.selected.accept(this);
             }
-        }
-
-        @Override
-        public void visitAnnotatedType(JCAnnotatedType tree) {
-            tree.underlyingType.accept(this);
         }
 
         /** Default visitor method: do nothing.
@@ -1079,12 +1161,12 @@ public class Check {
         }
 
         void checkRaw(JCTree tree, Env<AttrContext> env) {
-            if (lint.isEnabled(Lint.LintCategory.RAW) &&
+            if (lint.isEnabled(LintCategory.RAW) &&
                 tree.type.tag == CLASS &&
                 !TreeInfo.isDiamond(tree) &&
                 !env.enclClass.name.isEmpty() &&  //anonymous or intersection
                 tree.type.isRaw()) {
-                log.warning(Lint.LintCategory.RAW,
+                log.warning(LintCategory.RAW,
                         tree.pos(), "raw.class.use", tree.type, tree.type.tsym.type);
             }
         }
@@ -1351,7 +1433,7 @@ public class Check {
         Type mtres = mt.getReturnType();
         Type otres = types.subst(ot.getReturnType(), otvars, mtvars);
 
-        overrideWarner.warned = false;
+        overrideWarner.clear();
         boolean resultTypesOK =
             types.returnTypeSubstitutable(mt, ot, otres, overrideWarner);
         if (!resultTypesOK) {
@@ -1366,7 +1448,7 @@ public class Check {
                           mtres, otres);
                 return;
             }
-        } else if (overrideWarner.warned) {
+        } else if (overrideWarner.hasNonSilentLint(LintCategory.UNCHECKED)) {
             warnUnchecked(TreeInfo.diagnosticPositionFor(m, tree),
                     "override.unchecked.ret",
                     uncheckedOverrides(m, other),
@@ -1395,7 +1477,7 @@ public class Check {
 
         // Optional warning if varargs don't agree
         if ((((m.flags() ^ other.flags()) & Flags.VARARGS) != 0)
-            && lint.isEnabled(Lint.LintCategory.OVERRIDES)) {
+            && lint.isEnabled(LintCategory.OVERRIDES)) {
             log.warning(TreeInfo.diagnosticPositionFor(m, tree),
                         ((m.flags() & Flags.VARARGS) != 0)
                         ? "override.varargs.missing"
@@ -1410,11 +1492,8 @@ public class Check {
         }
 
         // Warn if a deprecated method overridden by a non-deprecated one.
-        if ((other.flags() & DEPRECATED) != 0
-            && (m.flags() & DEPRECATED) == 0
-            && m.outermostClass() != other.outermostClass()
-            && !isDeprecatedOverrideIgnorable(other, origin)) {
-            warnDeprecated(TreeInfo.diagnosticPositionFor(m, tree), other);
+        if (!isDeprecatedOverrideIgnorable(other, origin)) {
+            checkDeprecated(TreeInfo.diagnosticPositionFor(m, tree), m, other);
         }
     }
     // where
@@ -1514,14 +1593,7 @@ public class Check {
                                             Type t1,
                                             Type t2,
                                             Type site) {
-        Symbol sym = firstIncompatibility(t1, t2, site);
-        if (sym != null) {
-            log.error(pos, "types.incompatible.diff.ret",
-                      t1, t2, sym.name +
-                      "(" + types.memberType(t2, sym).getParameterTypes() + ")");
-            return false;
-        }
-        return true;
+        return firstIncompatibility(pos, t1, t2, site) == null;
     }
 
     /** Return the first method which is defined with same args
@@ -1532,7 +1604,7 @@ public class Check {
      *  @param site   The most derived type.
      *  @returns symbol from t2 that conflicts with one in t1.
      */
-    private Symbol firstIncompatibility(Type t1, Type t2, Type site) {
+    private Symbol firstIncompatibility(DiagnosticPosition pos, Type t1, Type t2, Type site) {
         Map<TypeSymbol,Type> interfaces1 = new HashMap<TypeSymbol,Type>();
         closure(t1, interfaces1);
         Map<TypeSymbol,Type> interfaces2;
@@ -1543,7 +1615,7 @@ public class Check {
 
         for (Type t3 : interfaces1.values()) {
             for (Type t4 : interfaces2.values()) {
-                Symbol s = firstDirectIncompatibility(t3, t4, site);
+                Symbol s = firstDirectIncompatibility(pos, t3, t4, site);
                 if (s != null) return s;
             }
         }
@@ -1572,7 +1644,7 @@ public class Check {
     }
 
     /** Return the first method in t2 that conflicts with a method from t1. */
-    private Symbol firstDirectIncompatibility(Type t1, Type t2, Type site) {
+    private Symbol firstDirectIncompatibility(DiagnosticPosition pos, Type t1, Type t2, Type site) {
         for (Scope.Entry e1 = t1.tsym.members().elems; e1 != null; e1 = e1.sibling) {
             Symbol s1 = e1.sym;
             Type st1 = null;
@@ -1596,7 +1668,19 @@ public class Check {
                         (types.covariantReturnType(rt1, rt2, Warner.noWarnings) ||
                          types.covariantReturnType(rt2, rt1, Warner.noWarnings)) ||
                          checkCommonOverriderIn(s1,s2,site);
-                    if (!compat) return s2;
+                    if (!compat) {
+                        log.error(pos, "types.incompatible.diff.ret",
+                            t1, t2, s2.name +
+                            "(" + types.memberType(t2, s2).getParameterTypes() + ")");
+                        return s2;
+                    }
+                } else if (checkNameClash((ClassSymbol)site.tsym, s1, s2) &&
+                        !checkCommonOverriderIn(s1, s2, site)) {
+                    log.error(pos,
+                            "name.clash.same.erasure.no.override",
+                            s1, s1.location(),
+                            s2, s2.location());
+                    return s2;
                 }
             }
         }
@@ -1648,31 +1732,37 @@ public class Check {
                 log.error(tree.pos(), "enum.no.finalize");
                 return;
             }
-        for (Type t = types.supertype(origin.type); t.tag == CLASS;
+        for (Type t = origin.type; t.tag == CLASS;
              t = types.supertype(t)) {
-            TypeSymbol c = t.tsym;
-            Scope.Entry e = c.members().lookup(m.name);
-            while (e.scope != null) {
-                if (m.overrides(e.sym, origin, types, false))
-                    checkOverride(tree, m, (MethodSymbol)e.sym, origin);
-                else if (e.sym.kind == MTH &&
-                        e.sym.isInheritedIn(origin, types) &&
-                        (e.sym.flags() & SYNTHETIC) == 0 &&
-                        !m.isConstructor()) {
-                    Type er1 = m.erasure(types);
-                    Type er2 = e.sym.erasure(types);
-                    if (types.isSameTypes(er1.getParameterTypes(),
-                            er2.getParameterTypes())) {
-                            log.error(TreeInfo.diagnosticPositionFor(m, tree),
-                                    "name.clash.same.erasure.no.override",
-                                    m, m.location(),
-                                    e.sym, e.sym.location());
-                    }
-                }
-                e = e.next();
+            if (t != origin.type) {
+                checkOverride(tree, t, origin, m);
+            }
+            for (Type t2 : types.interfaces(t)) {
+                checkOverride(tree, t2, origin, m);
             }
         }
     }
+
+    void checkOverride(JCTree tree, Type site, ClassSymbol origin, MethodSymbol m) {
+        TypeSymbol c = site.tsym;
+        Scope.Entry e = c.members().lookup(m.name);
+        while (e.scope != null) {
+            if (m.overrides(e.sym, origin, types, false)) {
+                if ((e.sym.flags() & ABSTRACT) == 0) {
+                    checkOverride(tree, m, (MethodSymbol)e.sym, origin);
+                }
+            }
+            e = e.next();
+        }
+    }
+
+    private boolean checkNameClash(ClassSymbol origin, Symbol s1, Symbol s2) {
+        ClashFilter cf = new ClashFilter(origin.type);
+        return (cf.accepts(s1) &&
+                cf.accepts(s2) &&
+                types.hasSameArgs(s1.erasure(types), s2.erasure(types)));
+    }
+
 
     /** Check that all abstract members of given class have definitions.
      *  @param pos          Position to be used for error reporting.
@@ -2002,6 +2092,89 @@ public class Check {
         }
     }
 
+    /** Check that all non-override equivalent methods accessible from 'site'
+     *  are mutually compatible (JLS 8.4.8/9.4.1).
+     *
+     *  @param pos  Position to be used for error reporting.
+     *  @param site The class whose methods are checked.
+     *  @param sym  The method symbol to be checked.
+     */
+    void checkOverrideClashes(DiagnosticPosition pos, Type site, MethodSymbol sym) {
+         ClashFilter cf = new ClashFilter(site);
+         //for each method m1 that is a member of 'site'...
+         for (Symbol s1 : types.membersClosure(site).getElementsByName(sym.name, cf)) {
+            //...find another method m2 that is overridden (directly or indirectly)
+            //by method 'sym' in 'site'
+            for (Symbol s2 : types.membersClosure(site).getElementsByName(sym.name, cf)) {
+                if (s1 == s2 || !sym.overrides(s2, site.tsym, types, false)) continue;
+                //if (i) the signature of 'sym' is not a subsignature of m1 (seen as
+                //a member of 'site') and (ii) m1 has the same erasure as m2, issue an error
+                if (!types.isSubSignature(sym.type, types.memberType(site, s1), false) &&
+                        types.hasSameArgs(s1.erasure(types), s2.erasure(types))) {
+                    sym.flags_field |= CLASH;
+                    String key = s2 == sym ?
+                            "name.clash.same.erasure.no.override" :
+                            "name.clash.same.erasure.no.override.1";
+                    log.error(pos,
+                            key,
+                            sym, sym.location(),
+                            s1, s1.location(),
+                            s2, s2.location());
+                    return;
+                }
+            }
+        }
+    }
+
+
+
+    /** Check that all static methods accessible from 'site' are
+     *  mutually compatible (JLS 8.4.8).
+     *
+     *  @param pos  Position to be used for error reporting.
+     *  @param site The class whose methods are checked.
+     *  @param sym  The method symbol to be checked.
+     */
+    void checkHideClashes(DiagnosticPosition pos, Type site, MethodSymbol sym) {
+        ClashFilter cf = new ClashFilter(site);
+        //for each method m1 that is a member of 'site'...
+        for (Symbol s : types.membersClosure(site).getElementsByName(sym.name, cf)) {
+            //if (i) the signature of 'sym' is not a subsignature of m1 (seen as
+            //a member of 'site') and (ii) 'sym' has the same erasure as m1, issue an error
+            if (!types.isSubSignature(sym.type, types.memberType(site, s), false) &&
+                    types.hasSameArgs(s.erasure(types), sym.erasure(types))) {
+                log.error(pos,
+                        "name.clash.same.erasure.no.hide",
+                        sym, sym.location(),
+                        s, s.location());
+                return;
+             }
+         }
+     }
+
+     //where
+     private class ClashFilter implements Filter<Symbol> {
+
+         Type site;
+
+         ClashFilter(Type site) {
+             this.site = site;
+         }
+
+         boolean shouldSkip(Symbol s) {
+             return (s.flags() & CLASH) != 0 &&
+                s.owner == site.tsym;
+         }
+
+         public boolean accepts(Symbol s) {
+             return s.kind == MTH &&
+                     (s.flags() & SYNTHETIC) == 0 &&
+                     !shouldSkip(s) &&
+                     s.isInheritedIn(site.tsym, types) &&
+                     !s.isConstructor();
+         }
+     }
+
     /** Report a conflict between a user symbol and a synthetic symbol.
      */
     private void syntheticError(DiagnosticPosition pos, Symbol sym) {
@@ -2108,7 +2281,7 @@ public class Check {
      * that of any public or protected method declared in class Object
      * or in the interface annotation.Annotation."
      *
-     * @jls3 9.6 Annotation Types
+     * @jls 9.6 Annotation Types
      */
     void validateAnnotationMethod(DiagnosticPosition pos, MethodSymbol m) {
         for (Type sup = syms.annotationType; sup.tag == CLASS; sup = types.supertype(sup)) {
@@ -2130,14 +2303,6 @@ public class Check {
             validateAnnotation(a, s);
     }
 
-    /** Check the type annotations
-     */
-    public void validateTypeAnnotations(List<JCTypeAnnotation> annotations, boolean isTypeParameter) {
-        if (skipAnnotations) return;
-        for (JCTypeAnnotation a : annotations)
-            validateTypeAnnotation(a, isTypeParameter);
-    }
-
     /** Check an annotation of a symbol.
      */
     public void validateAnnotation(JCAnnotation a, Symbol s) {
@@ -2150,15 +2315,6 @@ public class Check {
             if (!isOverrider(s))
                 log.error(a.pos(), "method.does.not.override.superclass");
         }
-    }
-
-    public void validateTypeAnnotation(JCTypeAnnotation a, boolean isTypeParameter) {
-        if (a.type == null)
-            throw new AssertionError("annotation tree hasn't been attributed yet: " + a);
-        validateAnnotationTree(a);
-
-        if (!isTypeAnnotation(a, isTypeParameter))
-            log.error(a.pos(), "annotation.type.not.applicable");
     }
 
     /** Is s a method symbol that overrides a method in a superclass? */
@@ -2175,25 +2331,6 @@ public class Check {
                 if (!e.sym.isStatic() && m.overrides(e.sym, owner, types, true))
                     return true;
             }
-        }
-        return false;
-    }
-
-    /** Is the annotation applicable to type annotations */
-    boolean isTypeAnnotation(JCTypeAnnotation a, boolean isTypeParameter) {
-        Attribute.Compound atTarget =
-            a.annotationType.type.tsym.attribute(syms.annotationTargetType.tsym);
-        if (atTarget == null) return true;
-        Attribute atValue = atTarget.member(names.value);
-        if (!(atValue instanceof Attribute.Array)) return true; // error recovery
-        Attribute.Array arr = (Attribute.Array) atValue;
-        for (Attribute app : arr.values) {
-            if (!(app instanceof Attribute.Enum)) return true; // recovery
-            Attribute.Enum e = (Attribute.Enum) app;
-            if (!isTypeParameter && e.value.name == names.TYPE_USE)
-                return true;
-            else if (isTypeParameter && e.value.name == names.TYPE_PARAMETER)
-                return true;
         }
         return false;
     }
@@ -2323,12 +2460,38 @@ public class Check {
 
     void checkDeprecatedAnnotation(DiagnosticPosition pos, Symbol s) {
         if (allowAnnotations &&
-            lint.isEnabled(Lint.LintCategory.DEP_ANN) &&
+            lint.isEnabled(LintCategory.DEP_ANN) &&
             (s.flags() & DEPRECATED) != 0 &&
             !syms.deprecatedType.isErroneous() &&
             s.attribute(syms.deprecatedType.tsym) == null) {
-            log.warning(Lint.LintCategory.DEP_ANN,
+            log.warning(LintCategory.DEP_ANN,
                     pos, "missing.deprecated.annotation");
+        }
+    }
+
+    void checkDeprecated(final DiagnosticPosition pos, final Symbol other, final Symbol s) {
+        if ((s.flags() & DEPRECATED) != 0 &&
+                (other.flags() & DEPRECATED) == 0 &&
+                s.outermostClass() != other.outermostClass()) {
+            deferredLintHandler.report(new DeferredLintHandler.LintLogger() {
+                @Override
+                public void report() {
+                    warnDeprecated(pos, s);
+                }
+            });
+        };
+    }
+
+    void checkSunAPI(final DiagnosticPosition pos, final Symbol s) {
+        if ((s.flags() & PROPRIETARY) != 0) {
+            deferredLintHandler.report(new DeferredLintHandler.LintLogger() {
+                public void report() {
+                    if (enableSunApiLintControl)
+                      warnSunApi(pos, "sun.proprietary", s);
+                    else
+                      log.strictWarning(pos, "sun.proprietary", s);
+                }
+            });
         }
     }
 
@@ -2340,7 +2503,7 @@ public class Check {
      */
     void checkNonCyclicElements(JCClassDecl tree) {
         if ((tree.sym.flags_field & ANNOTATION) == 0) return;
-        assert (tree.sym.flags_field & LOCKED) == 0;
+        Assert.check((tree.sym.flags_field & LOCKED) == 0);
         try {
             tree.sym.flags_field |= LOCKED;
             for (JCTree def : tree.defs) {
@@ -2457,9 +2620,9 @@ public class Check {
                        Type right) {
         if (operator.opcode == ByteCodes.error) {
             log.error(pos,
-                      "operator.cant.be.applied",
+                      "operator.cant.be.applied.1",
                       treeinfo.operatorName(tag),
-                      List.of(left, right));
+                      left, right);
         }
         return operator.opcode;
     }
@@ -2473,13 +2636,13 @@ public class Check {
      */
     void checkDivZero(DiagnosticPosition pos, Symbol operator, Type operand) {
         if (operand.constValue() != null
-            && lint.isEnabled(Lint.LintCategory.DIVZERO)
+            && lint.isEnabled(LintCategory.DIVZERO)
             && operand.tag <= LONG
             && ((Number) (operand.constValue())).longValue() == 0) {
             int opc = ((OperatorSymbol)operator).opcode;
             if (opc == ByteCodes.idiv || opc == ByteCodes.imod
                 || opc == ByteCodes.ldiv || opc == ByteCodes.lmod) {
-                log.warning(Lint.LintCategory.DIVZERO, pos, "div.zero");
+                log.warning(LintCategory.DIVZERO, pos, "div.zero");
             }
         }
     }
@@ -2488,8 +2651,8 @@ public class Check {
      * Check for empty statements after if
      */
     void checkEmptyIf(JCIf tree) {
-        if (tree.thenpart.getTag() == JCTree.SKIP && tree.elsepart == null && lint.isEnabled(Lint.LintCategory.EMPTY))
-            log.warning(Lint.LintCategory.EMPTY, tree.thenpart.pos(), "empty.if");
+        if (tree.thenpart.getTag() == JCTree.SKIP && tree.elsepart == null && lint.isEnabled(LintCategory.EMPTY))
+            log.warning(LintCategory.EMPTY, tree.thenpart.pos(), "empty.if");
     }
 
     /** Check that symbol is unique in given scope.
@@ -2503,21 +2666,26 @@ public class Check {
         if (sym.owner.name == names.any) return false;
         for (Scope.Entry e = s.lookup(sym.name); e.scope == s; e = e.next()) {
             if (sym != e.sym &&
-                sym.kind == e.sym.kind &&
-                sym.name != names.error &&
-                (sym.kind != MTH || types.hasSameArgs(types.erasure(sym.type), types.erasure(e.sym.type)))) {
-                if ((sym.flags() & VARARGS) != (e.sym.flags() & VARARGS))
+                    (e.sym.flags() & CLASH) == 0 &&
+                    sym.kind == e.sym.kind &&
+                    sym.name != names.error &&
+                    (sym.kind != MTH || types.hasSameArgs(types.erasure(sym.type), types.erasure(e.sym.type)))) {
+                if ((sym.flags() & VARARGS) != (e.sym.flags() & VARARGS)) {
                     varargsDuplicateError(pos, sym, e.sym);
-                else if (sym.kind == MTH && !types.overrideEquivalent(sym.type, e.sym.type))
+                    return true;
+                } else if (sym.kind == MTH && !types.hasSameArgs(sym.type, e.sym.type, false)) {
                     duplicateErasureError(pos, sym, e.sym);
-                else
+                    sym.flags_field |= CLASH;
+                    return true;
+                } else {
                     duplicateError(pos, e.sym);
-                return false;
+                    return false;
+                }
             }
         }
         return true;
     }
-    //where
+
     /** Report duplicate declaration error.
      */
     void duplicateErasureError(DiagnosticPosition pos, Symbol sym1, Symbol sym2) {
@@ -2597,23 +2765,36 @@ public class Check {
         }
 
     private class ConversionWarner extends Warner {
-        final String key;
+        final String uncheckedKey;
         final Type found;
         final Type expected;
-        public ConversionWarner(DiagnosticPosition pos, String key, Type found, Type expected) {
+        public ConversionWarner(DiagnosticPosition pos, String uncheckedKey, Type found, Type expected) {
             super(pos);
-            this.key = key;
+            this.uncheckedKey = uncheckedKey;
             this.found = found;
             this.expected = expected;
         }
 
         @Override
-        public void warnUnchecked() {
+        public void warn(LintCategory lint) {
             boolean warned = this.warned;
-            super.warnUnchecked();
+            super.warn(lint);
             if (warned) return; // suppress redundant diagnostics
-            Object problem = diags.fragment(key);
-            Check.this.warnUnchecked(pos(), "prob.found.req", problem, found, expected);
+            switch (lint) {
+                case UNCHECKED:
+                    Check.this.warnUnchecked(pos(), "prob.found.req", diags.fragment(uncheckedKey), found, expected);
+                    break;
+                case VARARGS:
+                    if (method != null &&
+                            method.attribute(syms.trustMeType.tsym) != null &&
+                            isTrustMeAllowedOnMethod(method) &&
+                            !types.isReifiable(method.type.getParameterTypes().last())) {
+                        Check.this.warnUnsafeVararg(pos(), "varargs.unsafe.use.varargs.param", method.params.last());
+                    }
+                    break;
+                default:
+                    throw new AssertionError("Unexpected lint: " + lint);
+            }
         }
     }
 

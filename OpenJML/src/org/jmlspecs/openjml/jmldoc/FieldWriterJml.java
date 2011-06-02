@@ -67,14 +67,15 @@ public class FieldWriterJml extends FieldWriterImpl {
     
     /** Set to true if the JML field is a model field, false if it is ghost or Java field. */
     boolean isModel = false;
-    
-    /** Overrides the parent class method in order to write out any JML specs
-     * after writing out the comments about the field.
-     */
-    public void writeComments(@NonNull FieldDoc field) {
-        super.writeComments(field);
-        writeJmlSpecs(field);
-    }
+
+    // FIXME - major change in b144
+//    /** Overrides the parent class method in order to write out any JML specs
+//     * after writing out the comments about the field.
+//     */
+//    public void writeComments(@NonNull FieldDoc field) {
+//        super.writeComments(field);
+//        writeJmlSpecs(field);
+//    }
     
     /** Writes out the JML specs about the field. 
      * @param field the field to describe
@@ -120,18 +121,19 @@ public class FieldWriterJml extends FieldWriterImpl {
         }
     }
 
-    /**
-     * Write the footer for the field documentation, and then add any
-     * field detail information about ghost and model fields.
-     *
-     * @param classDoc the class that the fields belong to.
-     */
-    public void writeFooter(@NonNull ClassDoc classDoc) {
-        super.writeFooter(classDoc);
-        writeJmlGhostModelFieldDetail(classDoc,JmlToken.GHOST,"Ghost");
-        writeJmlGhostModelFieldDetail(classDoc,JmlToken.MODEL,"Model");
-        writeJmlRepresentsDetail(classDoc);
-    }
+    // FIXME - major change in b144
+//    /**
+//     * Write the footer for the field documentation, and then add any
+//     * field detail information about ghost and model fields.
+//     *
+//     * @param classDoc the class that the fields belong to.
+//     */
+//    public void writeFooter(@NonNull ClassDoc classDoc) {
+//        super.writeFooter(classDoc);
+//        writeJmlGhostModelFieldDetail(classDoc,JmlToken.GHOST,"Ghost");
+//        writeJmlGhostModelFieldDetail(classDoc,JmlToken.MODEL,"Model");
+//        writeJmlRepresentsDetail(classDoc);
+//    }
     
     public void writeJmlGhostModelFieldDetail(@NonNull ClassDoc classDoc,
             @NonNull JmlToken token,String showString) {
@@ -169,42 +171,43 @@ public class FieldWriterJml extends FieldWriterImpl {
         
         //Field Header
         boolean isFirst = true;
-        for (JmlVariableDecl tc: list) {
-            FieldDoc fd = new FieldDocImpl(((ClassDocImpl)classDoc).docenv(),tc.sym,tc.docComment,tc,null);
-            // field header
-            writeFieldHeader(fd,isFirst); isFirst = false;
-            
-            // signature
-            writeSignature(fd);
-            
-            // deprecation
-            writeDeprecated(fd);
-            
-            // field comments
-            isModel = token == JmlToken.MODEL;
-            try {
-                //writeComments(fd);
-                // Extract some of the contents of writeComments to avoid some
-                // problems with the dual contexts - in particular, a field looks
-                // like it is inherited from a class or interface
-                writer.dd();
-                writer.printInlineComment(fd);
-                writeJmlSpecs(fd);
-                writer.ddEnd();
-            } finally {
-                isModel = false;
-            }
-            
-            // tag info
-            writeTags(fd);
-
-            // Field footer
-            writeFieldFooter();
-        }
-        
-        
-        //Footer
-        super.writeFooter(classDoc);
+        // FIXME - major change in b144
+//        for (JmlVariableDecl tc: list) {
+//            FieldDoc fd = new FieldDocImpl(((ClassDocImpl)classDoc).docenv(),tc.sym,tc.docComment,tc,null);
+//            // field header
+//            writeFieldHeader(fd,isFirst); isFirst = false;
+//            
+//            // signature
+//            writeSignature(fd);
+//            
+//            // deprecation
+//            writeDeprecated(fd);
+//            
+//            // field comments
+//            isModel = token == JmlToken.MODEL;
+//            try {
+//                //writeComments(fd);
+//                // Extract some of the contents of writeComments to avoid some
+//                // problems with the dual contexts - in particular, a field looks
+//                // like it is inherited from a class or interface
+//                writer.dd();
+//                writer.printInlineComment(fd);
+//                writeJmlSpecs(fd);
+//                writer.ddEnd();
+//            } finally {
+//                isModel = false;
+//            }
+//            
+//            // tag info
+//            writeTags(fd);
+//
+//            // Field footer
+//            writeFieldFooter();
+//        }
+//        
+//        
+//        //Footer
+//        super.writeFooter(classDoc);
         
     }
     
@@ -256,7 +259,8 @@ public class FieldWriterJml extends FieldWriterImpl {
         }
         writer.br();
         writer.codeEnd();
-        super.writeFooter(classDoc);
+        // FIXME - major change in b144
+//        super.writeFooter(classDoc);
        
     }
     
@@ -285,13 +289,14 @@ public class FieldWriterJml extends FieldWriterImpl {
         writer.br();
         writer.strong("<A HREF=\"#JmlRepresentsClauses\">Represents specification of super class fields</A>: ");
         //Collections.sort(list);
-        boolean isFirst = true;
-        for (JmlTypeClauseRepresents tr: list) {
-            FieldDoc field = new FieldDocImpl(((ClassDocImpl)classDoc).docenv(),(VarSymbol)((JCTree.JCIdent)tr.ident).sym);
-            writer.printInheritedSummaryMember(this, classDoc, field, isFirst);
-            isFirst = false;
-        }
-        super.writeInheritedMemberSummaryFooter(classDoc);
+        // FIXME - major change in b144
+//        boolean isFirst = true;
+//        for (JmlTypeClauseRepresents tr: list) {
+//            FieldDoc field = new FieldDocImpl(((ClassDocImpl)classDoc).docenv(),(VarSymbol)((JCTree.JCIdent)tr.ident).sym);
+//            writer.printInheritedSummaryMember(this, classDoc, field, isFirst);
+//            isFirst = false;
+//        }
+//        super.writeInheritedMemberSummaryFooter(classDoc);
     }
     
     /** This is overridden in order to include annotation information in the
@@ -304,15 +309,16 @@ public class FieldWriterJml extends FieldWriterImpl {
         super.printModifier(member);
     }
 
-    /** This is overridden in order to write out the summary footer and to 
-     * follow it by the summary of JML fields.
-     * @param classDoc the class that owns the fields
-     */
-    @Override
-    public void writeMemberSummaryFooter(@NonNull ClassDoc classDoc) {
-        super.writeMemberSummaryFooter(classDoc);
-        writeJmlFieldSummary(classDoc);
-    }
+    // FIXME - major change in b144
+//    /** This is overridden in order to write out the summary footer and to 
+//     * follow it by the summary of JML fields.
+//     * @param classDoc the class that owns the fields
+//     */
+//    @Override
+//    public void writeMemberSummaryFooter(@NonNull ClassDoc classDoc) {
+//        super.writeMemberSummaryFooter(classDoc);
+//        writeJmlFieldSummary(classDoc);
+//    }
     
     public void checkJmlSummary(@NonNull ClassDoc classDoc) {
         if (summaryHeaderWritten) return;
@@ -321,22 +327,23 @@ public class FieldWriterJml extends FieldWriterImpl {
     
 
 
-    /** This is overridden in order to write out the summary footer for
-     * inherited fields and to 
-     * follow it by the summary of JML inherited fields.
-     * @param classDoc the class whose inherited fields are to be described
-     */
-    public void writeInheritedMemberSummaryFooter(@NonNull ClassDoc classDoc) {
-        writeJmlInheritedMemberSummary(classDoc);
-        writeJmlRepresentsSummary(classDoc);
-        super.writeInheritedMemberSummaryFooter(classDoc);
-    }
-    
-    public void checkJmlInheritedSummary(@NonNull ClassDoc classDoc, java.util.List inhmembers) {
-        if (summaryHeaderWritten) return;
-        super.writeInheritedMemberSummaryHeader(classDoc);
-        writeInheritedMemberSummaryFooter(classDoc);
-    }
+    // FIXME - major change in b144
+//    /** This is overridden in order to write out the summary footer for
+//     * inherited fields and to 
+//     * follow it by the summary of JML inherited fields.
+//     * @param classDoc the class whose inherited fields are to be described
+//     */
+//    public void writeInheritedMemberSummaryFooter(@NonNull ClassDoc classDoc) {
+//        writeJmlInheritedMemberSummary(classDoc);
+//        writeJmlRepresentsSummary(classDoc);
+//        super.writeInheritedMemberSummaryFooter(classDoc);
+//    }
+//    
+//    public void checkJmlInheritedSummary(@NonNull ClassDoc classDoc, java.util.List inhmembers) {
+//        if (summaryHeaderWritten) return;
+//        super.writeInheritedMemberSummaryHeader(classDoc);
+//        writeInheritedMemberSummaryFooter(classDoc);
+//    }
     
 
     
@@ -359,16 +366,17 @@ public class FieldWriterJml extends FieldWriterImpl {
             }
         }
         
-        if (!list.isEmpty()) {
-            writer.br();
-            writer.strong("Inherited JML ghost and model fields: ");
-            Collections.sort(list);
-            boolean isFirst = true;
-            for (FieldDoc field: list) {
-                writer.printInheritedSummaryMember(this, classDoc, field, isFirst);
-                isFirst = false;
-            }
-        }
+        // FIXME - major change in b144
+//        if (!list.isEmpty()) {
+//            writer.br();
+//            writer.strong("Inherited JML ghost and model fields: ");
+//            Collections.sort(list);
+//            boolean isFirst = true;
+//            for (FieldDoc field: list) {
+//                writer.printInheritedSummaryMember(this, classDoc, field, isFirst);
+//                isFirst = false;
+//            }
+//        }
     }
     
     /** Write out a summary of JML fields for the given class 
@@ -392,13 +400,14 @@ public class FieldWriterJml extends FieldWriterImpl {
         Collections.sort(list);
         writeJmlFieldSummaryHeader(classDoc);
         // The following loop is copied with modifications from MemberSummaryBuilder.buildSummary ??? FIXME
-        for (int i = 0; i<list.size(); i++) {
-            FieldDoc member = list.get(i);
-            Tag[] firstSentenceTags = member.firstSentenceTags();
-            writeMemberSummary(classDoc, member, firstSentenceTags,
-                i == 0, i == list.size() - 1);
-        }
-        super.writeMemberSummaryFooter(classDoc);
+        // FIXME - major change in b144
+//        for (int i = 0; i<list.size(); i++) {
+//            FieldDoc member = list.get(i);
+//            Tag[] firstSentenceTags = member.firstSentenceTags();
+//            writeMemberSummary(classDoc, member, firstSentenceTags,
+//                i == 0, i == list.size() - 1);
+//        }
+//        super.writeMemberSummaryFooter(classDoc);
     }
     
     /** This writes the header for the summary of JML ghost and model fields

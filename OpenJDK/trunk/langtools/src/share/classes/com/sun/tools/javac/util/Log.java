@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -332,12 +332,19 @@ public class Log extends AbstractLog {
         printLines(errWriter, localize(key, args));
     }
 
-
     /** Print the text of a message to the noticeWriter stream,
      *  translating newlines appropriately for the platform.
      */
     public void printNoteLines(String key, Object... args) {
         printLines(noticeWriter, localize(key, args));
+    }
+
+    /**
+     * Print the localized text of a "verbose" message to the
+     * noticeWriter stream.
+     */
+    public void printVerbose(String key, Object... args) {
+        printLines(noticeWriter, localize("verbose." + key, args));
     }
 
     protected void directError(String key, Object... args) {
@@ -421,13 +428,8 @@ public class Log extends AbstractLog {
      */
     protected void writeDiagnostic(JCDiagnostic diag) {
         if (diagListener != null) {
-            try {
-                diagListener.report(diag);
-                return;
-            }
-            catch (Throwable t) {
-                throw new ClientCodeException(t);
-            }
+            diagListener.report(diag);
+            return;
         }
 
         PrintWriter writer = getWriterForDiagnosticType(diag.getType());
