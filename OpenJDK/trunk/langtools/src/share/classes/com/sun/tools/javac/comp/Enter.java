@@ -119,9 +119,10 @@ public class Enter extends JCTree.Visitor {
         context.put(enterKey, this);
 
         log = Log.instance(context);
+        syms = Symtab.instance(context); // DRC - reorganized order of initialization to avoid some circular initializations - may be able to be removed
         reader = ClassReader.instance(context);
+        reader.init(syms);
         make = TreeMaker.instance(context);
-        syms = Symtab.instance(context);
         chk = Check.instance(context);
         memberEnter = MemberEnter.instance(context);
         types = Types.instance(context);
@@ -338,12 +339,12 @@ public class Enter extends JCTree.Visitor {
         this.env = env; // DRC - added in order to export the env
     }
 
-    // DRC - this was extracted in order to be able to insert some functionality
-    // after the class symbol was created, but before the nested classes were
-    // handled.  The first argument is null at the top-level
-    protected void enterNestedClasses(/*@nullable*/ TypeSymbol containingClass, List<? extends JCTree> defs, Env<AttrContext> env) {
-        classEnter(defs, env);
-    }
+//    // DRC - this was extracted in order to be able to insert some functionality
+//    // after the class symbol was created, but before the nested classes were
+//    // handled.  The first argument is null at the top-level
+//    protected void enterNestedClasses(/*@nullable*/ TypeSymbol containingClass, List<? extends JCTree> nestedClassDefs, Env<AttrContext> env) {
+//        classEnter(nestedClassDefs, env);
+//    }
     
     @Override
     public void visitClassDef(JCClassDecl tree) {
@@ -391,7 +392,7 @@ public class Enter extends JCTree.Visitor {
             return;
         }
         chk.compiled.put(c.flatname, c);
-        enclScope.enter(c);
+         enclScope.enter(c);
 
         // Set up an environment for class block and store in `typeEnvs'
         // table, to be retrieved later in memberEnter and attribution.
@@ -429,14 +430,14 @@ public class Enter extends JCTree.Visitor {
 //      System.err.println("entering " + c.fullname + " in " + c.owner);//DEBUG
 
         // Recursively enter all member classes.
-        enterNestedClasses(c.type.tsym,tree.defs, localEnv);
+        classEnter(tree.defs, localEnv);
 
         result = c.type;
     }
     //where
         /** Does class have the same name as the file it appears in?
          */
-        public boolean classNameMatchesFileName(ClassSymbol c,
+        public boolean classNameMatchesFileName(ClassSymbol c, // DRC - changed from private to public
                                                         Env<AttrContext> env) {
             return env.toplevel.sourcefile.isNameCompatible(c.name.toString(),
                                                             JavaFileObject.Kind.SOURCE);

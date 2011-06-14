@@ -668,7 +668,7 @@ public class JmlParser extends EndPosParser {
                             if (tr instanceof JmlClassDecl) {
                                 JmlClassDecl d = (JmlClassDecl) tr;
                                 utils.setJML(d.mods);
-                                d.sourcefile = log.currentSourceFile();
+                                //d.toplevel.sourcefile = log.currentSourceFile();
                                 ttr = toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                                 attach(d, dc);
                                 d.docComment = dc;
@@ -851,7 +851,7 @@ public class JmlParser extends EndPosParser {
             }
         }
         typeSpecs.modifiers = decl.mods;
-        typeSpecs.file = decl.sourcefile;
+        typeSpecs.file = decl.source();
         typeSpecs.decl = decl;
         decl.defs = newlist.toList();
         decl.typeSpecs = typeSpecs; // The type specs from just this compilation

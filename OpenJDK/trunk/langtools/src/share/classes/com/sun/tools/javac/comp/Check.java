@@ -58,7 +58,7 @@ public class Check {
     protected static final Context.Key<Check> checkKey =
         new Context.Key<Check>();
 
-    protected Context context;
+    protected Context context; // DRC- added
     private final Names names;
     private final Log log;
     private final Symtab syms;
@@ -91,7 +91,7 @@ public class Check {
     protected Check(Context context) {
         context.put(checkKey, this);
 
-        this.context = context;
+        this.context = context; // DRC - added
         names = Names.instance(context);
         log = Log.instance(context);
         syms = Symtab.instance(context);
@@ -2387,7 +2387,7 @@ public class Check {
     /** Check an annotation value.
      */
     public void validateAnnotation(JCAnnotation a) {
-        if (a.type.isErroneous()) return;
+        if (a.type != null && a.type.isErroneous()) return; //DRCok - FIXME - added a.type guard, but perhaps it is null because the annotation is not properly 
 
         // collect an inventory of the members (sorted alphabetically)
         Set<MethodSymbol> members = new TreeSet<MethodSymbol>(new Comparator<Symbol>() {

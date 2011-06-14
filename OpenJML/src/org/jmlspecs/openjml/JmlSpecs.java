@@ -804,7 +804,9 @@ public class JmlSpecs {
      */
     public TypeSpecs getSpecs(ClassSymbol type) {
         TypeSpecs t = specsmap.get(type);
-        if (t == null) specsmap.put(type, t=new TypeSpecs(type));
+        if (t == null) {
+            specsmap.put(type, t=new TypeSpecs(type));
+        }
         return t;
     }
     
@@ -1005,7 +1007,7 @@ public class JmlSpecs {
          */
         public TypeSpecs(ClassSymbol symbol) {
             this.csymbol = symbol;
-            this.file = null;
+            this.file = symbol.sourcefile;
             this.decl = null;
             this.modifiers = null;
             this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
@@ -1021,7 +1023,7 @@ public class JmlSpecs {
         
         // TODO - comment - only partially fills in the class
         public TypeSpecs(JmlClassDecl decl) {
-            this.file = decl.sourcefile;
+            this.file = decl.source();
             this.decl = decl;
             this.modifiers = decl.mods;
             this.clauses = decl.typeSpecsCombined != null ? decl.typeSpecsCombined.clauses :

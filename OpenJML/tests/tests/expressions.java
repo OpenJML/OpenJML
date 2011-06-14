@@ -1,5 +1,6 @@
 package tests;
 import java.util.List;
+import java.util.Locale;
 
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
@@ -115,12 +116,18 @@ public class expressions extends ParseBase {
             if (print || collector.getDiagnostics().size() != list.length) printErrors();
             assertEquals("Saw wrong number of errors ",list.length,collector.getDiagnostics().size());
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
-                assertEquals("Error message " + i,list[i++],((JCDiagnostic)dd).noSource());
+                assertEquals("Error message " + i,list[i++],noSource((JCDiagnostic)dd));
             }
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         }
+    }
+    
+    String noSource(JCDiagnostic dd) {
+        return dd.noSource();
+        //return dd.getMessage(Locale.getDefault());
+        //defaultFormatter.format(this,Locale.getDefault(),"%f:%l:%_%t%m");
     }
 
 

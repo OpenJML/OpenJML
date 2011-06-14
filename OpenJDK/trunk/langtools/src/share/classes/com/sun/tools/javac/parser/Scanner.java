@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -142,8 +142,7 @@ public class Scanner implements Lexer {
         source = fac.source;
         allowBinaryLiterals = source.allowBinaryLiterals();
         allowHexFloats = source.allowHexFloats();
-        allowUnderscoresInLiterals = source.allowBinaryLiterals();
-        //allowExoticIdentifiers = source.allowExoticIdentifiers();  // for invokedynamic // DRCok - removed in b144?s
+        allowUnderscoresInLiterals = source.allowUnderscoresInLiterals();
     }
 
     private static final boolean hexFloatsWork = hexFloatsWork();
@@ -485,7 +484,7 @@ public class Scanner implements Lexer {
      */
     private void scanHexFractionAndSuffix(boolean seendigit) {
         this.radix = 16;
-        assert ch == '.';
+        Assert.check(ch == '.');
         putChar(ch);
         scanChar();
         skipIllegalUnderscores();

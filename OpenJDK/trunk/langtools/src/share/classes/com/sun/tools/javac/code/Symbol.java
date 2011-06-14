@@ -1052,6 +1052,7 @@ public abstract class Symbol implements Element {
          */
         public MethodSymbol(long flags, Name name, Type type, Symbol owner) {
             super(MTH, flags, name, type, owner);
+            if (owner == null) return; // DRCok - added to allow null owners for created methods
             if (owner.type.tag == TYPEVAR) Assert.error(owner + "." + name);
         }
 

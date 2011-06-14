@@ -97,7 +97,7 @@ public class assignable extends TCBase {
 
     public void testAssignableThis2() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable this.x;\n void m(boolean b) {} }"
-                ,"/A.java:2: cannot find symbol\n  symbol:   variable x\n  location: class A",20
+                ,"/A.java:2: cannot find symbol\n  symbol: variable x",20
 		);
     }
 
@@ -108,8 +108,8 @@ public class assignable extends TCBase {
 
     public void testAssignableSuper2() {
         helpTCF("A.java","public class A extends B { int[] k; Object b; Object[] o; \n//@ assignable super.b, super.x;\n void m(boolean b) {} }  class B{ int kk; }"
-                ,"/A.java:2: cannot find symbol\n  symbol:   variable b\n  location: class B",21
-                ,"/A.java:2: cannot find symbol\n  symbol:   variable x\n  location: class B",30
+                ,"/A.java:2: cannot find symbol\n  symbol: variable b",21
+                ,"/A.java:2: cannot find symbol\n  symbol: variable x",30
                 );
     }
 

@@ -143,7 +143,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     protected JmlClassDecl currentClass = null;
     
+    @Override
     protected void finishClass(JCClassDecl tree, Env<AttrContext> env) {
+        
         JmlClassDecl prevClass = currentClass;
         currentClass = (JmlClassDecl)tree;
         int prevMode = modeOfFileBeingChecked;  // FIXME _ suspect this is not accurate
@@ -170,11 +172,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlClassDecl jtree = (JmlClassDecl)tree;
         ClassSymbol csym = jtree.sym;
         
-        JavaFileObject prevSource = null;
+        JavaFileObject prevSource = log.useSource(jtree.source());;
         boolean prevInSpecFile = inSpecFile;
-        log.useSource(jtree.sourcefile);
-        inSpecFile = jtree.sourcefile == null ? false : jtree.sourcefile.getKind() != Kind.SOURCE;  // should always be false (?)
+
+        inSpecFile = jtree.source() == null ? false : jtree.source().getKind() != Kind.SOURCE;  // should always be false (?)
+
         super.finishClass(tree,env);
+
         currentClass = prevClass;
 
         // Now go through everything in the specs sequence, finding the
@@ -209,15 +213,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             boolean isModel = JmlAttr.instance(context).isModel(specsDecl.mods) || JmlAttr.instance(context).implementationAllowed;
             inModelTypeDeclaration = isModel;
             
-            log.useSource(specsDecl.sourcefile);
+            log.useSource(specsDecl.source());
             // TODO : need to do something to distinguish hand created parse trees
-            inSpecFile = specsDecl.sourcefile == null ? false : specsDecl.sourcefile.getKind() != Kind.SOURCE; // Could be a Java file in the specs sequence
+            inSpecFile = specsDecl.source() == null ? false : specsDecl.source().getKind() != Kind.SOURCE; // Could be a Java file in the specs sequence
             prevClass = currentClass;
             currentClass = jtree;
-            Env<AttrContext> prev = this.env;
-            this.env = env;
-            checkTypeMatch(jtree,specsDecl);
-            this.env = prev;
             
             // Misc checks on the Java declarations
             for (JCTree that: specsDecl.defs) {
@@ -251,7 +251,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             
             JmlSpecs.TypeSpecs tsp = specs.get(tree.sym);
             LinkedList<JmlTypeClauseDecl> duplicates = new LinkedList<JmlTypeClauseDecl>();
-            for (JmlTypeClause clause: tsp.clauses) {
+            //for (JmlTypeClause clause: tsp.clauses) {
+            for (JCTree clause: specsDecl.typeSpecs.clauses) {
                 if (clause instanceof JmlTypeClauseDecl) {
                     // These are JML declarations
                     JmlTypeClauseDecl cl = (JmlTypeClauseDecl)clause;
@@ -533,11 +534,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             entry = entry.next();
         }
         if (matchSym == null) {
-            Log log = Log.instance(context);
-            JavaFileObject prevSource = log.currentSourceFile();
-            log.useSource(specsVarDecl.sourcefile);
-            log.error(specsVarDecl.pos(),"jml.no.var.match",specsVarDecl.name);
-            log.useSource(prevSource);
+            if (((JmlAttr)attr).findMod(specsVarDecl.mods,JmlToken.GHOST) == null &&
+                    ((JmlAttr)attr).findMod(specsVarDecl.mods,JmlToken.MODEL) == null) {
+                Log log = Log.instance(context);
+                JavaFileObject prevSource = log.currentSourceFile();
+                log.useSource(specsVarDecl.sourcefile);
+                log.error(specsVarDecl.pos(),"jml.no.var.match",specsVarDecl.name);
+                log.useSource(prevSource);
+            }
             return null;
         }
         
@@ -554,11 +558,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 for (JmlTypeClause t: javaDecl.typeSpecsCombined.clauses) {
                     if (t instanceof JmlTypeClauseDecl &&
                             ((JmlTypeClauseDecl)t).decl instanceof JmlVariableDecl && 
-                            (javaMatch=(JmlVariableDecl)((JmlTypeClauseDecl)t).decl).sym == matchSym) break;
+                            ((JmlVariableDecl)((JmlTypeClauseDecl)t).decl).sym == matchSym) {
+                        javaMatch = (JmlVariableDecl)((JmlTypeClauseDecl)t).decl;
+                        break;
+                    }
                 }
             }
 
-            javaMatch.specsDecl = specsVarDecl;
+           if (javaMatch != null)  javaMatch.specsDecl = specsVarDecl; // FIXME - should it ever be that javaMatch is null?
             
             if (javaMatch != specsVarDecl) {
                 if (specsVarDecl.init != null) {
@@ -705,12 +712,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             }
             tsp.decl = specsDecl;
             tsp.modifiers = specsDecl.mods;
-            tsp.file = specsDecl.sourcefile;
+            tsp.file = specsDecl.source();
             
             JmlClassDecl jtree = null; // This is a binary class - no java class declaration
             ClassSymbol csym = specsDecl.sym; // just a symbol
 
-            prevSource = log.useSource(specsDecl.sourcefile);
+            prevSource = log.useSource(specsDecl.source());
             checkTypeMatch(csym,specsDecl);
             log.useSource(prevSource);
 
@@ -1000,7 +1007,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // FIXME - should not rely on this, but use the annotations associated with the method symbol
         m.mods.annotations = m.mods.annotations.append(a);
         ms.mods.annotations = ms.mods.annotations.append(a);
-
+        
         tsp.clauses.append(jmlF.JmlTypeClauseDecl(m));
         tsp.clauses.append(jmlF.JmlTypeClauseDecl(ms));
         tsp.checkInvariantDecl = m;
@@ -1174,7 +1181,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             checkSameAnnotations(javaDecl.mods,specsClassDecl.mods);
             // FIXME - check that both are Enum; check that both are Annotation
         }
-        if (specsClassDecl.sourcefile == null || specsClassDecl.sourcefile.getKind() == JavaFileObject.Kind.SOURCE){
+        if (specsClassDecl.source() == null || specsClassDecl.source().getKind() == JavaFileObject.Kind.SOURCE){
             // This is already checked in enterTypeParametersForBinary (for binary classes)
             List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
             List<JCTypeParameter> specTypes = specsClassDecl.typarams;
@@ -1857,8 +1864,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             JmlAttr attr = JmlAttr.instance(context);
             ClassSymbol c = classSym;
             ClassType ct = (ClassType)c.type;
-            Env<AttrContext> env = enter.typeEnvs.get(c);
-            JCClassDecl tree = (JCClassDecl)env.tree;
+            Env<AttrContext> env = classDecl.env;
+            JCClassDecl tree = classDecl;
 //            boolean wasFirst = isFirst;
 //            isFirst = false;
 
@@ -2117,6 +2124,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // JML fields and methods
         
         boolean previousAllow = JmlResolve.setJML(context,true);
+        if (classDecl.typeSpecsCombined == null) classDecl.typeSpecsCombined = specs.getSpecs(classDecl.sym);
         for (JmlTypeClause t: classDecl.typeSpecsCombined.clauses) {
             if (t instanceof JmlTypeClauseDecl) {
                 JmlTypeClauseDecl tcd = (JmlTypeClauseDecl)t;
@@ -2309,7 +2317,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        }
         JmlMethodDecl prevMethod = currentMethod;
         currentMethod = (JmlMethodDecl) tree;
-        boolean isSpecFile = currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
+        boolean isSpecFile = currentMethod.sourcefile == null || currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
         boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
         long flags = tree.mods.flags;
         boolean isJMLMethod = utils.isJML(flags);
@@ -2400,6 +2408,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             thisSym.pos = Position.FIRSTPOS;
             env.info.scope.enter(thisSym);
         }
+
     }
     
 //    protected void finish(Env<AttrContext> env) {
@@ -2424,8 +2433,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
     
     @Override
-    public boolean visitVarDefIsStatic(JCVariableDecl tree) {
-        boolean b = super.visitVarDefIsStatic(tree);
+    public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
+        boolean b = super.visitVarDefIsStatic(tree,env);
         if (!isInJml) return b;
         if ((tree.mods.flags & STATIC) != 0) return true;
         // In the case where we are in an interface but within a JML expression

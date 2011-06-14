@@ -1,6 +1,7 @@
 package com.sun.tools.javac.comp;
 
 
+import java.util.AbstractQueue;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -181,50 +182,57 @@ public class JmlEnter extends Enter {
 
         context.get(Main.IProgressReporter.class).report(0,2,"entering " + jmltree.sourcefile.getName());
         
+        // Attach specification classes to the Java declarations
+        if (jmltree.specsCompilationUnit != null) {
+            for (JCTree t: tree.defs) {
+                if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = jmltree;
+            }
+            for (JCTree t: jmltree.specsCompilationUnit.defs) {
+                if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = jmltree.specsCompilationUnit;
+            }
+            matchClasses(tree.defs, jmltree.specsCompilationUnit.defs, jmltree.parsedTopLevelModelTypes);
+        }
+        
+        // Then do all the regular Java registering of packages and types
+        super.visitTopLevel(jmltree);
+
         if (jmltree.specsCompilationUnit == null) {
             // If there are no specs files we enter this branch
             // This might be because we are just processing an individual spec
             // file for a binary class
             currentParentSpecList = null;
 
-            // Then do all the regular Java registering of packages and types
-            super.visitTopLevel(jmltree);
 
         } else {
-
 
             ListBuffer<List<JCTree>> prev = currentParentSpecList;
             ListBuffer<List<JCTree>> newlist = currentParentSpecList = new ListBuffer<List<JCTree>>();
             {
                 JmlCompilationUnit jcu = jmltree.specsCompilationUnit; 
+                jcu.packge = jmltree.packge; // FIXME - should we check that the packages are the same? why is this not set when it is parsed?
                 currentParentSpecList.append(jcu.defs);
                 Env<AttrContext> tlenv = topLevelEnv(jcu);
                 for (JCTree t: jcu.defs) {
-                    if (t instanceof JmlClassDecl) ((JmlClassDecl)t).env = tlenv;
+                    if (t instanceof JmlClassDecl) ((JmlClassDecl)t).env = tlenv; // FIXME - is this the best place for this?
                 }
             }
             
-            // Then do all the regular Java registering of packages and types
-            // This will recursively call visitClassDef for each java class declaration;
-            // visitClassDef will process any linked specs
-            super.visitTopLevel(jmltree);
-
             currentParentSpecList = prev;
 
-            // Check for unmatched top-level JML types
-            for (List<? extends JCTree> list : newlist) {
-                for (JCTree t: list) {
-                    // The sym field being tested here was set in visitClassDef
-                    // when a specification declaration was attached to its
-                    // Java counterpart
-                    if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sym == null) {
-                        JmlClassDecl cd = (JmlClassDecl)t;
-                        JavaFileObject prevv = log.useSource(cd.sourcefile);
-                        log.error(t.pos,"jml.orphan.jml.toplevel.class.decl",cd.name,jmltree.sourcefile);
-                        log.useSource(prevv);
-                    }
-                }
-            }
+//            // Check for unmatched top-level JML types
+//            for (List<? extends JCTree> list : newlist) {
+//                for (JCTree t: list) {
+//                    // The sym field being tested here was set in visitClassDef
+//                    // when a specification declaration was attached to its
+//                    // Java counterpart
+//                    if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sym == null) {
+//                        JmlClassDecl cd = (JmlClassDecl)t;
+//                        JavaFileObject prevv = log.useSource(cd.source());
+//                        log.error(t.pos,"jml.orphan.jml.toplevel.class.decl",cd.name,jmltree.sourcefile);
+//                        log.useSource(prevv);
+//                    }
+//                }
+//            }
 
             
             // Then add in any top-level model types
@@ -237,72 +245,206 @@ public class JmlEnter extends Enter {
         context.get(Main.IProgressReporter.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
     }
     
+    public void matchClasses(List<JCTree> defs, List<JCTree> specsDefs, Collection<JmlClassDecl> modelTypesList) {
+        for (JCTree t: specsDefs) {
+            if (!(t instanceof JmlClassDecl)) continue;
+            JmlClassDecl specsClass = (JmlClassDecl)t;
+            // The declaration 'specsClass' is in a specification file.
+            // We need to find the Java declaration that it matches
+            // There must be one, and there should only be one declaration in the specsDefs list
+            // that matches a particular java declaration.
+            // A Java declaration need not have a match
+            Name name = specsClass.getSimpleName();
+            JmlClassDecl matched = null;
+            JavaFileObject javaSource = null;
+            for (JCTree tt: defs) {
+                if (!(tt instanceof JmlClassDecl)) continue;
+                JmlClassDecl def = (JmlClassDecl)tt;
+                javaSource = def.source();
+                if (name.equals(def.getSimpleName())) {
+                    matched = specsClass;
+                    if (def.specsDecls == null) {
+                        def.specsDecls = List.<JmlClassDecl>of(specsClass);
+                    } else {
+                        JavaFileObject prev = log.useSource(specsClass.source());
+                        log.error(matched.pos,"jml.duplicate.jml.class.decl",matched.name);
+                        log.error(def.specsDecls.get(0).pos,"jml.associated.decl");
+                        log.useSource(prev);
+                    }
+                }
+            }
+            if (matched == null) {
+                // Don't report the error if the class is model
+                
+                JavaFileObject prevv = log.useSource(specsClass.source());
+                if (true) {
+                    log.error(specsClass.pos,
+                            "jml.orphan.jml.toplevel.class.decl",
+                            specsClass.name,javaSource);
+                } else {
+                    log.error(specsClass.pos,
+                            "jml.orphan.jml.class.decl",
+                            specsClass.name,javaSource);
+
+                }
+                log.useSource(prevv);
+                
+                // This specification file is not matched, so it is like a
+                // model class declaration. Pretend it is one.
+                
+                modelTypesList.add(specsClass);
+            }
+        }
+    }
+    
+    @Override
+    public void visitClassDef(JCClassDecl that) {
+        // We need to match up classes before calling super.classDefs so that
+        // the specs for nested classes can be computed. Nothing else should
+        // be done with the specs, however, until the Java class is 'entered'
+        // in the visitClassDef call.
+        
+        JmlClassDecl jmltree = (JmlClassDecl)that;
+        
+        if (jmltree.specsDecls != null) {
+            for (JCTree t: that.defs) {
+                if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = jmltree.toplevel;
+            }
+            for (JmlClassDecl parent: jmltree.specsDecls) { 
+                for (JCTree t: parent.defs) {
+                    if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = parent.toplevel;
+                }
+            }
+            matchClasses(that.defs, jmltree.specsDecls.get(0).defs, jmltree.typeSpecs.modelTypes);
+        }
+        super.visitClassDef(that);
+        
+        Env<AttrContext> localEnv = typeEnvs.get(that.sym);
+        jmltree.env = localEnv;
+        
+        if (jmltree.specsDecls != null) {
+            for (JmlClassDecl specDecl : jmltree.specsDecls) {
+                if (specDecl != jmltree) {
+                    specDecl.sym = that.sym;
+                    specDecl.env = classEnv(specDecl,localEnv); // Requires specDecl.sym to be set
+                    // FIXME - not sure about the following
+                    enterTypeParametersForBinary(that.sym,specDecl,localEnv);
+                }
+            }
+        }
+        
+        List<JmlClassDecl> nestedModelTypes = collectNestedModelTypes(jmltree.specsDecls).toList();
+        for (JmlClassDecl modelType: nestedModelTypes) {
+            LinkedList<JmlClassDecl> list = new LinkedList<JmlClassDecl>();
+            list.add(modelType);
+            modelType.specsDecls = list;
+            modelType.toplevel = jmltree.toplevel;
+            Utils.instance(context).setJML(modelType.mods); // FIXME - is this already set?
+            classEnter(modelType,localEnv);
+        }
+
+        java.util.List<JmlClassDecl> selflist = jmltree.specsDecls;
+        Env<AttrContext> localenv = typeEnvs.get(that.sym);
+        boolean wasNull = localenv == null;
+        JmlClassDecl principalDecl;
+        if (localenv != null) {
+            // Typically a java class with or without specs
+            principalDecl = (JmlClassDecl)localenv.tree;
+        } else if (selflist != null && !selflist.isEmpty()) {
+            // A binary class with specs - JDK did not register an env because
+            // there is no Java source.  We put in one for the most refined
+            // spec file
+            principalDecl = selflist.get(0);
+            localenv = selflist.get(0).env;
+        } else {
+            principalDecl = null;
+            // This happens for a binary class with no specs for the given type
+        }
+            // The above is either the java declaration, or (if the class is
+            // binary) the most refined specs declaration
+
+        JmlSpecs.TypeSpecs combinedTypeSpecs = specs.getSpecs(that.sym);
+        combinedTypeSpecs.refiningSpecDecls = selflist;
+        if (principalDecl == null) {
+            combinedTypeSpecs.modifiers = null;
+            combinedTypeSpecs.decl = null;
+            combinedTypeSpecs.file = that.sym.sourcefile;
+        } else {
+            combineSpecs(that.sym,principalDecl);
+            principalDecl.typeSpecsCombined = combinedTypeSpecs; // FIXME - is this already the case
+        }
+
+    }
+    
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         // Visit the rgular tree? FIXME
         that.racexpr.accept(this);
         
     }
 
-    // This presumes that the overridden method just calls classEnter on each element of defs, with the given context.
-    /** Overrides the parent class to handle the matching of specs to classes and
-     * then to go on to enter all nested Java and model classes.
-     * @param classToMatch the symbol of a class that is a member of a parent class or compilation unit
-     * @param parentDefs the list of lists of definitions corresponding to the parent's specifications
-     *  in which we have to find those relevant to 'classToMatch'
-     * @param classenv the local environment of 'classToMatch'
-     */
-    @Override
-    protected void enterNestedClasses(TypeSymbol classToMatch, List<? extends JCTree> parentDefs, Env<AttrContext> classenv) {
-
-        ListBuffer<List<JCTree>> specslist = currentParentSpecList;
-
-        // Call the following even if specslist is null because it also
-        // initialized the type specs relationships
-        ListBuffer<List<JCTree>> newlist = matchSpecsToClasses((ClassSymbol)classToMatch,specslist);
-
-        // newlist is the list of definition lists that we pass on to 
-        // nested classes
-
-        // classEnter can go off to enter other classes as needed; since I don't
-        // know what all can happen in them, we reset currentParentSpecList on
-        // each iteration
-        for (JCTree t: parentDefs) {
-            currentParentSpecList = newlist;
-            classEnter(t,classenv); // actually calls accept on whatever type it receives
-        }
-
-        // Check for extra specs
-
-        if (newlist != null) for (List<? extends JCTree> list : newlist) {
-            for (JCTree t: list) {
-                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sym == null) {
-                    JmlClassDecl cd = (JmlClassDecl)t;
-                    JavaFileObject prev = log.useSource(cd.sourcefile);
-                    log.error(t.pos,"jml.orphan.jml.class.decl",cd.name,classToMatch.flatName());
-                    log.useSource(prev);
-                }
-            }
-        }
-
-
-        JmlSpecs.TypeSpecs combinedTypeSpecs = specs.getSpecs((ClassSymbol)classToMatch);
-
-        JmlClassDecl javaDecl = ((JmlClassDecl)typeEnvs.get(classToMatch).tree);
-        if (javaDecl != null) {
-            combinedTypeSpecs.decl = javaDecl;
-            // FIXME - not sure of the need for the following
-            if (javaDecl.sym.owner instanceof Symbol.MethodSymbol || utils.isJML(javaDecl.mods)) {
-                combinedTypeSpecs.refiningSpecDecls = javaDecl.specsDecls;
-            } else {
-                javaDecl.specsDecls = combinedTypeSpecs.refiningSpecDecls;
-            }
-        }
-
-        // Enter model types
-        enterModelTypes(combinedTypeSpecs.modelTypes,classenv);
-
-        currentParentSpecList = specslist; // Need to replace this for the next nested class
-    }
+//    // This presumes that the overridden method just calls classEnter on each element of defs, with the given context.
+//    /** Overrides the parent class to handle the matching of specs to classes and
+//     * then to go on to enter all nested Java and model classes.
+//     * @param classToMatch the symbol of a class that is a member of a parent class or compilation unit
+//     * @param parentDefs the list definitions from a parent class - any class definitions in this list are 
+//     * @param classenv the local environment of 'classToMatch'
+//     */
+//    @Override
+//    protected void enterNestedClasses(TypeSymbol classToMatch, List<? extends JCTree> parentDefs, Env<AttrContext> classenv) {
+//
+//        JmlTree jmltree;
+//        
+//        ListBuffer<List<JCTree>> specslist = currentParentSpecList;
+//        
+//        // First associate any specs with the nested classes
+//
+//        // Call the following even if specslist is null because it also
+//        // initialized the type specs relationships
+//        ListBuffer<List<JCTree>> newlist = matchSpecsToClasses((ClassSymbol)classToMatch,specslist);
+//
+//        // newlist is the list of definition lists that we pass on to 
+//        // nested classes
+//
+//        // classEnter can go off to enter other classes as needed; since I don't
+//        // know what all can happen in them, we reset currentParentSpecList on
+//        // each iteration
+//        for (JCTree t: parentDefs) {
+//            currentParentSpecList = newlist;
+//            classEnter(t,classenv); // actually calls accept on whatever type it receives
+//        }
+//
+//        // Check for extra specs
+//
+//        if (newlist != null) for (List<? extends JCTree> list : newlist) {
+//            for (JCTree t: list) {
+//                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sym == null) {
+//                    JmlClassDecl cd = (JmlClassDecl)t;
+//                    JavaFileObject prev = log.useSource(cd.source());
+//                    log.error(t.pos,"jml.orphan.jml.class.decl",cd.name,classToMatch.flatName());
+//                    log.useSource(prev);
+//                }
+//            }
+//        }
+//
+//
+//        JmlSpecs.TypeSpecs combinedTypeSpecs = specs.getSpecs((ClassSymbol)classToMatch);
+//
+//        JmlClassDecl javaDecl = ((JmlClassDecl)typeEnvs.get(classToMatch).tree);
+//        if (javaDecl != null) {
+//            combinedTypeSpecs.decl = javaDecl;
+//            // FIXME - not sure of the need for the following
+//            if (javaDecl.sym.owner instanceof Symbol.MethodSymbol || utils.isJML(javaDecl.mods)) {
+//                combinedTypeSpecs.refiningSpecDecls = javaDecl.specsDecls;
+//            } else {
+//                javaDecl.specsDecls = combinedTypeSpecs.refiningSpecDecls;
+//            }
+//        }
+//
+//        // Enter model types
+//        enterModelTypes(combinedTypeSpecs.modelTypes,classenv);
+//
+//        currentParentSpecList = specslist; // Need to replace this for the next nested class
+//    }
 
     /** The arguments to this method are a class symbol and then a list of lists of class body definitions
      * for that class; alternatively, the symbol can be null and the list is a list
@@ -343,21 +485,23 @@ public class JmlEnter extends Enter {
             JmlClassDecl matched = null;
             for (JCTree t: list) {
                 if (t instanceof JmlClassDecl) {
-                    JmlClassDecl cd = (JmlClassDecl)t;
-                    if (cd.name.equals(n)) {
-                        cd.sym = classToMatch;
-                        JavaFileObject prev = log.useSource(cd.sourcefile);
+                    JmlClassDecl specClass = (JmlClassDecl)t;
+                    if (specClass.name.equals(n)) {
+                        JavaFileObject prev = log.useSource(specClass.source());
                         if (matched == null) {
-                            selflist.add(cd);
-                            newlist.append(cd.defs);
-                            matched = cd;
-                            cd.env = classEnv(cd, cd.env);
-                            for (JCTree tt: cd.defs) {
-                                if (tt instanceof JmlClassDecl) ((JmlClassDecl)tt).env = cd.env;
+                            boolean ok = enterTypeParametersForBinary(classToMatch,specClass,specClass.env);
+                            if (ok) {
+                                specClass.sym = classToMatch;
+                                selflist.add(specClass);
+                                newlist.append(specClass.defs);
+                                matched = specClass;
+                                //specClass.env = classEnv(specClass, specClass.env); // FIXME - is this needed?
+           //                     for (JCTree tt: specClass.defs) {
+           //                         if (tt instanceof JmlClassDecl) ((JmlClassDecl)tt).env = classEnv((JmlClassDecl)tt,specClass.env);
+           //                     }
                             }
-                            enterTypeParametersForBinary(classToMatch,cd,cd.env);
                         } else {
-                            log.error(cd.pos,"jml.duplicate.jml.class.decl",cd.name);
+                            log.error(specClass.pos,"jml.duplicate.jml.class.decl",specClass.name);
                             log.error(matched.pos,"jml.associated.decl");
                         }
                         log.useSource(prev);
@@ -388,14 +532,14 @@ public class JmlEnter extends Enter {
             // The above is either the java declaration, or (if the class is
             // binary) the most refined specs declaration
 
-        JmlSpecs.TypeSpecs combinedTypeSpecs = specs.getSpecs((ClassSymbol)classToMatch);
+        JmlSpecs.TypeSpecs combinedTypeSpecs = specs.getSpecs(classToMatch);
         combinedTypeSpecs.refiningSpecDecls = selflist;
         if (principalDecl == null) {
             combinedTypeSpecs.modifiers = null;
             combinedTypeSpecs.decl = null;
-            combinedTypeSpecs.file = null;
+            combinedTypeSpecs.file = classToMatch.sourcefile;
         } else {
-            combineSpecs((ClassSymbol)classToMatch,principalDecl);
+            combineSpecs(classToMatch,principalDecl);
             principalDecl.typeSpecsCombined = combinedTypeSpecs; // FIXME - is this already the case
         }
 
@@ -405,9 +549,12 @@ public class JmlEnter extends Enter {
         if (wasNull && !selflist.isEmpty()) {
             // This branch will not be taken for normal Java classes, since they have been
             // entered; similarly for model classes
-            JmlClassDecl cd = selflist.get(0);
             //log.noticeWriter.println("PUTTING TYPEENV " + classToMatch + " " + typeEnvs.get(classToMatch) + " " + env);
-            typeEnvs.put(classToMatch,cd.env);  // FIXME - is n't this already done
+            typeEnvs.put(classToMatch,principalDecl.env);  // Binary classes with specs will have the environment be null;
+                                        // we add an environment that holds the specs class declaration so if gets attributed
+                                        // FIXME - we should handle this differently when we put in place envs for specs that 
+                                        // are different than the envs for the corresponding java class - to handle, for example,
+                                        // different lists of import statements
         }
 
         // newlist is the list of definition lists that we pass on to 
@@ -432,7 +579,7 @@ public class JmlEnter extends Enter {
             for (JmlClassDecl mdecl: jcd.typeSpecs.modelTypes) {
                 if (!names.add(mdecl.name)) {
                     // already contains this name
-                    JavaFileObject prev = log.useSource(mdecl.sourcefile);
+                    JavaFileObject prev = log.useSource(mdecl.source());
                     try { log.error(mdecl.pos,"jml.duplicate.jml.class.decl",mdecl.name); }
                     finally { log.useSource(prev); }
                 } else {
@@ -466,6 +613,61 @@ public class JmlEnter extends Enter {
 //        // before doing its subclasses
 //    }
 
+//    Type classEnter(JCTree tree, Env<AttrContext> env) {
+//        // classEnter can be called with a compilation unit or a class declaration
+//        // it should always be a Jml tree node, however
+//        if (tree instanceof JmlClassDecl) {
+//            JmlClassDecl jmltree = (JmlClassDecl)tree;
+//            for (JCTree nested: jmltree.defs) {
+//                if (!(nested instanceof JmlClassDecl)) continue;
+//                JmlClassDecl nestedClass = (JmlClassDecl)nested;
+//                java.util.List<JmlClassDecl> nestedSpecsList = new LinkedList<JmlClassDecl>();
+//                for (JmlClassDecl parentSpecsList: jmltree.specsDecls) {
+//                    boolean found = false;
+//                    for (JCTree nestedSpecs: parentSpecsList.defs) {
+//                        if (!(nestedSpecs instanceof JmlClassDecl)) continue;
+//                        JmlClassDecl nestedSpecsClass = (JmlClassDecl)nestedSpecs;
+//                        if (nestedSpecsClass.name.equals(nestedClass.name)) {
+//                            // a match
+//                            if (!found) {
+//                                nestedSpecsList.add(nestedSpecsClass);
+//                                found = true;
+//                            } else {
+//                                // duplicate nested class in the same compilation unit
+//                            }
+//                        }
+//                    }
+//                }
+//                nestedClass.specsDecls = nestedSpecsList;
+//            }
+//        } else if (tree instanceof JmlCompilationUnit) {
+//            JmlCompilationUnit jmltree = (JmlCompilationUnit)tree;
+//            for (JCTree nested: jmltree.defs) {
+//                if (!(nested instanceof JmlClassDecl)) continue;
+//                JmlClassDecl nestedClass = (JmlClassDecl)nested;
+//                java.util.List<JmlClassDecl> nestedSpecsList = new LinkedList<JmlClassDecl>();
+//                // There is just one item in the jmltree.specsCompilationUnit, so we do not need a loop here
+//                if (jmltree.specsCompilationUnit != null) {
+//                    boolean found = false;
+//                    for (JCTree nestedSpecs: jmltree.specsCompilationUnit.defs) {
+//                        if (!(nestedSpecs instanceof JmlClassDecl)) continue;
+//                        JmlClassDecl nestedSpecsClass = (JmlClassDecl)nestedSpecs;
+//                        if (nestedSpecsClass.name.equals(nestedClass.name)) {
+//                            // a match
+//                            if (!found) {
+//                                nestedSpecsList.add(nestedSpecsClass);
+//                                found = true;
+//                            } else {
+//                                // duplicate nested class in the same compilation unit
+//                            }
+//                        }
+//                    }
+//                }
+//                nestedClass.specsDecls = nestedSpecsList;
+//            }
+//        }
+//        return super.classEnter(tree,env);
+//    }
 
     /** Enters top-level model types in the specs sequence of the argument
      * 
@@ -493,7 +695,6 @@ public class JmlEnter extends Enter {
             env = tlenv;
             JavaFileObject prevSource = log.useSource(specCompilationUnit.sourcefile);
             for (JmlClassDecl specTypeDeclaration: specCompilationUnit.parsedTopLevelModelTypes) {
-                specTypeDeclaration.env = env = tlenv;
                 if (utils.isJML(specTypeDeclaration.mods)) {
                     // This is a declaration made in a JML comment
                     // If it isn't actually annotated as 'model, 
@@ -504,9 +705,10 @@ public class JmlEnter extends Enter {
                     currentParentSpecList = new ListBuffer<List<JCTree>>();
                     currentParentSpecList.append(List.<JCTree>of(specTypeDeclaration));
                     
-                    classEnter(specTypeDeclaration,env);  // Does nested classes as well
+                    classEnter(specTypeDeclaration,tlenv);  // Does nested classes as well
                     // The above associated a new symbol with specTypeDeclaration; sourcefile, toplevel were already done
                     // Through enterNestedClasses all of the specs infrastructure is set up
+                    specTypeDeclaration.env = classEnv(specTypeDeclaration,tlenv);
 
                     specsTopLevelModelTypes.append(specTypeDeclaration);
                 } else {
@@ -539,6 +741,7 @@ public class JmlEnter extends Enter {
         // It already has: 
         //      csymbol, 
         //      refiningSpecDecls
+        //      file
         // Also, if tspecs.decl is non-null, it already has tspecs.decl.typeSpecs == tspecs;
         // Not set here:
         //      modelFieldMethods
@@ -565,7 +768,7 @@ public class JmlEnter extends Enter {
         // TODO - do a proper combination of these over the stuff in refiningSpecDecls
         // tspecs.csymbol is already set, should be same as nspecs.csymbol
         // modelFieldMethods, checkInvariantDecl, checkStaticInvariantDecl not relevant yet
-        tspecs.file = nspecs.file;
+        //tspecs.file = nspecs.file;
         tspecs.blocks = nspecs.blocks;
         tspecs.clauses = nspecs.clauses;
         tspecs.fields = nspecs.fields;
@@ -616,18 +819,20 @@ public class JmlEnter extends Enter {
             return;
         }
 
+        Env<AttrContext> tlenv = topLevelEnv(speccu);
+        setSymbolAndEnv(speccu.defs,tlenv,csymbol); // FIXME: This only takes care of the primary class and its nested classes
+
         ListBuffer<List<JCTree>> specslist = new ListBuffer<List<JCTree>>();
         if (speccu != null) {
             specslist.append(speccu.defs);
-            Env<AttrContext> tlenv = topLevelEnv(speccu);
             //jcu.accept(this); // add in imports
             for (JCTree t: speccu.defs) {
-                // A bit of a hack: for lack of an easier way to communicate 
-                // parent information about each element of the list of spec
-                // sequence declarations, we are putting the parent env in
-                // the .env field, to be replaced by the actual information later.
                 if (t instanceof JmlClassDecl) {
-                    ((JmlClassDecl)t).env = tlenv;
+                    JmlClassDecl jtree = (JmlClassDecl)t;
+                    if (jtree.name.equals(csymbol.name)) {
+                        jtree.sym = csymbol; // FIXME - what about secondary types
+                        jtree.env = classEnv(jtree,tlenv);
+                    }
                 }
             }
         }
@@ -655,7 +860,7 @@ public class JmlEnter extends Enter {
             Symbol nsymbol = e.sym;
             if (nsymbol instanceof ClassSymbol) enterSpecsForBinaryClasses((ClassSymbol)nsymbol,specslist);
             else {
-                JavaFileObject prev = log.useSource(names.get(n).sourcefile);
+                JavaFileObject prev = log.useSource(names.get(n).source());
                 log.error(names.get(n).pos,"jml.unmatched.secondary.type",n);
                 log.useSource(prev);
             }
@@ -671,9 +876,12 @@ public class JmlEnter extends Enter {
         // Create a todo item for each toplevel class that needs processing
         // but only for those in the first item of the specsSequence
         // If the specsSequence is empty, there is nothing to do anyway
+        
+        // FIXME _ we should perhaps use the consolidated specifications 
+        // Here we need to avoid using unmatched specs
         if (speccu != null) {
             for (JCTree t: speccu.defs) {
-                if (t instanceof JmlClassDecl) {
+                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sym != null && ((JmlClassDecl)t).env != null) {
                     binaryMemberTodo.add(((JmlClassDecl)t).env);
                     //log.noticeWriter.println("APPENDING TO BINARYENVS " + specsSequence.get(0).sourcefile);
                     binaryEnvs.append(speccu);
@@ -681,6 +889,27 @@ public class JmlEnter extends Enter {
             }
         }
 
+    }
+    
+    /** Finds any JmlClassDecl objects in the defs list that have a name matching csymbol and
+     * (a) sets the .sym field to csymbol and creates a class env object based on the given env.
+     * @param defs
+     * @param env
+     * @param csymbol
+     */
+    public void setSymbolAndEnv(List<JCTree> defs, Env<AttrContext> env, ClassSymbol csymbol) {
+        for (JCTree t: defs) {
+            if (t instanceof JmlClassDecl) {
+                JmlClassDecl jmltree = (JmlClassDecl)t;
+                if (jmltree.name.equals(csymbol.name)) {
+                    jmltree.sym = csymbol;
+                    jmltree.env = classEnv(jmltree,env);
+                    for (Symbol nested: csymbol.getEnclosedElements()) {
+                        if (nested instanceof ClassSymbol) setSymbolAndEnv(jmltree.defs,jmltree.env,(ClassSymbol)nested);
+                    }
+                }
+            }
+        }
     }
 
     /** This creates the specifications structures for a binary class.  We have
@@ -820,16 +1049,20 @@ public class JmlEnter extends Enter {
      * @param specTypeDeclaration the declaration of the class in a specification file
      * @param localEnv the environment which is modified by the addition of any type parameter information
      */
-    public boolean enterTypeParametersForBinary(ClassSymbol csym, JmlClassDecl specTypeDeclaration, Env<AttrContext> localEnv) {
+    public boolean enterTypeParametersForBinary(ClassSymbol csym, JmlClassDecl specTypeDeclaration, Env<AttrContext> classEnv) {
+        Env<AttrContext> localEnv = classEnv;
+        //Scope enterScope = enterScope(classEnv);
         boolean result = true;
-        int n = specTypeDeclaration.typarams.size();
-        int javaN = csym.type.getTypeArguments().size();
-        if (n != javaN) {
-            log.error(specTypeDeclaration.pos(),"jml.mismatched.type.arguments",specTypeDeclaration.sym.fullname,csym.type.toString());
+        int numSpecTypeParams = specTypeDeclaration.typarams.size();
+        int numJavaTypeParams = csym.type.getTypeArguments().size();
+        if (numSpecTypeParams != numJavaTypeParams) {
+            JavaFileObject prev = log.useSource(specTypeDeclaration.source());
+            log.error(specTypeDeclaration.pos(),"jml.mismatched.type.arguments",specTypeDeclaration.name,csym.type.toString());
             //log.error(specTypeDeclaration.pos(),"jml.mismatched.type.parameters", specTypeDeclaration.name, csym.fullname, n, javaN);
             result = false;
+            log.useSource(prev);
         }
-        int nn = n; if (javaN < nn) nn = javaN;
+        int nn = numSpecTypeParams; if (numJavaTypeParams < nn) nn = numJavaTypeParams;
         for (int i = 0; i<nn; i++) {
             JCTree.JCTypeParameter specTV = specTypeDeclaration.typarams.get(i);
             TypeVar javaTV = (TypeVar)((ClassType)csym.type).getTypeArguments().get(i);
@@ -837,10 +1070,15 @@ public class JmlEnter extends Enter {
                 log.error(specTV.pos(),"jml.mismatched.type.parameter.name", specTypeDeclaration.name, csym.fullname, specTV.name, javaTV.tsym.name);
                 result = false;
             } 
+            // classEnter will set the type of the Type Variable, but it sets it to 
+            // something new for each instance, which causes trouble in type mathcing
+            // that I have not figured out. Here we preemptively set the type to be the
+            // same as the Java type that it matches in the specification.
             specTV.type = javaTV;
             classEnter(specTV,localEnv);
+            //enterScope.enter(javaTV.tsym);
         }
-        for (int i = nn; i<n; i++) {
+        for (int i = nn; i<numSpecTypeParams; i++) {
             JCTree.JCTypeParameter specTV = specTypeDeclaration.typarams.get(i);
             classEnter(specTV,localEnv);
 //            JmlAttr.instance(context).attribType(specTV,localEnv);
@@ -857,12 +1095,13 @@ public class JmlEnter extends Enter {
      * @param c the class the file is associated with
      * @param env the Env object representing the filename 
      */
+    @Override
     public boolean classNameMatchesFileName(ClassSymbol c, // DRC - changed from private to public
             Env<AttrContext> env) {
         String classname = c.name.toString();
         JavaFileObject jfo = env.toplevel.sourcefile;
         if (jfo.getKind() == JavaFileObject.Kind.SOURCE) return super.classNameMatchesFileName(c, env);
-        // Actually we are loose in our comparison
+        // FIXME: Actually we are loose in our comparison
         String filename = jfo.getName();
         return filename.startsWith(classname) && filename.length() > classname.length() && filename.charAt(classname.length()) == '.';
     }
@@ -870,13 +1109,14 @@ public class JmlEnter extends Enter {
     /** Overrides Enter.main simply to add to the list of compilation units 
      * being processed the compilation units representing the specs of binary
      * classes.  This is so that they will get type checked.
-     * FIXME - I'm not sure this is working yet.
      * 
      * @param trees the parse trees coming from the user-specified list of
      * files to process
      */
+    @Override
     public void main(List<JCCompilationUnit> trees) {
-        complete(trees, null);
+        super.main(trees);
+        // FIXME - these do not get entered? What if there are model classes in the binary specs?
         for (JmlCompilationUnit jcu: binaryEnvs) {
             trees.append(jcu);
         }

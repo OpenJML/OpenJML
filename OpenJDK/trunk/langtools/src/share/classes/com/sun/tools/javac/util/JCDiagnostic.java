@@ -525,9 +525,10 @@ public class JCDiagnostic implements Diagnostic<JavaFileObject> {
     }
 
     public String noSource() {  // DRC - added; FIXME - should b e a way to accomplish this goal without changing OpenJDK
-    	// This method is used in tests to avoid printing out source information
+    	// This method is used in tests to avoid printing out source column and text information
     	// explicitly in the test (the tests are less verbose and more robust)
-        return defaultFormatter.format(this,Locale.getDefault(),"%f:%l:%_%t%m"); 
+        return defaultFormatter.format(this,Locale.getDefault(),
+                getPosition() != Position.NOPOS ? "%f:%l:%_%t%m" : "%f:%_%t%m"); 
     }
 
     private DiagnosticFormatter<JCDiagnostic> defaultFormatter;

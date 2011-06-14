@@ -615,14 +615,14 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     }
     
     // DRC extracted from the method below in order to override
-    public boolean visitVarDefIsStatic(JCVariableDecl tree) {
+    public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
         return ((tree.mods.flags & STATIC) != 0 ||
                 (env.info.scope.owner.flags() & INTERFACE) != 0);
     }
 
     public void visitVarDef(JCVariableDecl tree) {
         Env<AttrContext> localEnv = env;
-        if (visitVarDefIsStatic(tree)) {
+        if (visitVarDefIsStatic(tree,env)) {
             localEnv = env.dup(tree, env.info.dup());
             localEnv.info.staticLevel++;
         }
@@ -677,9 +677,10 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             localEnv.info.scope = new Scope.DelegatedScope(env.info.scope);
             localEnv.info.scope.owner = tree.sym;
         }
-        if ((tree.mods.flags & STATIC) != 0 ||
-            (env.enclClass.sym.flags() & INTERFACE) != 0)
-            localEnv.info.staticLevel++;
+//        if ((tree.mods.flags & STATIC) != 0 ||
+//            (env.enclClass.sym.flags() & INTERFACE) != 0)
+//            localEnv.info.staticLevel++;
+        if (visitVarDefIsStatic(tree,localEnv)) localEnv.info.staticLevel++; // DRCok - This mod is so that overriding classes can adjust when an initialization environment is static
         return localEnv;
     }
 
@@ -717,7 +718,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         try {
             // To prevent deep recursion, suppress completion of some
             // types.
-            completionEnabled = false;
+            //completionEnabled = false;  // FIXME - trurning this off - DRCok
             return attr.attribType(tree, env);
         } finally {
             completionEnabled = true;

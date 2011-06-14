@@ -234,6 +234,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         this.log = Log.instance(context);
         
         ClassReader reader = ClassReader.instance(context);
+        reader.init(syms);
 
         assertionFailureClass = reader.enterClass(names.fromString("org.jmlspecs.utils.Utils$JmlAssertionFailure"));
         utilsClass = reader.enterClass(names.fromString("org.jmlspecs.utils.Utils"));

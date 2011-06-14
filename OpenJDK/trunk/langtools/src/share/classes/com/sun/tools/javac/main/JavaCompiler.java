@@ -133,9 +133,8 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
      * it does not depend on any unrelated errors that might have occurred.
      */
     protected static enum CompilePolicy {
-        /* Do thing in the second compile phase
+        /** Do nothing in the second compile phase
          * (presumably a derived class is doing something)
-         * 
          */
         SKIP,                               // DRC - added
 

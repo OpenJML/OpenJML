@@ -150,7 +150,10 @@ public class JmlTree {
         
         /** The public method for obtaining a JmlTree.Maker instance. */
         public static JmlTree.Maker instance(Context context) {
-            return (JmlTree.Maker)TreeMaker.instance(context);
+            JmlTree.Maker instance = (JmlTree.Maker)context.get(treeMakerKey);
+            if (instance == null)
+                instance = new Maker(context);
+            return instance;
         }
         
         /** Sets the preferred token position to be used for subsequent
@@ -175,6 +178,9 @@ public class JmlTree {
                     defs,
                     null,null,null,null);
             t.pos = this.pos;
+            for (JCTree d: defs) {
+                if (d instanceof JmlClassDecl) ((JmlClassDecl)d).toplevel = t;
+            }
             return t;
         }
         
@@ -257,9 +263,10 @@ public class JmlTree {
             // TreeMaker.ClassDef before TreeMaker has completed construction
             // where A -> B means A constructs B during A's construction.  This results in TreeMaker.ClassDef
             // being called with a null context during TreeMaker's construction
-            if (context != null) 
-                tree.sourcefile = Log.instance(context).currentSourceFile();
-            else {
+//            if (context != null) 
+//                tree.toplevel.sourcefile = Log.instance(context).currentSourceFile();
+//            else {
+            if (context == null) {
                 String msg = ("INTERNAL ERROR: JmlTree.ClassDef called with a null context, indicating a problem with circular dependencies in constructors.");
                 System.err.println(msg);
                 new Exception().printStackTrace(System.err);
@@ -919,7 +926,8 @@ public class JmlTree {
          * declaration chain) would be last. A null value is legal and
          * corresponds to an empty list.
          * NOTE: JML has been revised to have only one specs file per java file, so this list
-         * will at most have one element (which may be the .java file itself)
+         * will at most have one element (which may be the original class definition from the
+         * .java file itself)
          */
         public /*@Nullable*/ java.util.List<JmlClassDecl> specsDecls;
 
@@ -934,10 +942,11 @@ public class JmlTree {
          */
         public JmlSpecs.TypeSpecs typeSpecs;
 
-        /** The Java or spec source file from which this class declaration was parsed. */
-        public JavaFileObject sourcefile;
-
-        /** The top-level tree that this class declaration belongs to. */
+        /** The top-level tree that this class declaration belongs to; for specification
+         * declarations this is the compilation unit containing the spec declaration, which
+         * may be different than the compilation unit containing the java class declaration. 
+         * Note that the sourcefile for this class declaration can be obtained from
+         * toplevel.sourcefile*/
         public JmlCompilationUnit toplevel;
         
         // FIXME - is this used; why would it not be in JCClassDecl?
@@ -963,14 +972,13 @@ public class JmlTree {
             super(mods, name, typarams, extending, implementing, defs, sym);
             specsDecls = null;
             typeSpecs = null;
-            sourcefile = null;
         }
         
         /** The source this class was declared in (model classes may be declared
          * in a source file different than the class that owns the model class)
          */
         @Override
-        public JavaFileObject source() { return sourcefile; }
+        public JavaFileObject source() { return toplevel == null ? null : toplevel.sourcefile; }
 
         @Override
         public void accept(Visitor v) {

@@ -369,13 +369,13 @@ public class typeclauses extends TCBase {
     
     public void testForall5() {
         helpTCF("A.java","public class A {\n //@ forall boolean j; old boolean  k=true; requires i+j<k; \n public void m(boolean i) {}}"
-                ,"/A.java:2: operator + cannot be applied to boolean,boolean",55
+                ,"/A.java:2: bad operand types for binary operator '+'\n  first type:  boolean\n  second type: boolean",55
                 );        
     }
     
     public void testForall6() {
         helpTCF("A.java","public class A { int i,j,k; \n //@ forall boolean j; old boolean k=true; requires i+j<k; \n public void m(boolean i) {}}"
-                ,"/A.java:2: operator + cannot be applied to boolean,boolean",54
+                ,"/A.java:2: bad operand types for binary operator '+'\n  first type:  boolean\n  second type: boolean",54
                 );        
     }
     
