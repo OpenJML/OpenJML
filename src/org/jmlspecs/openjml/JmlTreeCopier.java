@@ -92,7 +92,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     public JCTree visitJmlClassDecl(JmlClassDecl that, Void p) {
         JmlClassDecl copy = (JmlClassDecl)super.visitClass(that,p);
-        copy.sourcefile = that.sourcefile;
+        copy.toplevel.sourcefile = that.source();
         copy.specsDecls = that.specsDecls;// FIXME - copy
         copy.typeSpecs = that.typeSpecs;// FIXME - copy
         copy.typeSpecsCombined = that.typeSpecsCombined;// FIXME - copy

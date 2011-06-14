@@ -162,7 +162,7 @@ public class compiler extends TestCase {
                             "-classpath","testfiles/testNoErrors",
                             "testfiles/testNoErrors/A.java",  
                           },1,0,
-                          "testfiles/testNoErrors/A.java:1: package org.jmlspecs.lang does not exist"+eol+
+                          "testfiles/testNoErrors/A.java:1: error: package org.jmlspecs.lang does not exist"+eol+
                           "public class A {" +eol+
                           "^"+eol+
                           "1 error" + eol+
@@ -360,7 +360,7 @@ public class compiler extends TestCase {
                             "testfiles/testSuperRead/A.java"
                           },1,1
                           ,""
-                          ,"testfiles/testSuperRead/B.jml:3: This JML modifier is not allowed for a type declaration"
+                          ,"testfiles/testSuperRead/B.jml:3: error: This JML modifier is not allowed for a type declaration"
                           );
     }
     
@@ -402,7 +402,7 @@ public class compiler extends TestCase {
                             "testfiles/testSpecErrors/A.java"
                           },1,0
                           ,""
-                          ,"testfiles/testSpecErrors/A.jml:4: incompatible types\r\n    //@ ghost int i = true; // Error to provoke a message\r\n                      ^\r\n  required: int\r\n  found:    boolean\r\n1 error\r\n"
+                          ,"testfiles/testSpecErrors/A.jml:4: error: incompatible types\r\n    //@ ghost int i = true; // Error to provoke a message\r\n                      ^\r\n  required: int\r\n  found:    boolean\r\n1 error\r\n"
                           );
     }
     
@@ -431,7 +431,7 @@ public class compiler extends TestCase {
                             "-noPurityCheck",
                             "testfiles/testKeys/A.java"
                           },1,1
-                          ,"testfiles/testKeys/A.java:4: cannot find symbol"
+                          ,"testfiles/testKeys/A.java:4: error: cannot find symbol"
                           ,""
                           );
     }
@@ -447,7 +447,7 @@ public class compiler extends TestCase {
                             "-keys","K2",
                             "testfiles/testKeys/A.java"
                           },1,1
-                          ,"testfiles/testKeys/A.java:4: cannot find symbol"
+                          ,"testfiles/testKeys/A.java:4: error: cannot find symbol"
                           ,""
                           );
     }
@@ -478,7 +478,7 @@ public class compiler extends TestCase {
                             "-keys","K2",
                             "testfiles/testKeys/B.java"
                           },1,1
-                          ,"testfiles/testKeys/B.java:4: cannot find symbol"
+                          ,"testfiles/testKeys/B.java:4: error: cannot find symbol"
                           ,""
                           );
     }
@@ -541,7 +541,7 @@ public class compiler extends TestCase {
                             "-keys","K2,K3",
                             "testfiles/testKeys/C.java"
                           },1,1
-                          ,"testfiles/testKeys/C.java:10: cannot find symbol"
+                          ,"testfiles/testKeys/C.java:10: error: cannot find symbol"
                           ,""
                           );
     }

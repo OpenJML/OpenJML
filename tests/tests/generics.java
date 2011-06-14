@@ -23,7 +23,7 @@ public class generics extends TCBase {
     public void testBinaryGeneric() {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","package java.util; public interface Collection<E> extends java.lang.Iterable<E> { public boolean add(E t); }");
-        helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }");
+        helpTCF("A.java","public class A<X> { java.util.Collection<X> t() { return null; }}");
     }
 
     /** Test mismatched type parameters*/
@@ -40,7 +40,7 @@ public class generics extends TCBase {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","public interface Collection extends java.lang.Iterable {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:1: The type java.util.Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
+                ,"/$A/java/util/Collection.jml:1: The type Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
                 );
     }
 
@@ -50,7 +50,8 @@ public class generics extends TCBase {
         addMockFile("$A/java/util/Collection.jml","public interface Collection<Z> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:1: The specification type named Collection (java.util.Collection) has a type parameter named Z but the Java declaration has that type parameter named E",29
-                ,"/$A/java/util/Collection.jml:1: cannot find symbol\n  symbol: class Z",59);
+                ,"/$A/java/util/Collection.jml:1: cannot find symbol\n  symbol: class Z",59
+                );
     }
 
     /** Test with a binary class*/
@@ -58,7 +59,7 @@ public class generics extends TCBase {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","public interface Collection<E,Z> extends java.lang.Iterable<E> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:1: The type java.util.Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
+                ,"/$A/java/util/Collection.jml:1: The type Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
                 );
     }
     

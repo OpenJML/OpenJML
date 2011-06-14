@@ -337,7 +337,7 @@ public class typechecking extends TCBase {
 
     public void testSetCompB3() {
         helpTCF("A.java","public class A {  boolean p; \n java.util.Collection c; //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && p<10}; \n void m() {} \n }"
-                ,"/A.java:2: operator < cannot be applied to boolean,int",94
+                ,"/A.java:2: bad operand types for binary operator '<'\n  first type:  boolean\n  second type: int",94
         );
     }
 
@@ -378,7 +378,7 @@ public class typechecking extends TCBase {
 
     public void testSetCompC3() {
         helpTCF("A.java","public class A {  \n java.util.Collection c;  void m() { boolean p; //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && p<10}; \n} \n }"
-                ,"/A.java:2: operator < cannot be applied to boolean,int",117
+                ,"/A.java:2: bad operand types for binary operator '<'\n  first type:  boolean\n  second type: int",117
                 );
     }
 
@@ -453,7 +453,7 @@ public class typechecking extends TCBase {
     
     public void testQuantifier7() {
         helpTCF("A.java","public class A {  \n Object i; Object j; \n boolean m(double i) { return false; }\n//@ invariant (\\product long i; 0 < j && i <10; i) ; \n }",
-                "/A.java:4: operator < cannot be applied to int,java.lang.Object",35,
+                "/A.java:4: bad operand types for binary operator '<'\n  first type:  int\n  second type: java.lang.Object",35,
                 "/A.java:4: incompatible types\n  required: boolean\n  found:    long",16);
     }
     
@@ -464,7 +464,7 @@ public class typechecking extends TCBase {
     
     public void testSame1() {
         helpTCF("A.java","public class A { //@ requires 1+\\same; \n boolean m(double i) { return false; }\n}",
-                "/A.java:1: operator + cannot be applied to int,boolean",32);
+                "/A.java:1: bad operand types for binary operator '+'\n  first type:  int\n  second type: boolean",32);
     }
     
     public void testSame2() {  // FIXME - should not allow \same inside expressions
@@ -509,7 +509,7 @@ public class typechecking extends TCBase {
     
     public void testLockCompare2() {
         helpTCF("A.java","public class A { Object o,oo; int i; //@ invariant o < true; \n }"
-                ,"/A.java:1: operator < cannot be applied to java.lang.Object,boolean",54
+                ,"/A.java:1: bad operand types for binary operator '<'\n  first type:  java.lang.Object\n  second type: boolean",54
                 );
     }
     
@@ -520,19 +520,19 @@ public class typechecking extends TCBase {
     
     public void testLockCompare2Y() {
         helpTCF("A.java","public class A { Object o,oo; int i; //@ invariant o < 5; \n }"
-                ,"/A.java:1: operator < cannot be applied to java.lang.Object,int",54
+                ,"/A.java:1: bad operand types for binary operator '<'\n  first type:  java.lang.Object\n  second type: int",54
                 );
     }
     
     public void testLockCompare3() {
         helpTCF("A.java","public class A { Object o,oo; boolean b = o <= oo;  \n }"
-                ,"/A.java:1: operator <= cannot be applied to java.lang.Object,java.lang.Object",45
+                ,"/A.java:1: bad operand types for binary operator '<='\n  first type:  java.lang.Object\n  second type: java.lang.Object",45
                 );
     }
     
     public void testLockCompare4() {
         helpTCF("A.java","public class A { Object o,oo; boolean b = o <= oo;  \n }"
-                ,"/A.java:1: operator <= cannot be applied to java.lang.Object,java.lang.Object",45
+                ,"/A.java:1: bad operand types for binary operator '<='\n  first type:  java.lang.Object\n  second type: java.lang.Object",45
                 );
     }
     
@@ -575,7 +575,7 @@ public class typechecking extends TCBase {
     
     public void testFresh5() {
         helpTCF("A.java","public class A { int i; Object o,oo; //@ ensures   \\fresh(o) + 1 == 0; \n void m() {}  \n }"
-                ,"/A.java:1: operator + cannot be applied to boolean,int",62
+                ,"/A.java:1: bad operand types for binary operator '+'\n  first type:  boolean\n  second type: int",62
                 );
     }
     

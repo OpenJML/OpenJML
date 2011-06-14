@@ -193,7 +193,7 @@ public class JmlEsc extends JmlTreeScanner {
     public void visitMethodDef(@NonNull JCMethodDecl node) {
         if (!(node instanceof JmlMethodDecl)) {
             // TODO - I would think this is an internal error
-            log.warning("esc.not.implemented","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + node.sym);
+            log.warning(node.pos(),"esc.not.implemented","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + node.sym);
             return;
         }
         
@@ -428,7 +428,7 @@ public class JmlEsc extends JmlTreeScanner {
         IResponse resp = solver.get_value(s);
         if (resp instanceof org.smtlib.sexpr.ISexpr.ISeq){
             org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
-            return !se.toString().equals("false");
+            return !se.toString().contains("false"); // FIXME - really should test the second item of the returned pair
         } else if (resp instanceof IResponse.IError) {
             log.error("jml.internal.notsobad", ((IResponse.IError)resp).errorMsg());
             return true;
@@ -625,19 +625,19 @@ public class JmlEsc extends JmlTreeScanner {
             } catch (RuntimeException e) {
                 String se = e.toString();
                 if (se.length() > 200) se = se.substring(0,200) + " .....";
-                log.warning("esc.prover.failure",se);
+                log.warning(node.pos(),"esc.prover.failure",se);
                 // go on with next 
             } catch (Throwable e) {
                 String se = e.toString();
                 if (se.length() > 200) se = se.substring(0,200) + " .....";
-                log.warning("esc.prover.failure",se);
+                log.warning(node.pos(),"esc.prover.failure",se);
                 System.gc();
             }
         } catch (RuntimeException e) {
-            log.warning("esc.vc.prep",e);
+            log.warning(node.pos(),"esc.vc.prep",e);
             // go on with next 
         } catch (Throwable e) {
-            log.warning("esc.vc.prep",e);
+            log.warning(node.pos(),"esc.vc.prep",e);
             System.gc();
         } finally {
             log.useSource(prev);
@@ -1428,7 +1428,7 @@ public class JmlEsc extends JmlTreeScanner {
         } catch (ProverException e) {
             String se = e.mostRecentInput == null ? "" :e.mostRecentInput;
             if (se.length() > 200) se = se.substring(0,200) + " .......";
-            log.warning("esc.prover.failure",methodDecl.sym.toString() + ": " + e.getLocalizedMessage() + ":" + se);
+            log.warning(methodDecl.pos(),"esc.prover.failure",methodDecl.sym.toString() + ": " + e.getLocalizedMessage() + ":" + se);
             if (escdebug) {
                 log.noticeWriter.println("PROVER FAILURE: " + e);
                 if (e.mostRecentInput != null) log.noticeWriter.println("INPUT: " + se);
@@ -1437,11 +1437,11 @@ public class JmlEsc extends JmlTreeScanner {
             try {
                 if (p != null) p.kill();
             } catch (ProverException ee) {
-                log.warning("esc.internal.error","Failed to kill process: " + ee);
+                log.warning(methodDecl.pos(),"esc.internal.error","Failed to kill process: " + ee);
                 // Report but ignore any problems in killing
             }
         } catch (Throwable e) {
-            log.warning("esc.prover.failure",methodDecl.sym.toString() + ": " + e.getLocalizedMessage());
+            log.warning(methodDecl.pos(),"esc.prover.failure",methodDecl.sym.toString() + ": " + e.getLocalizedMessage());
             if (escdebug) log.noticeWriter.println("PROVER FAILURE: " + e.getClass() + " " + e);
             e.printStackTrace(log.noticeWriter);
         }
@@ -1452,7 +1452,7 @@ public class JmlEsc extends JmlTreeScanner {
         try {
         	if (p != null) p.kill();
         } catch (ProverException e) {
-        	log.warning("esc.internal.error", "Failed to kill process: " + e);
+        	log.warning(methodDecl.pos(),"esc.internal.error", "Failed to kill process: " + e);
         	// ignore any problems in killing
         }
         return ok;
@@ -1639,7 +1639,7 @@ public class JmlEsc extends JmlTreeScanner {
         }
 
         if (noinfo) {
-            log.warning("esc.method.invalid",methodDecl.getName());
+            log.warning(methodDecl.pos(),"esc.method.invalid",methodDecl.getName());
         } else {
             Pattern pat2 = Pattern.compile("^\\$\\$LBLPOS\\$(\\d+)\\$([^ ]+)");
             for (Map.Entry<String,String> var: s.sortedEntries()) {

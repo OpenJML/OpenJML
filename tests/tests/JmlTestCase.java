@@ -1,30 +1,31 @@
 package tests;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.tools.Diagnostic;
-import javax.tools.DiagnosticCollector;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
-
-import org.junit.*;
-import static org.junit.Assert.*;
 
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
+import org.junit.After;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
-import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.util.Options;
-import java.util.*;
-import java.util.concurrent.TimeoutException;
-import java.io.*;
 
 
 /** This class provides basic functionality for the JUnit tests for OpenJML.
@@ -203,7 +204,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
      * @return
      */
     protected String noSource(Diagnostic<? extends JavaFileObject> dd) {
-        return dd instanceof JCDiagnostic ? ((JCDiagnostic)dd).noSource() : dd.toString();
+        return dd instanceof JCDiagnostic ? noSource((JCDiagnostic)dd) : dd.toString();
     }
 
     
@@ -286,6 +287,15 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
         mockFiles.add(file);
         specs.addMockFile(filename,file);
     }
+    
+    
+    // FIXME - document
+    String noSource(JCDiagnostic dd) {
+        return dd.noSource();
+        //return dd.getMessage(Locale.getDefault());
+        //defaultFormatter.format(this,Locale.getDefault(),"%f:%l:%_%t%m");
+    }
+
 
 
 }

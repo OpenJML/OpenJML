@@ -8,6 +8,7 @@ import junit.framework.AssertionFailedError;
 import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlTreeScanner;
 
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.parser.JavacParser;
 import com.sun.tools.javac.parser.JmlFactory;
@@ -46,6 +47,7 @@ abstract public class ParseBase extends JmlTestCase {
         options.put("compilePolicy","check");  // Don't do code generation
         options.put("-specspath",   testspecpath);
         //main.register(context);
+        JmlAttr.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         Log.instance(context).multipleErrors = true;
         sfac = ScannerFactory.instance(context);

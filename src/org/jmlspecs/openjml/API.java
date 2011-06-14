@@ -43,6 +43,7 @@ import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.Enter;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.JavaCompiler;
@@ -901,7 +902,7 @@ public class API {
     //@ requires isOpen;
     //@ ensures isOpen;
     public @NonNull JmlTree.Maker nodeFactory() {
-        JmlEnter.instance(context);  // Avoids circular tool registration problems
+        JmlAttr.instance(context);  // Avoids circular tool registration problems
         return JmlTree.Maker.instance(context);
     }
     

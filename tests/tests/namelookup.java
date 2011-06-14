@@ -323,10 +323,11 @@ public class namelookup extends TCBase {
                 ""
        ,"/$A/A.jml:16: This specification declaration of type A has the same name as a previous JML type declaration",1
        ,"/$A/A.jml:1: Associated declaration",8
+       ,"/$A/A.jml:17: This specification declaration of type B does not match any Java type declaration in /A.java",1
        ,"/$A/A.jml:11: This specification declaration of type AA has the same name as a previous JML type declaration",11
        ,"/$A/A.jml:2: Associated declaration",11
-       ,"/$A/A.jml:13: This specification declaration of type BB in A does not match any Java type declaration.",11
-       ,"/$A/A.jml:17: This specification declaration of type B does not match any Java type declaration in /A.java",1
+       ,"/$A/A.jml:13: This specification declaration of type BB does not match any Java type declaration in /A.java",11
+       // FISME: Would prefer this: ,"/$A/A.jml:13: This specification declaration of type BB in A does not match any Java type declaration.",11
         ,"/A.java:3: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
         ,"/A.java:5: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
         ,"/A.java:6: incompatible types\n  required: boolean\n  found:    double",22
