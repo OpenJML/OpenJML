@@ -1269,7 +1269,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // FIXME - check everything for position information
     public void deSugarMethodSpecs(JmlMethodDecl decl, JmlSpecs.MethodSpecs msp) {
         //log.noticeWriter.println("DESUGARING " + decl.sym.owner + " " + decl.sym);
-        if (msp == null || msp.cases.decl == null) return;
+        if (msp == null) return;
         JmlMethodSpecs methodSpecs = msp.cases;
         Env<AttrContext> prevEnv = env;
         env = enter.getEnv((ClassSymbol)decl.sym.owner);

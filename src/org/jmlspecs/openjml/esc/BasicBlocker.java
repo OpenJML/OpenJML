@@ -190,45 +190,45 @@ import com.sun.tools.javac.util.Position;
  */
 public class BasicBlocker extends JmlTreeScanner {
 
-    /** The context key for the tree factory. */
-    protected static final Context.Key<BasicBlocker> bbKey =
-        new Context.Key<BasicBlocker>();
-
-    /////// To have a unique BasicBlocker instance for each method translated
-    // In the initialization of tools, call  BasicBlocker.Factory.preRegister(context);
-    // Obtain a new BasicBlocker when desired with  context.get(BasicBlocker.class);
+//    /** The context key for the tree factory. */
+//    protected static final Context.Key<BasicBlocker> bbKey =
+//        new Context.Key<BasicBlocker>();
+//
+//    /////// To have a unique BasicBlocker instance for each method translated
+//    // In the initialization of tools, call  BasicBlocker.Factory.preRegister(context);
+//    // Obtain a new BasicBlocker when desired with  context.get(BasicBlocker.class);
+//        
+//    /** Register a BasicBlocker Factory, if nothing is registered yet */
+//    public static void preRegister(final Context context) {
+//        if (context.get(bbKey) != null) return;
+//        context.put(bbKey, new Context.Factory<BasicBlocker>() {
+//            @Override
+//            public BasicBlocker make(Context context) {
+//                return new BasicBlocker(context);
+//            }
+//        });
+//    }
+//    
+//    /////// To have one BasicBlocker instance per context use this method without the pre-registration
+//    // Don't need pre-registration since we are not replacing any tool and not using a factory
+//    // To obtain a reference to the instance of BasicBlocker for the current context
+//    //                                 BasicBlocker.instance(context);
+//    
+//    /** Get the instance for this context. 
+//     * 
+//     * @param context the compilation context
+//     * @return a (unique for the context) BasicBlocker instance
+//     */
+//    public static BasicBlocker instance(@NonNull Context context) {
+//        BasicBlocker instance = context.get(bbKey);
+//        // This is lazily initialized so that a derived class can preRegister to
+//        // replace this BasicBlocker
+//        if (instance == null) {
+//            instance = new BasicBlocker(context);
+//        }
+//        return instance;
+//    }
         
-    /** Register a BasicBlocker Factory, if nothing is registered yet */
-    public static void preRegister(final Context context) {
-        if (context.get(bbKey) != null) return;
-        context.put(bbKey, new Context.Factory<BasicBlocker>() {
-            @Override
-            public BasicBlocker make(Context context) {
-                return new BasicBlocker(context);
-            }
-        });
-    }
-    
-    /////// To have one BasicBlocker instance per context use this method without the pre-registration
-    // Don't need pre-registration since we are not replacing any tool and not using a factory
-    // To obtain a reference to the instance of BasicBlocker for the current context
-    //                                 BasicBlocker.instance(context);
-    
-    /** Get the instance for this context. 
-     * 
-     * @param context the compilation context
-     * @return a (unique for the context) BasicBlocker instance
-     */
-    public static BasicBlocker instance(@NonNull Context context) {
-        BasicBlocker instance = context.get(bbKey);
-        // This is lazily initialized so that a derived class can preRegister to
-        // replace this BasicBlocker
-        if (instance == null) {
-            instance = new BasicBlocker(context);
-        }
-        return instance;
-    }
-    
     // Options
     
     // TODO - document
@@ -591,7 +591,7 @@ public class BasicBlocker extends JmlTreeScanner {
      * @param context the compilation context
      */
     protected BasicBlocker(@NonNull Context context) {
-        context.put(bbKey, this);
+//        context.put(bbKey, this);
         this.context = context;
         this.log = Log.instance(context);
         this.factory = JmlTree.Maker.instance(context);
@@ -1175,7 +1175,7 @@ public class BasicBlocker extends JmlTreeScanner {
      */
     public static @NonNull BasicProgram convertToBasicBlocks(@NonNull Context context, 
             @NonNull JCMethodDecl tree, JmlMethodSpecs denestedSpecs, JCClassDecl classDecl) {
-        BasicBlocker blocker = instance(context);
+        BasicBlocker blocker = new BasicBlocker(context);
         return blocker.convertMethodBody(tree,denestedSpecs,classDecl);
     }
     

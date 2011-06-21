@@ -332,7 +332,7 @@ public class JmlCompiler extends JavaCompiler {
         }
         
         if (utils.esc) {
-            if (Options.instance(context).get("-newesc") == null) new JmlTranslator(context).translate(env);
+            //if (Options.instance(context).get("-newesc") == null) new JmlTranslator(context).translate(env);
             //log.noticeWriter.println(JmlPretty.write(env.tree));
             esc(env);
             

@@ -830,7 +830,7 @@ public class esc extends EscBase {
                 );
     }
     
-    public void testAssignables1() {
+    public void testAssignables1a() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -844,6 +844,22 @@ public class esc extends EscBase {
                 +"    //@ assert k == 0;\n"
                 +"  }\n"
                 
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                );
+    }
+    
+    public void testAssignables1b() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
+                
                 +"  //@ modifies \\everything;\n"
                 +"  public void m1a() {\n"
                 +"    //@ assume k == 0;\n"
@@ -851,12 +867,45 @@ public class esc extends EscBase {
                 +"    //@ assert k == 0;\n" // FAILS
                 +"  }\n"
                 
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                );
+    }
+    
+    public void testAssignables1c() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
+                
                 +"  //@ modifies \\everything;\n"
                 +"  public void m2() {\n"
                 +"    //@ assume sk == 0;\n"
                 +"    c1(1);\n"
                 +"    //@ assert sk == 0;\n"
                 +"  }\n"
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                );
+    }
+    
+    public void testAssignables1d() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
                 
                 +"  //@ modifies \\everything;\n"
                 +"  public void m2a() {\n"
@@ -872,12 +921,13 @@ public class esc extends EscBase {
                 +"  //@ modifies \\nothing;\n"
                 +"  public void c1(int i) { } \n"
                 +"}"
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m1a",9
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m2a",9
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2a",9
                 );
     }
     
-    public void testAssignables6() {
+
+    
+    public void testAssignables6a() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -892,6 +942,21 @@ public class esc extends EscBase {
                 +"    //@ assert a[0] == 0;\n"
                 +"  }\n"
                 
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                );
+    }
+    public void testAssignables6b() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
+                
                 +"  //@ requires a != null && a.length > 10;\n"
                 +"  //@ modifies \\everything;\n"
                 +"  public void m3a() {\n"
@@ -900,6 +965,24 @@ public class esc extends EscBase {
                 +"    //@ assert a[0] == 0;\n" // FAILS
                 +"  }\n"
                 
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m3a",-17
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",-17
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m3a",-9
+                );
+    }
+    public void testAssignables6c() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
+                
                 +"  //@ requires sa != null && sa.length > 10;\n"
                 +"  //@ modifies \\everything;\n"
                 +"  public void m4() {\n"
@@ -907,8 +990,23 @@ public class esc extends EscBase {
                 +"    c1(1);\n"
                 +"    //@ assert sa[0] == 0;\n"
                 +"  }\n"
+                                
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                );
+    }
+    public void testAssignables6d() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
                 
-                +"  //@ requires sa != null && sa.length > 10;\n"  // Line 50
+                +"  //@ requires sa != null && sa.length > 10;\n" 
                 +"  //@ modifies \\everything;\n"
                 +"  public void m4a() {\n"
                 +"    //@ assume sa[0] == 0;\n"
@@ -916,23 +1014,19 @@ public class esc extends EscBase {
                 +"    //@ assert sa[0] == 0;\n" // FAILS
                 +"  }\n"
                 
-                
                 +"  //@ requires i == 0;\n"
                 +"  //@ modifies \\everything;\n"
                 +"  //@ also requires i > 0;\n"
                 +"  //@ modifies \\nothing;\n"
                 +"  public void c1(int i) { } \n"
                 +"}"
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m3a",-17
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",-17
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m3a",-9
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m4a",-18
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",-18
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Assert) in method m4a",-9
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m4a",-18
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",-18
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m4a",-9
                 );
     }
     
-    public void testAssignables5() {
+    public void testAssignables5a() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -946,6 +1040,22 @@ public class esc extends EscBase {
                 +"    c1(1);\n"
                 +"    //@ assert a == \\old(a);\n"
                 +"  }\n"
+                                
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                );
+    }
+    
+    public void testAssignables5b() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
                 
                 +"  //@ requires sa != null && sa.length > 10;\n"
                 +"  //@ modifies \\everything;\n"
@@ -954,6 +1064,24 @@ public class esc extends EscBase {
                 +"    c1(0);\n"
                 +"    //@ assert a == \\old(a);\n" // FAILS
                 +"  }\n"
+
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m5a",9
+                );
+    }
+    
+    public void testAssignables5c() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
                 
                 +"  //@ modifies \\everything;\n"
                 +"  public void m6(/*@ non_null*/TestJava t) {\n"
@@ -962,6 +1090,23 @@ public class esc extends EscBase {
                 +"    //@ assert t.k == 0;\n"
                 +"  }\n"
                 
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                );
+    }
+    
+    public void testAssignables5d() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
+                
                 +"  //@ modifies \\everything;\n"
                 +"  public void m6a(/*@ non_null*/TestJava t) {\n"
                 +"    //@ assume t.k == 0;\n"
@@ -969,12 +1114,46 @@ public class esc extends EscBase {
                 +"    //@ assert t.k == 0;\n" // FAILS
                 +"  }\n"
 
+               
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m6a",9
+                );
+    }
+    
+    public void testAssignables5e() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
+                
                 +"  //@ modifies \\everything;\n"
                 +"  public void m7() {\n"
                 +"    c1(1);\n"
                 +"    //@ assert sk == \\old(sk);\n" // Should be OK
                 +"  }\n"
 
+                +"  //@ requires i == 0;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  //@ also requires i > 0;\n"
+                +"  //@ modifies \\nothing;\n"
+                +"  public void c1(int i) { } \n"
+                +"}"
+                );
+    }
+    
+    public void testAssignables5f() {
+        //options.put("-method","m1x");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int k; static int sk;\n"
+                +"  int[] a; static int[] sa;\n"
+                
                 +"  //@ modifies \\everything;\n"
                 +"  public void m7a() {\n"
                 +"    c1(0);\n"
@@ -988,9 +1167,7 @@ public class esc extends EscBase {
                 +"  //@ modifies \\nothing;\n"
                 +"  public void c1(int i) { } \n"
                 +"}"
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m5a",9
-                ,"/tt/TestJava.java:29: warning: The prover cannot establish an assertion (Assert) in method m6a",9
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (Assert) in method m7a",9
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m7a",9
                 );
     }
     
@@ -3296,7 +3473,7 @@ public class esc extends EscBase {
                 );
     }
 
-    public void testSignals() {
+    public void testSignals1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static int i;\n"
@@ -3312,6 +3489,15 @@ public class esc extends EscBase {
                 +"  public void m1a() throws Exception {\n"
                 +"    if (i==0) throw new Exception();\n"
                 +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1a",15
+                ,"/tt/TestJava.java:12: warning: Associated declaration",7
+                );
+    }
+    public void testSignals2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static int i;\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ ensures i>0;\n"
                 +"  //@ signals (Exception e) i == 0;\n"  // OK
@@ -3324,6 +3510,15 @@ public class esc extends EscBase {
                 +"  public void m2a() throws Exception {\n"
                 +"    if (i==0) throw new RuntimeException();\n"
                 +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2a",15
+                ,"/tt/TestJava.java:12: warning: Associated declaration",7
+                );
+    }
+    public void testSignals3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static int i;\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ ensures i>0;\n"
                 +"  //@ signals (Exception e) i == 0;\n"
@@ -3336,6 +3531,15 @@ public class esc extends EscBase {
                 +"  public void m3a() {\n"
                 +"    if (i==0) throw new RuntimeException();\n"
                 +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3a",15
+                ,"/tt/TestJava.java:12: warning: Associated declaration",7
+                );
+    }
+    public void testSignals4() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static int i;\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ ensures i>0;\n"
                 +"  //@ signals (RuntimeException e) i == 1;\n" // OK because a RuntimeException is never thrown
@@ -3343,12 +3547,6 @@ public class esc extends EscBase {
                 +"    if (i==0) throw new Exception();\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1a",15
-                ,"/tt/TestJava.java:12: warning: Associated declaration",7
-                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2a",15
-                ,"/tt/TestJava.java:24: warning: Associated declaration",7
-                ,"/tt/TestJava.java:38: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3a",15
-                ,"/tt/TestJava.java:36: warning: Associated declaration",7
                 );
     }
 

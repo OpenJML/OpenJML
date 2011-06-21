@@ -7,6 +7,8 @@ public class escm extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-noPurityCheck","");
+        //options.put("-newesc", null);
+        
 //        options.put("-jmlverbose",   "");
 //        options.put("-showbb","");
 //        options.put("-method","me");
