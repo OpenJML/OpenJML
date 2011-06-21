@@ -1,5 +1,8 @@
 package org.jmlspecs.openjml;
 
+import static org.jmlspecs.openjml.JmlToken.ENSURES;
+import static org.jmlspecs.openjml.JmlToken.SIGNALS;
+
 import java.util.LinkedList;
 
 import javax.tools.JavaFileObject;
@@ -40,6 +43,7 @@ import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
@@ -167,6 +171,8 @@ public class JmlTranslator extends JmlTreeTranslator {
      * expression is being processed.
      */
     boolean inSpecExpression;
+    
+    boolean postState = false;
     
     /** The class declaration that we are currently within */
     protected @NonNull JCClassDecl currentClassDecl = null;
@@ -771,6 +777,28 @@ public class JmlTranslator extends JmlTreeTranslator {
         } finally {
             currentClassDecl = prev;
             popSource();
+        }
+    }
+    
+    @Override
+    public void visitIdent(JCIdent that) {
+        if (postState && (that.sym.owner instanceof MethodSymbol)) {
+            result = factory.JmlMethodInvocation(JmlToken.BSOLD,List.<JCExpression>of(that));
+            result.type = that.type;
+            // If this is a method parameter
+        } else {
+            result = that;
+        }
+    }
+    
+    @Override
+    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
+        boolean prev = postState;
+        try {
+            postState = that.token == JmlToken.ENSURES || that.token == JmlToken.SIGNALS;
+            super.visitJmlMethodClauseExpr(that);
+        } finally {
+            postState = prev;
         }
     }
     

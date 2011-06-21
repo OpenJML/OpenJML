@@ -193,37 +193,39 @@ public class BasicBlocker2 extends JmlTreeScanner {
     // In the initialization of tools, call  BasicBlocker2.Factory.preRegister(context);
     // Obtain a new BasicBlocker2 when desired with  context.get(BasicBlocker2.class);
         
-    /** Register a BasicBlocker Factory, if nothing is registered yet */
-    public static void preRegister(final Context context) {
-        if (context.get(BasicBlocker2.class) != null) return;
-        context.put(BasicBlocker2.class, new Context.Factory<BasicBlocker2>() {
-            @Override
-            public BasicBlocker2 make(Context context) {
-                return new BasicBlocker2(context);
-            }
-        });
-    }
+//    /** Register a BasicBlocker Factory, if nothing is registered yet */
+//    public static void preRegister(final Context context) {
+//        //if (context.get(key) != null) return;
+//        context.put(key, new Context.Factory<BasicBlocker2>() {
+//            @Override
+//            public BasicBlocker2 make(Context context) {
+//                return new BasicBlocker2(context);
+//            }
+//        });
+//    }
+//    
+//    final public static Context.Key<BasicBlocker2> key =
+//        new Context.Key<BasicBlocker2>();
     
     /////// To have one BasicBlocker2 instance per context use this method without the pre-registration
     // Don't need pre-registration since we are not replacing any tool and not using a factory
     // To obtain a reference to the instance of BasicBlocker2 for the current context
     //                                 BasicBlocker2.instance(context);
     
-    /** Get the instance for this context. 
-     * 
-     * @param context the compilation context
-     * @return a (unique for the context) BasicBlocker instance
-     */
-    public static BasicBlocker2 instance(@NonNull Context context) {
-        BasicBlocker2 instance = context.get(BasicBlocker2.class);
-        // This is lazily initialized so that a derived class can preRegister to
-        // replace this BasicBlocker
-        if (instance == null) {
-            instance = new BasicBlocker2(context);
-            context.put(BasicBlocker2.class, instance);
-        }
-        return instance;
-    }
+//    /** Get the instance for this context. 
+//     * 
+//     * @param context the compilation context
+//     * @return a (unique for the context) BasicBlocker instance
+//     */
+//    public static BasicBlocker2 instance(@NonNull Context context) {
+//        BasicBlocker2 instance = context.get(key);
+//        // This is lazily initialized so that a derived class can preRegister to
+//        // replace this BasicBlocker
+//        if (instance == null) {
+//            instance = new BasicBlocker2(context);
+//        }
+//        return instance;
+//    }
     
     // Options
     
@@ -590,6 +592,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @param context the compilation context
      */
     protected BasicBlocker2(@NonNull Context context) {
+//        context.put(key, this);
         this.context = context;
         this.log = Log.instance(context);
         this.factory = JmlTree.Maker.instance(context);

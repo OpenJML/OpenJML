@@ -290,6 +290,9 @@ public class escnew extends EscBase {
     }
 
     public void testChangedParam() {
+//        options.put("-showbb","");
+//        options.put("-trace", "");
+//        options.put("-method","m1good");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

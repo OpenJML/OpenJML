@@ -635,7 +635,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);
         JmlTreeInfo.preRegister(context);
-        BasicBlocker.preRegister(context);
     }
     
     /** This is overridden so that serious internal bugs are reported as OpenJML

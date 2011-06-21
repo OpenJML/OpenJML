@@ -123,8 +123,8 @@ public class jmldoc extends TestCase {
      * @throws Exception
      */
     @Ignore // Behaves differently when run standalone vs. run with the other tests
-    @Test
-    public void testSpecPath() throws Exception {
+//    @Test  // FIXME - disasbled this test
+    public void _testSpecPath() throws Exception {
         helper(new String[]
                   {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","P"},
                   0,
