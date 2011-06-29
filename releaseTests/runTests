@@ -171,6 +171,7 @@ if [[ "${COMSPEC}" == "" ]]; then
     exit ${RES}
 fi
 
+if [[ "SKIP" == "" ]]; then
 
 export DIFFJMLDOC="diff -r "
 
@@ -231,9 +232,9 @@ ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc7/expected
 
 
 
-##if [[ "SKIP" == "" ]]; then
 
-##fi
+
+fi
 
 if [[ ${RES} -eq 0 ]]; then echo "All tests succeeded"; else echo ${RES} tests failed  ; fi
 

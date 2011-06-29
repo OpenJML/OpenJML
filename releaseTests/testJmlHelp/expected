@@ -27,6 +27,7 @@ where possible options include:
   -X                         Print a synopsis of nonstandard options
   -J<flag>                   Pass <flag> directly to the runtime system
   -Werror                    Terminate compilation if warnings occur
+  @<filename>                Read options and filenames from file
 
 JML options:
   -dir                       Process all files, recursively, within this directory

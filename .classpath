@@ -4,12 +4,12 @@
 	<classpathentry exported="true" kind="lib" path="/JMLAnnotations/bin"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/OpenJDK"/>
 	<classpathentry excluding="org/jmlspecs/genericmodels/**|org/jmlspecs/unfinished/**" including="org/jmlspecs/**" kind="src" output="bin-runtime" path="runtime"/>
-	<classpathentry kind="src" path="src-SMT"/>
 	<classpathentry kind="src" output="bin-tests" path="tests"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Specs"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="jSMTLIB.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
