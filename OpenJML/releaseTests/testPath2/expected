@@ -1,4 +1,4 @@
-../testfiles/testPath/data/TestPath.java:3: cannot find symbol
+../testfiles/testPath/data/TestPath.java:3: error: cannot find symbol
     //@ requires z ; // BAD
                  ^
   symbol:   variable z
