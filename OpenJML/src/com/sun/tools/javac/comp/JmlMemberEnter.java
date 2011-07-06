@@ -984,8 +984,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         }
     }
     
+    Set<ClassSymbol> alreadyRaced = new HashSet<ClassSymbol>();
+    
     public void addRacMethods(ClassSymbol sym, Env<AttrContext> env) {
         if (!JmlOption.isOption(context,JmlOption.RAC)) return;
+        if (!alreadyRaced.add(sym)) return;
+        
         if ((sym.flags() & Flags.INTERFACE) != 0) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
         JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(sym);
         JCExpression vd = jmlF.Type(syms.voidType);

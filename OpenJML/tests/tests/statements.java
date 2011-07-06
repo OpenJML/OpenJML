@@ -217,6 +217,16 @@ public class statements extends TCBase {
                 );
     }
 
+    public void testSynchronized4() { // Bug 3316767
+        helpTCF("A.java"," public class A { void m() { \n synchronized (this) {  } \n}}"
+                );
+    }
+
+    public void testEmptyBlock() { // Bug 3316853
+        helpTCF("A.java"," public class A { void m() { { } }  { { } } static { { } }  }"
+                );
+    }
+
 
 // TODO - need tests for hence_by; test for local specification cases; tests for pure methods in expressions
 }

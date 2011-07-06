@@ -15,6 +15,9 @@ import com.sun.tools.javac.util.Log;
  * the tree, including JML nodes and specs, without changing it.  CAUTION: Any 
  * new AST nodes or change to the fields of an AST node will require changes to
  * this code.
+ * <P>
+ * This copier does not copy type information or sym information (it does copy
+ * class and method syms, since these are assigned in class and member Enter).
  * 
  * @author David Cok
  *
@@ -32,12 +35,9 @@ import com.sun.tools.javac.util.Log;
 // So we live with this design.
 
 // FIXME - This class does not yet take care of the start and end position information;
-// also links between declarations and symbols are not updated (e.g. the map from
-// symbols to class declarations).  It may be the case that the AST will have to be 
-// completely re-attributed and that it is not really possible to have copies
-// of trees that really work
+// 
 
-public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JCTree,Void> {
+public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVisitor<JCTree,Void> {
     
     protected Context context;
     
@@ -45,7 +45,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     protected JmlTree.Maker M;
     
     /** Creates a new copier, whose new nodes are generated from the given factory*/
-    protected JmlTreeCopier(Context context, JmlTree.Maker maker) {
+    protected JmlTreeCopierNoTypes(Context context, JmlTree.Maker maker) {
         super(maker);
         this.M = maker;
         this.context = context;
@@ -92,7 +92,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     public JCTree visitJmlClassDecl(JmlClassDecl that, Void p) {
         JmlClassDecl copy = (JmlClassDecl)super.visitClass(that,p);
-        copy.toplevel = that.toplevel;
+        copy.toplevel.sourcefile = that.source();
         copy.specsDecls = that.specsDecls;// FIXME - copy
         copy.typeSpecs = that.typeSpecs;// FIXME - copy
         copy.typeSpecsCombined = that.typeSpecsCombined;// FIXME - copy
@@ -118,8 +118,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.specsDecl = that.specsDecl; // FIXME - repoint to new reference?
         copy.fieldSpecs = (that.fieldSpecs);// FIXME - copy
         copy.fieldSpecsCombined = (that.fieldSpecsCombined); // FIXME - need copy
-        copy.sym = that.sym;
-        copy.type = that.type;
         return copy;
     }
 
@@ -128,7 +126,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JCExpression lhs = copy(that.lhs,p);
         JCExpression rhs = copy(that.rhs,p);
         JmlBinary r = M.at(that.pos).JmlBinary(that.op,lhs,rhs);
-        r.type = that.type;
         return r;
     }
     
@@ -137,7 +134,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
             Void p) {
         return M.at(that.pos).JmlConstraintMethodSig(
                 copy(that.expression,p),
-                copy(that.argtypes,p)).setType(that.type);
+                copy(that.argtypes,p));
     }
 
     @Override
@@ -172,8 +169,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     @Override
     public JCTree visitJmlGroupName(JmlGroupName that, Void p) {
         JmlGroupName r = M.at(that.pos).JmlGroupName(copy(that.selection,p));
-        r.sym = that.sym;
-        r.type = that.type;
         return r;
     }
 
@@ -190,7 +185,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return M.at(that.pos).JmlLblExpression(
                 that.token,
                 that.label,
-                copy(that.expression,p)).setType(that.type);
+                copy(that.expression,p));
     }
     
     // FIXME - missing copying end positions, here and probably elsewhere
@@ -276,7 +271,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.token,
                 copy(that.list,p));
         r.sourcefile = that.sourcefile;
-        r.setType(that.type);
         return r;
     }
 
@@ -312,12 +306,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     @Override
     public JCTree visitJmlModelProgramStatement(JmlModelProgramStatement that,
             Void p) {
-        return M.at(that.pos).JmlModelProgramStatement(copy(that.item,p)).setType(that.type);
+        return M.at(that.pos).JmlModelProgramStatement(copy(that.item,p));
     }
 
     @Override
     public JCTree visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, Void p) {
-        return M.at(that.pos).JmlPrimitiveTypeTree(that.token).setType(that.type);
+        return M.at(that.pos).JmlPrimitiveTypeTree(that.token);
     }
 
     @Override
@@ -328,7 +322,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.range,p),
                 copy(that.value,p));
         q.racexpr = copy(that.racexpr);
-        q.setType(that.type);
         return q;
     }
 
@@ -337,7 +330,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return M.at(that.pos).JmlSetComprehension(
                 copy(that.newtype,p),
                 copy(that.variable,p),
-                copy(that.predicate,p)).setType(that.type);
+                copy(that.predicate,p));
     }
 
     @Override
@@ -407,7 +400,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     @Override
     public JCTree visitJmlStatementSpec(JmlStatementSpec that, Void p) {
         return M.at(that.pos).JmlStatementSpec(
-                copy(that.statementSpecs,p)).setType(that.type);
+                copy(that.statementSpecs,p));
     }
 
     @Override
@@ -557,220 +550,217 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     
     @Override
     public JCTree visitAnnotation(AnnotationTree node, Void p) {
-        return super.visitAnnotation(node,p).setType(((JCAnnotation)node).type);
+        return super.visitAnnotation(node,p);
     }
 
     @Override
     public JCTree visitAssert(AssertTree node, Void p) {
-        return super.visitAssert(node,p).setType(((JCAssert)node).type);
+        return super.visitAssert(node,p);
     }
 
     @Override
     public JCTree visitAssignment(AssignmentTree node, Void p) {
-        return super.visitAssignment(node,p).setType(((JCAssign)node).type);
+        return super.visitAssignment(node,p);
     }
 
     public JCTree visitCompoundAssignment(CompoundAssignmentTree node, Void p) {
-        JCTree t = super.visitCompoundAssignment(node,p).setType(((JCAssignOp)node).type);
+        JCTree t = super.visitCompoundAssignment(node,p);
         ((JCAssignOp)t).operator = ((JCAssignOp)node).operator;
         return t;
     }
 
     public JCTree visitBinary(BinaryTree node, Void p) {
-        JCTree t = super.visitBinary(node,p).setType(((JCBinary)node).type);
+        JCTree t = super.visitBinary(node,p);
         ((JCBinary)t).operator = ((JCBinary)node).operator;
         return t;
     }
 
     public JCTree visitBlock(BlockTree node, Void p) {
-        JCTree t = super.visitBlock(node,p).setType(((JCBlock)node).type);
+        JCTree t = super.visitBlock(node,p);
         ((JCBlock)t).endpos = ((JCBlock)node).endpos;
         return t;
     }
 
     public JCTree visitBreak(BreakTree node, Void p) {
-        return super.visitBreak(node,p).setType(((JCBreak)node).type);
+        return super.visitBreak(node,p);
         // FIXME - need to repoint reference to target
     }
 
     public JCTree visitCase(CaseTree node, Void p) {
-        return super.visitCase(node,p).setType(((JCCase)node).type);
+        return super.visitCase(node,p);
     }
 
     public JCTree visitCatch(CatchTree node, Void p) {
-        return super.visitCatch(node,p).setType(((JCCatch)node).type);
+        return super.visitCatch(node,p);
     }
 
     public JCTree visitClass(ClassTree node, Void p) {
-        JCTree t = super.visitClass(node,p).setType(((JCClassDecl)node).type);
+        JCTree t = super.visitClass(node,p);
         ((JCClassDecl)t).sym = ((JCClassDecl)node).sym;
         return t;
     }
 
     public JCTree visitConditionalExpression(ConditionalExpressionTree node, Void p) {
-        return super.visitConditionalExpression(node,p).setType(((JCConditional)node).type);
+        return super.visitConditionalExpression(node,p);
     }
 
     public JCTree visitContinue(ContinueTree node, Void p) {
-        return super.visitContinue(node,p).setType(((JCContinue)node).type);
+        return super.visitContinue(node,p);
         // FIXME - need to repoint reference to target
     }
 
     public JCTree visitDoWhileLoop(DoWhileLoopTree node, Void p) {
-        return super.visitDoWhileLoop(node,p).setType(((JCDoWhileLoop)node).type);
+        return super.visitDoWhileLoop(node,p);
     }
 
     public JCTree visitErroneous(ErroneousTree node, Void p) {
-        return super.visitErroneous(node,p).setType(((JCErroneous)node).type);
+        return super.visitErroneous(node,p);
     }
 
     public JCTree visitExpressionStatement(ExpressionStatementTree node, Void p) {
-        return super.visitExpressionStatement(node,p).setType(((JCExpressionStatement)node).type);
+        return super.visitExpressionStatement(node,p);
     }
 
     public JCTree visitEnhancedForLoop(EnhancedForLoopTree node, Void p) {
-        return super.visitEnhancedForLoop(node,p).setType(((JCEnhancedForLoop)node).type);
+        return super.visitEnhancedForLoop(node,p);
     }
 
     public JCTree visitForLoop(ForLoopTree node, Void p) {
-        return super.visitForLoop(node,p).setType(((JCForLoop)node).type);
+        return super.visitForLoop(node,p);
     }
 
     public JCTree visitIdentifier(IdentifierTree node, Void p) {
-        JCIdent id = (JCIdent)super.visitIdentifier(node,p).setType(((JCTree)node).type);
-        id.sym = ((JCIdent)node).sym;
+        JCIdent id = (JCIdent)super.visitIdentifier(node,p);
         return id;
     }
 
     public JCTree visitIf(IfTree node, Void p) {
-        return super.visitIf(node,p).setType(((JCTree)node).type);
+        return super.visitIf(node,p);
     }
 
     public JCTree visitImport(ImportTree node, Void p) {
-        return super.visitImport(node,p).setType(((JCTree)node).type);
+        return super.visitImport(node,p);
     }
 
     public JCTree visitArrayAccess(ArrayAccessTree node, Void p) {
-        return super.visitArrayAccess(node,p).setType(((JCTree)node).type);
+        return super.visitArrayAccess(node,p);
     }
 
     public JCTree visitLabeledStatement(LabeledStatementTree node, Void p) {
-        return super.visitLabeledStatement(node,p).setType(((JCTree)node).type);
+        return super.visitLabeledStatement(node,p);
     }
 
     public JCTree visitLiteral(LiteralTree node, Void p) {
-        return super.visitLiteral(node,p).setType(((JCTree)node).type);
+        return super.visitLiteral(node,p);
     }
 
     public JCTree visitMethod(MethodTree node, Void p) {
-        JCTree t = super.visitMethod(node,p).setType(((JCTree)node).type);
+        JCTree t = super.visitMethod(node,p);
         ((JCMethodDecl)t).sym = ((JCMethodDecl)node).sym;
         return t;
     }
 
     public JCTree visitMethodInvocation(MethodInvocationTree node, Void p) {
-        JCMethodInvocation copy = (JCMethodInvocation)super.visitMethodInvocation(node,p).setType(((JCTree)node).type);
+        JCMethodInvocation copy = (JCMethodInvocation)super.visitMethodInvocation(node,p);
         copy.varargsElement = ((JCMethodInvocation)node).varargsElement; // FIXME - copy? - should be in super class
         return copy;
     }
 
     public JCTree visitModifiers(ModifiersTree node, Void p) {
-        return super.visitModifiers(node,p).setType(((JCTree)node).type);
+        return super.visitModifiers(node,p);
     }
 
     public JCTree visitNewArray(NewArrayTree node, Void p) {
-        return super.visitNewArray(node,p).setType(((JCTree)node).type);
+        return super.visitNewArray(node,p);
     }
 
     public JCTree visitNewClass(NewClassTree node, Void p) {
-        return super.visitNewClass(node,p).setType(((JCTree)node).type);
+        return super.visitNewClass(node,p);
         // FIXME - does not copy constructor, varargsElement, constructorType
     }
 
     public JCTree visitParenthesized(ParenthesizedTree node, Void p) {
-        return super.visitParenthesized(node,p).setType(((JCTree)node).type);
+        return super.visitParenthesized(node,p);
     }
 
     public JCTree visitReturn(ReturnTree node, Void p) {
-        return super.visitReturn(node,p).setType(((JCTree)node).type);
+        return super.visitReturn(node,p);
     }
 
     public JCTree visitMemberSelect(MemberSelectTree node, Void p) {
-        JCTree t = super.visitMemberSelect(node,p).setType(((JCTree)node).type);
-        ((JCFieldAccess)t).sym = ((JCFieldAccess)node).sym;
+        JCTree t = super.visitMemberSelect(node,p);
         return t;
     }
 
     public JCTree visitEmptyStatement(EmptyStatementTree node, Void p) {
-        return super.visitEmptyStatement(node,p).setType(((JCTree)node).type);
+        return super.visitEmptyStatement(node,p);
     }
 
     public JCTree visitSwitch(SwitchTree node, Void p) {
-        return super.visitSwitch(node,p).setType(((JCTree)node).type);
+        return super.visitSwitch(node,p);
     }
 
     public JCTree visitSynchronized(SynchronizedTree node, Void p) {
-        return super.visitSynchronized(node,p).setType(((JCTree)node).type);
+        return super.visitSynchronized(node,p);
     }
 
     public JCTree visitThrow(ThrowTree node, Void p) {
-        return super.visitThrow(node,p).setType(((JCTree)node).type);
+        return super.visitThrow(node,p);
     }
 
     public JCTree visitCompilationUnit(CompilationUnitTree node, Void p) {
-        return super.visitCompilationUnit(node,p).setType(((JCTree)node).type);
+        return super.visitCompilationUnit(node,p);
         // FIXME - lots more stuff to copy: docCOmments, endPositions, flags, lineMap, namedImportScope, packge, sourcefile, starImportScope
     }
 
     public JCTree visitTry(TryTree node, Void p) {
-        return super.visitTry(node,p).setType(((JCTree)node).type);
+        return super.visitTry(node,p);
     }
 
     public JCTree visitParameterizedType(ParameterizedTypeTree node, Void p) {
-        return super.visitParameterizedType(node,p).setType(((JCTree)node).type);
+        return super.visitParameterizedType(node,p);
     }
 
     public JCTree visitArrayType(ArrayTypeTree node, Void p) {
-        return super.visitArrayType(node,p).setType(((JCTree)node).type);
+        return super.visitArrayType(node,p);
     }
 
     public JCTree visitTypeCast(TypeCastTree node, Void p) {
-        return super.visitTypeCast(node,p).setType(((JCTree)node).type);
+        return super.visitTypeCast(node,p);
     }
 
     public JCTree visitPrimitiveType(PrimitiveTypeTree node, Void p) {
-        return super.visitPrimitiveType(node,p).setType(((JCTree)node).type);
+        return super.visitPrimitiveType(node,p);
     }
 
     public JCTree visitTypeParameter(TypeParameterTree node, Void p) {
-        return super.visitTypeParameter(node,p).setType(((JCTree)node).type);
+        return super.visitTypeParameter(node,p);
     }
 
     public JCTree visitInstanceOf(InstanceOfTree node, Void p) {
-        return super.visitInstanceOf(node,p).setType(((JCTree)node).type);
+        return super.visitInstanceOf(node,p);
     }
 
     public JCTree visitUnary(UnaryTree node, Void p) {
-        JCTree t = super.visitUnary(node,p).setType(((JCTree)node).type);
+        JCTree t = super.visitUnary(node,p);
         ((JCUnary)t).operator = ((JCUnary)node).operator;
         return t;
     }
 
     public JCTree visitVariable(VariableTree node, Void p) {
-        JCTree t = super.visitVariable(node,p).setType(((JCTree)node).type);
-        ((JCVariableDecl)t).sym = ((JCVariableDecl)node).sym;
+        JCTree t = super.visitVariable(node,p);
         return t;
     }
 
     public JCTree visitWhileLoop(WhileLoopTree node, Void p) {
-        return super.visitWhileLoop(node,p).setType(((JCTree)node).type);
+        return super.visitWhileLoop(node,p);
     }
 
     public JCTree visitWildcard(WildcardTree node, Void p) {
-        return super.visitWildcard(node,p).setType(((JCTree)node).type);
+        return super.visitWildcard(node,p);
     }
 
     public JCTree visitOther(Tree node, Void p) {
-        return super.visitOther(node,p).setType(((JCTree)node).type);
+        return super.visitOther(node,p);
     }
 }
