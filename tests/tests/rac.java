@@ -1365,6 +1365,19 @@ public class rac extends RacBase {
         );
     }
     
+    public void testForallQuantifier4() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost boolean n = (\\forall int i; 0<i && i<=5; (\\exists int j; 0<=j && j < 5; j<i)); \n "
+                +"//@ ghost boolean nn = (\\forall int i; 0<=i && i<=5; (\\exists int j; 0<=j && j < 5; j<i)); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A true false"
+                ,"END"
+        );
+    }
+    
     /** Numof quantifier */
     public void testCountQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
@@ -1398,7 +1411,7 @@ public class rac extends RacBase {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static int m = 2;\n"
                 +"public static void main(String[] argv) { \n "
-                +"//@ ghost int nnn = new org.jmlspecs.utils.Utils.ValueInt() { public int value(final int lo, final int hi, final Object[] args) { int count = 0; int i = lo; while (i <= hi) { if (i>=lo && i<=hi) count++; i++; } return count; }}.value(0,0,new Object[]{});\n"
+                +"//@ ghost int nnn = new org.jmlspecs.utils.Utils.ValueInt() { public int value(final Object[] args) { int count = 0; int lo = (Integer)(args[0]); int hi = (Integer)(args[1]); int i = lo; while (i <= hi) { if (i>=lo && i<=hi) count++; i++; } return count; }}.value(new Object[]{0,5});\n"
                 +"//@ ghost int n = (\\num_of int i; 0 <= i && i < 5; i >= m); \n "
                 +"//@ ghost int nn = (\\num_of int i; 0 <= i && i < 5; m > 0); \n "
                 +"//@ debug System.out.println(\"A \" + n + \" \" + nn ); \n"
@@ -1698,17 +1711,18 @@ public class rac extends RacBase {
                 +"//@ ghost int n = (\\sum boolean i; bb; (i?2:5)); \n "
                 +"//@ ghost int nn = (\\sum boolean i; !i; (i?2:5)); \n "
                 +"//@ ghost int nnn = (\\sum boolean i; i; (i?2:5)); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn + \" \" + nnn); \n"
+                +"//@ ghost int nnnn = (\\sum boolean i; false; (i?2:5)); \n "
+                +"//@ debug System.out.println(\"A \" + n + \" \" + nn + \" \" + nnn + \" \" + nnnn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"A 7 5 2"
+                ,"A 7 5 2 0"
                 ,"END"
         );
     }
     
     /** Object quantifier */
     public void testObjectQuantifier() {
-        expectedNotes = 2;
+        expectedNotes = 0;
         helpTCX("tt.A","package tt; import java.util.*; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +" List<Object> list = new LinkedList<Object>();\n"

@@ -15,6 +15,7 @@ import static org.jmlspecs.openjml.JmlToken.*;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -40,6 +41,7 @@ import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Lint;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Types;
@@ -568,7 +570,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             super.visitBlock(tree);
             //if (!isStatic(env.enclMethod.mods.flags)) {
-            if (env.info.staticLevel == 0) {
+            if (env.info.staticLevel == 0 && topMethodBodyBlock) {
                 ((JmlMethodDecl)env.enclMethod)._this = (VarSymbol)thisSym(tree.pos(),enclosingMethodEnv);
             }
             
@@ -3219,11 +3221,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = check(that, resultType, VAL, pkind, pt);
         
         if (Options.instance(context).get(JmlOption.RAC.optionName()) != null) {
-            if (that.racexpr == null) createRacExpr(that);
-            if (that.racexpr != null) {
-                attribExpr(that.racexpr, localEnv, resultType); // This puts in the default constructor, which the check call does not
-                //check(that.racexpr,resultType, VAL, pkind, pt); // But this has the right environment
-            }
+            if (that.racexpr == null) createRacExprNEW(that,localEnv,resultType);
         }
         } finally {
             quantifiedExprs.remove(quantifiedExprs.size()-1);
@@ -3237,104 +3235,491 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     
-    public void createRacExpr(JmlQuantifiedExpr q) {
-        try {
-            if (q.range == null) return;
-            
-            List<JCVariableDecl> decls = q.decls.toList();
-            ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
-            JCExpression newvalue = JmlAttr.RACCopy.copy(q.value,context,decls,args);
-            JCExpression newrange = JmlAttr.RACCopy.copy(q.range,context,decls,args);
-            
-//            if (!RACCheck.allInternal(q.value,decls)) return; 
-//            if (q.range != null && !RACCheck.allInternal(q.range,decls)) return; 
-            JmlTree.Maker F = factory;
+//    public void createRacExpr(JmlQuantifiedExpr q, Env<AttrContext> localEnv) {
+//        try {
+//            if (q.range == null) return;
+//            
+//            List<JCVariableDecl> decls = q.decls.toList();
+//            ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
+//            JCExpression newvalue = JmlAttr.RACCopy.copy(q.value,context,decls,args);
+//            JCExpression newrange = JmlAttr.RACCopy.copy(q.range,context,decls,args);
+//            
+////            if (!RACCheck.allInternal(q.value,decls)) return; 
+////            if (q.range != null && !RACCheck.allInternal(q.range,decls)) return; 
+//            JmlTree.Maker F = factory;
+//
+//            // Misc items
+//            Type restype = q.type;
+//            JCReturn rettrue = F.Return(F.Literal(TypeTags.BOOLEAN, 1));
+//            rettrue.expr.setType(syms.booleanType);
+//            JCReturn retfalse = F.Return(F.Literal(TypeTags.BOOLEAN, 0));
+//            retfalse.expr.setType(syms.booleanType);
+//            JCExpression methodName = F.Ident(names.fromString("org"));
+//            methodName = F.Select(methodName, names.fromString("jmlspecs"));
+//            methodName = F.Select(methodName, names.fromString("utils"));
+//            methodName = F.Select(methodName, names.fromString("Utils"));
+//            
+//            // Determine core computation
+//            // forall:  if (range && !value) return false;
+//            // exists:  if (range && value) return true;
+//            // numof:   if (range && value) ++count;
+//            // sum:     if (range) sum += value;
+//            
+//            JCVariableDecl initialDecl = null;
+//            JCVariableDecl valueDecl = null;
+//            JCVariableDecl firstDecl = null;
+//            JCStatement update;
+//            JCStatement retStat;
+//            JCExpression cond = newvalue;
+//            if (q.op == JmlToken.BSFORALL || q.op == JmlToken.BSEXISTS) { 
+//                if (q.op == JmlToken.BSFORALL) cond = F.Unary(JCTree.NOT, cond); 
+//                update = F.If(cond, q.op == JmlToken.BSFORALL? retfalse : rettrue , null);
+//                retStat = F.Return(F.Literal(TypeTags.BOOLEAN,q.op == JmlToken.BSFORALL ? 1 : 0).setType(syms.booleanType));
+//            } else if (q.op == JmlToken.BSNUMOF) {
+//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.Type(restype), F.Literal(restype.tag,0).setType(restype));
+//                JCExpression id = F.Ident(initialDecl.name).setType(restype);
+//                update = F.If(cond, F.Exec(F.Unary(JCTree.PREINC, id).setType(restype)) , null);
+//                retStat = F.Return(F.Ident(initialDecl.name).setType(restype));
+//            } else if (q.op == JmlToken.BSSUM) {
+//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_sum$$$"), F.Type(restype), F.Literal(restype.tag,0).setType(restype));
+//                update = F.Exec(F.Assignop(JCTree.PLUS_ASG, F.Ident(initialDecl.name).setType(restype), cond).setType(restype));
+//                retStat = F.Return(F.Ident(initialDecl.name).setType(restype));
+//            } else if (q.op == JmlToken.BSPRODUCT) {
+//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_prod$$$"), F.Type(restype), F.Literal(restype.tag,1).setType(restype));
+//                update = F.Exec(F.Assignop(JCTree.MUL_ASG, F.Ident(initialDecl.name).setType(restype), cond).setType(restype));
+//                retStat = F.Return(F.Ident(initialDecl.name).setType(restype));
+//            } else if (q.op == JmlToken.BSMAX) { // FIXME - explicitly attribute types
+//                firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
+//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_max$$$"), F.Type(restype), F.Literal(restype.tag,0));
+//                valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
+//                update = F.If(F.Binary(
+//                                            JCTree.OR, 
+//                                            F.Binary(
+//                                                    JCTree.GT, 
+//                                                    F.Assign(F.Ident(valueDecl.name), q.value), 
+//                                                    F.Ident(initialDecl.name)
+//                                                    ), 
+//                                            F.Ident(firstDecl.name)
+//                                            )
+//                                   ,
+//                                   F.Block(0, 
+//                                           List.<JCStatement>of(
+//                                                   F.Exec(F.Assign(F.Ident(initialDecl.name), F.Ident(valueDecl.name))),
+//                                                   F.Exec(F.Assign(F.Ident(firstDecl.name), F.Literal(TypeTags.BOOLEAN,0)))
+//                                                   )
+//                                           ),
+//                                   null);
+//                retStat = F.Return(F.Ident(initialDecl.name));
+//            } else if (q.op == JmlToken.BSMIN) { // FIXME - explicitly attribute types
+//                firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
+//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_min$$$"), F.Type(restype), F.Literal(restype.tag,0));
+//                valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
+//                update = F.If(
+//                        F.Binary(
+//                                JCTree.OR, 
+//                                F.Binary(
+//                                        JCTree.LT, 
+//                                        F.Assign(F.Ident(valueDecl.name), q.value), 
+//                                        F.Ident(initialDecl.name)
+//                                        ), 
+//                                F.Ident(firstDecl.name)
+//                                )
+//                        ,
+//                       F.Block(0, 
+//                               List.<JCStatement>of(
+//                                       F.Exec(F.Assign(F.Ident(initialDecl.name), F.Ident(valueDecl.name))),
+//                                       F.Exec(F.Assign(F.Ident(firstDecl.name), F.Literal(TypeTags.BOOLEAN,0)))
+//                                       )
+//                               ),
+//                       null);
+//                retStat = F.Return(F.Ident(initialDecl.name));
+//            } else {
+//                return;
+//            }
+//            String s = restype.tag == TypeTags.INT ? "ValueInt" :
+//                restype.tag == TypeTags.BOOLEAN ? "ValueBool" :
+//                    restype.tag == TypeTags.LONG ? "ValueLong" :
+//                        restype.tag == TypeTags.DOUBLE ? "ValueDouble" : 
+//                            restype.tag == TypeTags.FLOAT ? "ValueFloat" : 
+//                                restype.tag == TypeTags.SHORT ? "ValueShort" : 
+//                                    restype.tag == TypeTags.BYTE ? "ValueByte" : 
+//                                        restype.tag == TypeTags.CHAR ? "ValueChar" : 
+//                                            "ValueInt";
+//            // FIXME - include bigint support, real?
+//            Name className = names.fromString(s);
+//            methodName = F.Select(methodName, className);
+//            
+//            java.util.List<Bound> bounds = new java.util.LinkedList<Bound>();
+//            JCExpression innerexpr = determineRacBounds(decls,newrange,bounds);
+//            if (innerexpr == null) return;
+//            JCStatement innerStatement = F.If(innerexpr, update, null);
+//            
+//            Name argsname = names.fromString("args");
+//            JCVariableDecl argsdef = F.VarDef(F.Modifiers(Flags.FINAL),argsname,
+//                    F.TypeArray(F.Type(syms.objectType)),null);
+//
+//            for (Bound bound: bounds) {
+//                JCExpression vartype = bound.decl.vartype;
+//                Name indexname = bound.decl.name;
+//                String var = indexname.toString();
+//                if (bound.decl.type.tag == TypeTags.BOOLEAN) {
+//                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Literal(TypeTags.BOOLEAN,0).setType(syms.booleanType));//false
+//                    JCStatement negate = F.Exec(F.Assign(F.Ident(indexname).setType(syms.booleanType),F.Unary(JCTree.NOT, F.Ident(indexname).setType(syms.booleanType)).setType(syms.booleanType)).setType(syms.booleanType));
+//                    JCDoWhileLoop dowhilestatement =
+//                        F.DoLoop(
+//                                F.Block(0,List.<JCStatement>of(innerStatement,negate)),
+//                                F.Ident(indexname).setType(syms.booleanType)
+//                                );
+//                    innerStatement = F.Block(0,List.<JCStatement>of(indexdef,dowhilestatement));
+//                } else if (bound.decl.type.tag == TypeTags.CLASS) {
+//                    // foreach (T i: selected) 
+//                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Literal(TypeTags.BOOLEAN,0));//false
+//                    JCEnhancedForLoop foreach =
+//                        F.ForeachLoop(
+//                                indexdef,
+//                                bound.lo,
+//                                innerStatement);
+//                    innerStatement = foreach;
+//                    
+//                } else {
+//                    Name loname = names.fromString("$$$lo_" + var);
+//                    Name hiname = names.fromString("$$$hi_" + var);
+//                    JCVariableDecl lodef = F.VarDef(F.Modifiers(0),loname,vartype,bound.lo);
+//                    JCVariableDecl hidef = F.VarDef(F.Modifiers(0),hiname,vartype,bound.hi);
+//                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Ident(loname).setType(bound.lo.type));
+//
+//                    JCStatement inc = F.Exec(F.Unary(JCTree.PREINC, F.Ident(indexname).setType(vartype.type)).setType(vartype.type));
+//
+//                    JCWhileLoop whilestatement =
+//                        F.WhileLoop(
+//                                F.Binary(bound.hi_equal ? JCTree.LE : JCTree.LT, F.Ident(indexname).setType(vartype.type), F.Ident(hiname).setType(vartype.type)).setType(syms.booleanType),
+//                                F.Block(0,List.<JCStatement>of(innerStatement,inc)));
+//                    innerStatement = bound.lo_equal ?
+//                              F.Block(0,List.<JCStatement>of(lodef,hidef,indexdef,whilestatement))
+//                            : F.Block(0,List.<JCStatement>of(lodef,hidef,indexdef,inc,whilestatement));
+//                }
+//            }
+//            
+//            
+//            JCMethodDecl methodDecl = F.MethodDef(
+//                    F.Modifiers(Flags.PUBLIC), 
+//                    names.fromString("value"),
+//                    F.Type(restype), // result type
+//                    List.<JCTypeParameter>nil(), // type parameters
+//                    List.<JCVariableDecl>of(argsdef), // parameters
+//                    List.<JCExpression>nil(), // thrown types
+//                    initialDecl == null ? F.Block(0,List.<JCStatement>of(innerStatement,retStat)) :
+//                    valueDecl == null ?   F.Block(0,List.<JCStatement>of(initialDecl,innerStatement,retStat)) :
+//                                          F.Block(0,List.<JCStatement>of(firstDecl,initialDecl,valueDecl,innerStatement,retStat)),
+//                    null); // default value
+//            List<JCTree> defs = List.<JCTree>of(methodDecl);
+//            JmlClassDecl classDecl = (JmlClassDecl)F.AnonymousClassDef(F.Modifiers(0), defs) ;
+//            classDecl.specsDecls = List.of(classDecl);
+//            classDecl.typeSpecs = new JmlSpecs.TypeSpecs(classDecl);
+//            classDecl.toplevel = ((JmlClassDecl)enclosingClassEnv.enclClass).toplevel;
+//            //classDecl.accept(this);
+//            enter.classEnter(classDecl, localEnv); // This works for racsystem tests, not for all the rac tests
+//            JCNewClass anon = F.NewClass(null,List.<JCExpression>nil(),methodName,List.<JCExpression>nil(),classDecl); // FIXME - set the type?
+////            anon.constructor = new MethodSymbol(0, names.init, syms.unknownType, syms.noSymbol);
+////            anon.constructorType = syms.unknownType;
+//
+//            List<JCExpression> values = args.toList();
+//            
+//            JCExpression newarray = F.NewArray(F.Type(syms.objectType),List.<JCExpression>nil(),values); // set type? FIXME
+//            JCExpression call = F.Apply(List.<JCExpression>nil(),F.Select(anon,names.fromString("value")),List.<JCExpression>of(newarray)).setType(restype); // FIXME - setType and sym on value
+//            q.racexpr = call;
+//        } catch (Exception e) {
+//            // Ignore exceptions - the finally block takes care of it
+//        } finally {
+//            // The error message is output in JmlRac
+//            //if (q.racexpr == null && Options.instance(context).isSet(JmlOption.SHOW_NOT_IMPLEMENTED.optionName())) log.warning(q.pos(),"jml.quantified.expression.not.translatable");
+//        }
+//        return;
+//
+//    }
+//    
+//    public void createRacExprNT(JmlQuantifiedExpr q, Env<AttrContext> localEnv, Type resultType) {
+//        JCStatement update = null;
+//        JCExpression newvalue = null;
+//        JCExpression newrange = null;
+//        List<JCExpression> argslist = null;
+//        JCNewArray newarray = null;
+//        try {
+//            if (q.range == null) return;
+//            
+//            List<JCVariableDecl> decls = q.decls.toList();
+//            ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
+//            newvalue = JmlAttr.RACCopy.copy(q.value,context,decls,args);
+//            newrange = JmlAttr.RACCopy.copy(q.range,context,decls,args);
+//            
+//            
+////            if (!RACCheck.allInternal(q.value,decls)) return; 
+////            if (q.range != null && !RACCheck.allInternal(q.range,decls)) return; 
+//            JmlTree.Maker F = factory;
+//
+//            JCExpression standinvalue = F.Literal(q.value.type.tag,0);
+//
+//            // Misc items
+//            Type restype = q.type;
+//            JCReturn rettrue = F.Return(F.Literal(TypeTags.BOOLEAN, 1));
+//            JCReturn retfalse = F.Return(F.Literal(TypeTags.BOOLEAN, 0));
+//            JCExpression methodName = F.Ident(names.fromString("org"));
+//            methodName = F.Select(methodName, names.fromString("jmlspecs"));
+//            methodName = F.Select(methodName, names.fromString("utils"));
+//            methodName = F.Select(methodName, names.fromString("Utils"));
+//            
+//            // Determine core computation
+//            // forall:  if (range) if (!value) return false;
+//            // exists:  if (range) if (value) return true;
+//            // numof:   if (range) if (value) ++count;
+//            // sum:     if (range) sum += value;
+//            
+//            JCVariableDecl initialDecl = null;
+//            JCVariableDecl valueDecl = null;
+//            JCVariableDecl firstDecl = null;
+//            JCStatement retStat;
+//            JCExpression cond = standinvalue;
+//            if (q.op == JmlToken.BSFORALL || q.op == JmlToken.BSEXISTS) { 
+//                if (q.op == JmlToken.BSFORALL) cond = F.Unary(JCTree.NOT, cond); 
+//                update = F.If(cond, q.op == JmlToken.BSFORALL? retfalse : rettrue , null);
+//                retStat = F.Return(F.Literal(TypeTags.BOOLEAN,q.op == JmlToken.BSFORALL ? 1 : 0));
+//            } else if (q.op == JmlToken.BSNUMOF) {
+//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.Type(restype), F.Literal(restype.tag,0));
+//                JCExpression id = F.Ident(initialDecl.name);
+//                update = F.If(cond, F.Exec(F.Unary(JCTree.PREINC, id)) , null);
+//                retStat = F.Return(F.Ident(initialDecl.name));
+//            } else if (q.op == JmlToken.BSSUM) {
+//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_sum$$$"), F.Type(restype), F.Literal(restype.tag,0));
+//                update = F.Exec(F.Assignop(JCTree.PLUS_ASG, F.Ident(initialDecl.name), cond));
+//                retStat = F.Return(F.Ident(initialDecl.name));
+//            } else if (q.op == JmlToken.BSPRODUCT) {
+//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_prod$$$"), F.Type(restype), F.Literal(restype.tag,1));
+//                update = F.Exec(F.Assignop(JCTree.MUL_ASG, F.Ident(initialDecl.name), cond));
+//                retStat = F.Return(F.Ident(initialDecl.name));
+//            } else if (q.op == JmlToken.BSMAX) { // FIXME - explicitly attribute types
+//                firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
+//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_max$$$"), F.Type(restype), F.Literal(restype.tag,0));
+//                valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
+//                update = F.If(F.Binary(
+//                                            JCTree.OR, 
+//                                            F.Binary(
+//                                                    JCTree.GT, 
+//                                                    F.Assign(F.Ident(valueDecl.name), q.value), 
+//                                                    F.Ident(initialDecl.name)
+//                                                    ), 
+//                                            F.Ident(firstDecl.name)
+//                                            )
+//                                   ,
+//                                   F.Block(0, 
+//                                           List.<JCStatement>of(
+//                                                   F.Exec(F.Assign(F.Ident(initialDecl.name), F.Ident(valueDecl.name))),
+//                                                   F.Exec(F.Assign(F.Ident(firstDecl.name), F.Literal(TypeTags.BOOLEAN,0)))
+//                                                   )
+//                                           ),
+//                                   null);
+//                retStat = F.Return(F.Ident(initialDecl.name));
+//            } else if (q.op == JmlToken.BSMIN) {
+//                firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
+//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_min$$$"), F.Type(restype), F.Literal(restype.tag,0));
+//                valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
+//                update = F.If(
+//                        F.Binary(
+//                                JCTree.OR, 
+//                                F.Binary(
+//                                        JCTree.LT, 
+//                                        F.Assign(F.Ident(valueDecl.name), q.value), 
+//                                        F.Ident(initialDecl.name)
+//                                        ), 
+//                                F.Ident(firstDecl.name)
+//                                )
+//                        ,
+//                       F.Block(0, 
+//                               List.<JCStatement>of(
+//                                       F.Exec(F.Assign(F.Ident(initialDecl.name), F.Ident(valueDecl.name))),
+//                                       F.Exec(F.Assign(F.Ident(firstDecl.name), F.Literal(TypeTags.BOOLEAN,0)))
+//                                       )
+//                               ),
+//                       null);
+//                retStat = F.Return(F.Ident(initialDecl.name));
+//            } else {
+//                return;
+//            }
+//            String s = restype.tag == TypeTags.INT ? "ValueInt" :
+//                restype.tag == TypeTags.BOOLEAN ? "ValueBool" :
+//                    restype.tag == TypeTags.LONG ? "ValueLong" :
+//                        restype.tag == TypeTags.DOUBLE ? "ValueDouble" : 
+//                            restype.tag == TypeTags.FLOAT ? "ValueFloat" : 
+//                                restype.tag == TypeTags.SHORT ? "ValueShort" : 
+//                                    restype.tag == TypeTags.BYTE ? "ValueByte" : 
+//                                        restype.tag == TypeTags.CHAR ? "ValueChar" : 
+//                                            "ValueInt";
+//            // FIXME - include bigint support, real?
+//            Name className = names.fromString(s);
+//            methodName = F.Select(methodName, className);
+//            
+//            java.util.List<Bound> bounds = new java.util.LinkedList<Bound>();
+//            JCExpression innerexpr = determineRacBounds(decls,newrange,bounds);
+//            if (innerexpr == null) return;
+//            JCStatement innerStatement = F.If(innerexpr, update, null);
+//            
+//            Name argsname = names.fromString("args");
+//            JCVariableDecl argsdef = F.VarDef(F.Modifiers(Flags.FINAL),argsname,
+//                    F.TypeArray(F.Type(syms.objectType)),null);
+//
+//            for (Bound bound: bounds) {
+//                JCExpression vartype = bound.decl.vartype;
+//                Name indexname = bound.decl.name;
+//                String var = indexname.toString();
+//                if (bound.decl.type.tag == TypeTags.BOOLEAN) {
+//                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Literal(TypeTags.BOOLEAN,0));//false
+//                    indexdef.sym = bound.decl.sym;
+//                    indexdef.type = bound.decl.sym.type;
+//                    JCStatement negate = F.Exec(F.Assign(F.Ident(indexname),F.Unary(JCTree.NOT, F.Ident(indexname))));
+//                    JCDoWhileLoop dowhilestatement =
+//                        F.DoLoop(
+//                                F.Block(0,List.<JCStatement>of(innerStatement,negate)),
+//                                F.Ident(indexname)
+//                                );
+//                    innerStatement = F.Block(0,List.<JCStatement>of(indexdef,dowhilestatement));
+//                } else if (bound.decl.type.tag == TypeTags.CLASS) {
+//                    // foreach (T i: selected) 
+//                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Literal(TypeTags.BOOLEAN,0));//false
+//                    indexdef.sym = bound.decl.sym;
+//                    indexdef.type = bound.decl.sym.type;
+//                    JCEnhancedForLoop foreach =
+//                        F.ForeachLoop(
+//                                indexdef,
+//                                bound.lo,
+//                                innerStatement);
+//                    innerStatement = foreach;
+//                    
+//                } else {
+//                    Name loname = names.fromString("$$$lo_" + var);
+//                    Name hiname = names.fromString("$$$hi_" + var);
+//                    JCVariableDecl lodef = F.VarDef(F.Modifiers(0),loname,vartype,bound.lo);
+//                    JCVariableDecl hidef = F.VarDef(F.Modifiers(0),hiname,vartype,bound.hi);
+//                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Ident(loname));
+//                    indexdef.sym = bound.decl.sym;
+//                    indexdef.type = bound.decl.sym.type;
+//
+//                    JCStatement inc = F.Exec(F.Unary(JCTree.PREINC, F.Ident(indexname)));
+//
+//                    JCWhileLoop whilestatement =
+//                        F.WhileLoop(
+//                                F.Binary(bound.hi_equal ? JCTree.LE : JCTree.LT, F.Ident(indexname), F.Ident(hiname)),
+//                                F.Block(0,List.<JCStatement>of(innerStatement,inc)));
+//                    innerStatement = bound.lo_equal ?
+//                              F.Block(0,List.<JCStatement>of(lodef,hidef,indexdef,whilestatement))
+//                            : F.Block(0,List.<JCStatement>of(lodef,hidef,indexdef,inc,whilestatement));
+//                }
+//            }
+//            
+//            
+//            JCMethodDecl methodDecl = F.MethodDef(
+//                    F.Modifiers(Flags.PUBLIC), 
+//                    names.fromString("value"),
+//                    F.Type(restype), // result type
+//                    List.<JCTypeParameter>nil(), // type parameters
+//                    List.<JCVariableDecl>of(argsdef), // parameters
+//                    List.<JCExpression>nil(), // thrown types
+//                    initialDecl == null ? F.Block(0,List.<JCStatement>of(innerStatement,retStat)) :
+//                    valueDecl == null ?   F.Block(0,List.<JCStatement>of(initialDecl,innerStatement,retStat)) :
+//                                          F.Block(0,List.<JCStatement>of(firstDecl,initialDecl,valueDecl,innerStatement,retStat)),
+//                    null); // default value
+//            List<JCTree> defs = List.<JCTree>of(methodDecl);
+//            JmlClassDecl classDecl = (JmlClassDecl)F.AnonymousClassDef(F.Modifiers(0), defs) ;
+//            classDecl.specsDecls = List.of(classDecl);
+//            classDecl.typeSpecs = new JmlSpecs.TypeSpecs(classDecl);
+//            classDecl.toplevel = ((JmlClassDecl)enclosingClassEnv.enclClass).toplevel;
+//            //classDecl.accept(this);
+//            //enter.classEnter(classDecl, localEnv); // This works for racsystem tests, not for all the rac tests
+//            JCNewClass anon = F.NewClass(null,List.<JCExpression>nil(),methodName,List.<JCExpression>nil(),classDecl); 
+////            anon.constructor = new MethodSymbol(0, names.init, syms.unknownType, syms.noSymbol);
+////            anon.constructorType = syms.unknownType;
+//
+//            argslist = args.toList();
+//            ListBuffer<JCExpression> standinargs = new ListBuffer<JCExpression>();
+//            for (JCExpression ex: argslist) {
+//                JCLiteral lit = F.Literal(ex.type.tag,0);
+//                standinargs.add(lit);
+//            }
+//            
+//            newarray = F.NewArray(F.Type(syms.objectType),List.<JCExpression>nil(),standinargs.toList()); 
+//            JCExpression call = F.Apply(List.<JCExpression>nil(),F.Select(anon,names.fromString("value")),List.<JCExpression>of(newarray)); 
+//            q.racexpr = call;
+//        } catch (Exception e) {
+//            // Ignore exceptions - the finally block takes care of it
+//        } finally {
+//            // The error message is output in JmlRac
+//            //if (q.racexpr == null && Options.instance(context).isSet(JmlOption.SHOW_NOT_IMPLEMENTED.optionName())) log.warning(q.pos(),"jml.quantified.expression.not.translatable");
+//        }
+//        if (q.racexpr != null) {
+//            attribExpr(q.racexpr, localEnv, resultType); // This puts in the default constructor, which the check call does not
+//            //check(that.racexpr,resultType, VAL, pkind, pt); // But this has the right environment
+//            
+//            newarray.elems = argslist;
+//            if (q.op == JmlToken.BSFORALL) {
+//                ((JCUnary)((JCIf)update).cond).arg = newvalue;
+//            } else if (q.op == JmlToken.BSEXISTS || q.op == JmlToken.BSNUMOF) {
+//                ((JCIf)update).cond = newvalue;
+//            } else {
+//                // ERROR
+//            }
+//        }
+//
+//        return;
+//
+//    }
+    
+    public void createRacExprNEW(JmlQuantifiedExpr q, Env<AttrContext> localEnv, Type resultType) {
+        /* The purpose of this method is to create a fully-qualified executable expression to use
+         * in RAC. This is tricky. The primary JML quantified expression has already been attributed.
+         * That declarations and the range and value expressions are reused in creating this RAC equivalent.
+         * The problematic aspect is that one cannot attribute an expression twice and there is no check
+         * to prevent re-attribution; re-attributing simple expressions causes no trouble, but the
+         * reattribution logic can complain about, for example, duplicate declarations. Problems particularly
+         * arise if the value subexpression of the quantified expression includes a a nested quantified
+         * expression or method calls.
+         * 
+         * So we construct our RAC expression carefully distinguishing between new portions and already
+         * attributed portions.
+         * 
+         * The general approach is to replace a quantified expression that returns a value of type TT with 
+         * an expression of this template:
+         *       new org.jmlspecs.utils.Utils.ValueTT() { 
+         *              public TT value(Object args...) { ... expression ... }
+         *       }.value( ... args ... )
+         * The complicated aspect of this formula is that any subexpressions that do not depend on the 
+         * quantification variables have to be passed in as arguments. Also we want any new declarations
+         * to be attributed by the regular attribution mechanism. So the general approach is to construct
+         * the new part of the final expression (including new declarations), attribute it, and then
+         * piece in the subexpressions from the JML quantified statement that were already attributed.
+         * This approach means that the initial, unattributed expression has some holes in it that need
+         * filling in later.
+         */
+        JCStatement update = null;
+        List<JCExpression> argslist = null;
+        JCNewArray newarray = null;
 
-            // Misc items
-            Type restype = q.type;
-            JCStatement rettrue = F.Return(F.Literal(TypeTags.BOOLEAN, 1));
-            JCStatement retfalse = F.Return(F.Literal(TypeTags.BOOLEAN, 0));
-            JCExpression methodName = F.Ident(names.fromString("org"));
-            methodName = F.Select(methodName, names.fromString("jmlspecs"));
-            methodName = F.Select(methodName, names.fromString("utils"));
-            methodName = F.Select(methodName, names.fromString("Utils"));
+        try {
+            // If there is no range, we will not try to execute the expression
+            if (q.range == null) return; // FIXME - is this executable?
             
-            // Determine core computation
-            // forall:  if (range && !value) return false;
-            // exists:  if (range && value) return true;
-            // numof:   if (range && value) ++count;
-            // sum:     if (range) sum += value;
+            JmlTree.Maker F = factory;
+            Type restype = q.type; // Result type of the expression
+
+            // Attroibuted statements that return true or false
+            JCReturn rettrue = F.Return(F.Literal(TypeTags.BOOLEAN, 1).setType(syms.booleanType));
+            JCReturn retfalse = F.Return(F.Literal(TypeTags.BOOLEAN, 0).setType(syms.booleanType));
             
-            JCVariableDecl initialDecl = null;
-            JCVariableDecl valueDecl = null;
-            JCVariableDecl firstDecl = null;
-            JCStatement update;
-            JCStatement retStat;
-            JCExpression cond = newvalue;
-            if (q.op == JmlToken.BSFORALL || q.op == JmlToken.BSEXISTS) { 
-                if (q.op == JmlToken.BSFORALL) cond = F.Unary(JCTree.NOT, cond); 
-                update = F.If(cond, q.op == JmlToken.BSFORALL? retfalse : rettrue , null);
-                retStat = F.Return(F.Literal(TypeTags.BOOLEAN,q.op == JmlToken.BSFORALL ? 1 : 0));
-            } else if (q.op == JmlToken.BSNUMOF) {
-                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.Type(restype), F.Literal(restype.tag,0));
-                update = F.If(cond, F.Exec(F.Unary(JCTree.PREINC, F.Ident(initialDecl.name))) , null);
-                retStat = F.Return(F.Ident(initialDecl.name));
-            } else if (q.op == JmlToken.BSSUM) {
-                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_sum$$$"), F.Type(restype), F.Literal(restype.tag,0));
-                update = F.Exec(F.Assignop(JCTree.PLUS_ASG, F.Ident(initialDecl.name), cond));
-                retStat = F.Return(F.Ident(initialDecl.name));
-            } else if (q.op == JmlToken.BSPRODUCT) {
-                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_prod$$$"), F.Type(restype), F.Literal(restype.tag,1));
-                update = F.Exec(F.Assignop(JCTree.MUL_ASG, F.Ident(initialDecl.name), cond));
-                retStat = F.Return(F.Ident(initialDecl.name));
-            } else if (q.op == JmlToken.BSMAX) {
-                firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
-                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_max$$$"), F.Type(restype), F.Literal(restype.tag,0));
-                valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
-                update = F.If(F.Binary(
-                                            JCTree.OR, 
-                                            F.Binary(
-                                                    JCTree.GT, 
-                                                    F.Assign(F.Ident(valueDecl.name), q.value), 
-                                                    F.Ident(initialDecl.name)
-                                                    ), 
-                                            F.Ident(firstDecl.name)
-                                            )
-                                   ,
-                                   F.Block(0, 
-                                           List.<JCStatement>of(
-                                                   F.Exec(F.Assign(F.Ident(initialDecl.name), F.Ident(valueDecl.name))),
-                                                   F.Exec(F.Assign(F.Ident(firstDecl.name), F.Literal(TypeTags.BOOLEAN,0)))
-                                                   )
-                                           ),
-                                   null);
-                retStat = F.Return(F.Ident(initialDecl.name));
-            } else if (q.op == JmlToken.BSMIN) {
-                firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1));
-                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_min$$$"), F.Type(restype), F.Literal(restype.tag,0));
-                valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
-                update = F.If(
-                        F.Binary(
-                                JCTree.OR, 
-                                F.Binary(
-                                        JCTree.LT, 
-                                        F.Assign(F.Ident(valueDecl.name), q.value), 
-                                        F.Ident(initialDecl.name)
-                                        ), 
-                                F.Ident(firstDecl.name)
-                                )
-                        ,
-                       F.Block(0, 
-                               List.<JCStatement>of(
-                                       F.Exec(F.Assign(F.Ident(initialDecl.name), F.Ident(valueDecl.name))),
-                                       F.Exec(F.Assign(F.Ident(firstDecl.name), F.Literal(TypeTags.BOOLEAN,0)))
-                                       )
-                               ),
-                       null);
-                retStat = F.Return(F.Ident(initialDecl.name));
-            } else {
-                return;
-            }
+            // First assemble the portions that need attribution
+            
+            // FIXME - include bigint support, real?
+            // Construct the fully qualified name of the class holding the methods we'll use
+            JCExpression constructName = F.Ident(names.fromString("org"));
+            constructName = F.Select(constructName, names.fromString("jmlspecs"));
+            constructName = F.Select(constructName, names.fromString("utils"));
+            constructName = F.Select(constructName, names.fromString("Utils"));
             String s = restype.tag == TypeTags.INT ? "ValueInt" :
                 restype.tag == TypeTags.BOOLEAN ? "ValueBool" :
                     restype.tag == TypeTags.LONG ? "ValueLong" :
@@ -3344,35 +3729,304 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                     restype.tag == TypeTags.BYTE ? "ValueByte" : 
                                         restype.tag == TypeTags.CHAR ? "ValueChar" : 
                                             "ValueInt";
-            // FIXME - include bigint support, real?
             Name className = names.fromString(s);
-            methodName = F.Select(methodName, className);
+            constructName = F.Select(constructName, className);
+            // methodName is e.g., depending on the result type,  org.jmlspecs.utils.Utils.ValueBool
             
-            java.util.List<Bound> bounds = new java.util.LinkedList<Bound>();
-            JCExpression innerexpr = determineRacBounds(decls,newrange,bounds);
-            if (innerexpr == null) return;
-            JCStatement innerStatement = F.If(innerexpr, update, null);
+           
+            JCVariableDecl initialDecl = null;
+            JCVariableDecl valueDecl = null;
+            JCVariableDecl firstDecl = null;
+            ListBuffer<JCStatement> bodyStats = new ListBuffer<JCStatement>();
+
+            if (q.op == JmlToken.BSFORALL || q.op == JmlToken.BSEXISTS) { 
+            } else if (q.op == JmlToken.BSNUMOF) {
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.Type(restype), F.Literal(restype.tag,0).setType(syms.intType));
+            } else if (q.op == JmlToken.BSSUM) {
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_sum$$$"), F.Type(restype), F.Literal(restype.tag,0).setType(syms.intType));
+            } else if (q.op == JmlToken.BSPRODUCT) {
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_prod$$$"), F.Type(restype), F.Literal(restype.tag,1).setType(syms.intType));
+            } else if (q.op == JmlToken.BSMAX || q.op == JmlToken.BSMIN) {
+                firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1).setType(syms.booleanType));
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString(q.op == JmlToken.BSMIN ? "_min$$$" : "_max$$$"), F.Type(restype), F.Literal(restype.tag,0).setType(restype));
+                valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
+//            } else if (q.op == JmlToken.BSMIN) {
+//                firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1).setType(syms.booleanType));
+//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_min$$$"), F.Type(restype), F.Literal(restype.tag,0).setType(restype));
+//                valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
+            } else {
+                return;
+            }
+            if (initialDecl != null) bodyStats.add(initialDecl);
+            if (valueDecl != null) bodyStats.add(valueDecl);
+            if (firstDecl != null) bodyStats.add(firstDecl);
+
+            JCBlock body = null;
+            
+            // We create a declaration of 'args' and add it to bodyStats so it is attributed,
+            // because we need an identifier that references the args declaration to sprinkle 
+            // through the rewritten range and value expressions.
             
             Name argsname = names.fromString("args");
             JCVariableDecl argsdef = F.VarDef(F.Modifiers(Flags.FINAL),argsname,
                     F.TypeArray(F.Type(syms.objectType)),null);
+            JCIdent argsID = F.Ident(argsdef.name);
+            // argsdef is:  Object[] args = null;
+            
 
+            // We'd like to reuse the declarations that are actually within the JML quantifier
+            // expression. They are already attributed. But they seem to be attributed within
+            // a different environment. For example, if they are used, complaints occur that they
+            // are not final. Perhaps this can be worked around, but for now we create a
+            // parallel set of declarations. These will be attributed here and the ids are 
+            // passed into the RACCopy.copy calls below, so that each identifier node is rewritten
+            // to refer to the new declaration.
+            
+            Map<Symbol,JCVariableDecl> newdecls = new HashMap<Symbol,JCVariableDecl>();
+            Map<Symbol,JCIdent> newids = new HashMap<Symbol,JCIdent>();
+            for (JCVariableDecl v: q.decls) {
+                JCVariableDecl newdecl = F.VarDef(F.Modifiers(0), v.name, v.vartype, null);
+                JCIdent id = F.Ident(v.name);
+                newdecls.put(v.sym,newdecl);
+                newids.put(v.sym, id);
+            }
+            
+            // We need to figure out the iterations that will occur within the body of the
+            // RAC expression. That involves some manipulation of the 
+            
+            List<JCVariableDecl> decls = q.decls.toList();
+            ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
+            JCExpression newvalue = JmlAttr.RACCopy.copy(q.value,context,decls,args,argsID,newids);
+            JCExpression newrange = JmlAttr.RACCopy.copy(q.range,context,decls,args,argsID,newids);
+
+            java.util.List<Bound> bounds = new java.util.LinkedList<Bound>();
+            JCExpression innerexpr = determineRacBounds(decls,newrange,bounds);
+            if (innerexpr == null) return;
+            
+            // Here we create declarations that will be needed. These are 
+            // unattributed; they are attributed below, and then the attributed
+            // declarations are used in the second phase of RAC expression construction.
+            
             for (Bound bound: bounds) {
                 JCExpression vartype = bound.decl.vartype;
                 Name indexname = bound.decl.name;
                 String var = indexname.toString();
+                JCVariableDecl indexdef = newdecls.get(bound.decl.sym);
                 if (bound.decl.type.tag == TypeTags.BOOLEAN) {
-                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Literal(TypeTags.BOOLEAN,0));//false
-                    JCStatement negate = F.Exec(F.Assign(F.Ident(indexname),F.Unary(JCTree.NOT, F.Ident(indexname))));
+                    indexdef.init = F.Literal(syms.booleanType.tag,0);
+                } else if (bound.decl.type.tag == TypeTags.CLASS) {
+                    // nothing
+                } else {
+                    Name loname = names.fromString("$$$lo_" + var);
+                    Name hiname = names.fromString("$$$hi_" + var);
+                    bound.lodef = F.VarDef(F.Modifiers(0),loname,vartype,null);
+                    bound.hidef = F.VarDef(F.Modifiers(0),hiname,vartype,null);
+                    bodyStats.add(bound.lodef);
+                    bodyStats.add(bound.hidef);
+                    //indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Ident(loname));
+                    indexdef.init = F.Ident(loname);
+                }
+//                indexdef.sym = bound.decl.sym;
+//                indexdef.type = bound.decl.sym.type;
+                bound.indexdef = indexdef;
+                bodyStats.add(indexdef);
+                
+            }
+            
+            // Back to expressions that will need attributing.
+
+            JCStatement retStandin = F.Return(F.Literal(restype.tag, 0));
+            bodyStats.add(retStandin);
+
+            JCMethodDecl methodDecl = F.MethodDef(
+                    F.Modifiers(Flags.PUBLIC), 
+                    names.fromString("value"),
+                    F.Type(restype), // result type
+                    List.<JCTypeParameter>nil(), // type parameters
+                    List.<JCVariableDecl>of(argsdef), // parameters
+                    List.<JCExpression>nil(), // thrown types
+                    body=F.Block(0,bodyStats.toList()), // body - more to be added later
+                    null); // default value
+            // methodDecl is (RT is the result type): public RT value(Object[] args) { ... decls... }
+            
+            List<JCTree> defs = List.<JCTree>of(methodDecl);
+            JmlClassDecl classDecl = (JmlClassDecl)F.AnonymousClassDef(F.Modifiers(0), defs) ;
+            classDecl.specsDecls = List.of(classDecl);
+            classDecl.typeSpecs = new JmlSpecs.TypeSpecs(classDecl);
+            classDecl.toplevel = ((JmlClassDecl)enclosingClassEnv.enclClass).toplevel;
+            JCNewClass anon = F.NewClass(null,List.<JCExpression>nil(),constructName,List.<JCExpression>nil(),classDecl); 
+//            anon.constructor = new MethodSymbol(0, names.init, syms.unknownType, syms.noSymbol);
+//            anon.constructorType = syms.unknownType;
+            // anon is, e.g., depending on the result type: 
+            //               new org.jmlspecs.utils.Utils.ValueBool() { public boolean value(Object[] args) { ... decls... } }
+
+            ListBuffer<JCExpression> standinargs = new ListBuffer<JCExpression>(); //F.TypeCast(Type.(syms.objectType), F.Literal(syms.objectType.tag,null));
+//            for (JCExpression ex: argslist) {
+//                JCLiteral lit = F.Literal(ex.type.tag,0);
+//                standinargs.add(lit);
+//            }
+            standinargs.add(F.Literal(TypeTags.INT,0));
+
+            newarray = F.NewArray(F.Type(syms.objectType),List.<JCExpression>nil(),standinargs.toList()); 
+            JCExpression call = F.Apply(List.<JCExpression>nil(),F.Select(anon,names.fromString("value")),List.<JCExpression>of(newarray)); 
+            // call is, e.g., depending on the result type:
+            //      new org.jmlspecs.utils.Utils.ValueBool() { public boolean value(Object[] args) {} }.value(null,null);
+            // Need to fill in (a) the body of the method and (b) the araguments of the call
+
+            q.racexpr = call;
+            
+            // Attribute the unattributed expression
+            
+            attribExpr(q.racexpr, localEnv, resultType); // This puts in the default constructor, which the check call does not
+            //check(that.racexpr,resultType, VAL, pkind, pt); // But this has the right environment
+
+            // Now form the body of the expression from pieces that are already attributed.
+            
+            argslist = args.toList();
+            
+            // argsID is aliased with nodes inside newvalue and newrange, so the following
+            // assignments effectively attribute those nodes
+            argsID.type = argsdef.type;
+            argsID.sym = argsdef.sym;
+            
+            // Determine core computation
+            // forall:  if (range) if (!value) return false;
+            // exists:  if (range) if (value) return true;
+            // numof:   if (range) if (value) ++count;
+            // sum:     if (range) sum += value;
+            
+            JCStatement retStat;
+            JCExpression cond = newvalue;
+            if (q.op == JmlToken.BSFORALL || q.op == JmlToken.BSEXISTS) { 
+                if (q.op == JmlToken.BSFORALL) {
+                    cond = F.Unary(JCTree.NOT, cond).setType(syms.booleanType); 
+                    ((JCUnary)cond).operator = rs.resolveUnaryOperator(cond.pos(), JCTree.NOT, env, newvalue.type);
+                }
+                update = F.If(cond, q.op == JmlToken.BSFORALL? retfalse : rettrue , null);
+                retStat = q.op == JmlToken.BSFORALL ? rettrue : retfalse;
+            } else if (q.op == JmlToken.BSNUMOF) {
+                JCIdent id = F.Ident(initialDecl.name);
+                id.setType(initialDecl.type);
+                id.sym = initialDecl.sym;
+                JCUnary op = F.Unary(JCTree.PREINC, id);
+                op.setType(initialDecl.type);
+                op.operator = rs.resolveUnaryOperator(op.pos(),op.getTag(),env,op.arg.type);
+                update = F.If(cond, F.Exec(op) , null);
+                retStat = F.Return(id); // Is it OK to reuse the node?
+            } else if (q.op == JmlToken.BSSUM) {
+                JCIdent id = F.Ident(initialDecl.name);
+                id.setType(initialDecl.type);
+                id.sym = initialDecl.sym;
+                JCAssignOp asn = F.Assignop(JCTree.PLUS_ASG, id, cond);
+                asn.setType(initialDecl.type);
+                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
+                update = F.Exec(asn);
+                retStat = F.Return(id); // Is it OK to reuse the node?
+            } else if (q.op == JmlToken.BSPRODUCT) {
+                JCIdent id = F.Ident(initialDecl.name);
+                id.setType(initialDecl.type);
+                id.sym = initialDecl.sym;
+                JCAssignOp asn = F.Assignop(JCTree.MUL_ASG, id, cond);
+                asn.setType(initialDecl.type);
+                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
+                update = F.Exec(asn);
+                retStat = F.Return(id);
+            } else if (q.op == JmlToken.BSMAX || q.op == JmlToken.BSMIN) {
+                JCIdent id = F.Ident(initialDecl.name);
+                id.setType(initialDecl.type);
+                id.sym = initialDecl.sym;
+                JCIdent vid = F.Ident(valueDecl.name);
+                vid.setType(valueDecl.type);
+                vid.sym = valueDecl.sym;
+                JCIdent fid = F.Ident(firstDecl.name);
+                fid.setType(firstDecl.type);
+                fid.sym = firstDecl.sym;
+                JCBinary op1,op2;
+                update = F.If((op1=F.Binary(
+                                            JCTree.OR, 
+                                            (op2=F.Binary(
+                                                    ( q.op == JmlToken.BSMIN ? JCTree.LT : JCTree.GT), 
+                                                    F.Assign(vid, newvalue).setType(vid.type), 
+                                                    id
+                                                    )).setType(syms.booleanType), 
+                                            fid
+                                            )).setType(syms.booleanType)
+                                   ,
+                                   F.Block(0, 
+                                           List.<JCStatement>of(
+                                                   F.Exec(F.Assign(id, vid).setType(id.type)),
+                                                   F.Exec(F.Assign(fid, F.Literal(TypeTags.BOOLEAN,0).setType(syms.booleanType)).setType(fid.type))
+                                                   )
+                                           ),
+                                   null);
+                op1.operator = rs.resolveBinaryOperator(op1.pos(),op1.getTag(), env, op1.lhs.type, op1.rhs.type);
+                op2.operator = rs.resolveBinaryOperator(op2.pos(),op2.getTag(), env, op2.lhs.type, op2.rhs.type);
+                retStat = F.Return(id);
+            } else if (q.op == JmlToken.BSMIN) {
+                JCIdent id = F.Ident(initialDecl.name);
+                id.setType(initialDecl.type);
+                id.sym = initialDecl.sym;
+                JCIdent vid = F.Ident(valueDecl.name);
+                vid.setType(valueDecl.type);
+                vid.sym = valueDecl.sym;
+                JCIdent fid = F.Ident(firstDecl.name);
+                fid.setType(firstDecl.type);
+                fid.sym = firstDecl.sym;
+                JCBinary op1,op2;
+                update = F.If(
+                        (op1=F.Binary(
+                                JCTree.OR, 
+                                (op2=F.Binary(
+                                        JCTree.LT, 
+                                        F.Assign(vid, newvalue).setType(vid.type), 
+                                        id
+                                        )).setType(syms.booleanType), 
+                                fid
+                                )).setType(syms.booleanType)
+                        ,
+                       F.Block(0, 
+                               List.<JCStatement>of(
+                                       F.Exec(F.Assign(id,vid).setType(id.type)),
+                                       F.Exec(F.Assign(fid, F.Literal(TypeTags.BOOLEAN,0).setType(syms.booleanType).setType(fid.type)))
+                                       )
+                               ),
+                       null);
+                op1.operator = rs.resolveBinaryOperator(op1.pos(),op1.getTag(), env, op1.lhs.type, op1.rhs.type);
+                op2.operator = rs.resolveBinaryOperator(op2.pos(),op2.getTag(), env, op2.lhs.type, op2.rhs.type);
+                
+                retStat = F.Return(id);
+            } else {
+                return;
+            }
+
+
+            JCStatement innerStatement = F.If(innerexpr, update, null);
+            for (Bound bound: bounds) {
+                JCVariableDecl indexdef = bound.indexdef;
+                JCIdent indexid = newids.get(bound.decl.sym);
+                indexid.sym = indexdef.sym;
+                indexid.type = indexdef.type;
+                Name indexname = indexdef.name;
+                if (bound.decl.type.tag == TypeTags.BOOLEAN) {
+                    //indexdef.init = F.Literal(syms.booleanType.tag,0).setType(indexdef.type);
+                    JCIdent idx = F.Ident(indexname);
+                    idx.setType(indexdef.type);
+                    idx.sym = indexdef.sym;
+                    JCUnary neg = F.Unary(JCTree.NOT, idx);
+                    neg.setType(syms.booleanType);
+                    neg.operator = rs.resolveUnaryOperator(neg.pos(),neg.getTag(),env,idx.type);
+                    JCAssign asgn = F.Assign(idx,neg);
+                    asgn.setType(syms.booleanType);
+                    JCStatement negate = F.Exec(asgn).setType(syms.booleanType);
                     JCDoWhileLoop dowhilestatement =
                         F.DoLoop(
                                 F.Block(0,List.<JCStatement>of(innerStatement,negate)),
-                                F.Ident(indexname)
+                                idx
                                 );
                     innerStatement = F.Block(0,List.<JCStatement>of(indexdef,dowhilestatement));
                 } else if (bound.decl.type.tag == TypeTags.CLASS) {
+                    //indexdef.init = F.Literal(indexdef.type.tag,0).setType(indexdef.type);
                     // foreach (T i: selected) 
-                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Literal(TypeTags.BOOLEAN,0));//false
                     JCEnhancedForLoop foreach =
                         F.ForeachLoop(
                                 indexdef,
@@ -3381,47 +4035,44 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     innerStatement = foreach;
                     
                 } else {
-                    Name loname = names.fromString("$$$lo_" + var);
-                    Name hiname = names.fromString("$$$hi_" + var);
-                    JCVariableDecl lodef = F.VarDef(F.Modifiers(0),loname,vartype,bound.lo);
-                    JCVariableDecl hidef = F.VarDef(F.Modifiers(0),hiname,vartype,bound.hi);
-                    JCVariableDecl indexdef = F.VarDef(F.Modifiers(0), indexname, vartype, F.Ident(loname));
+                    JCVariableDecl lodef = bound.lodef;
+                    JCVariableDecl hidef = bound.hidef;
+                    Name hiname = hidef.name;
+                    lodef.init = bound.lo;
+                    hidef.init = bound.hi;
 
-                    JCStatement inc = F.Exec(F.Unary(JCTree.PREINC, F.Ident(indexname)));
+                    JCIdent id = indexid;
+                    JCUnary op = F.Unary(JCTree.PREINC, id);
+                    op.operator = rs.resolveUnaryOperator(op.pos(), op.getTag(), env, id.type);
+                    op.type = id.type;
+                    JCStatement inc = F.Exec(op);
 
+                    JCIdent hi = F.Ident(hiname);
+                    hi.sym = hidef.sym;
+                    hi.type = hidef.type;
+                    
+                    JCBinary bin = F.Binary(bound.hi_equal ? JCTree.LE : JCTree.LT, id, hi);
+                    bin.operator = rs.resolveBinaryOperator(bin.pos(), bin.getTag(), env, id.type, hi.type);
+                    bin.setType(syms.booleanType);
                     JCWhileLoop whilestatement =
                         F.WhileLoop(
-                                F.Binary(bound.hi_equal ? JCTree.LE : JCTree.LT, F.Ident(indexname), F.Ident(hiname)),
+                                bin,
                                 F.Block(0,List.<JCStatement>of(innerStatement,inc)));
                     innerStatement = bound.lo_equal ?
                               F.Block(0,List.<JCStatement>of(lodef,hidef,indexdef,whilestatement))
                             : F.Block(0,List.<JCStatement>of(lodef,hidef,indexdef,inc,whilestatement));
                 }
             }
-            
-            
-            JCMethodDecl methodDecl = F.MethodDef(
-                    F.Modifiers(Flags.PUBLIC), 
-                    names.fromString("value"),
-                    F.Type(restype), // result type
-                    List.<JCTypeParameter>nil(), // type parameters
-                    List.<JCVariableDecl>of(argsdef), // parameters
-                    List.<JCExpression>nil(), // thrown types
-                    initialDecl == null ? F.Block(0,List.<JCStatement>of(innerStatement,retStat)) :
-                    valueDecl == null ?   F.Block(0,List.<JCStatement>of(initialDecl,innerStatement,retStat)) :
-                                          F.Block(0,List.<JCStatement>of(firstDecl,initialDecl,valueDecl,innerStatement,retStat)),
-                    null); // default value
-            List<JCTree> defs = List.<JCTree>of(methodDecl);
-            JCClassDecl classDecl = F.AnonymousClassDef(F.Modifiers(0), defs) ;
-            JCNewClass anon = F.NewClass(null,List.<JCExpression>nil(),methodName,List.<JCExpression>nil(),classDecl);
-            anon.constructor = new MethodSymbol(0, names.init, syms.unknownType, syms.noSymbol);
-            anon.constructorType = syms.unknownType;
 
-            List<JCExpression> values = args.toList();
+            List<JCStatement> methodBody =
+                    initialDecl == null ? List.<JCStatement>of(innerStatement,retStat) :
+                        valueDecl == null ?   List.<JCStatement>of(initialDecl,innerStatement,retStat) :
+                                  List.<JCStatement>of(firstDecl,initialDecl,valueDecl,innerStatement,retStat);
+
+            // Fill in missing pieces
+            body.stats = methodBody;
+            newarray.elems = argslist;
             
-            JCExpression newarray = F.NewArray(F.Type(syms.objectType),List.<JCExpression>nil(),values);
-            JCExpression call = F.Apply(List.<JCExpression>nil(),F.Select(anon,names.fromString("value")),List.<JCExpression>of(newarray));
-            q.racexpr = call;
         } catch (Exception e) {
             // Ignore exceptions - the finally block takes care of it
         } finally {
@@ -3438,6 +4089,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public JCExpression hi;
         boolean lo_equal;
         boolean hi_equal;
+        JCVariableDecl indexdef;
+        /*@Nullable*/JCVariableDecl lodef;
+        /*@Nullable*/JCVariableDecl hidef;
     }
     
     /** If appropriate bounds can be determined for all defined variables, the method returns the
@@ -3446,7 +4100,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public JCExpression determineRacBounds(List<JCVariableDecl> decls, JCExpression range, java.util.List<Bound> bounds) {
         // Some current assumptions
-        if (decls.length() != 1) return null;
+        if (decls.length() != 1) return null; // FIXME - does only one declaration!!!!!!
         if (decls.head.type.tag == TypeTags.DOUBLE) return null;
         if (decls.head.type.tag == TypeTags.FLOAT) return null;
         
@@ -3457,8 +4111,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             b.hi = null;
             bounds.add(0,b);
             return range;
-        }
-        if (decls.head.type.tag == TypeTags.CLASS) {
+        } else if (decls.head.type.tag == TypeTags.CLASS) {
             if (range instanceof JCBinary && ((JCBinary)range).getTag() != JCTree.AND) return null;
             JCExpression check = 
                 range instanceof JCBinary? ((JCBinary)range).lhs : range;
@@ -4499,16 +5152,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         List<JCVariableDecl> decls;
         Names names = Names.instance(context);
+        Symtab syms = Symtab.instance(context);
         ListBuffer<JCExpression> arguments;
+        JCIdent argsID;
         
-        public RACCopy(Context context, List<JCVariableDecl> decls, ListBuffer<JCExpression> args) {
+        Map<Symbol,JCIdent> newids;
+        
+        public RACCopy(Context context, List<JCVariableDecl> decls, ListBuffer<JCExpression> args, JCIdent argsID, Map<Symbol,JCIdent> newids) {
             super(context, JmlTree.Maker.instance(context));
             this.decls = decls;
             this.arguments = args;
+            this.argsID = argsID;
+            this.newids = newids;
         }
         
-        public static JCExpression copy(JCExpression that, Context context, List<JCVariableDecl> decls, ListBuffer<JCExpression> args) {
-            return new RACCopy(context,decls,args).copy(that,(Void)null);
+        public static JCExpression copy(JCExpression that, Context context, List<JCVariableDecl> decls, ListBuffer<JCExpression> args, JCIdent argsID, Map<Symbol,JCIdent> newids) {
+            return new RACCopy(context,decls,args,argsID,newids).copy(that,(Void)null);
         }
         
         public <T extends JCTree> T copy(T tree, Void p) {
@@ -4524,8 +5183,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         if (expr.type.tag != TypeTags.METHOD) {
                             int n = arguments.size();
                             arguments.add(expr);
-                            JCExpression arg = M.Indexed(M.Ident(names.fromString("args")),M.Literal(TypeTags.INT,n));
-                            arg = M.TypeCast(M.Type(expr.type),arg);
+                            JCExpression lit = M.Literal(TypeTags.INT,n).setType(syms.intType);
+                            JCExpression arg = M.Indexed(argsID,lit).setType(syms.objectType);
+                            arg = M.TypeCast(M.Type(expr.type),arg).setType(expr.type);
                             return (T)arg;
                         }
                     }
@@ -4535,25 +5195,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return (T) (tree.accept(this, p));
         }
 
-//        @Override
-//        public JCTree visitBinary(BinaryTree node, Void p) {
-//            JCExpression expr = (JCExpression)node;
-//            if (RACCheck.allInternal(expr,decls)) {
-//                return expr;
-//            }
-//            if (RACCheck.allExternal(expr,decls)) {
-//                int n = arguments.size();
-//                arguments.add(expr);
-//                JCExpression arg = M.Apply(List.<JCExpression>nil(),
-//                        M.Select(M.Ident(names.fromString("args")),names.fromString("get")),
-//                        List.<JCExpression>of(M.Literal(TypeTags.INT,n))
-//                        );
-//                arg = M.TypeCast(M.Type(expr.type),arg);
-//                return arg;
-//            }
-//            return super.visitBinary(node,p);
-//        }
-        
         @Override
         public JCTree visitIdentifier(IdentifierTree node, Void p) {
             JCIdent expr = (JCIdent)node;
@@ -4561,18 +5202,41 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 return super.visitIdentifier(node,p);
             }
             
-            if (RACCheck.allInternal(expr,decls)) {
-                return expr;
-            }
+//            if (RACCheck.allInternal(expr,decls)) {
+//                return expr;
+//            }
             if (RACCheck.allExternal(expr,decls)) {
                 int n = arguments.size();
                 arguments.add(expr);
-                JCExpression arg = M.Indexed(M.Ident(names.fromString("args")),M.Literal(TypeTags.INT,n));
-                arg = M.TypeCast(M.Type(expr.type),arg);
+                JCExpression lit = M.Literal(TypeTags.INT,n).setType(syms.intType);
+                JCExpression arg = M.Indexed(argsID,lit).setType(syms.objectType);
+                arg = M.TypeCast(M.Type(expr.type),arg).setType(expr.type);  // M.Type sets its own type
                 return arg;
             }
+            
+            Symbol n = expr.sym;
+            JCIdent id = newids.get(n);
+            if (id == null) {
+                System.out.println("ERROR");
+            }
+            return id;
+
             // Include this for symmetry, but we acually should never get to this point
-            return super.visitIdentifier(node,p);
+            // super.visitIdentifier(node,p);
+        }
+        
+        @Override
+        public JCTree visitJmlQuantifiedExpr(JmlQuantifiedExpr that, Void p) {
+            return copy(that.racexpr);
+//            List<JCVariableDecl> prevList = decls;
+//            decls = decls.prependList(that.decls.toList());
+//            try {
+//                JCExpression newrange = copy(that.range);
+//                JCExpression newvalue = copy(that.value);
+//                return M.JmlQuantifiedExpr(that.op, that.decls, newrange, newvalue);
+//            } finally {
+//                decls = prevList;
+//            }
         }
 
         
@@ -4621,7 +5285,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (d.sym.equals(n)) {
                     // identifier matches a quantifier declaration
                     // so it is definitely internal
-                    if (checkInternal) return;
+                    //if (checkInternal) return;
                     throw new RCheckEx();
                 }
             }
