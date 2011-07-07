@@ -171,6 +171,7 @@ if [[ "${COMSPEC}" == "" ]]; then
     exit ${RES}
 fi
 
+## FIXME
 if [[ "SKIP" == "" ]]; then
 
 export DIFFJMLDOC="diff -r "

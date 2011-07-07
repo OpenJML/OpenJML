@@ -4337,9 +4337,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @return the unboxed expression
      */
     public JCExpression autounbox(JCExpression e, Type vartype) {
+        
         factory.at(e.pos);
         String name = null;
-        switch (((PrimitiveType)vartype).getKind()) {
+        switch (vartype.getKind()) {
             case BYTE: name = "byteValue"; break;
             case BOOLEAN: name = "booleanValue"; break;
             case INT: name = "intValue"; break;
@@ -4496,7 +4497,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // }
             
             name = names.fromString("$$iter$"+tree.pos);
-            ClassType ct = new ClassType(JMLIterType.getEnclosingType(),List.<Type>of(vartype),JMLIterType.tsym);
+            ClassType ct = new ClassType(JMLIterType.getEnclosingType(),List.<Type>of(boxedVarType),JMLIterType.tsym);
             tree.iterDecl = makeVariableDecl(name,ct,nullLit,tree.pos);
             tree.iterDecl.sym.owner = tree.var.sym.owner;
             stats.append(tree.iterDecl);
