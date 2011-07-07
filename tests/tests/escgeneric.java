@@ -172,6 +172,31 @@ public class escgeneric extends EscBase {
                 ,"/tt/TestJava.java:12: warning: Associated declaration",24
                 );
     }
+ 
+    // FIXME - autoboxing not working for ESC
+//    public void testForEach3() {
+//      options.put("-showbb","");
+//      options.put("-trace","");
+//            options.put("-method","m");
+//        helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "
+//                +"int sum = 0; \n"
+//                +"//@ loop_invariant sum >= 0; \n"
+//                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
+//                +"//@ assert sum >= 0; \n"
+//                +"}}"
+//                );
+//    }
+//
+//    public void testForEach3bad() {
+//        helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "
+//                +"int sum = 0; \n"
+//                +"//@ loop_invariant sum >= 0; \n"
+//                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
+//                +"//@ assert sum > 0; \n"
+//                +"}}"
+//                );
+//    }
+//
     
 }
     

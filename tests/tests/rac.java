@@ -2071,6 +2071,53 @@ public class rac extends RacBase {
                 );
     }
 
+    public void testForEach3() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list); }"
+                +"static void m(java.util.List<Integer> list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (int o: list) {  sum += o; }  \n"
+                +"//@ assert sum >= 0; \n"
+                +"}}"
+                );
+    }
+
+    public void testForEach3bad() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list);}"
+                +"static void m(java.util.List<Integer> list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (int o: list) {  sum += o; }  \n"
+                +"//@ assert sum > 0; \n"
+                +"}}"
+                ,"/tt/A.java:5: JML assertion is false"
+                );
+    }
+
+    public void testForEach4() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{1,2,3}; m(aa); }"
+                +"static void m(Integer[] list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
+                +"//@ assert sum >= 0; \n"
+                +"}}"
+                );
+    }
+
+    public void testForEach4bad() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{0,0,0}; m(aa); }"
+                +"static void m(Integer[] list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
+                +"//@ assert sum > 0; \n"
+                +"}}"
+                ,"/tt/A.java:5: JML assertion is false"
+                );
+    }
+
+
 
 
 }
