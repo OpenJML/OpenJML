@@ -113,15 +113,28 @@ public class jmltypes extends TCBase {
                 
     }
     
-//    public void testBadJava() {
-//        helpTCF("A.java",
-//                "public class A<T extends java.io.File> { \n" +
-//                " void m() {\n" +
-//                "  Class<?> c = T.class; \n" +
-//                "  Class<?> c = A<T>.class; \n" +
-//                "}}\n"
-//
-//        );
-//    }
+    public void testBadJava() {
+        helpTCF("A.java",
+                "public class A<T extends java.io.File> { \n" +
+                " void m() {\n" +
+                "  Class<?> c = T.class; \n" +
+                "}}\n"
+                ,"/A.java:3: cannot select from a type variable",17
+        );
+    }
+    
+    public void testBadJava2() {
+        helpTCF("A.java",
+                "public class A<T extends java.io.File> { \n" +
+                " void m() {\n" +
+                "  Class<?> c = A<T>.class; \n" +
+                "}}\n"
+                ,"/A.java:3: illegal start of expression",20
+                ,"/A.java:3: <identifier> expected",26
+                ,"/A.java:4: reached end of file while parsing",3
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable A\n  location: class A<T>",16
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable T\n  location: class A<T>",18
+        );
+    }
     
 }

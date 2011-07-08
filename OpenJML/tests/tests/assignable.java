@@ -54,25 +54,21 @@ public class assignable extends TCBase {
         helpTC(" class A { int[] k; boolean b; Object[] o; \n//@ assignable k[0],k[*],k[2 .. 3], k[3 ..], k[3 .. *];\n void m(){} }");
     }
 
-    // FIXME- needs fixing in the scanner
-//    public void testAssignableArray1() {
-//        helpTC(" class A { int[] k; boolean b; Object[] o; \n//@ assignable k[2.. 3], k[3..], k[3.. *];\n void m(){} }");
-//    }
+    public void testAssignableArray1() {
+        helpTC(" class A { int[] k; boolean b; Object[] o; \n//@ assignable k[2.. 3], k[3..], k[3.. *];\n void m(){} }");
+    }
 
     public void testAssignableArray2() {
         helpTC(" class A { int[] k; boolean b; Object[] o; \n//@ assignable o[0],o[*],o[2 .. 3], o[3 ..], o[3 .. *];\n void m(){} }");
     }
 
-    // FIXME- needs fixing in the scanner
-//    public void testAssignableArray3() {
-//        helpTC(" class A { int[] k; boolean b; Object[] o; \n//@ assignable o[2.. 3], o[3..], o[3.. *];\n void m(){} }");
-//    }
+    public void testAssignableArray3() {
+        helpTC(" class A { int[] k; boolean b; Object[] o; \n//@ assignable o[2.. 3], o[3..], o[3.. *];\n void m(){} }");
+    }
     
-    
-// FIXME - this needs fixing in the scanner
-//    public void testAssignableDots() {
-//        helpTC(" class A { int[] k; boolean b; Object[] o; \n//@ assignable o[2..3], o[2..*];\n void m(){} }");
-//    }
+    public void testAssignableDots() {
+        helpTC(" class A { int[] k; boolean b; Object[] o; \n//@ assignable o[2..3], o[2..*];\n void m(){} }");
+    }
 
     public void testAssignableArray4() {
         helpTCF("A.java","public class A { int[] k; boolean b; Object[] o; \n//@ assignable k[true],k[true .. false], k[false ..], k[false .. *];\n void m() {} }"

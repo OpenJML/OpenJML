@@ -18,7 +18,7 @@ public class escTiming extends EscBase {
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
     }
 
-    // TODO disabled
+    // Disabled - takes about 5 minutes
     public void _testTimingIf() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public abstract class TestJava { \n"
@@ -162,7 +162,7 @@ public class escTiming extends EscBase {
                 );
     }
 
-    // TODO disabled
+    // Disabled - takes about 7 minutes
     public void _testTimingSwitch() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public abstract class TestJava { \n"

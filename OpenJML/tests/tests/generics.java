@@ -78,24 +78,37 @@ public class generics extends TCBase {
     }
     
     public void testForEach1() {
-        helpTCF("A.java"," class A { void m(java.util.List<Integer> list) { \n //@ loop_invariant o != null; decreasing 6; \n for (Integer o: list) {}  \n}}"
+        helpTCF("A.java"," class A { void m(java.util.List<Integer> list) { " +
+                " //@ loop_invariant o != null; decreasing 6; \n" +
+                " for (Integer o: list) {}  \n" +
+                "}}"
                 );
     }
 
 
     public void testForEach2() {
-        helpTCF("A.java"," class A { void m(Integer[] list) { \n //@ loop_invariant o != 0; decreasing 6; \n for (Integer o: list) {}  \n}}"
+        helpTCF("A.java"," class A { void m(Integer[] list) { \n" +
+                " //@ loop_invariant o != 0; decreasing 6; \n" +
+                " for (Integer o: list) {}  \n" +
+                "}}"
                 );
     }
 
 
     public void testForEach3() {
-        helpTCF("A.java"," class A { void m(java.util.List<Integer> list) { \n //@ loop_invariant o != 0; decreasing 6; \n for (int o: list) {}  \n}}"
+        helpTCF("A.java"," class A { void m(java.util.List<Integer> list) { \n" +
+                " //@ loop_invariant o != 0; decreasing 6; \n" +
+                " for (int o: list) {}  \n" +
+                "}}"
                 );
     }
 
     public void testForEach4() {
-        helpTCF("A.java"," class A { void m(Integer[] list) { \n //@ loop_invariant o != 0; decreasing 6; \n for (int o: list) {}  \n}}"
+        helpTCF("A.java",
+                " class A { void m(Integer[] list) { \n" +
+                " //@ loop_invariant o != 0; decreasing 6; \n" +
+                " for (int o: list) {}  \n" +
+                "}}"
                 );
     }
 

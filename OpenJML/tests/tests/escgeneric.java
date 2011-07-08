@@ -79,7 +79,7 @@ public class escgeneric extends EscBase {
                 
                 +"  public void m(Integer i) {\n"
                 +"    //@ assert Object.class == java.lang.Object.class;\n"
-                +"    //@ assert \\type(TestJava<Integer>) != \\type(Object);\n" // FIXME - should be an error
+                +"    //@ assert \\type(TestJava<Integer>) != \\type(Object);\n" // FIXME - should be an error because Integer does not extend B
                 +"    //@ assert \\type(TestJava<Integer>) != \\type(TestJava<Object>);\n" // FIXME - should be error because
                 +"  }\n"
                 +"  public void mz(Object o) {\n"

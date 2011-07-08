@@ -210,27 +210,29 @@ public class escm extends EscBase {
     }
 
 
-    // FIXME - not parsed correctly
-//    public void testAnon() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +" import org.jmlspecs.annotation.*; \n"
-//                +"@NonNullByDefault public class TestJava { \n"
-//
-//                +"  public int m1(TestJava o) {\n"
-//                +"       //@ assert new TestJava() {  invariant false; int i; } == null; \n"  // Line 7
-//                +"       return 0;\n"
-//                +"  }\n"
-//                +"}\n"
-//
-//
-//        );
+    public void testAnon() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+
+                +"  public int m1(TestJava o) {\n"
+                +"       //@ assert new TestJava() {  invariant false; int i; } == null; \n"  // Line 7
+                +"       return 0;\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Invariant) in method <init>",34
+                ,"/tt/TestJava.java:5: warning: Associated declaration",47
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1",12
+
+
+        );
 
 
         // TODO
         // Need to check anonymous classes within specs
         // Need to check non-static inner classes 
         // Need to check anonymous classes for non-static classes
-//    }
+    }
    
 
 }
