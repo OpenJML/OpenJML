@@ -318,6 +318,7 @@ public class JmlEnter extends Enter {
             matchClasses(that.defs, jmltree.specsDecls.get(0).defs, jmltree.typeSpecs.modelTypes);
         }
         super.visitClassDef(that);
+        if (that.sym == null) return; // Bad error in defining the class
         
         Env<AttrContext> localEnv = typeEnvs.get(that.sym);
         jmltree.env = localEnv;

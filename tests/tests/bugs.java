@@ -143,7 +143,7 @@ public class bugs extends TCBase {
                 ,"/A.java:3: cannot find symbol\n  symbol:   variable Short\n  location: class A",37
                 ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",57
                 ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",57
-              ); // TODO: A OpenJDK bug (DRC#1895 in Attr.java) does duplicate error messages in this case
+              ); // TODO: Why duplicate error messages in this case
     }
 
     public void testCollect2() {

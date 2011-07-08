@@ -402,7 +402,7 @@ public class compiler extends TestCase {
                             "testfiles/testSpecErrors/A.java"
                           },1,0
                           ,""
-                          ,"testfiles/testSpecErrors/A.jml:4: error: incompatible types\r\n    //@ ghost int i = true; // Error to provoke a message\r\n                      ^\r\n  required: int\r\n  found:    boolean\r\n1 error\r\n"
+                          ,"testfiles/testSpecErrors/A.jml:4: error: incompatible types" + eol + "    //@ ghost int i = true; // Error to provoke a message" + eol + "                      ^" + eol + "  required: int" + eol + "  found:    boolean" + eol + "1 error" + eol
                           );
     }
     
@@ -546,5 +546,35 @@ public class compiler extends TestCase {
                           );
     }
     
+    @Test
+    public void testModelBug() throws Exception {
+        helper(new String[]
+                          { "-noPurityCheck",  //"-Xlint:unchecked",
+                            "testfiles/model1/ModelClassExampleBug.java",
+                            "testfiles/model1/ModelClassExampleBugSub.java",
+                            "testfiles/model1/ModelClassExampleBugSub2.java"
+                          },1,0
+                          ,"testfiles/model1/ModelClassExampleBugSub.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
+                           "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
+                           "                                                                      ^" + eol +
+                           "testfiles/model1/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
+                           "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
+                           "                                                                                 ^" + eol +
+                           "2 errors" + eol
+                          );
+    }
+
+    @Test
+    public void testModelBug2() throws Exception {
+        helper(new String[]
+                          { "-noPurityCheck",  //"-Xlint:unchecked",
+                            "testfiles/model2/NonGenericModelClassExampleBug.java",
+                            "testfiles/model2/NonGenericModelClassExampleBugSub.java",
+                          },0,0
+                          ,""
+                          ,""
+                          );
+    }
+
 
 }

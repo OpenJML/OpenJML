@@ -1,7 +1,5 @@
 package tests;
 
-import org.jmlspecs.openjml.esc.JmlEsc;
-
 import com.sun.tools.javac.util.Options;
 
 public class esc extends EscBase {

@@ -3937,9 +3937,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         if (tree.name != null) {
             super.visitSelect(tree);
-            if (tree.type == null) tree.type = tree.sym.type; // Just so method call identifiers get an error type when 
-                    // the method is not resolved, since line 2083 of Attr.java does not:             if (pt.isErroneous()) return types.createErrorType(site);
-                    // see also visitIdent
+            // The super call does not always call check... (which assigns the
+            // determined type to tree.type, particularly if an error occurs,
+            // so we fill it in
+            if (tree.type == null) tree.type = result;
         } else {
             // This is a store-ref with a wild-card field
             // FIXME - the following needs some review
@@ -4667,9 +4668,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public Type attribExpr(JCTree tree, Env<AttrContext> env, Type pt) {
         Type type = super.attribExpr(tree,env,pt);
-        if (tree.type == null) {
-            log.noticeWriter.println("FAILED TO SET EXPRESSION TYPE " + tree.getClass() + " " + tree); // FIXME - review , convert to internal error?
-        }
         return type;
     }
     

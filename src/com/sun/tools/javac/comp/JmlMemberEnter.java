@@ -2394,20 +2394,28 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            log.noticeWriter.println(sym.name);
 //        }
         //log.noticeWriter.println("completing " + sym);
-        Env<AttrContext> env = enter.typeEnvs.get(sym);
-        if (env == null) {
-            log.error("jml.internal.error","JmlMemberEnter.complete called with a null env, presumably from a binary class, which should not be the argument of this complete call: " + sym);
-            return;
-        }
-        super.complete(sym);
-        // If this is an interface, enter symbol for this into
-        // current scope.
-        ClassSymbol c = (ClassSymbol)sym;
-        if ((c.flags_field & INTERFACE) == INTERFACE) {
-            VarSymbol thisSym =
-                new VarSymbol(FINAL | HASINIT, Names.instance(context)._this, c.type, c);
-            thisSym.pos = Position.FIRSTPOS;
-            env.info.scope.enter(thisSym);
+        
+        JmlResolve jresolve = JmlResolve.instance(context);
+        boolean prevAllowJML = jresolve.allowJML;
+        jresolve.allowJML = utils.isJML(sym.flags());
+        try {
+            Env<AttrContext> env = enter.typeEnvs.get(sym);
+            if (env == null) {
+                log.error("jml.internal.error","JmlMemberEnter.complete called with a null env, presumably from a binary class, which should not be the argument of this complete call: " + sym);
+                return;
+            }
+            super.complete(sym);
+            // If this is an interface, enter symbol for this into
+            // current scope.
+            ClassSymbol c = (ClassSymbol)sym;
+            if ((c.flags_field & INTERFACE) == INTERFACE) {
+                VarSymbol thisSym =
+                        new VarSymbol(FINAL | HASINIT, Names.instance(context)._this, c.type, c);
+                thisSym.pos = Position.FIRSTPOS;
+                env.info.scope.enter(thisSym);
+            }
+        } finally {
+            jresolve.allowJML = prevAllowJML;
         }
 
     }
