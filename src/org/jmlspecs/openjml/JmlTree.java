@@ -1173,7 +1173,8 @@ public class JmlTree {
         
         @Override
         public int getTag() {
-            return JMLBINARY;
+            // This is used in determining start and end positions
+            return JCTree.OR;
         }
         
         @Override

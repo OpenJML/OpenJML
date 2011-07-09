@@ -2739,12 +2739,9 @@ public class JmlParser extends EndPosParser {
             return super.prec(token);
     }
 
-    JmlToken topOpJmlToken;
-
-    // MAINTENANCE ISSUE - Duplicated from JavacParser.java in order to track
-    // Jml
-    // tokens
-    JCExpression term2Rest(JCExpression t, int minprec) {
+    // MAINTENANCE ISSUE - (Almost) Duplicated from JavacParser.java in order to track
+    // Jml tokens
+    protected JCExpression term2Rest(JCExpression t, int minprec) {
         List<JCExpression[]> savedOd = odStackSupply.elems;
         JCExpression[] odStack = newOdStack();
         List<Token[]> savedOp = opStackSupply.elems;
@@ -2758,16 +2755,24 @@ public class JmlParser extends EndPosParser {
         Token topOp = ERROR;
         int topOpPos = Position.NOPOS;
         while (prec(S.token()) >= minprec) {
+            posStack[top] = topOpPos;
             opStack[top] = topOp;
             top++;
             topOp = S.token();
             topOpPos = S.pos();
-            topOpJmlToken = S.jmlToken();
+            JmlToken topOpJmlToken = S.jmlToken();
             S.nextToken(); // S.jmlToken() changes
             odStack[top] = (topOp == INSTANCEOF) ? parseType() : term3();
             while (top > 0 && prec(topOp) >= prec(S.token())) {
-                odStack[top - 1] = makeOp(topOpPos, topOp, odStack[top - 1],
+                if (topOp == CUSTOM) { // <:
+                    JCExpression e = jmlF.at(topOpPos).JmlBinary(topOpJmlToken, odStack[top - 1],
+                            odStack[top]);
+                    storeEnd(e, getEndPos(odStack[top]));
+                    odStack[top - 1] = e;
+                } else {
+                    odStack[top - 1] = makeOp(topOpPos, topOp, odStack[top - 1],
                         odStack[top]);
+                }
                 top--;
                 topOp = opStack[top];
                 topOpPos = posStack[top];
@@ -2787,17 +2792,6 @@ public class JmlParser extends EndPosParser {
         opStackSupply.elems = savedOp; // optimization
         posStackSupply.elems = savedPos; // optimization
         return t;
-    }
-
-    protected JCExpression makeOp(int pos, // DRC - changed from private to
-                                           // protected
-            Token topOp, JCExpression od1, JCExpression od2) {
-        if (topOp == CUSTOM) { // <:
-            JCExpression e = jmlF.at(pos).JmlBinary(topOpJmlToken, od1, od2);
-            storeEnd(e, getEndPos(od2));
-            return e;
-        }
-        return super.makeOp(pos, topOp, od1, od2);
     }
 
     /**

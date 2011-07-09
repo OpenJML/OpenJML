@@ -115,45 +115,19 @@ public class racsystem extends RacBase {
                 );
     }
     
-//    public void testFile3() {
-//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-//                +"try { m(); } catch (Exception e) {  } \n"
-//                +"System.out.println(\"END\"); }"
-//                +"static void m() {\n"
-//                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-//                +"}"
-//                +"}"
-//                ,"File.refines-spec:77: JML precondition is false"
-//                ,"File.refines-spec:115: JML unexpected exception"
-//                ,"END"
-//                );
-//    }
-//    
-//    public void testFile() {
-//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-//                +"org.jmlspecs.utils.Utils.showStack = true; \n"
-//                +"try { m(); } catch (Exception e) {  } \n"
-//                +"System.out.println(\"END\"); }"
-//                +"static void m() throws Exception {\n"
-//                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-//                +"}"
-//                +"}"
-//                ,"File.refines-spec:77: JML precondition is false"
-//                ,"org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
-//                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:40)"
-//                ,"\tat java.io.File.compareTo(File.java:1)"
-//                ,"\tat tt.TestJava.m(TestJava.java:5)"
-//                ,"\tat tt.TestJava.main(TestJava.java:3)"
-//                ,"File.refines-spec:115: JML unexpected exception"
-//                ,"org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:115: JML unexpected exception"
-//                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:40)"
-//                ,"\tat java.io.File.compareTo(File.java:1)"
-//                ,"\tat tt.TestJava.m(TestJava.java:5)"
-//                ,"\tat tt.TestJava.main(TestJava.java:3)"
-//                ,"END"
-//                );
-//    }
-
+    public void testFile3() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
+                +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT EXCEPTION\"); } \n"
+                +"System.out.println(\"END\"); }"
+                +"static void m() {\n"
+                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
+                +"}"
+                +"}"
+                ,"CAUGHT EXCEPTION"
+                ,"END"
+                );
+    }
+    
     /** Not sure what this is supposed to test (TODO) */
     public void testHashCode() {
         expectedNotes = 2;
