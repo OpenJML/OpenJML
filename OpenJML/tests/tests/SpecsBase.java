@@ -58,8 +58,22 @@ import com.sun.tools.javac.util.Log;
     }
    </PRE>
  *
+ *For generic classes (with one type argument) write
+ *<PRE>
+    public void testFile() {
+        checkClassGeneric("<fully-qualified-type-name>");
+    }
+   </PRE>
+ * or
+ *<PRE>
+    public void testFile() {
+        helpTCF("A.java","public class A { <fully-qualified-type-name><?> f; }"
+                );
+    }
+   </PRE>
+ *
  * Note also that no errors are reported if there is no specification file or 
- * the class path is such that the spec file is not findable.
+ * the class path is such that the spec file is not found.
  * 
  * @author David Cok
  *
@@ -101,7 +115,7 @@ public class SpecsBase extends TCBase {
     public void runTest() { checkClass(classname); }
 
     /** The name of the class to be tested (which is also the name of the test)
-     * when the suite mode is used.
+     * when the suite mode is used. This is defined simply to enable debugging.
      */
     /*@ non_null*/
     private String classname;
@@ -130,7 +144,6 @@ public class SpecsBase extends TCBase {
     /** Set to true if errors are found in any test in checkFiles */
     boolean foundErrors;
     
-    // FIXME _ seems to ignore expectedExit
     /** Helper method that executes a test 
      * 
      * @param filename name to use for the pseudo source file
@@ -147,8 +160,10 @@ public class SpecsBase extends TCBase {
             List<JavaFileObject> files = List.of(f);
             int ex = main.compile(new String[]{}, context, files, null);
             if (print) JmlSpecs.instance(context).printDatabase();
-            if (ex != 0) {
-                System.out.println("Unexpected return code for "  + testClass + " " + ex);
+            int expected = expectedExit;
+            if (expected == -1) expected = collector.getDiagnostics().size() == 0 ? 0 : 1;
+            if (ex != expected) {
+                System.out.println("Unexpected return code for "  + testClass + " actual: " + ex + " expected: " + expected);
                 foundErrors = true;
             }
             if (collector.getDiagnostics().size() != 0) {
@@ -168,8 +183,10 @@ public class SpecsBase extends TCBase {
 
     /** The test to run - finds all system specs and runs tests on them in order
      * to at least be sure that the specifications parse and typecheck.
+     * To use method #2 as described above, comment out suite() and runTest() 
+     * and enable this test by removing the leading underscore
      */
-    public void _testFindFiles() {
+    public void testSpecificationFiles() {
         if (!dotests) {
             System.out.println("System spec tests (test.SpecBase) are being skipped " + System.getProperty("java.version"));
             return;
@@ -222,7 +239,7 @@ public class SpecsBase extends TCBase {
     }
     
     /** Creates a list of all the files (of any suffix), interpreted as fully-qualified Java class 
-     * names when the 'root; prefix is removed,
+     * names when the root prefix is removed,
      * recursively found underneath the given directory
      * @param d the directory in which to search
      * @param root the prefix of the path to ignore
@@ -288,6 +305,10 @@ public class SpecsBase extends TCBase {
         helpTCFile("AJDK.java",program,className);
     }
     
+    /** Returns the number of generic type arguments
+     * @param className the class in question
+     * @return the number of generic type arguments
+     */
     public int isGeneric(String className) {
         if ("java.util.LinkedList".equals(className)) return 1;
         if ("java.util.AbstractQueue".equals(className)) return 1;
@@ -301,7 +322,7 @@ public class SpecsBase extends TCBase {
 
     /** Use this to test the specs for a specific file */
     public void testFileTemp() {
-        checkClass("java.util.LinkedList");
+//        checkClassGeneric("java.util.LinkedList");
     }
 
 }

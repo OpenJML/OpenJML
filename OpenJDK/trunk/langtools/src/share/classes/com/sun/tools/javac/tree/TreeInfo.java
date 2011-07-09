@@ -26,6 +26,7 @@
 package com.sun.tools.javac.tree;
 
 import com.sun.source.tree.Tree;
+import com.sun.source.tree.BinaryTree;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import java.util.Map;
@@ -279,7 +280,7 @@ public class TreeInfo {
         case(JCTree.SR): case(JCTree.USR): case(JCTree.PLUS):
         case(JCTree.MINUS): case(JCTree.MUL): case(JCTree.DIV):
         case(JCTree.MOD):
-            return getStartPos(((JCBinary) tree).lhs);
+            return getStartPos((JCTree)((BinaryTree) tree).getLeftOperand()); // DRC - changed to use BinaryTree
         case(JCTree.CLASSDEF): {
             JCClassDecl node = (JCClassDecl)tree;
             if (node.mods.pos != Position.NOPOS)
@@ -362,7 +363,7 @@ public class TreeInfo {
         case(JCTree.SR): case(JCTree.USR): case(JCTree.PLUS):
         case(JCTree.MINUS): case(JCTree.MUL): case(JCTree.DIV):
         case(JCTree.MOD):
-            return getEndPos(((JCBinary) tree).rhs, endPositions);
+            return getEndPos((JCTree)((BinaryTree) tree).getRightOperand(), endPositions); // DRC - changed to use BinaryTree
         case(JCTree.CASE):
             return getEndPos(((JCCase) tree).stats.last(), endPositions);
         case(JCTree.CATCH):

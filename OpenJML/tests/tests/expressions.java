@@ -152,7 +152,7 @@ public class expressions extends ParseBase {
     public void testJCBinary() {
         jml = false;
         helpExpr("a+b*c",
-                JCBinary.class, 0,0,5, // 1, // TODO - fix preferred position in binary trees
+                JCBinary.class, 0,1,5,
                   JCIdent.class ,0,0,1,
                   JCBinary.class, 2,3,5,
                     JCIdent.class ,2,2,3,
@@ -178,7 +178,7 @@ public class expressions extends ParseBase {
     /** Test scanning JML inequivalence expression */
     public void testJMLBinary2() {
         helpExpr("a <=!=>b",
-                JmlBinary.class, 2,2,8, // FIXME - start position
+                JmlBinary.class, 0,2,8,
                 JCIdent.class ,0,0,1,
                 JCIdent.class ,7,7,8);
     }
@@ -186,7 +186,7 @@ public class expressions extends ParseBase {
     /** Test scanning JML implies expression */
     public void testJMLBinary3() {
         helpExpr("a ==>  b",
-                JmlBinary.class, 2,2,8, // FIXME - start position
+                JmlBinary.class, 0,2,8,
                 JCIdent.class ,0,0,1,
                 JCIdent.class ,7,7,8);
     }
@@ -194,7 +194,7 @@ public class expressions extends ParseBase {
     /** Test scanning JML reverse implies expression */
     public void testJMLBinary4() {
         helpExpr("a <==  b",
-                JmlBinary.class, 2,2,8, // FIXME - start position
+                JmlBinary.class, 0,2,8,
                 JCIdent.class ,0,0,1,
                 JCIdent.class ,7,7,8);
     }
@@ -202,9 +202,9 @@ public class expressions extends ParseBase {
     /** Test JML left association for <==> */
     public void testJMLprecedence() {
         helpExpr("a <==> b <==> c <==> d",
-                JmlBinary.class, 16,16,22, // FIXME - start position
-                JmlBinary.class, 9,9,15, // FIXME - start position
-                JmlBinary.class, 2,2,8, // FIXME - start position
+                JmlBinary.class, 0,16,22,
+                JmlBinary.class, 0,9,15,
+                JmlBinary.class, 0,2,8,
                 JCIdent.class ,0,0,1,
                 JCIdent.class ,7,7,8,
                 JCIdent.class ,14,14,15,
@@ -214,11 +214,11 @@ public class expressions extends ParseBase {
     /** Test JML right association for ==> */
     public void testJMLprecedence1() {
         helpExpr("a ==>  b ==>  c ==>  d",
-                JmlBinary.class, 2,2,22, // FIXME - start position
+                JmlBinary.class, 0,2,22,
                 JCIdent.class ,0,0,1,
-                JmlBinary.class, 9,9,22, // FIXME - start position
+                JmlBinary.class, 7,9,22, 
                 JCIdent.class ,7,7,8,
-                JmlBinary.class, 16,16,22, // FIXME - start position
+                JmlBinary.class, 14,16,22, 
                 JCIdent.class ,14,14,15,
                 JCIdent.class ,21,21,22);
     }
@@ -316,9 +316,9 @@ public class expressions extends ParseBase {
     /** Test precedence between lock and other operators */
     public void testJMLprecedence7() {
         helpExpr("a == b <#=c << d",
-                JCBinary.class, 0,//2,  // TODO - fix positions in binary expression trees
+                JCBinary.class, 2,
                   JCIdent.class ,0,
-                  JmlBinary.class, 0,//7,
+                  JmlBinary.class, 7,
                     JCIdent.class ,5,
                     JCBinary.class, 12,
                       JCIdent.class ,10,
@@ -408,49 +408,49 @@ public class expressions extends ParseBase {
         helpExprErrors(" \\max","/TEST.java:1: reached end of file while parsing");
     }
 
-    /** Test precedence of <: operator */
+    /** Test precedence of <= operator */
     public void testCompare() {
         helpExpr(" a == b <= c",
-                JCBinary.class, 0, // FIXME - Bug in Parser, should be 3
-                JCIdent.class, 1,
-                JCBinary.class, 8,
-                JCIdent.class ,6,
-                JCIdent.class ,11);
+                JCBinary.class, 1,3,12,
+                  JCIdent.class, 1,1,2,
+                  JCBinary.class, 6,8,12,
+                    JCIdent.class ,6,6,7,
+                    JCIdent.class ,11,11,12);
     }
 
-    /** Test precedence of <: operator */
+    /** Test precedence of <= operator */
     public void testCompare2() {
-        helpExpr(" a <: b == c",
-                JCBinary.class, 8,
-                  JmlBinary.class, 3,
-                    JCIdent.class, 1,
-                    JCIdent.class ,6,
-                  JCIdent.class ,11);
+        helpExpr(" a <= b == c",
+                JCBinary.class, 1,8,12,
+                  JCBinary.class, 1,3,7,
+                    JCIdent.class, 1,1,2,
+                    JCIdent.class ,6,6,7,
+                  JCIdent.class ,11,11,12);
     }
     /** Test precedence of <: operator */
     public void testSubTypeof() {
         helpExpr(" a == b <: c",
-                JCBinary.class, 0, // FIXME - Bug in Parser, should be 3
-                  JCIdent.class, 1,
-                  JmlBinary.class, 8,
-                    JCIdent.class ,6,
-                    JCIdent.class ,11);
+                JCBinary.class, 1,3,12,
+                  JCIdent.class, 1,1,2,
+                  JmlBinary.class, 6,8,12,
+                    JCIdent.class ,6,6,7,
+                    JCIdent.class ,11,11,12);
     }
 
     /** Test precedence of <: operator */
     public void testSubTypeof2() {
         helpExpr(" a <: b == c",
-                JCBinary.class, 8,
-                JmlBinary.class, 3,
-                JCIdent.class, 1,
-                JCIdent.class ,6,
-                JCIdent.class ,11);
+                JCBinary.class, 1,8,12,
+                JmlBinary.class, 1,3,7,
+                  JCIdent.class, 1,1,2,
+                  JCIdent.class ,6,6,7,
+                JCIdent.class ,11,11,12);
     }
     
     /** Test precedence of <: operator */
     public void testSubTypeof3() {
         helpExpr(" a <: b << c",
-                JmlBinary.class, 0, // FIXME - Bug in parser, should be 3
+                JmlBinary.class, 3, // FIXME - Bug in parser, should be 3
                 JCIdent.class, 1,
                 JCBinary.class, 8,
                 JCIdent.class ,6,
