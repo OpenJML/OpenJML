@@ -32,7 +32,9 @@ import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCAssignOp;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCatch;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -61,7 +63,8 @@ import com.sun.tools.javac.util.Position;
  * (using a factory); the created trees are fully type and symbol attributed and so
  * are to be used in tree transformations after type attribution is complete
  * and successful.  It is the user's responsibility to ensure that the resulting
- * tree is legal (including flow checks) since there will be no further checking.
+ * tree is legal (including flow checks) since there will be no further checking;
+ * errors may easily result in crashes in code generation.
  * It is expected that these utilities will also be used by extension classes.
  * 
  * @author David Cok
@@ -90,17 +93,17 @@ public class JmlTreeUtils {
     }
     
     /** The qualified name of the Utils class that contains runtime utility methods */
-    final public static String utilsClassQualifiedName = "org.jmlspecs.utils.Utils";
+    @NonNull final public static String utilsClassQualifiedName = org.jmlspecs.utils.Utils.class.getCanonicalName();
 
     /** The Context in which this object was constructed */ 
     //@ non_null
-    final protected Context context;
+    @NonNull final protected Context context;
     
     /** The Attr tool for this context */
-    final protected JmlAttr attr;
+    @NonNull final protected JmlAttr attr;
     
     /** The Log tool for this context */
-    final protected Log log;
+    @NonNull final protected Log log;
     
     /** The symbol table from the compilation context, initialized in the constructor */
     @NonNull final public Symtab syms;
@@ -124,36 +127,32 @@ public class JmlTreeUtils {
     @NonNull final public JmlTree.Maker factory;
 
     /** The type of java.lang.Integer, initialized in the constructor */
-    protected Type integerType;
+    @NonNull final protected Type integerType;
     
     // Cached values of all of these symbols
-    protected ClassSymbol utilsClass = null;
-    protected JCIdent utilsClassIdent;
-    protected Symbol andSymbol;
-    protected Symbol orSymbol;
-    protected Symbol bitorSymbol;
-    protected Symbol notSymbol;
-    protected Symbol objecteqSymbol;
-    protected Symbol objectneSymbol;
-    protected Symbol booleqSymbol;
-    protected Symbol boolneSymbol;
-    public JCLiteral trueLit;
-    public JCLiteral falseLit;
-    public JCLiteral zero;
-    public JCLiteral nulllit;
-    public JCLiteral maxIntLit;
+    final public ClassSymbol utilsClass;
+    final public JCIdent utilsClassIdent;
+    final public Symbol andSymbol;
+    final public Symbol orSymbol;
+    final public Symbol bitorSymbol;
+    final public Symbol notSymbol;
+    final public Symbol objecteqSymbol;
+    final public Symbol objectneSymbol;
+    final public Symbol booleqSymbol;
+    final public Symbol boolneSymbol;
+    final public JCLiteral trueLit;
+    final public JCLiteral falseLit;
+    final public JCLiteral zero;
+    final public JCLiteral nulllit;
+    final public JCLiteral maxIntLit;
 
-    /** Indicates when we are within a spec expression */
-    boolean inSpecExpression;
-    
-    DiagnosticPosition make_pos = null;  // Need this as a placeholder,
-        // but it should never be used.  It would only be referenced if
-        // an attempt to resolve an operator or name failed, and that would
-        // be an openjml coding bug.
-    ClassSymbol assertionFailureClass;
+    final public ClassSymbol assertionFailureClass;
     final public Name resultName;
     final public Name exceptionName;
     final public Name caughtException;
+    
+    /** Indicates when we are within a spec expression */
+    boolean inSpecExpression;
     
     /** Creates an instance in association with the given Context; 
      * do not call the constructor 
@@ -204,12 +203,12 @@ public class JmlTreeUtils {
         
     }
     
-    // FIXME - document
+    // FIXME - get rid of this
     public void setEnv(Env<AttrContext> env) {
         attrEnv = env;
     }
     
-    // FIXME - document
+    /** This sets the end position of newnods to be the same as that of srcnode */
     public void copyEndPosition(JCTree newnode, JCTree srcnode) {
         Map<JCTree,Integer> z = log.currentSource().getEndPosTable();
         if (z != null) {
@@ -280,7 +279,7 @@ public class JmlTreeUtils {
         return tree;
     }
     
-    /** Make an attributed tree representing a literal - NOT FOR BOOLEAN or NULL VALUES.
+    /** Make an attributed tree representing a literal - NOT FOR BOOLEAN or NULL or CHARACTER values.
      *  @param pos        The node position
      *  @param type       The literal's type.
      *  @param value      The literal's value.
@@ -289,6 +288,7 @@ public class JmlTreeUtils {
         return factory.at(pos).Literal(type.tag, value).setType(type.constType(value));
     }
     
+    /** Makes an attributed AST that is a copy of a given literal AST */
     public JCLiteral makeDuplicateLiteral(int pos, JCLiteral lit) {
         // Note that that.typetag can be different from that.type.tag - e.g for null values
         return factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
@@ -299,11 +299,11 @@ public class JmlTreeUtils {
         return factory.at(pos).Literal(TypeTags.INT, value).setType(syms.intType.constType(value));
     }
 
-    protected JCLiteral makeTypeLiteral(Type type, int pos) {
-        JCLiteral lit = factory.at(pos).Literal(TypeTags.CLASS,type);
-        lit.type = syms.classType;
-        return lit;
-    }
+//    protected JCLiteral makeTypeLiteral(Type type, int pos) {
+//        JCLiteral lit = factory.at(pos).Literal(TypeTags.CLASS,type);
+//        lit.type = syms.classType;
+//        return lit;
+//    }
     
     /** Makes a constant boolean literal AST node.
      * @param pos the position to use for the node
@@ -349,16 +349,18 @@ public class JmlTreeUtils {
     /** Makes an AST for a primitive type literal, e.g. "int"
      * @param s the text string corresponding to the type
      * @return the AST
-     */ // FIXME - position
+     */
     public JCExpression makePrimitiveClassLiteralExpression(String s) {
         Name n = names.fromString(s);
         // The following only ever loads the class once, despite multiple calls
         Type type = ClassReader.instance(context).enterClass(n).type;
         JCIdent id = factory.Ident(n);
+        id.pos = Position.NOPOS;
         id.type = type;
         id.sym = type.tsym;
         Name nTYPE = names.fromString("TYPE"); // TODO - no explicit strings
         JCFieldAccess f = factory.Select(id,nTYPE);
+        f.pos = Position.NOPOS;
         f.type = syms.objectType;
         Scope.Entry e = type.tsym.members().lookup(nTYPE);
         f.sym = e.sym;
@@ -398,7 +400,7 @@ public class JmlTreeUtils {
         return e;
     }
 
-    /** Make an attributed unary NOT(!) expression.
+    /** Make an attributed unary NOT(!) expression (might be constant-folded).
      *  @param pos    The position at which to put the new AST.
      *  @param arg    The operator's argument.
      */
@@ -412,6 +414,15 @@ public class JmlTreeUtils {
         tree.type = lhs.type;
         copyEndPosition(tree,rhs);
         return tree;
+    }
+    
+    /** Makes an attributed assignment-op expression; the expression type is the type of the lhs. */
+    public JCAssignOp makeAssignOp(int pos, int op, JCExpression lhs, JCExpression rhs) {
+        JCAssignOp asn = factory.at(pos).Assignop(op, lhs, rhs);
+        asn.setType(lhs.type);
+        asn.operator = findOpSymbol(op - JCTree.ASGOffset,asn.lhs.type);
+        copyEndPosition(asn,rhs);
+        return asn;
     }
     
 
@@ -441,6 +452,7 @@ public class JmlTreeUtils {
     public JmlBinary makeJmlBinary(int pos, JmlToken op, JCExpression lhs, JCExpression rhs) {
         JmlBinary e = factory.at(pos).JmlBinary(op,lhs,rhs);
         e.type = syms.booleanType;
+        copyEndPosition(e,rhs);
         return e;
     }
 
@@ -454,16 +466,18 @@ public class JmlTreeUtils {
      */
     public JCBinary makeEquality(int pos, JCExpression lhs, JCExpression rhs) {
         JCBinary tree = factory.at(pos).Binary(JCTree.EQ, lhs, rhs);
-        tree.operator = null; // FIXME - add in appropriate operator based on type?
+        tree.operator = null;
         tree.type = syms.booleanType;
         return tree;
     }
     
+    /** Makes a JML assume statement */
     public JmlStatementExpr makeAssume(int pos, Label label, JCExpression expr) {
         JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME, label, expr);
         return e;
     }
 
+    /** Makes a JML assert statement */
     public JmlStatementExpr makeAssert(int pos, Label label, JCExpression expr) {
         JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlToken.ASSERT, label, expr);
         return e;
@@ -475,7 +489,7 @@ public class JmlTreeUtils {
         return lhs.tag >= rhs.tag || rhs.tag == TypeTags.BOT ? lhs : rhs;
     }
     
-    /** Makes a Java binary operator node (with boolean result)
+    /** Makes an attributed Java binary operator node (with boolean result)
      * @param pos the pseudo source code location of the node
      * @param optag the binary operator (producing a boolean result), e.g. JCTree.EQ
      * @param lhs the left-hand expression
@@ -486,33 +500,33 @@ public class JmlTreeUtils {
         return makeBinary(pos,optag,findOpSymbol(optag,maxType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
     }
 
-    /** Makes the AST for a short-circuit boolean AND expression */
+    /** Makes an attributed AST for a short-circuit boolean AND expression */
     public JCExpression makeAnd(int pos, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,JCTree.AND,andSymbol,lhs,rhs);
     }
 
-    /** Makes the AST for a short-circuit boolean OR expression */
+    /** Makes an attributed AST for a short-circuit boolean OR expression */
     public JCExpression makeOr(int pos, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,JCTree.OR,orSymbol,lhs,rhs);
     }
 
-    /** Makes the AST for a non-short-circuit boolean OR expression */
+    /** Makes an attributed attributed AST for a non-short-circuit boolean OR expression */
     public JCExpression makeBitOr(int pos, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,JCTree.BITOR,bitorSymbol,lhs,rhs);
     }
 
-    /** Makes the AST for the Java equivalent of a JML IMPLIES expression */
+    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
     public JCExpression makeImplies(int pos, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,JCTree.OR,orSymbol,
                 makeNot(pos,lhs), rhs);
     }
 
-    /** Makes the AST for a reference equality (==) expression */
+    /** Makes an attributed AST for a reference equality (==) expression */
     public JCBinary makeEqObject(int pos, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,JCTree.EQ,objecteqSymbol,lhs, rhs);
     }
 
-    /** Makes the AST for a reference inequality (!=) expression */
+    /** Makes an attributed AST for a reference inequality (!=) expression */
     public JCBinary makeNeqObject(int pos, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,JCTree.NE,objectneSymbol,lhs, rhs);
     }
@@ -547,7 +561,7 @@ public class JmlTreeUtils {
      * @param owner  TBD
      * @param exceptionType the type of the exception caught in the statement
      * @return the new AST
-     */ // FIXME - needs position
+     */
     public JCCatch makeCatcher(Symbol owner) {
         return makeCatcher(owner,syms.exceptionType);
     }
@@ -558,30 +572,36 @@ public class JmlTreeUtils {
      * @param owner  TBD
      * @param exceptionType the type of the exception caught in the statement
      * @return the new AST
-     */  // FIXME - needs position
+     */
     public JCCatch makeCatcher(Symbol owner, Type exceptionType) {
         JCVariableDecl v = makeVarDef(exceptionType,caughtException,owner,null);
-        return factory.Catch(v,factory.Block(0,List.<JCStatement>nil()));
+        return factory.at(Position.NOPOS).Catch(v,factory.Block(0,List.<JCStatement>nil()));
     }
     
     // TBD FIXME document
     public JCCatch makeCatcherJML(Symbol owner) {
         JCVariableDecl v = makeVarDef(assertionFailureClass.type,caughtException,owner,null);
         JCIdent id = factory.Ident(caughtException);
+        id.pos = Position.NOPOS;
         id.sym = v.sym;
         id.type = v.type;
         JCThrow t = factory.Throw(id);
-        return factory.Catch(v,factory.Block(0,List.<JCStatement>of(t)));
-    }
+        t.pos = Position.NOPOS;
+        JCBlock b = factory.Block(0,List.<JCStatement>of(t));
+        b.pos = Position.NOPOS;
+        JCCatch c = factory.Catch(v,b);
+        c.pos = Position.NOPOS;
+        return c;
+     }
     
     /** Makes an ident that references 'this', in the given class 
      * @param csym the containing class
      * @return the new JCIdent
      */ // FIXME - makes a new VarSymbol for each instance - is that right? what visibility?
-    // FIXME _ needs position
     public JCIdent factoryThis(ClassSymbol csym) {
         JCIdent id = factory.Ident(names._this);
         //Scope.Entry e = csym.members().lookup(names._this);
+        id.pos = Position.NOPOS;
         id.type = csym.type;
         id.sym = new VarSymbol(0, id.name, csym.type, csym);
         return id;
@@ -593,14 +613,17 @@ public class JmlTreeUtils {
      * @param initializer  the (possibly null) initializer expression
      * @param owner the owner of the declaration (e.g. a method or a class)
      * @return the new AST
-     */ // FIXME - needs position 
+     */
     public JCVariableDecl makeIntVarDef(Name name, JCExpression initializer, Symbol owner) {
         Type type = syms.intType;
         JCExpression tid = factory.Type(type);
+        tid.pos = Position.NOPOS;
         tid.type = type;  // FIXME - not needed?
-        JCVariableDecl d = factory.VarDef(factory.Modifiers(0),name,tid,initializer);
+        JCModifiers mods = factory.at(Position.NOPOS).Modifiers(0);
+        JCVariableDecl d = factory.VarDef(mods,name,tid,initializer);
         VarSymbol v =
             new VarSymbol(0, d.name, type, owner);
+        d.pos = Position.NOPOS;
         d.sym = v;
         d.type = type;
         return d;
@@ -613,16 +636,16 @@ public class JmlTreeUtils {
      * @param name  the name of the new variable
      * @param owner the owner of the new variable (e.g. a MethodSymbol or ClassSymbol)
      * @return the AST for the declaration
-     */  // FIXME - what about position
+     */
     public JCVariableDecl makeVarDef(JCExpression type, Name name, Symbol owner) {
         int flags = 0;
-        int pos = 0;
-        factory.at(pos);
-        JCModifiers mods = factory.Modifiers(0);
-        JCExpression zeroEquiv = makeZeroEquivalentLit(pos,type.type);
+        factory.at(Position.NOPOS);
+        JCModifiers mods = factory.at(Position.NOPOS).Modifiers(0);
+        JCExpression zeroEquiv = makeZeroEquivalentLit(Position.NOPOS,type.type);
         JCVariableDecl d = factory.VarDef(mods,name,type,zeroEquiv);
         VarSymbol v =
             new VarSymbol(flags, d.name, d.vartype.type, owner);
+        d.pos = Position.NOPOS;
         d.sym = v;
         d.type = type.type;
         return d;
@@ -647,27 +670,6 @@ public class JmlTreeUtils {
         d.type = type;
         return d;
     }
-
-//    // FIXME - document
-//    public JCMethodDecl makeMethodDef(Name methodName, List<JCStatement> stats, ClassSymbol ownerClass) {
-//        Type restype = syms.voidType;
-//
-//        MethodType mtype = new MethodType(List.<Type>nil(),restype,List.<Type>nil(),ownerClass);
-//
-//        MethodSymbol msym = new MethodSymbol(
-//                Flags.PUBLIC, 
-//                methodName, 
-//                mtype, 
-//                ownerClass);
-//
-//        // Caution: This call does not use a factory; it uses the
-//        // JCMethodDef constructor directly
-//        JCMethodDecl mdecl = factory.MethodDef(
-//                msym,
-//                factory.Block(0,stats));
-//        // FIXME ownerClass.members_field.enter(msym);
-//        return mdecl;
-//    }
 
     public JCMethodInvocation makeMethodInvocation(int pos, JCExpression object, Name methodName) {
         JCFieldAccess meth = factory.Select(object,methodName);
@@ -700,27 +702,6 @@ public class JmlTreeUtils {
         return mdecl;
     }
 
-//    public JCMethodDecl makeStaticMethodDef(Name methodName, List<JCStatement> stats, ClassSymbol ownerClass) {
-//        Type restype = syms.voidType;
-//
-//        MethodType mtype = new MethodType(List.<Type>nil(),restype,List.<Type>nil(),ownerClass);
-//
-//        MethodSymbol msym = new MethodSymbol(
-//                Flags.PUBLIC | Flags.STATIC, 
-//                methodName, 
-//                mtype, 
-//                ownerClass);
-//
-//        // Caution: This call does not use a factory; it uses the
-//        // JCMethodDef constructor directly
-//        JCMethodDecl mdecl = factory.MethodDef(
-//                msym,
-//                factory.Block(0,stats));
-//
-//        //FIXME ownerClass.members_field.enter(msym);
-//        return mdecl;
-//    }
-
     /** Make an attributed class instance creation expression (with no type arguments).
      * Needs to have setEnv called to set the environment in which to lookup 
      * the constructor.
@@ -734,7 +715,7 @@ public class JmlTreeUtils {
             null, factory.QualIdent(ctype.tsym), args, null);
         // FIXME - can we change this to find the constructor in the type's members directly?
         tree.constructor = rs.resolveConstructor(
-            make_pos, attrEnv, ctype, TreeInfo.types(args), null, false, false);
+            null, attrEnv, ctype, TreeInfo.types(args), null, false, false);
         tree.type = ctype;
         return tree;
     }
@@ -773,7 +754,7 @@ public class JmlTreeUtils {
         return call;
     }
 
-    // FIXME - document
+    // FIXME - document - for ESC
     public JCExpression makeDotClass(int pos, Type type) {
         if (type.tsym instanceof ClassSymbol) type = ((ClassSymbol)type.tsym).erasure(Types.instance(context));
         JCExpression tt = makeType(pos,type);
@@ -788,7 +769,7 @@ public class JmlTreeUtils {
         return result;
     }
 
-    // FIXME - document
+    // FIXME - document - translates a type into ESC logic
     public JCExpression trType(int pos, Type type) {
         JCTree tree = factory.at(pos).Type(type);
         return trType(pos,tree);
