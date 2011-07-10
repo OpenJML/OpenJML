@@ -571,10 +571,10 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         DeferredLintHandler prevLintHandler =
                 chk.setDeferredLintHandler(deferredLintHandler.setPos(tree.pos()));
         try {
-        // Compute the method type
-        	m.type = signature(tree.typarams, tree.params,
-                           tree.restype, tree.thrown,
-                           localEnv);
+            // Compute the method type
+            m.type = signature(tree.typarams, tree.params,
+                               tree.restype, tree.thrown,
+                               localEnv);
         } finally {
             chk.setDeferredLintHandler(prevLintHandler);
         }
@@ -622,14 +622,14 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 
     public void visitVarDef(JCVariableDecl tree) {
         Env<AttrContext> localEnv = env;
-        if (visitVarDefIsStatic(tree,env)) {
+        if (visitVarDefIsStatic(tree,env)) {  // DRCok
             localEnv = env.dup(tree, env.info.dup());
             localEnv.info.staticLevel++;
         }
         DeferredLintHandler prevLintHandler =
                 chk.setDeferredLintHandler(deferredLintHandler.setPos(tree.pos()));
         try {
-        attr.attribType(tree.vartype, localEnv);
+            attr.attribType(tree.vartype, localEnv);
         } finally {
             chk.setDeferredLintHandler(prevLintHandler);
         }
@@ -677,9 +677,6 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             localEnv.info.scope = new Scope.DelegatedScope(env.info.scope);
             localEnv.info.scope.owner = tree.sym;
         }
-//        if ((tree.mods.flags & STATIC) != 0 ||
-//            (env.enclClass.sym.flags() & INTERFACE) != 0)
-//            localEnv.info.staticLevel++;
         if (visitVarDefIsStatic(tree,localEnv)) localEnv.info.staticLevel++; // DRCok - This mod is so that overriding classes can adjust when an initialization environment is static
         return localEnv;
     }
@@ -718,13 +715,13 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         try {
             // To prevent deep recursion, suppress completion of some
             // types.
-            //completionEnabled = false;  // FIXME - trurning this off - DRCok
+            //completionEnabled = false;  // FIXME - turning this off - DRCok - affects tests API3, API3a - investigate
             return attr.attribType(tree, env);
         } finally {
             completionEnabled = true;
         }
     }
-    
+
 /* ********************************************************************
  * Annotation processing
  *********************************************************************/
@@ -756,7 +753,8 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
                 }
             });
     }
-/**
+
+    /**
      * Check if a list of annotations contains a reference to
      * java.lang.Deprecated.
      **/
@@ -793,7 +791,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             // Internally to java.lang.invoke, a @PolymorphicSignature annotation
             // acts like a classfile attribute.
             if (!c.type.isErroneous() &&
-                    types.isSameType(c.type, syms.polymorphicSignatureType)) {
+                types.isSameType(c.type, syms.polymorphicSignatureType)) {
                 if (!target.hasMethodHandles()) {
                     // Somebody is compiling JDK7 source code to a JDK6 target.
                     // Make it an error, since it is unlikely but important.
@@ -1034,85 +1032,6 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             annotate.flush();
         }
     }
-
-//    // A sub-phase that "compiles" annotations in annotated types.
-//    protected class TypeAnnotate extends TreeScanner { // DRC - changed from private to protected
-//        private Env<AttrContext> env;
-//        public TypeAnnotate(Env<AttrContext> env) { this.env = env; }
-//
-//        private void enterTypeAnnotations(List<JCTypeAnnotation> annotations) {
-//            Set<TypeSymbol> annotated = new HashSet<TypeSymbol>();
-//            if (!skipAnnotations)
-//                for (List<JCTypeAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
-//                    JCTypeAnnotation a = al.head;
-//                    Attribute.Compound c = annotate.enterAnnotation(a,
-//                            syms.annotationType,
-//                            env);
-//                    if (c == null) continue;
-//                    Attribute.TypeCompound tc = new Attribute.TypeCompound(c.type, c.values, a.annotation_position);
-//                    a.attribute_field = tc;
-//                    // Note: @Deprecated has no effect on local variables and parameters
-//                    if (!annotated.add(a.type.tsym))
-//                        log.error(a.pos, "duplicate.annotation");
-//                }
-//        }
-//
-//        // each class (including enclosed inner classes) should be visited
-//        // separately through MemberEnter.complete(Symbol)
-//        // this flag is used to prevent from visiting inner classes.
-//        private boolean isEnclosingClass = false;
-//        @Override
-//        public void visitClassDef(final JCClassDecl tree) {
-//            if (isEnclosingClass)
-//                return;
-//            isEnclosingClass = true;
-//            scan(tree.mods);
-//            // type parameter need to be visited with a separate env
-//            // scan(tree.typarams);
-//            scan(tree.extending);
-//            scan(tree.implementing);
-//            scan(tree.defs);
-//        }
-//
-//        private void annotate(final JCTree tree, final List<JCTypeAnnotation> annotations) {
-//            annotate.later(new Annotate.Annotator() {
-//                public String toString() {
-//                    return "annotate " + annotations + " onto " + tree;
-//                }
-//                public void enterAnnotation() {
-//                    JavaFileObject prev = log.useSource(env.toplevel.sourcefile);
-//                    try {
-//                        enterTypeAnnotations(annotations);
-//                    } finally {
-//                        log.useSource(prev);
-//                    }
-//                }
-//            });
-//        }
-//
-//        @Override
-//        public void visitAnnotatedType(final JCAnnotatedType tree) {
-//            annotate(tree, tree.annotations);
-//            super.visitAnnotatedType(tree);
-//        }
-//        @Override
-//        public void visitTypeParameter(final JCTypeParameter tree) {
-//            annotate(tree, tree.annotations);
-//            super.visitTypeParameter(tree);
-//        }
-//        @Override
-//        public void visitNewArray(final JCNewArray tree) {
-//            annotate(tree, tree.annotations);
-//            for (List<JCTypeAnnotation> dimAnnos : tree.dimAnnotations)
-//                annotate(tree, dimAnnos);
-//            super.visitNewArray(tree);
-//        }
-//        @Override
-//        public void visitMethodDef(JCMethodDecl tree) {
-//            annotate(tree, tree.receiverAnnotations);
-//            super.visitMethodDef(tree);
-//        }
-//    }
 
     protected Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) { // DRC - changed from private to protected
         Scope baseScope = new Scope(tree.sym);

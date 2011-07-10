@@ -1071,7 +1071,7 @@ public class JavacParser implements Parser {
                   S.token() == PLUSPLUS ? JCTree.POSTINC : JCTree.POSTDEC, t));
             S.nextToken();
         }
-        return t;
+        return toP(t);
     }
 
     // DRC - this method extracted from term3() in order to be used in derived classes
@@ -1256,31 +1256,31 @@ public class JavacParser implements Parser {
                 return List.nil();
             } else {
                 ListBuffer<JCExpression> args = ListBuffer.lb();
-            args.append(((mode & EXPR) == 0) ? typeArgument() : parseType());
-            while (S.token() == COMMA) {
-                S.nextToken();
                 args.append(((mode & EXPR) == 0) ? typeArgument() : parseType());
-            }
-            switch (S.token()) {
-            case GTGTGTEQ:
-                S.token(GTGTEQ);
-                break;
-            case GTGTEQ:
-                S.token(GTEQ);
-                break;
-            case GTEQ:
-                S.token(EQ);
-                break;
-            case GTGTGT:
-                S.token(GTGT);
-                break;
-            case GTGT:
-                S.token(GT);
-                break;
-            default:
-                accept(GT);
-                break;
-            }
+                while (S.token() == COMMA) {
+                    S.nextToken();
+                    args.append(((mode & EXPR) == 0) ? typeArgument() : parseType());
+                }
+                switch (S.token()) {
+                case GTGTGTEQ:
+                    S.token(GTGTEQ);
+                    break;
+                case GTGTEQ:
+                    S.token(GTEQ);
+                    break;
+                case GTEQ:
+                    S.token(EQ);
+                    break;
+                case GTGTGT:
+                    S.token(GTGT);
+                    break;
+                case GTGT:
+                    S.token(GT);
+                    break;
+                default:
+                    accept(GT);
+                    break;
+                }
                 return args.toList();
             }
         } else {
@@ -2204,7 +2204,7 @@ public class JavacParser implements Parser {
                 S.token() == LBRACKET) {
             log.error(S.pos(), "varargs.and.old.array.syntax");
         }
-            type = bracketsOpt(type);
+        type = bracketsOpt(type);
         return toP(F.at(pos).VarDef(mods, name, type, null));
     }
 
@@ -2232,7 +2232,7 @@ public class JavacParser implements Parser {
     JCTree resource() {
         return variableDeclaratorRest(S.pos(), optFinal(Flags.FINAL),
                                       parseType(), ident(), true, null);
-        }
+    }
 
     /** CompilationUnit = [ { "@" Annotation } PACKAGE Qualident ";"] {ImportDeclaration} {TypeDeclaration}
      */

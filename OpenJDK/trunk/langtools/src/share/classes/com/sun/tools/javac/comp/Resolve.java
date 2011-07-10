@@ -542,7 +542,8 @@ public class Resolve {
         Symbol sym;
         Scope.Entry e = c.members().lookup(name);
         while (e.scope != null) {
-            if (e.sym.kind == VAR && (e.sym.flags_field & SYNTHETIC) == 0) {
+            if (e.sym.kind == VAR && (e.sym.flags_field & SYNTHETIC) == 0
+                    && symbolOK(e)) { // DRCok added for OpenJML
                 return isAccessible(env, site, e.sym)
                     ? e.sym : new AccessError(env, site, e.sym);
             }
@@ -597,6 +598,7 @@ public class Resolve {
             Scope.Entry e = env1.info.scope.lookup(name);
             while (e.scope != null &&
                    (e.sym.kind != VAR ||
+                     !symbolOK(e) || // DRCok added for OpenJML
                     (e.sym.flags_field & SYNTHETIC) != 0))
                 e = e.next();
             sym = (e.scope != null)
@@ -643,6 +645,7 @@ public class Resolve {
             sym = e.sym;
             if (sym.kind != VAR)
                 continue;
+            if (!symbolOK(e)) continue; // DRCok added for OpenJML
             // invariant: sym.kind == VAR
             if (bestSoFar.kind < AMBIGUOUS && sym.owner != bestSoFar.owner)
                 return new AmbiguityError(bestSoFar, sym);
@@ -1065,7 +1068,7 @@ public class Resolve {
         Symbol sym;
         Scope.Entry e = c.members().lookup(name);
         while (e.scope != null) {
-            if (e.sym.kind == TYP) {
+            if (e.sym.kind == TYP && symbolOK(e)) { // DRCok symbolOK check added for OpenJML
                 return isAccessible(env, site, e.sym)
                     ? e.sym
                     : new AccessError(env, site, e.sym);
@@ -1099,6 +1102,7 @@ public class Resolve {
         Symbol bestSoFar = typeNotFound;
         for (Scope.Entry e = scope.lookup(name); e.scope != null; e = e.next()) {
             Symbol sym = loadClass(env, e.sym.flatName());
+            if (!symbolOK(e)) continue; // DRCok added for OpenJML
             if (bestSoFar.kind == TYP && sym.kind == TYP &&
                 bestSoFar != sym)
                 return new AmbiguityError(bestSoFar, sym);
@@ -1106,6 +1110,13 @@ public class Resolve {
                 bestSoFar = sym;
         }
         return bestSoFar;
+    }
+    
+    /** This hook method is added so that derived classes can add their
+     * own spin on whether the entry may be returned as the result of the lookup.
+     */
+    protected boolean symbolOK(Scope.Entry e) { // DRCok - added this hook method
+        return true;
     }
 
     /** Find an unqualified type symbol.
@@ -1122,6 +1133,7 @@ public class Resolve {
                  e.scope != null;
                  e = e.next()) {
                 if (e.sym.kind == TYP) {
+                    if (!symbolOK(e)) continue; // DRCok added for OpenJML
                     if (staticOnly &&
                         e.sym.type.tag == TYPEVAR &&
                         e.sym.owner.kind == TYP) return new StaticError(e.sym);

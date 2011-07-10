@@ -7,11 +7,37 @@ import static com.sun.tools.javac.code.Flags.NATIVE;
 import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static com.sun.tools.javac.code.Kinds.MTH;
-import static com.sun.tools.javac.code.Kinds.PCK;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
-import static org.jmlspecs.openjml.JmlToken.*;
+import static org.jmlspecs.openjml.JmlToken.ASSERT;
+import static org.jmlspecs.openjml.JmlToken.ASSUME;
+import static org.jmlspecs.openjml.JmlToken.BSPRE;
+import static org.jmlspecs.openjml.JmlToken.CONSTRAINT;
+import static org.jmlspecs.openjml.JmlToken.DURATION;
+import static org.jmlspecs.openjml.JmlToken.ENSURES;
+import static org.jmlspecs.openjml.JmlToken.EXTRACT;
+import static org.jmlspecs.openjml.JmlToken.GHOST;
+import static org.jmlspecs.openjml.JmlToken.HELPER;
+import static org.jmlspecs.openjml.JmlToken.INSTANCE;
+import static org.jmlspecs.openjml.JmlToken.MODEL;
+import static org.jmlspecs.openjml.JmlToken.MONITORED;
+import static org.jmlspecs.openjml.JmlToken.NONNULL;
+import static org.jmlspecs.openjml.JmlToken.NON_NULL_BY_DEFAULT;
+import static org.jmlspecs.openjml.JmlToken.NULLABLE;
+import static org.jmlspecs.openjml.JmlToken.NULLABLE_BY_DEFAULT;
+import static org.jmlspecs.openjml.JmlToken.PEER;
+import static org.jmlspecs.openjml.JmlToken.PURE;
+import static org.jmlspecs.openjml.JmlToken.QUERY;
+import static org.jmlspecs.openjml.JmlToken.READONLY;
+import static org.jmlspecs.openjml.JmlToken.REP;
+import static org.jmlspecs.openjml.JmlToken.REQUIRES;
+import static org.jmlspecs.openjml.JmlToken.SECRET;
+import static org.jmlspecs.openjml.JmlToken.SIGNALS;
+import static org.jmlspecs.openjml.JmlToken.SPEC_PROTECTED;
+import static org.jmlspecs.openjml.JmlToken.SPEC_PUBLIC;
+import static org.jmlspecs.openjml.JmlToken.UNINITIALIZED;
+import static org.jmlspecs.openjml.JmlToken.WORKING_SPACE;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -25,49 +51,129 @@ import java.util.Set;
 import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.*;
-import org.jmlspecs.openjml.*;
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.IJmlVisitor;
+import org.jmlspecs.openjml.JmlCompiler;
+import org.jmlspecs.openjml.JmlInternalError;
+import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
-import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlChoose;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlConstraintMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
+import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlGroupName;
+import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlModelProgramStatement;
+import org.jmlspecs.openjml.JmlTree.JmlPrimitiveTypeTree;
+import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
+import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
+import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefListExpression;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConditional;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
+import org.jmlspecs.openjml.JmlTreeCopier;
+import org.jmlspecs.openjml.JmlTreeScanner;
+import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.Utils;
 
-import com.sun.mirror.type.PrimitiveType;
-import com.sun.source.tree.BinaryTree;
-import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.IdentifierTree;
-import com.sun.source.tree.MemberSelectTree;
 import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Lint;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.code.Types;
-import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.Type.ClassType;
+import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCAssignOp;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
+import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
+import com.sun.tools.javac.tree.JCTree.JCErroneous;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCForLoop;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCNewArray;
+import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCReturn;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCTypeCast;
+import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
+import com.sun.tools.javac.tree.JCTree.JCUnary;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
 import com.sun.tools.javac.tree.TreeInfo;
-import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
-import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.Position;
 
 /**
@@ -124,21 +230,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     final static public String exceptionVarString = "_JML$$$exception";
     
+    // TODO - what is this?
+    public final static String syntheticExceptionID = "_JML$$$syntheticExceptionID";
+    
     /** The Name version of resultVarString in the current context */
     final public Name resultName;
     
     /** The Name version of exceptionVarString in the current context */
     final public Name exceptionName;
 
-    protected Name postCheckName; // FIXME - not used
-    protected Name signalsCheckName; // FIXME - not used
+    /** The fully-qualified name of the Utils class */
+    // Use .class on the class name instead of a string so that an error happens if the class is renamed
+    // This class is in the runtime library
+    final public static String utilsClassName = org.jmlspecs.utils.Utils.class.getCanonicalName();
     
-    public final static String syntheticExceptionID = "jml$$syntheticExceptionID";
+    /** Cached value of the org.jmlspecs.utils.Utils class */
+    final protected ClassSymbol utilsClass;
     
-    ClassSymbol utilsClass;
-    JCIdent utilsClassIdent;
+    /** Cached identifier of the org.jmlspecs.utils.Utils class */
+    @NonNull final protected JCIdent utilsClassIdent;
     
-    ClassSymbol datagroupClass;
+    /** Cached value of the JMLDataGroup class */
+    @NonNull final protected ClassSymbol datagroupClass;
     
     /** The JmlSpecs instance for this context */
     @NonNull final protected JmlSpecs specs;
@@ -154,6 +267,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** The factory used to create AST nodes, initialized in the constructor */
     @NonNull final protected JmlTree.Maker factory;
+    
+    /** A JmlCompiler instance */
+    @NonNull final protected JmlCompiler jmlcompiler;
+    
+    /** A JmlResolve instance */
+    @NonNull final protected JmlResolve jmlresolve;
+    
+    /** An instance of the tree utility class */
+    @NonNull final protected JmlTreeUtils treeutils;
 
     /** A Literal for a boolean true */
     @NonNull final protected JCLiteral trueLit;
@@ -167,10 +289,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** A Literal for an int zero */
     @NonNull final protected JCLiteral zeroLit;
     
+    /** Cached value of the @Model annotation symbol */
     public ClassSymbol modelAnnotationSymbol = null;
+    /** Cached value of the @Pure annotation symbol */
     public ClassSymbol pureAnnotationSymbol = null;
+    /** Cached value of the @NonNull annotation symbol */
     public ClassSymbol nonnullAnnotationSymbol = null;
+    /** Cached value of the @NonNullByDefault annotation symbol */
     public ClassSymbol nonnullbydefaultAnnotationSymbol = null;
+    /** Cached value of the @NullableByDefault annotation symbol */
     public ClassSymbol nullablebydefaultAnnotationSymbol = null;
 
     // Unfortunately we cannot increase the number of primitive
@@ -179,35 +306,27 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // initType call to initialize them.
     // FIXME - may need to revisit this for boxing and unboxing
     final public Type TYPE;// = new Type(1000,null); 
-    public Type REAL;// = new Type(1001,null);
-    public Type BIGINT;// = new Type(1002,null);
-    public Type Lock;// = new Type(1003,null);
-    public Type LockSet;// = new Type(1004,null);
-    public Type JMLUtilsType;
-    public Type JMLValuesType;
-    public Type JMLIterType;
-    public Type JMLSetType;
+    final public Type REAL;// = new Type(1001,null);
+    final public Type BIGINT;// = new Type(1002,null);
+    final public Type Lock;// = new Type(1003,null);
+    final public Type LockSet;// = new Type(1004,null);
+    final public Type JMLUtilsType;
+    final public Type JMLValuesType;
+    final public Type JMLIterType;
+    final public Type JMLSetType;
     
     /** When true, we are visiting subtrees that allow only pure methods and
      * pure operations */
-    boolean pureEnvironment = false;
+    protected boolean pureEnvironment = false;
     
-//    /** This flag controls whether JML definitions in a class body are attributed.
-//     * Recall that the actual specifications are pulled off into the TypeSpecs
-//     * and JmlMethodSpecs structures, so we should ignore the definitions left
-//     * in the defs list of the Class.  If we attribute them as part of the class
-//     * body we end up doing duplicate and sometimes inappropriate work.
-//     */
-//    boolean attribSpecs = true;
-//    
     /** Holds the env of the enclosing method for subtrees of a MethodDecl. */
-    Env<AttrContext> enclosingMethodEnv = null;
+    protected Env<AttrContext> enclosingMethodEnv = null;
     
     /** Holds the env of the enclosing class for subtrees of a ClassDecl. */
-    Env<AttrContext> enclosingClassEnv = null;
+    protected Env<AttrContext> enclosingClassEnv = null;
     
     /** Set to true when we are within a JML declaration */
-    boolean isInJmlDeclaration = false;
+    protected boolean isInJmlDeclaration = false;
  
     /** This field stores the clause type when a clause is visited (before 
      * visiting its components), in order that various clause-type-dependent
@@ -246,10 +365,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return (JmlAttr)instance; // If the registered instance is only an Attr, something is catastrophically wrong
     }
     
-    protected ClassSymbol createClass(String fqName) {
-        return classReader.enterClass(names.fromString(fqName));
-    }
-    
     /** Constructor of a JmlAttr tool for the given context
      * 
      * @param context the compilation context in which we are working
@@ -267,7 +382,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         this.names = Names.instance(context);
         this.classReader = ClassReader.instance(context);
         this.classReader.init(syms);
-
+        this.jmlcompiler = (JmlCompiler)JmlCompiler.instance(context);
+        this.jmlresolve = (JmlResolve)rs;
+        this.treeutils = JmlTreeUtils.instance(context);
+        
         // Caution, because of circular dependencies among constructors of the
         // various tools, it can happen that syms is not fully constructed at this
         // point and syms.objectType will be null.
@@ -276,17 +394,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Stack trace is printed inside the constructor
             throw new JmlInternalError();
         }
-        initNames(context);
+        initAnnotationNames(context);
 
-        TYPE = createClass("org.jmlspecs.utils.IJMLTYPE").type; //syms.classType;
-
-        utilsClass = createClass("org.jmlspecs.utils.Utils");
-        utilsClassIdent = ((JmlTree.Maker)make).Ident("org.jmlspecs.utils.Utils");
+        utilsClass = createClass(utilsClassName);
+        utilsClassIdent = ((JmlTree.Maker)make).Ident(utilsClassName);
         utilsClassIdent.type = utilsClass.type;
         utilsClassIdent.sym = utilsClassIdent.type.tsym;
 
+        TYPE = createClass("org.jmlspecs.utils.IJMLTYPE").type;
         datagroupClass = createClass("org.jmlspecs.lang.JMLDataGroup");
-        
         JMLSetType = createClass("org.jmlspecs.lang.JMLSetType").type;
         JMLValuesType = createClass("org.jmlspecs.lang.JMLList").type;
         JMLUtilsType = utilsClass.type;
@@ -300,7 +416,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         nonnullAnnotationSymbol = createClass("org.jmlspecs.annotation.NonNull");
         pureAnnotationSymbol = createClass("org.jmlspecs.annotation.Pure");
         modelAnnotationSymbol = createClass("org.jmlspecs.annotation.Model");
-        
+
+        // FIXME - do we need these?
         if (TYPE.tsym == null) TYPE.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("TYPE"), TYPE, syms.rootPackage);
         if (REAL.tsym == null) {
 //            REAL.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("real"), REAL, syms.rootPackage);
@@ -311,14 +428,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         this.resultName = names.fromString(resultVarString);
         this.exceptionName = names.fromString(exceptionVarString);
-        this.postCheckName = names.fromString("postCheck");
-        this.signalsCheckName = names.fromString("signalsCheck");
         
         trueLit = makeLit(syms.booleanType,1);
         falseLit = makeLit(syms.booleanType,0);
         nullLit = makeLit(syms.botType,null);
         zeroLit = makeLit(syms.intType,0);
 
+    }
+ 
+    /** Returns (creating if necessary) a class symbol for a given fully-qualified name */
+    protected ClassSymbol createClass(String fqName) {
+        return classReader.enterClass(names.fromString(fqName));
     }
  
     /** Overrides the super class call in order to perform JML checks on class
@@ -331,13 +451,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void attribClass(ClassSymbol c) throws CompletionFailure {
         if (utils.jmldebug) log.noticeWriter.println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
-        JmlSpecs.TypeSpecs classSpecs = specs.get(c);  // Get null if there are none yet
+        /*@Nullable*/ JmlSpecs.TypeSpecs classSpecs = specs.get(c);  // Get null if there are none yet
         if (classSpecs == null) {
-            ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(env,c);
+            jmlcompiler.loadSpecsForBinary(env,c);
             classSpecs = specs.get(c);
             if (classSpecs == null) {
                 // loadSpecsForBinary should always result in a TypeSpecs for the
-                // class symbol, even if it is empty
+                // class symbol, even if the TypeSpecs is empty
                 log.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
                 c.complete(); // At least complete it
                 return;
@@ -418,6 +538,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
+    /** Attribute all classes whose attribution was deferred (while in the middle of attributing another class) */
     protected void completeTodo() {
         level++;
         while (!todo.isEmpty()) {
@@ -428,6 +549,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         level--;
     }
     
+    /** Adds a class symbol to the list of classes to be attributed later */
     protected void addTodo(ClassSymbol c) {
         if (!todo.contains(c)) {
             todo.add(c);
@@ -530,6 +652,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
+    public Env<AttrContext> localEnv(Env<AttrContext> env, JCTree tree) {
+        return env.dup(tree, env.info.dup(env.info.scope.dupUnshared()));
+    }
+    
     /** This is overridden to attribute the specs for the method, 
      * if there are any.  The specs are walked at the
      * time the block that is the method body is walked so that the scope 
@@ -548,8 +674,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             //if (attribSpecs && sp != null) {
             if (msp != null) {
                 JmlMethodSpecs sp = msp.cases;
-                Env<AttrContext> localEnv =
-                    env.dup(tree, env.info.dup(env.info.scope.dupUnshared()));
+                Env<AttrContext> localEnv = localEnv(env,tree);
                 localEnv.info.scope.owner =
                     new MethodSymbol(tree.flags | BLOCK, names.empty, null,
                                      env.info.scope.owner);
@@ -565,8 +690,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean topMethodBodyBlock = env.enclMethod != null &&
                                             env.enclMethod.body == tree;
             if (topMethodBodyBlock) {
-                AttrContext a = env.info.dupUnshared();
-                enclosingMethodEnv = env.dup(env.tree,a);
+                // Scope is not duplicated
+                enclosingMethodEnv = env.dup(env.tree,env.info.dupUnshared());
             }
             super.visitBlock(tree);
             //if (!isStatic(env.enclMethod.mods.flags)) {
@@ -582,7 +707,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // a reference to an identifier is always resolved in the current scope first,
                 // not in an enclosing scope.  However, JML has the \old operator which gives
                 // access to the scope at method definition time from within other nestings.
-                boolean prevAllowJML = ((JmlResolve)JmlResolve.instance(context)).setAllowJML(true);
+                boolean prevAllowJML = jmlresolve.setAllowJML(true);
                 try {
                     JmlSpecs.MethodSpecs sp = ((JmlMethodDecl)env.enclMethod).methodSpecsCombined; //specs.getSpecs(env.enclMethod.sym);
                     currentSecretContext = sp.secretDatagroup;
@@ -600,7 +725,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
 //                  }
                 } finally {
-                    ((JmlResolve)JmlResolve.instance(context)).setAllowJML(prevAllowJML);
+                    jmlresolve.setAllowJML(prevAllowJML);
                 }
             }
 
@@ -1030,9 +1155,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             if (datagroup != null) {
                 // Find the field with that name
-                boolean prev = ((JmlResolve)rs).setAllowJML(true);
+                boolean prev = jmlresolve.setAllowJML(true);
                 Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);  // FIXME - test that this does not look outside the class and supertypes
-                ((JmlResolve)rs).setAllowJML(prev);
+                jmlresolve.setAllowJML(prev);
                 if (v instanceof VarSymbol) {
                     //OK
                     queryDatagroup = (VarSymbol)v;
@@ -1080,10 +1205,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             if (datagroup != null) {
                 // Find the model field with that name
-                boolean prev = ((JmlResolve)rs).allowJML;
-                ((JmlResolve)rs).allowJML = true;
+                boolean prev = jmlresolve.setAllowJML(true);
                 Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);
-                ((JmlResolve)rs).allowJML = prev;
+                jmlresolve.setAllowJML(prev);
                 if (v instanceof VarSymbol) {
                     secretDatagroup = (VarSymbol)v;
                     //OK
@@ -1142,7 +1266,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // a reference to an identifier is always resolved in the current scope first,
                 // not in an enclosing scope.  However, JML has the \old operator which gives
                 // access to the scope at method definition time from within other nestings.
-                boolean prevAllowJML = JmlResolve.setJML(context,true);
+                boolean prevAllowJML = jmlresolve.setAllowJML(true);
                 Env<AttrContext> prevEnv2 = env;
                 try {
                     env = localEnv;
@@ -1151,7 +1275,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     deSugarMethodSpecs(tree,tree.methodSpecsCombined);
                 } finally {
                     env = prevEnv2;
-                    JmlResolve.setJML(context,prevAllowJML);
+                    jmlresolve.setAllowJML(prevAllowJML);
                     enclosingMethodEnv = prevEnv;
                 }
             }
@@ -1193,8 +1317,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return id;
     }
 
-    // TODO _ document
-    protected JCVariableDecl makeVariableDecl(Name name, Type type, JCExpression init, int pos) {
+    /** Makes an attributed node representing a new variable declaration
+     * such as a local declaration within the body of a method;
+     * a new symbol is created, though not entered as a member in any scope;
+     * the sourcefile (if it is a JmlVariableDecl) is not filled in;
+     * @param name the name of the variable
+     * @param type the type of the variable
+     * @param init the (attributed) initialization expression or null
+     * @param pos the preferred position indication
+     * @return the AST node
+     */
+    protected JCVariableDecl makeVariableDecl(Name name, Type type, /*@Nullable*/ JCExpression init, int pos) {
         JmlTree.Maker factory = JmlTree.Maker.instance(context);
         VarSymbol vsym = new VarSymbol(0, name, type, null);
         vsym.pos = pos;
@@ -1202,10 +1335,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return decl;
     }
 
-    /** Make an attributed node representing a literal (no node position is set). 
-     *   FIXME - check whether value is 0/1 or false/true for boolean types
+    /** Make an attributed node representing a literal (no node position is set); 
+     *  the value is an Integer for boolean (0=false, 1=true) or char types
      *  @param type       The literal's type.
-     *  @param value      The literal's value.
+     *  @param value      The literal's value (0/1 for boolean)
      */
     protected JCLiteral makeLit(Type type, Object value) {
         return make.Literal(type.tag, value).setType(type);
@@ -1217,7 +1350,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @return the constructed node
      */
     protected JCLiteral makeIntLiteral(int value, int pos) {
-        JmlTree.Maker factory = (JmlTree.Maker)JmlTree.Maker.instance(context);
+        JmlTree.Maker factory = JmlTree.Maker.instance(context);
         JCLiteral lit = factory.at(pos).Literal(TypeTags.INT,value);
         lit.type = syms.intType;
         return lit;
@@ -1564,9 +1697,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // which are not JML nodes.
         FieldSpecs fspecs = specs.getSpecs(tree.sym);
         if (fspecs != null) {
-            boolean prev = ((JmlResolve)rs).setAllowJML(true);
+            boolean prev = jmlresolve.setAllowJML(true);
             for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
-            ((JmlResolve)rs).setAllowJML(prev);
+            jmlresolve.setAllowJML(prev);
         }
 
         // Check the mods after the specs, because the modifier checks depend on
@@ -1786,7 +1919,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     JmlVariableDecl inVarDecl = null;
     
     public void visitJmlTypeClauseIn(JmlTypeClauseIn tree) {
-        boolean prev = JmlResolve.setJML(context,true);
+        boolean prev = jmlresolve.setAllowJML(true);
         boolean prevEnv = pureEnvironment;
         JmlToken prevClauseType = currentClauseType;
         JmlVariableDecl prevDecl = inVarDecl;
@@ -1806,13 +1939,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             inVarDecl = prevDecl;
             pureEnvironment = prevEnv;
             currentClauseType = prevClauseType;
-            JmlResolve.setJML(context,prev);
+            jmlresolve.setAllowJML(prev);
             result = null;
         }
     }
 
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
-        boolean prev = JmlResolve.setJML(context,true);
+        boolean prev = jmlresolve.setAllowJML(true);
         boolean prevEnv = pureEnvironment;
         JmlToken prevClauseType = currentClauseType;
         currentClauseType = tree.token;
@@ -1827,7 +1960,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } finally {
             pureEnvironment = prevEnv;
             currentClauseType = prevClauseType;
-            JmlResolve.setJML(context,prev);
+            jmlresolve.setAllowJML(prev);
         }
     }
 
@@ -1851,7 +1984,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         pureEnvironment = true;
         JavaFileObject old = log.useSource(tree.source);
         VarSymbol previousSecretContext = currentSecretContext;
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         boolean isStatic = tree.modifiers != null && isStatic(tree.modifiers);
         try {
             // invariant, axiom, initially
@@ -1886,7 +2019,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         } finally {
             currentSecretContext = previousSecretContext;
-            JmlResolve.setJML(context,prevAllowJML);
+            jmlresolve.setAllowJML(prevAllowJML);
             pureEnvironment = prev;
             log.useSource(old);
         }
@@ -1918,9 +2051,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return null;
         }
         Name n = getAnnotationStringArg(secret);
-        boolean prev = ((JmlResolve)rs).setAllowJML(true);
+        boolean prev = jmlresolve.setAllowJML(true);
         Symbol sym = rs.resolveIdent(secret.args.get(0).pos(),env,n,VAR);
-        ((JmlResolve)rs).setAllowJML(prev);
+        jmlresolve.setAllowJML(prev);
         if (sym instanceof VarSymbol) return (VarSymbol)sym;
         log.error(secret.pos(),"jml.no.such.field",n.toString());
         return null;
@@ -1941,9 +2074,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             datagroup = getAnnotationStringArg(query);
             pos = args.get(0).pos();
         }
-        boolean prev = ((JmlResolve)rs).setAllowJML(true);
+        boolean prev = jmlresolve.setAllowJML(true);
         Symbol sym = rs.resolveIdent(pos,env,datagroup,VAR);
-        ((JmlResolve)rs).setAllowJML(prev);
+        jmlresolve.setAllowJML(prev);
         if (sym instanceof VarSymbol) return (VarSymbol)sym;
         log.error(pos,"jml.no.such.field",datagroup.toString());
         return null;
@@ -1986,7 +2119,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JavaFileObject old = log.useSource(tree.source);
         boolean prev = pureEnvironment;
         pureEnvironment = true;
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
             // constraint
             Env<AttrContext> localEnv = env;
@@ -2034,7 +2167,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             // FIXME - complete implementation
         } finally {
-            JmlResolve.setJML(context,prevAllowJML);
+            jmlresolve.setAllowJML(prevAllowJML);
             pureEnvironment = prev;
             log.useSource(old);
         }
@@ -2046,11 +2179,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
         JavaFileObject old = log.useSource(tree.source);
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
             attribStat(tree.decl,env);
         } finally {
-            JmlResolve.setJML(context,prevAllowJML);
+            jmlresolve.setAllowJML(prevAllowJML);
             log.useSource(old);
         }
     }
@@ -2059,18 +2192,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Attributes a initializer or static_initializer declaration */
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) {
         JavaFileObject old = log.useSource(tree.source);
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
             // FIXME - test declarations within specs
-            Env<AttrContext> localEnv =
-                env.dup(tree, env.info.dup(env.info.scope.dupUnshared()));
+            Env<AttrContext> localEnv = localEnv(env,tree);
             localEnv.info.scope.owner =
                 new MethodSymbol(Flags.PRIVATE | BLOCK, names.empty, null,
                                  env.info.scope.owner);
             if (tree.token == JmlToken.STATIC_INITIALIZER) localEnv.info.staticLevel++;
             attribStat(tree.specs,localEnv);
         } finally {
-            JmlResolve.setJML(context,prevAllowJML);
+            jmlresolve.setAllowJML(prevAllowJML);
             log.useSource(old);
         }
     }
@@ -2080,7 +2212,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prev = pureEnvironment;
         pureEnvironment = true;
         JavaFileObject old = log.useSource(tree.source);
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         VarSymbol prevSecret = currentSecretContext;
         try {
             //attribExpr(tree.ident,env,Type.noType);
@@ -2161,7 +2293,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             // FIXME - need to check that ident refers to a model field
         } finally {
-            JmlResolve.setJML(context,prevAllowJML);
+            jmlresolve.setAllowJML(prevAllowJML);
             pureEnvironment = prev;
             log.useSource(old);
             currentSecretContext = prevSecret;
@@ -2189,7 +2321,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prev = pureEnvironment;
         pureEnvironment = true;
         JavaFileObject old = log.useSource(tree.source);
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
             attribExpr(tree.identifier,env,Type.noType);
 
@@ -2211,7 +2343,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
             }
         } finally {
-            JmlResolve.setJML(context,prevAllowJML);
+            jmlresolve.setAllowJML(prevAllowJML);
             pureEnvironment = prev;
             log.useSource(old);
         }
@@ -2222,7 +2354,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JavaFileObject old = log.useSource(tree.source);
         boolean prev = pureEnvironment;
         pureEnvironment = true;
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
             attribExpr(tree.identifier,env,Type.noType);
             
@@ -2244,7 +2376,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (isStatic) // ||(env.enclClass.sym.flags() & INTERFACE) != 0) // FIXME - what about interfaces
                 env.info.staticLevel--;
         } finally {
-            JmlResolve.setJML(context,prevAllowJML);
+            jmlresolve.setAllowJML(prevAllowJML);
             pureEnvironment = prev;
             log.useSource(old);
         }
@@ -2370,8 +2502,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             tree.vardef.name = names.fromString(syntheticExceptionID);
         }
         
-        Env<AttrContext> localEnv =
-            env.dup(tree, env.info.dup(env.info.scope.dupUnshared()));
+        Env<AttrContext> localEnv = localEnv(env,tree);
 
         // FIXME - is this assignment needed? Why not elsewhere?
         tree.vardef.vartype.type = attribTree(tree.vardef.vartype, localEnv, TYP, syms.exceptionType);
@@ -2454,9 +2585,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // class fields, but may not rename method parameters or earlier old
             // or forall declarations.
             if (enclosingMethodEnv != null) {   // FIXME - change these back to dup()?
-                localEnv = env.dup(enclosingMethodEnv.tree, env.info.dup(env.info.scope.dupUnshared()));
+                localEnv = localEnv(env,enclosingMethodEnv.tree);
             } else { // For initializer declarations with specs
-                localEnv = env.dup(enclosingClassEnv.tree, env.info.dup(env.info.scope.dupUnshared()));
+                localEnv = localEnv(env,enclosingClassEnv.tree);
             }
             env = localEnv;
 
@@ -2730,9 +2861,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 t = this.TYPE;
                 Type saved = check(tree, t, VAL, pkind, pt);
-                Symbol cs = JmlResolve.instance(context).loadClass(localEnv,names.fromString("org.jmlspecs.utils.Utils"));
-                if (cs instanceof ClassSymbol) addTodo((ClassSymbol)cs);
-                else log.noticeWriter.println("Could not find org.jmlspecs.utils.Utils " + cs); // FIXME - make into an internal error?
+                addTodo(utilsClass);
                 result = saved;
                 break;
 
@@ -2893,7 +3022,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** This handles JML statements such as assert and assume and unreachable and hence_by. */
     public void visitJmlStatementExpr(JmlTree.JmlStatementExpr tree) {
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         boolean prev = pureEnvironment;
         pureEnvironment = true;
         JmlToken prevClauseType = currentClauseType;
@@ -2903,7 +3032,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree.optionalExpression != null) attribExpr(tree.optionalExpression,env,syms.stringType);
         currentClauseType = prevClauseType;
         pureEnvironment = prev;
-        JmlResolve.setJML(context,prevAllowJML);
+        jmlresolve.setAllowJML(prevAllowJML);
         result = null; // No type returned
     }
 
@@ -2912,7 +3041,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void attribLoopSpecs(List<JmlTree.JmlStatementLoop> loopSpecs, Env<AttrContext> loopEnv) {
         savedSpecOK = false;
         if (loopSpecs == null || loopSpecs.isEmpty()) return;
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         boolean prev = pureEnvironment;
         pureEnvironment = true;
         for (JmlTree.JmlStatementLoop tree: loopSpecs) {
@@ -2926,40 +3055,40 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             currentClauseType = prevClauseType;
         }
         pureEnvironment = prev;
-        JmlResolve.setJML(context,prevAllowJML);
+        jmlresolve.setAllowJML(prevAllowJML);
     }
     
     
     /** This handles JML statements that give method-type specs for method body statements. */
     public void visitJmlStatementSpec(JmlTree.JmlStatementSpec tree) {
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         JmlToken prevClauseType = currentClauseType;
         currentClauseType = null;
         if (tree.statementSpecs != null) attribStat(tree.statementSpecs,env);
         currentClauseType = prevClauseType;
-        JmlResolve.setJML(context,prevAllowJML);
+        jmlresolve.setAllowJML(prevAllowJML);
     }
     
     /** This handles JML declarations (method and ghost fields, methods, types) */
     public void visitJmlStatementDecls(JmlTree.JmlStatementDecls tree) {
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         JmlToken prevClauseType = currentClauseType;
         currentClauseType = tree.token;
         for (JCTree.JCStatement s : tree.list) {
             attribStat(s,env);
         }
         currentClauseType = prevClauseType;
-        JmlResolve.setJML(context,prevAllowJML);
+        jmlresolve.setAllowJML(prevAllowJML);
     }
     
     /** This handles JML statements such as set and debug */
     public void visitJmlStatement(JmlTree.JmlStatement tree) {  // FIXME - need to test appropriately for purity
-        boolean prevAllowJML = JmlResolve.setJML(context,true);
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
         JmlToken prevClauseType = currentClauseType;
         currentClauseType = tree.token;
         attribStat(tree.statement,env);
         currentClauseType = prevClauseType;
-        JmlResolve.setJML(context,prevAllowJML);
+        jmlresolve.setAllowJML(prevAllowJML);
     }
 
     /** This handles JML primitive types */
@@ -3273,8 +3402,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Type restype = q.type; // Result type of the expression
 
             // Attroibuted statements that return true or false
-            JCReturn rettrue = F.Return(F.Literal(TypeTags.BOOLEAN, 1).setType(syms.booleanType));
-            JCReturn retfalse = F.Return(F.Literal(TypeTags.BOOLEAN, 0).setType(syms.booleanType));
+            JCReturn rettrue = F.Return(treeutils.trueLit); //F.Literal(TypeTags.BOOLEAN, 1).setType(syms.booleanType));
+            JCReturn retfalse = F.Return(treeutils.falseLit); //F.Literal(TypeTags.BOOLEAN, 0).setType(syms.booleanType));
             
             // First assemble the portions that need attribution
             
@@ -3463,8 +3592,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JCExpression cond = newvalue;
             if (q.op == JmlToken.BSFORALL || q.op == JmlToken.BSEXISTS) { 
                 if (q.op == JmlToken.BSFORALL) {
-                    cond = F.Unary(JCTree.NOT, cond).setType(syms.booleanType); 
-                    ((JCUnary)cond).operator = rs.resolveUnaryOperator(cond.pos(), JCTree.NOT, env, newvalue.type);
+                    cond = treeutils.makeNot(cond.pos, cond);
+//                    cond = F.Unary(JCTree.NOT, cond).setType(syms.booleanType); 
+//                    ((JCUnary)cond).operator = rs.resolveUnaryOperator(cond.pos(), JCTree.NOT, env, newvalue.type);
                 }
                 update = F.If(cond, q.op == JmlToken.BSFORALL? retfalse : rettrue , null);
                 retStat = q.op == JmlToken.BSFORALL ? rettrue : retfalse;
@@ -3472,27 +3602,31 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JCIdent id = F.Ident(initialDecl.name);
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
-                JCUnary op = F.Unary(JCTree.PREINC, id);
-                op.setType(initialDecl.type);
-                op.operator = rs.resolveUnaryOperator(op.pos(),op.getTag(),env,op.arg.type);
+                JCUnary op = (JCUnary)treeutils.makeUnary(id.pos, JCTree.PREINC, id);
+//                JCUnary op = F.Unary(JCTree.PREINC, id);
+//                op.setType(initialDecl.type);
+//                op.operator = rs.resolveUnaryOperator(op.pos(),op.getTag(),env,op.arg.type);
                 update = F.If(cond, F.Exec(op) , null);
                 retStat = F.Return(id); // Is it OK to reuse the node?
             } else if (q.op == JmlToken.BSSUM) {
                 JCIdent id = F.Ident(initialDecl.name);
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
-                JCAssignOp asn = F.Assignop(JCTree.PLUS_ASG, id, cond);
-                asn.setType(initialDecl.type);
-                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
+                JCAssignOp asn = treeutils.makeAssignOp(Position.NOPOS, JCTree.PLUS_ASG, id, cond);
+//                JCAssignOp asn = F.Assignop(JCTree.PLUS_ASG, id, cond);
+//                asn.setType(initialDecl.type);
+//                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
                 update = F.Exec(asn);
                 retStat = F.Return(id); // Is it OK to reuse the node?
             } else if (q.op == JmlToken.BSPRODUCT) {
                 JCIdent id = F.Ident(initialDecl.name);
+                id.pos = Position.NOPOS;
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
-                JCAssignOp asn = F.Assignop(JCTree.MUL_ASG, id, cond);
-                asn.setType(initialDecl.type);
-                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
+                JCAssignOp asn = treeutils.makeAssignOp(Position.NOPOS, JCTree.MUL_ASG, id, cond);
+//                JCAssignOp asn = F.Assignop(JCTree.MUL_ASG, id, cond);
+//                asn.setType(initialDecl.type);
+//                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
                 update = F.Exec(asn);
                 retStat = F.Return(id);
             } else if (q.op == JmlToken.BSMAX || q.op == JmlToken.BSMIN) {
@@ -3506,6 +3640,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 fid.setType(firstDecl.type);
                 fid.sym = firstDecl.sym;
                 JCBinary op1,op2;
+                // FIXME - use treeutils here
                 update = F.If((op1=F.Binary(
                                             JCTree.OR, 
                                             (op2=F.Binary(
@@ -3523,7 +3658,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                                    )
                                            ),
                                    null);
-                op1.operator = rs.resolveBinaryOperator(op1.pos(),op1.getTag(), env, op1.lhs.type, op1.rhs.type);
+                op1.operator = treeutils.orSymbol;
                 op2.operator = rs.resolveBinaryOperator(op2.pos(),op2.getTag(), env, op2.lhs.type, op2.rhs.type);
                 retStat = F.Return(id);
             } else if (q.op == JmlToken.BSMIN) {
@@ -3537,6 +3672,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 fid.setType(firstDecl.type);
                 fid.sym = firstDecl.sym;
                 JCBinary op1,op2;
+                // FIXME - use treeutils here
                 update = F.If(
                         (op1=F.Binary(
                                 JCTree.OR, 
@@ -3555,7 +3691,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                        )
                                ),
                        null);
-                op1.operator = rs.resolveBinaryOperator(op1.pos(),op1.getTag(), env, op1.lhs.type, op1.rhs.type);
+                op1.operator = treeutils.orSymbol;
                 op2.operator = rs.resolveBinaryOperator(op2.pos(),op2.getTag(), env, op2.lhs.type, op2.rhs.type);
                 
                 retStat = F.Return(id);
@@ -3572,16 +3708,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 indexid.type = indexdef.type;
                 Name indexname = indexdef.name;
                 if (bound.decl.type.tag == TypeTags.BOOLEAN) {
-                    //indexdef.init = F.Literal(syms.booleanType.tag,0).setType(indexdef.type);
-                    JCIdent idx = F.Ident(indexname);
+                    JCIdent idx = F.at(Position.NOPOS).Ident(indexname);
                     idx.setType(indexdef.type);
                     idx.sym = indexdef.sym;
-                    JCUnary neg = F.Unary(JCTree.NOT, idx);
-                    neg.setType(syms.booleanType);
-                    neg.operator = rs.resolveUnaryOperator(neg.pos(),neg.getTag(),env,idx.type);
-                    JCAssign asgn = F.Assign(idx,neg);
-                    asgn.setType(syms.booleanType);
-                    JCStatement negate = F.Exec(asgn).setType(syms.booleanType);
+                    JCExpression neg = treeutils.makeNot(Position.NOPOS, idx);
+                    JCAssign asgn = treeutils.makeAssign(Position.NOPOS, idx,neg);
+                    JCStatement negate = F.at(Position.NOPOS).Exec(asgn);
                     JCDoWhileLoop dowhilestatement =
                         F.DoLoop(
                                 F.Block(0,List.<JCStatement>of(innerStatement,negate)),
@@ -3589,8 +3721,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                 );
                     innerStatement = F.Block(0,List.<JCStatement>of(indexdef,dowhilestatement));
                 } else if (bound.decl.type.tag == TypeTags.CLASS) {
-                    //indexdef.init = F.Literal(indexdef.type.tag,0).setType(indexdef.type);
-                    // foreach (T i: selected) 
                     JCEnhancedForLoop foreach =
                         F.ForeachLoop(
                                 indexdef,
@@ -3606,15 +3736,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     hidef.init = bound.hi;
 
                     JCIdent id = indexid;
-                    JCUnary op = F.Unary(JCTree.PREINC, id);
-                    op.operator = rs.resolveUnaryOperator(op.pos(), op.getTag(), env, id.type);
-                    op.type = id.type;
+                    JCExpression op = treeutils.makeUnary(Position.NOPOS,JCTree.PREINC, id);
                     JCStatement inc = F.Exec(op);
 
                     JCIdent hi = F.Ident(hiname);
                     hi.sym = hidef.sym;
                     hi.type = hidef.type;
                     
+                    // FIXME - use treeutils
                     JCBinary bin = F.Binary(bound.hi_equal ? JCTree.LE : JCTree.LT, id, hi);
                     bin.operator = rs.resolveBinaryOperator(bin.pos(), bin.getTag(), env, id.type, hi.type);
                     bin.setType(syms.booleanType);
@@ -3638,10 +3767,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             newarray.elems = argslist;
             
         } catch (Exception e) {
-            // Ignore exceptions - the finally block takes care of it
-        } finally {
-            // The error message is output in JmlRac
-            //if (q.racexpr == null && Options.instance(context).isSet(JmlOption.SHOW_NOT_IMPLEMENTED.optionName())) log.warning(q.pos(),"jml.quantified.expression.not.translatable");
+            // If there is an exception, we just abort trying to produce a RAC expression
+            q.racexpr = null;
         }
         return;
 
@@ -4047,9 +4174,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * performed after a context is defined.
      * @param context the compilation context in which to do this initialization
      */
-    public void initNames(Context context) {
+    public void initAnnotationNames(Context context) {
         Names names = Names.instance(context);
-        annotationPackageName = (Names.instance(context).fromString(Utils.jmlAnnotationPackage));
+        annotationPackageName = names.fromString(Utils.jmlAnnotationPackage);
         for (JmlToken t: JmlToken.modifiers) {
             if (t.annotationType == null) {
                 // No class for this token, but we won't complain

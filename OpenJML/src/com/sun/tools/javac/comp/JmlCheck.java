@@ -14,7 +14,10 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import org.jmlspecs.annotation.*;
 
 /** The Check class is specialized for JML in order to avoid unchecked-cast warnings
- * for uses of casts in JML expressions.  JML checks these logically.
+ * for uses of casts in JML expressions.  JML checks these logically. Also adjusts
+ * warnings on use of old in method specifications.
+ * <p>
+ * [TODO: Give examples for clarity]
  * @author David R. Cok
  *
  */
@@ -102,7 +105,7 @@ public class JmlCheck extends Check {
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
         if (staticOldEnv) flags &= ~Flags.STATIC;
         long k = super.checkFlags(pos,flags,sym,tree);
-        if (staticOldEnv) { flags |= Flags.STATIC; k |= Flags.STATIC; }
+        if (staticOldEnv) { k |= Flags.STATIC; }
         return k;
     }
 }

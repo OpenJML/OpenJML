@@ -339,13 +339,6 @@ public class Enter extends JCTree.Visitor {
         this.env = env; // DRC - added in order to export the env
     }
 
-//    // DRC - this was extracted in order to be able to insert some functionality
-//    // after the class symbol was created, but before the nested classes were
-//    // handled.  The first argument is null at the top-level
-//    protected void enterNestedClasses(/*@nullable*/ TypeSymbol containingClass, List<? extends JCTree> nestedClassDefs, Env<AttrContext> env) {
-//        classEnter(nestedClassDefs, env);
-//    }
-    
     @Override
     public void visitClassDef(JCClassDecl tree) {
         Symbol owner = env.info.scope.owner;

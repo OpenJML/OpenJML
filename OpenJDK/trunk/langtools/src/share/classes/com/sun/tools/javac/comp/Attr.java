@@ -2594,7 +2594,7 @@ public class Attr extends JCTree.Visitor {
          *  @param env     The current environment.
          *  @param v       The variable's symbol.
          */
-        protected void checkInit(JCTree tree, // CHANGED FROM PRIOVATE TO PROTECTED
+        protected void checkInit(JCTree tree, // DRCok CHANGED FROM PRIVATE TO PROTECTED
                                Env<AttrContext> env,
                                VarSymbol v,
                                boolean onlyWarning) {

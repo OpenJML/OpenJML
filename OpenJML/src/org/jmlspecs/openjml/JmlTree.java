@@ -310,7 +310,8 @@ public class JmlTree {
             // FIXME - does not set the sourcefile
         }
 
-        /** Creates a variable declaration from its components */
+        /** Creates a variable declaration with symbol and type filled in from its components;
+         * does not fill in the sourcefile */
         @Override
         public JmlVariableDecl VarDef(VarSymbol v, /*@Nullable*/ JCExpression init) {
             return 
@@ -320,7 +321,6 @@ public class JmlTree {
                 Type(v.type),
                 init,
                 v).setPos(pos).setType(v.type);
-            // FIXME - does not set the sourcefile
         }
 
         

@@ -54,6 +54,9 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     /** The compilation context of this instance */
     protected Context context;
     
+    /** This is a stack of the declarations occurring in JML quantifier expressions,
+     * possible nested (and therefore stacked).
+     */
     protected java.util.List<List<JCVariableDecl>> quantDeclStack = new java.util.LinkedList<List<JCVariableDecl>>();
     
     /** A constructor, but use instance() to generate new instances of this class. */
@@ -62,23 +65,31 @@ public class JmlFlow extends Flow implements IJmlVisitor {
         this.context = context;
     }
     
-    /** Overridden to be sure that ghost/model declarations within the class are
-     * visited by the flow checker.
-     */
-    @Override
-    public void visitClassDef(JCClassDecl tree) {
-        super.visitClassDef(tree);
-    }
+    // Instead of overriding visitClassDef (which does a lot of processing), a hook
+    // (moreClassDef) was added into the middle of its implementation; this hook does
+    // nothing in the base class, but is overridden below to do additional processing.
+//    /** Overridden to be sure that ghost/model declarations within the class are
+//     * visited by the flow checker.
+//     */
+//    @Override
+//    public void visitClassDef(JCClassDecl tree) {
+//        super.visitClassDef(tree);
+//    }
     
     @Override
     public void moreClassDef(JCClassDecl tree) {
+        // Do nothing if the class is not attibuted
         if (tree.sym == null) return;
+        // Do nothing if the class is already instrumented for RAC
         if (Utils.instance(context).isInstrumented(tree.mods.flags)) return;
+        
+        // Do nothing if the class has no specs (i.e., is binary)
         JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(tree.sym);
         if (tspecs == null) return;
         
         JavaFileObject prev = Log.instance(context).currentSourceFile();
         try {
+            // Do Flow processing on each JML clause of the class declaration
             for (JmlTypeClause c : tspecs.clauses) {
                 if (c instanceof JmlTypeClauseDecl) {
                     JCTree d = ((JmlTypeClauseDecl)c).decl;
@@ -206,7 +217,50 @@ public class JmlFlow extends Flow implements IJmlVisitor {
         // No action to take
     }
 
-    //// These are not
+    @Override
+    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
+        // FIXME - check array dimensions?
+    }
+
+    @Override
+    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        quantDeclStack.add(0,that.decls.toList());
+        if (that.racexpr != null) {
+            scanExpr(that.racexpr);
+        } else {
+            scanExpr(that.range);
+            scanExpr(that.value);
+        }
+        quantDeclStack.remove(0);
+    }
+    
+    @Override
+    public void visitIdent(JCIdent that) {
+        for (List<JCVariableDecl> list: quantDeclStack) {
+            for (JCVariableDecl decl: list) {
+                if (decl.sym.equals(that.sym)) return;
+            }
+        }
+        super.visitIdent(that);
+    }
+
+    @Override
+    public void visitJmlSetComprehension(JmlSetComprehension that) {
+        // FIXME: Skipping set comprehension
+    }
+
+    @Override
+    public void visitJmlStatementSpec(JmlStatementSpec that) {
+        // Is called, but nothing to check
+    }
+
+    @Override
+    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
+        // FIXME: skipping store-ref expressions
+        // we could call scanExpr on each expression, but we have to watch for special expressions
+    }
+
+    //// These are not implemented
 
     @Override
     public void visitJmlGroupName(JmlGroupName that) {
@@ -259,38 +313,6 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-        // FIXME - check array dimensions?
-    }
-
-    @Override
-    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        quantDeclStack.add(0,that.decls.toList());
-        if (that.racexpr != null) {
-            scanExpr(that.racexpr);
-        } else {
-            scanExpr(that.range);
-            scanExpr(that.value);
-        }
-        quantDeclStack.remove(0);
-    }
-    
-    @Override
-    public void visitIdent(JCIdent that) {
-        for (List<JCVariableDecl> list: quantDeclStack) {
-            for (JCVariableDecl decl: list) {
-                if (decl.sym.equals(that.sym)) return;
-            }
-        }
-        super.visitIdent(that);
-    }
-
-    @Override
-    public void visitJmlSetComprehension(JmlSetComprehension that) {
-        // FIXME: Skipping set comprehension
-    }
-
-    @Override
     public void visitJmlSpecificationCase(JmlSpecificationCase that) {
         Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlSpecificationCase");
     }
@@ -301,22 +323,11 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlStatementSpec(JmlStatementSpec that) {
-        // Is called, but nothing to check
-    }
-
-    @Override
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
 //        scan(that.expression);
 //        scan(that.lo);
 //        scan(that.hi);
         Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
-    }
-
-    @Override
-    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
-        // FIXME: skipping store-ref expressions
-        // we could call scanExpr on each expression, but we have to watch for special expressions
     }
 
     @Override

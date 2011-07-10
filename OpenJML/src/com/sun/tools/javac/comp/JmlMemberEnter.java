@@ -702,7 +702,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JavaFileObject prevSource = null;
         Env<AttrContext> prevEnv = this.env;
         this.env = env;
-        boolean prevAllowJML = JmlResolve.setJML(context,true);// This allows JML identifiers to be matched when lookup occurs
+        boolean prevAllowJML = resolve.setAllowJML(true);// This allows JML identifiers to be matched when lookup occurs
         try {
             if (utils.jmldebug) log.noticeWriter.println("FINISHING SPEC CLASS - JML PHASE " + specsDecl.sym.fullname);
             JmlSpecs.TypeSpecs tsp = specs.get(specsDecl.sym);
@@ -967,7 +967,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             // FIXME - unify this method with the near duplicate above
         } finally {
             addRacMethods(specsDecl.sym,env);
-            JmlResolve.setJML(context,prevAllowJML);
+            resolve.setAllowJML(prevAllowJML);
             Log.instance(context).useSource(prevSource);
             if (utils.jmldebug) {
                 log.noticeWriter.println("FINISHING SPEC CLASS - COMPLETE " + specsDecl.sym.fullname);
@@ -2124,7 +2124,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         }
         // JML fields and methods
         
-        boolean previousAllow = JmlResolve.setJML(context,true);
+        boolean previousAllow = resolve.setAllowJML(true);
         if (classDecl.typeSpecsCombined == null) classDecl.typeSpecsCombined = specs.getSpecs(classDecl.sym);
         for (JmlTypeClause t: classDecl.typeSpecsCombined.clauses) {
             if (t instanceof JmlTypeClauseDecl) {
@@ -2172,7 +2172,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             }
         }
         
-        JmlResolve.setJML(context,previousAllow);
+        resolve.setAllowJML(previousAllow);
         env = prev;
         
         // If we are completing a class with a Java source file then we walk the

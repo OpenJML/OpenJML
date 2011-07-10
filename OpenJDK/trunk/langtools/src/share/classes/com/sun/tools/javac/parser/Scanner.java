@@ -76,7 +76,7 @@ public class Scanner implements Lexer {
 
     /** The token's position, 0-based offset from beginning of text.
      */
-    protected int _pos; // DRC - changed from private to protected
+    protected int _pos; // DRC - changed from private to protected, changed name
 
     /** Character position just after the last character of the token.
      */

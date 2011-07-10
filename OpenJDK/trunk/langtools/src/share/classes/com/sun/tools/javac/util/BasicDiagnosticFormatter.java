@@ -85,6 +85,7 @@ public class BasicDiagnosticFormatter extends AbstractDiagnosticFormatter {
         super(msgs, new BasicConfiguration());
     }
 
+    // DRC added this method
     public String formatDiagnostic(JCDiagnostic d, Locale l) {
         String s = formatDiagnostic(d,l,selectFormat(d));
         if (depth == 0)
@@ -102,10 +103,14 @@ public class BasicDiagnosticFormatter extends AbstractDiagnosticFormatter {
             boolean meta = false;
             if (c == '%' && i < format.length() - 1) {
                 meta = true;
-               c = format.charAt(++i);
+                c = format.charAt(++i);
             }
             buf.append(meta ? formatMeta(c, d, l) : String.valueOf(c));
         }
+        // DRC - removed this, or I get double source information - investigate - perhaps changes in vendor branch have obsoleted my changes elsewhere
+//      if (depth == 0)
+//          return addSourceLineIfNeeded(d, buf.toString());
+//      else
         return buf.toString();
     }
 
