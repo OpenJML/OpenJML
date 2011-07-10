@@ -336,7 +336,7 @@ public class Enter extends JCTree.Visitor {
         }
         log.useSource(prev);
         result = null;
-        this.env = env; // DRC - added in order to export the env
+        //this.env = env; // DRC - added in order to export the env
     }
 
     @Override
@@ -385,7 +385,7 @@ public class Enter extends JCTree.Visitor {
             return;
         }
         chk.compiled.put(c.flatname, c);
-         enclScope.enter(c);
+        enclScope.enter(c);
 
         // Set up an environment for class block and store in `typeEnvs'
         // table, to be retrieved later in memberEnter and attribution.

@@ -103,7 +103,7 @@ public class Resolve {
         chk = Check.instance(context);
         infer = Infer.instance(context);
         reader = ClassReader.instance(context);
-        reader.init(syms);
+        reader.init(syms); // DRC added
         treeinfo = TreeInfo.instance(context);
         types = Types.instance(context);
         diags = JCDiagnostic.Factory.instance(context);
