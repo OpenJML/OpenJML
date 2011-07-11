@@ -483,6 +483,13 @@ public class JmlTreeUtils {
         return e;
     }
 
+    /** Makes a JML assert statement */
+    public JmlStatementExpr makeAssert(int pos, Label label, JCExpression expr, int relatedPos) {
+        JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlToken.ASSERT, label, expr);
+        e.declPos = relatedPos;
+        return e;
+    }
+
     /** Returns the 'larger' of the two types as numeric types are compared */
         // FIXME - does this give the right type resolution for all pairs?
     private Type maxType(Type lhs, Type rhs) {
