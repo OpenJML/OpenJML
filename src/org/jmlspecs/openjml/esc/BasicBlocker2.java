@@ -1217,7 +1217,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @param classDecl the declaration of the containing class
      * @return the completed BasicProgram
      */
-    protected @NonNull BasicProgram convertMethodBody(JCBlock newbody, @NonNull JCMethodDecl methodDecl, 
+    protected @NonNull BasicProgram convertMethodBody(JCBlock block, @NonNull JCMethodDecl methodDecl, 
             JmlMethodSpecs denestedSpecs, @NonNull JCClassDecl classDecl) {
         this.methodDecl = (JmlMethodDecl)methodDecl;
         program = new BasicProgram();
@@ -1246,17 +1246,12 @@ public class BasicBlocker2 extends JmlTreeScanner {
         blockLookup = new java.util.HashMap<String,BasicBlock>();
         
         
-
-//        if (methodDecl.getReturnType() != null) {
-//            resultVar = newAuxIdent(RESULT,methodDecl.getReturnType().type,0,true); 
-//        }
         terminationVar = newAuxIdent(terminationSym,0);
         exceptionVar = newAuxIdent(EXCEPTION,syms.exceptionType,0,true);
         heapVar = newAuxIdent(HEAP_VAR,syms.intType,0,true); // FIXME - would this be better as its own uninterpreted type?
         assumeCheckCountVar = newAuxIdent(ASSUME_CHECK_COUNT,syms.intType,0,false);
         assumeCheckCount = 0;
         
-        JCBlock block = newbody; //methodDecl.getBody();
         
         // Define the conditional return block
         condReturnBlock = newBlock(COND_RETURN_BLOCK_NAME,pos);

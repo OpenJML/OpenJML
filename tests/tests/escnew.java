@@ -1,8 +1,5 @@
 package tests;
 
-import org.jmlspecs.openjml.esc.JmlEsc;
-
-import com.sun.tools.javac.util.Options;
 
 public class escnew extends EscBase {
 
@@ -20,6 +17,56 @@ public class escnew extends EscBase {
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
     }
+
+    public void testPrecondition1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  \n"
+                +"  public void m1bad(int i) {\n"
+                +"    //@ assert i>0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i>=0;\n"
+                +"  public void m2bad(int i) {\n"
+                +"    //@ assert i>0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i>0;\n"
+                +"  public void m1good(int i) {\n"
+                +"    //@ assert i>0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i>0;\n"
+                +"  public void m2good(int i) {\n"
+                +"    //@ assert i>=0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i>0;\n"
+                +"  //@ also\n"
+                +"  //@ requires i==0;\n"
+                +"  public void m3good(int i) {\n"
+                +"    //@ assert i>=0 ;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2bad",9
+                );
+    }
+    
+    // FIXME - need tests with conjoined preconditions in one case
+    // FIXME - need tests with multiple ensures and various cases
+    
+    // FIXME - test definedness in preconditions
+    // FIXME - test definedness in postconditions
+    
+    // FIXME - exceptional postconditions
+    
+    // FIXME - need precondition checks for calling methods
+    // FIXME - need checks for ensures assumptions when calling methods
+    // FIXME - complete assignables
+    // FIXME - assignables for method calls
 
     // Just testing binary and unary 
     public void testBinaryUnary() {
@@ -290,9 +337,6 @@ public class escnew extends EscBase {
     }
 
     public void testChangedParam() {
-//        options.put("-showbb","");
-//        options.put("-trace", "");
-//        options.put("-method","m1good");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -451,5 +495,216 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m3bad",16
                 ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4bad",16
                 );    }
+
+    public void testAssignable1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int x,y; \n"
+                
+                +"  //@ assignable x; \n"
+                +"  public void m1bad(int i) {\n"
+                +"    y = 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ assignable x; \n"
+                +"  public void m1good(int i) {\n"
+                +"    x = 0 ;\n"
+                +"    i = 0; ;\n"
+                +"    int k = 0; ;\n"
+                +"    k = 0; ;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m1bad",7
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                );
+        }
+
+    public void testAssignable2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int x; \n"
+                
+                +"  //@ requires i > 0; \n"
+                +"  //@ assignable x; \n"
+                +"  public void mgood(int i) {\n"
+                +"    x = 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i > 0; \n"
+                +"  //@ assignable x; \n"
+                +"  public void m1good(int i) {\n"
+                +"    if (i > 0) x = 0 ;\n"  // FIXME - warn about else branch
+                +"  }\n"
+                
+                +"}"
+                );
+        }
+
+    public void testAssignable3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int x,y; \n"
+                
+                +"  //@ requires i > 0; \n"
+                +"  //@ assignable x; \n"
+                +"  //@ also \n"
+                +"  //@ requires i == 0; \n"
+                +"  //@ assignable y; \n"
+                +"  public void m1bad(int i) {\n"
+                +"    x = 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i > 0; \n"
+                +"  //@ assignable x; \n"
+                +"  //@ also \n"
+                +"  //@ requires i == 0; \n"
+                +"  //@ assignable y; \n"
+                +"  public void m1good(int i) {\n"
+                +"    if (i > 0) x = 0 ;\n"
+                +"    if (i == 0) y = 0 ;\n"
+                +"  }\n"
+                                
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assignable) in method m1bad",7
+                ,"/tt/TestJava.java:8: warning: Associated declaration",7
+                );
+        }
+
+    public void testAssignable4() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int x,y; \n"
+                
+                +"  //@ requires i > 0; \n"
+                +"  //@ assignable x; \n"
+                +"  //@ also \n"
+                +"  //@ requires i == 0; \n"
+                +"  //@ assignable y; \n"
+                +"  public void m1bad(int i) {\n"
+                +"    i = 0 ;\n"
+                +"    y = 0 ;\n"
+                +"  }\n"
+                                
+                +"}"
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assignable) in method m1bad",7
+                ,"/tt/TestJava.java:5: warning: Associated declaration",7
+                );
+        }
+
+    public void testAssignable5() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int x,xx; static int y,yy; \n"
+                
+                +"  //@ assignable this.x; \n"
+                +"  public void m1bad(int i) {\n"
+                +"    y = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable this.x; \n"
+                +"  public void m2bad(int i) {\n"
+                +"    xx = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable TestJava.y; \n"
+                +"  public void m3bad(int i) {\n"
+                +"    yy = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable TestJava.y; \n"
+                +"  public void m4bad(int i) {\n"
+                +"    x = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable tt.TestJava.y; \n"
+                +"  public void m5bad(int i) {\n"
+                +"    yy = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable tt.TestJava.y; \n"
+                +"  public void m6bad(int i) {\n"
+                +"    x = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable this.x; \n"
+                +"  public void m1good(int i) {\n"
+                +"    x = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable TestJava.y; \n"
+                +"  public void m2good(int i) {\n"
+                +"    y = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable tt.TestJava.y; \n"
+                +"  public void m3good(int i) {\n"
+                +"    y = 0 ;\n"
+                +"  }\n"
+                                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m1bad",7
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assignable) in method m2bad",8
+                ,"/tt/TestJava.java:8: warning: Associated declaration",7
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assignable) in method m3bad",8
+                ,"/tt/TestJava.java:12: warning: Associated declaration",7
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assignable) in method m4bad",7
+                ,"/tt/TestJava.java:16: warning: Associated declaration",7
+                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assignable) in method m5bad",8
+                ,"/tt/TestJava.java:20: warning: Associated declaration",7
+                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assignable) in method m6bad",7
+                ,"/tt/TestJava.java:24: warning: Associated declaration",7
+                );
+        }
+
+    public void testAssignable6() {
+//      options.put("-showbb","");
+//    options.put("-trace", "");
+//    options.put("-method","m1good");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  int x,xx; static int y,yy; \n"
+                
+                +"  //@ assignable this.*; \n"
+                +"  public void m1bad(int i) {\n"
+                +"    y = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable TestJava.*; \n"
+                +"  public void m2bad(int i) {\n"
+                +"    x = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable tt.TestJava.*; \n"
+                +"  public void m3bad(int i) {\n"
+                +"    x = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable this.*; \n"
+                +"  public void m1good(int i) {\n"
+                +"    x = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable TestJava.*; \n"
+                +"  public void m2good(int i) {\n"
+                +"    y = 0 ;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable tt.TestJava.*; \n"
+                +"  public void m3good(int i) {\n"
+                +"    y = 0 ;\n"
+                +"  }\n"
+                                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m1bad",7
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assignable) in method m2bad",7
+                ,"/tt/TestJava.java:8: warning: Associated declaration",7
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assignable) in method m3bad",7
+                ,"/tt/TestJava.java:12: warning: Associated declaration",7
+                );
+        }
+
 
 }

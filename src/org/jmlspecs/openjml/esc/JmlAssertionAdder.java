@@ -146,7 +146,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.count = 0;
     }
     
-    /** The creates the overall framework for the block:
+    /** Creates the overall framework for the block:
      * <PRE> 
          preconditions
          try {
@@ -158,7 +158,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * <P>
      * The converted method body is a new block with the following characteristics:
      * <UL>
-     * <LI>control flow statements are still present: if-then-else, switch
+     * <LI>control flow statements are still present: if-then-else, switch, try-catch-finally blocks
      * <LI>expressions in Java code are decomposed into individual operations, with temporaries. This is so that
      * (a) it is easy to add any assertions prior to a specific operation
      * (b) it is straightforward to handle any operation with side-effects, even in the context of
@@ -178,14 +178,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * <LI>JML equivalence to boolean =
      * <LI>JML inequivalence to boolean !=
      * <LI>JML reverse implies (p <== q) to (p || !q)
-     * <LI>assignments with operations are decomposed into the operation and the assignment
+     * <LI>Java assignments with operations are decomposed into the operation and the assignment
      * </UL>
      * <LI>These operations are retained:
      * <UL>
      * <LI>assignment
-     * <LI>integer and floating +, -, *, /
+     * <LI>integer and floating +, -, *, /, %
      * <LI>== and !=
      * <LI>comparison operations (integer and floating)
+     * <LI>bit and or xor
+     * 
      * </UL>
      * <LI>TODO: mod, integer division, shift operations, bit operations, JML implies, JML subtype,
      * instanceof, short-circuit boolean operations
@@ -323,6 +325,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     /** Adds an assertion - the referenced location is within the text of the file containing the method */ 
+    public void addAssert(JCTree location, Label label, JCExpression ex, ListBuffer<JCStatement> stats, int relatedPos) {
+        int start = location.getStartPosition();
+        Integer end = log.currentSource().getEndPosTable().get(location);
+        DiagnosticPositionSES pos = new DiagnosticPositionSES(start,end==null?start:end,log.currentSource());
+        String assertID = assertPrefix + (++assertCount);
+        Name assertname = names.fromString(assertID);
+        JCVariableDecl decl = treeutils.makeVarDef(syms.booleanType,assertname,null,ex);
+        stats.add(decl);
+        stats.add(treeutils.makeAssert(location.pos,label,treeutils.makeIdent(location.pos,decl.sym),relatedPos));
+        //positionMap.put(assertID, pos);
+    }
+    
+    /** Adds an assertion - the referenced location is within the text of the file containing the method */ 
     public void addAssertStart(JCTree location, Label label, JCExpression ex, ListBuffer<JCStatement> stats) {
         int start = location.getStartPosition();
         Integer end = log.currentSource().getEndPosTable().get(location);
@@ -344,6 +359,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     Map<Symbol,JCVariableDecl> preparams = new HashMap<Symbol,JCVariableDecl>();
+    Map<JmlSpecificationCase,JCIdent> preconditions = new HashMap<JmlSpecificationCase,JCIdent>();
     
     public void addPrePostConditions(JCMethodDecl decl, ListBuffer<JCStatement> initialStats, ListBuffer<JCStatement> ensureStats) {
         currentStatements = initialStats;
@@ -357,6 +373,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             preparams.put(d.sym,dd);
             addStat(dd);
         }
+        JCExpression combinedPrecondition = null;
         for (JmlSpecificationCase scase : denestedSpecs.cases) {
             JCIdent preident = null;
             JCExpression preexpr = null;
@@ -365,7 +382,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     case REQUIRES:
                         currentStatements = initialStats;
                         JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
-                        ex = jmlrewriter.translate(ex);
                         if (preexpr == null) preexpr = ex;
                         else preexpr = treeutils.makeAnd(ex.pos, preexpr, ex);
                         break;
@@ -373,17 +389,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             if (preexpr == null) {
-                preexpr = treeutils.trueLit; // FIXME - make a copy
+                preexpr = treeutils.trueLit;
+            } else {
+                preexpr = jmlrewriter.translate(preexpr);
             }
+            precount++;
             Name prename = names.fromString(prePrefix + precount);
             JCVariableDecl d = treeutils.makeVarDef(syms.booleanType, prename, decl.sym, preexpr);
             preident = treeutils.makeIdent(preexpr.pos, d.sym);
             initialStats.add(d);
-            initialStats.add(treeutils.makeAssume(preexpr.pos,Label.PRECONDITION,preident));
-
+            preconditions.put(scase, preident);
+            if (combinedPrecondition == null || preexpr == treeutils.trueLit) {
+                combinedPrecondition = preident;
+            } else {
+                combinedPrecondition = treeutils.makeOr(combinedPrecondition.pos, combinedPrecondition, preident);
+            }
+            
             for (JmlMethodClause clause : scase.clauses) {
                 switch (clause.token) {
                     case ENSURES:
+                        // FIXME - need to add the definedness condition before translating
                         currentStatements = ensureStats;
                         JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
                         ex = jmlrewriter.translate(ex,true);
@@ -396,6 +421,61 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     default:
                 }
             }
+        }
+        // If combinedPrecondition is null then there were no specs, so the implicit precondition is true and does not
+        // need to be checked
+        if (combinedPrecondition != null) {
+            initialStats.add(treeutils.makeAssume(combinedPrecondition.pos,Label.PRECONDITION,combinedPrecondition));
+        }
+    }
+    
+    public void addAssignableChecks(JCAssign that) {
+        if (that.lhs instanceof JCIdent) addAssignableChecksVar((JCIdent)that.lhs,that);
+    }
+    
+    public void addAssignableChecksVar(JCIdent id, JCTree location) {
+        // Locally declared identifiers and method arguments are owned by the method - we don't check those
+        // Class fields are owned by the class - we do check those
+        if (!(id.sym.owner instanceof Symbol.ClassSymbol)) return;
+        JmlMethodSpecs denestedSpecs = methodDecl.sym == null ? null : JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym);
+        for (JmlSpecificationCase scase : denestedSpecs.cases) {
+            JCIdent preident = preconditions.get(scase);
+            JCExpression cond = treeutils.falseLit;
+            int assignablePos = scase.pos;
+            for (JmlMethodClause clause : scase.clauses) {
+                if (clause.token != JmlToken.ASSIGNABLE) continue;
+                assignablePos = clause.pos;
+                JmlMethodClauseStoreRef assignable = (JmlMethodClauseStoreRef)clause;
+                for (JCExpression sref: assignable.list) {
+                    if (sref instanceof JCIdent) {
+                        Symbol target = ((JCIdent)sref).sym;
+                        if (target == id.sym) {
+                            cond = treeutils.trueLit;
+                        }
+                    } else if (sref instanceof JCFieldAccess) {
+                        JCFieldAccess fa = (JCFieldAccess)sref;
+                        JCExpression selected = fa.selected;
+                        boolean classRef = (selected instanceof JCIdent && ((JCIdent)selected).sym instanceof Symbol.ClassSymbol) ||
+                                (selected instanceof JCFieldAccess && ((JCFieldAccess)selected).sym instanceof Symbol.ClassSymbol);
+                        if (fa.name == null || fa.sym == id.sym) {
+                            if (classRef && id.sym.isStatic() && id.sym.owner == selected.type.tsym) {
+                                // FIXME -should we allow id.sym.owner to be a superclass of fa.selected.sym ?
+                                cond = treeutils.trueLit;
+                            } else if (!classRef && !id.sym.isStatic()) {
+                                // Require that tree.selected == this
+                                cond = treeutils.trueLit; // FIXME
+                            }
+                        }
+                    } else if (sref instanceof JCArrayAccess) {
+                        // does not match
+                    } else {
+                        System.out.println("NOT IMPLEMENTED: Can't handle assignable clauses with " + sref);
+                        log.warning(sref.pos, "");
+                    }
+                }
+            }
+            cond = treeutils.makeImplies(id.pos,preident,cond);
+            addAssert(location,Label.ASSIGNABLE,cond,currentStatements,assignablePos);
         }
     }
 
@@ -818,10 +898,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         push();
         scan(that.thenpart);
         JCBlock thenpart = popBlock(0,that.thenpart.pos);
-        push();
-        scan(that.elsepart);
-        JCBlock elsepart = popBlock(0,that.elsepart.pos);
-        addStat(M.at(that.pos).If(cond,thenpart,elsepart));
+        if (that.elsepart == null) {
+            addStat(M.at(that.pos).If(cond,thenpart,null));
+        } else {
+            push();
+            scan(that.elsepart);
+            JCBlock elsepart = popBlock(0,that.elsepart.pos);
+            addStat(M.at(that.pos).If(cond,thenpart,elsepart));
+        }
     }
 
     @Override
@@ -915,6 +999,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCExpression e = treeutils.makeNeqObject(that.pos, rhs, treeutils.nulllit);
                 addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e, currentStatements);
             }
+            addAssignableChecks(that);
+            
             JCExpression assign = treeutils.makeAssign(that.pos,  lhs, rhs);
             addStat(M.Exec(assign));
             eresult = lhs;
@@ -953,8 +1039,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression lhs = that.lhs;
         JCExpression rhs = that.rhs;
         int op = that.getTag();
-        if (op <= JCTree.BITAND_ASG) op += (JCTree.BITXOR - JCTree.BITXOR_ASG);
-        else op += (JCTree.PLUS - JCTree.PLUS_ASG);
+        op -= JCTree.ASGOffset;
         if (lhs instanceof JCIdent) {
             scan(lhs);
             lhs = eresult;

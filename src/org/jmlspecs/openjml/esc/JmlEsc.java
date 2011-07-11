@@ -477,11 +477,15 @@ public class JmlEsc extends JmlTreeScanner {
                     
                     String cf = "";//!cfInfo ? "" : " [ cf. " + (jfo==null?prev:jfo).getName() + ", line " + aline + "]";
                     if (resultpos == 0) resultpos = decl.pos;
-                    if (assertStat.label == Label.POSTCONDITION) {
-                        log.warning(resultpos,"esc.assertion.invalid",assertStat.label,decl.getName() + cf);
+                    Label label = assertStat.label;
+                    if (label == Label.POSTCONDITION) {
+                        log.warning(resultpos,"esc.assertion.invalid",label,decl.getName() + cf);
                         log.warning(assertStat.pos, "jml.associated.decl");
+                    } else if (label == Label.ASSIGNABLE) {
+                        log.warning(assertStat.pos,"esc.assertion.invalid",label,decl.getName() + cf);
+                        log.warning(assertStat.declPos, "jml.associated.decl");
                     } else {
-                        log.warning(assertStat.pos,"esc.assertion.invalid",assertStat.label,decl.getName() + cf);                        
+                        log.warning(assertStat.pos,"esc.assertion.invalid",label,decl.getName() + cf);                        
                     }
                     
 //                    if (jfo != null) log.useSource(jfo);

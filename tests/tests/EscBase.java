@@ -20,6 +20,7 @@ public abstract class EscBase extends JmlTestCase {
     static String testspecpath;
     int expectedExit = 0;
     int expectedErrors = 0;
+    boolean noAssociatedDeclaration;
 
     protected void setUp() throws Exception {
         testspecpath = testspecpath1;
@@ -33,6 +34,7 @@ public abstract class EscBase extends JmlTestCase {
         Log.instance(context).multipleErrors = true;
         expectedExit = 0;
         expectedErrors = 0;
+        noAssociatedDeclaration = false;
         print = false;
     }
     
@@ -86,7 +88,9 @@ public abstract class EscBase extends JmlTestCase {
                         // Not equal and the expected error is optional so just skip
                     }
                 } else {
-                    if (j >= collector.getDiagnostics().size()) {
+                    if (noAssociatedDeclaration && list[2*i].toString().contains("Associated declaration")) {
+                        // OK - skip
+                    } else if (j >= collector.getDiagnostics().size()) {
                         assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
                     } else {
                         assertEquals("Error " + i, list[2*i].toString(), noSource(collector.getDiagnostics().get(j)));
