@@ -263,9 +263,18 @@ public class JmlCompiler extends JavaCompiler {
         // Java handling uses, we just don't use the same todo list.
         nestingLevel++;
         loadSuperSpecs(env,csymbol);
-        JmlCompilationUnit speccu = parseSpecs(csymbol);
-        if (verbose && speccu == null) {
-            log.noticeWriter.println("No specs for " + csymbol);
+        
+        // It can happen that the specs are loaded during the loading of the super class 
+        // since complete() may be called on the class in order to fetch its superclass
+        JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csymbol);
+        JmlCompilationUnit speccu;
+        if (JmlSpecs.instance(context).get(csymbol) != null) {
+            speccu = tspecs.decl.toplevel;
+        } else {
+            speccu = parseSpecs(csymbol);
+            if (verbose && speccu == null) {
+                log.noticeWriter.println("No specs for " + csymbol);
+            }
         }
         // FIXME - not sure env or mode below are still used
         if (speccu != null) {
@@ -278,7 +287,7 @@ public class JmlCompiler extends JavaCompiler {
             else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
         }
         if (utils.jmldebug) if (speccu == null) log.noticeWriter.println("   LOADED CLASS " + csymbol + " FOUND NO SPECS");
-                            else log.noticeWriter.println("   LOADED CLASS " + csymbol + " PARSED SPECS");
+        else log.noticeWriter.println("   LOADED CLASS " + csymbol + " PARSED SPECS");
         ((JmlEnter)enter).enterSpecsForBinaryClasses(csymbol,speccu);
         if (utils.jmldebug) log.noticeWriter.println("NEST " + nestingLevel + " " + csymbol);
         if (nestingLevel==1) ((JmlMemberEnter)JmlMemberEnter.instance(context)).completeBinaryTodo();

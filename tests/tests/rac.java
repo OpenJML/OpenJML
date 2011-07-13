@@ -1436,6 +1436,22 @@ public class rac extends RacBase {
         );
     }
     
+    // FIXME - quantifiers witrh multiple declarations
+    /** Numof quantifier */
+    public void testCountTwo() {
+        expectedErrors = 1;
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost long n1 = (\\num_of int i,j; 0 <= i && i <= 5 && 0 <= j && j < i; true); \n "
+                +"//@ debug System.out.println(\"A \" + n1); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: Variable declaration containing JML quantifier expression",23
+                ,"A 0"
+                ,"END"
+        );
+    }
+    
     /** Sum quantifier */
     public void testSumQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
