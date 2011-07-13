@@ -2065,7 +2065,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         specs.putSpecs(vsym, fspecs = new JmlSpecs.FieldSpecs(vd.mods));
                     } else {
                         fspecs.mods = vd.mods;
-                        fspecs.list.appendList(vd.fieldSpecs.list);
+                        if (vd.fieldSpecs != null) fspecs.list.appendList(vd.fieldSpecs.list);
                     }
                 }
 
