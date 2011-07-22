@@ -1,7 +1,13 @@
 Release Notes
 
+Fixed bug with the JML <=!=> operator
+Added functionality for SMT support in ESC
+    (partial) code review and cleanup of JmlAssertionAdder and BasicBlocker2
+    
+SVN 2416:
 Fixed bugs with handling JML \pre and \old
 Added functionality for SMT support in ESC
+    JML \pre and \old
     Synchronize statements
     If statements
     return and throw statements

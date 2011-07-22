@@ -9,7 +9,7 @@ public class escnew extends EscBase {
         options.put("-newesc","");
         options.put("-noPurityCheck","");
         //options.put("-jmlverbose",   "");
-       //options.put("-method",   "m2bad");
+        //options.put("-method",   "m3ok");
         options.put("-showbb",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
@@ -356,6 +356,56 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
                 ,"/tt/TestJava.java:14: warning: Associated declaration",7
+                );
+    }
+
+    // Just testing binary and unary 
+    public void testJMLBinaryUnary() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires p ==> q;\n"
+                +"  //@ ensures !p || q;\n"
+                +"  public void m1ok(boolean p, boolean q) {\n"
+                +"  }\n"
+                
+                +"  //@ requires p <==> q;\n"
+                +"  //@ ensures p == q;\n"
+                +"  public void m2ok(boolean p, boolean q) {\n"
+                +"  }\n"
+                
+                +"  //@ requires p <=!=> q;\n"
+                +"  //@ ensures p != q;\n"
+                +"  public void m3ok(boolean p, boolean q) {\n"
+                +"  }\n"
+                
+                +"  //@ requires p <== q;\n"
+                +"  //@ ensures p || !q;\n"
+                +"  public void m4ok(boolean p, boolean q) {\n"
+                +"  }\n"
+                
+                +"  //@ requires !p || q;\n"
+                +"  //@ ensures p ==> q;\n"
+                +"  public void m5ok(boolean p, boolean q) {\n"
+                +"  }\n"
+                
+                +"  //@ requires p == q;\n"
+                +"  //@ ensures p <==> q;\n"
+                +"  public void m6ok(boolean p, boolean q) {\n"
+                +"  }\n"
+                
+                +"  //@ requires p != q;\n"
+                +"  //@ ensures p <=!=> q;\n"
+                +"  public void m7ok(boolean p, boolean q) {\n"
+                +"  }\n"
+                
+                +"  //@ requires p || !q;\n"
+                +"  //@ ensures p <== q;\n"
+                +"  public void m8ok(boolean p, boolean q) {\n"
+                +"  }\n"
+                
+                
+                +"}"
                 );
     }
 
