@@ -582,7 +582,7 @@ public class JmlTreeUtils {
      * @return the new AST
      */
     public JCCatch makeCatcher(Symbol owner, Type exceptionType) {
-        JCVariableDecl v = makeVarDef(exceptionType,caughtException,owner,null);
+        JCVariableDecl v = makeVarDef(exceptionType,caughtException,owner,Position.NOPOS);
         return factory.at(Position.NOPOS).Catch(v,factory.Block(0,List.<JCStatement>nil()));
     }
     
@@ -684,12 +684,21 @@ public class JmlTreeUtils {
      */  // FIXME - what about position
     public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, JCExpression init) {
         int modifierFlags = 0;
-        JCExpression tid = factory.Type(type);
+        JCExpression tid = factory.at(init.pos).Type(type);
         tid.type = type;  // FIXME - relevant?
-        JCVariableDecl d = factory.VarDef(factory.Modifiers(0),name,tid,init);
-        VarSymbol v = new VarSymbol(modifierFlags, d.name, type, owner);
-        d.sym = v;
-        d.type = type;
+        VarSymbol v = new VarSymbol(modifierFlags, name, type, owner);
+        JCVariableDecl d = factory.VarDef(v,init);
+        d.pos = init.pos;
+        return d;
+    }
+
+    public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, int pos) {
+        int modifierFlags = 0;
+        JCExpression tid = factory.at(pos).Type(type);
+        tid.type = type;  // FIXME - relevant?
+        VarSymbol v = new VarSymbol(modifierFlags, name, type, owner);
+        JCVariableDecl d = factory.VarDef(v,null);
+        d.pos = pos;
         return d;
     }
 

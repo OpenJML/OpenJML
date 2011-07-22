@@ -742,7 +742,7 @@ public class JmlTranslator extends JmlTreeTranslator {
                 break;
             case INEQUIVALENCE:
                 // P <=!=> Q is equivalent to P != Q  - but we need a boolean !=
-                result = treeutils.makeBinary(that.pos,JCTree.EQ,boolneSymbol,that.lhs,that.rhs);
+                result = treeutils.makeBinary(that.pos,JCTree.NE,boolneSymbol,that.lhs,that.rhs);
                 break;
             case SUBTYPE_OF:
             case JSUBTYPE_OF:
