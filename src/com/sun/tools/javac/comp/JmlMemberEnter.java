@@ -1707,6 +1707,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (diffs != 0) {
                 if ((Flags.NATIVE & matchf & ~specf)!= 0) diffs &= ~Flags.NATIVE;
                 if (isInterface) diffs &= ~Flags.PUBLIC & ~Flags.ABSTRACT;
+                if ((matchf & specf & Flags.ANONCONSTR)!= 0 && (javaClassSymbol.flags() & Flags.ENUM) != 0) { diffs &= ~2; specMethodDecl.mods.flags |= 2; } // enum constructors can have differences
                 if (diffs != 0 && !(match.isConstructor() && diffs == 3)) {
                     // FIXME - hide this case for now because of default constructors in binary files
                         //log.noticeWriter.println("MATCH: " + Flags.toString(matchf));

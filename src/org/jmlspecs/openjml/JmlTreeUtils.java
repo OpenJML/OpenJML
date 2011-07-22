@@ -480,6 +480,7 @@ public class JmlTreeUtils {
     /** Makes a JML assert statement */
     public JmlStatementExpr makeAssert(int pos, Label label, JCExpression expr) {
         JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlToken.ASSERT, label, expr);
+        e.declPos = Position.NOPOS;
         return e;
     }
 
@@ -645,6 +646,20 @@ public class JmlTreeUtils {
      * @return the AST for the declaration
      */
     public JCVariableDecl makeVarDef(JCExpression type, Name name, Symbol owner) {
+        int flags = 0;
+        factory.at(Position.NOPOS);
+        JCModifiers mods = factory.at(Position.NOPOS).Modifiers(0);
+        //JCExpression zeroEquiv = makeZeroEquivalentLit(Position.NOPOS,type.type);
+        JCVariableDecl d = factory.VarDef(mods,name,type,null);
+        VarSymbol v =
+            new VarSymbol(flags, d.name, d.vartype.type, owner);
+        d.pos = Position.NOPOS;
+        d.sym = v;
+        d.type = type.type;
+        return d;
+    }
+
+    public JCVariableDecl makeVarDefZeroInit(JCExpression type, Name name, Symbol owner) {
         int flags = 0;
         factory.at(Position.NOPOS);
         JCModifiers mods = factory.at(Position.NOPOS).Modifiers(0);

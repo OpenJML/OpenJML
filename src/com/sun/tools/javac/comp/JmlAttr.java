@@ -152,6 +152,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCForLoop;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
@@ -944,6 +945,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (m.sym == null) return; // Guards against specification method declarations that are not matched - FIXME
 
         JmlMethodDecl jmethod = (JmlMethodDecl)m;
+        Map<Name,Env<AttrContext>> prevLabelEnvs = labelEnvs;
+        labelEnvs = new HashMap<Name,Env<AttrContext>>();
 
 
         boolean oldrelax = relax;
@@ -1019,6 +1022,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             currentQueryContext = previousQueryContext;
             relax = oldrelax;
             if (prevSource != null) log.useSource(prevSource);
+            labelEnvs.clear();
+            labelEnvs = prevLabelEnvs;
         }
     }
     
@@ -2636,6 +2641,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         oldNoLabelTokens = oldNoLabelTokens.clone();
         oldNoLabelTokens.addAll(EnumSet.of(ENSURES,SIGNALS,CONSTRAINT,DURATION,WORKING_SPACE));
     }
+    
+    // FIXME - limit these to a method body
+    Map<Name,Env<AttrContext>> labelEnvs = new HashMap<Name,Env<AttrContext>>();
+    
+    public void visitLabelled(JCLabeledStatement tree) {
+        Env<AttrContext> labelenv = env.dup(tree,env.info.dupUnshared());
+        labelEnvs.put(tree.label,labelenv);
+        super.visitLabelled(tree);
+    }
 
     public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
         JmlToken token = tree.token;
@@ -2704,6 +2718,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     // in a method clause
                     Env<AttrContext> oldenv = savedMethodClauseOutputEnv;
                     if (oldenv == null) oldenv = enclosingMethodEnv;
+                    if (label != null) {
+                        Env<AttrContext> labelenv = labelEnvs.get(label);
+                        if (labelenv == null) {
+                            Log.instance(context).error(tree.args.get(1).pos(),"jml.unknown.label",label);
+                        } else {
+                            oldenv = labelenv;
+                        }
+                    }
                     if (enclosingMethodEnv == null) {
                         // Just a precaution
                         Log.instance(context).error("jml.internal","Unsupported context for pre-state reference (anonymous class? initializer block?).  Please report the program.");

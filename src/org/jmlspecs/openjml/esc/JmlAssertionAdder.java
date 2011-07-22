@@ -107,6 +107,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final protected String resultString = "RESULT";
     final protected Name resultName;
     protected Symbol resultSym = null;
+    
+    
+    final protected String exceptionString = "EXCEPTION";
+    final protected Name exceptionName;
+    protected Symbol exceptionSym = null;
+    
     static final public String terminationString = "TERMINATION";
     final protected Name terminationName;
     protected Symbol terminationSym = null;
@@ -142,6 +148,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.specs = JmlSpecs.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
         this.resultName = names.fromString(resultString);
+        this.exceptionName = names.fromString(exceptionString);
         this.terminationName = names.fromString(terminationString);
         this.count = 0;
     }
@@ -225,9 +232,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             resultSym = d.sym;
             initialStatements.add(d);
         }
-        JCVariableDecl d = treeutils.makeVarDef(syms.intType,terminationName,decl.sym,null);
-        terminationSym = d.sym;
-//        initialStatements.add(d);
+        
+        {
+            JCVariableDecl d = treeutils.makeVarDef(syms.exceptionType,exceptionName,decl.sym,treeutils.nulllit);
+            exceptionSym = d.sym;
+            initialStatements.add(d);
+        }
+        {
+            JCVariableDecl d = treeutils.makeVarDef(syms.intType,terminationName,decl.sym,treeutils.zero);
+            d.pos = decl.pos;
+            terminationSym = d.sym;
+            initialStatements.add(d);
+        }
         
         // Give parameters unique names
         for (JCVariableDecl param : decl.params) {
@@ -311,7 +327,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         //positionMap.put(assertID, pos);
     }
     
-    /** Adds an assertion - the referenced location is within the text of the file containing the method */ 
+    /** Adds an assertion - the referenced location is within the text of the file containing the method.
+     * location.pos() is the location of the warning if ex is false; there is no associated location. */ 
     public void addAssert(JCTree location, Label label, JCExpression ex, ListBuffer<JCStatement> stats) {
         int start = location.getStartPosition();
         Integer end = log.currentSource().getEndPosTable().get(location);
@@ -324,7 +341,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         //positionMap.put(assertID, pos);
     }
     
-    /** Adds an assertion - the referenced location is within the text of the file containing the method */ 
+    /** Adds an assertion - the referenced location is within the text of the file containing the method;
+     * The location of the warning (if ex is false) is location.pos(); relatedPos is the associated location. */ 
     public void addAssert(JCTree location, Label label, JCExpression ex, ListBuffer<JCStatement> stats, int relatedPos) {
         int start = location.getStartPosition();
         Integer end = log.currentSource().getEndPosTable().get(location);
@@ -337,7 +355,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         //positionMap.put(assertID, pos);
     }
     
-    /** Adds an assertion - the referenced location is within the text of the file containing the method */ 
+    /** Adds an assertion - the referenced location is within the text of the file containing the method;
+     * location.getStartPosition() is the location of the warning, if ex is false; there is no associated location. */ 
     public void addAssertStart(JCTree location, Label label, JCExpression ex, ListBuffer<JCStatement> stats) {
         int start = location.getStartPosition();
         Integer end = log.currentSource().getEndPosTable().get(location);
@@ -361,7 +380,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     Map<Symbol,JCVariableDecl> preparams = new HashMap<Symbol,JCVariableDecl>();
     Map<JmlSpecificationCase,JCIdent> preconditions = new HashMap<JmlSpecificationCase,JCIdent>();
     
-    public void addPrePostConditions(JCMethodDecl decl, ListBuffer<JCStatement> initialStats, ListBuffer<JCStatement> ensureStats) {
+    public void addPrePostConditions(JCMethodDecl decl, ListBuffer<JCStatement> initialStats, ListBuffer<JCStatement> finalizeStats) {
         currentStatements = initialStats;
         JmlMethodSpecs denestedSpecs = decl.sym == null ? null : JmlSpecs.instance(context).getDenestedSpecs(decl.sym);
         for (JCVariableDecl d: decl.params) {
@@ -374,6 +393,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(dd);
         }
         JCExpression combinedPrecondition = null;
+        ListBuffer<JCStatement> ensureStats = new ListBuffer<JCStatement>();
+        ListBuffer<JCStatement> exsureStats = new ListBuffer<JCStatement>();
         for (JmlSpecificationCase scase : denestedSpecs.cases) {
             JCIdent preident = null;
             JCExpression preexpr = null;
@@ -408,20 +429,41 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             for (JmlMethodClause clause : scase.clauses) {
                 switch (clause.token) {
                     case ENSURES:
-                        // FIXME - need to add the definedness condition before translating
+                    {
                         currentStatements = ensureStats;
                         JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
-                        ex = jmlrewriter.translate(ex,true);
+                        ex = jmlrewriter.translate(ex,preident,true);
                         //JCExpression exx = treeutils.makeUnary(clause.pos, JCTree.NOT, preident);
-                        ex = treeutils.makeJmlBinary(clause.pos, JmlToken.IMPLIES, preident, ex);
+                        ex = treeutils.makeImplies(clause.pos, preident, ex);
                         // FIXME - if the clause is synthetic, the source file may be null
                         addAssertOther(clause,Label.POSTCONDITION,ex,ensureStats);
                         break;
-                        
+                    }
+
+                    case SIGNALS:
+                    {
+                        currentStatements = exsureStats;
+                        JCExpression ex = ((JmlMethodClauseSignals)clause).expression;
+                        JCVariableDecl vd = ((JmlMethodClauseSignals)clause).vardef;
+                        ex = jmlrewriter.translate(ex,preident,true);
+                        JCIdent exceptionId = treeutils.makeIdent(clause.pos,exceptionSym);
+                        JCExpression nn = treeutils.makeBinary(clause.pos, JCTree.NE,  exceptionId, treeutils.nulllit);
+                        ex = treeutils.makeImplies(clause.pos, preident, ex);
+                        addAssertOther(clause,Label.SIGNALS,ex,exsureStats);
+                        break;
+                    }
+
                     default:
                 }
             }
         }
+        
+        int p = methodDecl.pos;
+        JCExpression cond = treeutils.makeEqObject(p,
+                treeutils.makeIdent(p, exceptionSym),treeutils.nulllit);
+        M.at(p);
+        JCStatement ifstat = M.If(cond,M.Block(0, ensureStats.toList()),M.Block(0,exsureStats.toList()));
+        finalizeStats.add(ifstat);
         // If combinedPrecondition is null then there were no specs, so the implicit precondition is true and does not
         // need to be checked
         if (combinedPrecondition != null) {
@@ -836,8 +878,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitLabelled(JCLabeledStatement that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        // Note that the labeled statement will turn into a block
+        push();
+        scan(that.body);
+        JCBlock block = popBlock(0,that.pos);
+        JCLabeledStatement stat = M.Labelled(that.label, block);
+        addStat(stat);
     }
 
     @Override
@@ -851,11 +897,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // TODO Auto-generated method stub
         throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
-
+    
     @Override
     public void visitSynchronized(JCSynchronized that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        if (that.lock != null) {
+            scan(that.lock);
+            JCExpression e = treeutils.makeNeqObject(that.lock.pos, eresult, treeutils.nulllit);
+            addAssert(that.lock, Label.POSSIBLY_NULL, e, currentStatements);
+        }
+        // FIXME - skip the check of the lock is just 'this'
+        // FIXME - need to add concurrency primitives
     }
 
     @Override
@@ -931,6 +982,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitReturn(JCReturn that) {
+        addStat(comment(that));
         JCExpression arg = null;
         JCExpression retValue = that.getExpression();
         if (retValue != null) {
@@ -938,18 +990,41 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             arg = eresult;
             JCIdent resultid = M.at(that.pos).Ident(resultSym);
             M.at(that.pos);
-            JCStatement stat = M.Exec(M.Assign(resultid,arg)); // FIXME - needs position
+            JCStatement stat = M.Exec(M.Assign(resultid,arg));
             addStat(stat);
             arg = resultid;
         }
-        JCStatement stat = M.at(that.pos).Return(arg);
+        JCIdent id = treeutils.makeIdent(that.pos,terminationSym);
+        JCStatement stat = M.Exec(M.Assign(id,treeutils.makeIntLiteral(that.pos,that.pos)));
+        addStat(stat);
+        stat = M.at(that.pos).Return(arg);
         addStat(stat);
     }
 
     @Override
     public void visitThrow(JCThrow that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        addStat(comment(that));
+        scan(that.expr);
+        // assert expr != null;
+        JCExpression e = treeutils.makeNeqObject(that.expr.pos, eresult, treeutils.nulllit);
+        addAssert(that.expr, Label.POSSIBLY_NULL, e, currentStatements);
+        if (that.expr.type.tag != TypeTags.BOT) {
+            // ???Exception EXCEPTION_??? = expr;
+            Name local = names.fromString(exceptionString + "_" + that.pos);
+            JCVariableDecl decl = treeutils.makeVarDef(that.expr.type,local,exceptionSym.owner,eresult); 
+            // EXCEPTION = EXCEPTION_???;
+            JCIdent id = treeutils.makeIdent(that.pos,exceptionSym);
+            JCIdent localid = treeutils.makeIdent(that.pos,decl.sym);
+            JCStatement assign = M.at(that.pos).Exec(treeutils.makeAssign(that.pos,id,localid));
+            // TERMINATION = ???
+            JCIdent tid = treeutils.makeIdent(that.pos,terminationSym);
+            JCStatement term = M.Exec(M.Assign(tid,treeutils.makeIntLiteral(that.pos,-that.pos)));
+            // throw EXCEPTION_??? ;
+            JCThrow thrw = M.at(that.pos).Throw(localid);
+            
+            JCBlock block = M.at(that.pos).Block(0, List.<JCStatement>of(decl,assign,term,thrw));
+            addStat(block);
+        }
     }
 
     @Override
@@ -966,11 +1041,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // TODO Auto-generated method stub
         throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
+    
+    int newobject = 1;
 
     @Override
     public void visitNewClass(JCNewClass that) {
         // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        JCVariableDecl id = treeutils.makeVarDef(treeutils.makeType(that.pos, that.type),names.fromString("NEWOBJECT_" + (newobject++)), methodDecl.sym);
+        currentStatements.add(id);
+        eresult=treeutils.makeIdent(that.pos, id.sym);
+        addAssume(that.pos,Label.NULL_CHECK,treeutils.makeBinary(that.pos,JCTree.NE, eresult, treeutils.nulllit), currentStatements);
     }
 
     @Override
@@ -1191,7 +1271,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     @Override
     public void visitIdent(JCIdent that) {
-        JCIdent id = treeutils.makeIdent(that.pos,that.sym);
+        JCIdent id = treeutils.makeIdent(that.pos, that.sym);
         Name n = uniqueName(that.sym);
         id.name = n;
         eresult = id;
@@ -1386,7 +1466,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
@@ -1666,16 +1746,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression ejmlresult;
         
         JCExpression translate(JCExpression that, boolean isPostcondition) {
-            this.isPostcondition = isPostcondition;
-            this.condition = treeutils.trueLit;
-            this.ejmlresult = null; // Just so it is initialized in case assignment is forgotten
-            that.accept(this);
-            return ejmlresult;
+            return translate(that,treeutils.trueLit,isPostcondition);
         }
         
         JCExpression translate(JCExpression that) {
-            this.isPostcondition = false;
-            this.condition = treeutils.trueLit;
+            return translate(that,treeutils.trueLit,false);
+        }
+
+        JCExpression translate(JCExpression that, JCExpression condition, boolean isPostcondition) {
+            if (that == null) return null;
+            this.isPostcondition = isPostcondition;
+            this.condition = condition;
             this.ejmlresult = null; // Just so it is initialized in case assignment is forgotten
             that.accept(this);
             return ejmlresult;
@@ -1685,32 +1766,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitTopLevel(JCCompilationUnit that) {
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitImport(JCImport that) {
             // FIXME - can these happen in an anonymous class expression
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitClassDef(JCClassDecl that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 
         }
 
         @Override
         public void visitMethodDef(JCMethodDecl that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 
         }
 
         @Override
         public void visitVarDef(JCVariableDecl that) {
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //            scan(that.init);
 //            JCExpression init = that.init == null ? null : eresult;
 //            // FIXME - need to make a unique symbol
@@ -1722,12 +1803,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         public void visitSkip(JCSkip that) {
             //addStat(that); // using the same statement - no copying
                             // Caution - JML statements are subclasses of JCSkip
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitBlock(JCBlock that) {
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //            push();
 //            scan(that.stats);
 //            JCBlock block = popBlock(that.flags,that.pos);
@@ -1737,61 +1818,61 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         @Override
         public void visitDoLoop(JCDoWhileLoop that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitWhileLoop(JCWhileLoop that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitForLoop(JCForLoop that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitForeachLoop(JCEnhancedForLoop that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitLabelled(JCLabeledStatement that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitSwitch(JCSwitch that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitCase(JCCase that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitSynchronized(JCSynchronized that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitTry(JCTry that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitCatch(JCCatch that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
@@ -1814,7 +1895,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitIf(JCIf that) {
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //            scan(that.cond);
 //            JCExpression cond = ejmlresult;
 //            push();
@@ -1828,7 +1909,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitExec(JCExpressionStatement that) {
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //           addStat(comment(that));
 //            scan(that.getExpression());
 //            JCExpression arg = ejmlresult;
@@ -1839,18 +1920,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         @Override
         public void visitBreak(JCBreak that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitContinue(JCContinue that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitReturn(JCReturn that) {
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //            JCExpression retValue = that.getExpression();
 //            JCExpression arg = null;
 //            if (retValue != null) {
@@ -1880,12 +1961,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         @Override
         public void visitThrow(JCThrow that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitAssert(JCAssert that) {
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //            // TODO: This automatically converts a Java assert statement to a JML one - is that what we always want?
 //            addStat(comment(that));
 //            scan(that.getCondition());
@@ -1896,19 +1977,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         @Override
         public void visitApply(JCMethodInvocation that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitNewClass(JCNewClass that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitNewArray(JCNewArray that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
@@ -1920,12 +2001,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitAssign(JCAssign that) {
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitAssignop(JCAssignOp that) {
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
@@ -1980,13 +2061,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         @Override
         public void visitTypeCast(JCTypeCast that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitTypeTest(JCInstanceOf that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
@@ -1995,20 +2076,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression indexed = ejmlresult;
             JCExpression nonnull = treeutils.makeBinary(that.indexed.pos, JCTree.NE, indexed, 
                     treeutils.nulllit);
-            nonnull = treeutils.makeAnd(that.pos, condition, nonnull);
+            nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
             addAssert(that,Label.UNDEFINED_NULL,nonnull,currentStatements);
 
             scan(that.index);
             JCExpression index = ejmlresult;
             JCExpression compare = treeutils.makeBinary(that.index.pos, JCTree.LE, treeutils.zero, 
                     index);
-            compare = treeutils.makeAnd(that.pos, condition, compare);
+            compare = treeutils.makeImplies(that.pos, condition, compare);
             addAssert(that,Label.UNDEFINED_NEGATIVEINDEX,compare,currentStatements);
             
             JCExpression length = treeutils.makeLength(that.indexed.pos,indexed);
             compare = treeutils.makeBinary(that.pos, JCTree.LT, index, 
                     length);
-            compare = treeutils.makeAnd(that.pos, condition, compare);
+            compare = treeutils.makeImplies(that.pos, condition, compare);
             addAssert(that,Label.UNDEFINED_TOOLARGEINDEX,compare,currentStatements);
 
             JCArrayAccess aa = M.at(that.pos).Indexed(indexed,index);
@@ -2023,7 +2104,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Check that the selected expression is not null
             JCExpression nonnull = treeutils.makeNeqObject(that.pos, selected, 
                     treeutils.nulllit);
-            nonnull = treeutils.makeAnd(that.pos, condition, nonnull);
+            nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
             addAssert(that,Label.UNDEFINED_NULL,nonnull,currentStatements);
             
             JCFieldAccess fa = M.at(that.pos).Select(selected,that.name);
@@ -2056,218 +2137,238 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         @Override
         public void visitTypeIdent(JCPrimitiveTypeTree that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitTypeArray(JCArrayTypeTree that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitTypeApply(JCTypeApply that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitTypeParameter(JCTypeParameter that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitWildcard(JCWildcard that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitTypeBoundKind(TypeBoundKind that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitAnnotation(JCAnnotation that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitModifiers(JCModifiers that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitErroneous(JCErroneous that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitLetExpr(LetExpr that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlBinary(JmlBinary that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlChoose(JmlChoose that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlClassDecl(JmlClassDecl that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlCompilationUnit(JmlCompilationUnit that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlForLoop(JmlForLoop that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlGroupName(JmlGroupName that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlImport(JmlImport that) {
             // TODO Auto-generated method stub
             // FIXME - can this occur in an anonymous expression
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlLblExpression(JmlLblExpression that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodDecl(JmlMethodDecl that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-            // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            if (that.token == JmlToken.BSOLD || that.token == JmlToken.BSPRE) {
+                JCExpression m = jmlrewriter.translate(that.meth);
+                JCExpression arg = jmlrewriter.translate(that.args.get(0));
+                JmlMethodInvocation meth;
+                if (that.args.size() == 1) {
+                    meth = M.JmlMethodInvocation(that.token,arg);
+                } else {
+                    // The second argument is a label, not an expression
+                    meth = M.JmlMethodInvocation(that.token,arg,that.args.get(1));
+                }
+                meth.type = that.type;
+                meth.pos = that.pos;
+                meth.startpos = that.startpos;
+                meth.varargsElement = that.varargsElement;
+                meth.meth = m;
+                meth.label = that.label;
+                meth.typeargs = that.typeargs; // FIXME - do these need translating?
+                ejmlresult = meth;
+            } else {
+                // TODO Auto-generated method stub
+                throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            }
         }
 
         @Override
         public void visitJmlMethodSpecs(JmlMethodSpecs that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlSetComprehension(JmlSetComprehension that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
@@ -2365,25 +2466,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         @Override
         public void visitJmlSpecificationCase(JmlSpecificationCase that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStatement(JmlStatement that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStatementDecls(JmlStatementDecls that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStatementExpr(JmlStatementExpr that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //            switch (that.token) {
 //                case ASSERT:
 //                    addStat(comment(that));
@@ -2407,91 +2508,91 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         @Override
         public void visitJmlStatementLoop(JmlStatementLoop that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStatementSpec(JmlStatementSpec that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlVariableDecl(JmlVariableDecl that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //            scan(that.init);
 //            JCExpression init = that.init == null ? null : ejmlresult;
 //            // FIXME - need to make a unique symbol
@@ -2502,7 +2603,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         @Override
         public void visitJmlWhileLoop(JmlWhileLoop that) {
             // TODO Auto-generated method stub
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
     }

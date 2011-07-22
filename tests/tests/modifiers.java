@@ -1101,6 +1101,47 @@ public class modifiers extends TCBase {
                 "/$A/A.jml:1: The specification must include all the annotations that the Java declaration declares: @org.jmlspecs.annotation.Pure", 3);
     }
 
+    // TODO - these could use better error messages
+//    public void testBadModifiers() {
+//        helpTCF("A.java","package tt; \n"
+//                +"/*@ nonnull_by_default*/ public class A { \n"
+//                
+//                +"  //@ requires a[i]>0;\n"
+//                +"  public void m1bad(int[] a, int i) {\n"
+//                +"  }\n"
+//                
+//                +"  //@ requires i >= 0 && i < a.length;\n"
+//                +"  //@ requires a[i]>0;\n"
+//                +"  public void m1good(int[] a, int i) {\n"
+//                +"  }\n"
+//                
+//                +"}"
+//                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",15
+//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+//                );
+//    }
+//    
+//    public void testBadModifiers2() {
+//        helpTCF("A.java","package tt; \n"
+//                +"public class A { \n"
+//                
+//                +"  //@ requires a[i]>0;\n"
+//                +"  public void m1bad(/*@ nonnull */ int[] a, int i) {\n"
+//                +"  }\n"
+//                
+//                +"  //@ requires i >= 0 && i < a.length;\n"
+//                +"  //@ requires a[i]>0;\n"
+//                +"  public void m1good(int[] a, int i) {\n"
+//                +"  }\n"
+//                
+//                +"}"
+//                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",15
+//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+//                );
+//    }
+    
+    
+
     // FIXME - also need to test this for when a .class file has a JML annotation that the spec file does not - is that tested for Java m
     // FIXME - these need implementing - error for the different in annotations
 //    @Test public void testAnnotations2() {

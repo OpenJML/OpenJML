@@ -110,6 +110,20 @@ public class rac extends RacBase {
                 );
     }
     
+    /** Failed precondition */
+    public void testPrecondition3() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(-1); m(0); System.out.println(\"END\"); }\n" +
+                " /*@ requires i > 0; */ \n" +
+                " /*@ requires i < 0; */ \n" +
+                " static void m(int i) {} " +
+                "}"
+                ,"/tt/TestJava.java:4: JML precondition is false"
+                ,"/tt/TestJava.java:4: JML precondition is false"
+                ,"/tt/TestJava.java:4: JML precondition is false"
+                ,"END"
+                );
+    }
+    
     /** Failed precondition with nowarn */
     public void testPrecondition2NoWarn() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +

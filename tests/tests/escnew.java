@@ -9,9 +9,11 @@ public class escnew extends EscBase {
         options.put("-newesc","");
         options.put("-noPurityCheck","");
         //options.put("-jmlverbose",   "");
-        //options.put("-showbb",   "");
+       //options.put("-method",   "m2bad");
+        options.put("-showbb",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
+        //options.put("-showce",   "");
         //options.put("-trace",   "");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -55,10 +57,261 @@ public class escnew extends EscBase {
                 );
     }
     
-    // FIXME - need tests with conjoined preconditions in one case
+    public void testPrecondition2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires i>0;\n"
+                +"  //@ ensures false;\n"
+                +"  public void m1a(int i) {\n"
+                +"  }\n"
+                
+                +"  //@ requires i>0;\n"
+                +"  //@ requires i<0;\n"
+                +"  //@ ensures false;\n"  // FIXME - this should eventually warn about infeasible preconditions
+                +"  public void m1b(int i) {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m1a",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method m1b(int)",-15
+                );
+    }
+    
+    public void testPrecondition3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires a[i]>0;\n"
+                +"  public void m1bad(int[] a, int i) {\n"
+                +"  }\n"
+                
+                +"  //@ requires i >= 0 && i < a.length;\n"
+                +"  //@ requires a[i]>0;\n"
+                +"  public void m1good(int[] a, int i) {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",17
+                );
+    }
+
+    public void testPostcondition1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ signals (Exception) false;\n"
+                +"  public void m1bad(int[] a, int i) {\n"
+                +"    throw new RuntimeException(); \n"
+                +"  }\n"
+                
+                +"  //@ ensures false;\n"
+                +"  public void m2bad(int[] a, int i) {\n"
+                +"  }\n"
+                
+                +"  //@ ensures false;\n"
+                +"  public void m3bad(int[] a, int i) {\n"
+                +"     return;\n"
+                +"  }\n"
+                
+                +"  //@ ensures true;\n"
+                +"  //@ signals (Exception e)  false;\n"
+                +"  public void m1good(int[] a, int i) {\n"
+                +"  }\n"
+                
+                +"  //@ ensures false;\n"
+                +"  public void m2good(int[] a, int i) {\n"
+                +"    throw new RuntimeException(); \n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1bad",5
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",15
+                ,"/tt/TestJava.java:7: warning: Associated declaration",7
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",6
+                ,"/tt/TestJava.java:10: warning: Associated declaration",7
+                );
+    }
+    
+    public void testPostcondition2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ ensures false;\n"
+                +"  //@ also\n"
+                +"  //@ requires i!= 0;\n"
+                +"  //@ ensures true;\n"
+                +"  public void m1bad(int[] a, int i) {\n"
+                +"      if (i == 0) \n"
+                +"         return;\n"
+                +"      else\n"
+                +"         return;\n"
+                +"  }\n"
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ ensures true;\n"
+                +"  //@ also\n"
+                +"  //@ requires i!= 0;\n"
+                +"  //@ ensures false;\n"
+                +"  public void m2bad(int[] a, int i) {\n"
+                +"      if (i == 0) \n"
+                +"         return;\n"
+                +"      else\n"
+                +"         return;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",10
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",10
+                ,"/tt/TestJava.java:18: warning: Associated declaration",7
+                );
+    }
+    
+    public void testPostcondition3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ signals (Exception e) false;\n"
+                +"  //@ also\n"
+                +"  //@ requires i!= 0;\n"
+                +"  //@ signals (Exception e) true;\n"
+                +"  public void m1bad(int[] a, int i) throws Exception {\n"
+                +"      if (i == 0) \n"
+                +"         throw new Exception();\n"
+                +"      else\n"
+                +"         throw new Exception();\n"
+                +"  }\n"
+                
+                +"  //@ requires i == 0;\n"
+                +"  //@ signals (Exception e) true;\n"
+                +"  //@ also\n"
+                +"  //@ requires i!= 0;\n"
+                +"  //@ signals (Exception e) false;\n"
+                +"  public void m2bad(int[] a, int i) throws Exception {\n"
+                +"      if (i == 0) \n"
+                +"         throw new Exception();\n"
+                +"      else\n"
+                +"         throw new Exception();\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1bad",10
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2bad",10
+                ,"/tt/TestJava.java:18: warning: Associated declaration",7
+                );
+    }
+    
+    public void testNullThrow() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1bad(int i) throws Exception {\n"
+                +"      if (i == 0) \n"
+                +"         throw null;\n"
+                +"  }\n"
+                
+                +"  public void m2bad(int i, /*@ nullable */ Exception e) throws Exception {\n"
+                +"      if (i == 0) \n"
+                +"         throw e;\n"
+                +"  }\n"
+                
+                +"  //@ requires i != 0; \n"
+                +"  public void m1good(int i) throws Exception {\n"
+                +"      if (i == 0) \n"
+                +"         throw null;\n"
+                +"  }\n"
+                
+                +"  //@ requires i != 0; \n"
+                +"  public void m2good(int i, Exception e) throws Exception {\n"
+                +"      if (i == 0) \n"
+                +"         throw e;\n"
+                +"  }\n"
+                
+                +"  public void m3good(int i, Exception e) throws Exception {\n"
+                +"      if (i == 0) \n"
+                +"         throw e;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1bad",16
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2bad",16
+                );
+    }
+    
+    public void testNullSynchronized() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1bad(/*@ nullable */ Object o) throws Exception {\n"
+                +"       synchronized (o) {};\n"
+                +"  }\n"
+                
+                +"  public void m1good(Object o) throws Exception {\n"
+                +"       synchronized (o) {};\n"
+                +"  }\n"
+                
+                +"  public void m2good(Object o) throws Exception {\n"
+                +"       synchronized (this) {};\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1bad",21
+                );
+    }
+    
+    // FIXME - add checks on object fields, quantifier variables
+    // FIXME - need attribute checks on scopes of variables
+    public void testLabeled() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires i == 0; \n"
+                +"  public void m1good(int i) throws Exception {\n"
+                +"       int j = 0;\n"
+                +"       //@ assert j == 0;\n"
+                +"       a: j = 1; i = 1;\n"
+                +"       //@ assert \\old(i) == 0;\n"
+                +"       b: j = 2; i = 2;\n"
+                +"       //@ assert \\old(j,a) == 0;\n"
+                +"       //@ assert \\old(i,a) == 0;\n"
+                +"       //@ assert \\old(j,b) == 1;\n"
+                +"       //@ assert \\old(i,b) == 1;\n"
+                +"       //@ assert \\pre(i) == 0;\n"
+                +"       \n"
+                +"  }\n"
+                
+                +"}"
+                );
+    }
+    
+    // FIXME _ check that different return or throw statements are properly pointed to
+
+    // FIXME - needs proper expansion of array accesses
+//    public void testPostcondition1() {
+//        helpTCX("tt.TestJava","package tt; \n"
+//                +"public class TestJava { \n"
+//                
+//                +"  //@ ensures a[i]>0;\n"
+//                +"  public void m1bad(int[] a, int i) {\n"
+//                +"  }\n"
+//                
+//                +"  //@ requires i >= 0 && i < a.length;\n"
+//                +"  //@ ensures a[i]==true || a[i]==false;\n"
+//                +"  public void m1good(boolean[] a, int i) {\n"
+//                +"  }\n"
+//                
+//                +"}"
+//                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",16
+//                );
+//    }
+    
     // FIXME - need tests with multiple ensures and various cases
     
-    // FIXME - test definedness in preconditions
     // FIXME - test definedness in postconditions
     
     // FIXME - exceptional postconditions
