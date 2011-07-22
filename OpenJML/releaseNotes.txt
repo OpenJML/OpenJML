@@ -1,5 +1,6 @@
 Release Notes
 
+SVN 2419:
 Fixed bug with the JML <=!=> operator
 Added functionality for SMT support in ESC
     (partial) code review and cleanup of JmlAssertionAdder and BasicBlocker2
