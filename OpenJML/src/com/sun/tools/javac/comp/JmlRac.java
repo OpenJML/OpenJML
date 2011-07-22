@@ -2296,7 +2296,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 currentMethodInfo = new MethodInfo(tree);
                 JCExpression resultType = tree.restype;
                 if (!isConstructor && resultType.type.tag != TypeTags.VOID)
-                    currentMethodInfo.resultDecl = treeutils.makeVarDef(resultType,resultName,tree.sym);
+                    currentMethodInfo.resultDecl = treeutils.makeVarDefZeroInit(resultType,resultName,tree.sym);
                 //currentMethodInfo.exceptionDecl = treeutils.makeVarDef(resultType,exceptionName,tree.sym);
             }
 
@@ -2353,7 +2353,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 }
 
                 Name n = names.fromString("_JML$$$signalsException");
-                JCVariableDecl signalsEx = treeutils.makeVarDef(make.QualIdent(syms.exceptionType.tsym),n,tree.sym);  // FIXME - needs position
+                JCVariableDecl signalsEx = treeutils.makeVarDefZeroInit(make.QualIdent(syms.exceptionType.tsym),n,tree.sym);  // FIXME - needs position
 
                 // Generate tests for postconditions
                 ListBuffer<JCStatement> postChecks = new ListBuffer<JCStatement>();

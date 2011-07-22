@@ -364,7 +364,7 @@ public class JmlEsc extends JmlTreeScanner {
         
         if (print) log.noticeWriter.println(JmlPretty.write(newblock));
         
-        BasicProgram program = new BasicBlocker2(context).convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl);
+        BasicProgram program = new BasicBlocker2(context).convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl, assertionAdder);
         
         if (print) log.noticeWriter.println(program.toString());
         
@@ -402,7 +402,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public void reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl) {
-
+        terminationPos = 0;
         boolean ok = reportInvalidAssertion(program.startBlock(),smt,solver,decl);
         if (!ok) {
             System.out.println("COULD NOT FIND INVALID ASSERTION");
@@ -448,13 +448,16 @@ public class JmlEsc extends JmlTreeScanner {
         return Integer.parseInt(se.toString());
     }
 
-    int resultpos = 0;
+    int terminationPos = 0;
 
     /** Returns true if an invalid assertion was found and reported */
     public boolean reportInvalidAssertion(BasicProgram.BasicBlock block, SMT smt, ISolver solver, JCMethodDecl decl) {
         String id = block.id.name.toString();
         boolean value = getBoolValue(id,smt,solver);
-        if (value) return false;
+        //System.out.println("Block " + id + " is " + value);
+        if (value) {
+            return false;
+        }
         
         // FIXME - would like to have a range, not just a single position point,
         // for both the 'pos' value below, which is the position of the return statement
@@ -476,10 +479,10 @@ public class JmlEsc extends JmlTreeScanner {
                 if (!value) {
                     
                     String cf = "";//!cfInfo ? "" : " [ cf. " + (jfo==null?prev:jfo).getName() + ", line " + aline + "]";
-                    if (resultpos == 0) resultpos = decl.pos;
+                    if (terminationPos == 0) terminationPos = decl.pos;
                     Label label = assertStat.label;
-                    if (label == Label.POSTCONDITION) {
-                        log.warning(resultpos,"esc.assertion.invalid",label,decl.getName() + cf);
+                    if (label == Label.POSTCONDITION || label == Label.SIGNALS) {
+                        log.warning(terminationPos,"esc.assertion.invalid",label,decl.getName() + cf);
                         log.warning(assertStat.pos, "jml.associated.decl");
                     } else if (label == Label.ASSIGNABLE) {
                         log.warning(assertStat.pos,"esc.assertion.invalid",label,decl.getName() + cf);
@@ -500,7 +503,10 @@ public class JmlEsc extends JmlTreeScanner {
 //                resultpos = stat.pos;
 //            }
             // FIXME - hardcoded string that is also used in JmlAssertionAdder
-            if (stat instanceof JCVariableDecl && ((JCVariableDecl)stat).name.toString().startsWith("RESULT")) resultpos = stat.pos;
+            // FIXME - looking for RESULT does not work for void functcinos
+            if (stat instanceof JCVariableDecl && ((JCVariableDecl)stat).name.toString().startsWith("TERMINATION")) {
+                terminationPos = stat.pos;
+            }
         }
         for (BasicBlock b: block.succeeding) {
             value = reportInvalidAssertion(b,smt,solver,decl);

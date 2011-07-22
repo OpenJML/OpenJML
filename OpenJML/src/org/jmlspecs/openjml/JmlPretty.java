@@ -142,6 +142,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             if (that.token == null) {
                 visitApply(that);
+            } else if (that.token == JmlToken.BSSAME) { // No-op
+                print("(");
+                printExprs(that.args);
+                print(")");
             } else {
                 print(that.token.internedName());
                 print("(");

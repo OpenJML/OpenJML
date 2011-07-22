@@ -1,0 +1,14 @@
+Release Notes
+
+Fixed bugs with handling JML \pre and \old
+Added functionality for SMT support in ESC
+    Synchronize statements
+    If statements
+    return and throw statements
+    reporting warning positions
+    signals and ensures clauses, multiple spec cases
+    labelled statements
+Added/fixed definedness checks in pre and post-conditions
+Fixed Bug 3366092 - type checking did not recognize implicit private modifier on enum constructors
+
+Release 0.2.1 - 2011 07 13

@@ -60,7 +60,8 @@ public class typechecking extends TCBase {
 
     public void testOld5() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\pre(b,k);\n}}",
-                "/A.java:2: A \\pre expression expects just 1 argument, not 2",16);
+                "/A.java:2: A \\pre expression expects just 1 argument, not 2",16
+                ,"/A.java:2: There is no label named k",19);
     }
 
     public void testOld6() {
@@ -69,7 +70,8 @@ public class typechecking extends TCBase {
     }
 
     public void testOld7() {
-        helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\old(b,k);\n}}");
+        helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\old(b,k);\n}}"
+                ,"/A.java:2: There is no label named k",19);
     }
 
     public void testOld8() {
@@ -85,6 +87,16 @@ public class typechecking extends TCBase {
     public void testOld10() {
         helpTCF("A.java"," class A { int k; boolean b; //@ requires \\pre(b); \n void m() { }}",
                 "/A.java:1: A \\pre token may not be present in a requires clause",48);
+    }
+
+    public void testOld11() {
+        helpTCF("A.java"," class A { int k; boolean b; void m() { \n k: k=1;\n //@ assert \\old(b,k);\n}}"
+                );
+    }
+
+    public void testOld12() {
+        helpTCF("A.java"," class A { boolean b; void m() { \n k: {};\n //@ assert \\old(b,k);\n}}"
+                );
     }
 
     public void testMax() {
@@ -664,6 +676,13 @@ public class typechecking extends TCBase {
                 ,"/A.java:1: package <error>.java.util does not exist",30
                 ,"/A.java:1: package <error>.java.util does not exist",30
         );
+    }
+    
+    // Bug: 3366092
+    public void testEnum1() {
+        helpTCF("A.java","public class A {\n  enum E { X {} }; \n }"
+        );
+        
     }
     
     
