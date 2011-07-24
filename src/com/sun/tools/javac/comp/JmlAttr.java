@@ -10,34 +10,8 @@ import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
-import static org.jmlspecs.openjml.JmlToken.ASSERT;
-import static org.jmlspecs.openjml.JmlToken.ASSUME;
-import static org.jmlspecs.openjml.JmlToken.BSPRE;
-import static org.jmlspecs.openjml.JmlToken.CONSTRAINT;
-import static org.jmlspecs.openjml.JmlToken.DURATION;
-import static org.jmlspecs.openjml.JmlToken.ENSURES;
-import static org.jmlspecs.openjml.JmlToken.EXTRACT;
-import static org.jmlspecs.openjml.JmlToken.GHOST;
-import static org.jmlspecs.openjml.JmlToken.HELPER;
-import static org.jmlspecs.openjml.JmlToken.INSTANCE;
-import static org.jmlspecs.openjml.JmlToken.MODEL;
-import static org.jmlspecs.openjml.JmlToken.MONITORED;
-import static org.jmlspecs.openjml.JmlToken.NONNULL;
-import static org.jmlspecs.openjml.JmlToken.NON_NULL_BY_DEFAULT;
-import static org.jmlspecs.openjml.JmlToken.NULLABLE;
-import static org.jmlspecs.openjml.JmlToken.NULLABLE_BY_DEFAULT;
-import static org.jmlspecs.openjml.JmlToken.PEER;
-import static org.jmlspecs.openjml.JmlToken.PURE;
-import static org.jmlspecs.openjml.JmlToken.QUERY;
-import static org.jmlspecs.openjml.JmlToken.READONLY;
-import static org.jmlspecs.openjml.JmlToken.REP;
-import static org.jmlspecs.openjml.JmlToken.REQUIRES;
-import static org.jmlspecs.openjml.JmlToken.SECRET;
-import static org.jmlspecs.openjml.JmlToken.SIGNALS;
-import static org.jmlspecs.openjml.JmlToken.SPEC_PROTECTED;
-import static org.jmlspecs.openjml.JmlToken.SPEC_PUBLIC;
-import static org.jmlspecs.openjml.JmlToken.UNINITIALIZED;
-import static org.jmlspecs.openjml.JmlToken.WORKING_SPACE;
+
+import static org.jmlspecs.openjml.JmlToken.*;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -335,6 +309,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * types of clauses).
      */
     protected JmlToken currentClauseType = null;
+    
+    /** This value is valid within a Signals clause */
+    protected Type currentExceptionType = null;
     
     /** Queued up classes to be attributed */
     protected java.util.List<ClassSymbol> todo = new LinkedList<ClassSymbol>();
@@ -2503,6 +2480,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param tree the method specification clause being attributed
      */
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {
+        
         if (tree.vardef.name == null) {
             tree.vardef.name = names.fromString(syntheticExceptionID);
         }
@@ -2513,7 +2491,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         tree.vardef.vartype.type = attribTree(tree.vardef.vartype, localEnv, TYP, syms.exceptionType);
         attribTree(tree.vardef, localEnv, pkind, syms.exceptionType);
 
-        attribExpr(tree.expression, localEnv, syms.booleanType);
+        Type prev = currentExceptionType;
+        currentExceptionType = tree.vardef.vartype.type;
+        try {
+            attribExpr(tree.expression, localEnv, syms.booleanType);
+        } finally {
+            currentExceptionType = prev;
+        }
     }
     
     /** This is an implementation that does the type attribution for 
@@ -3129,6 +3113,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * (and \not_assigned \only_assigned \only_captured \only_accessible \not_modified) */
     public EnumSet<JmlToken> resultClauses = EnumSet.of(ENSURES,DURATION,WORKING_SPACE);
     
+    /** This set holds method clause types in which the \exception token may appear  */
+    public EnumSet<JmlToken> exceptionClauses = EnumSet.of(SIGNALS);
+    
     /** This set holds method clause types in which the these tokens may appear:
      *  \not_assigned \only_assigned \only_captured \only_accessible \not_modified */
     public EnumSet<JmlToken> postClauses = EnumSet.of(ENSURES,SIGNALS,DURATION,WORKING_SPACE,ASSERT,ASSUME);
@@ -3180,6 +3167,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     // allowing other error reports about the same token
                     log.error(that.pos+1, "jml.misplaced.result", currentClauseType.internedName());
                     t = syms.errType;
+                }
+                break;
+                
+            case BSEXCEPTION:
+                md = env.enclMethod;
+                if (!exceptionClauses.contains(currentClauseType)) {
+                    // The +1 is to fool the error reporting mechanism into 
+                    // allowing other error reports about the same token
+                    log.error(that.pos+1, "jml.misplaced.exception", currentClauseType.internedName());
+                    t = syms.errType;
+                } else {
+                    t = currentExceptionType;
                 }
                 break;
                 

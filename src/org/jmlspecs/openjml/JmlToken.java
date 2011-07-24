@@ -265,13 +265,13 @@ public enum JmlToken {
     public final static EnumSet<JmlToken> specCaseTokens = EnumSet.range(ALSO,CODE);
     
     static {
-        for (JmlToken t: EnumSet.range(BSRESULT,BSBIGINT)) {
+        for (JmlToken t: EnumSet.range(BSEXCEPTION,BSBIGINT)) {
             backslashTokens.put(t.internedName(),t);
         }
         for (JmlToken t: JmlToken.values()) {
             allTokens.put(t.internedName(),t);
         }
-        allTokens.remove(BSEXCEPTION.internedName());
+        //allTokens.remove(BSEXCEPTION.internedName());
         modifiers.add(BSREADONLY);
         
         // Synonyms

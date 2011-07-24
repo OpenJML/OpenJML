@@ -9,7 +9,7 @@ public class escnew extends EscBase {
         options.put("-newesc","");
         options.put("-noPurityCheck","");
         //options.put("-jmlverbose",   "");
-        //options.put("-method",   "m3ok");
+        //options.put("-method",   "m5good");
         options.put("-showbb",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
@@ -206,6 +206,32 @@ public class escnew extends EscBase {
                 );
     }
     
+    // Tests use of \exception token
+    public void testPostcondition4() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ signals (Exception e) \\exception == null;\n"
+                +"  public void m1bad(int[] a, int i) throws Exception {\n"
+                +"         throw new Exception();\n"
+                +"  }\n"
+                
+                +"  //@ signals (Exception e) \\exception != null;\n"
+                +"  public void m1good(int[] a, int i) throws Exception {\n"
+                +"         throw new Exception();\n"
+                +"  }\n"
+                
+                +"  //@ signals (Exception) \\exception != null;\n"
+                +"  public void m2good(int[] a, int i) throws Exception {\n"
+                +"         throw new Exception();\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1bad",10
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                );
+    }
+    
     public void testNullThrow() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -251,6 +277,11 @@ public class escnew extends EscBase {
                 +"       synchronized (o) {};\n"
                 +"  }\n"
                 
+                +"  public void m2bad( Object o) throws Exception {\n"
+                +"       synchronized (o) {\n"
+                +"          o = null; };\n"
+                +"  }\n"
+                
                 +"  public void m1good(Object o) throws Exception {\n"
                 +"       synchronized (o) {};\n"
                 +"  }\n"
@@ -261,6 +292,7 @@ public class escnew extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1bad",21
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",13
                 );
     }
     
@@ -288,6 +320,241 @@ public class escnew extends EscBase {
                 +"}"
                 );
     }
+    
+    public void testSwitch() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures \\result == i* 2 + 1; \n"
+                +"  public int m1bad(int i) throws Exception {\n"
+                +"      int k;\n"
+                +"       switch (i) {\n"
+                +"        case 1: k = 3; break;\n"
+                +"        default: k = i + i + 1; break;\n"
+                +"        case 2: k = 6; return k;\n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures \\result == i* 2 + 1; \n"
+                +"  public int m1good(int i) throws Exception {\n"
+                +"      int k;\n"
+                +"       switch (i) {\n"
+                +"        case 1: k = 3; break;\n"
+                +"        default: k = i + i + 1; break;\n"
+                +"        case 2: k = 5; break;\n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",24
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                );
+    }
+    
+    public void testTry() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures \\result == 1; \n"
+                +"  public int m1bad() throws Exception {\n"
+                +"      int k;\n"
+                +"       try {\n"
+                +"        k=1; \n"
+                +"       } finally {\n"
+                +"           k = 2;\n"
+                +"        }return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures \\result == 0; \n"
+                +"  public int m2bad() throws Exception {\n"
+                +"      int k;\n"
+                +"       try {\n"
+                +"        k=1; throw new RuntimeException();\n"
+                +"       } catch (RuntimeException e) {\n"
+                +"           k = 2;\n"
+                +"        } return k; \n"
+                +"  }\n"
+                
+                +"  //@ ensures \\result == 0; \n"
+                +"  public int m3bad() throws Exception {\n"
+                +"      int k;\n"
+                +"       try {\n"
+                +"        k=1; throw new RuntimeException();\n"
+                +"       } catch (RuntimeException e) {\n"
+                +"           k = 2;\n"
+                +"       } finally {\n"
+                +"           k = 3;\n"
+                +"        } return k; \n"
+                +"  }\n"
+                
+                +"  //@ ensures \\result == 1; \n"
+                +"  public int m1good() throws Exception {\n"
+                +"      int k;\n"
+                +"       try {\n"
+                +"        k=1; return k;\n"
+                +"       } finally {\n"
+                +"           k = 2;\n"
+                +"        } \n"
+                +"  }\n"
+                
+                +"  //@ ensures \\result == 2; \n"
+                +"  public int m0good() throws Exception {\n"
+                +"      int k;\n"
+                +"       try {\n"
+                +"        k=1; \n"
+                +"       } finally {\n"
+                +"           k = 2;\n"
+                +"        } return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures \\result == 2; \n"
+                +"  public int m2good() throws Exception {\n"
+                +"      int k;\n"
+                +"       try {\n"
+                +"        k=1; throw new RuntimeException();\n"
+                +"       } catch (RuntimeException e) {\n"
+                +"           k = 2;\n"
+                +"        } return k; \n"
+                +"  }\n"
+                
+                +"  //@ ensures \\result == 3; \n"
+                +"  public int m3good() throws Exception {\n"
+                +"      int k;\n"
+                +"       try {\n"
+                +"        k=1; throw new RuntimeException();\n"
+                +"       } catch (RuntimeException e) {\n"
+                +"           k = 2;\n"
+                +"       } finally {\n"
+                +"           k = 3\n;"
+                +"        } return k; \n"
+                +"  }\n"
+                
+                +"  static int kk;\n"
+
+                +"  //@ assignable kk;\n"
+                +"  //@ ensures \\result == 3; signals (Exception e)  false; \n"
+                +"  public int m4good(int i ) throws Exception {\n"
+                +"       try {\n"
+                +"        kk=1; if (i == 0) throw new RuntimeException();\n"
+                +"       } catch (RuntimeException e) {\n"
+                +"           kk = 2;\n"
+                +"        } \n"
+                +"       kk = 3;\n"
+                +"       return kk; \n"
+                +"  }\n"
+                
+                +"  //@ assignable kk;\n"
+                +"  //@ ensures \\result == 3; signals (Exception e)  kk == 1; \n"
+                +"  public int m5good(int i) throws Exception {\n"
+                +"       try {\n"
+                +"        kk=1; if (i == 0) throw new RuntimeException();\n"
+                +"        } finally {} \n"
+                +"       kk = 3;\n"
+                +"       return kk; \n"
+                +"  }\n"
+                
+                +"  //@ assignable kk;\n"
+                +"  //@ ensures \\result == 3; signals (Exception e)  kk == 1; \n"
+                +"  public int m6good(int i) throws Exception {\n"
+                +"        kk=1; if (i == 0) throw new RuntimeException();\n"
+                +"       kk = 3;\n"
+                +"       return kk; \n"
+                +"  }\n"
+                
+                +"  //@ assignable kk;\n"
+                +"  //@ ensures \\result == 3; signals (Exception e) kk == 4; \n"
+                +"  public int m7good(int i) throws Exception {\n"
+                +"       try {\n"
+                +"           kk=1; if (i == 0) throw new RuntimeException();\n"
+                +"           try {\n"
+                +"             kk=2; if (i == 1) throw new RuntimeException();\n"
+                +"           } finally { kk = 5; } \n"
+                +"       } finally { kk = 4; } \n"
+                +"       kk = 3;\n"
+                +"       return kk; \n"
+                +"  }\n"
+                
+                +"  //@ assignable kk;\n"
+                +"  //@ ensures i==0 ==> \\result == 4; signals (Exception e) false; \n"
+                +"  public int m8good(int i) throws Exception {\n"
+                +"       try {\n"
+                +"           kk=1; if (i == 0) throw new RuntimeException();\n"
+                +"       } finally { if (i == 0) return 4; } \n"
+                +"       kk = 3;\n"
+                +"       return kk; \n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",10
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",11
+                ,"/tt/TestJava.java:12: warning: Associated declaration",7
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",11
+                ,"/tt/TestJava.java:21: warning: Associated declaration",7
+                
+                );
+    }
+    
+    public void testUnreachable() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1bad(int i) {\n"
+                +"      if (i == 0) { \n"
+                +"         //@ unreachable;\n"
+                +"      }\n"
+                +"  }\n"
+                
+                +"  //@ requires i != 0; \n"
+                +"  public void m1good(int i) {\n"
+                +"      if (i == 0) { \n"
+                +"         //@ unreachable;\n"
+                +"      }\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Unreachable) in method m1bad",14
+                );
+    }
+    
+
+    public void testGhostSet() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1bad(int i) {\n"
+                +"      //@ ghost int k = 0;"
+                +"      //@ set k = 1;\n"
+                +"      //@ assert k == 0; \n"
+                +"  }\n"
+                
+                +"  //@ requires i != 0; \n"
+                +"  public void m1good(int i) {\n"
+                +"      //@ ghost int k = 0;"
+                +"      //@ set k = 1;\n"
+                +"      //@ assert k == 1; \n"
+                +"  }\n"
+                
+                +"  public void m2bad(int i) {\n"
+                +"      //@ ghost int k = 0;"
+                +"      //@ debug k = 1;\n"
+                +"      //@ assert k == 0; \n"
+                +"  }\n"
+                
+                +"  //@ requires i != 0; \n"
+                +"  public void m2good(int i) {\n"
+                +"      //@ ghost int k = 0;"
+                +"      //@ debug k = 1;\n"
+                +"      //@ assert k == 1; \n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",11
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method m2bad",11
+                );
+    }
+    
+
     
     // FIXME _ check that different return or throw statements are properly pointed to
 
@@ -791,12 +1058,21 @@ public class escnew extends EscBase {
                 +"  //@ assert i == 0 || 10/i < 0 || true;\n"
                 +"  }\n"
                 
+                +"  public void m5bad(int i) {\n"
+                +"  //@ assert 10%i < 0 ||true;\n"
+                +"  }\n"
+                
+                +"  public void m5good(int i) {\n"
+                +"  //@ assert i == 0 || 10%i < 0 || true;\n"
+                +"  }\n"
+                
                 
                 +"}"
                 ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m1bad",18
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m2bad",17
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m3bad",16
                 ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4bad",16
+                ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m5bad",16
                 );    }
 
     public void testAssignable1() {
