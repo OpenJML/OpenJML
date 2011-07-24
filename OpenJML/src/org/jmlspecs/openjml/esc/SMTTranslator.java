@@ -136,7 +136,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         for (JCIdent id: program.declarations) {
             try {
-                c = new C_declare_fun(F.symbol(id.toString()),
+                c = new C_declare_fun(F.symbol(id.name.toString()),
                         new LinkedList<ISort>(),
                         convertSort(id.type));
                 commands.add(c);
@@ -459,7 +459,7 @@ public class SMTTranslator extends JmlTreeScanner {
     }
 
     public void visitIdent(JCIdent tree) {
-        if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this) {
+        if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && !tree.sym.isStatic()) {
             // a select from this
             doFieldAccess(null,tree.sym);
         } else {

@@ -1,5 +1,12 @@
 Release Notes
 
+Added functionality for SMT support in ESC
+    completed synchronized statement
+    implemented switch statement
+    divide by zero warning for mod operator
+    try-catch, except for type tests, and return/throw in catch clauses
+    set, debug, unreachable statements; ghost declarations
+    
 SVN 2419:
 Fixed bug with the JML <=!=> operator
 Added functionality for SMT support in ESC

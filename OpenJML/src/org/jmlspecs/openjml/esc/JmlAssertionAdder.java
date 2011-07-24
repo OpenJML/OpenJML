@@ -143,6 +143,7 @@ import com.sun.tools.javac.util.Position;
  * JCIdent, so that the succeeding Single-assignment step can change identifier names in place.
  *
  */
+// FIXME - should we use the copier instead??
 public class JmlAssertionAdder extends JmlTreeScanner {
     
     // FIXME - all fields need documentation
@@ -890,6 +891,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     // VISITOR METHODS
 
+    public JCExpression scanret(JCTree tree) {
+        if (tree==null) eresult = null;
+        else super.scan(tree);
+        return eresult;
+    }
+    
+    public JCBlock translateIntoBlock(JCBlock block) {
+        if (block == null) return null;
+        push();
+        scan(block.stats);
+        return popBlock(block.flags,block.pos);
+    }
+
+    public JCBlock translateIntoBlock(int pos, List<JCStatement> stats) {
+        push();
+        scan(stats);
+        return popBlock(0,pos);
+    }
+
+    public JCBlock translateIntoBlock(int pos, JCStatement stat) {
+        push();
+        scan(stat);
+        return popBlock(0,pos);
+    }
+
     @Override
     public void visitTopLevel(JCCompilationUnit that) {
         log.error(that.pos, "esc.internal.error", "A visit method in JmlAssertionAdder was called that should not be: " + that.getClass());
@@ -921,25 +947,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitVarDef(JCVariableDecl that) {
-        scan(that.init);
-        JCExpression init = that.init == null ? null : eresult;
+        JCExpression init = scanret(that.init);
         // FIXME - need to make a unique symbol
         JCVariableDecl stat = M.at(that.pos).VarDef(that.sym,init);
         addStat(stat);
     }
 
+    //OK
     @Override
     public void visitSkip(JCSkip that) {
         addStat(M.at(that.pos).Skip());
         // Caution - JML statements are subclasses of JCSkip
     }
 
+    //OK
     @Override
     public void visitBlock(JCBlock that) {
-        push();
-        scan(that.stats);
-        JCBlock block = popBlock(that.flags,that.pos);
-        addStat(block);
+        addStat(translateIntoBlock(that));
     }
 
     @Override
@@ -966,53 +990,132 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    //OK
     @Override
     public void visitLabelled(JCLabeledStatement that) {
+        addStat(comment(that.pos,"label:: " + that.label + ": ..."));
+
         // Note that the labeled statement will turn into a block
-        push();
-        scan(that.body);
-        JCBlock block = popBlock(0,that.pos);
+        JCBlock block = translateIntoBlock(that.pos,that.body);
         JCLabeledStatement stat = M.Labelled(that.label, block);
         addStat(stat);
     }
 
+    //OK
     @Override
     public void visitSwitch(JCSwitch that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        JCExpression selector = scanret(that.selector);
+        ListBuffer<JCCase> cases = new ListBuffer<JCCase>();
+        for (JCCase c: that.cases) {
+            JCExpression pat = scanret(c.pat);
+            JCBlock b = translateIntoBlock(c.pos,c.stats);
+            JCCase cc = M.at(c.pos).Case(pat,b.stats);
+            cases.add(cc);
+        }
+        addStat(M.at(that.pos).Switch(selector, cases.toList()));
     }
 
+    //OK
     @Override
     public void visitCase(JCCase that) {
-        // TODO Auto-generated method stub
+        // JCCase is handled directly in visitSwitch
+        log.error(that.pos,"esc.internal.error","JmlAssertionAdder.visitCase should not be called");
         throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
     
+    //OK except concurrency checks
     @Override
     public void visitSynchronized(JCSynchronized that) {
-        if (that.lock != null) {
-            scan(that.lock);
-            JCExpression e = treeutils.makeNeqObject(that.lock.pos, eresult, treeutils.nulllit);
+        JCExpression lock = scanret(that.lock);
+        if (that.lock instanceof JCParens && ((JCParens)that.lock).expr instanceof JCIdent && ((JCIdent)((JCParens)that.lock).expr).name.toString().equals("this")) {
+            // Don't need to check that 'this' is not null
+        } else {
+            JCExpression e = treeutils.makeNeqObject(that.lock.pos, lock, treeutils.nulllit);
             addAssert(that.lock, Label.POSSIBLY_NULL, e, currentStatements);
         }
-        // FIXME - whoops need to create a new sychronized statsement
-        // FIXME - skip the check if the lock is just 'this'
+        JCBlock block = translateIntoBlock(that.body);
+        addStat(M.at(that.pos).Synchronized(lock, block));
         // FIXME - need to add concurrency primitives
     }
 
+    // OK - except instanceof
     @Override
     public void visitTry(JCTry that) {
-        push();
-        scan(that.body);
-        JCBlock body = popBlock(that.body.flags,that.body.pos);
+        JCBlock body = translateIntoBlock(that.body);
         
-        // FIXME - need to do catchers
+        ListBuffer<JCStatement> finalizerstats = new ListBuffer<JCStatement>();
+
+        if (that.catchers != null && !that.catchers.isEmpty()) {
+            // If we have catch clauses, we create the following structure
+            // if (EXCEPTION == NULL) {
+            //      -- this is for non-exception returns and continued execution
+            // } else if (EXCEPTION instanceof ETYPE) { -- where ETYPE is the type in the catch clause declaration
+            //      ETYPE [catch declaration variable] = EXCEPTION;
+            //      EXCEPTION = null ;   -- because we don't have an exceptional exit any more once the exception is caught
+            //      TERMINATION = 0;     -- ditto
+            //      all the statements of the catch clause
+            // } else if (... -- for each catch clause in order
+            // }
+            // -- now do all the statements of the finally clause, if any
+            // if (TERMINATION > 0) return RESULT;
+            // if (TERMINATION < 0) throw EXCEPTION;
+            
+            // FIXME - not sure we are properly executing the finally statements when there is a return or throw from a catch clause
+            
+            JCIdent id = M.at(that.pos).Ident(exceptionSym);
+            JCExpression ret = treeutils.makeEqObject(that.pos, id, treeutils.nulllit);
+            M.at(that.pos);
+            JCIf ifstat = M.If(ret, M.Block(0, List.<JCStatement>nil()), null);
+            finalizerstats.add(ifstat);
+
+            for (JCCatch catcher: that.catchers) {
+                ListBuffer<JCStatement> stats = new ListBuffer<JCStatement>();
+                
+                // [type of catch clause] [catch clause id ] = EXCEPTION
+                id = M.at(that.pos).Ident(exceptionSym);
+                JCVariableDecl vd = treeutils.makeVarDef(catcher.param.type, catcher.param.name, catcher.param.sym.owner, id);
+                stats.add(vd);
+                
+                // EXCEPTION = null
+                id = M.at(that.pos).Ident(exceptionSym);
+                stats.add(M.Exec(M.Assign(id, treeutils.nulllit)));
+                
+                // TERMINATION = 0
+                id = M.at(that.pos).Ident(terminationSym);
+                stats.add(M.Exec(M.Assign(id, treeutils.zero)));
+                
+                // FIXME - need to put in the instanceof operation
+
+                // add statements from the catch block
+                JCBlock catchblock = translateIntoBlock(catcher.body);
+                stats.addAll(catchblock.stats);
+                
+                M.at(catcher.pos);
+                JCIf ifstatc = M.If(treeutils.trueLit, M.Block(catcher.body.flags, stats.toList()), null);
+                ifstat.elsepart = ifstatc;
+                ifstat = ifstatc;
+            }
+        }
         
-        push();
-        scan(that.finalizer);
-        JCBlock finalizer = popBlock(that.finalizer.flags,that.finalizer.pos);
+        if (that.finalizer != null) {
+            JCBlock finalizer = translateIntoBlock(that.finalizer);
+            finalizerstats.add(finalizer);
+        }
         
-        JCStatement stat = M.at(that.pos).Try(body, that.catchers, finalizer);
+        // if (TERMINATION > 0) return ...
+        JCIdent id = treeutils.makeIdent(that.pos, terminationSym);
+        JCBinary cond = treeutils.makeBinary(that.pos,JCTree.GT, id, treeutils.zero );
+        JCIf ifstat = M.If(cond,  M.Return(M.Ident(resultSym)), null);
+        finalizerstats.add(ifstat);
+        
+        // if (TERMINATION < 0) throw ...
+        id = treeutils.makeIdent(that.pos, terminationSym);
+        cond = treeutils.makeBinary(that.pos,JCTree.LT, id, treeutils.zero );
+        ifstat = M.If(cond,  M.Throw(M.Ident(exceptionSym)), null);
+        finalizerstats.add(ifstat);
+        
+        
+        JCStatement stat = M.at(that.pos).Try(body, List.<JCCatch>nil(), M.Block(0, finalizerstats.toList()));
         addStat(stat);
     }
 
@@ -1025,8 +1128,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - check this
     @Override
     public void visitConditional(JCConditional that) {
-        that.cond.accept(this);
-        JCExpression cond = eresult;
+        JCExpression cond = scanret(that.cond);
         Name ifname = names.fromString("conditionalResult" + (++count));
         JCVariableDecl vdecl = treeutils.makeVarDef(that.type, ifname, null, that.pos);
         currentStatements.add(vdecl);
@@ -1046,8 +1148,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitIf(JCIf that) {
-        scan(that.cond);
-        JCExpression cond = eresult;
+        JCExpression cond = scanret(that.cond);
         push();
         scan(that.thenpart);
         JCBlock thenpart = popBlock(0,that.thenpart.pos);
@@ -1064,22 +1165,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitExec(JCExpressionStatement that) {
         addStat(comment(that));
-        scan(that.getExpression());
-        JCExpression arg = eresult;
-        JCStatement stat = M.at(that.pos).Exec(arg);
-        addStat(stat);
+        JCExpression arg = scanret(that.getExpression());
+        
+        // FIXME p- not sure this is ever needed - it isn't for assignments; is it  needed for method calls?
+        // is there anything else that gets wrapped in an Exec?
+        if (!(arg instanceof JCIdent)) {
+            JCStatement stat = M.at(that.pos).Exec(arg);
+            addStat(stat);
+        }
     }
 
     @Override
     public void visitBreak(JCBreak that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        addStat(M.at(that.pos).Break(that.label));
     }
 
     @Override
     public void visitContinue(JCContinue that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        addStat(M.at(that.pos).Continue(that.label));
     }
     
 
@@ -1089,17 +1192,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression arg = null;
         JCExpression retValue = that.getExpression();
         if (retValue != null) {
-            scan(retValue);
-            arg = eresult;
+            arg = scanret(retValue);
             JCIdent resultid = M.at(that.pos).Ident(resultSym);
-            M.at(that.pos);
-            JCStatement stat = M.Exec(M.Assign(resultid,arg));
+            JCStatement stat = treeutils.makeAssignStat(that.pos,resultid,arg);
             addStat(stat);
             arg = resultid;
         }
         JCIdent id = treeutils.makeIdent(that.pos,terminationSym);
-        JCStatement stat = M.Exec(M.Assign(id,treeutils.makeIntLiteral(that.pos,that.pos)));
+        JCLiteral intlit = treeutils.makeIntLiteral(that.pos,that.pos);
+        JCStatement stat = treeutils.makeAssignStat(that.pos,id,intlit);
         addStat(stat);
+        // If the return statement is in a finally block, there may have been an exception
+        // in the process of being thrown - so we set EXCEPTION to null.
+        id = treeutils.makeIdent(that.pos,exceptionSym);
+        stat = treeutils.makeAssignStat(that.pos,id,treeutils.nulllit);
+        addStat(stat);
+        
         stat = M.at(that.pos).Return(arg);
         addStat(stat);
     }
@@ -1107,9 +1215,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitThrow(JCThrow that) {
         addStat(comment(that));
-        scan(that.expr);
         // assert expr != null;
-        JCExpression e = treeutils.makeNeqObject(that.expr.pos, eresult, treeutils.nulllit);
+        JCExpression e = treeutils.makeNeqObject(that.expr.pos, scanret(that.expr), treeutils.nulllit);
         addAssert(that.expr, Label.POSSIBLY_NULL, e, currentStatements);
         if (that.expr.type.tag != TypeTags.BOT) {
             // ???Exception EXCEPTION_??? = expr;
@@ -1175,10 +1282,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitAssign(JCAssign that) {
         if (that.lhs instanceof JCIdent) {
             JCIdent id = (JCIdent)that.lhs;
-            scan(that.lhs);
-            JCExpression lhs = eresult;
-            scan(that.rhs);
-            JCExpression rhs = eresult;
+            JCExpression lhs = scanret(that.lhs);
+            JCExpression rhs = scanret(that.rhs);
+
             if (specs.isNonNull(id.sym,methodDecl.sym.enclClass())) {
                 JCExpression e = treeutils.makeNeqObject(that.pos, rhs, treeutils.nulllit);
                 addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e, currentStatements);
@@ -1186,7 +1292,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addAssignableChecks(that);
             
             JCExpression assign = treeutils.makeAssign(that.pos,  lhs, rhs);
-            addStat(M.Exec(assign));
+            addStat(M.at(that.pos).Exec(assign));
             eresult = lhs;
             
         } else if (that.lhs instanceof JCFieldAccess) {
@@ -1602,19 +1708,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME _ should not be called here, just in the rewriter
     @Override
     public void visitJmlSingleton(JmlSingleton that) {
-        switch (that.token) {
-            case BSRESULT:
-                if (resultSym == null) {
-                    throw new RuntimeException(); // FIXME - do something more informative - should not ever get here
-                } else {
-                    eresult = treeutils.makeIdent(that.pos, resultSym);
-                }
-                break;
-
-            case INFORMAL_COMMENT:
-                eresult = treeutils.makeBooleanLiteral(that.pos,true);
-                break;
-                
+        // TODO Auto-generated method stub
+        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+//        switch (that.token) {
+//            case BSRESULT:
+//                if (resultSym == null) {
+//                    throw new RuntimeException(); // FIXME - do something more informative - should not ever get here
+//                } else {
+//                    eresult = treeutils.makeIdent(that.pos, resultSym);
+//                }
+//                break;
+//
+//            case INFORMAL_COMMENT:
+//                eresult = treeutils.makeBooleanLiteral(that.pos,true);
+//                break;
+//                
 //            case BSEXCEPTION:
 //                if (exceptionVar == null) {
 //                    // FIXME -error
@@ -1643,12 +1751,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                Log.instance(context).error(that.pos, "jml.unimplemented.construct",that.token.internedName(),"BasicBlocker.visitJmlSingleton");
 //                // FIXME - recovery possible?
 //                break;
-
-            default:
-                Log.instance(context).error(that.pos, "jml.unknown.construct",that.token.internedName(),"BasicBlocker.visitJmlSingleton");
-            // FIXME - recovery possible?
-                break;
-        }
+//
+//            default:
+//                Log.instance(context).error(that.pos, "jml.unknown.construct",that.token.internedName(),"BasicBlocker.visitJmlSingleton");
+//            // FIXME - recovery possible?
+//                break;
+//        }
         //result = that; // TODO - can all of these be present in a basic block?
         //toLogicalForm.put(that,result);
     }
@@ -1662,14 +1770,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitJmlStatement(JmlStatement that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        switch (that.token) {
+            case SET:
+                scan(that.statement);
+                break;
+            case DEBUG:
+                // FIXME - condition this on some command-line option?
+                scan(that.statement);
+                break;
+            default:
+                String msg = "Unknown token in JmlAssertionAdder.visitJmlStatement: " + that.token.internedName();
+                log.error(that.pos, "esc.internal.error", msg);
+                throw new RuntimeException(msg);
+        }
     }
 
     @Override
     public void visitJmlStatementDecls(JmlStatementDecls that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        for (JCStatement stat: that.list) {
+            stat.accept(this);
+        }
     }
 
     @Override
@@ -1687,6 +1807,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 break;
             case COMMENT:
                 addStat(that);
+                break;
+            case UNREACHABLE:
+                addAssertStart(that,Label.UNREACHABLE,treeutils.falseLit,currentStatements);
                 break;
             default:
                 log.error("jml.internal","Unknown token type in JmlAssertionAdder.visitJmlStatementExpr: " + that.token.internedName());
@@ -1780,8 +1903,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-        scan(that.init);
-        JCExpression init = that.init == null ? null : eresult;
+        JCExpression init = scanret(that.init);
         // FIXME - need to make a unique symbol
         JmlVariableDecl stat = M.at(that.pos).VarDef(that.sym,init);
         addStat(stat);
@@ -2145,7 +2267,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } finally {
                     condition = prev;
                 }
-            } else if (tag == JCTree.DIV) {
+            } else if (tag == JCTree.DIV || tag == JCTree.MOD) {
                 scan(that.rhs);
                 rhs = ejmlresult;
                 JCExpression nonzero = treeutils.makeBinary(that.pos, JCTree.NE, rhs, treeutils.makeIntLiteral(that.rhs.pos, 0));
@@ -2565,7 +2687,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 case BSRESULT:
                     if (resultSym == null) {
                         log.error(that.pos,"esc.internal.error", "It appears that \\result is used where no return value is defined" );
-                        throw new RuntimeException("It appears that \\result is used where no return value is defined"); // FIXME - do something more informative - should not ever get here
+                        throw new RuntimeException("It appears that \\result is used where no return value is defined");
                     } else {
                         ejmlresult = treeutils.makeIdent(that.pos, resultSym);
                     }
@@ -2575,15 +2697,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     ejmlresult = treeutils.makeBooleanLiteral(that.pos,true);
                     break;
                     
-//                case BSEXCEPTION:
-//                    if (exceptionVar == null) {
-//                        // FIXME -error
-//                        log.noticeWriter.println("EXCEPTION VAR IS NULL");
-//                        result = null;
-//                    } else {
-//                        result = newIdentUse((VarSymbol)exceptionVar.sym,that.pos);
-//                    }
-//                    break;
+                case BSEXCEPTION:
+                    if (exceptionSym == null) {
+                        log.error(that.pos,"esc.internal.error", "It appears that \\exception is used where no exception value is defined" );
+                        throw new RuntimeException("It appears that \\exception is used where no exception value is defined");
+                    } else {
+                        ejmlresult = treeutils.makeIdent(that.pos,exceptionSym);
+                    }
+                    break;
     //
 //                case BSINDEX:
 //                case BSVALUES:

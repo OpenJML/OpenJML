@@ -37,6 +37,7 @@ import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCatch;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
@@ -414,6 +415,14 @@ public class JmlTreeUtils {
         tree.type = lhs.type;
         copyEndPosition(tree,rhs);
         return tree;
+    }
+    
+    /** Makes an attributed assignment expression; the expression type is the type of the lhs. */
+    public JCExpressionStatement makeAssignStat(int pos, JCExpression lhs, JCExpression rhs) {
+        JCAssign tree = factory.at(pos).Assign(lhs, rhs);
+        tree.type = lhs.type;
+        copyEndPosition(tree,rhs);
+        return factory.Exec(tree);
     }
     
     /** Makes an attributed assignment-op expression; the expression type is the type of the lhs. */

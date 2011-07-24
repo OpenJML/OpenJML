@@ -2292,6 +2292,7 @@ public class JmlParser extends EndPosParser {
             }
             switch (jt) {
                 case BSRESULT:// FIXME - what can follow this?
+                case BSEXCEPTION:// FIXME - what can follow this?
                 case BSINDEX:
                 case BSVALUES:// FIXME - what can follow this?
                 case BSLOCKSET: // FIXME - what can follow this?

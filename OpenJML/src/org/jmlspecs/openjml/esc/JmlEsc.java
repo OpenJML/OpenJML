@@ -396,6 +396,7 @@ public class JmlEsc extends JmlTreeScanner {
             if (print) log.noticeWriter.println("Method checked OK");
         } else {
             if (print) log.noticeWriter.println("Some assertion not valid"); // FIXME - counterexample
+            if (trace) log.noticeWriter.println("\nTRACE\n");
             reportInvalidAssertion(program,smt,solver,decl);
         }
         return true;
@@ -448,13 +449,22 @@ public class JmlEsc extends JmlTreeScanner {
         return Integer.parseInt(se.toString());
     }
 
+    public String getValue(String id, SMT smt, ISolver solver) {
+        org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id,null);
+        IResponse resp = solver.get_value(s);
+        org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
+        return se.toString();
+    }
+
     int terminationPos = 0;
+    
+    boolean trace = true;
 
     /** Returns true if an invalid assertion was found and reported */
     public boolean reportInvalidAssertion(BasicProgram.BasicBlock block, SMT smt, ISolver solver, JCMethodDecl decl) {
         String id = block.id.name.toString();
         boolean value = getBoolValue(id,smt,solver);
-        //System.out.println("Block " + id + " is " + value);
+        if (trace) System.out.println("Block " + id + " is " + value);
         if (value) {
             return false;
         }
@@ -471,6 +481,22 @@ public class JmlEsc extends JmlTreeScanner {
         
         
         for (JCStatement stat: block.statements()) {
+            if (trace) {
+                System.out.println("STATEMENT: " + stat);
+                if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSUME) {
+                    JmlStatementExpr x = (JmlStatementExpr)stat;
+                    if (x.expression instanceof JCBinary) {
+                        JCExpression lhs = ((JCBinary)x.expression).lhs;
+                        System.out.println("VALUE: " + lhs + " = " + getValue(lhs.toString(),smt,solver));
+                    } else if (x.expression instanceof JCIdent) {
+                        Name n = ((JCIdent)x.expression).name;
+                        System.out.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
+                    } 
+                } else if (stat instanceof JCVariableDecl) {
+                        Name n = ((JCVariableDecl)stat).name;
+                        System.out.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
+                }
+            }
             if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSERT) {
                 JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                 JCExpression e = assertStat.expression;
