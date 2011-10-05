@@ -15,7 +15,7 @@ implement method calls, new objects
 implement method calls in jml expressions
 implement loops, \index, \values
 implement types, \typeof, \type, \TYPE, <:, instanceof, type casts
-implement boxing and oterh implicit conversions
+implement boxing and other implicit conversions
 implement set comprehension
 implement quantified expressions
 implement the fcn-like JML tokens

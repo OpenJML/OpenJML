@@ -685,6 +685,13 @@ public class typechecking extends TCBase {
         
     }
     
+    // Bug: 3366092
+    public void testEnum2() {
+        helpTCF("A.java","public class A {\n  enum E { X {}; } \n }"
+        );
+        
+    }
+    
     public void testSwitchWithStrings() {
         helpTCF("A.java"," class A { public void m(String s) { switch (s) { case \"David\": case \"Cok\": System.out.println(\"me\"); break; default: System.out.println(\"not me\"); } } }"
                 );
