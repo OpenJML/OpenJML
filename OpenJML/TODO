@@ -10,6 +10,32 @@ Product pieces
 - set of Java annotations
 Integration with JMLUnitNG, Joe's project
 
+VARIOUS TASKS
+implement method calls, new objects
+implement method calls in jml expressions
+implement loops, \index, \values
+implement types, \typeof, \type, \TYPE, <:, instanceof, type casts
+implement boxing and oterh implicit conversions
+implement set comprehension
+implement quantified expressions
+implement the fcn-like JML tokens
+implement lbl-expressions: use SMT functionality - decide how to print
+implement \max, <# <#= other concurrency 
+implement field access and assignment
+implement array access and assignment
+implement new array
+finish frame conditions
+put comments in basic blocks in a consistent way
+implement inherited specs
+implement using specs from referenced classes
+change scan to scanret where appropriate; same for other visitors?
+implement alloc, \fresh, heapvar?
+move assumption checking to JmlAssertionAdder
+Java 7 features in ESC
+    string in switch
+    diamond
+    multi-catch
+    try with resources
 
 NOTES and TODO items from code reviews and major features
 

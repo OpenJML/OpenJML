@@ -37,6 +37,9 @@ import org.smtlib.IResponse.IError;
 import org.smtlib.ISolver;
 import org.smtlib.IVisitor.VisitorException;
 import org.smtlib.SMT;
+import org.smtlib.impl.SMTExpr.Symbol;
+import org.smtlib.sexpr.ISexpr;
+import org.smtlib.sexpr.Sexpr;
 
 import com.sun.tools.javac.api.DiagnosticFormatter;
 import com.sun.tools.javac.code.Flags;
@@ -334,7 +337,7 @@ public class JmlEsc extends JmlTreeScanner {
     
     
     public boolean newProveMethod(JCMethodDecl decl) {
-        boolean print = true;
+        boolean print = false; //true;
         if (decl.name.toString().equals("<init>")) {
             log.noticeWriter.println("SKIPPING PROOF OF " + decl.name);
             return true;
@@ -398,6 +401,22 @@ public class JmlEsc extends JmlTreeScanner {
             if (print) log.noticeWriter.println("Some assertion not valid"); // FIXME - counterexample
             if (trace) log.noticeWriter.println("\nTRACE\n");
             reportInvalidAssertion(program,smt,solver,decl);
+//            if (!assertionAdder.labels.isEmpty()) {
+//                java.util.List<IExpr.ISymbol> smtsymbols = new LinkedList<IExpr.ISymbol>();
+//                for (String label: assertionAdder.labels) {
+//                    smtsymbols.add(smt.smtConfig.exprFactory.symbol(label));
+//                }
+//                IResponse resp = solver.get_value(smtsymbols.toArray(new IExpr.ISymbol[smtsymbols.size()]));
+//                for (ISexpr s: ((Sexpr.Seq)resp).sexprs()) {
+//                    if (s instanceof Sexpr.Seq) {
+//                        String nm = ((Sexpr.Seq)s).sexprs().get(0).toString();
+//                        String val = ((Sexpr.Seq)s).sexprs().get(1).toString();
+//                        boolean b = Boolean.parseBoolean(val);
+//                        log.noticeWriter.println(smt.smtConfig.defaultPrinter.toString(s));
+//                    }
+//                }
+//                //log.noticeWriter.println(smt.smtConfig.defaultPrinter.toString(resp));
+//            }
         }
         return true;
     }
@@ -458,7 +477,7 @@ public class JmlEsc extends JmlTreeScanner {
 
     int terminationPos = 0;
     
-    boolean trace = true;
+    boolean trace = false;
 
     /** Returns true if an invalid assertion was found and reported */
     public boolean reportInvalidAssertion(BasicProgram.BasicBlock block, SMT smt, ISolver solver, JCMethodDecl decl) {
@@ -481,6 +500,23 @@ public class JmlEsc extends JmlTreeScanner {
         
         
         for (JCStatement stat: block.statements()) {
+            if (stat instanceof JCVariableDecl) {
+                Name n = ((JCVariableDecl)stat).name;
+                String ns = n.toString();
+                if (ns.startsWith("LABEL_lbl")) {
+                    boolean b = getBoolValue(ns,smt,solver);
+                    if (ns.startsWith("LABEL_lblpos")) {
+                        if (b) log.warning(stat.pos,"esc.label.value",ns.substring(13),b);
+                    } else if (ns.startsWith("LABEL_lblneg")) {
+                        if (!b) log.warning(stat.pos,"esc.label.value",ns.substring(13),b);
+                    } else {
+                        log.warning(stat.pos,"esc.label.value",ns.substring(10),b);
+                    }
+                    
+                    
+                }
+            }
+
             if (trace) {
                 System.out.println("STATEMENT: " + stat);
                 if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSUME) {

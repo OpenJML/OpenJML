@@ -781,7 +781,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @return the new name
      */
     protected Name encodedName(VarSymbol sym, int incarnationPosition) {
-        if (incarnationPosition == 0)
+        if (incarnationPosition == 0 || sym.owner == null)
             return sym.getQualifiedName();
         else
             return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition + "___" + (unique++));
@@ -821,6 +821,33 @@ public class BasicBlocker2 extends JmlTreeScanner {
     protected Name encodedName(MethodSymbol sym, int declpos, int incarnationPosition) {
         return names.fromString(sym.getQualifiedName() + (declpos < 0 ? "$" : ("$" + declpos + "$")) + incarnationPosition);
     }
+    
+    Symbol selectSym = null;
+    Symbol storeSym = null;
+    
+    protected JCExpression makeSelect(JCExpression array, JCExpression index) {
+        if (selectSym == null) {
+            selectSym = new VarSymbol(0,names.fromString("SELECT"),null,null);
+        }
+        JCMethodInvocation app = factory.Apply(
+                com.sun.tools.javac.util.List.<JCExpression>nil(),
+                treeutils.makeIdent(Position.NOPOS, selectSym),
+                com.sun.tools.javac.util.List.<JCExpression>of(index));
+        return app;
+    }
+    
+    protected JCExpression makeStore(JCExpression array, JCExpression index, JCExpression value) {
+        if (storeSym == null) {
+            storeSym = new VarSymbol(0,names.fromString("STORE"),null,null);
+        }
+        JCMethodInvocation app = factory.Apply(
+                com.sun.tools.javac.util.List.<JCExpression>nil(),
+                treeutils.makeIdent(Position.NOPOS, storeSym),
+                com.sun.tools.javac.util.List.<JCExpression>of(array,index,value));
+        return app;
+    }
+    
+
     
     // FIXME - review
     /** Creates an identifier nodes for a new incarnation of the variable, that is,
@@ -1187,7 +1214,11 @@ public class BasicBlocker2 extends JmlTreeScanner {
 
         // Add declarations of method parameters
         for (JCVariableDecl d: methodDecl.params) {
-            bodyBlock.statements.add(d);
+            // We reset this with a location of 0 so that the name does not get
+            // changed. This is only because the premap does not know these names.
+            // And will probablly have to change when encodedName is made more robust. FIXME
+            JCVariableDecl dd = treeutils.makeVarDef(d.type,d.name,d.sym.owner,0);
+            bodyBlock.statements.add(dd);
         }
         
         // Then the program
@@ -1476,7 +1507,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     
     // FIXME - review and document
     protected JCIdent getArrayIdent(Type componentType) {
-        String s = "arrays$" + encodeType(componentType);
+        String s = "arrays_" + encodeType(componentType);
         JCIdent id = arrayIdMap.get(s);
         if (id == null) {
             id = factory.Ident(names.fromString(s));
@@ -1609,37 +1640,87 @@ public class BasicBlocker2 extends JmlTreeScanner {
             }
             combined.everythingIncarnation = maxe;
             for (VarSymbol sym: combined.keySet()) {
-                Name maxName = null;
-                int max = -1;
-                int num = 0;
-                for (VarMap m: all) {
-                    Integer i = m.get(sym);
-                    if (i != max) num++;
-                    if (i > max) {
-                        max = i;
-                        maxName = m.getName(sym);
-                    }
-                }
-                Name newName = maxName;
-                if (num > 1) {
-                    max++;
-                    JCIdent id = newIdentIncarnation(sym,max); // relies on the uniqueness value to be different
-                    // Need to declare this before all relevant blocks, so we do it at the very beginning
-                    program.declarations.add(id);
-                    newName = id.name;
-                }
-                newMap.put(sym,max,newName);
+                if (sym.owner instanceof Symbol.ClassSymbol) {
+                    // If the symbol is owned by the class, then it is implicitly part of each VarMap,
+                    // even if it is not explicitly listed.
 
-                for (BasicBlock b: block.preceding) {
-                    VarMap m = blockmaps.get(b);
-                    Integer i = m.get(sym);
-                    if (i < max) {
-                        // No position information for these nodes
-                        // Type information put in, though I don't know that we need it
-                        JCIdent pold = newIdentUse(m,sym,0);
-                        JCIdent pnew = newIdentUse(newMap,sym,0);
-                        JCBinary eq = treeutils.makeEquality(0,pnew,pold);
-                        addUntranslatedAssume(0,Label.DSA,eq,b.statements);
+                    Name maxName = null;
+                    int max = -1;
+                    int num = 0;
+                    for (VarMap m: all) {
+                        Integer i = m.get(sym);
+                        if (i != max) num++;
+                        if (i > max) {
+                            max = i;
+                            maxName = m.getName(sym);
+                        }
+                    }
+                    Name newName = maxName;
+                    if (num > 1) {
+                        max++;
+                        JCIdent id = newIdentIncarnation(sym,max); // relies on the uniqueness value to be different
+                        // Need to declare this before all relevant blocks, so we do it at the very beginning
+                        program.declarations.add(id);
+                        newName = id.name;
+                    }
+                    newMap.put(sym,max,newName);
+
+                    for (BasicBlock b: block.preceding) {
+                        VarMap m = blockmaps.get(b);
+                        Integer i = m.get(sym);
+                        if (i < max) {
+                            // No position information for these nodes
+                            // Type information put in, though I don't know that we need it
+                            JCIdent pold = newIdentUse(m,sym,0);
+                            JCIdent pnew = newIdentUse(newMap,sym,0);
+                            JCBinary eq = treeutils.makeEquality(0,pnew,pold);
+                            addUntranslatedAssume(0,Label.DSA,eq,b.statements);
+                        }
+                    }
+                } else {
+                    // If the symbol is owned by the method, then if it is not in every inherited map,
+                    // then it has gone out of scope and need not be repeated.
+                    Name maxName = null;
+                    int max = -1;
+                    int num = 0;
+                    boolean skip = false;
+                    for (VarMap m: all) {
+                        Name n = m.getName(sym);
+                        if (n == null) { skip = true; break; }
+                        Integer i = m.get(sym);
+                        if (i > max) {
+                            max = i;
+                            maxName = n;
+                        }
+                    }
+                    if (skip) continue;
+                    Name newName = maxName;
+                    boolean different = false;
+                    for (VarMap m: all) {
+                        Name n = m.getName(sym);
+                        if (!newName.equals(n)) { different = true; break; }
+                    }
+                    if (different) {
+                        max++;
+                        JCIdent id = newIdentIncarnation(sym,max); // relies on the uniqueness value to be different
+                        // Need to declare this before all relevant blocks, so we do it at the very beginning
+                        program.declarations.add(id);
+                        newName = id.name;
+                    }
+                    newMap.put(sym,max,newName);
+                    if (different) {
+                        for (BasicBlock b: block.preceding) {
+                            VarMap m = blockmaps.get(b);
+                            Integer i = m.get(sym);
+                            if (i < max) {
+                                // No position information for these nodes
+                                // Type information put in, though I don't know that we need it
+                                JCIdent pold = newIdentUse(m,sym,0);
+                                JCIdent pnew = newIdentUse(newMap,sym,0);
+                                JCBinary eq = treeutils.makeEquality(0,pnew,pold);
+                                addUntranslatedAssume(0,Label.DSA,eq,b.statements);
+                            }
+                        }
                     }
                 }
             }
@@ -3449,8 +3530,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
     }
     
     
+    
     public void visitAssign(JCAssign that) {
-        scan(that.lhs);
+        //scan(that.lhs);
         scan(that.rhs);
         JCExpression left = that.lhs;
         JCExpression right = (that.rhs);
@@ -3472,30 +3554,34 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //            // FIXME - set line and source
 //            addAssume(TreeInfo.getStartPos(statement),statement,Label.ASSIGNMENT,expr,newstatements);
             return newid;
-//        } else if (left instanceof JCArrayAccess) {
-//            JCIdent arr = getArrayIdent(right.type);
-//            JCExpression ex = ((JCArrayAccess)left).indexed;
-//            JCIdent nid = newArrayIncarnation(right.type,left.pos);
+        } else if (left instanceof JCArrayAccess) {
+            JCIdent arr = getArrayIdent(right.type);
+            JCExpression ex = ((JCArrayAccess)left).indexed;
+            JCExpression index = ((JCArrayAccess)left).index;
+            JCIdent nid = newArrayIncarnation(right.type,left.pos);
+            
+            JCExpression rhs = makeStore(ex,index,right);
 //            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,((JCArrayAccess)left).index,right);
 //            expr.pos = pos;
 //            expr.type = restype;
-//
-//            // FIXME - set line and source
-//            addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,newstatements);
-//            newIdentIncarnation(heapVar,pos);
-//            return left;
-//        } else if (left instanceof JCFieldAccess) {
-//            JCFieldAccess fa = (JCFieldAccess)left;
-//            JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,pos);
-//            JCIdent newfield = newIdentIncarnation(oldfield,pos);
-//            JCExpression expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,right);
-//            expr.pos = pos;
-//            expr.type = restype;
-//
-//            // FIXME - set line and source
-//            addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,newstatements);
-//            newIdentIncarnation(heapVar,pos);
-//            return left;
+
+            // FIXME - set line and source
+            JCBinary bin = treeutils.makeEquality(Position.NOPOS,nid,rhs);
+            addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,bin,currentBlock.statements);
+            //newIdentIncarnation(heapVar,pos);
+            return left;
+        } else if (left instanceof JCFieldAccess) {
+            JCFieldAccess fa = (JCFieldAccess)left;
+            JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,pos);
+            JCIdent newfield = newIdentIncarnation(oldfield,pos);
+            JCExpression expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,right);
+            expr.pos = pos;
+            expr.type = restype;
+
+            // FIXME - set line and source
+            addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,currentBlock.statements);
+            newIdentIncarnation(heapVar,pos);
+            return left;
         } else {
             log.error("jml.internal","Unexpected case in BasicBlocker.doAssignment: " + left.getClass() + " " + left);
             return null;
@@ -3578,9 +3664,22 @@ public class BasicBlocker2 extends JmlTreeScanner {
     // FIXME - delegate to visitVarDef?
     // FIXME - use a constructed name?
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-        if (that.init != null) scan(that.init);
-        if (that.sym != null) currentMap.put(that.sym, currentMap.everythingIncarnation, that.name);
-        currentBlock.statements.add(that);
+        if (that.sym == null || that.sym.owner == null) {
+            scan(that.init);
+            currentBlock.statements.add(that);
+        } else if (that.init == null) {
+            JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
+            currentBlock.statements.add(treeutils.makeVarDef(that.type, lhs.name, that.sym.owner, that.pos));
+        } else {
+            JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
+            scan(that.init);
+            currentBlock.statements.add(treeutils.makeVarDef(that.type, lhs.name, that.sym.owner, that.init));
+        }
+
+        
+//        if (that.init != null) scan(that.init);
+//        if (that.sym != null) currentMap.put(that.sym, currentMap.everythingIncarnation, that.name);
+//        currentBlock.statements.add(that);
 //        currentBlock.statements.add(comment(that));
 //        // FIXME - need to add various field specs tests
 //        JCIdent vd = newIdentIncarnation(that,that.pos);

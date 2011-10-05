@@ -685,5 +685,45 @@ public class typechecking extends TCBase {
         
     }
     
+    public void testSwitchWithStrings() {
+        helpTCF("A.java"," class A { public void m(String s) { switch (s) { case \"David\": case \"Cok\": System.out.println(\"me\"); break; default: System.out.println(\"not me\"); } } }"
+                );
+    }
+
+    // FIXME - does not appear to be working yet
+//    public void testDiamondGenerics() {
+//        helpTCF("A.java","public class A { java.util.List<Integer> list = new java.util.LinkedList<>(); } }"
+//                );
+//    }
+
+    public void testMultiCatch() {
+        helpTCF("A.java","public class A { public void m(int i) { try { if (i == 0) throw new ArrayIndexOutOfBoundsException(); if (i == 1) throw new NullPointerException(); } catch ( final ArrayIndexOutOfBoundsException | NullPointerException e) {}  } }"
+                );
+    }
+
+
+    public void testTryWithResources() {
+        helpTCF("A.java","import java.io.*; public class A { public void m(int i) { try ( FileReader r = new FileReader(\"\") ) {   } catch (final IOException e) {} finally {} } }"
+                );
+    }
+
+    public void testJmlLabelExpression() {
+        helpTCF("TestJava.java","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  public int m1bad(boolean b, int k) {\n"
+                +"    int j = 0;\n"
+                +"    //@ ghost boolean bb = (\\forall int i; 0<=i && i <=4; 0!=(\\lbl LBL i));\n"
+                +"    return 1;\n"
+                +"  }\n"
+                
+
+                +"}"
+                ,"/TestJava.java:5: A JML label expression may not be within a quantified or set-comprehension expression",63
+                );
+    }
+
+
+    
     
 }
