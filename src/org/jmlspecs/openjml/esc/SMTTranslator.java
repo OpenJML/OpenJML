@@ -7,6 +7,9 @@ import java.util.List;
 
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
+import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
+import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.smtlib.ICommand;
@@ -294,6 +297,17 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     public void visitApply(JCMethodInvocation tree) {
+        JCExpression m = tree.meth;
+        if (m instanceof JCIdent) {
+            if (((JCIdent)m).name.toString().equals("STORE")) {
+                result = F.fcn(F.symbol("store", null),
+                        convertExpr(tree.args.get(0)),
+                        convertExpr(tree.args.get(1)),
+                        convertExpr(tree.args.get(2))
+                        );
+                return;
+            }
+        }
         notImpl(tree);
         super.visitApply(tree);
     }
@@ -484,6 +498,31 @@ public class SMTTranslator extends JmlTreeScanner {
             super.visitLiteral(tree);
         }
     }
+    
+//    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+//        List<IDeclaration> params = new LinkedList<IDeclaration>();
+//        for (JCVariableDecl decl: that.decls) {
+//            IExpr.ISymbol sym = F.symbol(decl.name.toString());
+//            ISort sort = convertSort(decl.type);
+//            params.add(F.declaration(sym, sort));
+//        }
+//        scan(that.decls);
+//        scan(that.range);
+//        scan(that.value);
+//        scan(that.racexpr);
+//    }
+//
+//    public void visitJmlSetComprehension(JmlSetComprehension that) {
+//        scan(that.newtype);
+//        scan(that.variable);
+//        scan(that.predicate);
+//    }
+//
+//    public void visitJmlLblExpression(JmlLblExpression that) {
+//        scan(that.expression);
+//    }
+//
+
 
     public void visitTypeIdent(JCPrimitiveTypeTree tree) {
         notImpl(tree);

@@ -1,5 +1,18 @@
 Release Notes
 
+Beginning of array support
+Implemented label expression
+    Reporting values
+    Checks for use within quantified statements
+    
+Added tests for Java 7 functionality
+    underscores in int, binary, hex literals
+    multi-catch
+    switch with strings
+    try with resources
+    [ Diamond generics does not appear to work??]
+    
+SVN:2422
 Added functionality for SMT support in ESC
     completed synchronized statement
     implemented switch statement

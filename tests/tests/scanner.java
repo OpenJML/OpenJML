@@ -643,6 +643,42 @@ public class scanner extends JmlTestCase {
         assertEquals("\t",sc.stringVal());
     }
     
+    @Test public void testIntLiteralWithUnderscore() {
+        String v = "123_456";
+        Scanner sc = fac.newScanner(v, true);
+        sc.nextToken();
+        assertEquals(INTLITERAL,sc.token());
+        assertEquals("123456",sc.stringVal());
+        assertEquals(123456,Integer.parseInt(sc.stringVal()));
+    }
+    
+    @Test public void testIntLiteralWithUnderscoreBin() {
+        String v = "0b0101_1010";
+        Scanner sc = fac.newScanner(v, true);
+        sc.nextToken();
+        assertEquals(INTLITERAL,sc.token());
+        assertEquals("01011010",sc.stringVal());
+        assertEquals(90,Integer.parseInt(sc.stringVal(),2));
+    }
+    
+    @Test public void testIntLiteralWithUnderscoreHex() {
+        String v = "0xDE_AF";
+        Scanner sc = fac.newScanner(v, true);
+        sc.nextToken();
+        assertEquals(INTLITERAL,sc.token());
+        assertEquals("DEAF",sc.stringVal());
+        assertEquals(57007,Integer.parseInt(sc.stringVal(),16));
+    }
+    
+    @Test public void testIntLiteralWithUnderscoreHexLong() {
+        String v = "0xDEAF_DEAF";
+        Scanner sc = fac.newScanner(v, true);
+        sc.nextToken();
+        assertEquals(INTLITERAL,sc.token());
+        assertEquals("DEAFDEAF",sc.stringVal());
+        assertEquals(3736067759L,Long.parseLong(sc.stringVal(),16));
+    }
+    
     @Test public void testDotDot() {
         helpScanner("//@..",
                 new Enum<?>[]{DOT_DOT,EOF},

@@ -3287,6 +3287,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * lblpos and lblneg expressions, the expr must be boolean.
      */
     public void visitJmlLblExpression(JmlLblExpression that) {
+        if (!quantifiedExprs.isEmpty()) {
+            // TODO _ COUld allow label expressions that do not contain quantified variables
+            // FIXME - does not check set comprehension
+            log.error(that.pos, "jml.lbl.in.quantified");
+        }
         Type t = that.token == JmlToken.BSLBLANY ? Type.noType : syms.booleanType;
         attribExpr(that.expression, env, t);
         Type resultType = that.expression.type;

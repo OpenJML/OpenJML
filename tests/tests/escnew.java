@@ -9,8 +9,8 @@ public class escnew extends EscBase {
         options.put("-newesc","");
         options.put("-noPurityCheck","");
         //options.put("-jmlverbose",   "");
-        //options.put("-method",   "m5good");
-        options.put("-showbb",   "");
+        //options.put("-method",   "m2bad");
+        //options.put("-showbb",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //options.put("-showce",   "");
@@ -554,7 +554,35 @@ public class escnew extends EscBase {
                 );
     }
     
-
+//    public void testArrays() {
+//        helpTCX("tt.TestJava","package tt; \n"
+//                +"public class TestJava { \n"
+//                
+//                +"  public void m1bad(/*@ nullable*/ int[] a, int i) {\n"
+//                +"      a[1] = 9;\n"
+//                +"  }\n"
+//                
+//                +"  //@ requires i < a.length; \n"
+//                +"  public void m2bad(int[] a, int i) {\n"
+//                +"      a[i] = 9;\n"
+//                +"  }\n"
+//                
+//                +"  //@ requires i >= 0; \n"
+//                +"  public void m3bad(int[] a, int i) {\n"
+//                +"      a[i] = 9;\n"
+//                +"  }\n"
+//                
+//                +"  //@ requires i >= 0 && i < a.length; \n"
+//                +"  public void m1good(int[] a, int i) {\n"
+//                +"      a[i] = 9;\n"
+//                +"  }\n"
+//                
+//                +"}"
+//                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1bad",12
+//                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bad",12
+//                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3bad",12
+//                );
+//    }
     
     // FIXME _ check that different return or throw statements are properly pointed to
 
@@ -698,6 +726,27 @@ public class escnew extends EscBase {
                 );
     }
 
+    public void testJmlLabelExpression() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  //@ requires true;\n"
+                +"  //@ ensures b ==> (i==0) ;\n"
+                +"  public int m1ok(boolean b, int i) {\n"
+                +"    //@ ghost boolean bb = (\\lbl LBL_BB b);\n"
+                +"    //@ ghost boolean bbp = (\\lblpos LBL_BB2 (i==0));\n"
+                +"    //@ ghost boolean bbn = (\\lblneg LBL_BB3 (i==0));\n"
+                +"    return 1;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: Label LBL_BB has value true",41
+                ,"/tt/TestJava.java:8: warning: Label LBL_BB3 has value false",46
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m1ok",5
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                );
+    }
+
     public void testBoolOpsParens() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -747,6 +796,31 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:24: warning: Associated declaration",7
                 );
     }
+
+//    public void testBoxing() {
+//        helpTCX("tt.TestJava","package tt; \n"
+//                +"public class TestJava { \n"
+//                
+//                +"  public int m1bad(/*@ nullable */ Integer i) {\n"
+//                +"    return i;\n"
+//                +"  }\n"
+//                
+//                +"  public void m1ok() {\n"
+//                +"    int i = 3;\n"
+//                +"    Integer ii = i;\n"
+//                +"    int j = ii;\n"
+//                +"    //@ assert i == j;\n"
+//                +"  }\n"
+//                
+//                +"}"
+//                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+//                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+//                ,"/tt/TestJava.java:14: warning: Associated declaration",7
+//                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+//                ,"/tt/TestJava.java:24: warning: Associated declaration",7
+//                );
+//    }
 
     public void testSelect() {
         helpTCX("tt.TestJava","package tt; \n"
