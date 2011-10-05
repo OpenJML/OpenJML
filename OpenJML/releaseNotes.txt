@@ -1,5 +1,6 @@
 Release Notes
 
+SVN:2523
 Beginning of array support
 Implemented label expression
     Reporting values
