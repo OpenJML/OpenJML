@@ -337,8 +337,8 @@ public class JmlEsc extends JmlTreeScanner {
     
     
     public boolean newProveMethod(JCMethodDecl decl) {
-        boolean print = false; //true;
-        if (decl.name.toString().equals("<init>")) {
+        boolean print = true; //true;
+        if (print && decl.name.toString().equals("<init>")) {
             log.noticeWriter.println("SKIPPING PROOF OF " + decl.name);
             return true;
         }
@@ -477,7 +477,7 @@ public class JmlEsc extends JmlTreeScanner {
 
     int terminationPos = 0;
     
-    boolean trace = false;
+    boolean trace = true;
 
     /** Returns true if an invalid assertion was found and reported */
     public boolean reportInvalidAssertion(BasicProgram.BasicBlock block, SMT smt, ISolver solver, JCMethodDecl decl) {
