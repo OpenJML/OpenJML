@@ -722,6 +722,17 @@ public class JmlTreeUtils {
         return call;
     }
     
+    public JCMethodInvocation makeMethodInvocation(int pos, JCExpression object, Name methodName, JCExpression arg) {
+        JCFieldAccess meth = factory.Select(object,methodName);
+        meth.pos = pos;
+        meth.sym = null; // FIXME
+        meth.type = null; // FIXME
+        JCMethodInvocation call = factory.Apply(List.<JCExpression>nil(), meth, List.<JCExpression>of(arg));
+        call.pos = pos;
+        call.type = syms.classType; // FIXME
+        return call;
+    }
+    
     
     // FIXME _ document
     public JCMethodDecl makeMethodDefNoArg(JCModifiers mods, Name methodName, Type resultType, ClassSymbol ownerClass) {

@@ -8,14 +8,18 @@ import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.comp.Flow.PendingExit;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCBreak;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCContinue;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 
 /**
@@ -104,6 +108,61 @@ public class JmlFlow extends Flow implements IJmlVisitor {
             Log.instance(context).useSource(prev);
         }
     }
+    
+    // FIXME - should the continues statement target be changed? Perhaps when it is attributed?
+    // FIXME - do the same for break statements?
+    // MAINTENANCE: copied from Flow.resolveContinues
+    /** Resolve all continues of this statement. */
+    boolean resolveContinues(JCTree tree) {
+        boolean result = false;
+        List<PendingExit> exits = pendingExits.toList();
+        pendingExits = new ListBuffer<PendingExit>();
+        for (; exits.nonEmpty(); exits = exits.tail) {
+            PendingExit exit = exits.head;
+            if (exit.tree.getTag() == JCTree.CONTINUE &&
+                    ((JCContinue) exit.tree).target == tree) {
+                    inits.andSet(exit.inits);
+                    uninits.andSet(exit.uninits);
+                    result = true;
+            } else if (exit.tree.getTag() == JCTree.CONTINUE &&
+                    tree instanceof JmlEnhancedForLoop &&
+                    ((JCContinue) exit.tree).target == ((JmlEnhancedForLoop)tree).internalForLoop) {
+                            inits.andSet(exit.inits);
+                            uninits.andSet(exit.uninits);
+                            result = true;
+            } else {
+                pendingExits.append(exit);
+            }
+        }
+        return result;
+    }
+
+    /** Resolve all breaks of this statement. */
+    boolean resolveBreaks(JCTree tree,
+                          ListBuffer<PendingExit> oldPendingExits) {
+        boolean result = false;
+        List<PendingExit> exits = pendingExits.toList();
+        pendingExits = oldPendingExits;
+        for (; exits.nonEmpty(); exits = exits.tail) {
+            PendingExit exit = exits.head;
+            if (exit.tree.getTag() == JCTree.BREAK &&
+                    ((JCBreak) exit.tree).target == tree) {
+                    inits.andSet(exit.inits);
+                    uninits.andSet(exit.uninits);
+                    result = true;
+            } else if (exit.tree.getTag() == JCTree.BREAK &&
+                    tree instanceof JmlEnhancedForLoop &&
+                    ((JCBreak) exit.tree).target == ((JmlEnhancedForLoop)tree).internalForLoop) {
+                            inits.andSet(exit.inits);
+                            uninits.andSet(exit.uninits);
+                            result = true;
+            } else {
+                pendingExits.append(exit);
+            }
+        }
+        return result;
+    }
+
     
     //// These are implemented
     

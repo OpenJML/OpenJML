@@ -231,7 +231,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
             }
 
-            currentClass = prevClass;
             resolve.allowJML = true;
             
             
@@ -518,6 +517,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 log.noticeWriter.println("   SCOPE IS " + tree.sym.members());
             }
             modeOfFileBeingChecked = prevMode;
+            currentClass = prevClass;
         }
     }
 
@@ -1705,9 +1705,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             matchf |= (specf & Flags.SYNCHRONIZED); // binary files do not seem to always have the synchronized modifier?  FIXME
             long diffs = (matchf ^ specf)&Flags.MethodFlags;
             if (diffs != 0) {
+                boolean isEnum = (javaClassSymbol.flags() & Flags.ENUM) != 0;
                 if ((Flags.NATIVE & matchf & ~specf)!= 0) diffs &= ~Flags.NATIVE;
                 if (isInterface) diffs &= ~Flags.PUBLIC & ~Flags.ABSTRACT;
-                if ((matchf & specf & Flags.ANONCONSTR)!= 0 && (javaClassSymbol.flags() & Flags.ENUM) != 0) { diffs &= ~2; specMethodDecl.mods.flags |= 2; } // enum constructors can have differences
+                if (isEnum && match.isConstructor()) { specMethodDecl.mods.flags |= (matchf & 7); diffs &= ~7; } // FIXME - should only do this if specs are default
+                if ((matchf & specf & Flags.ANONCONSTR)!= 0 && isEnum) { diffs &= ~2; specMethodDecl.mods.flags |= 2; } // enum constructors can have differences
                 if (diffs != 0 && !(match.isConstructor() && diffs == 3)) {
                     // FIXME - hide this case for now because of default constructors in binary files
                         //log.noticeWriter.println("MATCH: " + Flags.toString(matchf));
@@ -2445,8 +2447,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     @Override
     public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
         boolean b = super.visitVarDefIsStatic(tree,env);
-        if (!isInJml) return b;
+        if (!isInJml && !utils.isJML(tree.mods)) return b; // FIXME - why isn't isInJml enough here - we need the second conjunct for ghost declarations in an interface
         if ((tree.mods.flags & STATIC) != 0) return true;
+        
         // In the case where we are in an interface but within a JML expression
         // we can use type variables.
         return false; // FIXME - improve this
@@ -2465,6 +2468,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         long flags = tree.mods.flags;
         boolean wasFinal = (flags&Flags.FINAL) != 0;
         boolean wasStatic = (flags&Flags.STATIC) != 0;
+//        if ((currentClass.mods.flags & INTERFACE) != 0  && utils.isJML(tree.mods)) {
+//            boolean isInstance = JmlAttr.instance(context).findMod(tree.mods,JmlToken.INSTANCE) != null;
+//            if (isInstance && !wasStatic) tree.mods.flags &= ~Flags.STATIC;
+//        }
         super.visitVarDef(tree);
         Symbol sym = tree.sym;
         if (specs.getSpecs(tree.sym) != null) log.noticeWriter.println("Expected null field specs here: " + tree.sym.owner + "." + tree.sym);

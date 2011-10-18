@@ -692,6 +692,136 @@ public class typechecking extends TCBase {
         
     }
     
+    // Bug: 3241186
+    public void testEnum3() {
+        helpTCF("A.java","public class A {\n  public enum X { Y; X(){}; } \n }"
+        );
+        
+    }
+    
+    // Bug: 3241186
+    public void testEnum3a() {
+        helpTCF("A.java","public class A {\n  public enum X { Y; public X(){}; } \n }"
+        ,"/A.java:2: modifier public not allowed here",29
+        );
+        
+    }
+    
+    // Bug: 3241186
+    public void testEnum3b() {
+        helpTCF("A.java","public class A {\n  public enum X { Y; protected X(){}; } \n }"
+                ,"/A.java:2: modifier protected not allowed here",32
+        );
+        
+    }
+    
+    // Bug: 3241186
+    public void testEnum3c() {
+        helpTCF("A.java","public class A {\n  public enum X { Y; private X(){}; } \n }"
+        );
+        
+    }
+    
+    // Bug: 3421143
+    public void testEnum4() {
+        helpTCF("A.java","public class A {\n  public enum X { Y; public X m() { for (X c: values()) break; return Y; } } \n }"
+        );
+        
+    }
+    
+    // Bug: 3373400
+    public void testBug4() {
+        helpTCF("A.java","interface A<V> { /*@ instance ghost V r; @*/ \n }"
+        );
+        
+    }
+    
+    // Bug: 3377329
+    public void testBug5() {
+        helpTCF("A.java","public class A {\n"
+                +"  public void test1(Object[] blub) {\n"
+                +"    //@ loop_invariant 0<=i && i <= blub.length;\n"
+                +"    for(int i=0; i< blub.length; i++) {\n"
+                +"      /*@nullable @*/ Object b = blub[i];\n"
+                +"      if (b == null)\n"
+                +"        continue;\n"
+                +"    }\n"
+                +"  }\n"
+                +"  public void test2(Object[] blub) {\n"
+                +"    for(Object b : blub) {\n"
+                +"      if (b == null)\n"
+                +"        continue;\n"
+                +"    }\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    // Bug: 3377329
+    public void testBug5a() {
+        helpTCF("A.java","public class A {\n"
+                +"  public void test1(Object[] blub) {\n"
+                +"    //@ loop_invariant 0<=i && i <= blub.length;\n"
+                +"    for(int i=0; i< blub.length; i++) {\n"
+                +"      /*@nullable @*/ Object b = blub[i];\n"
+                +"      if (b == null)\n"
+                +"        break;\n"
+                +"    }\n"
+                +"  }\n"
+                +"  public void test2(Object[] blub) {\n"
+                +"    for(Object b : blub) {\n"
+                +"      if (b == null)\n"
+                +"        break;\n"
+                +"    }\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    // Bug: 3388690
+    public void testBug6() {
+        helpTCF("Test.java","public class Test {\n"
+                +"private final int my_height; /*@ in height; @*/\n"
+  
+                +"  /*@ public model int height;\n"
+                +"      in_redundantly height;\n"
+                +"      public invariant 0 < height;\n"
+                +"      public constraint \\old(height) == height;\n"
+                +"      private represents height = my_height;\n"
+                +"      private invariant 0 < my_height;\n"
+                +"  @*/\n"
+  
+                +"  public Test() {\n"
+                +"    my_height = 1;\n"
+                +"  }\n"
+                +"}\n"
+        );
+        
+    }
+    
+    public void testBug6a() {
+        helpTCF("Test.java","public class Test {\n"
+                +"private final int my_height; /*@ in height; @*/\n"
+  
+                +"  /*@ public model int height;\n"
+                +"      in_redundantly height2;\n"
+                +"  @*/\n"
+  
+                +"  /*@ public model int height2;\n"
+                +"      in_redundantly height;\n"
+                +"  @*/\n"
+  
+                +"  public Test() {\n"
+                +"    my_height = 1;\n"
+                +"  }\n"
+                +"}\n"
+                ,"/Test.java:6: This field participates in a circular datagroup inclusion chain: height2",24
+        );
+        
+    }
+    
+
+    
     public void testSwitchWithStrings() {
         helpTCF("A.java"," class A { public void m(String s) { switch (s) { case \"David\": case \"Cok\": System.out.println(\"me\"); break; default: System.out.println(\"not me\"); } } }"
                 );

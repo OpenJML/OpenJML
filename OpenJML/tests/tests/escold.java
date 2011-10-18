@@ -31,6 +31,10 @@ public class escold extends escnew {
                 );
     }
     
+    public void testBox() {
+        // Was not implemented in old esc
+    }
+    
     public void testAssignable2() {
         // FIXME - skip until problem in escnew is fixed
     }

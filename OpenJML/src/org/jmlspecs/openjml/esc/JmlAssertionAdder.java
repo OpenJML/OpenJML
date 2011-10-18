@@ -156,6 +156,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final protected JmlTree.Maker M;
     final protected Names names;
     final protected Symtab syms;
+    final protected Types types;
     
     /** The JmlTreeUtils object, holding a bunch of tree-making utilities */
     final protected JmlTreeUtils treeutils;
@@ -240,6 +241,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.M = JmlTree.Maker.instance(context);
         this.names = Names.instance(context);
         this.syms = Symtab.instance(context);
+        this.types = Types.instance(context);
         this.specs = JmlSpecs.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
         this.resultName = names.fromString(resultString);
@@ -951,6 +953,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitVarDef(JCVariableDecl that) {
         JCExpression init = scanret(that.init);
+        if (init != null) init = addImplicitConversion(that.type,init);
         // FIXME - need to make a unique symbol
         JCVariableDecl stat = M.at(that.pos).VarDef(that.sym,init);
         addStat(stat);
@@ -1252,8 +1255,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitApply(JCMethodInvocation that) {
+        JCExpression method = scanret(that.meth);
+        ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+        for (JCExpression e: that.args) {
+            newargs.add(scanret(e));
+        }
+        MethodSymbol msym = null;
+//        if (that.meth instanceof JCIdent) msym = (MethodSymbol)((JCIdent)that.meth).sym;
+//        else if (that.meth instanceof JCFieldAccess) msym = (MethodSymbol)((JCFieldAccess)that.meth).msym;
+//        else {
+//            //FIXME ERROR
+//        }
+//        JmlMethodSpecs calleeSpecs = JmlSpecs.instance(context).getDenestedSpecs(msym).deSugared;
+//        calleeSpecs.
+        JCExpression e = M.Apply(that.typeargs,method,newargs.toList());
+        e.pos = that.pos;
+        e.type = that.type;
+        if (that.type != null) eresult = newTemp(e);
         // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        //throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
     
     @Override
@@ -1280,6 +1300,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         eresult = M.at(that.pos).Parens(arg);
         eresult.setType(that.type);
     }
+    
+    public JCExpression addImplicitConversion(Type lhstype, JCExpression rhs) {
+        if (types.isSameType(lhstype,rhs.type)) return rhs;
+        if (lhstype.isPrimitive() && !rhs.type.isPrimitive()) {
+            // int = Integer and the like
+            eresult = newTemp(rhs.pos, lhstype);
+            // assert TValue(rhs) == eresult
+            JCIdent id = M.Ident(names.fromString("intValue"));
+            JCExpression e = treeutils.makeEquality(rhs.pos,
+                    M.JmlMethodInvocation(id, List.<JCExpression>of(rhs)),
+                    eresult);
+            addAssume(rhs.pos,Label.EXPLICIT_ASSUME,e,currentStatements);
+        } else if (!lhstype.isPrimitive() && rhs.type.isPrimitive()) {
+            // Integer = int and the like
+            eresult = newTemp(rhs.pos, lhstype);
+            // assert TValue(eresult) == rhs
+            JCIdent id = M.Ident(names.fromString("intValue"));
+            JCExpression e = treeutils.makeEquality(rhs.pos,
+                    M.JmlMethodInvocation(id, List.<JCExpression>of(eresult)),
+                    rhs);
+            addAssume(rhs.pos,Label.EXPLICIT_ASSUME,e,currentStatements);
+        } else {
+            
+        }
+        return eresult;
+    }
 
     @Override
     public void visitAssign(JCAssign that) {
@@ -1287,6 +1333,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCIdent id = (JCIdent)that.lhs;
             JCExpression lhs = scanret(that.lhs);
             JCExpression rhs = scanret(that.rhs);
+            rhs = addImplicitConversion(lhs.type,rhs);
 
             if (specs.isNonNull(id.sym,methodDecl.sym.enclClass())) {
                 JCExpression e = treeutils.makeNeqObject(that.pos, rhs, treeutils.nulllit);
@@ -1428,6 +1475,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         expr.setType(that.type);
         eresult = newTemp(expr);
         // FIXME - check arithmetic error
+    }
+    
+    public JCIdent newTemp(int pos, Type t) {
+        Name n = M.Name(tmp + (++count));
+        JCVariableDecl d = treeutils.makeVarDef(t, n, null, pos); // FIXME - null or methodDecl.sym?
+        currentStatements.add(d);
+        JCIdent id = M.at(pos).Ident(d.sym);
+        return id;
     }
     
     public JCIdent newTemp(JCExpression expr) {
@@ -1950,6 +2005,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(stat);
         } else {
             JCExpression init = scanret(that.init);
+            if (init != null) init = addImplicitConversion(that.type,init);
             // FIXME - need to make a unique symbol
             JmlVariableDecl stat = M.at(that.pos).VarDef(that.sym,init);
             addStat(stat);

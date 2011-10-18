@@ -264,8 +264,7 @@ public class QueryPure extends TCBase {
                 "  //@ secret model Integer cache = null; //@ in value; \n" + 
                 "  //@ secret model Object value; in cache; \n" + // error - circular
                 "} \n"
-                ,"/A.java:3: This field participates in a circular datagroup inclusion chain: cache",46
-                ,"/A.java:4: This field participates in a circular datagroup inclusion chain: value",34
+                ,"/A.java:4: This field participates in a circular datagroup inclusion chain: value",27
         );
     }
 
@@ -398,7 +397,30 @@ public class QueryPure extends TCBase {
         );
     }
 
+    // TODO - fix use of forward references in 'in' and 'maps' clauses
+    
+    // Note the difference between this test and the one below - here the attempt to resolve value on line 3 fails because it is 
+    // processed before the datagroup 'value' is created
     public void testQuery8() {
+        helpTCF("A.java",
+                "import org.jmlspecs.annotation.*;\n" +
+                "public class A { \n" +
+                "  @Secret public Object o; //@ in value; \n " +
+                "  @Pure public int compute() { return 0; }\n" +
+                "  //@ ensures \\result == compute();\n" +
+                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" + // creates a datagroup named 'value'
+                "  public int use() { return value(); }\n" +
+                "  int f;\n" +
+                "  @Secret Integer cache = null; //@ in value; \n" + 
+                "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + 0;\n" + 
+                "} \n"
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable value\n  location: class A",35 
+        );
+    }
+
+    // This test typechecks OK because the use of 'value' on line 3 is not resolved until after all Java declarations are
+    // resolved - particularly value(), which will create the datagroup named value
+    public void testQuery8b() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
@@ -406,13 +428,12 @@ public class QueryPure extends TCBase {
                 "  @Secret int q = 5; //@ in o;\n" +
                 "  @Pure public int compute() { return 0; }\n" +
                 "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
+                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" + // creates a datagroup named 'value'
                 "  public int use() { return value(); }\n" +
                 "  int f;\n" +
                 "  @Secret Integer cache = null; //@ in value; \n" + 
                 "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + q;\n" + // OK - q is nested in value
                 "} \n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   variable value\n  location: class A",41 
         );
     }
 

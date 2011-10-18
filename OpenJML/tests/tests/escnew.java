@@ -321,6 +321,51 @@ public class escnew extends EscBase {
                 );
     }
     
+    public void testBox() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures \\result == 7; \n"
+                +"  public int m1good()  {\n"
+                +"      Integer k = 7;\n"
+                +"      int i = k;\n"
+                +"      return i;\n"
+                +"  }\n"
+                +"  }\n"
+                
+                );
+    }
+    
+    public void testMethodInvocation() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public int z(int i)  {\n"
+                +"      return i;\n"
+                +"  }\n"
+                
+                +"  public int m1bad(int k)  {\n"
+                +"      int i = z(k/k);\n"
+                +"      return i;\n"
+                +"  }\n"
+                
+                +"  public void m2bad(int k)  {\n"
+                +"      z(k/k);\n"
+                +"  }\n"
+                
+                +"  //@ requires k > 0; \n"
+                +"  public int m1good(int k)  {\n"
+                +"      int i = z(k/k);\n"
+                +"      return i;\n"
+                +"  }\n"
+                +"  }\n"
+                
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1bad",18
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",10
+
+                );
+    }
+    
     public void testSwitch() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

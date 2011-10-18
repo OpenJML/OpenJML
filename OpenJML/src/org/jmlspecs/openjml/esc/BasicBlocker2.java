@@ -2936,7 +2936,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         } else if (that.meth instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)that.meth;
             msym = (MethodSymbol)(fa.sym);
-            if (msym.isStatic()) obj = null;
+            if (msym == null || msym.isStatic()) obj = null; // msym is null for injected methods such as box and unbox
             else {
                 obj = ( fa.selected );
                 // FIXME - should do better than converting to String
@@ -2950,7 +2950,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             result = trueLiteral;
             return;
         }
-        if (msym.type instanceof Type.ForAll) tfa = (Type.ForAll)msym.type;
+        if (msym != null && msym.type instanceof Type.ForAll) tfa = (Type.ForAll)msym.type;
 
         // FIXME - what does this translation mean?
         //        ListBuffer<JCExpression> newtypeargs = new ListBuffer<JCExpression>();
@@ -3015,8 +3015,12 @@ public class BasicBlocker2 extends JmlTreeScanner {
             } finally {
                 currentMap = savedMap;
             }
+        } else {
+            for (JCExpression e: that.args) {
+                e.accept(this);
+            }
         }
-        toLogicalForm.put(that,result);
+        //toLogicalForm.put(that,result);
 
     }
     
@@ -3666,7 +3670,12 @@ public class BasicBlocker2 extends JmlTreeScanner {
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         if (that.sym == null || that.sym.owner == null) {
             scan(that.init);
-            currentBlock.statements.add(that);
+            if (that.init instanceof JCMethodInvocation) {
+                that.init = null;
+                currentBlock.statements.add(that);
+            } else {
+                currentBlock.statements.add(that);
+            }
         } else if (that.init == null) {
             JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
             currentBlock.statements.add(treeutils.makeVarDef(that.type, lhs.name, that.sym.owner, that.pos));
