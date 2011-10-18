@@ -8,6 +8,7 @@ import java.util.List;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
@@ -78,6 +79,8 @@ public class SMTTranslator extends JmlTreeScanner {
     protected IExpr result;
     
     protected ISort refSort;
+    protected ISort intSort;
+    protected ISort boolSort;
     protected IExpr.ISymbol nullRef;
     protected IExpr.ISymbol lengthRef;
     protected IExpr.ISymbol thisRef;
@@ -122,6 +125,10 @@ public class SMTTranslator extends JmlTreeScanner {
         c = new C_declare_fun(F.symbol("asIntArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),F.createSortExpression(F.symbol("Int"))));
         commands.add(c);
         c = new C_declare_fun(F.symbol("asRefArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),refSort));
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("intValue"),args, F.createSortExpression(F.symbol("Int")));
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("boolValue"),args, F.createSortExpression(F.symbol("Bool")));
         commands.add(c);
         
         for (JCExpression e: program.background()) {
@@ -296,6 +303,7 @@ public class SMTTranslator extends JmlTreeScanner {
         log.error("jml.internal","Not yet supported expression node in converting BasicPrograms to SMTLIB: " + tree.getClass());
     }
     
+    @Override
     public void visitApply(JCMethodInvocation tree) {
         JCExpression m = tree.meth;
         if (m instanceof JCIdent) {
@@ -310,6 +318,17 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         notImpl(tree);
         super.visitApply(tree);
+    }
+    
+    @Override
+    public void visitJmlMethodInvocation(JmlMethodInvocation that) {
+        List<IExpr> newargs = new LinkedList<IExpr>();
+        for (JCExpression e: that.args) {
+            scan(e);
+            newargs.add(result);
+        }
+        if (that.meth != null) result = F.fcn(F.symbol(that.meth.toString(), null),newargs);
+        else result = newargs.get(0); // FIXME - this is needed for \old and \pre but a better solution should be found (cf. testLabeled)
     }
 
     public void visitNewClass(JCNewClass tree) {
@@ -456,7 +475,7 @@ public class SMTTranslator extends JmlTreeScanner {
 
     public void visitSelect(JCFieldAccess tree) {
         // o.f becomes f[o] where f has sort (Array REF type)
-        doFieldAccess(tree.selected,tree.sym);
+        if (tree.selected != null) doFieldAccess(tree.selected,tree.sym);
     }
     
     protected void doFieldAccess(JCExpression object, Symbol field) {
@@ -481,6 +500,7 @@ public class SMTTranslator extends JmlTreeScanner {
         } 
     }
 
+    @Override
     public void visitLiteral(JCLiteral tree) {
         // FIXME - need real, double, char, byte
         if (tree.typetag == TypeTags.BOOLEAN) {

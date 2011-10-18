@@ -1909,12 +1909,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         pureEnvironment = true;
         inVarDecl = tree.parentVar;
         try {
-            boolean circular = false;
             for (JmlGroupName n: tree.list) {
                 n.accept(this);
-                if (!circular && n.sym != null && isContainedInDatagroup(n.sym,inVarDecl.sym)) { 
-                    circular = true;
-                    log.error(tree.pos(),"jml.circular.datagroup.inclusion",inVarDecl.name);
+                if (n.sym != null && n.sym != inVarDecl.sym && checkForCircularity(n.sym,inVarDecl.sym)) {
+                    log.error(inVarDecl.pos(),"jml.circular.datagroup.inclusion",inVarDecl.name);
+                    continue;
                 }
             }
         } finally {
@@ -1925,7 +1924,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             result = null;
         }
     }
-
+    
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
         boolean prev = jmlresolve.setAllowJML(true);
         boolean prevEnv = pureEnvironment;
@@ -3902,8 +3901,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitIdent(JCIdent tree) {
-//        if (tree.name.toString().equals("E")) {
-//            System.out.println("FOUND E");
+//        if (tree.name.toString().equals("V")) {
+//            System.out.println("FOUND V");
 //        }
         super.visitIdent(tree);
         // The above call erroneously does not set tree.type for method identifiers
@@ -4052,7 +4051,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         ((JmlResolve)rs).setAllowJML(prevAllow);
     }
-    
+    // Returns true if contextSym is contained (transitively) in the varSym datagroup
     protected boolean isContainedInDatagroup(@Nullable VarSymbol varSym, @Nullable VarSymbol contextSym) {
         if (varSym == contextSym) return true;
         JmlSpecs.FieldSpecs fspecs = specs.getSpecs(varSym);
@@ -4062,6 +4061,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (g.sym == null) {
                         // Possibly not yet resolved - perhaps a forward reference, or perhaps does not exist
                         g.accept(this); // FIXME - I'm worried about this out of context attribution of another piece of the parse tree
+                    }
+                    if (varSym == g.sym) { // Explicitly listed in self - should this be allowed? (FIXME)
+                        continue;
                     }
                     if (g.sym != null) { // try again - if still null, it is because the datagroup mentioned in the
                                 // in clause is not resolvable - perhaps does not exist
@@ -4077,6 +4079,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         return false;
     }
+    
+    public boolean checkForCircularity(VarSymbol varsym, VarSymbol root) {
+        if (root == varsym) return true;
+        JmlSpecs.FieldSpecs fspecs = specs.getSpecs(varsym);
+        for (JmlTypeClause t: fspecs.list) {
+            if (t.token == JmlToken.IN) {  // FIXME - relies on variable IN clauses being attributed before a method that uses them
+                for (JmlGroupName g: ((JmlTypeClauseIn)t).list) {
+                    if (g.sym == null) {
+                        continue;
+                    }
+                    if (checkForCircularity(g.sym,root)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
     
     /** Attributes a member select expression (e.g. a.b); also makes sure
      * that the type of the selector (before the dot) will be attributed;
@@ -4698,6 +4718,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JCBlock blockk = factory.Block(0,stats.toList());
         blockk.endpos = block.endpos;
         tree.implementation = blockk;
+        tree.internalForLoop = jmlforstatement;
         
 //        tree.var = translate(tree.var);
 //        tree.expr = translate(tree.expr);

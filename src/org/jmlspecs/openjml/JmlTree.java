@@ -1313,6 +1313,7 @@ public class JmlTree {
         public JCVariableDecl valuesDecl;
         public JCVariableDecl iterDecl;
         public JCBlock implementation;
+        public JmlForLoop internalForLoop;
 
         @Override
         public void accept(Visitor v) {
