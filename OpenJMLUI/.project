@@ -46,10 +46,5 @@
 			<type>2</type>
 			<locationURI>PARENT-1-PROJECT_LOC/OpenJML/runtime</locationURI>
 		</link>
-		<link>
-			<name>src-smt</name>
-			<type>2</type>
-			<location>C:/cygwin/home/dcok/eclipseProjects/SMTProjects/SMT/src</location>
-		</link>
 	</linkedResources>
 </projectDescription>

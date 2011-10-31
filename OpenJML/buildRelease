@@ -31,7 +31,7 @@ fi
     SPECS=../Specs
     UI=../OpenJMLUI
 
-
+TEMPJAR=tempjars
 
 VERSION=`date +%Y%m%d`
 NAME=openjml-${VERSION}.tar.gz
@@ -40,14 +40,14 @@ NAME=openjml-${VERSION}.tar.gz
 
 ##### Build jmlruntime.jar
 	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
-	mkdir -p jars; chmod -R u+rwx,a+rx jars
-	rm -f jars/jmlruntime.jar
+	mkdir -p ${TEMPJAR}; chmod -R u+rwx,a+rx ${TEMPJAR}
+	rm -f ${TEMPJAR}/jmlruntime.jar
 	cp -r bin-runtime/* temp2
 	cp -r ${ANNOTATIONS}/bin/* temp2
 	touch temp2/JMLRUNTIME_MARKER
 	## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER
-	(cd temp2; jar -cf ../jars/jmlruntime.jar . ) 
-    cp jars/jmlruntime.jar ${UI}
+	(cd temp2; jar -cf ../${TEMPJAR}/jmlruntime.jar . ) 
+    cp ${TEMPJAR}/jmlruntime.jar ${UI}
 	rm -rf temp2
 	echo "   " jmlruntime.jar created
 
@@ -58,8 +58,8 @@ NAME=openjml-${VERSION}.tar.gz
 	cp src/com/sun/tools/javac/resources/version.properties bin/com/sun/tools/javac/resources/version.properties
 	echo "openjml OpenJML-${VERSION}" > releaseTests/testJmlVersion/expected
 	mkdir -p temp; chmod -R u+rwx,go+rx temp
-	mkdir -p jars; chmod -R u+rwx,go+rx jars
-	rm -f jars/jmlspecs.jar jars/openjml.jar
+	mkdir -p ${TEMPJAR}; chmod -R u+rwx,go+rx ${TEMPJAR}
+	rm -f ${TEMPJAR}/jmlspecs.jar ${TEMPJAR}/openjml.jar
 	echo "   " Copying files
 	(cd temp; for j in ../otherlibs/* ; do jar xf $j; done; rm -rf META-INF )
 	chmod -R a+rwx,go+rx ${ROOT}/OpenJDK/bin ${ROOT}/OpenJML/bin*
@@ -83,8 +83,9 @@ NAME=openjml-${VERSION}.tar.gz
 	echo "   " Creating jmlspecs.jar
 	## The jmlspecs.jar contains the composite Java 1.7 specs files
 	## The openjml.jar file contains the OpenJDK and OpenJML class files, and the specs directories, combined for each Java version
-	(cd temp/specs17; jar -cf ../../jars/jmlspecs.jar . )
+	(cd temp/specs17; jar -cf ../../${TEMPJAR}/jmlspecs.jar . )
 	
+	(cd temp; jar xf ../jsmtlib.jar ; )
 	cp -r bin-runtime/* temp
     cp -r ${ANNOTATIONS}/bin/* temp
     touch temp/JMLRUNTIME_MARKER
@@ -93,29 +94,29 @@ NAME=openjml-${VERSION}.tar.gz
 	echo "   " Creating openjml.jar
 	echo "Manifest-Version: 1.0" > temp2/manifest
 	echo "Main-Class: org.jmlspecs.openjml.Main" >> temp2/manifest
-	(cd temp; jar -cfm ../jars/openjml.jar ../temp2/manifest . )
-	##cp jars/openjml.jar ../OpenJMLUI
+	(cd temp; jar -cfm ../${TEMPJAR}/openjml.jar ../temp2/manifest . )
+	##cp ${TEMPJAR}/openjml.jar ../OpenJMLUI
 	echo "   " jmlspecs.jar openjml.jar created
 	
     rm temp/com/sun/tools/*/*/*.properties temp/com/sun/tools/*/*/*/*/*.properties
     rm -rf temp/specs*
-    (cd temp; jar cf ../jars/openjmlboot.jar . )
-    cp jars/openjmlboot.jar ${UI}
+    (cd temp; jar cf ../${TEMPJAR}/openjmlboot.jar . )
+    cp ${TEMPJAR}/openjmlboot.jar ${UI}
     echo "   " openjmlboot.jar created
 	
     rm -rf temp temp2
     
 ##### Build the tar file
     if [ -e ../../texstuff/papers/OpenJMLUserGuide/OpenJMLUserGuide.pdf ]; then
-        cp ../../texstuff/papers/OpenJMLUserGuide/OpenJMLUserGuide.pdf jars
+        cp ../../texstuff/papers/OpenJMLUserGuide/OpenJMLUserGuide.pdf ${TEMPJAR}
     else
         echo No User Guide file is found
     fi
-    cp legal/* jars
-	(cd jars; \
+    cp legal/* ${TEMPJAR}
+	(cd ${TEMPJAR}; \
     cp ../openjml-template.properties . ;\
 	tar -zcf ../${NAME} * )
-	##rm -rf jars  ## We don't delete them because some tests use them
+	##rm -rf ${TEMPJAR}  ## We don't delete them because some tests use them
 	echo "   " tar created
 
 ##### End	

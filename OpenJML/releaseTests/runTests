@@ -29,6 +29,7 @@ rm -rf temp-release
 mkdir temp-release
 cp $REL temp-release
 cd temp-release
+cp ../openjml.properties .
 
 TESTLOC=../releaseTests
 
@@ -68,7 +69,7 @@ rm -rf rac
 mkdir -p rac
 ${RTH} testRac "java -jar openjml.jar -rac -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-OK
-echo java -classpath "rac${Z}jmlruntime.jar" A
+#echo java -classpath "rac${Z}jmlruntime.jar" A
 java -classpath "rac${Z}jmlruntime.jar" A  > racactual
 tr -d '\r' < racactual |  diff - ../releaseTests/testRac/expected-ok || { RES=$(($RES+1)); }
 echo RAC-SIMPLE
@@ -120,6 +121,13 @@ ${RTH} testRuntime4 "java -jar openjml.jar C.java -noPurityCheck " || RES=$(($RE
 
 ## Checks using annotations with normal use - should be OK
 ${RTH} testRuntime5 "java -jar openjml.jar D.java -noPurityCheck " || RES=$(($RES+1))
+
+## Checks using classpath - ok, uses specs in java file
+${RTH} testEsc1 "java -jar openjml.jar -noPurityCheck -esc ../testfiles/testEsc/A.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
+
+## Checks using classpath - ok, uses specs in java file
+${RTH} testEsc2 "java -jar openjml.jar -noPurityCheck -esc ../testfiles/testEsc/B.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
+
 
 export SWITCHSLASH=YES
 ## Checks using no paths - fails to find super class, uses specs in java file
