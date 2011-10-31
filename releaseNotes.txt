@@ -1,5 +1,10 @@
 Release Notes
 
+
+Added (trivial) release tests for ESC
+Removed obsolete Makefiles
+Fixed references to the SMT library
+
 SVN: 2531
 Fixes for bugs 3241186 3421143 3373400 3377329 3388690
 

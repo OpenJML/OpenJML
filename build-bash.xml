@@ -53,7 +53,7 @@
         <delete dir="${basedir}/temp" />
         <delete dir="${basedir}/temp2" />
         <delete dir="${basedir}/temp-release" />
-        <delete dir="${basedir}/jars" />
+        <delete dir="${basedir}/tempjars" failonerror="false" />
     </target>
 
 </project>
