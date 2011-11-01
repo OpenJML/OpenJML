@@ -1,6 +1,11 @@
 Release Notes
 
+Publishing version 0.2.4
 
+SVN: 2534
+Cleanup and updated OpenJMLFeature and OpenJML-UpdateSite in SVN
+
+SVN: 2533
 Added (trivial) release tests for ESC
 Removed obsolete Makefiles
 Fixed references to the SMT library
