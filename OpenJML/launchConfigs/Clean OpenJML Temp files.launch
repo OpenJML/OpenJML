@@ -10,7 +10,6 @@
 </listAttribute>
 <mapAttribute key="org.eclipse.debug.core.environmentVariables">
 <mapEntry key="ANNOTATIONS" value="${project_loc:JMLAnnotations}"/>
-<mapEntry key="ANT_HOME" value="/Applications/Local/e/eclipse-SDK-3.5.2-macosx-cocoa-x86_64/plugins/org.apache.ant_1.7.1.v20090120-1145"/>
 <mapEntry key="ROOT" value="${project_loc:OpenJML}/.."/>
 <mapEntry key="SPECS" value="${project_loc:Specs}"/>
 </mapAttribute>
