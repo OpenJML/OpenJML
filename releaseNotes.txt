@@ -1,5 +1,10 @@
 Release Notes
 
+Publishing version 0.2.5
+
+Many small changes to adapt the build to the 1.7.0 release and to
+improve the cross-platform aspects of the development environment
+
 Publishing version 0.2.4
 
 SVN: 2534
