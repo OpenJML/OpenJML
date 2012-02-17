@@ -32,7 +32,7 @@ import static javax.lang.model.SourceVersion.*;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.jvm.Target;
 
-import static com.sun.tools.javac.main.OptionName.*;
+import static com.sun.tools.javac.main.Option.*;
 
 /** The source language version accepted.
  *
@@ -193,6 +193,12 @@ public enum Source {
     }
     public boolean allowObjectToPrimitiveCast() {
         return compareTo(JDK1_7) >= 0;
+    }
+    public boolean allowLambda() {
+        return compareTo(JDK1_8) >= 0;
+    }
+    public boolean allowMethodReferences() {
+        return compareTo(JDK1_8) >= 0;
     }
     public static SourceVersion toSourceVersion(Source source) {
         switch(source) {

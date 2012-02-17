@@ -82,7 +82,7 @@ import com.sun.tools.javac.util.Options;
 
 import static javax.tools.StandardLocation.*;
 import static com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag.*;
-import static com.sun.tools.javac.main.OptionName.*;
+import static com.sun.tools.javac.main.Option.*;
 import static com.sun.tools.javac.code.Lint.LintCategory.PROCESSING;
 
 /**
@@ -688,7 +688,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                 ps.removeSupportedOptions(unmatchedProcessorOptions);
 
                 if (printProcessorInfo || verbose) {
-                    log.printNoteLines("x.print.processor.info",
+                    log.printLines("x.print.processor.info",
                             ps.processor.getClass().getName(),
                             matchedNames.toString(),
                             processingResult);
@@ -1014,7 +1014,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             if (printRounds || verbose) {
                 List<ClassSymbol> tlc = lastRound ? List.<ClassSymbol>nil() : topLevelClasses;
                 Set<TypeElement> ap = lastRound ? Collections.<TypeElement>emptySet() : annotationsPresent;
-                log.printNoteLines("x.print.rounds",
+                log.printLines("x.print.rounds",
                         number,
                         "{" + tlc.toString(", ") + "}",
                         ap,
@@ -1033,12 +1033,10 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             Assert.checkNonNull(options);
             next.put(Options.optionsKey, options);
 
-            PrintWriter out = context.get(Log.outKey);
-            Assert.checkNonNull(out);
-            next.put(Log.outKey, out);
             Locale locale = context.get(Locale.class);
             if (locale != null)
                 next.put(Locale.class, locale);
+
             Assert.checkNonNull(messages);
             next.put(JavacMessages.messagesKey, messages);
 
@@ -1072,9 +1070,12 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             Assert.checkNonNull(names);
             next.put(Names.namesKey, names);
 
-            Keywords keywords = Keywords.instance(context);
-            Assert.checkNonNull(keywords);
-            next.put(Keywords.keywordsKey, keywords);
+            Tokens tokens = Tokens.instance(context);
+            Assert.checkNonNull(tokens);
+            next.put(Tokens.tokensKey, tokens);
+
+            // propogate the log's writers directly, instead of going through context
+            Log.instance(next).setWriters(log);
 
             JavaCompiler oldCompiler = JavaCompiler.instance(context);
             JavaCompiler nextCompiler = JavaCompiler.instance(next);
@@ -1222,7 +1223,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         List<ClassSymbol> classes = List.nil();
         for (JCCompilationUnit unit : units) {
             for (JCTree node : unit.defs) {
-                if (node.getTag() == JCTree.CLASSDEF) {
+                if (node.hasTag(JCTree.Tag.CLASSDEF)) {
                     ClassSymbol sym = ((JCClassDecl) node).sym;
                     Assert.checkNonNull(sym);
                     classes = classes.prepend(sym);
@@ -1470,14 +1471,6 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
      */
     public Context getContext() {
         return context;
-    }
-
-    /**
-     * Internal use method to return the writer being used by the
-     * processing environment.
-     */
-    public PrintWriter getWriter() {
-        return context.get(Log.outKey);
     }
 
     public String toString() {
