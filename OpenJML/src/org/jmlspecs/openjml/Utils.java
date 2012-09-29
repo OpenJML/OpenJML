@@ -344,7 +344,7 @@ public class Utils {
      * returning it if it is; this method requires that the annotations have
      * already been attributed.
      * @param mods the modifiers to search
-     * @param m the Name (fully qualified) of the annotation type to find
+     * @param asym the symbol of the annotation type to find
      * @return the annotation AST if present, null if not
      */
     public JCTree.JCAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */Symbol asym) {
@@ -406,7 +406,7 @@ public class Utils {
      * to a distinct integer - not necessarily its hashCode (which are not
      * necessarily unique).
      * @param c
-     * @return
+     * @return a distinct integer for the given class
      */
     public int distinct(Class<?> c) {
         return c.hashCode();

@@ -827,7 +827,7 @@ public class BasicBlocker extends JmlTreeScanner {
      * because type variables are not assigned after initialization.
      * @param sym
      * @param declarationPosition
-     * @return
+     * @return a name for the given TypeSymbol
      */
     protected Name encodedTypeName(TypeSymbol sym, int declarationPosition) {
         return names.fromString(sym.flatName() + "$" + declarationPosition);
@@ -888,7 +888,7 @@ public class BasicBlocker extends JmlTreeScanner {
      * position; the current incarnation value is used
      * @param sym the underlying symbol (which gives the declaration location)
      * @param useposition the source position of its use
-     * @return
+     * @return the new identifier
      */
     protected JCIdent newIdentUse(VarSymbol sym, int useposition) {
         Name name = currentMap.getCurrentName(sym);
@@ -983,8 +983,7 @@ public class BasicBlocker extends JmlTreeScanner {
     
     /** Creates an attributed, untranslated JCIdent from the given VarSymbol;
      * the given pos is used as the textual position of the JCIdent node;
-     * @param name the Name to use for the new symbol
-     * @param type the type of the new symbol
+     * @param sym a VarSymbbol for which to generate a JCIdent AST node
      * @param pos the use position of the new tree node
      * @return a JCIdent tree node representing a use of the new symbol
      */
@@ -1170,7 +1169,7 @@ public class BasicBlocker extends JmlTreeScanner {
      * @param context the compilation context
      * @param tree the block of a method
      * @param denestedSpecs the specs of the method
-     * @param classInfo the info about the enclosing class
+     * @param classDecl the enclosing class
      * @return the resulting BasicProgram
      */
     public static @NonNull BasicProgram convertToBasicBlocks(@NonNull Context context, 
@@ -1426,7 +1425,6 @@ public class BasicBlocker extends JmlTreeScanner {
     /** Inserts assumptions corresponding to the preconditions into the given block.
      * Uses classInfo to get the class-level preconditions.
      * 
-     * @param b      the block into which to add the assumptions
      * @param tree   the method being translated
      * @param denestedSpecs  the denested specs for that method
      */
@@ -1822,7 +1820,9 @@ public class BasicBlocker extends JmlTreeScanner {
      * @param name the name of the auxiliary variable, including any label and position encoding
      * @param type the type of the variable (e.g. syms.booleanType)
      * @param expr the (untranslated) value of the variable
-     * @returns the variable corresponding the the given String argument
+     * @param makeDefinition
+     * @param saveInMap
+     * @return the variable corresponding the the given String argument
      */
     // FIXME - REVIEW and document
     // FIXME - modifies the content of currentBlock.statements
@@ -3766,7 +3766,7 @@ public class BasicBlocker extends JmlTreeScanner {
      * @param sym
      * @param obj already translated method receiver, or null if static
      * @param args already translated method arguments
-     * @returns
+     * @return TODO
      */
     // FIXME - review and document
     protected JCExpression insertSpecMethodCall(int pos, MethodSymbol sym, JCExpression obj, com.sun.tools.javac.util.List<JCExpression> typeargs, com.sun.tools.javac.util.List<JCExpression> args) {

@@ -27,7 +27,7 @@ public class JmlDebugTreePrinter extends JmlTreeScanner {
     
     /** A constructor for the tree
      * @param out where to write the output information
-     * @param p the parser with the position information
+     * @param endPositions the map with the end position information, obtained from a suitable parser
      */
     public JmlDebugTreePrinter(PrintStream out, Map<JCTree, Integer> endPositions) {
         this.out = out;

@@ -99,7 +99,6 @@ public @Pure interface JMLSetType<E> extends JMLIterable<E>
     /** Returns a new set that contains all the elements of this and
      *  also the given argument.
      *  @see #has(Object)
-     *  @see #remove(Object)
      */
     /*@ 
       @  public normal_behavior

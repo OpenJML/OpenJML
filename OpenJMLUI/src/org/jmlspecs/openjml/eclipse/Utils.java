@@ -1343,8 +1343,7 @@ public class Utils {
     }
 
     /** Launches a editable Java editor with the given file
-     * @param content the content of the editor
-     * @param name the name (as in the title) of the editor
+     * @param file the file to edit
      */
     public void launchJavaEditor(IFile file) {
         try {
@@ -1747,7 +1746,7 @@ public class Utils {
     /** Returns an absolute, local file-system path to the internal run-time
      * library (which holds definitions of annotations and some runtime utilities
      * for RAC), or null without an error message if the library could not be found.
-     * @return
+     * @return the absolute path
      */
     public String findInternalRuntime() {
     	String file = null;

@@ -184,7 +184,7 @@ public class API {
     
     /** Enters and typechecks the provided compilation unit ASTs.  The elements
      * of the list should all be JmlCompilationUnit nodes.
-     * @param list a list of the ASTs to be checked
+     * @param trees a varargs list or an array of the ASTs to be checked
      * @return the number of errors encountered
      * @throws IOException
      */
@@ -201,7 +201,7 @@ public class API {
     }
     
     /** Enters and typechecks the provided compilation unit ASTs.
-     * @param list a list of the ASTs to be checked
+     * @param trees a collection of the ASTs to be checked
      * @return the number of errors encountered
      * @throws IOException
      */
@@ -279,7 +279,7 @@ public class API {
      * through the diagnostic listener;
      * if there are errors, a parse tree may be incomplete.  The trees are not
      * type-checked and do not have any name resolution applied.
-     * @param files the JavaFileObjects to use as inputs
+     * @param inputs a varags list or an array of the JavaFileObjects to use as inputs
      * @return a list of corresponding ASTs
      */
     //@ requires \nonnullelements(inputs);
@@ -303,7 +303,7 @@ public class API {
      * through the diagnostic listener;
      * if there are errors, a parse tree may be incomplete.  The trees are not
      * type-checked and do not have any name resolution applied.
-     * @param files the JavaFileObjects to use as inputs
+     * @param inputs a Collection of the JavaFileObjects to use as inputs
      * @return a list of corresponding ASTs
      */
     //@ requires \nonnullelements(inputs);
@@ -855,7 +855,7 @@ public class API {
      * methods. Note that the names of parameters of various methods may be different,
      * and hence the specs will need some renaming in order to be used together.
      * 
-     * @param sym the method symbol whose specs are wanted
+     * @param msym the method symbol whose specs are wanted
      * @return the specs for that method
      */
     //@ requires isOpen;

@@ -3,7 +3,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/JMLAnnotations"/>
 	<classpathentry exported="true" kind="lib" path="/JMLAnnotations/bin"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/OpenJDK"/>
-	<classpathentry excluding="org/jmlspecs/genericmodels/**|org/jmlspecs/unfinished/**" including="org/jmlspecs/**" kind="src" output="bin-runtime" path="runtime"/>
+	<classpathentry excluding="org/jmlspecs/genericmodels/**|org/jmlspecs/models/package.html|org/jmlspecs/models/resolve/package.html|org/jmlspecs/unfinished/**" including="org/jmlspecs/**" kind="src" output="bin-runtime" path="runtime"/>
 	<classpathentry kind="src" output="bin-tests" path="tests"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>

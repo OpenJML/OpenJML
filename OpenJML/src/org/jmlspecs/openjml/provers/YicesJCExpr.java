@@ -45,7 +45,6 @@ public class YicesJCExpr extends JmlTreeScanner {
     /** Does the translation.  
      * 
      * @param t the tree to translate
-     * @param p the prover invoking this translation
      * @return the translated string
      */
     public String toYices(JCTree t) 

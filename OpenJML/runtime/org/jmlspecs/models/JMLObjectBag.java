@@ -389,7 +389,7 @@ public /*@ pure @*/ class JMLObjectBag
     /** Tell whether, for each element in the given collection, there is a
      * "==" element in this bag.
      *  @param c the collection whose elements are sought.
-     *  @see #isSuperbag(JMLObjectSet)
+     *  @see #isSuperbag(JMLObjectBag)
      *  @see #convertFrom(java.util.Collection)
      */
     /*@ public normal_behavior

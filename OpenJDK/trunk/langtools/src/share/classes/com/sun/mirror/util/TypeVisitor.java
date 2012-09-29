@@ -41,7 +41,7 @@ import com.sun.mirror.type.*;
  * @deprecated All components of this API have been superseded by the
  * standardized annotation processing API.  The replacement for the
  * functionality of this interface is {@link
- * javax.lang.model.element.TypeVisitor}.
+ * javax.lang.model.type.TypeVisitor}.
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman

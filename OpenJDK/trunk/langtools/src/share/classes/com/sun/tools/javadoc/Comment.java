@@ -389,7 +389,7 @@ class Comment {
     }
 
     /**
-     * Recursively search for the string "{@" followed by
+     * Recursively search for the string {@literal "{@"} followed by
      * name of inline tag and white space,
      * if found
      *    return the index of the text following the white space.

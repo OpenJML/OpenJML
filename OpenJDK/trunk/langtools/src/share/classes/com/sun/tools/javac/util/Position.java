@@ -80,7 +80,7 @@ public class Position {
 
     /** Encode line and column numbers in an integer as:
      *  line-number << LINESHIFT + column-number
-     *  {@link Position.NOPOS represents an undefined position.
+     *  {@link Position.NOPOS} represents an undefined position.
      *
      * @param  line  number of line (first is 1)
      * @param  col   number of character on line (first is 1)

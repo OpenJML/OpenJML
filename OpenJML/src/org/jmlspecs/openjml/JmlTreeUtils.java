@@ -562,7 +562,7 @@ public class JmlTreeUtils {
      * @param type the variable type
      * @param init the initialization expression as it would appear in a declaration (null for no initialization)
      * @param pos the pseudo source code location for the new node
-     * @returns a new JCVariableDecl node
+     * @return a new JCVariableDecl node
      */
     public JCVariableDecl makeVariableDecl(Name name, Type type, @Nullable JCExpression init, int pos) {
         VarSymbol vsym = new VarSymbol(0, name, type, null);
@@ -576,7 +576,6 @@ public class JmlTreeUtils {
      * block itself is initialized with no statements; the type of the exception
      * is java.lang.Exception.
      * @param owner  TBD
-     * @param exceptionType the type of the exception caught in the statement
      * @return the new AST
      */
     public JCCatch makeCatcher(Symbol owner) {

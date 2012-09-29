@@ -48,7 +48,7 @@ public abstract class AbstractDoclet {
     public Configuration configuration;
 
     /**
-     * The only doclet that may use this toolkit is {@value}
+     * The only doclet that may use this toolkit is {@value #TOOLKIT_DOCLET_NAME}
      */
     private static final String TOOLKIT_DOCLET_NAME = new
         com.sun.tools.doclets.formats.html.HtmlDoclet().getClass().getName();

@@ -124,10 +124,10 @@ public class OpenJMLInterface {
     *
     * @param jproject The java project associated with this instance of OpenJMLInterface
     */
-   public OpenJMLInterface(@NonNull IJavaProject pi) {
-       this.jproject = pi;
-       preq = new JmlProblemRequestor(pi); 
-       specsPath = utils.getSpecsPath(pi);
+   public OpenJMLInterface(@NonNull IJavaProject jproject) {
+       this.jproject = jproject;
+       preq = new JmlProblemRequestor(jproject); 
+       specsPath = utils.getSpecsPath(jproject);
        PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener).getConsoleStream());
        try { 
     	   api = new API(w,new EclipseDiagnosticListener(preq), new String[]{"-noInternalRuntime"}); 
@@ -515,7 +515,7 @@ public class OpenJMLInterface {
     /** Return the specs of the given method, including all inherited specs,
      * pretty-printed as a String.  This
      * may be an empty String if there are no specifications.
-     * @param type the Eclipse IMethod for the method whose specs are wanted
+     * @param method the Eclipse IMethod for the method whose specs are wanted
      * @return the corresponding specs, as a String
      */
     public @Nullable String getAllSpecs(@NonNull IMethod method) {
@@ -827,7 +827,7 @@ public class OpenJMLInterface {
      * corresponding options for OpenJML and sends them.
      * @param jproject
      * @param cmd The command to be executed
-     * @return
+     * @return the list of options and arguments
      */
     public @NonNull List<String> getOptions(IJavaProject jproject, Cmd cmd) {
         Options opt = Activator.options;

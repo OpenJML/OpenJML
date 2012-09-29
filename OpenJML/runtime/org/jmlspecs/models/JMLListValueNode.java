@@ -327,7 +327,7 @@ package org.jmlspecs.models;
     @*/
 
     /** Return the ith element of a list.
-     * @see #getItem(int)
+     * @see #getItem(JMLType t)
      */
     /*@  public normal_behavior
       @    requires 0 <= i && i < int_length();
