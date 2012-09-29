@@ -171,7 +171,7 @@ public class JMLObjectToObjectRelationEnumerator
             //@ assume imageEnum.moreElements;
             Object v = imageEnum.nextElement();
             //@ assume v != null && v instanceof Object;
-            return new JMLObjectObjectPair(key, (Object)v);
+            return new JMLObjectObjectPair(key, v);
         } else {
             throw new JMLNoSuchElementException();
         }

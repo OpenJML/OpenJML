@@ -1370,7 +1370,7 @@ public /*@ pure @*/ class JMLValueToEqualsRelation
                     img = new JMLEqualsSet(null);
                 } else {
                     //@ assume o != null && o instanceof Object;
-                    Object rv = (Object) o;
+                    Object rv = o;
                     img = new JMLEqualsSet(rv);
                 }
                 newImagePairSet

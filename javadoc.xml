@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="javadoc">
+    <target name="javadoc">
+        <javadoc access="private" author="true" classpath="bin-tests;C:\cygwin\home\dcok\eprojects\OpenJDK\bin;C:\cygwin\home\dcok\eprojects\JMLAnnotations\bin;bin-runtime;C:\cygwin\home\dcok\apps\eclipse-SDK-3.7-win32\eclipse\plugins\org.hamcrest.core_1.1.0.v20090501071000.jar;C:\cygwin\home\dcok\apps\eclipse-SDK-3.7-win32\eclipse\plugins\org.junit_4.8.2.v4_8_2_v20110321-1705\junit.jar;jSMTLIB.jar" destdir="javadoc" doctitle="OpenJML" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="com.sun.tools.javac.comp,org.jmlspecs.openjml.provers,org.jmlspecs.openjml.jmldoc,com.sun.tools.javac.parser,org.jmlspecs.lang,org.jmlspecs.models.resolve,org.jmlspecs.openjml.esc,org.jmlspecs.openjml,org.jmlspecs.models,org.jmlspecs.openjml.proverinterface,tests,org.jmlspecs.openjml.ext,org.jmlspecs.utils" source="1.7" sourcepath="runtime;src;tests" splitindex="true" use="true" version="true"/>
+    </target>
+</project>

@@ -946,7 +946,7 @@ public class JmlEnter extends Enter {
         // classes either.  Hence we need to do that recursion ourselves here.
 
         // Recurse over nested classes (which do not inclulde model classes yet)
-        for (Symbol nested: ((ClassSymbol)csymbol).getEnclosedElements()) {
+        for (Symbol nested: csymbol.getEnclosedElements()) {
             if (nested instanceof ClassSymbol) {
                 enterSpecsForBinaryClasses((ClassSymbol)nested,newlist);
             }

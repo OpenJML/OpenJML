@@ -159,7 +159,7 @@ public class JMLValueToObjectRelationEnumerator
         if (imageEnum.hasMoreElements()) {
             Object v = imageEnum.nextElement();
             //@ assume v != null && v instanceof Object;
-            return new JMLValueObjectPair(key, (Object)v);
+            return new JMLValueObjectPair(key, v);
         } else if (imagePairEnum.hasMoreElements()) {
             Object p = imagePairEnum.nextElement();
             //@ assume p != null && p instanceof JMLValueValuePair;
@@ -171,7 +171,7 @@ public class JMLValueToObjectRelationEnumerator
             //@ assume imageEnum.moreElements;
             Object v = imageEnum.nextElement();
             //@ assume v != null && v instanceof Object;
-            return new JMLValueObjectPair(key, (Object)v);
+            return new JMLValueObjectPair(key, v);
         } else {
             throw new JMLNoSuchElementException();
         }
