@@ -4227,7 +4227,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 }
                 // Take out the temporary variables for the arguments
                 if (decl != null && decl.params != null) for (JCVariableDecl vd  : decl.params) {
-                    currentMap.remove((VarSymbol)vd.sym);
+                    currentMap.remove(vd.sym);
                 }
                 
                 // Now create an (unprocessed) block for everything that follows the

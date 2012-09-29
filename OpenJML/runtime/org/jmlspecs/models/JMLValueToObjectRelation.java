@@ -1370,7 +1370,7 @@ public /*@ pure @*/ class JMLValueToObjectRelation
                     img = new JMLObjectSet(null);
                 } else {
                     //@ assume o != null && o instanceof Object;
-                    Object rv = (Object) o;
+                    Object rv = o;
                     img = new JMLObjectSet(rv);
                 }
                 newImagePairSet

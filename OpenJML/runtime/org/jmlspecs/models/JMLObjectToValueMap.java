@@ -449,7 +449,7 @@ class JMLObjectToValueMap extends JMLObjectToValueRelation {
             //@ assume overlapEnum.moreElements;
             Object oo = overlapEnum.nextElement();
             //@ assume oo != null && oo instanceof Object;
-            dv = (Object) oo;
+            dv = oo;
             newRel = newRel.add(dv, errval);
         }
         return newRel.toFunction();

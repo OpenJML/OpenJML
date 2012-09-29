@@ -137,7 +137,7 @@ public /*@ pure @*/ class JMLChar implements JMLComparable {
       @    ensures \result >= 0 && (* \result is a hash code for theChar *);
       @*/
     public int hashCode() {
-        return ((int) value);
+        return value;
     }
   
     /** Compare this to op2, returning a comparison code.

@@ -1150,7 +1150,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     //                  }
                 } else if (args.size() == 0) {
                     // Create a default: public model secret JMLDataGroup
-                    JmlTree.Maker maker = (JmlTree.Maker)JmlTree.Maker.instance(context);
+                    JmlTree.Maker maker = JmlTree.Maker.instance(context);
                     JCTree.JCModifiers nmods = maker.Modifiers(Flags.PUBLIC);
                     JCTree.JCAnnotation a = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlToken.MODEL).type),List.<JCExpression>nil());
                     JCTree.JCAnnotation aa = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlToken.SECRET).type),List.<JCExpression>nil());
