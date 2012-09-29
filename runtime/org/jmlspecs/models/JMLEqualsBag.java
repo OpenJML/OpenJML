@@ -390,7 +390,7 @@ public /*@ pure @*/ class JMLEqualsBag
     /** Tell whether, for each element in the given collection, there is a
      * ".equals" element in this bag.
      *  @param c the collection whose elements are sought.
-     *  @see #isSuperbag(JMLEqualsSet)
+     *  @see #isSuperbag(JMLEqualsBag)
      *  @see #convertFrom(java.util.Collection)
      */
     /*@ public normal_behavior

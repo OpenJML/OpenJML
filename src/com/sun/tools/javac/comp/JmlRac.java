@@ -383,7 +383,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
      * @param pos the character position at which to point out an error (in the
      *          current source file)
      * @param condition the untranslated expression to test
-     * @param expr the untranslated expression to be returned
+     * @param that the untranslated expression to be returned
      * @param msg the error message
      * @param label the kind of error
      * @return the new translated AST
@@ -429,7 +429,6 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
      * @param pos the character position at which to point out an error (in the
      *          current source file)
      * @param that the untranslated expression to test and return
-     * @param msg the error message
      * @param label the kind of error
      * @return the new translated AST
      */
@@ -742,7 +741,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
      * s is a literal containing the value of the argument
      * @param sp the string to make into the literal argument of the call
      * @param pos the character position of the created AST
-     * @return
+     * @return an assert statement indication an assertion failure
      */
     public JCStatement assertFailure(String sp, int pos) {
         make.at(pos);

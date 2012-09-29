@@ -673,7 +673,7 @@ public class JmlEnter extends Enter {
     /** Enters top-level model types in the specs sequence of the argument
      * 
      * @param packageSymbol The symbol of the package that owns this top-level declaration
-     * @param specsSequence The specs sequence to be searched for model types
+     * @param specCompilationUnit The compilation unit holding specs to be searched for model types
      */
     public List<JmlClassDecl> addTopLevelModelTypes(PackageSymbol packageSymbol, JmlCompilationUnit specCompilationUnit) {
 
@@ -803,7 +803,7 @@ public class JmlEnter extends Enter {
      * enter any specification (model) classes.
      * 
      * @param csymbol the ClassSymbol of the binary type
-     * @param specsSequence the parse trees of the specifications for the binary type
+     * @param speccu The parse tree of the specifications for the binary type
      * (including the specifications for any secondary types that would have been in the same source
      * compilation unit)
      */
@@ -1048,7 +1048,7 @@ public class JmlEnter extends Enter {
      * the types; returns false if there were errors.
      * @param csym the class whose local env we are manipulating
      * @param specTypeDeclaration the declaration of the class in a specification file
-     * @param localEnv the environment which is modified by the addition of any type parameter information
+     * @param classEnv the environment which is modified by the addition of any type parameter information
      */
     public boolean enterTypeParametersForBinary(ClassSymbol csym, JmlClassDecl specTypeDeclaration, Env<AttrContext> classEnv) {
         Env<AttrContext> localEnv = classEnv;

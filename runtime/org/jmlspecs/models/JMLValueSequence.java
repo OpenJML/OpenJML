@@ -503,7 +503,7 @@ public /*@ pure @*/ class JMLValueSequence
      *  @see #get(int)
      *  @see #has(JMLType)
      *  @see #count(JMLType)
-     *  @see #itemAt(\\bigint)
+     *  @see #itemAt({@literal \}bigint)
      */
     /*@ also
       @  public normal_behavior
@@ -632,8 +632,8 @@ public /*@ pure @*/ class JMLValueSequence
       @*/
 
     /** Tells the number of elements in the sequence; a synonym for
-     * {@link #length}.
-     * @see #length()
+     * {@link #int_length}.
+     * @see #int_length()
      * @see #isEmpty()
      */
     /*@ also
@@ -655,7 +655,7 @@ public /*@ pure @*/ class JMLValueSequence
     }  
 
     /** Tells the number of elements in the sequence; a synonym for
-     * {@link #size}.
+     * {@link #int_size}.
      * @see #int_size()
      */
     /*@ also
@@ -2412,7 +2412,7 @@ public /*@ pure @*/ class JMLValueSequence
 
     /** Return a enumerator for this.
      * @see #iterator()
-     * @see #itemAt()
+     * @see #itemAt(int)
      */
     /*@  public normal_behavior
       @    ensures \fresh(\result) && (* \result is an enumerator for this *);

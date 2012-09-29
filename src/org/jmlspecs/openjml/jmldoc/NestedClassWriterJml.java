@@ -77,9 +77,9 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
     
     /** This is used in place of DocEnv.shouldDocument because model methods are
      * marked as synthetic and thus not allowed by DocEnv.
-     * @param currentDocEnv
-     * @param sym
-     * @return
+     * @param currentDocEnv TODO
+     * @param sym TODO
+     * @return TODO
      */
     public boolean shouldDocumentModel(DocEnv currentDocEnv, ClassSymbol sym) {
         return 

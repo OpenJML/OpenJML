@@ -318,8 +318,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * <LI>check for out of range arithmetic operations - TODO
      * </UL>
      * 
-     * @param decl method being converted
-     * @returna JCBlock with all assumptions, assertions, added declarations
+     * @return JCBlock with all assumptions, assertions, added declarations
      */
     public JCBlock convert() {
         JCMethodDecl decl = methodDecl;

@@ -45,7 +45,6 @@ public class CVC3Expr extends JmlTreeScanner {
     /** Does the translation.  
      * 
      * @param t the tree to translate
-     * @param p the prover invoking this translation
      * @return the translated string
      */
     public String toCVC3(JCTree t) 

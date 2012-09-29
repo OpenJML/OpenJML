@@ -803,7 +803,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * because type variables are not assigned after initialization.
      * @param sym
      * @param declarationPosition
-     * @return
+     * @return the new name
      */
     protected Name encodedTypeName(TypeSymbol sym, int declarationPosition) {
         return names.fromString(sym.flatName() + "$" + declarationPosition);
@@ -896,7 +896,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * position; the current incarnation value is used
      * @param sym the underlying symbol (which gives the declaration location)
      * @param useposition the source position of its use
-     * @return
+     * @return the new JCIdent node
      */
     protected JCIdent newIdentUse(VarSymbol sym, int useposition) {
         Name name = currentMap.getCurrentName(sym);
@@ -995,8 +995,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     // FIXME - review
     /** Creates an attributed, untranslated JCIdent from the given VarSymbol;
      * the given pos is used as the textual position of the JCIdent node;
-     * @param name the Name to use for the new symbol
-     * @param type the type of the new symbol
+     * @param sym a Variable Symbol
      * @param pos the use position of the new tree node
      * @return a JCIdent tree node representing a use of the new symbol
      */
@@ -1527,7 +1526,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @param name the name of the auxiliary variable, including any label and position encoding
      * @param type the type of the variable (e.g. syms.booleanType)
      * @param expr the (untranslated) value of the variable
-     * @returns the variable corresponding the the given String argument
+     * @return the variable corresponding the the given String argument
      */
     // FIXME - REVIEW and document
     // FIXME - modifies the content of currentBlock.statements

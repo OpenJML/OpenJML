@@ -51,7 +51,7 @@ public /*@ pure @*/ abstract class JMLValueSequenceSpecs
 
     /** Is the argument ".equals" to one of the values in this sequence.
      *  @see #has(Object)
-     *  @see #int_count(JMLType)
+     *  @see #count(JMLType)
      */
     /*@ public normal_behavior
       @   ensures \result <==>

@@ -497,7 +497,7 @@ public /*@ pure @*/ class JMLEqualsSequence
      *  @see #get(int)
      *  @see #has(Object)
      *  @see #count(Object)
-     *  @see #itemAt(\\bigint)
+     *  @see #itemAt({@literal \\}bigint)
      */
     /*@ 
       @  public normal_behavior
@@ -626,8 +626,8 @@ public /*@ pure @*/ class JMLEqualsSequence
       @*/
 
     /** Tells the number of elements in the sequence; a synonym for
-     * {@link #length}.
-     * @see #length()
+     * {@link #int_length}.
+     * @see #int_length()
      * @see #isEmpty()
      */
     /*@ also
@@ -649,7 +649,7 @@ public /*@ pure @*/ class JMLEqualsSequence
     }  
 
     /** Tells the number of elements in the sequence; a synonym for
-     * {@link #size}.
+     * {@link #int_size}.
      * @see #int_size()
      */
     /*@ 
@@ -2407,7 +2407,7 @@ public /*@ pure @*/ class JMLEqualsSequence
 
     /** Return a enumerator for this.
      * @see #iterator()
-     * @see #itemAt()
+     * @see #itemAt(int)
      */
     /*@  public normal_behavior
       @    ensures \fresh(\result) && (* \result is an enumerator for this *);

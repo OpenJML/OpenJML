@@ -235,7 +235,7 @@ class JMLValueToObjectMap extends JMLValueToObjectRelation {
     /** Return a new map that is like this but maps the given domain
      *  element to the given range element.  Any previously existing
      *  mapping for the domain element is removed first.
-     * @see JMLValueToObjectRelation#insert(JMLType, Object)
+     * @see JMLValueToObjectRelation#insert(JMLValueObjectPair)
      */
     /*@  public normal_behavior
       @    requires dv != null && rv != null;

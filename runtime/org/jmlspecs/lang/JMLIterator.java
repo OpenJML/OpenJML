@@ -27,8 +27,8 @@ import org.jmlspecs.annotation.*;
  *  None of these support the remove operation.
  * @version $Revision: 1.8 $
  * @author Gary T. Leavens
- * @see JMLEnumeration
- * @see JMLEnumerationToIterator
+ * @see org.jmlspecs.models.JMLEnumeration
+ * @see org.jmlspecs.models.JMLEnumerationToIterator
  */
 
 

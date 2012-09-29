@@ -235,7 +235,7 @@ class JMLEqualsToValueMap extends JMLEqualsToValueRelation {
     /** Return a new map that is like this but maps the given domain
      *  element to the given range element.  Any previously existing
      *  mapping for the domain element is removed first.
-     * @see JMLEqualsToValueRelation#insert(Object, JMLType)
+     * @see JMLEqualsToValueRelation#insert(JMLEqualsValuePair)
      */
     /*@  public normal_behavior
       @    requires dv != null && rv != null;

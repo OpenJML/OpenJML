@@ -37,7 +37,7 @@ import org.jmlspecs.models.*;
  *  <p>Many of the specifications are translated from William Ogden's
  *  notes for CIS 680 at Ohio State University.  (Thanks Bill!)  This
  *  is especially true for the ones specified recursively.  Specifications
- *  written using the {@link #size} and {@link #get} operations are an
+ *  written using the {@link #int_size} and {@link #get} operations are an
  *  alternative, and often given in the redundant parts.
  *
  * @version $Revision: 1.33 $
@@ -221,7 +221,7 @@ public /*@ pure @*/ class StringOfObject implements JMLCollection
     }
 
     /** Compose all the elements of a in order, starting at the given index.
-     * @see #productFrom(StringOfObject[])
+     * @see #productFrom(StringOfObject[], int)
      * @see #productFromTo(StringOfObject[], int, int)
      * @see #composedWith(StringOfObject)
      */
@@ -711,8 +711,6 @@ public /*@ pure @*/ class StringOfObject implements JMLCollection
     // *************** Comparison Operations ***************************
 
     /** Tell if this object is equal to the given argument.
-     * @see #compareTo(Object)
-     * @see #compareTo(StringOfObject)
      */
     /*@ also
       @   public normal_behavior

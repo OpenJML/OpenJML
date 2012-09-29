@@ -82,7 +82,7 @@ public class JmlResolve extends Resolve {
     
     /** Returns the unique instance of this class for the given compilation context
      * @param context the compilation context whose instance of Resolve is desired
-     * @return
+     * @return the unique instance of JmlResolve
      */
     public static JmlResolve instance(Context context) {
         JmlResolve instance = (JmlResolve)context.get(resolveKey);

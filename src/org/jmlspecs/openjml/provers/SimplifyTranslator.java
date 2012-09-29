@@ -45,7 +45,6 @@ public class SimplifyTranslator extends JmlTreeScanner {
     /** Does the translation.  
      * 
      * @param t the tree to translate
-     * @param p the prover invoking this translation
      * @return the translated string
      */
     public String translate(JCTree t) 
