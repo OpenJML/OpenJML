@@ -62,7 +62,7 @@ public class YicesProver extends AbstractProver implements IProver {
 
     /** The String by which to invoke the prover */
     /*@ nullable */
-    protected String app = System.getProperty(Utils.proverPropertyPrefix + Utils.YICES);
+    protected String app = getProverPath(Utils.YICES);
 
     /** The one instance of the associated translator */
     /*@ non_null */
@@ -191,13 +191,18 @@ public class YicesProver extends AbstractProver implements IProver {
     /** Does the startup work */
     public void start() throws ProverException {
         if (app == null) {
-            throw new ProverException("No path to the executable found; specify it using -Dopenjml.prover.yices");
+            throw new ProverException("No registered executable found; specify it using -D" + getProverPathKey(Utils.YICES));
         } else if (!new java.io.File(app).exists()) {
             throw new ProverException("The specified executable does not appear to exist: " + app);
         }
         try {
             // The interactive mode is used so that we get a prompt back, thereby
             // knowing when we have received the prover's response
+            if (false) {
+                log.noticeWriter.print("About to exec: " + app + " :");
+                for (String s: app()) log.noticeWriter.print(" " + s);
+                log.noticeWriter.println("");
+            }
             process = Runtime.getRuntime().exec(app());
         } catch (IOException e) {
             process = null;

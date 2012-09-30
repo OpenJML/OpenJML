@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverException;
@@ -47,6 +48,14 @@ public abstract class AbstractProver implements IProver {
         map.put("smt",org.jmlspecs.openjml.provers.SMTProver.class);
     }
     
+    public String getProverPath(String proverKey) {
+        return System.getProperty(getProverPathKey(proverKey));
+    }
+    
+    public String getProverPathKey(String proverKey) {
+        return Utils.proverPropertyPrefix + proverKey;
+    }
+    
     static public IProver getProver(Context context, String prover) {
         try {
             Class<? extends IProver> c;
@@ -55,10 +64,13 @@ public abstract class AbstractProver implements IProver {
                 Log.instance(context).error("esc.no.prover",prover);
                 return null;
             }
-            Constructor<?> cn = c.getConstructor(com.sun.tools.javac.util.Context.class);
-            return (IProver)cn.newInstance(context);
+            Constructor<? extends IProver> cn = c.getConstructor(Context.class);
+            return cn.newInstance(context);
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            Log.instance(context).error("esc.create.prover.exception",prover,e.getCause().toString());
+            return null;
         } catch (Exception e) {
-            Log.instance(context).error("esc.create.prover.exception",prover,e.getMessage());
+            Log.instance(context).error("esc.create.prover.exception",prover,e.toString());
             return null;
         }
     }

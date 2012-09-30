@@ -59,6 +59,8 @@ public class Utils {
     
     static public final String SIMPLIFY = "simplify";
     
+    static public final String propertiesFileName = "openjml.properties";
+    
     
     /** This string is the fully-qualified name of the JML compiler messages file */
     /*@ non_null*/
@@ -472,10 +474,11 @@ public class Utils {
       boolean verbose = Utils.instance(context).jmldebug ||
           JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
           Options.instance(context).get("-verbose") != null;
-
+      
       Properties properties = new Properties();
-      String propertiesFileName = "openjml.properties";
       // Load properties files found in these locations:
+      // These are read in inverse order of priority, so that later reads
+      // overwrite the earlier ones.
       
       // On the system classpath
       {
@@ -483,7 +486,7 @@ public class Utils {
           if (url2 != null) {
               String s = url2.getFile();
               boolean found = readProps(properties,s);
-              if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from system classpath");
+              if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
           }
       }
       
@@ -493,24 +496,29 @@ public class Utils {
       {
           String s = System.getProperty("user.home") + "/" + propertiesFileName;
           boolean found = readProps(properties,s);
-          if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from user.home");
+          if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
       }
 
       // In the working directory
       {
           String s = System.getProperty("user.dir") + "/" + propertiesFileName;
           boolean found = readProps(properties,s);
-          if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from working directory");
+          if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
       }
       
       // FIXME - add on the application classpath
       
       // FIXME - add on the command-line
-      
+
+      if (verbose) {
 //      Print out the properties
-//      for (Map.Entry<Object,Object> entry: properties.entrySet()) {
-//          System.out.println("PROP " + entry.getKey() + " = " + entry.getValue());
-//      }
+          for (String key: new String[]{"user.home","user.dir"}) {
+              System.out.println("Environment:    " + key + " = " + System.getProperty(key));
+          }
+          for (java.util.Map.Entry<Object,Object> entry: properties.entrySet()) {
+              System.out.println("Local property: " + entry.getKey() + " = " + entry.getValue());
+          }
+      }
       System.getProperties().putAll(properties);
   }
   
