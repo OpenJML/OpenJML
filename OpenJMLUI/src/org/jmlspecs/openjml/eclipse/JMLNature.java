@@ -19,11 +19,13 @@ import org.jmlspecs.annotation.*;
 public class JMLNature implements IProjectNature {
 
 	/**
-	 * ID of this project nature
+	 * ID of this project nature. This String is used literally in plugin.xml.
 	 */
+	//@ non_null
 	public static final String JML_NATURE_ID = Activator.PLUGIN_ID + ".JMLNatureID";
 
 	/** The ID of the Java nature */
+	//@ non_null
 	public static final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature";
 
 	/** The project to which this nature applies. */
@@ -39,7 +41,7 @@ public class JMLNature implements IProjectNature {
 
 		for (int i = 0; i < commands.length; ++i) {
 			if (commands[i].getBuilderName().equals(JMLBuilder.JML_BUILDER_ID)) {
-				return;
+				return; // There already is a JML Builder
 			}
 		}
 
@@ -52,13 +54,14 @@ public class JMLNature implements IProjectNature {
 		project.setDescription(desc, null);
 	}
 
-	/* Removes the JML Builder from the project.  This is automatically called
-	 * by Eclipse when a project's JML Nature is removed.
+	/* Removes the JML Builder from the project if present.  This is
+	 * automatically called by Eclipse when a project's JML Nature is removed.
 	 * @see org.eclipse.core.resources.IProjectNature#deconfigure()
 	 */
 	public void deconfigure() throws CoreException {
 		IProjectDescription description = getProject().getDescription();
 		ICommand[] commands = description.getBuildSpec();
+		// Note: Only removes one instance - there should never be more than one.
 		for (int i = 0; i < commands.length; ++i) {
 			if (commands[i].getBuilderName().equals(JMLBuilder.JML_BUILDER_ID)) {
 				ICommand[] newCommands = new ICommand[commands.length - 1];
@@ -79,7 +82,8 @@ public class JMLNature implements IProjectNature {
 		return project;
 	}
 
-	/* Sets the project associated with this instance of the JML Nature
+	/* Sets the project associated with this instance of the JML Nature (called
+	 * by Eclipse and not by clients).
 	 * @see org.eclipse.core.resources.IProjectNature#setProject(org.eclipse.core.resources.IProject)
 	 */
 	//@ ensures getProject() == project;
@@ -91,7 +95,7 @@ public class JMLNature implements IProjectNature {
 	 * Enables the JML nature on a project
 	 * @param project project to have nature enabled
 	 */
-	static public void enableJMLNature(IProject project) {
+	static public void enableJMLNature(@NonNull IProject project) {
 		try {
 			if (Activator.options.uiverbosity >= 2) Log.log("Enabling JML nature for project " + project.getName());
 			IProjectDescription description = project.getDescription();
@@ -127,12 +131,13 @@ public class JMLNature implements IProjectNature {
 	 * Disables the JML nature on a project
 	 * @param project project to have nature disabled
 	 */
-	static public void disableJMLNature(IProject project) {
+	static public void disableJMLNature(@NonNull IProject project) {
 		try {
 			if (Activator.options.uiverbosity >= 2) Log.log("Disabling nature on project " + project.getName());
 			IProjectDescription description = project.getDescription();
 			String[] natures = description.getNatureIds();
 
+			// Note: Presumes the Nature is present at most once.
 			for (int i = 0; i < natures.length; ++i) {
 				//Log.log("   Nature " + natures[i]);
 				if (JML_NATURE_ID.equals(natures[i])) {

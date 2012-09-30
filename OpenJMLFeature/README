@@ -3,11 +3,11 @@ Instructions for building and publishing a new update site:
 
 Building:
 
-* Be sure that the JMLAnnotations, OpenJDK, OpenJML. OpenJMLUI, and Specs proejcts are built without errors and all unit and release tests pass
+* Be sure that the JMLAnnotations, OpenJDK, OpenJML. OpenJMLUI, and Specs projects are built without errors and all unit and release tests pass
 ** Execute the buildRelease file
 ** Execute the testRelease file
 
-* Open OpenJMLFeature/feature.xml
+* Open OpenJMLFeature/feature.xml and choose the Overview page
 ** Change the version number
 ** Save the file (without closing it)
 ** Click "Synchronize" under "Exporting" on this page
@@ -15,4 +15,17 @@ Building:
 ** Select Finish
 ** Save OpenJMLFeature/feature.xml
 
-* 
+* Open OpenJML-UpdateSite/site.xml
+** Select the top line
+** Click on Add Feature
+** Select the OpenJML Feature from the (long) list; make sure it is the desired version
+** Click OK
+** Be sure the new feature is selected in the list of features
+** Click 'Build' (NOT 'Build All')
+** Verify that the new version of the feature is in OpenJML-UpdateSite/features
+   and the new versions of the plug-ins (3 of them) are in OpenJML-UpdateSite/plugins
+   
+* Push the new feature to the website as follows
+** In a bash shell, in directory OpenJML-UpdateSite
+** If you are not David Cok, edit the web/toSF script to have your sourceforge user name
+** Run the script web/toSF (you will need to enter your sourceforge password)

@@ -101,7 +101,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	// would like delta data for the next time the builder is called.  A null value
 	// for nothing other than one's own project is OK.
 	@Override @Nullable
-	protected IProject[] build(int kind, @Nullable Map/*<String,String>*/ args, IProgressMonitor monitor)
+	protected IProject[] build(int kind, @Nullable Map<String,String> args, IProgressMonitor monitor)
 	throws CoreException {
 		// kind can be
 		// FULL_BUILD - e.g. an automatic build after a request to clean
@@ -140,11 +140,10 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 * in the workspace.  All done in the UI thread.
 	 * @param p the project whose RAC directory is to be cleaned
 	 */  // FIXME - should this be done in a computational thread, with a progress monitor?
-	// FIXME - argument p is not used - which project is cleaned?
 	public void cleanRacbin(IProject p) {
 		try {
 			IPath path = new Path(Activator.options.racbin);
-			IFolder f = (IFolder)getProject().findMember(path);
+			IFolder f = (IFolder)p.findMember(path);
 			for (IResource r: f.members()) {
 				r.delete(IResource.FORCE,null);
 			}
@@ -249,12 +248,19 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	protected void incrementalBuild(IResourceDelta delta,
 			IProgressMonitor monitor) throws CoreException {
 		IProject project = getProject();
+		IJavaProject jproject = JavaCore.create(project);
+		if (jproject == null || !jproject.exists()) {
+			// It should not be possible to call the builder on a non-Java project.
+			Log.errorlog("JMLBuilder has been invoked on a non-Java Project - " + project.getName(), null);
+			return;
+		}
+
 		if (Activator.options.uiverbosity >= 2) Log.log("Incremental build " + project.getName());
 		Timer.timer.markTime();
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files and deletes markers
-		doChecking(JavaCore.create(getProject()),v.resourcesToBuild,monitor);
-		Activator.getDefault().utils.doBuildRac(JavaCore.create(getProject()),v.resourcesToBuild,monitor);
+		doChecking(jproject,v.resourcesToBuild,monitor);
+		Activator.getDefault().utils.doBuildRac(jproject,v.resourcesToBuild,monitor);
 		v.resourcesToBuild.clear(); // Empties the list
 	}
 

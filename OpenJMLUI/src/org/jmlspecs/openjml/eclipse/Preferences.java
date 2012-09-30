@@ -15,22 +15,26 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 /**
- * @author David Cok
- * 
  * This class implements the preference page for the plugin.
- * A preference is the persistent object typically associated with a processing option (as in the Options class).
+ * A preference is the persistent object typically associated with a processing 
+ * option (as in the Options class),
  * for either the plug-in or the OpenJML application itself.
  * If you want to add new preferences, do all the following:
  * <UL>
  * <LI> Define the corresponding new option in Options
  * <LI> Declare a key for the preference (like nonnullByDefaultKey below)
- * <LI> Initialize an AbstractPreference object that controls the reading and writing of the preference (cf. nonnullByDefault).
- * Pick a child class of AbstractPreference that matches the type of the option value (Boolean, Int, Choice, File, ...)
+ * <LI> Initialize an AbstractPreference object that controls the reading and 
+ * writing of the preference (cf. nonnullByDefault).
+ * Pick a child class of AbstractPreference that matches the type of the option 
+ * value (Boolean, Int, Choice, File, ...)
  * <LI> Add a statement to extractOptions that sets the value of the option from the preference.
  * <LI> Add a new PreferenceWidget to one of the PreferenceWidget arrays
  * (e.g. eclipseOptions, jmlOptions, javaOptions, debugOptions).
  * This is the GUI element on the preference page that controls the preference and the option.
  * </UL>
+ * 
+ * @author David Cok
+ * 
  */ // FIXME - review the instructions above
 // FIXME - other options
 // FIXME - consider reimplementing using standard preference page widgets
@@ -98,7 +102,7 @@ implements IWorkbenchPreferencePage {
 		public AbstractPreference.BooleanOption nonnullByDefault = 
 			new AbstractPreference.BooleanOption(nonnullByDefaultKey,defaultOptions.nonnullByDefault,"NonNull by default","When on, references are non-null by default");
 
-		/** The object controlling the preference store entry for the debugast option. */
+		/** The object controlling the preference store entry for the checkSpecsPath option. */
 		public AbstractPreference.BooleanOption checkSpecsPath = 
 			new AbstractPreference.BooleanOption(checkSpecsPathKey,defaultOptions.checkSpecsPath,"Check specs path entries","When on, all specs path entries must be directories that exist");
 
@@ -188,12 +192,6 @@ implements IWorkbenchPreferencePage {
 		return options;
 	}
 
-//	/**
-//	 * This is the list of widgets in the JmlEclipse options section of the
-//	 * preferences page
-//	 */
-//	final static private PreferenceWidget<?>[] eclipseOptions = new PreferenceWidget[] {
-//	};
 
 	/**
 	 * This is the list of widgets in the JmlEclipse options section of the
@@ -230,6 +228,12 @@ implements IWorkbenchPreferencePage {
 		new PreferenceWidget.BooleanWidget(poptions.jmlverbosity),
 		new PreferenceWidget.BooleanWidget(poptions.debug),
 	};
+	
+	static final private PreferenceWidget<?>[][] allOptions = {
+		javaOptions,
+		jmlOptions,
+		debugOptions
+	};
 
 	/**
 	 * Creates the property page controls and initializes them.
@@ -260,6 +264,8 @@ implements IWorkbenchPreferencePage {
 		.setText("OpenJML version: " + OpenJMLInterface.version());
 		new Label(composite0, SWT.CENTER)
 		.setText("These options are workspace options that apply to every JML-enabled Java project.");
+
+		// FIXME - Rearrange?
 		//  Composite composite0 = new Widgets.HComposite(composite0a, 2);
 		//  Composite composite1 = new Widgets.VComposite(composite0);
 		//  Composite composite2a = new Widgets.VComposite(composite0);
@@ -284,47 +290,26 @@ implements IWorkbenchPreferencePage {
 	 */
 	public boolean performOk() {
 		// When OK is pressed, set all the options selected.
-//		setOptionValue(eclipseOptions);
-		setOptionValue(javaOptions);
-		setOptionValue(jmlOptions);
-		setOptionValue(debugOptions);
+		for (int i=0; i<allOptions.length; ++i) {
+			for (PreferenceWidget<?> p: allOptions[i]) {
+				p.setOptionValue();
+			}
+		}
 		AbstractPreference.notifyListeners();
 		return true;
 	}
 
 	public void performDefaults() {
 		// When OK is pressed, set all the options selected.    
-//		setDefaults(eclipseOptions);
-		setDefaults(javaOptions);
-		setDefaults(jmlOptions);
-		setDefaults(debugOptions);
-	}
-
-	/** Calls setDefault for each widget in the list
-	 * 
-	 * @param ws an array of widgets to be processed
-	 */
-	//@ requires ws != null;
-	//@ requires \nonnullelements(ws);
-	public void setDefaults(PreferenceWidget<?>[] ws) {
-		for (int i = 0; i<ws.length; ++i) {
-			ws[i].setDefault();
-		}
-	}
-
-	/**
-	 * Calls 'setOptionValue' on all the items in the array
-	 * @param ws An array of PreferenceWidget items 
-	 */
-	//@ requires ws != null;
-	//@ requires \nonnullelements(ws);
-	public void setOptionValue(PreferenceWidget<?>[] ws) {
-		for (int i=0; i<ws.length; ++i) {
-			ws[i].setOptionValue();
+		for (int i = 0; i<allOptions.length; ++i) {
+			for (PreferenceWidget<?> p: allOptions[i]) {
+				p.setDefault();
+			}
 		}
 	}
 
 	// Inherited method
+	@Override
 	protected IPreferenceStore doGetPreferenceStore() {
 		return Activator.getDefault().getPreferenceStore();
 	}
@@ -338,7 +323,9 @@ implements IWorkbenchPreferencePage {
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.dialogs.IDialogPage#performHelp()
 	 */
-	public void performHelp() {}
+	// Default does nothing
+	@Override
+	public void performHelp() {} // TODO ? What should we do?
 
 	/**
 	 * Calls 'addWidget' on all the items in the list of PreferenceWidgets, in

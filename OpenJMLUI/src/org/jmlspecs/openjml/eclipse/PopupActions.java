@@ -19,7 +19,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
 
     /** The Eclipse ID of the Decorator used on Java Projects to show that
      * JML compilation is enabled.  This must match the ID defined in the plug-in 
-     * definition.
+     * definition (plugin.xml).
      */
     static public final String JML_DECORATOR_ID = Activator.PLUGIN_ID + ".JMLDecoration";
 

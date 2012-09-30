@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.io.StringBufferInputStream;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -133,6 +132,7 @@ public class Utils {
      * @return the OpenJMLInterface for that project
      */
     public @NonNull OpenJMLInterface getInterface(@NonNull IJavaProject jproject) {
+    	readProjectProperties(jproject.getProject());
         OpenJMLInterface i = projectMap.get(jproject);
         if (i == null) {
             projectMap.put(jproject, i = new OpenJMLInterface(jproject));
@@ -213,6 +213,38 @@ public class Utils {
             j.setUser(true); // true since the job has been initiated by an end-user
             j.schedule();
         }
+    }
+    
+    static public void readProperties() {
+    	// FIXME - as different projects are processed, they continually overwrite each other's properties
+    	//Log.log("About to read properties");
+        java.util.Properties properties = new java.util.Properties();
+        {
+        	// Note: It appears that a file in the workspace root is not seen as
+        	// a member of the workspace - just projects - because findMember on
+        	// the workspace root returns null. So we find the file directly in
+        	// the local file system.
+        	IPath path = ResourcesPlugin.getWorkspace().getRoot().getLocation().append(org.jmlspecs.openjml.Utils.propertiesFileName);
+        	boolean found = org.jmlspecs.openjml.Utils.readProps(properties,path.toFile().getAbsolutePath());
+            if (found) Log.log("Properties read from the workspace: " + path.toOSString());
+        }
+        System.getProperties().putAll(properties);
+    }
+
+    public void readProjectProperties(IProject project) {
+    	// FIXME - as different projects are processed, they continually overwrite each other's properties
+    	//Log.log("About to read properties");
+    	readProperties();
+        java.util.Properties properties = new java.util.Properties();
+        {
+        	//Log.log("Project location: " + project.getLocation());
+            IResource res = project.findMember(org.jmlspecs.openjml.Utils.propertiesFileName);
+            if (res != null) {
+            	boolean found = org.jmlspecs.openjml.Utils.readProps(properties,res.getLocation().toOSString());
+                if (found && Activator.options.uiverbosity >= 1) Log.log("Properties read from the project directory: " + res.getLocation().toOSString());
+            }
+        }
+        System.getProperties().putAll(properties);
     }
 
     /** This routine initiates (as a Job) compiling RAC for all the Java files
@@ -357,7 +389,6 @@ public class Utils {
      * @param shell    the current shell
      */
     public void openSpecEditorForSelection(ISelection selection, @Nullable IWorkbenchWindow window, Shell shell) {
-        IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
         ITextSelection textSelection = getSelectedText(selection);
         List<Object> list;
         String text;
@@ -386,6 +417,7 @@ public class Utils {
                                     matches.add(jp.findType(zs));
                                 }
                             }
+                            z.close();
                         } catch (java.io.IOException ex) {
                             Log.errorlog("Failed to open jar file " + cpe.getPath().toString(),ex);
                             // Pretend there is no match
@@ -499,6 +531,7 @@ public class Utils {
                                 }
                             }
                         }
+                        jf.close();
                     }
                 }
                 something = true;
@@ -735,7 +768,7 @@ public class Utils {
         List<Object> list = new LinkedList<Object>();
         if (!selection.isEmpty() && selection instanceof IStructuredSelection) {
             IStructuredSelection structuredSelection = (IStructuredSelection) selection;
-            for (Iterator iter = structuredSelection.iterator(); iter.hasNext(); ) {
+            for (Iterator<?> iter = structuredSelection.iterator(); iter.hasNext(); ) {
                 Object element = iter.next();
                 if (element instanceof IJavaElement) {
                     list.add(element);
@@ -813,7 +846,7 @@ public class Utils {
         if (!selection.isEmpty()) {
             if (selection instanceof IStructuredSelection) {
                 IStructuredSelection structuredSelection = (IStructuredSelection) selection;
-                for (Iterator iter = structuredSelection.iterator(); iter.hasNext(); ) {
+                for (Iterator<?> iter = structuredSelection.iterator(); iter.hasNext(); ) {
                     Object element = iter.next();
                     if (!convert) {
                         if (element instanceof IJavaProject) list.add((IJavaProject)element);
@@ -889,7 +922,7 @@ public class Utils {
         List<IResource> list = new LinkedList<IResource>();
         if (!selection.isEmpty() && selection instanceof IStructuredSelection) {
             IStructuredSelection structuredSelection = (IStructuredSelection) selection;
-            for (Iterator iter = structuredSelection.iterator(); iter.hasNext(); ) {
+            for (Iterator<?> iter = structuredSelection.iterator(); iter.hasNext(); ) {
                 Object element = iter.next();
                 if (element instanceof IResource) {
                     list.add((IResource)element);
@@ -944,19 +977,19 @@ public class Utils {
         Collection<IJavaProject> list = Activator.getDefault().utils.getSelectedProjects(true,selection,window,shell);
         Iterator<IJavaProject> i = list.iterator();
         if (!i.hasNext()) {
-            Activator.getDefault().utils.showMessage(shell,"JML Plugin","No Java projects selected");
+            Utils.showMessage(shell,"JML Plugin","No Java projects selected");
             return;
         }
         int maxdialogs = 5;
         while (i.hasNext()) {
             IJavaProject p = i.next();
             try {
-                if (enable) JMLNature.enableJMLNature(p.getProject()); // FIXME - do we want to warn about non-java projects in this call , or filter them out beforehand?
-                else JMLNature.disableJMLNature(p.getProject()); // FIXME - do we want to warn about non-java projects in this call , or filter them out beforehand?
+                if (enable) JMLNature.enableJMLNature(p.getProject());
+                else JMLNature.disableJMLNature(p.getProject());
                 PlatformUI.getWorkbench().getDecoratorManager().update(PopupActions.JML_DECORATOR_ID);
             } catch (Exception e) {
                 if (window != null && (maxdialogs--) > 0) {
-                    Activator.getDefault().utils.showMessage(shell,"JML Plugin Exception",
+                    Utils.showMessage(shell,"JML Plugin Exception",
                             "Exception while " + (enable?"enabling":"disabling") + " JML "
                             + (p != null ? "on " + p.getElementName() : "") +
                             e.toString());
@@ -1207,7 +1240,7 @@ public class Utils {
             URL url = b.getEntry("");
             URI uri = url.toURI();
             String s = uri.getPath();
-            String ss = url.toExternalForm();
+            //String ss = url.toExternalForm(); // FIXME - should this be used?
             cpes.add(s);
             return cpes;
         } catch (URISyntaxException e) {
@@ -1265,7 +1298,7 @@ public class Utils {
          * ignore this and always return null.
          * @return null
          */
-        @Override
+        @Override @SuppressWarnings("rawtypes") // Can't add type parameters because the parent interface does not have them
         public @Nullable Object getAdapter(@NonNull Class arg0) { return null; }
 
         /** Returns self
@@ -1399,7 +1432,7 @@ public class Utils {
         } catch (CoreException e) {
         	String msg = "Failed to delete markers on " + resource.getProject();
         	Log.errorlog(msg, e);
-        	Activator.getDefault().utils.showMessage(shell,"JML Plugin Exception",msg + " - " + e);
+        	Utils.showMessage(shell,"JML Plugin Exception",msg + " - " + e);
         }
     }
     

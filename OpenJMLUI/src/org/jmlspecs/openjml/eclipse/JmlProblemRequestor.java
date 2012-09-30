@@ -96,7 +96,7 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			return;
 		}
 		
-		// FIXME - need a comment here?
+		// Ignore warnings if level is 2
 		if (p.isWarning() && level == 2) return;
 
 		try {

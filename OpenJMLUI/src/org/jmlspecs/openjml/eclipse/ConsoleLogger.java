@@ -26,7 +26,8 @@ public class ConsoleLogger implements Log.IListener {
 
 	/** Creates a new ConsoleLogger utility object
 	 * 
-	 * @param consoleName The name of the console to be logged to
+	 * @param consoleName The name of the console to be logged to, as it will 
+	 * appear in the Eclipse UI
 	 */
 	//@ requires consoleName != null;
 	//@ modifies this.*;
@@ -106,6 +107,7 @@ public class ConsoleLogger implements Log.IListener {
 	 */
 	//@ requires msg != null;
 	//@ modifies content;
+	@Override 
 	public void log(String msg) {
 		getConsoleStream().println(msg);
 		// Also write it to the log file, if requested.
@@ -118,7 +120,9 @@ public class ConsoleLogger implements Log.IListener {
 	}
 
 	/**
-	 * Records an informational message without a terminating new line
+	 * Records an informational message without a terminating new line.
+	 * If a message is written to the System log, it will be written as
+	 * an individual message, despite the absence of a newline.
 	 * @param msg The message to log
 	 */
 	//@ requires msg != null;
@@ -136,7 +140,8 @@ public class ConsoleLogger implements Log.IListener {
 
 
 	/**
-	 * Records an error message; only call this from the UI thread.
+	 * Records an error message; only call this from the UI thread (because it 
+	 * changes the color associated with the console).
 	 * @param msg The message to log
 	 * @param e An associated exception (may be null)
 	 */
@@ -163,8 +168,8 @@ public class ConsoleLogger implements Log.IListener {
 
 	/**
 	 * Creates a PrintStream that, when written to, writes 
-	 * directly to the Eclipse Console
-	 * of the current log object
+	 * directly to (and only to) the Eclipse Console
+	 * of the current log object.
 	 * 
 	 * @return a PrintStream connected to the Eclipse Console
 	 */

@@ -17,26 +17,31 @@ import javax.tools.DiagnosticListener;
  * Actually - in the current implementation there can be only one listener.
  * @author David R. Cok
  */
+
+// FIXME - There is also an Eclipse plugin log mechanism - should we be using
+// that directly? Currently this Log sends material to the console log and 
+// some material to the plugin log. The alternative is to send everything to 
+// the Eclipse provided log and have the ConsoleLog be a listener.
 public class Log {
 
 	/** The singleton Log object that does the actual logging */
-	public static Log log = new Log();
+	public static final /*@ non_null*/ Log log = new Log();
 
 	/** Call this method for any non-error output - it sends the message on to the 
-	 * current listener, or to System.out if there are no listeners
+	 * current listeners, or to System.out if there are no listeners
 	 * @param message the message to write; a new line will be added
 	 */
-	static public void log(String message) { 
+	static public void log(/*@ non_null*/String message) { 
 		if (log.listener != null) log.listener.log(message);
 		else System.out.println(message); 
 	}
 
 	/** Call this method for any error output that happens because of an
-	 * exception - it sends it message to the 
-	 * current listener, or to System.out if there are no listeners
+	 * exception - it sends a message to the 
+	 * current listeners, or to System.out if there are no listeners
 	 * @param message the message to write; a new line will be added
 	 */
-	static public void errorlog(String message, Throwable e) {
+	static public void errorlog(/*@ non_null*/String message, /*@ nullable */Throwable e) {
 		String emsg = e == null ? null : e.getMessage();
 		if (emsg != null && !emsg.isEmpty()) message = message + " (" + emsg + ")";
 		if (e != null) {
@@ -44,7 +49,7 @@ public class Log {
 			PrintWriter pw = new PrintWriter(sw);
 			pw.println();
 			e.printStackTrace(pw);
-			emsg = emsg + sw.toString(); 
+			message = message + Env.eol + sw.toString(); 
 		}
 		if (log.listener != null) log.listener.log(message);
 		else System.out.println(message); 
@@ -56,10 +61,15 @@ public class Log {
 	}
 
 	/** The one (if any) registered listener */
-	public IListener listener = null;
+	private /*@ nullable */IListener listener = null;
+
+	/** Call this to get the current listener */
+	public IListener listener() {
+		return listener;
+	}
 
 	/** Call this to set the current listener */
-	public void setListener(IListener l) {
+	public void setListener(/*@ nullable */IListener l) {
 		listener = l;
 	}
 
@@ -71,6 +81,7 @@ public class Log {
 		public UIListener() {
 		}
 
+		@Override 
 		public void report(Diagnostic<? extends S> diagnostic) {
 			Log.log(diagnostic.toString());
 		}

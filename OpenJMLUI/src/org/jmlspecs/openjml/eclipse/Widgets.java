@@ -130,7 +130,7 @@ public class Widgets {
 		+ tenspaces + tenspaces + tenspaces + tenspaces + tenspaces + tenspaces;
 
 
-		// TODO: Unify FileTextField and DireTextField
+		// TODO: Unify FileTextField and DirTextField
 		/**
 		 * Constructs the composite widget as a member of the given
 		 * parent and with the given parameters.

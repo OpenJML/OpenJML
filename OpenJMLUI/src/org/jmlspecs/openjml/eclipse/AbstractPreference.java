@@ -66,7 +66,7 @@ public class AbstractPreference {
         listeners.add(l);
     }
 
-    /** Adds a listener to the collection of listeners.
+    /** Removes a listener from the collection of listeners.
      * 
      * @param l Listener to be removed
      */
@@ -276,7 +276,7 @@ public class AbstractPreference {
         public void setValue(String v) { preferenceStore.setValue(key,v); }
 
         /**
-         * Sets the option value to the given value.
+         * Sets the option value to the value with the given index.
          * 
          * @param i The index value to set
          */

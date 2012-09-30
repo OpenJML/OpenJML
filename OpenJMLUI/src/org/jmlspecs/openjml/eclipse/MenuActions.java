@@ -32,8 +32,8 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 /**
- * This class holds the implementations of the utils in response to
- * menu items in the menubar and toolbar
+ * This class holds the implementations of utility classes registered against
+ * menu items in the menubar and toolbar by plugin.xml
  */
 abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
 
@@ -171,7 +171,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      *
      */
     static public class EnableJML extends MenuActions {
-        // This is all done in the UI thread with no progress
+        // This is all done in the UI thread with no progress monitor
         @Override
         public final void run(final IAction action) {
             try {
@@ -189,7 +189,7 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      *
      */
     static public class DisableJML extends MenuActions {
-        // This is all done in the UI thread with no progress
+        // This is all done in the UI thread with no progress monitor
         @Override
         public final void run(final IAction action) {
             try {

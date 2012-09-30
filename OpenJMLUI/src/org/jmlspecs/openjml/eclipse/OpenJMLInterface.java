@@ -69,20 +69,19 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 
 // FIXME - needs review
 
 /**
  * This class is the interface between the Eclipse UI that serves as view and
- * controller and the openjml packages that executes operations on JML annotations.
+ * controller and the openjml packages that execute operations on JML annotations.
  * Typically there is just one fairly persistent instance of this class for 
  * each Java project.  Note that we only allow .java files under the control of
  * one Java project to be compiled together - this is because Eclipse manages 
  * options on a per project basis.  Technically if all the relevant projects had
- * the same set of options, they could be combined, but that is currently not 
- * allowed.
+ * the same set of options, they could be combined, but the implementation
+ * currently does not do that.
  */
 public class OpenJMLInterface {
     /** The API object corresponding to this Interface class. */
@@ -128,7 +127,8 @@ public class OpenJMLInterface {
        this.jproject = jproject;
        preq = new JmlProblemRequestor(jproject); 
        specsPath = utils.getSpecsPath(jproject);
-       PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener).getConsoleStream());
+       // FIXME - presumes the listener is the ConsoleLogger
+       PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener()).getConsoleStream());
        try { 
     	   api = new API(w,new EclipseDiagnosticListener(preq), new String[]{"-noInternalRuntime"}); 
        } catch (Exception e) {
@@ -270,7 +270,8 @@ public class OpenJMLInterface {
                     elements.add((IJavaElement)r);
                 } else if (r instanceof IAdaptable && (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
                     args.add(rr.getLocation().toString());
-                    PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener).getConsoleStream());
+                    // FIXME - presumes the listener is a ConsoleLogger
+                    PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener()).getConsoleStream());
                     api = new API(w,new EclipseDiagnosticListener(preq));
                     api.setProgressReporter(new UIProgressReporter(api.context(),monitor,null));
                 } else if (r instanceof IJavaElement) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
@@ -362,7 +363,7 @@ public class OpenJMLInterface {
             try {
                 //System.out.println("NAME OF " + type.getElementName() + " " + className);
                 ICompilationUnit cu = type.getCompilationUnit();
-                String s = type.getTypeQualifiedName();
+                //String s = type.getTypeQualifiedName();
                 IPackageDeclaration[] pks = cu.getPackageDeclarations();
                 if (pks.length > 0) {
                     // Not sure what we do with more than one
@@ -440,7 +441,7 @@ public class OpenJMLInterface {
             int p = tstring.indexOf('<');
             if (p >= 0) {
                 String prefix = tstring.substring(0,p);
-                String rest = tstring.substring(p+1);
+                //String rest = tstring.substring(p+1);
                 if (!((ClassSymbol)t.tsym).getQualifiedName().toString().endsWith(prefix)) return false;
                 return true; // FIXME
                 //            List<Type> targs = t.getTypeArguments();
@@ -556,7 +557,7 @@ public class OpenJMLInterface {
         ClassSymbol csym = convertType(t);
         if (csym != null) {
             // FIXME go through API
-            JavaFileObject f = JmlSpecs.instance(api.context()).findSpecFile(csym);
+            //JavaFileObject f = JmlSpecs.instance(api.context()).findSpecFile(csym);
             return null;
         }
         // FIXME - no check run?
@@ -918,6 +919,7 @@ public class OpenJMLInterface {
                             JarEntry f = j.getJarEntry("java"+v);
                             if (f != null) defspecs[i++] = loc + "!java" + v;
                         }
+                        j.close();
                     } else if (root.isDirectory()) {
                         // Normal file system directory
                         int i = 0;
@@ -957,6 +959,7 @@ public class OpenJMLInterface {
                                     JarEntry f = j.getJarEntry("specs" + File.separator + "java" + v);
                                     if (f != null) defspecs[i++] = root + "!specs" + File.separator + "java" + v;
                                 }
+                                j.close();
                             }
                             if (i > 0) somethingPresent = true;
                         }

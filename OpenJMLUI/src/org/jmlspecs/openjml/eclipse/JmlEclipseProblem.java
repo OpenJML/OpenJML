@@ -27,8 +27,8 @@ import org.jmlspecs.annotation.Nullable;
 // FIXME - clean up this file; severities, file position, error range info
 /**
  * This is a class that implements the eclipse IProblem interface
- * tailored for the JmlParser.  It is mostly present to provide
- * an interface between the plugin and the internal class that it
+ * tailored for the JmlParser.  It is mostly present to provide an
+ * interface between the OpenJML plugin and the internal class that this class
  * extends, but it also provides some utility functions to produce 
  * and report errors and warnings.  It also adds some additional
  * information to its parent class to hold information relevant to
@@ -81,12 +81,12 @@ public class JmlEclipseProblem extends DefaultProblem {
 	 * @param message  The problem message
 	 * @param id       A numerical id for the problem
 	 * @param severity The severity of the problem, using one of the constants listed above (e.g. Error, Warning)
-	 * @param startPosition The character position within the line that begins the offending region
-	 * @param endPosition   The character position within the line that ends (not one after) the offending region
-	 * @param line     The line within the source text containing the offending source text
+	 * @param startPosition The 1-based character position within the line that begins the offending region
+	 * @param endPosition   The 1-based character position within the line that ends (not one after) the offending region
+	 * @param line     The 1-based line within the source text containing the offending source text
 	 * @param source   A reference to the source text, or null
-	 * @param lineStart The character position of the beginning of the stated line in the IFile or source text, or -1 if not known
-	 * @param lineEnd   The character position of the end of the stated line (that is, where the line termination character is) in the IFile or source text, or -1 if not known
+	 * @param lineStart The 1-based character position of the beginning of the stated line in the IFile or source text, or -1 if not known
+	 * @param lineEnd   The 1-based character position of the end of the stated line (that is, where the line termination character is) in the IFile or source text, or -1 if not known
 	 */
 	public JmlEclipseProblem(IFile ifile, String message, int id, int severity,
 			int startPosition, int endPosition, int line, String source,
@@ -148,157 +148,6 @@ public class JmlEclipseProblem extends DefaultProblem {
 						getSource(icu), -1, -1);
 	}
 
-//	/**
-//	 * Constructs and reports an IProblem 
-//	 * @param req  The problem requestor to which to report the error
-//	 * @param cu The CompilationUnit from which to get line ending information
-//	 * @param message  The error message to produce
-//	 * @param id       A numerical id for the problem
-//	 * @param severity One of the severity constants above, e.g. Error, Warning
-//	 * @param startPosition The character position within the file of source text to mark
-//	 * @param endPosition The character position within the file of source text of the end of the region to mark (not one beyond it)
-//	 */
-//	private static void report(IProblemRequestor req, org.eclipse.jdt.core.dom.CompilationUnit cu, 
-//			String message, int id, int severity,
-//			int startPosition, int endPosition) {
-//		if (severity == IProblems.IGNORE) return;
-//		//    int lineStart = cu.getLineStart(line);
-//		//    if (line == 1 && lineStart < 0) lineStart = 0; // Fixes an apparent bug
-//		if (cu != null) {
-//			int line = cu.getLineNumber(startPosition);
-//			if (line < 1) line = 1;
-//			ICompilationUnit icu = (ICompilationUnit)cu.getJavaElement();
-//			IFile r = (IFile)icu.getResource();
-//			//      req.acceptProblem(new DefaultProblem(
-//			//              r.getFullPath().toString().toCharArray(), 
-//			//              message, id, null, severity, 
-//			//              startPosition, endPosition, line));
-//			req.acceptProblem(new JmlEclipseProblem(
-//					r, 
-//					message, id, severity, 
-//					startPosition, endPosition, line, 
-//					null,
-//					-1, -1));
-//		} else {
-//			int line = -1;
-//			//      req.acceptProblem(new DefaultProblem(
-//			//              null, 
-//			//              message, id, null, severity, 
-//			//              startPosition, endPosition, line));
-//			req.acceptProblem(new JmlEclipseProblem(
-//					null, 
-//					message, id, severity, 
-//					startPosition, endPosition, line, 
-//					null,
-//					-1,-1));
-//		}
-//	}
-
-	//  /**
-	//   * Constructs and reports an IProblem 
-	//   * @param req  The problem requestor to which to report the error
-	//   * @param cu The CompilationUnit from which to get line ending information
-	//   * @param startPosition The character position within the file of source text to mark
-	//   * @param endPosition The character position within the file of source text of the end of the region to mark (not one beyond it)
-	//   * @param problem  The instance of IProblems giving the id/text of this error
-	//   * @param args The arguments to substitute in the problem text
-	//   */
-	//  public static void report(IProblemRequestor req, org.eclipse.jdt.core.dom.CompilationUnit cu, 
-	//          int startPosition, int endPosition,
-	//          IProblems problem, 
-	//          Object ... args) {
-	//    report(req, cu, problem.toString(args), problem.id(), problem.severity(), startPosition, endPosition);
-	//  }
-
-	/**
-	 * Constructs and reports an IProblem 
-	 * @param req  The problem requestor to which to report the error
-	 * @param cu The CompilationUnit from which to get line ending information
-	 * @param message  The error message to produce
-	 * @param id       A numerical id for the problem
-	 * @param severity One of the severity constants above, e.g. Error, Warning
-	 * @param startPosition The character position within the file of source text to mark
-	 * @param endPosition The character position within the file of source text of the end of the region to mark (not one beyond it)
-	 */
-	//  private static void report(IProblemRequestor req, org.jmlspecs.eclipse.jmldom.CompilationUnit cu, 
-	//          String message, int id, int severity,
-	//          int startPosition, int endPosition) {
-	//    if (severity == Problems.IGNORE) return;
-	//    org.eclipse.jdt.core.dom.CompilationUnit ecu = (org.eclipse.jdt.core.dom.CompilationUnit)cu.oldNode;
-	//    int line = cu.getLineNumber(startPosition);
-	//    if (line < 1) line = 1;
-	//    int lineStart = cu.getLineStart(line);
-	//    if (line == 1 && lineStart < 0) lineStart = 0; // Fixes an apparent bug
-	//    if (ecu != null) {
-	//      req.acceptProblem(new JmlEclipseProblem(
-	//            (IFile)((ICompilationUnit)ecu.getJavaElement()).getResource(), 
-	//            message, id, severity, 
-	//            startPosition, endPosition, line, 
-	//            cu.getOriginalSource(),
-	//            lineStart, cu.getLineEnd(line)));
-	//    } else {
-	//      req.acceptProblem(new JmlEclipseProblem(
-	//              null, 
-	//              message, id, severity, 
-	//              startPosition, endPosition, line, 
-	//              cu.getOriginalSource(),
-	//              lineStart, cu.getLineEnd(line)));
-	//    }
-	//  }
-
-	/**
-	 * Constructs and reports an IProblem 
-	 * @param req  The problem requestor to which to report the error
-	 * @param cu The CompilationUnit from which to get line ending information
-	 * @param startPosition The character position within the file of source text to mark
-	 * @param endPosition The character position within the file of source text of the end of the region to mark (not one beyond it)
-	 * @param problem  The instance of IProblems giving the id/text of this error
-	 * @param args The arguments to substitute in the problem text
-	 */
-	//  public static void report(IProblemRequestor req, org.jmlspecs.eclipse.jmldom.CompilationUnit cu, 
-	//          int startPosition, int endPosition,
-	//          IProblems problem, 
-	//          Object ... args) {
-	//    report(req, cu, problem.toString(args), problem.id(), problem.severity(), startPosition, endPosition);
-	//  }
-
-//	/**
-//	 * Constructs and reports a problem that is not associated with a source location
-//	 * @param req  The problem requestor to which to report the error
-//	 * @param problem  The instance of IProblems giving the id/text of this error
-//	 * @param args The arguments to substitute in the problem text
-//	 * @return a String version of the problem message
-//	 */
-//	public static String report(IProblemRequestor req, 
-//			IProblems problem, 
-//			Object ... args) {
-//		String s;
-//		req.acceptProblem(new JmlEclipseProblem(
-//				null, 
-//				s=problem.toString(args), problem.id(),
-//				problem.severity(), 
-//				-1, -1, -1, 
-//				null,
-//				-1, -1));
-//		return s;
-//	}
-
-
-	/**
-	 * Constructs and reports a problem to be reported to the user 
-	 * @param req  The problem requestor to which to report the error
-	 * @param scanner The instance of the Java scanner that is scanning the source text
-	 * @param startPosition The character position within the file of source text to mark
-	 * @param endPosition The character position within the file of source text of the end of the region to mark (not one beyond it)
-	 * @param problem  A Problems instance providing the template for the message
-	 * @param args     A sequence of arguments for the problem template message
-	 */
-	//  public static void report(IProblemRequestor req, JavaScanner scanner, 
-	//          int startPosition, int endPosition,
-	//          IProblems problem, Object... args) {
-	//    report(req, scanner, problem.toString(args), problem.id(), problem.severity(), startPosition, endPosition);
-	//  }
-
 	/**
 	 * A utility method that prints the given problem on the given PrintStream
 	 * @param out the stream on which to write the problem
@@ -338,7 +187,7 @@ public class JmlEclipseProblem extends DefaultProblem {
 		} else {
 			// This format generates links to the source code in the Eclipse console
 			String ff = filename == null ? null : filename.replaceAll("\\\\","/");
-			out.println((filename == null ? (""+lineString) : ("("+ff+":"+lineString+")")) +
+			out.println((filename == null ? lineString : ("("+ff+":"+lineString+")")) +
 					" [" + (p.getID() & IProblem.IgnoreCategoriesMask)+ "] " + 
 					p.getMessage());
 		}
@@ -391,10 +240,13 @@ public class JmlEclipseProblem extends DefaultProblem {
 
 				--line;
 				if (line > 0) {
+					// TODO: This could perhaps be more efficient, but it is
+					// only used once per error message.
+					// FIXME: needs review and comment
 					while (true) {
 						c = r.read();
 						count++;
-						if (c == -1) return;
+						if (c == -1) return; // SHould not end before getting to the beginning of the desired line
 						if (c == '\r') {
 							lastr = count;
 							--line;
@@ -407,7 +259,6 @@ public class JmlEclipseProblem extends DefaultProblem {
 						} else if (c == '\n') {
 							if (lastr +1 != count) {
 								--line;
-								c = 0;
 								if (line == 0) break;
 							}
 						}
@@ -429,6 +280,7 @@ public class JmlEclipseProblem extends DefaultProblem {
 				// OK to quit since we just leave out some detail of the error
 			}
 			if (sline != null) {
+				// Print the line of source text on which the error lies
 				out.print(sline);  // line termination usually included, except perhaps if
 				// this is the last line of a file or if the source was
 				// provided directly as a string by a test or if the line was too
@@ -437,15 +289,27 @@ public class JmlEclipseProblem extends DefaultProblem {
 				int c = sline.charAt(last);
 				if (!(c == '\n' || c == '\r')) out.println();
 				}
-				//out.println("ST " + sline.length() + " " + p.getSourceStart() + " " + p.getSourceEnd());
+				
+				// Now mark the error itself with ^^ characters from
+				// getSourceStart() through getSourceEnd()
+				// st is the beginning of the error section to mark
 				int st = p.getSourceStart();
 				int length = p.getSourceEnd() - st + 1;
-				st -= lineStart;
+				st -= lineStart; // Now st is the amount of white space to put before the first ^
+				
+				// Do some adjustment in case st points into the line termination characters
+				// This is needed because when problems are marked by highlighting
+				// in the Eclipse editors, no highlighting occurs if the error
+				// is completely in the line termination characters.
 				int extra = 0;
 				if (st >= sline.length()) {
 					extra = st - sline.length();
 					st = sline.length();
 				}
+				
+				// The end of the error region can be on the next line, in which
+				// case we still just print one line and put ellipsis at the end
+				// of the string of ^^s
 				boolean ellipsis = false;
 				if (st + extra + length > sline.length() + 2) {
 					length = sline.length() + 2 - st - extra;
@@ -469,24 +333,4 @@ public class JmlEclipseProblem extends DefaultProblem {
 		}
 	}
 
-//	// FIXME - probably should refactor to use this interface a lot more
-//	// FIXME - or can we get rid of it entirely
-//	/**
-//	 * Implementations of this interface can be used to store state
-//	 * that is then used when a problem report is issued.
-//	 */
-//	public static interface Context {
-//		/**
-//		 * A simplified problem report call.  An implementation of this
-//		 * method will combine the information from the call parameters
-//		 * with information stored in the instance of the class implementing
-//		 * the Context interface in order to create a full problem 
-//		 * report.
-//		 * @param start the starting character position of the problem
-//		 * @param end the ending character position of the problem
-//		 * @param p the Problems instance
-//		 * @param args the arguments of the Problems instance
-//		 */
-//		public void report(int start, int end, IProblems p, Object... args);
-//	}
 }

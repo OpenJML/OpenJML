@@ -6,7 +6,7 @@
 package org.jmlspecs.openjml.eclipse;
 
 // The ClassFileConstants import is an internal class - is the same
-// information available in a public API?  (FIXME)
+// information available in a public API?  (TODO)
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
 /**

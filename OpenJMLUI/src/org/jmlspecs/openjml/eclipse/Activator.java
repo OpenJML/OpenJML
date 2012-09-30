@@ -8,11 +8,12 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 /**
- * The activator class controls the plug-in life cycle
+ * The activator class controls the plug-in life cycle. The plug-in is a
+ * singleton- there is just one OpenJML Eclipse plug-in in a process.
  */
 public class Activator extends AbstractUIPlugin {
 
-	/** The plug-in ID, which must match the content of plugin.xml */
+	/** The plug-in ID, which must match the content of plugin.xml in several places */
 	public static final String PLUGIN_ID = "org.jmlspecs.OpenJMLUI";
 
 	/** The plug-in ID of the Specs project plugin (containing specifications
@@ -22,8 +23,7 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public static final String SPECS_PLUGIN_ID = "org.jmlspecs.Specs";
 
-
-	/** The shared instance */
+	/** The single shared instance */
 	private static Activator plugin;
 
 	/** A general utility instance used by the plugin */
@@ -57,8 +57,15 @@ public class Activator extends AbstractUIPlugin {
 		super.start(context);
 		Log.log.setListener(new ConsoleLogger("JML Console"));
 		//Log.log("JML UI plugin started");
-		options = Preferences.extractOptions(null);
+		
+		// Various initialization: instances or options and utils; 
+		// read all preferences
 		utils = new Utils();
+		Utils.readProperties();
+		options = Preferences.extractOptions(null);
+		
+		// Set a listener so that the options instance is updated whenever
+		// a preference is changed.
 		AbstractPreference.addListener(new AbstractPreference.Listener(){
 			public void run() { Preferences.extractOptions(options); }
 		});
@@ -69,13 +76,15 @@ public class Activator extends AbstractUIPlugin {
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
-		plugin = null;
+		utils = null;
 		options = null;
+		plugin = null;
 		super.stop(context);
 	}
 
 	/**
-	 * Returns the shared instance
+	 * Returns the shared instance. 'Default' is an odd name, but it is the
+	 * typical name used in Eclipse for this purpose.
 	 * @return the shared instance
 	 */
 	public static Activator getDefault() {

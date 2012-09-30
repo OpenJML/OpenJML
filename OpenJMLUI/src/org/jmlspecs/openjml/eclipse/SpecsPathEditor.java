@@ -71,7 +71,7 @@ public class SpecsPathEditor extends Dialog {
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
         newShell.setText("Specifications path entries");
-        // TODO - should we be resetting the shell field here?
+        // FIXME - should we be resetting the shell field here?
      }
     
     /** Creates the whole dialog area, as elements of the given Composite 
@@ -159,7 +159,7 @@ public class SpecsPathEditor extends Dialog {
                                 list.add(display(f),0);
                                 list.pack();
                             } else {
-                                Activator.getDefault().utils.showMessage(shell,"JML - Edit Specifications Path","The selected location does not appear to be present in an open project in the current workspace: " + p);
+                                Utils.showMessage(shell,"JML - Edit Specifications Path","The selected location does not appear to be present in an open project in the current workspace: " + p);
                                 // FIXME - should we offer to link to the resource; this can happen even if linked, I think, because the getPath gives the file system path, not the project path
                             }
                         }
@@ -181,7 +181,7 @@ public class SpecsPathEditor extends Dialog {
                             list.add(display(f),0);
                             list.pack();
                         } else {
-                            Activator.getDefault().utils.showMessage(shell,"JML - Edit Specifications Path","The selected location does not appear to be present in an open project in the current workspace: " + filename);
+                            Utils.showMessage(shell,"JML - Edit Specifications Path","The selected location does not appear to be present in an open project in the current workspace: " + filename);
                                // FIXME - should we offer to link to the resource
                         }
                     }
