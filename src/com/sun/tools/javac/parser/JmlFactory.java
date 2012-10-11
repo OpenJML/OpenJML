@@ -80,5 +80,9 @@ public class JmlFactory extends ParserFactory {
         p.utils = Utils.instance(context);
         return p;
     }
+    
+    public JmlParser newParser(CharSequence input) {
+        return newParser(input,true,true,true,true);
+    }
 
 }

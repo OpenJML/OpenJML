@@ -1,4 +1,10 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml;
+
+import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 
 import java.io.StringWriter;
 
@@ -9,6 +15,7 @@ import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.TreeVisitor;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Scope.ImportScope;
@@ -50,7 +57,7 @@ import com.sun.tools.javac.util.Position;
 // FIXME - review and fix the else branches of all the accept statements
 // FIXME - the start and end positions are gotten from TreeInfo, which does not work for JML nodes
 /** This class simply holds the classes which are JML-specific nodes of parse trees. */
-public class JmlTree {
+public class JmlTree implements IJmlTree {
 
     /** Convert a tree to a pretty-printed string using the JmlPrettyPrinter; note that
      * this is not inherited by anyone, it is here as a utility method and needs
@@ -152,14 +159,14 @@ public class JmlTree {
         public static JmlTree.Maker instance(Context context) {
             JmlTree.Maker instance = (JmlTree.Maker)context.get(treeMakerKey);
             if (instance == null)
-                instance = new Maker(context);
+                instance = new JmlTree.Maker(context); // registers itself
             return instance;
         }
         
         /** Sets the preferred token position to be used for subsequent
          * factory produced nodes, typically used like this, for example:
-         * maker.at(pos).JmlPrimitiveTypeTree(token); overriden simply to 
-         * return the dervied type
+         * maker.at(pos).JmlPrimitiveTypeTree(token); overridden simply to 
+         * return the derived type
          * @param pos the 0-based character position from the beginning of the input file
          */
         @Override
@@ -296,7 +303,7 @@ public class JmlTree {
         /** Creates a method declaration from a method symbol and a method type */
         @Override
         public JmlMethodDecl MethodDef(MethodSymbol m, Type mtype, JCBlock body) {
-            return (JmlMethodDecl)
+            JmlMethodDecl tree = (JmlMethodDecl)
                 new JmlMethodDecl(
                     Modifiers(m.flags(), Annotations(m.getAnnotationMirrors())),
                     m.name,
@@ -307,20 +314,24 @@ public class JmlTree {
                     body,
                     null,
                     m).setPos(pos).setType(mtype);
-            // FIXME - does not set the sourcefile
+            tree.sourcefile = Log.instance(context).currentSourceFile();
+            return tree;
         }
 
         /** Creates a variable declaration with symbol and type filled in from its components;
          * does not fill in the sourcefile */
         @Override
         public JmlVariableDecl VarDef(VarSymbol v, /*@Nullable*/ JCExpression init) {
-            return 
-                (JmlVariableDecl) new JmlVariableDecl(
+            JmlVariableDecl tree = new JmlVariableDecl(
                 Modifiers(v.flags(), Annotations(v.getAnnotationMirrors())),
                 v.name,
                 Type(v.type),
                 init,
-                v).setPos(pos).setType(v.type);
+                v);
+            tree.pos = pos;
+            tree.setType(v.type);
+            tree.sourcefile = Log.instance(context).currentSourceFile();
+            return tree;
         }
 
         
@@ -353,13 +364,13 @@ public class JmlTree {
         /** Creates a JML import statement (possibly a model import) */
         @Override
         public JmlImport JmlImport(JCTree qualid, boolean staticImport, boolean isModel) {
-            return new JmlImport(qualid, staticImport,isModel);
+            return (JmlImport)new JmlImport(qualid, staticImport,isModel).setPos(pos);
         }
         
         /** Creates a regular import, but using a JmlImport AST node */
         @Override
         public JmlImport Import(JCTree qualid, boolean staticImport) {
-            return new JmlImport(qualid,staticImport,false);
+            return (JmlImport)new JmlImport(qualid,staticImport,false).setPos(pos);
         }
         
         /** Creates a JML binary operation */
@@ -401,7 +412,7 @@ public class JmlTree {
             return new JmlSetComprehension(pos,type,varDecl,value);
         }
         
-        /** Creates a JML labelled expression */
+        /** Creates a JML labeled expression */
         @Override
         public JmlLblExpression JmlLblExpression(JmlToken token, Name label, JCTree.JCExpression expr) {
             return new JmlLblExpression(pos,token,label,expr);
@@ -428,7 +439,7 @@ public class JmlTree {
         /** Creates a JML do-while loop node that wraps a Java loop statement and a set of loop specifications */
         @Override
         public JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs) {
-            return new JmlDoWhileLoop(loop,loopSpecs);
+            return new JmlDoWhileLoop(loop,loopSpecs); // pos set from loop argument
         }
         
         /** Creates a regular for-loop with no specifications */
@@ -482,7 +493,7 @@ public class JmlTree {
         /** Creates a while-loop with specifications */
         @Override
         public JmlWhileLoop JmlWhileLoop(JCWhileLoop loop, List<JmlStatementLoop> loopSpecs) {
-            return new JmlWhileLoop(loop,loopSpecs);
+            return new JmlWhileLoop(loop,loopSpecs); // pos and type set from loop
         }
 
         /** Creates a JML statement such as ghost declarations */
@@ -762,6 +773,8 @@ public class JmlTree {
         /** An unspecified value. */
         public static final int UNKNOWN = 0; 
         
+        // FIXME - the whole use of this mode needs reviewing
+        
         // Properties are encoded as bits:
         // Note that a specification file can be .java or not .java
         //  1-bit  this is a file that can contain source code (i.e. has a .java suffix)
@@ -1004,6 +1017,12 @@ public class JmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+        
+        public boolean isTypeChecked() {
+            ClassSymbol c = sym;
+            if (c == null) return false;
+            return ((c.flags_field & UNATTRIBUTED) == 0);
+        }
     }
 
     /** This class adds some JML specific information to the JCMethodDecl node. */
@@ -1135,10 +1154,20 @@ public class JmlTree {
     }
 
     /** This class represents binary expressions with JML operators */
-    public static class JmlBinary extends JmlExpression implements BinaryTree {
+    public static class JmlBinary extends JmlExpression implements IJmlBinary {
         public JmlToken op;
         public JCExpression lhs;
         public JCExpression rhs;
+        
+        @Override
+        public ExpressionTree getLeftOperand() { return lhs; }
+        
+        @Override
+        public JmlToken getOp() { return op; }
+        
+        @Override
+        public ExpressionTree getRightOperand() {return rhs; }
+
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlBinary(int pos, JmlToken op,
@@ -1158,9 +1187,6 @@ public class JmlTree {
             this.pos = that.pos;
             this.type = that.type;
         }
-
-        public JCExpression getLeftOperand() { return lhs; }
-        public JCExpression getRightOperand() { return rhs; }
 
 //        public Symbol getOperator() {
 //            return null; // FIXME

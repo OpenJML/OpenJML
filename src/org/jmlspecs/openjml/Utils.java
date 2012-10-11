@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml;
 
 import java.io.File;
@@ -12,7 +16,6 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -20,7 +23,6 @@ import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
@@ -34,85 +36,9 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
  * overridden by some enterprising future person.
  */
 public class Utils {
-    // All explicit strings should be here
-    
-    // The following are stored here globally (e.g., for all compilation
-    // contexts). I expect they will always be constant, but one could, for
-    // example, reset them by a command-line option. No guarantees on the
-    // behavior of the tool if these are changed during processing.  They are
-    // final for now - which could be changed if necessary.
-    
-    /** A string giving the name of the package that JML annotations are in.
-     */
-    /*@ non_null*/
-    static public final String jmlAnnotationPackage = "org.jmlspecs.annotation";
-
-    /** The fully-qualified name of the NonNull annotation */
-    static public final String nonnullAnnotation = jmlAnnotationPackage + ".NonNull";
-    
-    /** The fully-qualified name of the Nullable annotation */
-    static public final String nullableAnnotation = jmlAnnotationPackage + ".Nullable";
-    
-    static public final String runtimeJarName = "jmlruntime.jar";
-
-    static public final String YICES = "yices";
-    
-    static public final String SIMPLIFY = "simplify";
-    
-    static public final String propertiesFileName = "openjml.properties";
-    
-    
-    /** This string is the fully-qualified name of the JML compiler messages file */
-    /*@ non_null*/
-    public static final String messagesJML = "org.jmlspecs.openjml.messages";
-    
-    /** This array gives the suffixes recognized as JML specification files, in order of priority */
-    /*@ non_null*/
-    public static final String[] suffixes = { ".jml", ".java" };
-    
-    /** This gives the character that marks a mock directory (cf. JmlSpecs), mostly for use in testing */
-    // FIXME - not yet used everywhere it should be
-    public static final char mockDirChar = '$';
-    
-    /** A property name prefix for adding new options or specifying values */
-    static public final String optionPropertyPrefix = "openjml.option.";
-    
-    /** A property name prefix for specifying information about provers */
-    static public final String proverPropertyPrefix = "openjml.prover.";
-    
-    /** The property name to specify a default prover */
-    static public final String defaultProverProperty = "openjml.defaultProver";
-    
-    /** A Java property name used to indicate the directory path on which to find specification files */
-    /*@ non_null*/
-    public static final String specsPathEnvironmentPropertyName = "org.jmlspecs.specspath";
-
-    /** A Java property name giving the directory in which specifications for the Java system libraries are found */
-    /*@ non_null*/
-    public static final String systemSpecsLocationEnvironmentPropertyName = "org.jmlspecs.system.specs";
-    
-    /** Set this to the name of a Java property that contains the default
-     * runtime classpath. 
-     */
-    /*@ non_null*/
-    public static final String defaultRuntimeClassPath = "openjml.defaultRuntimeClassPath";
-
-    /** Set this to the name of a Java property that contains the location of 
-     * the project files in Eclipse, so that testing proceeds OK. 
-     * If this directory is null or does not exist, it is ignored and tests will fail.
-     */
-    /*@ non_null*/
-    public static final String eclipseProjectLocation = "openjml.eclipseProjectLocation";
-
-    /** Set this to the name of a Java property that contains the location of 
-     * the project files in Eclipse, so that testing proceeds OK. 
-     * If this directory is null or does not exist, it is ignored and tests will fail.
-     */
-    /*@ non_null*/
-    public static final String eclipseSpecsProjectLocation = "openjml.eclipseSpecsProjectLocation";
-    
     ///////////////////////////////////////////////////////////////////////////////////////
     
+    /** The context applicable for this instance of the Utils class. */
     protected Context context;
     
     /** The key to use to retrieve the instance of this class from the Context object. */
@@ -134,11 +60,6 @@ public class Utils {
         return instance;
     }
     
-    public static /*@Nullable*/ String getProperty(String key) {
-        return System.getProperty(key);
-    }
-
-
     /** Creates an instance in association with the given Context; 
      * @param context The compilation context
      */
@@ -214,56 +135,6 @@ public class Utils {
         mods.flags &= ~JMLBIT;
     }
 
-    /** A cache for the symbol */
-    private ClassSymbol helperAnnotationSymbol = null;
-    /** Returns true if the given symbol has a helper annotation
-     * 
-     * @param symbol the symbol to check
-     * @return true if there is a helper annotation
-     */
-    public boolean isHelper(@NonNull Symbol symbol) {
-        if (helperAnnotationSymbol == null) {
-            helperAnnotationSymbol = ClassReader.instance(context).
-            enterClass(Names.instance(context).fromString(jmlAnnotationPackage + ".Helper"));
-        }
-        return symbol.attribute(helperAnnotationSymbol)!=null;
-    }
-
-    /** Returns true if the given symbol is annotated as Pure */
-    public boolean isPure(Symbol symbol) {
-        if (pureAnnotationSymbol == null) {
-            pureAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(jmlAnnotationPackage+".Pure"));
-        }
-        return symbol.attribute(pureAnnotationSymbol)!=null;
-    }
-    /** Caches the symbol for a Pure annotation, which is computed on demand. */
-    private ClassSymbol pureAnnotationSymbol = null;
-
-    public boolean isJMLStatic(Symbol sym) {
-        // non-static Simple identifier is OK
-        // If the owner of the field is an interface, it
-        // is by default static. However, it might be a
-        // JML field marked as instance.
-        if (!sym.isStatic()) return false;
-        if (isJML(sym.flags())) {
-            Symbol csym = sym.owner;
-            if ((csym.flags() & Flags.INTERFACE) != 0) {
-                // TODO - should cleanup this reference to JmlAttr from Utils
-                if (JmlAttr.instance(context).hasAnnotation(sym,JmlToken.INSTANCE)) return false;
-            } 
-        }
-        return true;
-    }
-    
-     // FIXME - document
-    public Object envString(/*@ non_null */Env<AttrContext> env) {
-        return (env.tree instanceof JCCompilationUnit ? 
-                ((JCCompilationUnit)env.tree).sourcefile : 
-               env.tree instanceof JCClassDecl ? 
-                       ((JCClassDecl)env.tree).name : 
-                           env.tree.getClass());
-    }
-
     // FIXME - document
     public boolean isInstrumented(long flags) {
         return (flags & JMLINSTRUMENTED) != 0;
@@ -290,6 +161,69 @@ public class Utils {
         mods.flags |= JMLEXPRLOCAL;
     }
     
+    /** Creates an annotation symbol from the fully qualified name for the
+     * annotation; generally the result is cached.
+     * @param fullyQualifiedName the fully qualified name
+     * @return the annotation symbol
+     */
+    public ClassSymbol createAnnotationSymbol(String fullyQualifiedName) {
+        return ClassReader.instance(context).
+                enterClass(Names.instance(context).fromString(fullyQualifiedName));
+    }
+
+    /** A cache for the symbol */
+    private ClassSymbol helperAnnotationSymbol = null;
+    
+    /** Returns true if the given symbol has a helper annotation
+     * 
+     * @param symbol the symbol to check
+     * @return true if there is a helper annotation
+     */
+    public boolean isHelper(@NonNull Symbol symbol) {
+        if (helperAnnotationSymbol == null) {
+            helperAnnotationSymbol = createAnnotationSymbol(Strings.helperAnnotation);
+        }
+        return symbol.attribute(helperAnnotationSymbol)!=null;
+    }
+
+    /** Returns true if the given symbol is annotated as Pure */
+    public boolean isPure(Symbol symbol) {
+        if (pureAnnotationSymbol == null) {
+            pureAnnotationSymbol = createAnnotationSymbol(Strings.pureAnnotation);
+        }
+        return symbol.attribute(pureAnnotationSymbol)!=null;
+    }
+    /** Caches the symbol for a Pure annotation, which is computed on demand. */
+    private ClassSymbol pureAnnotationSymbol = null;
+
+    /** Returns true if the given symbol is marked static or is a member of a JML interface
+     * that is not marked as 'instance'
+     */
+    public boolean isJMLStatic(Symbol sym) {
+        // non-static Simple identifier is OK
+        // If the owner of the field is an interface, it
+        // is by default static. However, it might be a
+        // JML field marked as instance.
+        if (!sym.isStatic()) return false;
+        if (isJML(sym.flags())) {
+            Symbol csym = sym.owner;
+            if ((csym.flags() & Flags.INTERFACE) != 0) {
+                // TODO - should cleanup this reference to JmlAttr from Utils
+                if (JmlAttr.instance(context).hasAnnotation(sym,JmlToken.INSTANCE)) return false;
+            } 
+        }
+        return true;
+    }
+    
+     // FIXME - document
+    public Object envString(/*@ non_null */Env<AttrContext> env) {
+        return (env.tree instanceof JCCompilationUnit ? 
+                ((JCCompilationUnit)env.tree).sourcefile : 
+               env.tree instanceof JCClassDecl ? 
+                       ((JCClassDecl)env.tree).name : 
+                           env.tree.getClass());
+    }
+
     /** Returns true if no standard modifiers or annotations have been set
      * @param mods the modifiers structure to check
      * @return true if any standard flags or annotations are set
@@ -336,7 +270,7 @@ public class Utils {
                 // FIXME this is not going to work for unattributed and not-fully qualified annotations
                 String s = a.annotationType.toString();
                 if (m.toString().equals(s)) return a;
-                if (m.toString().equals(jmlAnnotationPackage + "."+s)) return a; // FIXME - fix attribution of annotations in MemberEnter
+                if (m.toString().equals(Strings.jmlAnnotationPackage + "."+s)) return a; // FIXME - fix attribution of annotations in MemberEnter
             }
         }
         return null;
@@ -370,7 +304,7 @@ public class Utils {
      * @return true if the input ends in a valid JML suffix
      */
     public boolean hasValidSuffix(String filename) {
-        for (String s : suffixes) {
+        for (String s : Strings.suffixes) {
             if (filename.endsWith(s)) return true;
         }
         return false;
@@ -414,62 +348,17 @@ public class Utils {
         return c.hashCode();
     }
     
+    // FIXME - document
     public void notImplemented(DiagnosticPosition pos, String feature) {
         // FIXME - control with an option
         if (rac) log.warning(pos,"jml.not.implemented.rac",feature);
         else if (esc) log.warning(pos,"jml.not.implemented.esc",feature);
     }
     
-    public static void findProperties(Context context) {
-//      String sp = System.getProperty("java.class.path");
-//      String[] ss = sp.split(java.io.File.pathSeparator);
-//      Properties properties = new Properties();
-//      
-//      String rootdir = null;
-//      
-//      // find the jar that contains OpenJML classes
-//      for (String s: ss) {
-//          if (s.endsWith(".jar")) {
-//              if (isDirInJar("org/jmlspecs/openjml",s, context)) {
-//                  if (s.contains(File.separator)) {
-//                      s = s.substring(0, s.lastIndexOf(File.separator));
-//                  }
-//                  if (!s.contains(File.separator)) {
-//                      s = ".";
-//                  }
-//                  rootdir = s;
-//                  break;
-//              }
-//          }
-//          else { // s is not a jar file
-//              File f = new File(s + File.separator + "org" + 
-//                                File.separator + "jmlspecs" + 
-//                                File.separator + "openjml");
-//              if (f.isDirectory()) {
-//                  // s is the path to org.jmlspecs.openjml
-//                  rootdir = s;
-//                  break;
-//              }
-//          }
-//      }
-//      
-//      if (rootdir == null) { // Perhaps this is Eclipse JUnit tests
-//          for (String s: ss) {
-//              if (s.endsWith("bin-runtime")) {
-//                  s = s.substring(0,s.length()-"bin-runtime".length());
-//                  if (s.length() == 0) s = ".";
-//                  rootdir = s;
-//                  break;
-//              }
-//          }
-//      }
-//      
-//      if (rootdir == null) {
-//          Log.instance(context()).error("jml.internal.notsobad", "Installation directory not found - openjml system and local properties not read");
-//      } else {
-//          String s = rootdir + "/openjml-system.properties";
-//          readProps(properties,s);
-//      }
+    /** Finds OpenJML properties files in pre-defined places, reading their
+     * contents and loading them into the System property set.
+     */
+    public void findProperties(Context context) {
 
       boolean verbose = Utils.instance(context).jmldebug ||
           JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
@@ -482,7 +371,7 @@ public class Utils {
       
       // On the system classpath
       {
-          URL url2 = ClassLoader.getSystemResource(propertiesFileName);
+          URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
           if (url2 != null) {
               String s = url2.getFile();
               boolean found = readProps(properties,s);
@@ -490,18 +379,16 @@ public class Utils {
           }
       }
       
-      // FIXME - add in the directory containing openjml.jar
-
       // In the user's home directory
       {
-          String s = System.getProperty("user.home") + "/" + propertiesFileName;
+          String s = System.getProperty("user.home") + "/" + Strings.propertiesFileName;
           boolean found = readProps(properties,s);
           if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
       }
 
       // In the working directory
       {
-          String s = System.getProperty("user.dir") + "/" + propertiesFileName;
+          String s = System.getProperty("user.dir") + "/" + Strings.propertiesFileName;
           boolean found = readProps(properties,s);
           if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
       }
@@ -511,7 +398,7 @@ public class Utils {
       // FIXME - add on the command-line
 
       if (verbose) {
-//      Print out the properties
+          // Print out the properties
           for (String key: new String[]{"user.home","user.dir"}) {
               System.out.println("Environment:    " + key + " = " + System.getProperty(key));
           }
@@ -522,22 +409,24 @@ public class Utils {
       System.getProperties().putAll(properties);
   }
   
+    /** Reads properties from the given file into the given Properties object.
+     * @param properties the object to add properties to
+     * @param filename the file to read properties from
+     * @return true if the file was found and read successfully
+     */
   public static boolean readProps(Properties properties, String filename) {
       File f = new File(filename);
-      // No option settings are set yet
-      //System.out.println("Exists? " + filename + " " + f.exists());
+      // Options may not be set yet
       if (f.exists()) {
           try {
               properties.load(new FileInputStream(f));
               return true;
           } catch (java.io.IOException e) {
               // log is not yet set up
-              System.out.println("Failed to read property file " + filename);
+              System.out.println("Failed to read property file " + filename); // FIXME - review
           }
       }
       return false;
   }
-  
-
 
 }

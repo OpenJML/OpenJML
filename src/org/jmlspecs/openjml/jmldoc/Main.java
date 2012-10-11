@@ -8,6 +8,7 @@ import java.util.Locale;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.Main.IProgressReporter;
 import org.jmlspecs.openjml.Main.PrintProgressReporter;
@@ -62,7 +63,7 @@ public class Main extends org.jmlspecs.openjml.Main {
                 Context context = new Context(); // This is a temporary context just for this error message.
                                     // It is not the one used for the options and compilation
                 Log log = Log.instance(context);
-                JavacMessages.instance(context).add(Utils.messagesJML);
+                JavacMessages.instance(context).add(Strings.messagesJML);
                 log.error("jmldoc.main.null.args","org.jmlspecs.openjml.jmldoc.Main");
                 errorcode = com.sun.tools.javac.main.Main.EXIT_CMDERR; // 2
             } else {
@@ -98,7 +99,7 @@ public class Main extends org.jmlspecs.openjml.Main {
             Context context = new Context(); // This is a temporary context just for this error message.
             // It is not the one used for the options and compilation
             Log log = Log.instance(context);
-            JavacMessages.instance(context).add(Utils.messagesJML);
+            JavacMessages.instance(context).add(Strings.messagesJML);
             log.error("jmldoc.toplevel.exception",e);
             e.printStackTrace(System.err);
             errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
@@ -182,7 +183,7 @@ public class Main extends org.jmlspecs.openjml.Main {
             Utils.instance(context).jmldebug = Options.instance(context).get(JmlOption.JMLDEBUG.optionName()) != null; 
             JmlSpecs.instance(context).initializeSpecsPath();
             if (!JmlOption.isOption(context,JmlOption.NOINTERNALRUNTIME)) {
-                appendRuntime(context);
+            	appendRuntime(context);
             }
         }
         String[] result = newargs.toArray(new String[newargs.size()]);

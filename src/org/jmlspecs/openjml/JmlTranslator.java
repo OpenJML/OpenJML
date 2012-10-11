@@ -1,8 +1,5 @@
 package org.jmlspecs.openjml;
 
-import static org.jmlspecs.openjml.JmlToken.ENSURES;
-import static org.jmlspecs.openjml.JmlToken.SIGNALS;
-
 import java.util.LinkedList;
 
 import javax.tools.JavaFileObject;

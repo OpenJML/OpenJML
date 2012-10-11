@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
@@ -53,7 +54,7 @@ public abstract class AbstractProver implements IProver {
     }
     
     public String getProverPathKey(String proverKey) {
-        return Utils.proverPropertyPrefix + proverKey;
+        return Strings.proverPropertyPrefix + proverKey;
     }
     
     static public IProver getProver(Context context, String prover) {

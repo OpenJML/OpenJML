@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml;
 
 import java.util.EnumSet;
@@ -33,7 +37,7 @@ public enum JmlToken {
 
     // These are modifiers
     PURE("pure",org.jmlspecs.annotation.Pure.class), // Keep this one the first of the modifiers (see the modifiers Map below)
-    CODE_JAVA_MATH("code_java_math"),
+    CODE_JAVA_MATH("code_java_math"), // FIXME - need implementations for these
     CODE_SAFE_MATH("code_safe_math"),
     EXTRACT("extract",org.jmlspecs.annotation.Extract.class),
     GHOST("ghost",org.jmlspecs.annotation.Ghost.class),
@@ -52,7 +56,7 @@ public enum JmlToken {
     READONLY("readonly",org.jmlspecs.annotation.Readonly.class),
     REP("rep",org.jmlspecs.annotation.Rep.class),
     SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
-    SPEC_BIGINT_MATH("spec_bigint_math"),
+    SPEC_BIGINT_MATH("spec_bigint_math"), // FIXME - need implementations for these
     SPEC_JAVA_MATH("spec_java_math"),
     SPEC_SAFE_MATH("spec_safe_math"),
     SPEC_PUBLIC("spec_public",org.jmlspecs.annotation.SpecPublic.class),
@@ -88,7 +92,7 @@ public enum JmlToken {
     FOR_EXAMPLE("for_example"),
     CODE("code"),  // Keep this one last
     
-    // These are the clause types
+    // These are the method clause types
     REQUIRES("requires"),   // Keep this one first
     ENSURES("ensures"),
     SIGNALS("signals"),
@@ -118,8 +122,6 @@ public enum JmlToken {
     FIELD("field"),
     METHOD("method"),
     NOWARN("nowarn"),
-//    REFINES("refines"),
-//    WEAKLY("weakly"),
     
     // These are various tokens related to JML expressions
     BSEXCEPTION("\\exception"), // This is for internal use only, so it is before \result
@@ -220,16 +222,16 @@ public enum JmlToken {
     /** Constructs an Enum token from a string - not available to users
      * @param s The string that will be the canonical form of the token
      */
-    JmlToken(String s) { name = s.intern(); }
+    private JmlToken(String s) { name = s.intern(); }
     
     /** Constructs an Enum instance using an empty string */
-    JmlToken() { name = "".intern(); }
+    private JmlToken() { name = "".intern(); }
     
     /** Constructs an Enum token from a string and annotation type - not available to users.
      * Any modifier token should use this constructor
      * @param s The string that will be the canonical form of the token
      */
-    JmlToken(String s, Class<?> annotationType) { 
+    private JmlToken(String s, Class<?> annotationType) { 
         this.name = s.intern(); 
         this.annotationType = annotationType;
     }
@@ -248,7 +250,6 @@ public enum JmlToken {
     public final static EnumSet<JmlToken> modifiers = EnumSet.range(PURE,CODE_BIGINT_MATH);  // BSREADONLY added below
     
     /** This is a set of the modifiers that may be used to characterize a type. */
-    // @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_MUTABLE_ARRAY")
     public final static JmlToken[] typeModifiers = new JmlToken[]{NULLABLE,NONNULL,BSREADONLY};
     
     /** This is a set of all of the tokens that begin method specification clauses,

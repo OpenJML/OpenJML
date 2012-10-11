@@ -52,7 +52,6 @@ import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -151,6 +150,7 @@ public class JmlTreeUtils {
     final public Name resultName;
     final public Name exceptionName;
     final public Name caughtException;
+    final public Name TYPEName;
     
     /** Indicates when we are within a spec expression */
     boolean inSpecExpression;
@@ -201,7 +201,8 @@ public class JmlTreeUtils {
         this.resultName = attr.resultName;
         this.exceptionName = attr.exceptionName;
         this.caughtException = names.fromString("_JML$$$caughtException");   // FIXME - do we need this?
-        
+        this.TYPEName = names.fromString("TYPE");
+
     }
     
     // FIXME - get rid of this
@@ -359,11 +360,10 @@ public class JmlTreeUtils {
         id.pos = Position.NOPOS;
         id.type = type;
         id.sym = type.tsym;
-        Name nTYPE = names.fromString("TYPE"); // TODO - no explicit strings
-        JCFieldAccess f = factory.Select(id,nTYPE);
+        JCFieldAccess f = factory.Select(id,TYPEName);
         f.pos = Position.NOPOS;
         f.type = syms.objectType;
-        Scope.Entry e = type.tsym.members().lookup(nTYPE);
+        Scope.Entry e = type.tsym.members().lookup(TYPEName);
         f.sym = e.sym;
         return f;
     }

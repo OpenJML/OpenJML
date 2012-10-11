@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml;
 
 import java.util.Iterator;
@@ -21,9 +25,9 @@ import com.sun.tools.javac.tree.TreeScanner;
  */
 public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
-    public final int AST_JAVA_MODE = 0;
-    public final int AST_JML_MODE = 1;
-    public final int SPEC_MODE = 2;
+    public static final int AST_JAVA_MODE = 0;
+    public static final int AST_JML_MODE = 1;
+    public static final int AST_SPEC_MODE = 2;
     
     /** The mode in which subtrees are scanned:  <BR>
      * AST_JAVA_MODE scans the tree as it
@@ -34,7 +38,15 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
      * SPEC_MODE ignores parsed specs and instead scans through the
      * summaries of specs (that come from the specification files).
      */
-    public int scanMode = AST_JML_MODE;
+    public int scanMode;
+    
+    public JmlTreeScanner() {
+        scanMode = AST_JML_MODE;
+    }
+    
+    public JmlTreeScanner(int mode) {
+        scanMode = mode;
+    }
     
     public void scan(Iterable<? extends JCTree> list) {
         Iterator<? extends JCTree> iter = list.iterator();
@@ -52,8 +64,11 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     }
 
     public void visitJmlClassDecl(JmlClassDecl that) {
+        if (scanMode == AST_SPEC_MODE) {
+            if (!that.isTypeChecked()) throw new RuntimeException("AST_SPEC_MODE requires that the Class be type-checked; class " + that.name + " is not.");
+        }
         visitClassDef(that);
-        if (scanMode == SPEC_MODE) {
+        if (scanMode == AST_SPEC_MODE) {
             JmlSpecs.TypeSpecs ms = that.typeSpecsCombined;
             scan(ms.modifiers);
             scan(ms.clauses);
@@ -70,7 +85,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.pid); // package id
         scan(that.defs);
         if (scanMode == AST_JML_MODE) scan(that.parsedTopLevelModelTypes);
-        if (scanMode == SPEC_MODE) scan(that.specsTopLevelModelTypes);
+        if (scanMode == AST_SPEC_MODE) scan(that.specsTopLevelModelTypes);
     }
 
     public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
@@ -144,7 +159,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     }
 
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-        if (scanMode == SPEC_MODE) {
+        if (scanMode == AST_SPEC_MODE) {
             JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
             scan(ms.mods);
             scan(ms.cases);
@@ -293,7 +308,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);
-        if (scanMode == SPEC_MODE) {
+        if (scanMode == AST_SPEC_MODE) {
             if (that.fieldSpecsCombined != null) {
                 scan(that.fieldSpecsCombined.mods);
                 scan(that.fieldSpecsCombined.list);

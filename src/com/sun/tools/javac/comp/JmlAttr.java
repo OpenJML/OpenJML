@@ -84,6 +84,7 @@ import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
 import org.jmlspecs.openjml.JmlTreeCopier;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.source.tree.IdentifierTree;
@@ -4222,7 +4223,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public void initAnnotationNames(Context context) {
         Names names = Names.instance(context);
-        annotationPackageName = names.fromString(Utils.jmlAnnotationPackage);
+        annotationPackageName = names.fromString(Strings.jmlAnnotationPackage);
         for (JmlToken t: JmlToken.modifiers) {
             if (t.annotationType == null) {
                 // No class for this token, but we won't complain

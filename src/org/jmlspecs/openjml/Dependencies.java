@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml;
 
 import java.util.Collection;
@@ -15,11 +19,13 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 
 public class Dependencies {
-    // FIXME - the map in this class is static, because otherwise the information
+    // FIXME - The computing and handling of dependencies needs reworking.
+    // The map in this class is static, because otherwise the information
     // is lost from one compilation context to another.  However, this way it
     // keeps accumulating information forever and will hold on to everything else
     // in the system, and run out of memory.  Need a better solution.
     // OK for command-line tools but not for the api or Eclipse.
+    // 
 
     /** The key to use to retrieve the instance of this class from the Context object. */
     @NonNull
