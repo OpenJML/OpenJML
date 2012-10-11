@@ -226,7 +226,7 @@ public class JmlParser extends EndPosParser {
                 JCAnnotation a = utils
                         .findMod(
                                 mods,
-                                names.fromString(Utils.jmlAnnotationPackage
+                                names.fromString(Strings.jmlAnnotationPackage
                                         + ".Model"));
                 if (a != null) {
                     skipToSemi();

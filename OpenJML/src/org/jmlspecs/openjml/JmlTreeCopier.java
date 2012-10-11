@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml;
 
 import org.jmlspecs.annotation.Nullable;
@@ -51,9 +55,16 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         this.context = context;
     }
     
+    /** A (overridable) factory method that returns a new (or derived) instance
+     * of a JmlCopier object.
+     */
+    public JmlTreeCopier newCopier(JmlTree.Maker maker) {
+        return new JmlTreeCopier(context,maker);
+    }
+    
     /** Static method to create a copy of the given AST with the given factory */
-    public static <T extends JCTree> T copy(Context context, JmlTree.Maker maker, @Nullable T that) {
-        return new JmlTreeCopier(context,maker).copy(that,null);  // FIXME - should use a factory
+    public static <T extends JCTree> T copy(JmlTree.Maker maker, @Nullable T that) {
+        return new JmlTreeCopier(maker.context,maker).copy(that,null);
     }
     
     /** Deep copy of a list of nodes */

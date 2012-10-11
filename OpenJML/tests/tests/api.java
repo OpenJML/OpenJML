@@ -1,11 +1,9 @@
 package tests;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +19,8 @@ import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
 import org.jmlspecs.openjml.API;
+import org.jmlspecs.openjml.Factory;
+import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -167,22 +167,58 @@ public class api extends TestCase {
         "}" + eol;
     
     String prettyprint2 =
-        eol + 
-        "public class A {" + eol +
-        "  // JML specifications" + eol +
-        "  @Ghost " + eol +
-        "  int i = 0;" + eol +
-        "}";
+            eol + 
+            "public class A {" + eol +
+            "  // JML specifications" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}";
+        
+    String prettyprint3 =
+            "package a.b;" + eol +
+            eol +
+            "public class A {" + eol +
+            "  // JML specifications" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}";
+        
+    String parseAndPrettyPrintFromJavaFileObject() throws Exception {
+        java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
+        IAPI m = Factory.makeAPI(new String[]{});
+        return m.prettyPrint(m.parseFiles(m.makeJFOfromFile(f)).get(0));
+    }
+    
+    String parseAndPrettyPrintFromFile() throws Exception {
+        java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseFiles(f).get(0));
+    }
+    
+    String parseAndPrettyPrintFromMultipleFiles() throws Exception {
+        java.io.File fa = new java.io.File("testfiles/testNoErrors/A.java");
+        java.io.File fb = new java.io.File("testfiles/testNoErrors/B.java");
+        IAPI m = Factory.makeAPI();
+        java.util.List<org.jmlspecs.openjml.JmlTree.JmlCompilationUnit> asts = m.parseFiles(fa,fb);
+        return m.prettyPrint(asts,"NEXT AST"); // Pretty prints a list of asts
+    }
+    
+    String parseAndPrettyPrintFromFileArray() throws Exception {
+        java.io.File fa = new java.io.File("testfiles/testNoErrors/A.java");
+        java.io.File fb = new java.io.File("testfiles/testNoErrors/B.java");
+        File[] files = new File[]{fa,fb};
+        IAPI m = Factory.makeAPI();
+        java.util.List<org.jmlspecs.openjml.JmlTree.JmlCompilationUnit> asts = m.parseFiles(files);
+        return m.prettyPrint(asts,"NEXT AST"); // Pretty prints a list of asts
+    }
     
     /** Tests that a file parses and pretty prints */
     // API(String[]), prettyPrint(JmlCompilationUnit, true), parseFiles
     @Test
-    public void testAPI() {
+    public void testParseAndPrettyPrint() {
         start(true);
         try {
-            java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(new String[]{});
-            String s = m.prettyPrint(m.parseFiles(m.makeJFOfromFile(f)).get(0),true);
+            String s = parseAndPrettyPrintFromJavaFileObject();
             check("","");
             s = s.replace('\\','/');
             compareStrings(prettyprint,s);
@@ -197,12 +233,10 @@ public class api extends TestCase {
      * API constructor. */
     // API(), prettyPrint(JmlCompilationUnit, true), parseFiles
     @Test
-    public void testAPI1a() {
+    public void testParseAndPrettyPrint2() {
         start(true);
         try {
-            java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API();
-            String s = m.prettyPrint(m.parseFiles(f).get(0),true);
+            String s = parseAndPrettyPrintFromFile();
             check("","");
             s = s.replace('\\','/');
             compareStrings(prettyprint,s);
@@ -213,15 +247,78 @@ public class api extends TestCase {
         }
     }
     
+//    @Test
+//    public void testParseAndPrettyPrint3() {
+//        start(true);
+//        try {
+//            String s = parseAndPrettyPrintFromMultipleFiles();
+//            check("","");
+//            s = s.replace('\\','/');
+//            compareStrings(prettyprint,s);
+//        } catch (Exception e) {
+//            System.out.println(e);
+//            e.printStackTrace(System.out);
+//            assertTrue(false);
+//        }
+//    }
+//    
+//    @Test
+//    public void testParseAndPrettyPrint4() {
+//        start(true);
+//        try {
+//            String s = parseAndPrettyPrintFromFileArray();
+//            check("","");
+//            s = s.replace('\\','/');
+//            compareStrings(prettyprint,s);
+//        } catch (Exception e) {
+//            System.out.println(e);
+//            e.printStackTrace(System.out);
+//            assertTrue(false);
+//        }
+//    }
+    
+    String parseAndPrettyPrintSingleFile() throws Exception {
+        java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseSingleFile(f));
+    }
+    
     /** Tests that a file parses and pretty prints */
     // API(), prettyPrint(JmlCompilationUnit, true), parseSingleFile
     @Test
-    public void testAPI1z() {
+    public void testParseAndPrettyPrint5() {
         start(true);
         try {
-            java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API();
-            String s = m.prettyPrint(m.parseSingleFile(f),true);
+            String s = parseAndPrettyPrintSingleFile();
+            check("","");
+            s = s.replace('\\','/');
+            compareStrings(prettyprint2,s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    String parseAndPrettyPrintString() throws Exception {
+        String prog = "public class A { //@ ghost int i=0;\n }";
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseString("A.java",prog));
+    }
+    
+    String parseAndPrettyPrintString2() throws Exception {
+        String prog = "package a.b; public class A { //@ ghost int i=0;\n }";
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseString("a/b/A.java",prog));
+    }
+    
+    /** Tests that a String parses and pretty prints */
+    // API(), prettyPrint(JmlCompilationUnit, true), parseString
+    @Test
+    public void testParseAndPrettyPrint6() {
+        start(true);
+        try {
+            String s = parseAndPrettyPrintString();
             check("","");
             s = s.replace('\\','/');
             compareStrings(prettyprint2,s);
@@ -235,15 +332,160 @@ public class api extends TestCase {
     /** Tests that a String parses and pretty prints */
     // API(), prettyPrint(JmlCompilationUnit, true), parseString
     @Test
-    public void testAPI1b() {
+    public void testParseAndPrettyPrint7() {
         start(true);
         try {
-            String prog = "public class A { //@ ghost int i=0;\n }";
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API();
-            String s = m.prettyPrint(m.parseString("A.java",prog),true);
+            String s = parseAndPrettyPrintString2();
             check("","");
             s = s.replace('\\','/');
-            compareStrings(prettyprint2,s);
+            compareStrings(prettyprint3,s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    String parseExpression() throws Exception {
+        String expr = "a + b * c";
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseExpression(expr,false));
+    }
+    
+    String parseJMLExpression() throws Exception {
+        String expr = "a <==> \\result";
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseExpression(expr,true));
+    }
+    
+    String parseStatement() throws Exception {
+        String expr = "a = b;";
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseStatement(expr,false));
+    }
+    
+    String parseStatement2() throws Exception {
+        String expr = "while (true) {}";
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseStatement(expr,false));
+    }
+    
+    String parseStatement3() throws Exception {
+        String expr = "{ a=b; f(); }";
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseStatement(expr,false));
+    }
+    
+    String parseJMLStatement2() throws Exception {
+        String expr = "/*@ loop_invariant i < 10;*/";
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseStatement(expr,false));
+    }
+    
+    String parseJMLStatement() throws Exception {
+        String expr = "loop_invariant i >= 0;";
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseStatement(expr,true));
+    }
+    
+    /** Tests parsing an Expression */
+    @Test
+    public void testParseExpression() {
+        start(true);
+        try {
+            String s = parseExpression();
+            check("","");
+            compareStrings("a + b * c",s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    /** Tests parsing an Expression */
+    @Test
+    public void testParseJMLExpression() {
+        start(true);
+        try {
+            String s = parseJMLExpression();
+            check("","");
+            compareStrings("a <==> \\result",s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    /** Tests parsing a Statement */
+    @Test
+    public void testParseStatement() {
+        start(true);
+        try {
+            String s = parseStatement();
+            check("","");
+            compareStrings("a = b;",s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    /** Tests parsing a Statement */
+    @Test
+    public void testParseStatement2() {
+        start(true);
+        try {
+            String s = parseStatement2();
+            check("","");
+            compareStrings("while (true) {" + eol + "}",s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    /** Tests parsing a Statement */
+    @Test
+    public void testParseStatement3() {
+        start(true);
+        try {
+            String s = parseStatement3();
+            check("","");
+            compareStrings("{" + eol + "  a = b;" + eol + "  f();" + eol + "}",s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    /** Tests parsing a Statement */
+    @Test
+    public void testParseJMLStatement2() {
+        start(true);
+        try {
+            String s = parseJMLStatement2();
+            check("","");
+            compareStrings("//@ loop_invariant i < 10;",s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    /** Tests parsing a Statement */
+    @Test
+    public void testParseJMLStatement() {
+        start(true);
+        try {
+            String s = parseJMLStatement();
+            check("","");
+            compareStrings("//@ loop_invariant i >= 0;",s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -262,12 +504,12 @@ public class api extends TestCase {
         start(true);
         try {
             Set<JavaFileObject> set = new HashSet<JavaFileObject>();
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API("-v");
+            IAPI m = Factory.makeAPI("-v");
             set.add(m.makeJFOfromFilename("testfiles/testNoErrors/A.java"));
-            String s = m.prettyPrint(m.parseFiles(set).get(0),true);
+            //String s = m.prettyPrint(m.parseFiles(set).get(0),true);
             check("",output);
-            s = s.replace('\\','/');
-            compareStrings(prettyprint,s);
+            //s = s.replace('\\','/');
+            //compareStrings(prettyprint,s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -305,7 +547,7 @@ public class api extends TestCase {
 
       try {
           start(true);
-          org.jmlspecs.openjml.API api = new org.jmlspecs.openjml.API("-noPurityCheck");
+          IAPI api = Factory.makeAPI("-noPurityCheck");
           assertTrue(api.context() != null);
           JmlTree.Maker f = api.nodeFactory();
           f.at(0);
@@ -351,12 +593,12 @@ public class api extends TestCase {
           
           Collection<JmlCompilationUnit> coll = new LinkedList<JmlCompilationUnit>();
           coll.add(jcu);
-          int errs = api.enterAndCheck(coll);
+          int errs = api.typecheck(coll);
           assertEquals(1,errs);
           
           java.util.List<JmlCompilationUnit> list = new LinkedList<JmlCompilationUnit>();
           list.add(jcu);
-          errs += api.enterAndCheck(list);  // Complains about duplicate class
+          errs += api.typecheck(list);  // Complains about duplicate class
           check(err,out);   //FIXME - i thought the default was  to send diags to System.out
           assertEquals(2,errs);
           
@@ -390,7 +632,7 @@ public class api extends TestCase {
 
       try {
           start(true);
-          org.jmlspecs.openjml.API api = new org.jmlspecs.openjml.API(
+          IAPI api = Factory.makeAPI(
                   new PrintWriter(System.err),null,"-noPurityCheck");
           assertTrue(api.context() != null);
           JmlTree.Maker f = api.nodeFactory();
@@ -433,16 +675,16 @@ public class api extends TestCase {
           doccomments.put(cldef,"/** The class */");
           doccomments.put(vdecl,"/** The field */");
           jcu.docComments = doccomments;
-          System.out.println(api.prettyPrint(jcu,false));   //FIXME - doc comments do not print
+          System.out.println(api.prettyPrint(jcu));   //FIXME - doc comments do not print
           
           Collection<JmlCompilationUnit> coll = new LinkedList<JmlCompilationUnit>();
           coll.add(jcu);
-          int errs = api.enterAndCheck(coll);
+          int errs = api.typecheck(coll);
           assertEquals(1,errs);
           
           java.util.List<JmlCompilationUnit> list = new LinkedList<JmlCompilationUnit>();
           list.add(jcu);
-          errs += api.enterAndCheck(list);  // Complains about duplicate class
+          errs += api.typecheck(list);  // Complains about duplicate class
           check(err,out);   //FIXME - i thought the default was  to send diags to System.out
           assertEquals(2,errs);
           
@@ -463,7 +705,7 @@ public class api extends TestCase {
         start(true);
         try {
             String program = "public class A { int i; }";
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API();
+            IAPI m = Factory.makeAPI();
             JCTree ast = m.parseString("A.java",program);
             TestScanner v = new TestScanner();
             v.scanMode = v.AST_JAVA_MODE;
@@ -535,10 +777,10 @@ public class api extends TestCase {
     public void testEnterAndCheck() {
         start(true);
         try {
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API();
+            IAPI m = Factory.makeAPI();
             m.setOption("-noPurityCheck");
             JmlCompilationUnit jcu = m.parseString("A.java",program);
-            int n = m.enterAndCheck(jcu);
+            int n = m.typecheck(jcu);
             check("","");
             assertTrue(n == 0);
         } catch(junit.framework.AssertionFailedError e) {
@@ -554,7 +796,7 @@ public class api extends TestCase {
     @Test
     public void testOptions() {
         try {
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API();
+            IAPI m = Factory.makeAPI();
             String s = m.getOption("-x");
             assertEquals(null,s);
 
@@ -577,7 +819,7 @@ public class api extends TestCase {
     @Test
     public void testClose() {
         try {
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API();
+            IAPI m = Factory.makeAPI();
             assertTrue(m.context() != null);
             m.close();
             assertTrue(m.context() == null);
@@ -594,9 +836,9 @@ public class api extends TestCase {
     public void testSymbolUtilities() {
         start(true);
         try {
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(new String[]{"-noPurityCheck"});
+            IAPI m = Factory.makeAPI(new String[]{"-noPurityCheck"});
             JmlCompilationUnit jcu = m.parseString("A.java",program);
-            int n = m.enterAndCheck(new JmlCompilationUnit[]{jcu});
+            int n = m.typecheck(new JmlCompilationUnit[]{jcu});
             assertTrue(n == 0);
             check("","");
             ClassSymbol csym = m.getClassSymbol("A");
@@ -661,7 +903,7 @@ public class api extends TestCase {
         start(true);
         try {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API();
+            IAPI m = Factory.makeAPI();
             m.setOption("-noPurityCheck");
             m.parseAndCheck(f);
             check("","");
@@ -682,7 +924,7 @@ public class api extends TestCase {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
             java.io.File ff = new java.io.File("testfiles/testNoErrors2/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(new PrintWriter(System.out),dcoll);
+            IAPI m = Factory.makeAPI(new PrintWriter(System.out),dcoll);
             m.setOption("-noPurityCheck");
             m.parseAndCheck(f,ff);  // FIXME - expect errors - check for them
             check("","");
@@ -711,7 +953,7 @@ public class api extends TestCase {
 //      start(true);
 //      try {
 //          java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
-//          org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API();
+//          IAPI m = Factory.makeAPI();
 //          m.setOption("-noPurityCheck");
 //          m.parseAndCheck(f,f);  // FIXME - duplicate entries causes crash
 //          check("","");
@@ -731,7 +973,7 @@ public class api extends TestCase {
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testSyntaxError/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(
+            IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll);
             m.setOption("-noPurityCheck");
             m.parseAndCheck(f); 
@@ -760,7 +1002,7 @@ public class api extends TestCase {
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testJavaErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(
+            IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,
                     "-specspath","testfiles/testJavaErrors");
             m.setOption("-noPurityCheck");
@@ -787,7 +1029,7 @@ public class api extends TestCase {
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testJavaErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(
+            IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll);
             m.setOption("-noPurityCheck");
             m.parseAndCheck(f); 
@@ -811,7 +1053,7 @@ public class api extends TestCase {
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(
+            IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll);
             m.setOption("-noPurityCheck");
             //m.setOption("-specspath","testfiles/testSpecErrors");
@@ -834,7 +1076,7 @@ public class api extends TestCase {
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(
+            IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,"-specspath","testfiles/testSpecErrors");
             m.setOption("-noPurityCheck");
             m.parseAndCheck(f); 
@@ -856,7 +1098,7 @@ public class api extends TestCase {
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(
+            IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll);
             m.setOption("-noPurityCheck");
             m.setOption("-specspath","testfiles/testSpecErrors");
@@ -880,7 +1122,7 @@ public class api extends TestCase {
         start(true);
         try {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API();
+            IAPI m = Factory.makeAPI();
             m.setOption("-noPurityCheck");
             m.parseAndCheck(new File[]{f});
             check("","");
@@ -902,12 +1144,12 @@ public class api extends TestCase {
         start(true);
         try {
             DiagnosticCollector<JavaFileObject> diags = new DiagnosticCollector<JavaFileObject>();
-            org.jmlspecs.openjml.API m = new org.jmlspecs.openjml.API(
+            IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),
                     diags,
                     "-noPurityCheck");
             JmlCompilationUnit jcu = m.parseString("A.java",program);
-            int n = m.enterAndCheck(jcu);
+            int n = m.typecheck(jcu);
             assertTrue(n==0);
             ClassSymbol csym = m.getClassSymbol("A");
             MethodSymbol mmsym = m.getMethodSymbol(csym,"mm");

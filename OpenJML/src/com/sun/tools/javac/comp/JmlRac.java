@@ -2478,7 +2478,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                         String sp = position(constraint.source(),constraint.pos);
                         try {
                             // FIXME - why are we making a copy here?
-                            JCExpression e = translate(treeutils.makeUnary(constraint.pos,JCTree.NOT,JmlTreeCopier.copy(context,make,constraint.expression)));
+                            JCExpression e = translate(treeutils.makeUnary(constraint.pos,JCTree.NOT,JmlTreeCopier.copy(make,constraint.expression)));
                             JCStatement st = undefinedCheck(currentMethodInfo.owner,
                                     sp+"constraint",
                                     make.If(e,assertFailure(sp+"constraint is false",constraint.pos),null));

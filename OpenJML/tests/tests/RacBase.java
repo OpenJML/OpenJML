@@ -7,6 +7,7 @@ import javax.tools.JavaFileObject;
 import junit.framework.AssertionFailedError;
 
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.util.ListBuffer;
@@ -74,11 +75,11 @@ public abstract class RacBase extends JmlTestCase {
         options.put("-rac",   "");
         options.put("-target","1.5");
         if (jdkrac) {
-            String sy = System.getProperty(Utils.eclipseProjectLocation);
+            String sy = System.getProperty(Strings.eclipseProjectLocation);
             if (sy == null) {
-                fail("The OpenJML project location should be set using -D" + Utils.eclipseProjectLocation + "=...");
+                fail("The OpenJML project location should be set using -D" + Strings.eclipseProjectLocation + "=...");
             } else if (!new File(sy).exists()) {
-                fail("The OpenJML project location set using -D" + Utils.eclipseProjectLocation + " to " + sy + " does not exist");
+                fail("The OpenJML project location set using -D" + Strings.eclipseProjectLocation + " to " + sy + " does not exist");
             } else {
                 options.put("-classpath",sy+"/testdata"+z+sy+"/jdkbin"+z+sy+"/bin");
             }

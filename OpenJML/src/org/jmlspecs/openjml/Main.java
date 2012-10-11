@@ -1,44 +1,29 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
+
 package org.jmlspecs.openjml;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-import java.util.zip.ZipFile;
 
-import javax.annotation.processing.Processor;
 import javax.tools.DiagnosticListener;
-import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.*;
-import org.jmlspecs.openjml.JmlSpecs.Dir;
-import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
-import org.jmlspecs.openjml.JmlSpecs.JarDir;
-import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.esc.BasicBlocker;
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.annotation.Pure;
 
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.Symbol.PackageSymbol;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlCheck;
 import com.sun.tools.javac.comp.JmlEnter;
@@ -46,15 +31,11 @@ import com.sun.tools.javac.comp.JmlFlow;
 import com.sun.tools.javac.comp.JmlMemberEnter;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.file.JavacFileManager;
-import com.sun.tools.javac.file.RelativePath;
-import com.sun.tools.javac.file.ZipArchive;
 import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.main.JavaCompiler.CompileState;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.JmlTreeInfo;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.List;
@@ -114,7 +95,9 @@ import com.sun.tools.javac.util.Options;
  *  level 2: transient progress messages
  *  level 3: verbose only
  * A tool can receive these progress reports by
- * registering as a delegate via 
+ * registering as a delegate via
+ * 
+ * TODO - check and complete the documentation above
  */
 public class Main extends com.sun.tools.javac.main.Main {
 
@@ -125,12 +108,15 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     /** This is a cached copy of the output writer, for use when
      * direct writing is needed (such as printing out help information) before
-     * the Log facility is registered.
+     * the Log facility is registered. This value is also present in the
+     * superclass, but it is private there.
      */
-    // @edu.umd.cs.findbugs.annotations.NonNull
     @NonNull
     protected PrintWriter out;
     
+    /** The diagListener provided when an instance of Main is constructed.
+     * The listener will be notified when any diagnostic is generated.
+     */
     @Nullable
     protected DiagnosticListener<?> diagListener;
     
@@ -144,6 +130,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             super(message);
         }
     }
+    
+    // TODO - review use of and document these progress reporters; perhaps move them
     
     public ChangeableProgressReporter progressDelegate = new ChangeableProgressReporter();
 
@@ -189,7 +177,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         @Override
         public void setContext(Context context) { this.context = context; }
-}
+    }
 
     
     
@@ -199,20 +187,24 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     // @edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_SAME_SIMPLE_NAME_AS_SUPERCLASS")
     public Main() throws java.io.IOException {
-        this(applicationName, new PrintWriter(System.err, true), null);
+        this(Strings.applicationName, new PrintWriter(System.err, true), null);
     }
 
     /**
      * Construct an initialized compiler instance; all options are set to default values.
-     * @param name the name to use for the application
+     * @param applicationName the name to use for the application
      * @param out  the PrintWriter to which to send information and error messages
      * @param diagListener the listener to receive problem and warning reports
+     * @param args command-line options
      */
-    public Main(/*@ non_null */String name, /*@ non_null */PrintWriter out, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, String... args) 
+    public Main(/*@ non_null */String applicationName, 
+                /*@ non_null */PrintWriter out, 
+                @Nullable DiagnosticListener<? extends JavaFileObject> diagListener,
+                String... args) 
         throws java.io.IOException {
-        super(name,out);
-        check();
-        this.out = out;  // FIXME - would not need this if the super class declared out protected
+        super(applicationName,out);
+        check(); // Aborts if the environment does not support OpenJML
+        this.out = out;
         this.diagListener = diagListener;
         initialize(args); // Creates a new context and initializes it per the command-line arguments
     }
@@ -234,7 +226,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     //@ requires args != null && \nonnullelements(args);
     public static void main(String[] args) throws Exception {
         if (args.length > 0 && args[0].equals("-Xjdb")) {
-            // Copied directly from com.sun.tools.javac.Main and not tested
+            // TODO: Copied directly from com.sun.tools.javac.Main and not tested
             String[] newargs = new String[args.length + 2];
             Class<?> c = Class.forName("com.sun.tools.example.debug.tty.TTY");
             Method method = c.getDeclaredMethod ("main", new Class[] {args.getClass()});
@@ -249,20 +241,19 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
     }
     
-    /** The default application name */
-    // @edu.umd.cs.findbugs.annotations.NonNull
-    @NonNull
-    final public static String applicationName = "openjml";
+    // TODO: Move these? Get them from Option?
     
     /** The option string for requesting help information */
-    // @edu.umd.cs.findbugs.annotations.NonNull
     @NonNull
     final public static String helpOption = "-help";
     
     /** The option string for requesting interactive mode */
-    // @edu.umd.cs.findbugs.annotations.NonNull
     @NonNull
     final public static String interactiveOption = "-i";
+
+    /** The option string for running jmldoc */
+    @NonNull
+    final public static String jmldocOption = "-doc";
 
     /** Invokes the compiler on the given command-line arguments; errors go to
      * stdout.
@@ -271,7 +262,13 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     //@ requires args != null && \nonnullelements(args);
     public static int execute(String[] args) {
-        if (args != null) for (String a: args) if ("-doc".equals(a)) return org.jmlspecs.openjml.jmldoc.Main.execute(args);
+        if (args != null) {
+            for (String a: args) {
+                if (jmldocOption.equals(a)) {
+                    return org.jmlspecs.openjml.jmldoc.Main.execute(args);
+                }
+            }
+        }
         return execute(args,false);  // The boolean: true - errors to stdErr, false - errors to stdOut
     }
 
@@ -288,17 +285,21 @@ public class Main extends com.sun.tools.javac.main.Main {
         return execute(new PrintWriter(useStdErr ? System.err : System.out, true), null, args);
     }
     
-    //public static Main lastRun = null;
-    
+    /** Static method to do the work of Main.
+     * 
+     * @param writer where to write output that is not sent to the diagnosticListener
+     * @param diagListener a listener to hear any compiler diagnostics produced
+     * @param args the command-line arguments
+     * @return the exit code
+     */
     public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull String[] args) {
-        //System.out.println("STARTING");
         int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
         try {
             if (args == null) {
                 Context context = new Context(); // This is a temporary context just for this error message.
                                     // It is not the one used for the options and compilation
                 Log log = Log.instance(context);
-                JavacMessages.instance(context).add(Utils.messagesJML);
+                JavacMessages.instance(context).add(Strings.messagesJML);
                 log.error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
                 errorcode = com.sun.tools.javac.main.Main.EXIT_CMDERR; // 2
             } else {
@@ -313,12 +314,11 @@ public class Main extends com.sun.tools.javac.main.Main {
                     System.arraycopy(args,1,newargs,0,newargs.length);
                     errorcode = com.sun.tools.javac.Main.compile(newargs);
                 } else if (args.length > 0 && args[0].equals(interactiveOption)) {
-                    // interactive mode
+                    // interactive mode // TODO - what is this? do we still support it?
                     errorcode = new org.jmlspecs.openjml.Interactive().run(args);
                     if (errorcode != 0) writer.println("ENDING with exit code " + errorcode); 
                 } else {
-                    Main compiler = new Main(applicationName, writer, diagListener, (String[])null);
-                    //lastRun = compiler;
+                    Main compiler = new Main(Strings.applicationName, writer, diagListener, (String[])null);
                     errorcode = compiler.compile(args);
                     if (errorcode != 0 && Options.instance(compiler.context).get(JmlOption.JMLTESTING.optionName()) != null) writer.println("ENDING with exit code " + errorcode); // TODO - not sure we want this - but we'll need to change the tests
                 }
@@ -331,7 +331,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             Context context = new Context(); // This is a temporary context just for this error message.
                                                // It is not the one used for the options and compilation
             Log log = Log.instance(context);
-            JavacMessages.instance(context).add(Utils.messagesJML);
+            JavacMessages.instance(context).add(Strings.messagesJML);
             log.error("jml.toplevel.exception",e);
             e.printStackTrace(System.err);
             errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
@@ -353,29 +353,22 @@ public class Main extends com.sun.tools.javac.main.Main {
     @Override
     public int compile(String[] args, Context context) {
         this.context = context;
-        setOptions(Options.instance(context)); // Make sure that the parent class's cached options are consistent
-        int exit = 0;
-        if (args.length == 0) {
-            register(context);
-            exit = super.compile(args,context);
-            helpJML();
-        } else {
-            register(context);
-            // Note that the Java option processing happens in compile method call below.
-            // Those options are not read at the time of the register call,
-            // but the register call has to happen before compile is called.
-            exit = super.compile(args,context);
-            if (Options.instance(context).get(helpOption) != null) {
-                helpJML();
-            }
+        setOptions(Options.instance(context)); // TODO: Make sure that the parent class's cached options are consistent
+        register(context);
+        // Note that the Java option processing happens in compile method call below.
+        // Those options are not read at the time of the register call,
+        // but the register call has to happen before compile is called.
+        int exit = super.compile(args,context);
+        if (args.length == 0 || Options.instance(context).get(helpOption) != null) {
+            helpJML(out);
         }
         return exit;
     }
         
     /** This is a utility method to print out all of the JML help information */
-    protected void helpJML() {
-        out.print(JmlOption.helpInfo());
-        out.flush();
+    protected void helpJML(PrintWriter w) {
+        w.print(JmlOption.helpInfo());
+        w.flush();
     }
     
     /** This method scans the input sequence of command-line arguments, 
@@ -401,6 +394,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         return newargs.toArray(new String[newargs.size()]);
     }
     
+    // TODO _ document
     public java.util.List<String> computeDependencyClosure(java.util.List<String> files) {
         // fill out dependencies
         java.util.List<String> newargs = new ArrayList<String>();
@@ -486,18 +480,10 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                 } else if (!file.isFile()) {
                     out.println("Not a file or directory: " + file); // FIXME - make a warning?
-                } else if (!utils.hasValidSuffix(file.getName())) {
-                    //remainingArgs.add(file.toString());
-                } else {
+                } else if (utils.hasValidSuffix(file.getName())) {
                     files.add(file.toString());
                 }
             }
-            // This does not work to avoid scanning the remaining arguments because they all get sent
-            // to javadoc, which scans them anyway.  So it only means that any succeeeding JML
-            // options are ignored, which is jsut confusing
-//        } else if (JmlOptionName.ENDOPTIONS.optionName().equals(s)) {
-//            while (i < args.length) remainingArgs.add(args[i++]);
-//            i = args.length;
         } else {
             // An empty string is the value of the option if it takes no arguments
             // That is, for boolean options, "" is true, null is false
@@ -506,14 +492,14 @@ public class Main extends com.sun.tools.javac.main.Main {
         return i;
     }
     
-    /** This method is called after tools are registered and options are read,
-     * but before compilation actually begins; here any tool setup based on 
-     * options can be performed.
+    /** This method is called after options are read, but before tools are registered and 
+     * before compilation actually begins; here any additional option
+     * processing can be performed.
      */
     // This should be able to be called without difficulty whenever any option
     // is changed
     public void setupOptions() {
-        // CAUTION: DO not initialize any of the tools in here
+        // CAUTION: Do not initialize any of the tools in here
         // If, for example, JmlSpecs gets initialized, then Target will
         // get initialized and it will grab the current version of -target
         // before all the options are set
@@ -538,8 +524,6 @@ public class Main extends com.sun.tools.javac.main.Main {
             if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
         }
         
-        if (options.get(JmlOption.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);
-        
         String cmd = options.get(JmlOption.COMMAND.optionName());
         utils.rac = "rac".equals(cmd) || (cmd == null && options.get(JmlOption.RAC.optionName()) != null);
         utils.esc = "esc".equals(cmd) || (cmd == null && options.get(JmlOption.ESC.optionName()) != null);
@@ -552,6 +536,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (!picked) utils.check = true;
 
         String keysString = options.get(JmlOption.KEYS.optionName());
+        // TODO - why use Names here?
         utils.commentKeys = new HashSet<Name>();
         if (keysString != null) {
             String[] keys = keysString.split(",");
@@ -559,6 +544,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         if (utils.esc) utils.commentKeys.add(Names.instance(context).fromString("ESC")); 
         if (utils.rac) utils.commentKeys.add(Names.instance(context).fromString("RAC")); 
+        JmlSpecs.instance(context).initializeSpecsPath();
+
+        if (options.get(JmlOption.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);
+        
 }
     
 
@@ -598,7 +587,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param context the compiler context in which the tools are to be used
      * @param out the PrintWriter used for error and informational messages
      */
-    static public <S> void registerTools(@NonNull Context context, @NonNull PrintWriter out, @Nullable DiagnosticListener<S> diagListener) {
+    public static <S> void registerTools(@NonNull Context context, @NonNull PrintWriter out, @Nullable DiagnosticListener<S> diagListener) {
 
         // This is done later, but we do it here so that the Log is
         // available if tool registration (or argument processing) needs the
@@ -611,7 +600,8 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         // These have to be first in case there are error messages during 
         // tool registration.
-        JavacMessages.instance(context).add(Utils.messagesJML); // registering an additional source of JML-specific error messages
+        // FIXME - this call is also made in 'execute' ??
+        JavacMessages.instance(context).add(Strings.messagesJML); // registering an additional source of JML-specific error messages
 
         // These register JML versions of the various tools.  These essentially
         // register factories: no actual instances are created until 
@@ -642,8 +632,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     // @Override
     protected void bugMessage(Throwable ex) {
-        System.err.println("Internal JML bug - please report.  Build" + JavaCompiler.version());
-        ex.printStackTrace(System.out);
+        out.println("Internal JML bug - please report.  Build" + JavaCompiler.version());
+        ex.printStackTrace(out);
     }
     
     
@@ -675,14 +665,15 @@ public class Main extends com.sun.tools.javac.main.Main {
         filenames = new ListBuffer<File>();
         classnames = new ListBuffer<String>();
         register(context);
-        Utils.findProperties(context);
+        Utils.instance(context).findProperties(context);
         for (Map.Entry<Object,Object> entry: System.getProperties().entrySet()) {
             String key = entry.getKey().toString();
-            if (key.startsWith(Utils.optionPropertyPrefix)) {
-                key = key.substring(Utils.optionPropertyPrefix.length());
+            if (key.startsWith(Strings.optionPropertyPrefix)) {
+                key = key.substring(Strings.optionPropertyPrefix.length());
                 options.put(key, entry.getValue().toString());
             }
         }
+
         processArgs(CommandLine.parse(args));
         // FIXME - warn about ignored files? or process them?
         return this;
@@ -696,46 +687,22 @@ public class Main extends com.sun.tools.javac.main.Main {
             JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
             Options.instance(context).get("-verbose") != null;
         
-        // First see if an external runtime library has been specified by
-        // some external controller FIXME - do we need still need this case?
+        String jmlruntimePath = null;
         
-//        if (externalRuntime != null) {
-//            boolean found = false;
-//            for (String s: externalRuntime) {
-//                File f = new File(s);
-//                Dir d = null;
-//                if (f.isDirectory()) {
-//                    d = new FileSystemDir(f);
-//                } else if (s.endsWith(".jar")) {
-//                    d = new JarDir(s,"");
-//                } else {
-//                    // Ignored
-//                }
-//                if (d != null && d.exists()) {
-//                    found = true;
-//                    if (verbose) log.noticeWriter.println("Using internal runtime " + s);
-//                    String sp = Options.instance(context).get("-classpath");
-//                    if (sp != null) Options.instance(context).put("-classpath",sp + java.io.File.pathSeparator + s);
-//                }
-//            }
-//            if (found) return;
-//        }
-
         // See if a jar file has been specified
         
-        String jmlruntimePath = null;
-        if (jmlruntimePath == null) {
-            String sy = System.getProperty(Utils.defaultRuntimeClassPath);
+        //if (jmlruntimePath == null) {
+            String sy = System.getProperty(Strings.defaultRuntimeClassPath);
             // These are used in testing - sy should be the directory of the OpenJML project
             if (sy != null) {
                 jmlruntimePath = sy;
             }
-        }
+        //}
 
         // Then look for jmlruntime.jar in the classpath itself
         
         if (jmlruntimePath == null) {
-            URL url = ClassLoader.getSystemResource(Utils.runtimeJarName);
+            URL url = ClassLoader.getSystemResource(Strings.runtimeJarName);
             if (url != null) {
                 jmlruntimePath = url.getFile();
                 if (jmlruntimePath.startsWith("file:/")) {
@@ -754,7 +721,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     try {
                         File f = new File(s).getCanonicalFile().getParentFile();
                         if (f != null) {
-                            f = new File(f,Utils.runtimeJarName);
+                            f = new File(f,Strings.runtimeJarName);
                             if (f.isFile()) {
                                 jmlruntimePath = f.getPath();
                                 break;
@@ -764,7 +731,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                         // Just skip
                     }
                 } else {
-                    File f = new File(new File(s),Utils.runtimeJarName);
+                    File f = new File(new File(s),Strings.runtimeJarName);
                     if (f.isFile()) {
                         jmlruntimePath = f.getPath();
                         break;
@@ -773,24 +740,6 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         }
         
-//        // Then look for the marker
-//        
-//        if (jmlruntimePath == null) {
-//            URL url = ClassLoader.getSystemResource("JMLRUNTIME_MARKER");
-//            if (url != null) {
-//                try {
-//                    String s = url.getPath();
-//                    int k = s.indexOf("!");
-//                    if (k <0) k = s.length();
-//                    int b = s.startsWith("file:/") ? "file:/".length() : 0;
-//                    s = s.substring(b,k);
-//                    if (new File(s).exists()) jmlruntimePath = s;
-//                } catch (Exception e) {
-//                    // Just skip
-//                }
-//            }
-//        }
-
         // The above all presume some variation on the conventional installation
         // of the command-line tool.  In the development environment, those
         // presumptions do not hold.  So in that case we use the appropriate
@@ -834,38 +783,20 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         }
 
-        
         if (jmlruntimePath != null) {
             if (verbose) Log.instance(context).noticeWriter.println("Using internal runtime " + jmlruntimePath);
-            String sp = Options.instance(context).get("-classpath");
-            sp = sp==null ? jmlruntimePath : (sp + java.io.File.pathSeparator + jmlruntimePath);
-            Options.instance(context).put("-classpath",sp);
+            String cp = Options.instance(context).get("-classpath");
+            if (cp == null) cp = System.getProperty("java.class.path");
+            cp = cp==null ? jmlruntimePath : (cp + java.io.File.pathSeparator + jmlruntimePath);
+            Options.instance(context).put("-classpath",cp);
             if (verbose) Log.instance(context).noticeWriter.println("Classpath: " + Options.instance(context).get("-classpath"));
         } else {
             Log.instance(context).warning("jml.no.internal.runtime");
         }
     }
     
-//    static public boolean isDirInJar(String dir, String zip, Context context) {
-//        ZipArchive zipArchive;
-//        try {
-//            zipArchive = new ZipArchive(((JavacFileManager)context.get(JavaFileManager.class)),new ZipFile(zip));
-//        } catch (IOException e) {
-//            return false;
-//        }
-//        RelativePath.RelativeDirectory internalDir = new RelativePath.RelativeDirectory(dir);
-//        String name = zip + (dir.length() == 0 ? dir : ("!" + dir));
-//        if (name.length() == 0) return true;
-//        for (RelativePath.RelativeDirectory f: zipArchive.getSubdirectories()) {
-//            // TODO - check that this works correctly // use contains?
-//            if (f.getPath().startsWith(internalDir.getPath())) return true;
-//        }
-//        return false;
-//    }
-    
-    
     /** An empty array used simply to avoid repeatedly creating one. */
-    private final @NonNull String[] emptyArgs = new String[]{};
+    private static final @NonNull String[] emptyArgs = new String[]{};
     
     /** Returns a reference to the API's compilation context. */
     public @Nullable Context context() {

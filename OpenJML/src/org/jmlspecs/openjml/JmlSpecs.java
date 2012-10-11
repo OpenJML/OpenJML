@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml;
 
 // TODO:
@@ -43,8 +47,9 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 
-/** This class manages the specifications during a compilation.  There should be
- * just one instance per compilation Context, ensured by calling the preRegister
+/** This class manages the specifications of various Java entities
+ * during a compilation.  There should be just one instance of JmlSpecs
+ * per compilation Context, ensured by calling the preRegister
  * method.  The class provides methods for finding specification files, and it
  * maintains a database of specifications of types, methods, and fields.  
  * The specs are indexed by type 
@@ -132,13 +137,13 @@ public class JmlSpecs {
     /** The name of the jar file that constitutes an openjml release. 
      * The specs for Java version v are in a top-level directory named
      * prefix + "v" for each version (e.g. in specs16 for Java 1.6)*/
-    private final static String releaseJar = "openjml.jar";
+    private final static String releaseJar = Strings.releaseJar;
     
     /** The name of the jar file that contains a copy of the specs to use, as part of
      * a release.  This is expected to be the specs for the version of Java 
      * being used.  
      */
-    private final static String specsJar = "jmlspecs.jar";
+    private final static String specsJar = Strings.specsJar;
     
     /** The prefix of the top-level directory within the JML release jar file
      * containing the specs for various versions of java (e.g. specs15 for 
@@ -226,9 +231,9 @@ public class JmlSpecs {
      */
     public void initializeSpecsPath() {
         String s = JmlOption.value(context,JmlOption.SPECS);
-        if (s == null) s = System.getProperty(Utils.specsPathEnvironmentPropertyName);
-        if (s == null) s = Options.instance(context).get("-sourcepath");
-        if (s == null) s = Options.instance(context).get("-classpath");
+        if (s == null) s = System.getProperty(Strings.specsPathEnvironmentPropertyName);
+        if (s == null) s = Options.instance(context).get(Strings.sourcepathOptionName);
+        if (s == null) s = Options.instance(context).get(Strings.classpathOptionName);
         if (s == null) s = System.getProperty("java.class.path");
         if (s == null) s = "";
         setSpecsPath(s);
@@ -311,7 +316,7 @@ public class JmlSpecs {
         // Finally, for working in the Eclipse environment, see if there
         // is an environment variable that is set.
         
-        String sy = System.getProperty(Utils.eclipseSpecsProjectLocation);
+        String sy = System.getProperty(Strings.eclipseSpecsProjectLocation);
         // These are used in testing - sy should be the trunk directory of the Specs project
         if (sy != null) {
             
@@ -393,7 +398,7 @@ public class JmlSpecs {
                     if (!todo.isEmpty()) log.warning("jml.bad.sp.var","$SY");
                 } else {
                     syIncluded = true;
-                    String dirs = System.getProperty(Utils.systemSpecsLocationEnvironmentPropertyName);
+                    String dirs = System.getProperty(Strings.systemSpecsLocationEnvironmentPropertyName);
                     if (dirs != null) pushback(dirs,todo);
                     else {
                         if (!appendInternalSpecs(verbose,getSpecsPath())) {
@@ -494,7 +499,7 @@ public class JmlSpecs {
      */
     public Dir make(String dirName) {
         int n;
-        if (dirName.charAt(0) == Utils.mockDirChar) {
+        if (dirName.charAt(0) == Strings.mockDirChar) {
             return new MockDir(dirName);
         } else if ((n=dirName.indexOf("!")) != -1) {
             return new JarDir(dirName.substring(0,n),dirName.substring(n+1));
@@ -570,7 +575,7 @@ public class JmlSpecs {
         @Override
         public /*@Nullable*/JavaFileObject findAnySuffixFile(String filePath) { 
             String ss = name + "/" + filePath;
-            for (String suffix : Utils.suffixes) {
+            for (String suffix : Strings.suffixes) {
                     JavaFileObject j = mockFiles.get(ss + suffix);
                     if (j != null) return j;
             }
@@ -615,7 +620,7 @@ public class JmlSpecs {
         
         @Override
         public /*@Nullable*/JavaFileObject findAnySuffixFile(String filePath) {
-            for (String suffix : Utils.suffixes) {
+            for (String suffix : Strings.suffixes) {
                 File f = new File(dir,filePath + suffix);
                 if (f.exists()) {
                     return ((JavacFileManager)context.get(JavaFileManager.class)).getRegularFile(f);
@@ -680,7 +685,7 @@ public class JmlSpecs {
         @Override
         public /*@Nullable*/JavaFileObject findAnySuffixFile(String filePath) { 
             if (zipArchive == null) return null;
-            for (String suffix : Utils.suffixes) {
+            for (String suffix : Strings.suffixes) {
                 String ss = filePath + suffix;
                 RelativePath file = new RelativePath.RelativeFile(internalDir,ss);
                 if (!zipArchive.contains(file)) continue;
@@ -720,7 +725,7 @@ public class JmlSpecs {
     //@ nullable
     public JavaFileObject findAnySpecFile(String className) {
         String s = className.replace('.','/');
-        for (String suffix : Utils.suffixes){ 
+        for (String suffix : Strings.suffixes){ 
             for (Dir dir: getSpecsPath()) {
                 JavaFileObject j = dir.findFile(s + suffix);
                 if (j != null) return j;
@@ -1110,13 +1115,13 @@ public class JmlSpecs {
     public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
         if (symbol.type.isPrimitive()) return false;
         if (nonnullAnnotationSymbol == null) {
-            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Utils.nonnullAnnotation));
+            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nonnullAnnotation));
         }
         // Find the annotation on the given symbol, if any
         Attribute.Compound attr = symbol.attribute(nonnullAnnotationSymbol);
         if (attr!=null) return true;
         if (nullableAnnotationSymbol == null) {
-            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Utils.nullableAnnotation));
+            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nullableAnnotation));
         }
         attr = symbol.attribute(nullableAnnotationSymbol);
         if (attr!=null) return false;

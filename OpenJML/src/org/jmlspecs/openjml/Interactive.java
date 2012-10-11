@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml;
 
 import java.io.BufferedReader;
@@ -10,7 +14,6 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 
 import com.sun.tools.javac.code.Flags;
@@ -36,6 +39,7 @@ import com.sun.tools.javac.util.Names;
  * 
  * @author David Cok
  */
+// FIXME - review whether to support this; review this class
 public class Interactive extends Main {
 
     /** This is the main entry point for the application
@@ -77,7 +81,7 @@ public class Interactive extends Main {
     public void setup(String[] args) {
         context = new Context();
         JavacFileManager.preRegister(context); // can't create it until Log has been set up
-        int result = compile(args, context);
+        compile(args, context);
         fileManager = (JavacFileManager)context.get(JavaFileManager.class);
         //filemanager = (JavacFileManager)
 //        if (fileManager instanceof JavacFileManager) {

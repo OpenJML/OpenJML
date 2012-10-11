@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml;
 
 import java.util.ArrayList;
@@ -8,6 +12,10 @@ import javax.tools.JavaFileObject;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
 
+/** This class records all the Nowarn annoations in an OpenJML compile. Nowarn
+ * annotations are syntactic; they can appear anywhere in a line and affect
+ * the reporting of warnings and errors against that line.
+ */
 public class Nowarns {
 
     /** The key to use to retrieve the instance of this class from the Context object. */
@@ -31,10 +39,18 @@ public class Nowarns {
         return instance;
     }
     
+    /** A class that holds the record of a particular Nowarn annotation
+     * in the code.
+     */
     public static class Item {
+        /** The source object */
         /*@Nullable*/ DiagnosticSource source;
+        /** The 1-based line number of the location of the annotation. */
         int line;
+        /** The label contained in the annotation. */
         String label;
+        
+        /** Constructs the record of a Nowarn annotation */
         public Item(DiagnosticSource source, int line, String label) {
             this.source = source;
             this.line = line;
@@ -42,31 +58,47 @@ public class Nowarns {
         }
     }
 
+    /** The usual compilation context. */
     protected Context context;
     
+    /** The collection of nowarn annotation items. */
     protected Collection<Item> nowarns = new ArrayList<Item>();
 
+    /** Constructor for the (singleton) instance of the Nowarns object; users
+     * should not call this - use instance(context).
+     */
     protected Nowarns(Context context) {
         this.context = context;
     }
     
+    /** Add a new occurrence of an annotation to the record. */
     public void addItem(DiagnosticSource file, int pos, String label) {
         nowarns.add(new Item(file,file.getLineNumber(pos),label));
     }
     
+    /** Check the set of annotations to see if a particular warning should be
+     * suppressed
+     * @return true if there is a recorded annotation with the given source, position and label
+     */
+    // FIXME - this is an inefficient lookup, and in the following method
     public boolean suppress(DiagnosticSource file, int pos, String label) {
+        int line = file.getLineNumber(pos);
         for (Item i: nowarns) {
             if (!label.equals(i.label)) {
                 // continue
             } else if (i.source == null) {
                 return true;
             } else {
-                if (file.equals(i.source) && file.getLineNumber(pos) == i.line) return true; 
+                if (file.equals(i.source) && line == i.line) return true; 
             }
         }
         return false;
     }
 
+    /** Check the set of annotations to see if a particular warning should be
+     * suppressed
+     * @return true if there is a recorded annotation with the given source, position and label
+     */
     public boolean suppress(JavaFileObject file, int pos, String label) {
         for (Item i: nowarns) {
             if (!label.equals(i.label)) {

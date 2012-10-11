@@ -203,7 +203,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		}
 
 		if (Activator.options.uiverbosity >= 2) Log.log("Full build " + project.getName());
-		Timer.timer.markTime();
+		Timer.timer.markTime(); // FIXME - where is this timer used
 		deleteMarkers(project,true);
 		if (monitor.isCanceled() || isInterrupted()) {
 			if (Activator.options.uiverbosity >= 2) Log.log("Build interrupted");
@@ -256,7 +256,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		}
 
 		if (Activator.options.uiverbosity >= 2) Log.log("Incremental build " + project.getName());
-		Timer.timer.markTime();
+		Timer.timer.markTime(); // FIXME - where is this timer used
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files and deletes markers
 		doChecking(jproject,v.resourcesToBuild,monitor);
@@ -306,7 +306,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */
 	static public boolean checkJML(List<IResource> resources, IProgressMonitor monitor) {
 		if (resources.isEmpty()) return true;
-		Timer.timer.markTime();
+		Timer.timer.markTime(); // FIXME - where is this timer used?
 		deleteMarkers(resources,true); // FIXME - should this be done in another thread?  but it has to be completed before the checking starts
 		// FIXME - need to build one project at a time
 		try {

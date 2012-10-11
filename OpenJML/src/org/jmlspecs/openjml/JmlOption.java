@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml;
 
 import java.util.HashMap;
@@ -18,7 +22,7 @@ import com.sun.tools.javac.util.Options;
 // FIXME - best practice would use a resources file for all the help
 // information; javac loads its resources on demand
 public enum JmlOption implements IOption {
-
+    
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
     DIR("-dir",true,"Process all files, recursively, within this directory"),
     DIRS("-dirs",true,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)"),
@@ -57,7 +61,7 @@ public enum JmlOption implements IOption {
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions"),
     JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)"),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!"),
-    ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files"),
+    ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files"),  // FIXME - fix or remove
     ASSOCINFO("-crossRefAssociatedInfo",false,">..."),
     METHOD("-method",true,"The method name on which to run ESC"),
     PROVER("-prover",true,"The prover to use to check verification conditions")
@@ -65,9 +69,6 @@ public enum JmlOption implements IOption {
     public void process(Options options) {}
     
 
-    /** Convenience field for the name of the SPECS option. */
-    public final static String specs = SPECS.optionName();
-    
     /** Holds the name of the option, as it is used in the command-line,
      * including the leading '-' character.
      */
@@ -103,7 +104,7 @@ public enum JmlOption implements IOption {
      * 
      * @param context the compilation context
      * @param option the option to set
-     * @param value the value to give the option
+     * @param value the value to give the option - boolean options use null for false and non-null for true
      */
     public static void putOption(Context context, JmlOption option, String value) {
         Options.instance(context).put(option.name,value);
@@ -165,7 +166,7 @@ public enum JmlOption implements IOption {
         return map.get(s);
     }
     
-    static Map<String,JmlOption> map = new HashMap<String,JmlOption>();
+    static private final Map<String,JmlOption> map = new HashMap<String,JmlOption>();
     static {
         // Puts all the options in the map and adds any synonyms
         // synonyms include the all lowercase versions of each name
@@ -191,8 +192,9 @@ public enum JmlOption implements IOption {
         StringBuilder sb = new StringBuilder();
         sb.append("JML options:").append(eol);
         for (IOption j : values()) {
-            sb.append("  ").append(j.optionName());
-            for (int i = j.optionName().length(); i<27; i++) {
+            sb.append("  ").append(j.optionName()).append(" ");
+            // The count up to 26 is just to make for nice formatting
+            for (int i = j.optionName().length(); i<26; i++) {
                 sb.append(" ");
             }
             sb.append(j.help()).append(eol);

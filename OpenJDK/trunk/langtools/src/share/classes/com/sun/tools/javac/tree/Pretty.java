@@ -25,6 +25,7 @@
 
 package com.sun.tools.javac.tree;
 
+// FIXME - a JCExpressionStatement does not print with a ; - so we cannot just visit it - where else is it used, besides directly as a statement?
 import java.io.*;
 import java.util.*;
 

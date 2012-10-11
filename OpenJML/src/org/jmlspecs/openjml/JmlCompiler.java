@@ -1,10 +1,14 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
+// FIXME - do a review
 package org.jmlspecs.openjml;
 
 import static com.sun.tools.javac.util.ListBuffer.lb;
 
 import java.util.Queue;
 
-import javax.annotation.processing.Processor;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -13,7 +17,6 @@ import org.jmlspecs.openjml.esc.JmlEsc;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;

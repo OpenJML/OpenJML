@@ -160,8 +160,8 @@ public class JmlEsc extends JmlTreeScanner {
     public void pickProver() {
         // Pick a prover to use
         proverToUse = JmlOption.value(context,JmlOption.PROVER);
-        if (proverToUse == null) proverToUse = System.getProperty(Utils.defaultProverProperty);
-        if (proverToUse == null) proverToUse = Utils.YICES;
+        if (proverToUse == null) proverToUse = System.getProperty(Strings.defaultProverProperty);
+        if (proverToUse == null) proverToUse = YicesProver.YICES;
         
         //proverToUse = "cvc";
         //proverToUse = "simplify";
@@ -1865,7 +1865,7 @@ class ClassCollector extends JmlTreeScanner {
     Collection<JCTree> literals = new ArrayList<JCTree>();
     
     public ClassCollector() {
-        scanMode = SPEC_MODE;
+        scanMode = AST_SPEC_MODE;
     }
     
     @Override

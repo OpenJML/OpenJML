@@ -1,4 +1,10 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml;
+
+// FIXME - not ready for use - review and fix
 
 import java.util.ArrayList;
 

@@ -53,6 +53,8 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.SpecPublic;
 import org.jmlspecs.openjml.API;
+import org.jmlspecs.openjml.IAPI;
+import org.jmlspecs.openjml.Factory;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
@@ -86,7 +88,7 @@ import com.sun.tools.javac.util.Context;
 public class OpenJMLInterface {
     /** The API object corresponding to this Interface class. */
     @NonNull
-    protected API api;
+    protected IAPI api;
     
     /** The common instance of a Utils object that provides various
      * utility methods.  We initialize this when an OpenJMLInterface
@@ -101,7 +103,7 @@ public class OpenJMLInterface {
      * @return returns the descriptive version string from OpenJML
      */
     @NonNull
-    static public String version() { return API.version(); }
+    public String version() { return api.version(); }
 
     /** The Java project for this object. */
     @NonNull
@@ -130,7 +132,7 @@ public class OpenJMLInterface {
        // FIXME - presumes the listener is the ConsoleLogger
        PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener()).getConsoleStream());
        try { 
-    	   api = new API(w,new EclipseDiagnosticListener(preq), new String[]{"-noInternalRuntime"}); 
+    	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), new String[]{"-noInternalRuntime"}); 
        } catch (Exception e) {
     	   Log.errorlog("Failed to create an interface to OpenJML",e);
        }
@@ -163,7 +165,7 @@ public class OpenJMLInterface {
             }
             try {
                 setMonitor(monitor);
-                int ret = api.exec(args.toArray(new String[args.size()]));
+                int ret = api.execute(args.toArray(new String[args.size()]));
                 if (ret == 0) Log.log(Timer.timer.getTimeString() + " Completed");
                 else if (ret == 1) Log.log(Timer.timer.getTimeString() + " Completed with errors");
                 else if (ret >= 2) {
@@ -224,11 +226,14 @@ public class OpenJMLInterface {
                     if (pf.containsJavaResources()) args.add(pf.getElementName()); // getElementName gives the fully qualified package name
                 }
             }
+            int ret = Factory.makeAPI().jmldoc(args.toArray(new String[args.size()]));
+            return ret;
         } catch (JavaModelException e) {
             Log.errorlog("INTERNAL EXCEPTION while generating jmldoc",e); 
+        } catch (Exception e) {
+            Log.errorlog("INTERNAL EXCEPTION while generating jmldoc",e); 
         }
-        int ret = API.jmldoc(args.toArray(new String[args.size()]));
-        return ret;
+        return -1;
     }
 
     /** Executes the JML ESC (static checking) operation
@@ -288,7 +293,7 @@ public class OpenJMLInterface {
                 if (monitor != null) monitor.subTask("Executing openjml");
                 try {
                     if (monitor != null) monitor.setTaskName("ESC");
-                    int ret = api.exec(args.toArray(new String[args.size()]));
+                    int ret = api.execute(args.toArray(new String[args.size()]));
                     if (ret == 0) Log.log(Timer.timer.getTimeString() + " Completed");
                     else if (ret == 1) Log.log(Timer.timer.getTimeString() + " Completed with errors");
                     else if (ret >= 2) {
@@ -482,7 +487,7 @@ public class OpenJMLInterface {
         }
         try{
             TypeSpecs tspecs = api.getSpecs(csym);
-            String smods = api.prettyPrint(tspecs.modifiers,false);
+            String smods = api.prettyPrintJML(tspecs.modifiers);
             return smods + eol + tspecs.toString();
         } catch (Exception e) { return "<Exception>: " + e; }
     }
@@ -504,7 +509,7 @@ public class OpenJMLInterface {
             StringBuilder sb = new StringBuilder();
             for (TypeSpecs ts: typeSpecs) {
                 sb.append("From " + ts.file.getName() + eol);
-                sb.append(api.prettyPrint(ts.modifiers,false));
+                sb.append(api.prettyPrintJML(ts.modifiers));
                 sb.append(eol);
                 sb.append(ts.toString());
                 sb.append(eol);
@@ -527,9 +532,9 @@ public class OpenJMLInterface {
             StringBuilder sb = new StringBuilder();
             for (JmlSpecs.MethodSpecs ts: methodSpecs) {
                 sb.append("From " + ts.cases.decl.sourcefile.getName() + eol);
-                sb.append(api.prettyPrint(ts.mods,false)); // FIXME - want the collected mods in the JmlMethodSpecs
+                sb.append(api.prettyPrintJML(ts.mods)); // FIXME - want the collected mods in the JmlMethodSpecs
                 sb.append(eol);
-                sb.append(api.prettyPrint(ts.cases,false));
+                sb.append(api.prettyPrintJML(ts.cases));
                 sb.append(eol);
             }
             return sb.toString();
@@ -590,7 +595,7 @@ public class OpenJMLInterface {
         
         IProverResult r = api.getProofResult(msym);
         
-        String s = api.getBasicBlockProgram(msym);
+        String s = ((API)api).getBasicBlockProgram(msym);
         utils.launchEditor(s,msym.owner.name + "." + msym.name);
 
         if (r == null) {
@@ -1053,7 +1058,7 @@ public class OpenJMLInterface {
      * @return a String representation of the Basic Bloxk program for the method body
      */
     public @NonNull String getBasicBlockProgram(@NonNull MethodSymbol msym) {
-        return api.getBasicBlockProgram(msym);
+        return ((API)api).getBasicBlockProgram(msym);
     }
 
 //    /** Converts a name into a flatname with dots between the components; this

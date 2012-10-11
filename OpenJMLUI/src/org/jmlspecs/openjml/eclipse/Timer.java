@@ -6,6 +6,7 @@ package org.jmlspecs.openjml.eclipse;
 
 import java.util.Date;
 
+// FIXME - This class is roughly duplicated in org.jmlspecs.openjml.Utils.Timer
 /**
  * A class that provides some timing routines for performance
  * checking.

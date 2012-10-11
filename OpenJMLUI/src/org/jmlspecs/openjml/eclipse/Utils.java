@@ -224,7 +224,7 @@ public class Utils {
         	// a member of the workspace - just projects - because findMember on
         	// the workspace root returns null. So we find the file directly in
         	// the local file system.
-        	IPath path = ResourcesPlugin.getWorkspace().getRoot().getLocation().append(org.jmlspecs.openjml.Utils.propertiesFileName);
+        	IPath path = ResourcesPlugin.getWorkspace().getRoot().getLocation().append(org.jmlspecs.openjml.Strings.propertiesFileName);
         	boolean found = org.jmlspecs.openjml.Utils.readProps(properties,path.toFile().getAbsolutePath());
             if (found) Log.log("Properties read from the workspace: " + path.toOSString());
         }
@@ -238,7 +238,7 @@ public class Utils {
         java.util.Properties properties = new java.util.Properties();
         {
         	//Log.log("Project location: " + project.getLocation());
-            IResource res = project.findMember(org.jmlspecs.openjml.Utils.propertiesFileName);
+            IResource res = project.findMember(org.jmlspecs.openjml.Strings.propertiesFileName);
             if (res != null) {
             	boolean found = org.jmlspecs.openjml.Utils.readProps(properties,res.getLocation().toOSString());
                 if (found && Activator.options.uiverbosity >= 1) Log.log("Properties read from the project directory: " + res.getLocation().toOSString());

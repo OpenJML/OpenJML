@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.jmlspecs.openjml.Factory;
 
 /**
  * This class implements the preference page for the plugin.
@@ -260,8 +261,14 @@ implements IWorkbenchPreferencePage {
 	private Control addControl(Composite parent) {
 		Composite composite0 = new Widgets.VComposite(parent);
 
+		String version = "?";
+		try {
+			version = Factory.makeAPI().version();
+		} catch (Exception e) {
+			version = "? (Exception: " + e + ")";
+		}
 		new Label(composite0, SWT.CENTER)
-		.setText("OpenJML version: " + OpenJMLInterface.version());
+		.setText("OpenJML version: " + version);
 		new Label(composite0, SWT.CENTER)
 		.setText("These options are workspace options that apply to every JML-enabled Java project.");
 
