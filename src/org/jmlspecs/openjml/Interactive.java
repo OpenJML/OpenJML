@@ -177,6 +177,7 @@ public class Interactive extends Main {
             JmlCompiler jmlCompiler = (JmlCompiler)JmlCompiler.instance(context);
             JavaFileObject j = fileManager.getRegularFile(new File(f));
             jmlCompiler.compile(List.of(j),List.<String>nil(),null);
+            // FIXME - do we really need to expose compilerKey? if not, put it back to protected
             context.put(JavaCompiler.compilerKey,(JavaCompiler)null);
             JmlCompiler.preRegister(context);
             Log.instance(context).nerrors = 0;

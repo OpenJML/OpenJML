@@ -15,6 +15,7 @@ import java.util.Collection;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
+import javax.tools.JavaFileObject.Kind;
 import javax.tools.SimpleJavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
@@ -334,8 +335,9 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @NonNull JmlCompilationUnit parseSingleFile(@NonNull String filename) {
-        return parseSingleFile(new File(filename));
-    } // FIXME - check that this works for .jml files
+        return parseSingleFile(makeJFOfromFilename(filename));
+    }
+    
     
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#parseSingleFile(java.io.File)
@@ -343,19 +345,24 @@ public class API implements IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     @Override
-    public @NonNull JmlCompilationUnit parseSingleFile(@NonNull File file) {
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
-        c.inSequence = true;
-        Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(file);
-        return ((JmlCompilationUnit)c.parse(fobjects.iterator().next()));
-    } // FIXME - check that this works for .jml files
-    
-    @Override
     public @NonNull JmlCompilationUnit parseSingleFile(@NonNull JavaFileObject jfo) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
-        c.inSequence = true;
-        return (JmlCompilationUnit)c.parse(jfo);
-    } // FIXME - check that this works for .jml files
+        c.inSequence = true; // Don't look for specs
+        JmlCompilationUnit specscu = (JmlCompilationUnit)c.parse(jfo);
+        c.inSequence = false;
+        return specscu;
+    }
+
+    @Override public @Nullable
+    JavaFileObject findSpecs(JmlCompilationUnit jmlcu) {
+        return ((JmlCompiler)JmlCompiler.instance(context)).findSpecs(jmlcu);
+    }
+
+
+    @Override
+    public void attachSpecs(JmlCompilationUnit javaSource, @Nullable JmlCompilationUnit specsSource) {
+        javaSource.specsCompilationUnit = specsSource;
+    }
     
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#parseString(java.lang.String, java.lang.String)
