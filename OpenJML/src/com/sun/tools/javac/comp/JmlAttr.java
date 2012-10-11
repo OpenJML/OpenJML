@@ -937,6 +937,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //log.noticeWriter.println("METHOD SPECS NOT COMBINED " + m.sym.owner + " " + m.sym);
                         // The following line does happen with anonymous classes implementing an interface, with no constructor given
                         // but what about FINISHING SPEC CLASS
+                
+                // FIXME: this also causes the Java file's specs to be used when the specs AST has been set to null
                 jmethod.methodSpecsCombined = new JmlSpecs.MethodSpecs(jmethod.mods,jmethod.cases); // BUG recovery?  FIXME - i think this happens with default constructors
                 specs.putSpecs(m.sym,jmethod.methodSpecsCombined);
             }

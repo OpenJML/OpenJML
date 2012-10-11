@@ -278,8 +278,14 @@ public class api extends TestCase {
 //    }
     
     String parseAndPrettyPrintSingleFile() throws Exception {
-        java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
+        String f = "testfiles/testNoErrors/A.java";
         IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseSingleFile(f));
+    }
+    
+    String parseAndPrettyPrintSingleFile2() throws Exception {
+        IAPI m = Factory.makeAPI();
+        JavaFileObject f = m.makeJFOfromFilename("testfiles/testNoErrors/A.java");
         return m.prettyPrint(m.parseSingleFile(f));
     }
     
@@ -300,6 +306,149 @@ public class api extends TestCase {
         }
     }
     
+    /** Tests that a file parses and pretty prints */
+    // API(), prettyPrint(JmlCompilationUnit, true), parseSingleFile
+    @Test
+    public void testParseAndPrettyPrint5a() {
+        start(true);
+        try {
+            String s = parseAndPrettyPrintSingleFile2();
+            check("","");
+            s = s.replace('\\','/');
+            compareStrings(prettyprint2,s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    @Test
+    public void testAttach() {
+        start(true);
+        try {
+            IAPI m = Factory.makeAPI("-noPurityCheck");
+            String s1 = "public class A { /*@ ensures X;*/ void f() {} }";
+            String s2 = "public class A { /*@ requires Z; ensures Y;*/ void f(); }";
+            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
+            JavaFileObject f2 = m.makeJFOfromString("A.jml",s2);
+            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
+            JmlCompilationUnit ast2 = m.parseSingleFile(f2);
+            m.attachSpecs(ast1,ast1);
+            int n = m.typecheck(ast1);
+            endCapture();
+            if (n != 1) {
+                System.out.println("Errors: " + n);
+                assertTrue(false);
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    @Test
+    public void testAttach2() {
+        start(true);
+        try {
+            IAPI m = Factory.makeAPI("-noPurityCheck");
+            String s1 = "public class A { /*@ ensures X;*/ void f() {} }";
+            String s2 = "public class A { /*@ requires Z; ensures Y;*/ void f(); }";
+            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
+            JavaFileObject f2 = m.makeJFOfromString("A.jml",s2);
+            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
+            JmlCompilationUnit ast2 = m.parseSingleFile(f2);
+            m.attachSpecs(ast1,ast2);
+            int n = m.typecheck(ast1);
+            endCapture();
+            if (n != 2) {
+                System.out.println("Errors: " + n);
+                assertTrue(false);
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+
+//    FIXME - Bug in behavior when attaching null.
+//    @Test
+//    public void testAttach3() {
+//        start(true);
+//        try {
+//            IAPI m = Factory.makeAPI("-noPurityCheck");
+//            String s1 = "public class A { /*@ ensures X;*/ void f() {} }";
+//            String s2 = "public class A { /*@ requires Z; ensures Y;*/ void f(); }";
+//            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
+//            JavaFileObject f2 = m.makeJFOfromString("A.jml",s2);
+//            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
+//            JmlCompilationUnit ast2 = m.parseSingleFile(f2);
+//            m.attachSpecs(ast1,null);
+//            int n = m.typecheck(ast1);
+//            endCapture();
+//            if (n != 0) {
+//                System.out.println("Errors: " + n);
+//                assertTrue(false);
+//            }
+//        } catch (Exception e) {
+//            System.out.println(e);
+//            e.printStackTrace(System.out);
+//            assertTrue(false);
+//        }
+//    }
+//    
+//    @Test
+//    public void testAttach4() {
+//        start(true);
+//        try {
+//            IAPI m = Factory.makeAPI("-noPurityCheck");
+//            String s1 = "public class A { /*@ invariant X;*/ void f() {} }";
+//            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
+//            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
+//            m.attachSpecs(ast1,null);
+//            int n = m.typecheck(ast1);
+//            endCapture();
+//            if (n != 0) {
+//                System.out.println("Errors: " + n);
+//                assertTrue(false);
+//            }
+//        } catch (Exception e) {
+//            System.out.println(e);
+//            e.printStackTrace(System.out);
+//            assertTrue(false);
+//        }
+//    }
+
+    @Test
+    public void testAttach5() {
+        start(true);
+        try {
+            IAPI m = Factory.makeAPI("-noPurityCheck");
+            String s1 = "public class A { void f() {} }";
+            String s2 = "public class A { void g(); }";
+            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
+            JavaFileObject f2 = m.makeJFOfromString("A.jml",s2);
+            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
+            JmlCompilationUnit ast2 = m.parseSingleFile(f2);
+            m.attachSpecs(ast1,ast2);
+            int n = m.typecheck(ast1);
+            endCapture();
+            // Should be one error - not checking what it is
+            // (the .jml should not declare methods that are not in the .java file)
+            if (n != 1) {
+                System.out.println("Errors: " + n);
+                assertTrue(false);
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+
+
     String parseAndPrettyPrintString() throws Exception {
         String prog = "public class A { //@ ghost int i=0;\n }";
         IAPI m = Factory.makeAPI();

@@ -85,12 +85,15 @@ public class JmlCompiler extends JavaCompiler {
      */
     public boolean inSequence = false;
     
-    /** This method is overridden in order to parse specification files along with parsing a Java file.  Note
-     * that it is called directly from JavaCompiler.complete and JavaCompiler.parse to do the actual parsing.
-     * Thus when parsing an individual file (such as a spec file) it is also called (through parse).  Consequently
-     * we have to do this little trick with the "inSequence" field to avoid trying to parse the specifications
-     * of specification files. [I'm not sure when, if ever, JavaCompiler.complete is called.  If it did not ever 
-     * call this method here, we could override JavaCompiler.parse(JavaFileObject) instead, and avoid this
+    /** This method is overridden in order to parse specification files along 
+     * with parsing a Java file.  Note that it is called directly from 
+     * JavaCompiler.complete and JavaCompiler.parse to do the actual parsing.
+     * Thus when parsing an individual file (such as a spec file) it is also 
+     * called (through parse).  Consequently we have to do this little trick 
+     * with the "inSequence" field to avoid trying to parse the specifications
+     * of specification files. [I'm not sure when, if ever, JavaCompiler.complete 
+     * is called.  If it did not ever call this method here, we could override 
+     * JavaCompiler.parse(JavaFileObject) instead, and avoid this
      * trickery with inSequence.]
      * <P>
      * <UL>
@@ -115,17 +118,8 @@ public class JmlCompiler extends JavaCompiler {
         if (cu instanceof JmlCompilationUnit) {
             JmlCompilationUnit jmlcu = (JmlCompilationUnit)cu;
             jmlcu.mode = JmlCompilationUnit.JAVA_SOURCE_PARTIAL;
-            JCTree.JCExpression pkgName = jmlcu.getPackageName();
-            // In the following, we need a name as the prefix to look for the specs.
-            // That is supposed to be the same as the name of the public class within
-            // the file, and thus the same as the name of the file itself.
-            // However, a file may have no public classes within it - so 
-            // the best indication of the spec file name is the name of the
-            // java file just parsed.
-            // (TODO) Unfortunately, there is no guarantee as to what getName()
-            // will return.  It would be safer, but a pain, to dismember the 
-            // associated URI. (getName is even deprecated within some subclasses)
-            jmlcu.specsCompilationUnit = parseSpecs(jmlcu,pkgName == null ? null : pkgName.toString(),jmlcu.getSourceFile().getName());
+            JavaFileObject specsFile = findSpecs(jmlcu);
+            jmlcu.specsCompilationUnit = parseSpecs(specsFile,jmlcu);
             if (jmlcu.specsCompilationUnit == null) {
                 // If there are no specs, that means that not even the .java file is
                 // on the specification path.  That may well be something to warn
@@ -162,29 +156,38 @@ public class JmlCompiler extends JavaCompiler {
         return cu;
     }
     
-    /** Parses the specs for the given Java CU.
-     * @param javaCU the Java compilation unit on whose behalf we are parsing specs, or null if none; this is supplied so that if
-     * the Java file is part of the specs, the file is not parsed over again
-     * @param pack a dot-separated path name for the package in which the class resides, or null for the default package
-     * @param filepath the name (possibly including path and suffix) of the .java file
-     * @return the possibly null compilation unit containing specs
+    /** Finds the specs for a given compilation unit.
+     * @param jmlcu The compilation unit of the Java source, if any
+     * @return the source object of the specifications
      */
-    //@ nullable
-    public JmlCompilationUnit parseSpecs(/*@ nullable*/JmlCompilationUnit javaCU, /*@ nullable*/String pack, /*@ non_null */String filepath) {
+    /*@ nullable */
+    public JavaFileObject findSpecs(JmlCompilationUnit jmlcu) {
+        JCTree.JCExpression pkgName = jmlcu.getPackageName();
+        String pack = pkgName == null ? null : pkgName.toString();
+        String filepath = jmlcu.getSourceFile().getName();
+        // In the following, we need a name as the prefix to look for the specs.
+        // That is supposed to be the same as the name of the public class within
+        // the file, and thus the same as the name of the file itself.
+        // However, a file may have no public classes within it - so 
+        // the best indication of the spec file name is the name of the
+        // java file just parsed.
+        // (TODO) Unfortunately, there is no guarantee as to what getName()
+        // will return.  It would be safer, but a pain, to dismember the 
+        // associated URI. (getName is even deprecated within some subclasses)
         int i = filepath.lastIndexOf('/');
         int ii = filepath.lastIndexOf('\\');
         if (i < ii) i = ii;
         int k = filepath.lastIndexOf(".");
         String rootname = k >= 0 ? filepath.substring(i+1,k) : filepath.substring(i+1);
         JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(pack == null ? rootname : (pack + "." + rootname));
-        return parseSpecs(f,javaCU);
+        return f;
     }
-
-    /** Parses the specs - used when we need the specs corresponding to a binary file;
+    
+    /** Parses the specs for a class - used when we need the specs corresponding to a binary file;
      * this may only be called for public top-level classes (the specs for non-public or
      * nested classes are part of the same file with the corresponding public class)
      * @param typeSymbol the symbol of the type whose specs are sought
-     * @return the possibly empty list of parsed compilation units, as ASTs
+     * @return the possibly null parsed compilation unit, as an AST
      */
     /*@Nullable*/
     public JmlCompilationUnit parseSpecs(Symbol.TypeSymbol typeSymbol) {
@@ -195,13 +198,9 @@ public class JmlCompiler extends JavaCompiler {
         return speccu;
     }
     
-    /** Initiates the actual parsing of the refinement chain.  Note that in the
-     * end we want to consolidate all specs sequence into one declaration file
-     * with all replicated declarations identified together and specifications
-     * combined, and then associate them with the correct declarations in the .java
-     * or .class file.  However, we cannot do that until we can do type matching, so
-     * that has to wait until the enter phase is completed. This task is now easier 
-     * that JML has been simplified to have just one spec file per .java file.
+    /** Parses the given specification file. The compilation unit to which it
+     * belongs is an argument because if the specification source is the same
+     * as the Java source, the input is not reparsed.
      * @param f the file object to parse, if any
      * @param javaCU the compilation unit that provoked this parsing, if any
      * @return the possibly empty list of parsed compilation units, as ASTs

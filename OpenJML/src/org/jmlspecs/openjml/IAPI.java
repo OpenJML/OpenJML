@@ -178,10 +178,7 @@ public interface IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     public @NonNull
-    JmlCompilationUnit parseSingleFile(@NonNull JavaFileObject jfo); // FIXME - check that this works for .jml files
-
-    public @NonNull
-    JmlCompilationUnit parseSingleFile(@NonNull File file); // FIXME - check that this works for .jml files
+    JmlCompilationUnit parseSingleFile(@NonNull JavaFileObject jfo);
 
     /** Produces a parse tree for a single file without any specifications; the
      * file may be either a .java or a specification file.  The trees are not
@@ -193,7 +190,27 @@ public interface IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     public @NonNull
-    JmlCompilationUnit parseSingleFile(@NonNull String filename); // FIXME - check that this works for .jml files
+    JmlCompilationUnit parseSingleFile(@NonNull String filename);
+    
+    /** Finds the source object, if any, corresponding to the specifications
+     * for the input Java AST, according to the JML language rules.
+     * @param jmlcu a Java source AST (not a specification AST)
+     * @return the file object of the specifications
+     */
+    public @Nullable
+    JavaFileObject findSpecs(JmlCompilationUnit jmlcu);
+
+    /** Attaches specifications to a Java source AST. The second argument may
+     * be identical to the first, in which case the JML annotations directly in
+     * Java source AST are used as the specifications for the Java class. If the
+     * second argument is different, annotations in the Java AST are ignored and
+     * those in the specified specsSource AST are used instead. If the second argument
+     * is null, no annotations are used at all.
+     * @param javaSource the Java source
+     * @param specsSource the specifications AST to attach to the Java source.If this value
+     * is null, the result is that the JML specifications in the Java file itself are used.
+     */
+    public void attachSpecs(JmlCompilationUnit javaSource, @Nullable JmlCompilationUnit specsSource);
 
     /** Produces a parse tree for the given text; the text must represent a
      * compilation unit for a .java file or a specification file.  The name 
