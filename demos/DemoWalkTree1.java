@@ -34,7 +34,6 @@ public class DemoWalkTree1 {
     }
     public static void main(String[] argv) {
         try {
-            java.io.File f = new java.io.File("src/demo/A.java");
             IAPI m = Factory.makeAPI();
             Walker visitor = new Walker();
             JCTree.JCExpression expr = m.parseExpression("(a+b)*c", false);

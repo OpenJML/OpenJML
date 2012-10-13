@@ -23,6 +23,7 @@ public class DemoProgress {
             List<JmlTree.JmlCompilationUnit> asts = m.parseFiles(f2);
             System.out.println("TYPE-CHECKING");
             int ret = m.typecheck(asts);
+            System.out.println("Errors: " + ret);
         } catch (Exception e) {
             System.out.println(e);         
         }
