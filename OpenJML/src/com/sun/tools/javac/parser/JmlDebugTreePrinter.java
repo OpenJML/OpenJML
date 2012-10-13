@@ -1,8 +1,13 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package com.sun.tools.javac.parser;
 
 import java.io.PrintStream;
 import java.util.Map;
 
+import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTreeScanner;
 
 import com.sun.tools.javac.tree.JCTree;
@@ -23,13 +28,13 @@ public class JmlDebugTreePrinter extends JmlTreeScanner {
     PrintStream out;
     
     /** The end position map */
-    Map<JCTree, Integer> endPositions;
+    @Nullable Map<JCTree, Integer> endPositions;
     
     /** A constructor for the tree
      * @param out where to write the output information
      * @param endPositions the map with the end position information, obtained from a suitable parser
      */
-    public JmlDebugTreePrinter(PrintStream out, Map<JCTree, Integer> endPositions) {
+    public JmlDebugTreePrinter(PrintStream out, @Nullable Map<JCTree, Integer> endPositions) {
         this.out = out;
         this.endPositions = endPositions;
     }

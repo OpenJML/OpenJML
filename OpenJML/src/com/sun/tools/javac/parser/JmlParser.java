@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package com.sun.tools.javac.parser;
 
 import static com.sun.tools.javac.parser.Token.*;
@@ -51,10 +55,7 @@ import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -104,7 +105,7 @@ public class JmlParser extends EndPosParser {
      *            whether to keep javadoc comments
      */
     protected JmlParser(ParserFactory fac, Lexer S, boolean keepDocComments) {
-        super(fac, S, keepDocComments, true);
+        super(fac, S, keepDocComments, true); // true = keepLineMap
         if (!(S instanceof JmlScanner)) {
             log.error("jml.internal",
                     "S expected to be a JmlScanner in JmlParser");
@@ -120,10 +121,12 @@ public class JmlParser extends EndPosParser {
         this.jmlF = (JmlTree.Maker) F;
     }
 
+    /** Returns the scanner being used by the parser */
     public JmlScanner getScanner() {
         return S;
     }
 
+    /** Returns the node factory being used by the parser */
     public JmlTree.Maker maker() {
         return jmlF;
     }
@@ -145,9 +148,8 @@ public class JmlParser extends EndPosParser {
                     jcd.toplevel = jmlcu;
                     if (utils.isJML(((JmlClassDecl) t).mods)) {
                         // These are declarations that were declared within
-                        // a JML comment - they should have but might
-                        // erroneously
-                        // be missing a model modifier
+                        // a JML comment - they should have, but might
+                        // erroneously be missing, a model modifier
                         jmlcu.parsedTopLevelModelTypes.add(jcd);
                     } else {
                         list.append(t);
@@ -167,9 +169,6 @@ public class JmlParser extends EndPosParser {
         }
         return u;
     }
-
-    // /** Used to make sure a refines declaration is before any imports */
-    // protected boolean alreadyHaveImports = false;
 
     /**
      * Overrides the super class importDeclaration in order to recognize model
@@ -226,8 +225,7 @@ public class JmlParser extends EndPosParser {
                 JCAnnotation a = utils
                         .findMod(
                                 mods,
-                                names.fromString(Strings.jmlAnnotationPackage
-                                        + ".Model"));
+                                names.fromString(Strings.modelAnnotation));
                 if (a != null) {
                     skipToSemi();
                     int p = mods.annotations.head.pos;
@@ -2574,16 +2572,21 @@ public class JmlParser extends EndPosParser {
             return e;
         } else if (S.token() == LPAREN) {
             boolean prev = inLocalOrAnonClass;
-            inLocalOrAnonClass = true;
-            JCNewClass anon = classCreatorRest(newpos, null, typeArgs, t);
-            if (anon.def != null)
-                filterTypeBodyDeclarations((JmlClassDecl) anon.def, context,
-                        jmlF);
-            inLocalOrAnonClass = prev;
-            return anon;
+            try {
+                inLocalOrAnonClass = true;
+                JCNewClass anon = classCreatorRest(newpos, null, typeArgs, t);
+                if (anon.def != null) {
+                    filterTypeBodyDeclarations((JmlClassDecl) anon.def, context,
+                            jmlF);
+                }
+                return anon;
+            } finally {
+                inLocalOrAnonClass = prev;
+            }
         } else if (S.token() == LBRACE) {
             return parseSetComprehension(t);
         } else {
+            // FIXME - what is expected3 here?
             syntaxError(S.pos(), null, "expected3", "\'(\'", "\'{\'", "\'[\'");
             t = toP(F.at(newpos).NewClass(null, typeArgs, t,
                     List.<JCExpression> nil(), null));

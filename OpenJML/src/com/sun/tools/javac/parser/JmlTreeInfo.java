@@ -1,5 +1,13 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package com.sun.tools.javac.parser;
 
+/* FIXME: It is not clear that this file is actually used. Even though it is
+ * registered, there are no derived methods to execute.
+ * In any case it needs documentation.
+ */
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;

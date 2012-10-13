@@ -11,6 +11,7 @@ import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Names;
 
 // TODO - should test unicode, especially with multiple backslashes
 // TODO - should test errPos for error tokens (is endPos set?)
@@ -21,6 +22,8 @@ public class scanner extends JmlTestCase {
     
     ScannerFactory fac;
     
+    String[] keys;
+    
     // TODO - do we need to collect and compare System.out,err
     
     /** Initializes a fresh scanner factory for each test */
@@ -28,6 +31,7 @@ public class scanner extends JmlTestCase {
         super.setUp(); // Sets up a main program, diagnostic collector
         fac = ScannerFactory.instance(context);
         Log.instance(context).multipleErrors = true;
+        keys = null;
     }
 
     /** This is a helper routine to check tests that are supposed to issue
@@ -72,6 +76,10 @@ public class scanner extends JmlTestCase {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s) );
             Scanner sc = fac.newScanner(s, true);
+            if (keys != null) {
+                Names names = Names.instance(context);
+                for (String k: keys) { ((JmlScanner)sc).keys().add(names.fromString(k)); }
+            }
             int i = 0;
             while (i<list.length) {
                 sc.nextToken();
@@ -781,6 +789,71 @@ public class scanner extends JmlTestCase {
         checkMessages("/TEST.java:1: malformed floating point literal",5);
     }
  
+    @Test public void testConditionalKey1() {
+        helpScanner("//+POS@ requires\n  /*+POS@ requires */",
+                new Enum<?>[]{EOF},
+                null);
+    }
+
+    @Test public void testConditionalKey2() {
+        helpScanner("//-NEG@ requires\n  /*-NEG@ requires */",
+                new Enum<?>[]{REQUIRES,EJML,REQUIRES,EJML,EOF},
+                null);
+    }
+
+    @Test public void testConditionalKey3() {
+        keys = new String[]{"POS"};
+        helpScanner("//+POS@ requires\n  /*+POS@ requires */",
+                new Enum<?>[]{REQUIRES,EJML,REQUIRES,EJML,EOF},
+                null);
+    }
+
+    @Test public void testConditionalKey4() {
+        keys = new String[]{"NEG"};
+        helpScanner("//-NEG@ requires\n  /*-NEG@ requires */",
+                new Enum<?>[]{EOF},
+                null);
+    }
+
+    @Test public void testConditionalKey5() {
+        helpScanner("//-NEG+POS@ requires\n  /*-NEG+POS@ requires */",
+                new Enum<?>[]{EOF},
+                null);
+    }
+
+    @Test public void testConditionalKey6() {
+        keys = new String[]{"POS"};
+        helpScanner("//-NEG+POS@ requires\n  /*-NEG+POS@ requires */",
+                new Enum<?>[]{REQUIRES,EJML,REQUIRES,EJML,EOF},
+                null);
+    }
+
+    @Test public void testConditionalKey7() {
+        keys = new String[]{"NEG"};
+        helpScanner("//-NEG+POS@ requires\n  /*-NEG+POS@ requires */",
+                new Enum<?>[]{EOF},
+                null);
+    }
+
+    @Test public void testConditionalKey8() {
+        keys = new String[]{"NEG","POS"};
+        helpScanner("//-NEG+POS@ requires\n  /*-NEG+POS@ requires */",
+                new Enum<?>[]{EOF},
+                null);
+    }
+
+    @Test public void testConditionalKey9() {
+        helpScanner("//+@ requires\n  /*+@ requires */",
+                new Enum<?>[]{REQUIRES,EJML,REQUIRES,EJML,EOF},
+                null);
+    }
+
+    @Test public void testConditionalKey10() {
+        helpScanner("//-@ requires\n  /*-@ requires */",
+                new Enum<?>[]{EOF},
+                null);
+    }
+
 
 
 }
