@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package com.sun.tools.javac.parser;
 
 import org.jmlspecs.openjml.Utils;
@@ -73,16 +77,22 @@ public class JmlFactory extends ParserFactory {
             boolean genEndPos, boolean keepLineMap, boolean enableJml) {
         JmlScanner lexer = (JmlScanner) scannerFactory.newScanner(input, keepDocComments);
         lexer.setJml(enableJml);
-        JmlParser p = new JmlParser(this, lexer, keepDocComments || true); 
-            // FIXME - really just want the doc comments when doing jmldoc
+        JmlParser p = new JmlParser(this, lexer, keepDocComments || true); // FIXME - why the true
         p.names = Names.instance(context);
         p.context = context;
         p.utils = Utils.instance(context);
         return p;
     }
     
+    /** Generates a new parser that will parse the given input;
+     * the parser will parse JML annotations and javadoc
+     * comments, keeping a line map and end positions;
+     * the beginning of the parse may not be within a JML annotation.
+     * @param input the characters to parse
+     * @return the new parser
+     */
     public JmlParser newParser(CharSequence input) {
-        return newParser(input,true,true,true,true);
+        return newParser(input,true,true,true,false);
     }
 
 }

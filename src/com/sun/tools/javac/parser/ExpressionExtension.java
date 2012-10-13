@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package com.sun.tools.javac.parser;
 
 import java.lang.reflect.Method;
@@ -21,6 +25,9 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
+/* FIXME - do more to implement extensions */
+
+/* TODO - needs documentation */
 public abstract class ExpressionExtension {
 
     /** The compilation context, set when derived classes are instantiated */
@@ -141,13 +148,18 @@ public abstract class ExpressionExtension {
      */
     abstract public JCExpression parse(JmlParser parser, @Nullable List<JCExpression> typeArgs);
     
+    // TODO: document
     abstract public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env);
     
-    // FIXME - I thought that here we could use Class<? extends ExpressionExtension>
-    // avoiding the cast of the result of newInstance above.
+    /** The list of classes that add extensions to the Parser */
+    static Class<?>[] extensionClasses = { Elemtype.class };
+
+    /** A map from token type to the extension class that implements the token */
     static protected Map<JmlToken,Class<?>> extensions = new HashMap<JmlToken,Class<?>>();
     
-    static Class<?>[] extensionClasses = { Elemtype.class };
+    // This static block runs through all the extension classes and adds
+    // appropriate information to the HashMap above, so extensions can be 
+    // looked up at runtime.
     static {
         JmlToken[] tokens;
         for (Class<?> c: extensionClasses) {
