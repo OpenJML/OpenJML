@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package com.sun.tools.javac.comp;
 
 import java.util.HashMap;
@@ -190,7 +194,6 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 
     // TODO - need more documentation
     Env<AttrContext> env;
-    JmlTree.Maker make;
     DiagnosticPosition make_pos;
     ClassSymbol assertionFailureClass;
     ClassSymbol utilsClass;
@@ -224,8 +227,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         this.env = env;
         this.syms = Symtab.instance(context);
         this.names = Names.instance(context);
-        this.factory = JmlTree.Maker.instance(context);  // FIXME - just one of these
-        this.make = JmlTree.Maker.instance(context);
+        this.factory = JmlTree.Maker.instance(context);
         this.specs = JmlSpecs.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
         this.treeutils.setEnv(env);
@@ -238,7 +240,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 
         assertionFailureClass = reader.enterClass(names.fromString("org.jmlspecs.utils.Utils$JmlAssertionFailure"));
         utilsClass = reader.enterClass(names.fromString("org.jmlspecs.utils.Utils"));
-        utilsClassIdent = make.Ident(names.fromString("org.jmlspecs.utils.Utils"));
+        utilsClassIdent = factory.Ident(names.fromString("org.jmlspecs.utils.Utils"));
         utilsClassIdent.type = utilsClass.type;
         utilsClassIdent.sym = utilsClassIdent.type.tsym;
         
@@ -696,7 +698,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         Name n = names.fromString(methodName);
         Scope.Entry e = utilsClass.members().lookup(n);
         Symbol ms = e.sym;
-        JCFieldAccess m = make.Select(utilsClassIdent,n);
+        JCFieldAccess m = factory.Select(utilsClassIdent,n);
         m.sym = ms;
         m.type = m.sym.type;
         return m;
@@ -707,18 +709,18 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         Symbol ms;
         do {
             Type t = csym.getSuperclass();
-            if (t == null) return make.Skip();
+            if (t == null) return factory.Skip();
             csym = (ClassSymbol)t.tsym;
             Scope.Entry e = csym.members().lookup(methodName);
             ms = e.sym;
             if (ms != null) break;
         } while (true) ;
-        JCIdent m = make.Ident(methodName);
+        JCIdent m = factory.Ident(methodName);
         m.sym = ms;
         m.type = m.sym.type;
-        JCMethodInvocation a = make.Apply(null,m,List.<JCExpression>nil());
+        JCMethodInvocation a = factory.Apply(null,m,List.<JCExpression>nil());
         a.type = syms.voidType;
-        return make.Exec(a);
+        return factory.Exec(a);
     }
     
     // TODO - document
@@ -730,7 +732,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
     JCStatement undefinedCheck(Symbol owner, String prefix, List<JCStatement> stats) {
         JCCatch ct = treeutils.makeCatcher(owner);
         ct.body.stats = List.<JCStatement>of(methodCallUndefined(prefix));
-        JCStatement s = make.Try(make.Block(0,stats), // FIXME - pos
+        JCStatement s = factory.Try(factory.Block(0,stats), // FIXME - pos
                 List.<JCCatch>of(ct),
                 null
                 );
@@ -744,12 +746,12 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
      * @return an assert statement indication an assertion failure
      */
     public JCStatement assertFailure(String sp, int pos) {
-        make.at(pos);
+        factory.at(pos);
         JCExpression lit = treeutils.makeLit(pos,syms.stringType,sp);
         JCFieldAccess m = findUtilsMethod("assertionFailure");
-        JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit));
+        JCExpression c = factory.Apply(null,m,List.<JCExpression>of(lit));
         c.setType(syms.voidType);
-        return make.Exec(c);
+        return factory.Exec(c);
     }
     
 //    public JCExpression nullCheck(String message, int pos, JCExpression value) {
@@ -760,10 +762,10 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 //        else {
 //            // FIXME - print out a warning
 //        }
-//        make.at(pos);
+//        factory.at(pos);
 //        JCExpression lit = treeutils.makeLit(pos,syms.stringType,s+message);
 //        JCFieldAccess m = findUtilsMethod("nonNullCheck");
-//        JCExpression c = make.at(pos).Apply(null,m,List.<JCExpression>of(lit,value));
+//        JCExpression c = factory.at(pos).Apply(null,m,List.<JCExpression>of(lit,value));
 //        c.setType(value.type);
 //        // FIXME - check for const value and if possible, omit this check
 //        return c;
@@ -781,9 +783,9 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         String s = prefix + " is undefined - exception thrown";
         JCExpression lit = treeutils.makeLit(pos,syms.stringType,s);
         JCFieldAccess m = findUtilsMethod("assertionFailure");
-        JCExpression c = make.at(pos).Apply(null,m,List.<JCExpression>of(lit));
+        JCExpression c = factory.at(pos).Apply(null,m,List.<JCExpression>of(lit));
         c.setType(syms.voidType);
-        return make.Exec(c);
+        return factory.Exec(c);
     }
     
     // TODO - document
@@ -792,19 +794,19 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         JCExpression lit = treeutils.makeStringLiteral(classname,tree.pos);
         JCFieldAccess m = findUtilsMethod("callClassInvariant");
 //        Symbol psym = currentClassInfo.invariantDecl.params.head.sym;
-//        JCIdent id = make.at(tree.pos()).Ident(psym);
+//        JCIdent id = factory.at(tree.pos()).Ident(psym);
         Name thisName = names._this;
-        JCIdent id = make.at(tree.pos()).Ident(thisName);
+        JCIdent id = factory.at(tree.pos()).Ident(thisName);
         id.sym = tree.thisSymbol; //Resolve.instance(context).resolveSelf(tree.pos(),classEnv,csym,thisName);
         id.type = currentType;
-        JCExpression c = make.at(tree.pos).Apply(null,m,List.<JCExpression>of(id,lit));
+        JCExpression c = factory.at(tree.pos).Apply(null,m,List.<JCExpression>of(id,lit));
         c.setType(syms.voidType);
-        return make.Exec(c);
+        return factory.Exec(c);
         
-//        JCIdent idd = make.at(tree.pos()).Ident(names._super);
+//        JCIdent idd = factory.at(tree.pos()).Ident(names._super);
 //        idd.sym = tree.superSymbol;
 //        idd.type = idd.sym.type;
-//        JCExpression c = make.at(tree.pos).Apply(idd,m,List.<JCExpression>nil());
+//        JCExpression c = factory.at(tree.pos).Apply(idd,m,List.<JCExpression>nil());
     }
     
     // TODO - document
@@ -812,9 +814,9 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         int pos = 0;
         JCExpression lit = treeutils.makeLit(pos,syms.stringType,classname);
         JCFieldAccess m = findUtilsMethod("callStaticClassInvariant");
-        JCExpression c = make.at(pos).Apply(null,m,List.<JCExpression>of(lit));
+        JCExpression c = factory.at(pos).Apply(null,m,List.<JCExpression>of(lit));
         c.setType(syms.voidType);
-        return make.Exec(c);
+        return factory.Exec(c);
     }
     
 
@@ -834,9 +836,9 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
      */
     public JCStatement methodCallUtils(String methodName) {
         JCFieldAccess m = findUtilsMethod(methodName);
-        JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
+        JCExpression c = factory.Apply(null,m,List.<JCExpression>nil());
         c.setType(syms.voidType);
-        JCStatement p = make.Exec(c);
+        JCStatement p = factory.Exec(c);
         p.setType(syms.voidType);
         return p;
     }
@@ -849,7 +851,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
      */
     public JCExpression methodCallUtilsExpression(String methodName, JCExpression translatedArg) {
         JCFieldAccess m = findUtilsMethod(methodName);
-        JCExpression c = make.Apply(null,m,List.<JCExpression>of(translatedArg));
+        JCExpression c = factory.Apply(null,m,List.<JCExpression>of(translatedArg));
         c.setType(((Type.MethodType)m.type).restype);
         return c;
     }
@@ -863,26 +865,26 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
      */
     public JCExpression methodCallUtilsExpression(String methodName, JCExpression translatedArg, JCExpression translatedArg2) {
         JCFieldAccess m = findUtilsMethod(methodName);
-        JCExpression c = make.Apply(null,m,List.<JCExpression>of(translatedArg,translatedArg2));
+        JCExpression c = factory.Apply(null,m,List.<JCExpression>of(translatedArg,translatedArg2));
         c.setType(((Type.MethodType)m.type).restype);
         return c;
     }
     
 //    public JCStatement methodCallThis(Name methodName) {
 //        JCIdent m = findThisMethod(methodName);
-//        JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
+//        JCExpression c = factory.Apply(null,m,List.<JCExpression>nil());
 //        c.setType(syms.voidType);
-//        JCStatement p = make.Exec(c);
+//        JCStatement p = factory.Exec(c);
 //        p.setType(syms.voidType);
 //        return p;
 //    }
     
     // TODO _ document
     public JCExpression methodCallThisExpression(JCMethodDecl methodDecl) {
-        JCIdent m = make.Ident(methodDecl.name);
+        JCIdent m = factory.Ident(methodDecl.name);
         m.sym = methodDecl.sym;
         m.type = m.sym.type;
-        JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
+        JCExpression c = factory.Apply(null,m,List.<JCExpression>nil());
         c.setType(syms.voidType);
         return c;
     }
@@ -890,7 +892,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
     // TODO _ document
     public JCStatement methodCallThis(JCMethodDecl methodDecl) {
         JCExpression c = methodCallThisExpression(methodDecl);
-        JCStatement p = make.Exec(c);
+        JCStatement p = factory.Exec(c);
         p.setType(syms.voidType);
         return p;
     }
@@ -909,11 +911,11 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         Name n = names.fromString("getClass");
         Scope.Entry e = syms.objectType.tsym.members().lookup(n);
         Symbol ms = e.sym;
-        JCFieldAccess m = make.Select(expr,n);
+        JCFieldAccess m = factory.Select(expr,n);
         m.sym = ms;
         m.type = m.sym.type;
 
-        JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
+        JCExpression c = factory.Apply(null,m,List.<JCExpression>nil());
         c.setType(syms.classType);
         return c;
     }
@@ -931,9 +933,9 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 //        s = tree.source.getName() + ":" + tree.line + ": JML " + s;
 //        JCExpression lit = makeLit(syms.stringType,s);
 //        JCFieldAccess m = findUtilsMethod("assertionFailure");
-//        JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit));
+//        JCExpression c = factory.Apply(null,m,List.<JCExpression>of(lit));
 //        c.setType(syms.voidType);
-//        return make.Exec(c);
+//        return factory.Exec(c);
 //    }
     
     /** This creates a Java statement implementing a JML assert or assume statement.
@@ -956,11 +958,11 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         JCExpression lit = treeutils.makeStringLiteral(s,tree.pos);
         // FIXME - I don't think we need the conditioning
         JCFieldAccess m = findUtilsMethod(translatedOptionalExpr == null ? "assertionFailure" : "assertionFailure2");
-        JCExpression c = translatedOptionalExpr == null ? make.Apply(null,m,List.<JCExpression>of(lit)) :
-            make.Apply(null,m,List.<JCExpression>of(lit,translatedOptionalExpr));
+        JCExpression c = translatedOptionalExpr == null ? factory.Apply(null,m,List.<JCExpression>of(lit)) :
+            factory.Apply(null,m,List.<JCExpression>of(lit,translatedOptionalExpr));
         c.pos = m.pos = tree.pos;
         c.setType(syms.voidType);
-        return make.at(tree.pos).Exec(c);
+        return factory.at(tree.pos).Exec(c);
     }
     
     /////////////////// Tree visitor methods /////////////////////////////////
@@ -1117,11 +1119,11 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                     Name n = names.fromString("isAssignableFrom");
                     Scope.Entry e = that.rhs.type.tsym.members().lookup(n);
                     Symbol ms = e.sym;
-                    JCFieldAccess m = make.Select(that.rhs,n);
+                    JCFieldAccess m = factory.Select(that.rhs,n);
                     m.sym = ms;
                     m.type = m.sym.type;
     
-                    JCExpression c = make.Apply(null,m,List.<JCExpression>of(that.lhs));
+                    JCExpression c = factory.Apply(null,m,List.<JCExpression>of(that.lhs));
                     c.setType(syms.booleanType);
                     result = c;
                 }
@@ -1201,10 +1203,10 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
             }
             if (e.sym instanceof MethodSymbol) {
                 MethodSymbol ms = (MethodSymbol)e.sym;
-                JCFieldAccess m = make.Select(translate(that.selected),name);
+                JCFieldAccess m = factory.Select(translate(that.selected),name);
                 m.sym = ms;
                 m.type = m.sym.type;
-                JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
+                JCExpression c = factory.Apply(null,m,List.<JCExpression>nil());
                 c.setType(that.type);
                 result = c;
                 return;
@@ -1365,7 +1367,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                         mdecl = (JmlMethodDecl)m.decl;
                         if (! mdecl.name.equals(name)) continue;
                         try {
-                            JCReturn st = make.Return(translate(r.expression));
+                            JCReturn st = factory.Return(translate(r.expression));
                             // We have a match
                             if (mdecl.body.stats.isEmpty()) {
                                 // But no body yet
@@ -1389,10 +1391,10 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
     
                         long flags = Flags.PUBLIC | Flags.SYNTHETIC;
                         flags |= (r.modifiers.flags & Flags.STATIC);
-                        JCModifiers mods = make.Modifiers(flags);
+                        JCModifiers mods = factory.Modifiers(flags);
                         JCMethodDecl msdecl = treeutils.makeMethodDefNoArg(mods,name,r.ident.type,tree.sym);
                         try {
-                            JCReturn st = make.Return(translate(r.expression));
+                            JCReturn st = factory.Return(translate(r.expression));
                             msdecl.body.stats = List.<JCStatement>of(st);
                         } catch (JmlRacNotImplemented ee) {
                             // Can't implement this represents clause because
@@ -1400,7 +1402,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                             notImplemented(r.pos(),"represents clause containing " + ee.location + " expression");
                         }
                         newlist.append(msdecl);
-                        JmlTypeClauseDecl tcd = make.JmlTypeClauseDecl(msdecl);
+                        JmlTypeClauseDecl tcd = factory.JmlTypeClauseDecl(msdecl);
                         tcd.modifiers = msdecl.mods;
                         typeSpecs.modelFieldMethods.append(tcd);
                     }
@@ -1416,7 +1418,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                     String s = mdecl.name.toString();
                     int p = s.lastIndexOf('$');
                     JCStatement st = assertFailure(position + "model field is not implemented: " + s.substring(p+1),m.pos);
-                    JCStatement stt = make.Return(treeutils.makeZeroEquivalentLit(m.pos,mdecl.getReturnType().type));
+                    JCStatement stt = factory.Return(treeutils.makeZeroEquivalentLit(m.pos,mdecl.getReturnType().type));
                     mdecl.body.stats = List.<JCStatement>of(st,stt);
                 }
             }
@@ -1450,12 +1452,12 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                     if ((inv.modifiers.flags & Flags.STATIC) != 0) {
                         JCStatement s = undefinedCheck(staticinvariantDecl.sym,
                                 position+"static invariant",
-                                make.If(treeutils.makeUnary(inv.pos,JCTree.NOT,e),assertFailure(position+"static invariant is false",inv.pos),null));
+                                factory.If(treeutils.makeUnary(inv.pos,JCTree.NOT,e),assertFailure(position+"static invariant is false",inv.pos),null));
                         staticstats.append(s);
                     } else {
                         JCStatement s = undefinedCheck(invariantDecl.sym,
                                 position+"invariant",
-                                make.If(treeutils.makeUnary(inv.pos,JCTree.NOT,e),assertFailure(position+"invariant is false",inv.pos),null));
+                                factory.If(treeutils.makeUnary(inv.pos,JCTree.NOT,e),assertFailure(position+"invariant is false",inv.pos),null));
                         stats.append(s);
                     }
                 } catch (JmlRacNotImplemented ex) {
@@ -1463,8 +1465,8 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 }
             }
     
-            invariantDecl.body = make.Block(0,stats.toList());
-            staticinvariantDecl.body = make.Block(0,staticstats.toList());
+            invariantDecl.body = factory.Block(0,stats.toList());
+            staticinvariantDecl.body = factory.Block(0,staticstats.toList());
             tree.defs = newlist.toList();
             result = tree;
         } finally {
@@ -1552,10 +1554,10 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         ListBuffer<JCStatement> stats = new ListBuffer<JCStatement>();
         stats.appendList(checks);
         stats.append(that.body);
-        that.body = make.Block(0,stats.toList());
+        that.body = factory.Block(0,stats.toList());
         vars.append(that);
         vars.appendList(checks);
-        result = make.Block(0,vars.toList());
+        result = factory.Block(0,vars.toList());
         //log.noticeWriter.println("REWRITTEN " + result);
     }
 
@@ -1573,10 +1575,10 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         ListBuffer<JCStatement> bodystats = new ListBuffer<JCStatement>();
         bodystats.appendList(checks);
         bodystats.append(translate(that.body));
-        JCEnhancedForLoop loop = make.ForeachLoop(translate(that.var), translate(that.expr), make.Block(0,bodystats.toList()));
+        JCEnhancedForLoop loop = factory.ForeachLoop(translate(that.var), translate(that.expr), factory.Block(0,bodystats.toList()));
         stats.append(loop);
         stats.appendList(checks);
-        result = make.Block(0,stats.toList());
+        result = factory.Block(0,stats.toList());
     }
 
     // FIXME - check this
@@ -1594,9 +1596,9 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         ListBuffer<JCStatement> bodystats = new ListBuffer<JCStatement>();
         bodystats.appendList(checks);
         bodystats.append(translate(that.body));
-        stats.append(make.ForLoop(List.<JCStatement>nil(),translate(that.cond),translate(that.step),make.Block(0,bodystats.toList())));
+        stats.append(factory.ForLoop(List.<JCStatement>nil(),translate(that.cond),translate(that.step),factory.Block(0,bodystats.toList())));
         stats.appendList(checks);
-        result = make.Block(0,stats.toList());
+        result = factory.Block(0,stats.toList());
     }
 
     // FIXME - mark which of the type clauses are not implemented
@@ -1648,7 +1650,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 result = translate(that.expression);
                 return;
         }
-        JCExpression c = make.Apply(null,m,List.<JCExpression>of(lit,translate(that.expression)));
+        JCExpression c = factory.Apply(null,m,List.<JCExpression>of(lit,translate(that.expression)));
         c.pos = that.pos;
         c.setType(that.type.baseType());
         result = c;
@@ -1724,16 +1726,16 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 if (tree.args.size() > 1) {
                     JCExpression init = v.init;
                     v.init = treeutils.makeZeroEquivalentLit(tree.pos,tree.type);
-                    make.at(tree.pos);
-                    JCIdent var = make.Ident(v.sym);
-                    JCExpressionStatement stat = make.Exec(make.Assign(var,init));
+                    factory.at(tree.pos);
+                    JCIdent var = factory.Ident(v.sym);
+                    JCExpressionStatement stat = factory.Exec(factory.Assign(var,init));
                     stat.expr.type = var.type;
                     JCIdent id = (JCIdent)tree.args.get(1);
                     JCLabeledStatement statement = currentMethodInfo.labels.get(id.name);
                     currentMethodInfo.labelDecls.get(statement).append(stat);
                 }
                 currentMethodInfo.olds.append(v);
-                JCIdent r = make.Ident(nm);
+                JCIdent r = factory.Ident(nm);
                 r.sym = v.sym;
                 r.type = v.sym.type;
                 result = r;
@@ -1811,7 +1813,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         result = that;
         switch (that.token) {
             case BSRESULT:
-                JCIdent id = make.Ident(attr.resultName); // FIXME Why is this in attr?
+                JCIdent id = factory.Ident(attr.resultName); // FIXME Why is this in attr?
                 id.sym = currentMethodInfo.resultDecl.sym;
                 id.type = currentMethodInfo.resultDecl.type;
                 result = id;
@@ -1866,7 +1868,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 //        // Argument is a type, not an expression, so we
 //        // replace it with a type literal
 //        JCExpression arg = tree.args.get(0);
-//        JCTree.JCFieldAccess f = make.Select(arg,names._class);
+//        JCTree.JCFieldAccess f = factory.Select(arg,names._class);
 //        f.type = syms.classType;
 //        f.sym = f.type.tsym;
 //        result = methodCallUtilsExpression("makeTYPE0",translate(f));
@@ -1934,11 +1936,11 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         Name n = names.fromString("getComponentType");
         Scope.Entry e = syms.classType.tsym.members().lookup(n);
         Symbol ms = e.sym;
-        JCFieldAccess m = make.Select(translate(arg),n);
+        JCFieldAccess m = factory.Select(translate(arg),n);
         m.sym = ms;
         m.type = m.sym.type;
     
-        JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
+        JCExpression c = factory.Apply(null,m,List.<JCExpression>nil());
         c.setType(syms.classType);
         result = c;
         if (tree.type.equals(attr.TYPE)) {
@@ -2003,14 +2005,14 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
             inSpecExpression = true;
             int p = tree.pos;
             make_pos = tree;
-            make.at(p);
+            factory.at(p);
             switch (tree.token) {
                 case ASSERT:
                 {
                     if (Nowarns.instance(context).suppress(tree.source, p, tree.label.toString())) break;
-                    result = make.If(
+                    result = factory.If(
                             translate(tree.expression),
-                            make.at(p).Skip(),
+                            factory.at(p).Skip(),
                             methodCall(tree,translate(tree.optionalExpression)));
                     result.pos = tree.pos;
                     break;
@@ -2018,9 +2020,9 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 
                 case ASSUME:
                 {
-                    result = make.If(
+                    result = factory.If(
                             translate(tree.expression),
-                            make.at(p).Skip(),
+                            factory.at(p).Skip(),
                             methodCall(tree,translate(tree.optionalExpression)));
                     result.pos = tree.pos;
                     break;
@@ -2174,10 +2176,10 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         ListBuffer<JCStatement> stats = new ListBuffer<JCStatement>();
         stats.appendList(checks);
         stats.append(that.body);
-        that.body = make.Block(0,stats.toList());
+        that.body = factory.Block(0,stats.toList());
         vars.append(that);
         vars.appendList(checks);
-        result = make.Block(0,vars.toList());
+        result = factory.Block(0,vars.toList());
         //log.noticeWriter.println("REWRITTEN " + result);
     }
 
@@ -2187,10 +2189,10 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
             if (s.token == JmlToken.LOOP_INVARIANT) {
                 String sp = position(currentMethodInfo.source,s.pos);
                 JCExpression t = translate(s.expression);
-                make.at(s.pos);
+                factory.at(s.pos);
                 JCStatement ss = undefinedCheck(currentMethodInfo.owner,
                         sp + "loop invariant",
-                        make.If(treeutils.makeUnary(s.pos,JCTree.NOT,translate(t)),
+                        factory.If(treeutils.makeUnary(s.pos,JCTree.NOT,translate(t)),
                                 assertFailure(sp + "loop invariant is false",s.pos),null));
                 checks.append(ss);
             } else if (s.token == JmlToken.DECREASES) {
@@ -2198,26 +2200,26 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 Name name1 = names.fromString("_JML$$$loop"+n);
                 Name name2 = names.fromString("_JML$$$loopTemp"+n);
                 JCExpression e = translate(s.expression);
-                make.at(s.pos);
+                factory.at(s.pos);
                 JCVariableDecl d = treeutils.makeIntVarDef(name1,maxIntLit,currentMethodInfo.owner);
-                JCIdent id1 = make.Ident(name1);
+                JCIdent id1 = factory.Ident(name1);
                 id1.type = d.type;
                 id1.sym = d.sym;
                 vars.append(d);
                 JCVariableDecl dd = treeutils.makeIntVarDef(name2,e,currentMethodInfo.owner);
-                JCIdent id2 = make.Ident(name2);
+                JCIdent id2 = factory.Ident(name2);
                 id2.type = dd.type;
                 id2.sym = dd.sym;
                 String sp = position(currentMethodInfo.source,s.pos);
-                JCStatement ss = make.If(
+                JCStatement ss = factory.If(
                         treeutils.makeBinary(s.pos,JCTree.GE,id2,id1),
                         assertFailure(sp + "loop variant did not decrease",s.pos),null);
-                JCStatement sss = make.If(
+                JCStatement sss = factory.If(
                         treeutils.makeBinary(s.pos,JCTree.LT,id2,zero),
                         assertFailure(sp + "loop variant is less than 0",s.pos),null);
-                e = make.Assign(id1,id2);
+                e = factory.Assign(id1,id2);
                 e.type = id1.type;
-                JCStatement sa = make.Exec(e);
+                JCStatement sa = factory.Exec(e);
                 ss = undefinedCheck(currentMethodInfo.owner,sp + "loop variant",
                         List.<JCStatement>of(dd,ss,sss,sa));
                 checks.append(ss);
@@ -2242,10 +2244,10 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
             }
             if (e.sym instanceof MethodSymbol) {
                 MethodSymbol ms = (MethodSymbol)e.sym;
-                JCIdent m = make.Ident(name);
+                JCIdent m = factory.Ident(name);
                 m.sym = ms;
                 m.type = m.sym.type;
-                JCExpression c = make.Apply(null,m,List.<JCExpression>nil());
+                JCExpression c = factory.Apply(null,m,List.<JCExpression>nil());
                 c.setType(tree.type);
                 result = c;
                 return;
@@ -2332,27 +2334,27 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                         vd.pos = spc.pos;
                         currentMethodInfo.preconditionDecls.put(spc,vd);
                         newbody.append(vd);
-                        spre = make.Assign(treeutils.makeIdent(spc.pos,vd.sym),spre);
+                        spre = factory.Assign(treeutils.makeIdent(spc.pos,vd.sym),spre);
                         spre.type = vd.sym.type;
                         spre.pos = spc.pos;
-                        JCExpressionStatement ex = make.at(spre.pos).Exec(spre);
+                        JCExpressionStatement ex = factory.at(spre.pos).Exec(spre);
                         preconditionEvaluations.append(ex);
                         pre = treeutils.makeBitOr(pre.pos,pre,treeutils.makeIdent(spc.pos,vd.sym));
                     }
                     if (num > 1) position = position(source,tree.pos);
                     if (pre != trueLit  &&
                             !Nowarns.instance(context).suppress(source, tree.pos , Label.PRECONDITION.toString())) {
-                        JCIf ifstat = make.If(treeutils.makeUnary(pre.pos,JCTree.NOT,pre),methodCallPre(position,pre),null);
+                        JCIf ifstat = factory.If(treeutils.makeUnary(pre.pos,JCTree.NOT,pre),methodCallPre(position,pre),null);
                         ifstat.pos = pre.pos;
                         preconditionEvaluations.append(ifstat);
                         currentMethodInfo.preCheck = undefinedCheck(currentMethodInfo.owner,
                                 position+"precondition",
-                                make.at(pre.pos).Block(0,preconditionEvaluations.toList()));
+                                factory.at(pre.pos).Block(0,preconditionEvaluations.toList()));
                     }
                 }
 
                 Name n = names.fromString("_JML$$$signalsException");
-                JCVariableDecl signalsEx = treeutils.makeVarDefZeroInit(make.QualIdent(syms.exceptionType.tsym),n,tree.sym);  // FIXME - needs position
+                JCVariableDecl signalsEx = treeutils.makeVarDefZeroInit(factory.QualIdent(syms.exceptionType.tsym),n,tree.sym);  // FIXME - needs position
 
                 // Generate tests for postconditions
                 ListBuffer<JCStatement> postChecks = new ListBuffer<JCStatement>();
@@ -2370,12 +2372,12 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                             if (c.token == JmlToken.ENSURES &&
                                     !Nowarns.instance(context).suppress(source, c.pos, Label.POSTCONDITION.toString())) {
                                 try {
-                                    make.at(c.pos);
+                                    factory.at(c.pos);
                                     JCExpression post = treeutils.makeBinary(c.pos,JCTree.AND,spre,treeutils.makeUnary(c.pos,JCTree.NOT,translate(((JmlMethodClauseExpr)c).expression)));
                                     String sp = position(spc.sourcefile,c.pos);
                                     JCStatement st = undefinedCheck(currentMethodInfo.owner,
                                             sp+"postcondition",
-                                            make.If(post,methodCallPost(sp,post),null));
+                                            factory.If(post,methodCallPost(sp,post),null));
                                     postChecks.append(st);
                                 } catch (JmlRacNotImplemented ex) {
                                     notImplemented(c.pos(),c.token.internedName() + " clause containing " + ex.location + " expression");
@@ -2399,22 +2401,22 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
 //                        }
                         boolean hasSignalsOnly = false;
                         for (JmlMethodClause c: spc.clauses) {
-                            make.at(c.pos);
+                            factory.at(c.pos);
                             if (c.token == JmlToken.SIGNALS) {
                                 JmlMethodClauseSignals sig = (JmlMethodClauseSignals)c;
                                 JCIdent id = treeutils.makeIdent(c.pos,signalsEx.sym);
                                 JCExpression test = null; 
                                 if (sig.vardef == null) {
                                     // If there is no vardef, there cannot be uses of the local variable to replace
-                                    test = make.TypeTest(id,make.Type(syms.exceptionType));
+                                    test = factory.TypeTest(id,factory.Type(syms.exceptionType));
                                     test.type = syms.booleanType;
                                     currentMethodInfo.exceptionDecl = null;
                                     currentMethodInfo.exceptionLocal = null;
                                 } else {
                                     // During the walking of the tree, instances of exceptionLocal are replaced by the JCExpression exceptionDecl
-                                    test = make.TypeTest(id,sig.vardef.getType());
+                                    test = factory.TypeTest(id,sig.vardef.getType());
                                     test.type = syms.booleanType;
-                                    currentMethodInfo.exceptionDecl = make.TypeCast(sig.vardef.vartype,id).setType(sig.vardef.vartype.type);
+                                    currentMethodInfo.exceptionDecl = factory.TypeCast(sig.vardef.vartype,id).setType(sig.vardef.vartype.type);
                                     currentMethodInfo.exceptionLocal = sig.vardef.sym;
                                 }
                                 try {
@@ -2423,7 +2425,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                                     String sp = position(spc.sourcefile,c.pos);
                                     JCStatement st = undefinedCheck(currentMethodInfo.owner,
                                             sp+"signals condition",
-                                            make.If(post,assertFailure(sp+"signals condition is false",c.pos),null));
+                                            factory.If(post,assertFailure(sp+"signals condition is false",c.pos),null));
                                     signalsChecks.append(st);
                                 } catch (JmlRacNotImplemented ex) {
                                     notImplemented(c.pos(),c.token.internedName() + " clause containing " + ex.location + " expression");
@@ -2435,7 +2437,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                                 JCExpression e = falseLit;
                                 for (JCExpression t: sig.list) {
                                     JCIdent id = treeutils.makeIdent(t.pos,signalsEx.sym);
-                                    JCInstanceOf test = make.at(t.pos).TypeTest(id,translate(t));
+                                    JCInstanceOf test = factory.at(t.pos).TypeTest(id,translate(t));
                                     test.type = syms.booleanType;
                                     e = treeutils.makeOr(t.pos,e,test);
                                 }
@@ -2443,7 +2445,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                                 String sp = position(spc.sourcefile,c.pos);
                                 JCStatement st = undefinedCheck(currentMethodInfo.owner,
                                         sp+"signals_only condition",
-                                        make.If(treeutils.makeUnary(c.pos,JCTree.NOT,e),assertFailure(sp+"signals_only condition is false",c.pos),null));
+                                        factory.If(treeutils.makeUnary(c.pos,JCTree.NOT,e),assertFailure(sp+"signals_only condition is false",c.pos),null));
                                 signalsChecks.append(st);
                             }
                         }
@@ -2451,18 +2453,18 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                             JCExpression e = falseLit;
                             for (JCExpression t: currentMethodInfo.decl.getThrows()) {
                                 t = translate(t);
-                                make.at(t.pos);
+                                factory.at(t.pos);
                                 JCIdent id = treeutils.makeIdent(t.pos,signalsEx.sym);
-                                JCInstanceOf test = make.TypeTest(id,t); // Caution: these get translated multiple times - is that oK?
+                                JCInstanceOf test = factory.TypeTest(id,t); // Caution: these get translated multiple times - is that oK?
                                 test.type = syms.booleanType;
                                 e = treeutils.makeBinary(t.pos,JCTree.OR,e,test);
                             }
                             currentMethodInfo.exceptionLocal = null;
                             String sp = position(spc.sourcefile,currentMethodInfo.decl.pos);
-                            make.at(currentMethodInfo.decl.pos);
+                            factory.at(currentMethodInfo.decl.pos);
                             JCStatement st = undefinedCheck(currentMethodInfo.owner,
                                     sp+"default signals_only condition",
-                                    make.If(treeutils.makeUnary(currentMethodInfo.decl.pos,JCTree.NOT,e),assertFailure(sp+"unexpected exception",currentMethodInfo.decl.pos),null));
+                                    factory.If(treeutils.makeUnary(currentMethodInfo.decl.pos,JCTree.NOT,e),assertFailure(sp+"unexpected exception",currentMethodInfo.decl.pos),null));
                             signalsChecks.append(st);
                         }
                     }
@@ -2471,17 +2473,17 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 // add checks for constraint clauses
                 if (!isConstructor) {
                     for (JmlTypeClauseConstraint constraint : currentClassInfo.constraints) {
-                        make.at(constraint.pos);
+                        factory.at(constraint.pos);
                         if ((constraint.modifiers.flags & Flags.STATIC) == 0 &&
                                 (currentMethodInfo.decl.mods.flags & Flags.STATIC) != 0) continue;
                         // FIXME - check that method signature is present
                         String sp = position(constraint.source(),constraint.pos);
                         try {
                             // FIXME - why are we making a copy here?
-                            JCExpression e = translate(treeutils.makeUnary(constraint.pos,JCTree.NOT,JmlTreeCopier.copy(make,constraint.expression)));
+                            JCExpression e = translate(treeutils.makeUnary(constraint.pos,JCTree.NOT,JmlTreeCopier.copy(factory,constraint.expression)));
                             JCStatement st = undefinedCheck(currentMethodInfo.owner,
                                     sp+"constraint",
-                                    make.If(e,assertFailure(sp+"constraint is false",constraint.pos),null));
+                                    factory.If(e,assertFailure(sp+"constraint is false",constraint.pos),null));
                             postChecks.append(st);
                         } catch (JmlRacNotImplemented ex) {
                             notImplemented(constraint.pos(),constraint.token.internedName() + " clause containing " + ex.location + " expression");
@@ -2493,20 +2495,20 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 // Generate checks for initially clauses [ FIXME - this does not do inherited initiallys ]
                 if (isConstructor) {
                     for (JmlTypeClauseExpr initially : currentClassInfo.translatedInitiallys) {
-                        make.at(initially.pos);
+                        factory.at(initially.pos);
                         String sp = position(initially.source(),initially.pos);
                         JCExpression e = treeutils.makeUnary(initially.pos,JCTree.NOT,initially.expression);
                         JCStatement st = undefinedCheck(currentMethodInfo.owner,
                                 sp+"initially",
-                                make.If(e,assertFailure(sp+"initially is false",initially.pos),null));
+                                factory.If(e,assertFailure(sp+"initially is false",initially.pos),null));
                         postChecks.append(st);
                     }
                 }
 
-                JCIdent m = make.Ident(invariantMethodName);
+                JCIdent m = factory.Ident(invariantMethodName);
                 m.sym = currentClassInfo.invariantDecl.sym;
                 m.type = m.sym.type;
-                m = make.Ident(staticinvariantMethodName);
+                m = factory.Ident(staticinvariantMethodName);
                 m.sym = currentClassInfo.staticinvariantDecl.sym;
                 m.type = m.sym.type;
 
@@ -2537,35 +2539,35 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                         break; // continue on with ex
                     } while (true);
                     if (Types.instance(context).isSuperType(ex.type,syms.runtimeExceptionType)) includeRuntime = false;
-                    make.at(tree.pos);
+                    factory.at(tree.pos);
                     JCCatch catcher = treeutils.makeCatcher(currentMethodInfo.owner,ex.type); // FIXME - needs position
-                    JCAssign assign = make.Assign(treeutils.makeIdent(tree.pos,signalsEx.sym),treeutils.makeIdent(tree.pos,catcher.param.sym)); // FIXME - needs position
+                    JCAssign assign = factory.Assign(treeutils.makeIdent(tree.pos,signalsEx.sym),treeutils.makeIdent(tree.pos,catcher.param.sym)); // FIXME - needs position
                     assign.type = signalsEx.type;
-                    catcher.body.stats = catcher.body.stats.append(make.Exec(assign)); // FIXME - needs position
-                    JCThrow throwex = make.Throw(treeutils.makeIdent(tree.pos,catcher.param.sym)); // FIXME - needs position
+                    catcher.body.stats = catcher.body.stats.append(factory.Exec(assign)); // FIXME - needs position
+                    JCThrow throwex = factory.Throw(treeutils.makeIdent(tree.pos,catcher.param.sym)); // FIXME - needs position
                     catcher.body.stats = catcher.body.stats.append(throwex);
                     catchers.append(catcher);
                 }
                 if (includeRuntime) {
-                    make.at(tree.pos);
+                    factory.at(tree.pos);
                     JCCatch catcher = treeutils.makeCatcher(currentMethodInfo.owner,syms.runtimeExceptionType); // FIXME - needs position
-                    JCAssign assign = make.Assign(treeutils.makeIdent(tree.pos,signalsEx.sym),treeutils.makeIdent(tree.pos,catcher.param.sym));  // FIXME - needs position
+                    JCAssign assign = factory.Assign(treeutils.makeIdent(tree.pos,signalsEx.sym),treeutils.makeIdent(tree.pos,catcher.param.sym));  // FIXME - needs position
                     assign.type = signalsEx.type;
-                    catcher.body.stats = catcher.body.stats.append(make.Exec(assign)); // FIXME - needs position
-                    JCThrow throwex = make.Throw(treeutils.makeIdent(tree.pos,catcher.param.sym)); // FIXME - needs position
+                    catcher.body.stats = catcher.body.stats.append(factory.Exec(assign)); // FIXME - needs position
+                    JCThrow throwex = factory.Throw(treeutils.makeIdent(tree.pos,catcher.param.sym)); // FIXME - needs position
                     catcher.body.stats = catcher.body.stats.append(throwex);
                     catchers.append(catcher);
                 }  // FIXME _ binary below need position
-                finalChecks.prepend(make.If(treeutils.makeBinary(0,JCTree.EQ,treeutils.makeIdent(tree.pos,signalsEx.sym),nulllit),make.Block(0,postChecks.toList()),make.Block(0,signalsChecks.toList())));
-                JCBlock finalBlock = make.Block(0,finalChecks.toList());// FIXME - needs position
+                finalChecks.prepend(factory.If(treeutils.makeBinary(0,JCTree.EQ,treeutils.makeIdent(tree.pos,signalsEx.sym),nulllit),factory.Block(0,postChecks.toList()),factory.Block(0,signalsChecks.toList())));
+                JCBlock finalBlock = factory.Block(0,finalChecks.toList());// FIXME - needs position
                 finalBlock.type = Type.noType;
                 JCBlock bl = tree.body;
                 if (bl == null) {
                     String mge = position(currentMethodInfo.source,tree.pos) + "model method is not implemented: " + tree.name;  // FIXME - need the source of the model method
                     JCStatement sta = assertFailure(mge,tree.pos); 
-                    bl = make.at(tree.pos).Block(0,List.<JCStatement>of(sta));
+                    bl = factory.at(tree.pos).Block(0,List.<JCStatement>of(sta));
                 }
-                JCTry tryBlock = make.Try(bl,catchers.toList(),finalBlock); // FIXME - needs position
+                JCTry tryBlock = factory.Try(bl,catchers.toList(),finalBlock); // FIXME - needs position
                 tryBlock.type = Type.noType;
 
                 if (!isConstructor) {
@@ -2591,7 +2593,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 }
                 newbody.append(tryBlock);
 
-                tree.body = make.Block(0,newbody.toList());
+                tree.body = factory.Block(0,newbody.toList());
 
                 //log.noticeWriter.println("REWRITTEN " + tree);
                 if (methodSpecs != null) {
@@ -2677,10 +2679,10 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
             } else {
                 tree = (JCReturn)result;
                 // FIXME - what if boxing/autoboxing conversions are needed?
-                JCIdent id = make.Ident(attr.resultName);
+                JCIdent id = factory.Ident(attr.resultName);
                 id.sym = currentMethodInfo.resultDecl.sym;
                 id.type = currentMethodInfo.resultDecl.type;
-                tree.expr = make.at(tree.pos).Assign(id,tree.expr);
+                tree.expr = factory.at(tree.pos).Assign(id,tree.expr);
                 tree.expr.type = id.type;
             }
         }

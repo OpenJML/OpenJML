@@ -1,41 +1,41 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package com.sun.tools.javac.comp;
 
 
-import java.util.AbstractQueue;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Map;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.*;
-
-import org.jmlspecs.openjml.*;
-import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.JmlInternalError;
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
+import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.Utils;
 
-import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
-import com.sun.tools.javac.code.Symbol.TypeSymbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
 /**  FIXME - revise this
@@ -136,15 +136,6 @@ public class JmlEnter extends Enter {
 
     /** This is just used to communicate between levels of visit calls */
     protected ListBuffer<List<JCTree>> currentParentSpecList;
-
-//    /** Used to communicate env information about specification files from
-//     * parent to child while walking the tree.  Perhaps we could reuse env
-//     * for this purpose, but it gets complicated to keep track of when env
-//     * is reset or used for other purposes.  In fact, though, this design
-//     * will need to be altered to accommodate multiple files in a spec
-//     * sequence.
-//     */
-//    protected Env<AttrContext> specEnv;
     
     public java.util.List<Env<AttrContext>> binaryMemberTodo = new LinkedList<Env<AttrContext>>();
 
@@ -156,7 +147,7 @@ public class JmlEnter extends Enter {
      */
     //@ assignable this.*;
     public JmlEnter(Context context) {
-        super(context);
+        super(context); // automatically registers the new object
         this.context = context;
         this.utils = Utils.instance(context);
         this.specs = JmlSpecs.instance(context);
@@ -219,6 +210,7 @@ public class JmlEnter extends Enter {
             
             currentParentSpecList = prev;
 
+            // It appears these are already checked and flagged
 //            // Check for unmatched top-level JML types
 //            for (List<? extends JCTree> list : newlist) {
 //                for (JCTree t: list) {

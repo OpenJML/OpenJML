@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml.proverinterface;
 
 import java.util.Collection;
@@ -75,6 +79,7 @@ public interface IProverResult {
      */
     public static interface Item {}
 
+    // TODO: Document
     public static class Span {
     	final static public int NORMAL = 0;
     	final static public int TRUE = 1;
@@ -89,7 +94,7 @@ public interface IProverResult {
     }
 
     /** This interface describes a counterexample: a set of variable - value pairs 
-     * that constitute a counterexample for a given proof attempt.  
+     * that constitute a satisfying assignment for a given proof attempt.  
      * For flexibility, both variable and value are stored as Strings.
      * @author David Cok
      */
@@ -108,6 +113,8 @@ public interface IProverResult {
          */
         public String get(String variable);
 
+        // TODO - needs more documentation
+        
         public void put(JCTree expr,String value);
         public void putMap(Map<String,String> map);
         public Map<String,String> getMap();
