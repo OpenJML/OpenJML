@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package com.sun.tools.javac.comp;
 
 import static com.sun.tools.javac.code.TypeTags.FORALL;
@@ -27,7 +31,7 @@ public class JmlCheck extends Check {
     @NonNull
     protected Context context;
     
-    /** Creates a new instance - but use instance(), not this method, in order to
+    /** Creates a new instance - but use instance(), not this constructor, in order to
      * get the unique instance for the current compilation context.
      * @param context the compilation context this instance is for
      */

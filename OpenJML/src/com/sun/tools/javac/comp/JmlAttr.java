@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package com.sun.tools.javac.comp;
 
 import static com.sun.tools.javac.code.Flags.ABSTRACT;
@@ -2810,7 +2814,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             case BSELEMTYPE :
                 ExpressionExtension ext = ExpressionExtension.find(tree.pos,token,context,null);
-                Type ttt = ext.typecheck(this,(JCExpression)tree,localEnv);
+                Type ttt = ext.typecheck(this,tree,localEnv);
 //                // Expect one argument of any array type, result type is \TYPE
 //                // The argument expression may contain JML constructs
 //                attribArgs(tree.args, localEnv);
@@ -4108,9 +4112,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitSelect(JCFieldAccess tree) {
-        if (tree.name != null && tree.name.toString().equals("class")) {
-            int i = 0;
-        }
+//        if (tree.name != null && tree.name.toString().equals("class")) {
+//            int i = 0;
+//        }
         if (tree.name != null) {
             super.visitSelect(tree);
             // The super call does not always call check... (which assigns the
@@ -4917,7 +4921,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (tree instanceof JCExpression) {
                     JCExpression expr = (JCExpression)tree;
                     if (RACCheck.allInternal(expr,decls)) {
-                        return (T)expr;
+                        return tree;
                     }
                     if (RACCheck.allExternal(expr,decls)) {
                         if (expr.type.tag != TypeTags.METHOD) {

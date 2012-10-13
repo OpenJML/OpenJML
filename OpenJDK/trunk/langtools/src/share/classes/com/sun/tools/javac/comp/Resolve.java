@@ -922,14 +922,15 @@ public class Resolve {
                 ct = ct.getUpperBound();
             ClassSymbol c = (ClassSymbol)ct.tsym;
             if (!seen.add(c)) return bestSoFar;
-            if ((c.flags() & (ABSTRACT | INTERFACE | ENUM)) == 0)
+            if (!abstractOK(c))
                 abstractok = false;
             for (Scope.Entry e = c.members().lookup(name);
                  e.scope != null;
                  e = e.next()) {
                 //- System.out.println(" e " + e.sym);
                 if (e.sym.kind == MTH &&
-                    (e.sym.flags_field & SYNTHETIC) == 0) {
+                    (e.sym.flags_field & SYNTHETIC) == 0 &&
+                            symbolOK(e)) {
                     bestSoFar = selectBest(env, site, argtypes, typeargtypes,
                                            e.sym, bestSoFar,
                                            allowBoxing,
@@ -959,6 +960,10 @@ public class Resolve {
             }
         }
         return bestSoFar;
+    }
+    
+    protected boolean abstractOK(ClassSymbol c) {
+        return ((c.flags() & (ABSTRACT | INTERFACE | ENUM)) != 0);
     }
 
     /** Find unqualified method matching given name, type and value arguments.

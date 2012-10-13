@@ -1,5 +1,6 @@
-/**
- * 
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
  */
 package org.jmlspecs.openjml.proverinterface;
 
@@ -19,42 +20,51 @@ import com.sun.tools.javac.tree.JCTree;
  *
  */
 public class Counterexample implements IProverResult.ICounterexample {
-    public SortedMap<String,String> map = new TreeMap<String,String>(); // FIXME - fix visibility
-    public Map<JCTree,String> mapv = new HashMap<JCTree,String>(); // FIXME - ditto
+    protected SortedMap<String,String> map = new TreeMap<String,String>();
+    protected Map<JCTree,String> mapv = new HashMap<JCTree,String>();
     private List<IProverResult.Span> path;
     
+    @Override
     public void put(String key,String value) {
         map.put(key,value);
     }
     
+    @Override
     public void putMap(Map<String,String> map) {
         this.map.putAll(map);
     }
     
+    @Override
     public Map<String,String> getMap() {
         return this.map;
     }
 
+    @Override
     public void put(JCTree expr,String value) {
         mapv.put(expr,value);
     }
 
+    @Override
     public String get(String key) {
         return map.get(key);
     }
 
+    @Override
     public String get(JCTree expr) {
         return mapv.get(expr);
     }
 
+    @Override
     public Set<Map.Entry<String,String>> sortedEntries() {
         return map.entrySet();
     }
     
+    @Override
     public void putPath(List<IProverResult.Span> path) {
         this.path = path;
     }
     
+    @Override
     public List<IProverResult.Span> getPath() {
         return path;
     }

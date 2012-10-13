@@ -1,15 +1,20 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml.ext;
 
 
-import com.sun.tools.javac.util.Name;
 
 public class PureModifier extends ModifierExtension {
 
+    // TODO: Use a Name?
     public String jmlKeyword() {
         return "pure";
     }
     
-    public Class<?> javaAnnotation() {
+    @Override
+    public Class<org.jmlspecs.annotation.Pure> javaAnnotation() {
         return org.jmlspecs.annotation.Pure.class;
     }
     

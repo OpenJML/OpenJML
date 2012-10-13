@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package com.sun.tools.javac.comp;
 
 import static com.sun.tools.javac.code.Flags.ABSTRACT;
@@ -202,71 +206,79 @@ public class JmlResolve extends Resolve {
     }
 
 
-//    // TODO - what is this for?
-//    public boolean noSuper = false;
     
-     /** This overrides the superclass method in order to distinguish JML
-      * and Java name lookup.
-      */
-     // MAINTENANCE ISSUE: This is copied verbatim from Resolve, 
-     // with just a few inline changes for JML
+//     /** This overrides the superclass method in order to distinguish JML
+//      * and Java name lookup.
+//      */
+//     // MAINTENANCE ISSUE: This is copied verbatim from Resolve, 
+//     // with just a few inline changes for JML
+//     @Override
+//     protected Symbol findMethod(Env<AttrContext> env, 
+//            Type site,
+//            Name name,
+//            List<Type> argtypes,
+//            List<Type> typeargtypes,
+//            Type intype,
+//            boolean abstractok,
+//            Symbol bestSoFar,
+//            boolean allowBoxing,
+//            boolean useVarargs,
+//            boolean operator,
+//            Set<TypeSymbol> seen) {
+//        for (Type ct = intype; ct.tag == CLASS || ct.tag == TYPEVAR; ct = types.supertype(ct)) {
+//            while (ct.tag == TYPEVAR)
+//                ct = ct.getUpperBound();
+//            ClassSymbol c = (ClassSymbol)ct.tsym;
+//            if (!seen.add(c)) return bestSoFar;
+//            if (!allowJML && (c.flags() & (ABSTRACT | INTERFACE | ENUM)) == 0)
+//                abstractok = false;
+//            for (Scope.Entry e = c.members().lookup(name);
+//                        e.scope != null;
+//                        e = e.next()) {
+//                if (e.sym.kind == MTH &&
+//                        (e.sym.flags_field & SYNTHETIC) == 0 &&
+//                        symbolOK(e)) {
+//                    bestSoFar = selectBest(env, site, argtypes, typeargtypes,
+//                            e.sym, bestSoFar,
+//                            allowBoxing,
+//                            useVarargs,
+//                            operator);
+//                }
+//            }
+//            if (name == names.init)
+//                break;
+//            //- System.out.println(" - " + bestSoFar);
+//            if (abstractok) {
+//                Symbol concrete = methodNotFound;
+//                if ((bestSoFar.flags() & ABSTRACT) == 0)
+//                    concrete = bestSoFar;
+//                for (List<Type> l = types.interfaces(c.type);
+//                l.nonEmpty();
+//                l = l.tail) {
+//                    bestSoFar = findMethod(env, site, name, argtypes,
+//                            typeargtypes,
+//                            l.head, abstractok, bestSoFar,
+//                            allowBoxing, useVarargs, operator, seen);
+//                }
+//                if (concrete != bestSoFar &&
+//                        concrete.kind < ERR  && bestSoFar.kind < ERR &&
+//                        types.isSubSignature(concrete.type, bestSoFar.type))
+//                    bestSoFar = concrete;
+//            }
+//        }
+//
+//        return bestSoFar;
+//     }
+     
+     // A hook method added into Resolve.findMethod to avoid replication the
+     // parent class.
+     /** TODO: Not sure exactly what this controls in the superclass */
      @Override
-     protected Symbol findMethod(Env<AttrContext> env, 
-            Type site,
-            Name name,
-            List<Type> argtypes,
-            List<Type> typeargtypes,
-            Type intype,
-            boolean abstractok,
-            Symbol bestSoFar,
-            boolean allowBoxing,
-            boolean useVarargs,
-            boolean operator,
-            Set<TypeSymbol> seen) {
-        for (Type ct = intype; ct.tag == CLASS; ct = false/*noSuper*/? Type.noType : types.supertype(ct)) {
-            while (ct.tag == TYPEVAR)
-                ct = ct.getUpperBound();
-            ClassSymbol c = (ClassSymbol)ct.tsym;
-            if (!seen.add(c)) return bestSoFar;
-            if (!allowJML && (c.flags() & (ABSTRACT | INTERFACE | ENUM)) == 0 && !false/*noSuper*/)
-                abstractok = false;
-            for (Scope.Entry e = c.members().lookup(name);
-                        e.scope != null;
-                        e = e.next()) {
-                if (e.sym.kind == MTH &&
-                        (e.sym.flags_field & SYNTHETIC) == 0 &&
-                        symbolOK(e)) {
-                    bestSoFar = selectBest(env, site, argtypes, typeargtypes,
-                            e.sym, bestSoFar,
-                            allowBoxing,
-                            useVarargs,
-                            operator);
-                }
-            }
-            if (name == names.init)
-                break;
-            //- System.out.println(" - " + bestSoFar);
-            if (abstractok) {
-                Symbol concrete = methodNotFound;
-                if ((bestSoFar.flags() & ABSTRACT) == 0)
-                    concrete = bestSoFar;
-                for (List<Type> l = types.interfaces(c.type);
-                l.nonEmpty();
-                l = l.tail) {
-                    bestSoFar = findMethod(env, site, name, argtypes,
-                            typeargtypes,
-                            l.head, abstractok, bestSoFar,
-                            allowBoxing, useVarargs, operator, seen);
-                }
-                if (concrete != bestSoFar &&
-                        concrete.kind < ERR  && bestSoFar.kind < ERR &&
-                        types.isSubSignature(concrete.type, bestSoFar.type))
-                    bestSoFar = concrete;
-            }
-        }
-
-        return bestSoFar;
+     protected boolean abstractOK(ClassSymbol c) {
+         return allowJML || super.abstractOK(c);
      }
+
+
 
      /** This method overrides the superclass method in order to load spec files
       * when a class is loaded.  If the superclass loads a method from source, then
