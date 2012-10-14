@@ -25,7 +25,6 @@ import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.JmlTranslator;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;

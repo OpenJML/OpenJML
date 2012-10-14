@@ -1,68 +1,86 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml.esc;
-import static com.sun.tools.javac.util.JCDiagnostic.DiagnosticType.WARNING;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTreeScanner;
+import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.Strings;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker.Counter;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
-import org.jmlspecs.openjml.proverinterface.ProverException;
-import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICoreIds;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
+import org.jmlspecs.openjml.proverinterface.ProverException;
 import org.jmlspecs.openjml.provers.AbstractProver;
 import org.jmlspecs.openjml.provers.CVC3Prover;
 import org.jmlspecs.openjml.provers.SimplifyProver;
 import org.jmlspecs.openjml.provers.YicesProver;
 import org.smtlib.ICommand;
-import org.smtlib.IExpr;
 import org.smtlib.IResponse;
 import org.smtlib.IResponse.IError;
 import org.smtlib.ISolver;
 import org.smtlib.IVisitor.VisitorException;
 import org.smtlib.SMT;
-import org.smtlib.impl.SMTExpr.Symbol;
-import org.smtlib.sexpr.ISexpr;
-import org.smtlib.sexpr.Sexpr;
 
-import com.sun.tools.javac.api.DiagnosticFormatter;
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.comp.Attr;
+import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
-import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.PropagatedException;
-import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
-import com.sun.tools.javac.util.JCDiagnostic.DiagnosticType;
 
 /**
  * This class is the main driver for executing ESC on a Java/JML AST. It
@@ -80,9 +98,11 @@ public class JmlEsc extends JmlTreeScanner {
     
     public Map<MethodSymbol,IProverResult> proverResults = new HashMap<MethodSymbol,IProverResult>();
     
+    /** The key used to register an instance of JmlEsc in the compilation context */
     protected static final Context.Key<JmlEsc> escKey =
         new Context.Key<JmlEsc>();
 
+    /** The method used to obtain the singleton instance of JmlEsc for this compilation context */
     public static JmlEsc instance(Context context) {
         JmlEsc instance = context.get(escKey);
         if (instance == null) {
@@ -136,7 +156,7 @@ public class JmlEsc extends JmlTreeScanner {
     // FIXME - check whether a new JmlEsc is created for each new check,
     // if not, the option values will not be updated
     
-    /** The tool constructor, which initializes all the tools. */
+    /** The JmlEsc constructor, which initializes all the tools and other fields. */
     public JmlEsc(Context context) {
         this.context = context;
         this.syms = Symtab.instance(context);
@@ -168,9 +188,6 @@ public class JmlEsc extends JmlTreeScanner {
         //proverToUse = "smt";
     }
 
-    /** Set to the currently owning class declaration while visiting JCClassDecl and its children. */
-    // @Nullable JCClassDecl currentClassDecl = null;
-    
     /** Visit a class definition */
     public void visitClassDef(JCClassDecl node) {
         if (node.sym.isInterface()) return;  // Nothing to verify in an interface
@@ -186,7 +203,7 @@ public class JmlEsc extends JmlTreeScanner {
     static boolean useSearch = false;
     static boolean useCoreIds = false;
     static boolean useTree = false;
-    //public static boolean mainCheckOnly = false;
+
     int timingTest;
 
     /** When we visit a method declaration, we translate and prove the method;
@@ -351,10 +368,12 @@ public class JmlEsc extends JmlTreeScanner {
         }
         
         JmlMethodDecl tree = (JmlMethodDecl)decl;
-        //JmlClassDecl currentClassDecl = JmlSpecs.instance(context).get((ClassSymbol)node.sym.owner).decl;
         JmlClassDecl currentClassDecl = (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)decl.sym.owner).tree;
         
         // Get the denested specs for the method - FIXME - when might they be null?
+        if (tree.sym == null) {
+            log.error("jml.internal.error", "Unexpected null symbol for " + decl.name);
+        }
         JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
 
         JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true);
@@ -503,11 +522,11 @@ public class JmlEsc extends JmlTreeScanner {
             if (stat instanceof JCVariableDecl) {
                 Name n = ((JCVariableDecl)stat).name;
                 String ns = n.toString();
-                if (ns.startsWith("LABEL_lbl")) {
+                if (ns.startsWith(Strings.labelVarString + "lbl")) {
                     boolean b = getBoolValue(ns,smt,solver);
-                    if (ns.startsWith("LABEL_lblpos")) {
+                    if (ns.startsWith(Strings.labelVarString + "lblpos")) {
                         if (b) log.warning(stat.pos,"esc.label.value",ns.substring(13),b);
-                    } else if (ns.startsWith("LABEL_lblneg")) {
+                    } else if (ns.startsWith(Strings.labelVarString + "lblneg")) {
                         if (!b) log.warning(stat.pos,"esc.label.value",ns.substring(13),b);
                     } else {
                         log.warning(stat.pos,"esc.label.value",ns.substring(10),b);
@@ -566,7 +585,7 @@ public class JmlEsc extends JmlTreeScanner {
 //            }
             // FIXME - hardcoded string that is also used in JmlAssertionAdder
             // FIXME - looking for RESULT does not work for void functcinos
-            if (stat instanceof JCVariableDecl && ((JCVariableDecl)stat).name.toString().startsWith("TERMINATION")) {
+            if (stat instanceof JCVariableDecl && ((JCVariableDecl)stat).name.toString().startsWith(Strings.terminationVarString)) {
                 terminationPos = stat.pos;
             }
         }
@@ -1160,8 +1179,8 @@ public class JmlEsc extends JmlTreeScanner {
                             JCIdent ek = (JCIdent)((JmlStatementExpr)stt).expression;
 
                             String eid = ek.name.toString();
-                            int pp = eid.lastIndexOf('$');
-                            int ps = eid.indexOf('$');
+                            int pp = eid.lastIndexOf('_');
+                            int ps = eid.indexOf('_');
                             int pos = Integer.parseInt(eid.substring(ps+1,pp));
                             String label = eid.substring(pp+1);
 

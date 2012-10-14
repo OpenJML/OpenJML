@@ -200,19 +200,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Set from the options for user-requested verbosity */
     protected boolean verbose = false;
     
-    /** A String used as the Java variable for \result, hopefully obfuscated
-     * enough that no one will ever actually use a Java variable with this name.
-     */
-    final static public String resultVarString = "_JML$$$result";
-    
-    /** A String used as the Java variable for \exception, hopefully obfuscated
-     * enough that no one will ever actually use a Java variable with this name.
-     */
-    final static public String exceptionVarString = "_JML$$$exception";
-    
-    // TODO - what is this?
-    public final static String syntheticExceptionID = "_JML$$$syntheticExceptionID";
-    
     /** The Name version of resultVarString in the current context */
     final public Name resultName;
     
@@ -409,8 +396,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            LockSet.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("LockSet"), LockSet, syms.rootPackage);
         }
         
-        this.resultName = names.fromString(resultVarString);
-        this.exceptionName = names.fromString(exceptionVarString);
+        this.resultName = names.fromString(Strings.resultVarString);
+        this.exceptionName = names.fromString(Strings.exceptionVarString);
         
         trueLit = makeLit(syms.booleanType,1);
         falseLit = makeLit(syms.booleanType,0);
@@ -2488,7 +2475,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {
         
         if (tree.vardef.name == null) {
-            tree.vardef.name = names.fromString(syntheticExceptionID);
+            tree.vardef.name = names.fromString(Strings.syntheticExceptionID);
         }
         
         Env<AttrContext> localEnv = localEnv(env,tree);

@@ -298,7 +298,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 that.vardef.vartype.accept(this);
                 if (that.vardef.name != null) {
                     String s = that.vardef.name.toString();
-                    if (!JmlAttr.syntheticExceptionID.equals(s)) {
+                    if (!Strings.syntheticExceptionID.equals(s)) {
                         print(" ");
                         print(that.vardef.name.toString());
                     }
