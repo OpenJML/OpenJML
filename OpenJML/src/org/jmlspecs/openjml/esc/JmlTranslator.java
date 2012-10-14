@@ -1,10 +1,13 @@
-package org.jmlspecs.openjml;
+package org.jmlspecs.openjml.esc;
 
 import java.util.LinkedList;
 
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -36,7 +39,9 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
-import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.JmlTreeTranslator;
+import org.jmlspecs.openjml.JmlTreeUtils;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
@@ -211,18 +216,18 @@ public class JmlTranslator extends JmlTreeTranslator {
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
-        booleqSymbol = treeutils.findOpSymbol("==",syms.booleanType);
-        boolneSymbol = treeutils.findOpSymbol("!=",syms.booleanType);
+        booleqSymbol = treeutils.booleqSymbol;
+        boolneSymbol = treeutils.boolneSymbol;
         trueLit = treeutils.trueLit;
         falseLit = treeutils.falseLit;
     }
     
     /** Generates a new translator tied to the given compilation context */
     public static JmlTranslator instance(Context context) {
-        return new JmlTranslator(context);  // FIXME - store in context??
+        return new JmlTranslator(context);
     }
     
-    /** Translates the env.tree AST in the given env. */
+    /** Translates the env.tree AST in-place in the given env. */
     public void translate(Env<AttrContext> env) {
         pushSource(env.toplevel.sourcefile);
         try {

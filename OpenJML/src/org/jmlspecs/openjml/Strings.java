@@ -108,5 +108,49 @@ public class Strings {
      */
     public static final String eclipseSpecsProjectLocation = "openjml.eclipseSpecsProjectLocation";
     
+    /** A String used as the root of a variable name that is a temporary
+     * intermediate result in an expression evaluation.
+     */
+    final static public String tmpVarString = "_JML__tmp";
+    
+    /** A String used as the Java variable for \result, hopefully obfuscated
+     * enough that no one will ever actually use a Java variable with this name.
+     */
+    final static public String resultVarString = "_JML___result";
+    
+    /** A String used as the root of a temporary variable to hold the
+     * value of the result of a 'new' constructor call .
+     */
+    final static public String newObjectVarString = "_JML___NEWOBJECT_";
+    
+    /** A String used as the root of a temporary variable to hold the value of
+     * the result of a new array call.
+     */
+    final static public String newArrayVarString = "_JML___NEWARRAY_";
+    
+    /** A String used as the root of a temporary variable to represent a 
+     * JML label expression.
+     */
+    final static public String labelVarString = "LABEL_";
+
+    final static public String assertPrefix =  "ASSERT_";
+
+    final static public String prePrefix = "Pre_";
+    
+    /** A String used as variable that records the location of the return or
+     * throw statement marking the exit from a method.
+     */
+    final static public String terminationVarString = "_JML___termination";
+    
+    /** A String used as the Java variable for \exception, hopefully obfuscated
+     * enough that no one will ever actually use a Java variable with this name.
+     */
+    final static public String exceptionVarString = "_JML___exception";
+    
+    /** A string used as the ID of the Exception in a a signals clause that
+     * does not actually have an ID present: signals (Exception) ...
+     */ // FIXME - can we use the one above just as well?
+    public final static String syntheticExceptionID = "_JML___syntheticExceptionID";
+    
 
 }

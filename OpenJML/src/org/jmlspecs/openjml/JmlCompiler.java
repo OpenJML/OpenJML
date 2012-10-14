@@ -13,6 +13,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.esc.JmlTranslator;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
@@ -343,11 +344,10 @@ public class JmlCompiler extends JavaCompiler {
         }
         
         if (utils.esc) {
-            //if (Options.instance(context).get("-newesc") == null) new JmlTranslator(context).translate(env);
-            //log.noticeWriter.println(JmlPretty.write(env.tree));
             esc(env);
             
-            // nothing put in results, so no further compilation phases are performed
+            // nothing has been put in results, so no further compilation 
+            // phases will be performed
         }
         if (utils.rac) {
             JCTree t = env.tree;
@@ -360,6 +360,8 @@ public class JmlCompiler extends JavaCompiler {
                         t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
             super.desugar(env,results);
         }
+        
+        // FIXME - continue with usual Java compilation?
     }
     
 //    public CountMethodInvocation counter = new CountMethodInvocation();

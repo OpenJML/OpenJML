@@ -210,7 +210,8 @@ public class JmlTreeUtils {
         attrEnv = env;
     }
     
-    /** This sets the end position of newnods to be the same as that of srcnode */
+    /** This sets the end position of newnode to be the same as that of srcnode;
+     * the nodes are assumed to reference the same source file. */
     public void copyEndPosition(JCTree newnode, JCTree srcnode) {
         Map<JCTree,Integer> z = log.currentSource().getEndPosTable();
         if (z != null) {
@@ -284,7 +285,7 @@ public class JmlTreeUtils {
     /** Make an attributed tree representing a literal - NOT FOR BOOLEAN or NULL or CHARACTER values.
      *  @param pos        The node position
      *  @param type       The literal's type.
-     *  @param value      The literal's value.
+     *  @param value      The literal's value; use 0 or 1 for Boolean.
      */
     public JCLiteral makeLit(int pos, Type type, Object value) { // FIXME  I don't think it is correct for char literals
         return factory.at(pos).Literal(type.tag, value).setType(type.constType(value));
@@ -301,12 +302,6 @@ public class JmlTreeUtils {
         return factory.at(pos).Literal(TypeTags.INT, value).setType(syms.intType.constType(value));
     }
 
-//    protected JCLiteral makeTypeLiteral(Type type, int pos) {
-//        JCLiteral lit = factory.at(pos).Literal(TypeTags.CLASS,type);
-//        lit.type = syms.classType;
-//        return lit;
-//    }
-    
     /** Makes a constant boolean literal AST node.
      * @param pos the position to use for the node
      * @param value the boolean value of the constant node
@@ -337,11 +332,10 @@ public class JmlTreeUtils {
         switch (type.tag) {
             case TypeTags.CLASS:
             case TypeTags.ARRAY:
-                return nulllit;
-            case TypeTags.BOOLEAN:
-                return falseLit;
+                return nulllit; // FIXME - pos not set.
             case TypeTags.CHAR:
                 return makeLit(pos,type,0x0000);
+            case TypeTags.BOOLEAN:
             default:
                 return makeLit(pos,type,0);
         }
@@ -353,9 +347,9 @@ public class JmlTreeUtils {
      * @return the AST
      */
     public JCExpression makePrimitiveClassLiteralExpression(String s) {
-        Name n = names.fromString(s);
+        Name n = names.fromString(s); // FIXME - pass in a Name?
         // The following only ever loads the class once, despite multiple calls
-        Type type = ClassReader.instance(context).enterClass(n).type;
+        Type type = ClassReader.instance(context).enterClass(n).type; // TODO - don't call instance all the time
         JCIdent id = factory.Ident(n);
         id.pos = Position.NOPOS;
         id.type = type;
@@ -396,6 +390,26 @@ public class JmlTreeUtils {
         // FIXME - other constant foldings?
         JCUnary e = factory.at(pos).Unary(optag,expr);
         e.operator = findOpSymbol(optag,expr.type);
+        e.type = e.operator.type.getReturnType();
+        copyEndPosition(e,expr);
+        return e;
+    }
+
+    /** Makes a Java unary operator node; it may be constant-folded
+     * @param pos the pseudo source code location of the node
+     * @param optag the unary operator, e.g. JCTree.NOT, JCTree.NEG, JCTree.COMPL, ...
+     * @param opsymbol the symbol corresponding to the optag
+     * @param expr the argument expression
+     * @return the new node
+     */
+    public JCExpression makeUnary(int pos, int optag, Symbol opsymbol, JCExpression expr) {
+        if (optag == JCTree.NOT){
+            if (expr.equals(trueLit)) return falseLit;
+            if (expr.equals(falseLit)) return trueLit;
+        }
+        // FIXME - other constant foldings?
+        JCUnary e = factory.at(pos).Unary(optag,expr);
+        e.operator = opsymbol;
         e.type = e.operator.type.getReturnType();
         copyEndPosition(e,expr);
         return e;
@@ -466,8 +480,8 @@ public class JmlTreeUtils {
     }
 
     
-    /** Produces an Equality AST node.  The symbol is null, so this cannot be 
-     * used for RAC.
+    /** Produces an Equality AST node, without symbol lookup (use makeBinary
+     * if you need symbol lookup), so is not appropriate for RAC. 
      * @param pos the position of the node
      * @param lhs the left argument
      * @param rhs the right argument
@@ -548,7 +562,7 @@ public class JmlTreeUtils {
         return makeBinary(pos,JCTree.NE,objectneSymbol,lhs, rhs);
     }
     
-    
+    /** Makes an attributed AST for the length operation on an array. */
     public JCFieldAccess makeLength(int pos, JCExpression array) {
         JCFieldAccess fa = (JCFieldAccess)factory.at(pos).Select(array, syms.lengthVar);
         fa.type = syms.intType;
@@ -575,7 +589,7 @@ public class JmlTreeUtils {
      * that of the 'caughtException' name defined in the constructor; the catch
      * block itself is initialized with no statements; the type of the exception
      * is java.lang.Exception.
-     * @param owner  TBD
+     * @param owner  TODO
      * @return the new AST
      */
     public JCCatch makeCatcher(Symbol owner) {
@@ -593,23 +607,7 @@ public class JmlTreeUtils {
         JCVariableDecl v = makeVarDef(exceptionType,caughtException,owner,Position.NOPOS);
         return factory.at(Position.NOPOS).Catch(v,factory.Block(0,List.<JCStatement>nil()));
     }
-    
-    // TBD FIXME document
-    public JCCatch makeCatcherJML(Symbol owner) {
-        JCVariableDecl v = makeVarDef(assertionFailureClass.type,caughtException,owner,null);
-        JCIdent id = factory.Ident(caughtException);
-        id.pos = Position.NOPOS;
-        id.sym = v.sym;
-        id.type = v.type;
-        JCThrow t = factory.Throw(id);
-        t.pos = Position.NOPOS;
-        JCBlock b = factory.Block(0,List.<JCStatement>of(t));
-        b.pos = Position.NOPOS;
-        JCCatch c = factory.Catch(v,b);
-        c.pos = Position.NOPOS;
-        return c;
-     }
-    
+        
     /** Makes an ident that references 'this', in the given class 
      * @param csym the containing class
      * @return the new JCIdent
@@ -632,9 +630,8 @@ public class JmlTreeUtils {
      */
     public JCVariableDecl makeIntVarDef(Name name, JCExpression initializer, Symbol owner) {
         Type type = syms.intType;
-        JCExpression tid = factory.Type(type);
+        JCExpression tid = factory.Type(type); // sets tid.type
         tid.pos = Position.NOPOS;
-        tid.type = type;  // FIXME - not needed?
         JCModifiers mods = factory.at(Position.NOPOS).Modifiers(0);
         JCVariableDecl d = factory.VarDef(mods,name,tid,initializer);
         VarSymbol v =
@@ -647,7 +644,7 @@ public class JmlTreeUtils {
 
     /** Makes an attributed variable declaration along with a new VarSymbol (which is not 
      * put into the symbol table); the declaration has no modifiers; it is
-     * initialized to a zero-equivalent value.
+     * not initialized; no position set.
      * @param type  the type of the new variable (should be an attributed AST)
      * @param name  the name of the new variable
      * @param owner the owner of the new variable (e.g. a MethodSymbol or ClassSymbol)
@@ -657,7 +654,6 @@ public class JmlTreeUtils {
         int flags = 0;
         factory.at(Position.NOPOS);
         JCModifiers mods = factory.at(Position.NOPOS).Modifiers(0);
-        //JCExpression zeroEquiv = makeZeroEquivalentLit(Position.NOPOS,type.type);
         JCVariableDecl d = factory.VarDef(mods,name,type,null);
         VarSymbol v =
             new VarSymbol(flags, d.name, d.vartype.type, owner);
@@ -667,6 +663,14 @@ public class JmlTreeUtils {
         return d;
     }
 
+    /** Makes an attributed variable declaration along with a new VarSymbol (which is not 
+     * put into the symbol table); the declaration has no modifiers; it is
+     * initialized to a zero-equivalent value; no position set.
+     * @param type  the type of the new variable (should be an attributed AST)
+     * @param name  the name of the new variable
+     * @param owner the owner of the new variable (e.g. a MethodSymbol or ClassSymbol)
+     * @return the AST for the declaration
+     */
     public JCVariableDecl makeVarDefZeroInit(JCExpression type, Name name, Symbol owner) {
         int flags = 0;
         factory.at(Position.NOPOS);
@@ -683,33 +687,39 @@ public class JmlTreeUtils {
 
 
     /** Makes an attributed variable declaration along with a new VarSymbol (which is not 
-     * put into the symbol table); the declaration has no modifiers.
+     * put into the symbol table); the declaration has no modifiers; position
+     * is set to that of the init expression.
      * @param type  the type of the new variable
      * @param name  the name of the new variable
      * @param owner the owner of the new variable (e.g. a MethodSymbol or ClassSymbol)
      * @param init  the initialization expression for the new AST
      * @return the AST for the declaration
-     */  // FIXME - what about position
+     */
     public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, JCExpression init) {
         int modifierFlags = 0;
-        JCExpression tid = factory.at(init.pos).Type(type);
-        tid.type = type;  // FIXME - relevant?
         VarSymbol v = new VarSymbol(modifierFlags, name, type, owner);
         JCVariableDecl d = factory.VarDef(v,init);
         d.pos = init.pos;
         return d;
     }
 
+    /** Makes an attributed variable declaration along with a new VarSymbol (which is not 
+     * put into the symbol table); the declaration has no modifiers and no initialization.
+     * @param type  the type of the new variable
+     * @param name  the name of the new variable
+     * @param owner the owner of the new variable (e.g. a MethodSymbol or ClassSymbol)
+     * @param pos   the position to set
+     * @return the AST for the declaration
+     */
     public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, int pos) {
         int modifierFlags = 0;
-        JCExpression tid = factory.at(pos).Type(type);
-        tid.type = type;  // FIXME - relevant?
         VarSymbol v = new VarSymbol(modifierFlags, name, type, owner);
         JCVariableDecl d = factory.VarDef(v,null);
         d.pos = pos;
         return d;
     }
 
+    // TODO _ document
     public JCMethodInvocation makeMethodInvocation(int pos, JCExpression object, Name methodName) {
         JCFieldAccess meth = factory.Select(object,methodName);
         meth.pos = pos;
@@ -721,6 +731,7 @@ public class JmlTreeUtils {
         return call;
     }
     
+    // TODO _ document
     public JCMethodInvocation makeMethodInvocation(int pos, JCExpression object, Name methodName, JCExpression arg) {
         JCFieldAccess meth = factory.Select(object,methodName);
         meth.pos = pos;

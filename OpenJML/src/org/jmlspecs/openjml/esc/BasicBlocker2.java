@@ -24,7 +24,6 @@ import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.JmlTranslator;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAccess;
@@ -231,7 +230,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
     // Options
     
     // TODO - document
-    static boolean useAssertDefinitions = true;
+    // Turned this off - with it on, Java assert statements are declared out of order and fail.
+    // There is still a problem with Java assert and JML assert being handled differently, with different naming
+    static boolean useAssertDefinitions = false;
 
     // This implements checking of assumption feasibility.  After an 
     // assumption that is to be checked, we add the assertion
@@ -795,7 +796,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     
     // FIXME - review and document
     protected Name encodedNameNoUnique(VarSymbol sym, int incarnationPosition) {
-        return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "$" : ("$" + sym.pos + "$")) + incarnationPosition);
+        return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition);
     }
     
     // FIXME - review
@@ -806,7 +807,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @return the new name
      */
     protected Name encodedTypeName(TypeSymbol sym, int declarationPosition) {
-        return names.fromString(sym.flatName() + "$" + declarationPosition);
+        return names.fromString(sym.flatName() + "_" + declarationPosition);
     }
     
     // FIXME - review
@@ -819,7 +820,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @return the new name
      */
     protected Name encodedName(MethodSymbol sym, int declpos, int incarnationPosition) {
-        return names.fromString(sym.getQualifiedName() + (declpos < 0 ? "$" : ("$" + declpos + "$")) + incarnationPosition);
+        return names.fromString(sym.getQualifiedName() + (declpos < 0 ? "_" : ("_" + declpos + "_")) + incarnationPosition);
     }
     
     Symbol selectSym = null;
@@ -1320,10 +1321,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
             //if (extraEnv) { usepos++; declpos++; }
             String n;
             if (source == log.currentSourceFile()) {
-                n = "assert$" + usepos + "$" + declpos + "$" + label + "$" + (unique++);
+                n = "assert_" + usepos + "_" + declpos + "_" + label + "_" + (unique++);
             } else {
                 Integer i = getIntForFile(source);
-                n = "assert$" + usepos + "$" + declpos + "@" + i + "$" + label + "$" + (unique++);
+                n = "assert_" + usepos + "_" + declpos + "__" + i + "_" + label + "_" + (unique++);
             }
              
             JCIdent id = newAuxIdent(n,syms.booleanType,that.getStartPosition(),false);
