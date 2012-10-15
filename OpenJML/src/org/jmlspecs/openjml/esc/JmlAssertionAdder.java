@@ -490,7 +490,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Computes and adds checks for all the pre and postcondition clauses. */
     public void addPrePostConditions(JCMethodDecl decl, ListBuffer<JCStatement> initialStats, ListBuffer<JCStatement> finalizeStats) {
         if (decl.sym == null) {
-            log.warning("jml.internal.error", "Unexpected null symbol for " + decl.getName());
+            log.warning("jml.internal.nosobad", "Unexpected null symbol for " + decl.getName());
         }
         JmlMethodSpecs denestedSpecs = decl.sym == null ? null : JmlSpecs.instance(context).getDenestedSpecs(decl.sym);
         // Add a precondition that the parameter != null on each formal parameter, if needed
@@ -600,7 +600,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Class fields are owned by the class - we do check those
         if (!(id.sym.owner instanceof Symbol.ClassSymbol)) return;
         if (methodDecl.sym == null) {
-            log.error(methodDecl.pos,"jml.internal.error","Unexpected null symbol for method Declaration");
+            log.error(methodDecl.pos,"jml.internal.notsobad","Unexpected null symbol for method Declaration");
         }
         JmlMethodSpecs denestedSpecs = methodDecl.sym == null ? null : JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym);
         for (JmlSpecificationCase scase : denestedSpecs.cases) {

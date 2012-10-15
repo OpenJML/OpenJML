@@ -4336,7 +4336,7 @@ public class BasicBlocker extends JmlTreeScanner {
             JCExpression preCondition = trSpecExpr(entry.pre,log.currentSourceFile()); // FIXME - fix this
             for (JCTree sr: entry.storerefs) {
                 if (sr == null) {
-                    Log.instance(context).error(pos,"jml.internal.error","Unexpected null store-ref in BasicBlocker.havocAssignables");
+                    Log.instance(context).error(pos,"jml.internal","Unexpected null store-ref in BasicBlocker.havocAssignables");
                     continue;
                 }
                 int npos = pos*100000 + sr.pos;
@@ -4557,7 +4557,7 @@ public class BasicBlocker extends JmlTreeScanner {
                         havocEverything(preCondition,sr.pos);
                     }
                 } else {
-                    Log.instance(context).error(sr.pos,"jml.internal.error","Unexpected kind of store-ref in BasicBlocker.havocAssignables: " + sr.getClass());
+                    Log.instance(context).error(sr.pos,"jml.internal","Unexpected kind of store-ref in BasicBlocker.havocAssignables: " + sr.getClass());
                 }
             }
         }

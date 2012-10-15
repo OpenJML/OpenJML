@@ -1114,7 +1114,7 @@ public class escnew extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m2bad",12
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m2bad",5
                 );
     }
     

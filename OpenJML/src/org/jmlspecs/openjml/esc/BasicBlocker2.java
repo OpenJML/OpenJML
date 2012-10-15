@@ -25,46 +25,7 @@ import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTree.JmlBBFieldAccess;
-import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
-import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlGroupName;
-import org.jmlspecs.openjml.JmlTree.JmlImport;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlPrimitiveTypeTree;
-import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
-import org.jmlspecs.openjml.JmlTree.JmlStatement;
-import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
-import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
-import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
-import org.jmlspecs.openjml.JmlTree.JmlStatementSpec;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConditional;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
+import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Nowarns;
@@ -299,6 +260,18 @@ public class BasicBlocker2 extends JmlTreeScanner {
     /** Name of length field */
     public static final String LENGTH = "length";
     
+    /** Name of the SELECT function for arrays. */
+    public static final String SELECTString = "SELECT";
+    
+    /** The Name of the SELECT function for arrays. */
+    public final Name SELECT;
+    
+    /** String of the STORE function for arrays. */
+    public static final String STOREString = "STORE";
+    
+    /** The Name of the STORE function for arrays. */
+    public final Name STORE;
+    
     //-----------------------------------------------------------------
     // Names for various basic blocks
     
@@ -449,8 +422,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
     /** Ordered list of statements from the current block that are yet to be processed into basic program form */
     protected List<JCStatement> remainingStatements;
     
-    /** The guarding condition so far in processing an expression */
-    protected JCExpression condition;
+//    /** The guarding condition so far in processing an expression */
+//    protected JCExpression condition;
     
     /** true when translating a spec expression, which has particular effect on
      * the translation of method calls */
@@ -522,7 +495,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * <BR>
      * jfoMap is a mapping from JavaFileObject to Integer
      */
-    // FIXME - should reconsider whether this mapping is static
+    // FIXME - should reconsider whether these mappings should be static
     static Map<JavaFileObject,Integer> jfoMap = new HashMap<JavaFileObject,Integer>();
 
     /** Maps integers to JavaFileObject, the reverse of the mapping in jfoMap */
@@ -532,6 +505,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     }
     
     /** Returns the int associated with a file, creating it if necessary */
+    // FIXME - check what equals and hashmap are being used.
     public static int getIntForFile(JavaFileObject jfo) {
         Integer i = jfoMap.get(jfo);
         int k;
@@ -579,11 +553,12 @@ public class BasicBlocker2 extends JmlTreeScanner {
         allocSym = newVarSymbol(0,ALLOC_VAR,syms.intType,0);
         allocIdent = newAuxIdent(allocSym,0);
 
-        /** This is the symbol to access the length of an array */
+        // This is the symbol to access the length of an array 
         lengthSym = syms.lengthVar;
         lengthIdent = newAuxIdent(lengthSym,0);
         
-
+        SELECT = names.fromString(SELECTString);
+        STORE = names.fromString(STOREString);
     }
     
     /** This class implements a map from variable (as a Symbol) to a unique name
@@ -632,7 +607,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             return s;
         }
         
-        /** Returns the name for a class symbol as stored in this map; returns null
+        /** Returns the name for a type symbol as stored in this map; returns null
          * if no name is stored */
         public /*@ Nullable */ Name getName(TypeSymbol vsym) {
             Name s = mapn.get(vsym);
@@ -739,7 +714,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     
     /** Called by visit methods that should never be called. */
     protected void shouldNotBeCalled(JCTree that) {
-        Log.instance(context).error("esc.internal.error","Did not expect to be calling a " + that.getClass() + " within BasicBlocker2");
+        log.error("esc.internal.error","Did not expect to be calling a " + that.getClass() + " within BasicBlocker2");
         throw new JmlInternalError();
     }
     
@@ -751,21 +726,19 @@ public class BasicBlocker2 extends JmlTreeScanner {
     }
     
 
-    // FIXME - use treeutils
-    /** This creates an (unprocessed) assignment and adds it to the given block.
-     * This is appropriate for blocks that are being added to the todo list.
-     * @param b block to which to add the new statement
-     * @param pos the source position to use for the new expressions
-     * @param lhs target of the assignment
-     * @param rhs value of the assignment
-     */
-    protected void addAssignmentStatement(BasicBlock b, int pos, JCExpression lhs, JCExpression rhs) {
-        JCAssign asg = factory.at(pos).Assign(lhs,rhs);
-        asg.type = lhs.type;
-        JCExpressionStatement exec = factory.at(pos).Exec(asg);
-        exec.type = exec.expr.type; // This is probably not needed
-        b.statements.add(exec);        
-    }
+//    /** This creates an (unprocessed) assignment and adds it to the given block.
+//     * This is appropriate for blocks that are being added to the todo list.
+//     * @param b block to which to add the new statement
+//     * @param pos the source position to use for the new expressions
+//     * @param lhs target of the assignment
+//     * @param rhs value of the assignment
+//     */
+//    protected void addAssignmentStatement(BasicBlock b, int pos, JCExpression lhs, JCExpression rhs) {
+//        JCAssign asg = treeutils.makeAssign(pos,lhs,rhs);
+//        JCExpressionStatement exec = factory.at(pos).Exec(asg);
+//        exec.type = exec.expr.type; // This is probably not needed
+//        b.statements.add(exec);        
+//    }
     
     // FIXME - review
     /** Creates an encoded name from a symbol and an incarnation position of the form
@@ -817,12 +790,14 @@ public class BasicBlocker2 extends JmlTreeScanner {
         return names.fromString(sym.getQualifiedName() + (declpos < 0 ? "_" : ("_" + declpos + "_")) + incarnationPosition);
     }
     
+    /** Cached value of the SELECT symbol */
     Symbol selectSym = null;
+    /** Cached value of the STORE Symbol. */
     Symbol storeSym = null;
     
     protected JCExpression makeSelect(JCExpression array, JCExpression index) {
         if (selectSym == null) {
-            selectSym = new VarSymbol(0,names.fromString("SELECT"),null,null);
+            selectSym = new VarSymbol(0,SELECT,null,null); // FIXME - OK to have no type or owner?
         }
         JCMethodInvocation app = factory.Apply(
                 com.sun.tools.javac.util.List.<JCExpression>nil(),
@@ -833,7 +808,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     
     protected JCExpression makeStore(JCExpression array, JCExpression index, JCExpression value) {
         if (storeSym == null) {
-            storeSym = new VarSymbol(0,names.fromString("STORE"),null,null);
+            storeSym = new VarSymbol(0,STORE,null,null);
         }
         JCMethodInvocation app = factory.Apply(
                 com.sun.tools.javac.util.List.<JCExpression>nil(),
@@ -843,27 +818,6 @@ public class BasicBlocker2 extends JmlTreeScanner {
     }
     
 
-    
-    // FIXME - review
-    /** Creates an identifier nodes for a new incarnation of the variable, that is,
-     * when the variable is assigned to.
-     * @param id the old identifier, giving the root name, symbol and type
-     * @param incarnationPosition the position (and incarnation number) of the new variable
-     * @return the new identifier
-     */
-    protected JCIdent newIdentIncarnation(JCIdent id, int incarnationPosition) {
-        return newIdentIncarnation((VarSymbol)id.sym,incarnationPosition);
-    }
-    
-    // FIXME - review
-    /** Creates a new incarnation of a variable, with unique id added */
-    protected JCIdent newIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
-        JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
-        n.type = vsym.type;
-        n.sym = vsym;
-        currentMap.put(vsym,incarnationPosition,n.name);
-        return n;
-    }
     
     // FIXME - review
     /** Creates a new Ident node, but in this case we are not using the name from
@@ -901,12 +855,38 @@ public class BasicBlocker2 extends JmlTreeScanner {
         return n;
     }
     
+    /** Returns the name to use for a symbol under the current Map. */
+    protected Name getCurrentName(VarSymbol sym) {
+        return currentMap.getCurrentName(sym);
+    }
+    
     // FIXME - review and document
     protected JCIdent newTypeIdentUse(TypeSymbol sym, int useposition) {
         Name name = currentMap.getCurrentName(sym);
         JCIdent n = factory.at(useposition).Ident(name);
         n.sym = sym;
         n.type = sym.type;
+        return n;
+    }
+    
+    // FIXME - review
+    /** Creates an identifier nodes for a new incarnation of the variable, that is,
+     * when the variable is assigned to.
+     * @param id the old identifier, giving the root name, symbol and type
+     * @param incarnationPosition the position (and incarnation number) of the new variable
+     * @return the new identifier
+     */
+    protected JCIdent newIdentIncarnation(JCIdent id, int incarnationPosition) {
+        return newIdentIncarnation((VarSymbol)id.sym,incarnationPosition);
+    }
+    
+    // FIXME - review
+    /** Creates a new incarnation of a variable, with unique id added */
+    protected JCIdent newIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
+        JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
+        n.type = vsym.type;
+        n.sym = vsym;
+        currentMap.put(vsym,incarnationPosition,n.name);
         return n;
     }
     
@@ -1012,7 +992,12 @@ public class BasicBlocker2 extends JmlTreeScanner {
     }
     
 
-    /** Start the processing of the given block
+    /** Start the processing of the given block:
+     * <UL>
+     * <LI> checks that any preceding blocks are already processed (if not, something has gone wrong)
+     * <LI> does special processing for finally and lop-after blocks
+     * <LI> sets the argument as the current block (and sets the currentMap and the remainingstatements)
+     * </UL>
      * 
      * @param b the block for which to initialize processing 
      */
@@ -1057,7 +1042,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         remainingStatements = currentBlock.statements;
         currentBlock.statements = new ArrayList<JCStatement>();
         currentMap = blockmaps.get(b);
-        if (currentMap == null) currentMap = initMap(currentBlock);
+        if (currentMap == null) currentMap = initMap(currentBlock); // FIXME - under what circumstances is the currentMap already available?
     }
     
     /** Files away a completed block, adding it to the blocksCompleted list and
@@ -1185,6 +1170,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
         blocksToDo = new LinkedList<BasicBlock>();
         blocksCompleted = new ArrayList<BasicBlock>();
         blockLookup = new java.util.HashMap<String,BasicBlock>();
+        blockmaps.clear();
+        labelmaps.clear();
         
         terminationSym = (VarSymbol)assertionAdder.terminationSym;
         terminationVar = newAuxIdent(terminationSym,0);
@@ -1220,7 +1207,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         
         // Handle the start block a little specially
         // It does not have any statements in it
-        startBlock(startBlock); // Start it so the currentMap is defined
+        startBlock(startBlock); // Start it so the currentMap, currentBlock, remainingStatements are defined
 
         // Define the thisId
         if (this.methodDecl._this != null) {
@@ -1278,9 +1265,19 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @param block the block to process
      */
     protected void processBlock(@NonNull BasicBlock block) {
-        // FIXME - how do these come about?
         if (block.preceding.isEmpty()) {
             // Delete any blocks that do not follow anything
+            // This can happen for example if the block is an afterIf block
+            // and both the then branch and the else branch terminate with
+            // a return or throw statement. If the block does contain some
+            // statement then those will never be executed. They should 
+            // have been warned about by the compiler. Here we will 
+            // log a warning, ignore the block, and continue processing.
+            // Note that the block will still have an id and be in the 
+            // id map.
+            if (!block.statements.isEmpty()) {
+                log.warning("jml.internal","A basic block has no predecessors - ingoring it: " + block.id);
+            }
             for (BasicBlock b: block.succeeding) {
                 b.preceding.remove(block);
             }
@@ -1297,37 +1294,34 @@ public class BasicBlocker2 extends JmlTreeScanner {
     protected void processBlockStatements(boolean complete) {
         while (!remainingStatements.isEmpty()) {
             JCStatement s = remainingStatements.remove(0);
-            condition = trueLiteral;
             if (s != null) s.accept(this);  // A defensive check - statements in the list should not be null
         }
         if (complete) completed(currentBlock);
     }
     
-
-    
     
     // FIXME - REVIEW and document
     protected void addAssert(Label label, JCExpression that, int declpos, List<JCStatement> statements, int usepos, JavaFileObject source, JCTree statement) {
         if (Nowarns.instance(context).suppress(source,usepos,label.toString())) return;
-        if (useAssertDefinitions && label != Label.ASSUME_CHECK) {
-            //if (extraEnv) { usepos++; declpos++; }
-            String n;
-            if (source == log.currentSourceFile()) {
-                n = "assert_" + usepos + "_" + declpos + "_" + label + "_" + (unique++);
-            } else {
-                Integer i = getIntForFile(source);
-                n = "assert_" + usepos + "_" + declpos + "__" + i + "_" + label + "_" + (unique++);
-            }
-             
-            JCIdent id = newAuxIdent(n,syms.booleanType,that.getStartPosition(),false);
-            copyEndPosition(id,that); // FIXME - merge into the call above
-            
-            //JCExpression expr = treeutils.makeBinary(that.pos,JCTree.EQ,id,that);
-                    // FIXME - start and end?
-            BasicProgram.Definition stat = new BasicProgram.Definition(statement.pos,id,that); // FIXME - if we keep this, should use a factory
-            newdefs.add(stat);
-            that = id;
-        }
+//        if (useAssertDefinitions && label != Label.ASSUME_CHECK) {
+//            //if (extraEnv) { usepos++; declpos++; }
+//            String n;
+//            if (source == log.currentSourceFile()) {
+//                n = "assert_" + usepos + "_" + declpos + "_" + label + "_" + (unique++);
+//            } else {
+//                Integer i = getIntForFile(source);
+//                n = "assert_" + usepos + "_" + declpos + "__" + i + "_" + label + "_" + (unique++);
+//            }
+//             
+//            JCIdent id = newAuxIdent(n,syms.booleanType,that.getStartPosition(),false);
+//            copyEndPosition(id,that); // FIXME - merge into the call above
+//            
+//            //JCExpression expr = treeutils.makeBinary(that.pos,JCTree.EQ,id,that);
+//                    // FIXME - start and end?
+//            BasicProgram.Definition stat = new BasicProgram.Definition(statement.pos,id,that); // FIXME - if we keep this, should use a factory
+//            newdefs.add(stat);
+//            that = id;
+//        }
         JmlTree.JmlStatementExpr st = factory.at(statement.pos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
         st.optionalExpression = null;
         st.source = source;
@@ -1613,14 +1607,12 @@ public class BasicBlocker2 extends JmlTreeScanner {
             // sym say, may have been modified in any of the preceding blocks. In each case
             // a new incarnation and a new identifier Name will have been assigned. A record
             // of that current Identifer Name is in the VarMap for the block. But we need a single
-            // Name to use in this new block.  SO we pick a Name (e.g. sym$k$nnn) to use for the new block,
+            // Name to use in this new block.  So we pick a Name (e.g. sym$k$nnn) to use for the new block,
             // and for each preceding block we add an assumption of the form sym$k$mmm = sym$k$nnn.
             // This assumption is added to the end of the preceding block.
-            // We pick the name for the new block as the one with the maximum incarnation number.
-            // TODO: Note that it is not clear where to declare the identifier for the new block.
-            
-            // In this version, we take the minimum incarnation, so that it is defined before all the 
-            // blocks
+            // In this version, we use the minimum incarnation as the new name, 
+            // so that it is defined before all the blocks that use it.
+            // FIXME - review this again, expecially the statement above.
             List<VarMap> all = new LinkedList<VarMap>();
             VarMap combined = new VarMap();
             int maxe = -1;
@@ -1794,6 +1786,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
         /** A list of overridden methods from super interfaces */
         java.util.List<MethodSymbol> interfaceOverrides = new LinkedList<MethodSymbol>();
         
+        /** Finds declarations of methods being overridden, so we can use thier
+         * specifications.
+         */
+        // FIXME - need interfaces also
         protected void findOverrides(MethodSymbol sym, Context context) {
             MethodSymbol msym = sym;
             Types types = Types.instance(context);
@@ -2003,6 +1999,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         return mi;
     }
     
+    // FIXME - do we need this - here?
     /** Makes a JML \typeof expression, with the given expression as the argument */
     protected JCExpression makeTypeof(JCExpression e) {
         JCExpression typeof = factory.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,e);
@@ -2158,7 +2155,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      *   goto rest...
      */ // FIXME - allow for unrolling; review the above and the implementation
 
-    
+    // FIXME - check and document
     protected void visitLoopWithSpecs(JCTree that, List<JCStatement> init, JCExpression test, List<JCExpressionStatement> update, JCStatement body, List<JmlStatementLoop> loopSpecs) {
         loopStack.add(0,that);
         int pos = that.pos;
@@ -2522,6 +2519,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     }
     
     // OK
+    // FIXME - the label needs to be able to be the target of break & continue statements
     public void visitLabelled(JCLabeledStatement that) {
         VarMap map = currentMap.copy();
         labelmaps.put(that.label,map);
@@ -2687,11 +2685,13 @@ public class BasicBlocker2 extends JmlTreeScanner {
         }
     }
     
-    // Should never get here because case statements are handled in switch
+    // OK
+    /** Should call this because case statements are handled in switch. */
     public void visitCase(JCCase that) { shouldNotBeCalled(that); }
     
     /** Stack to hold BasicBlocks for catch clauses, when try statements are nested */
     protected java.util.List<BasicBlock> catchStack = new java.util.LinkedList<BasicBlock>();
+    
     /** Stack to hold BasicBlocks for finally clauses, when try statements are nested */
     protected java.util.List<BasicBlock> finallyStack = new java.util.LinkedList<BasicBlock>();
 
@@ -2727,6 +2727,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     //
     // FIXME - the catch blocks should use Java not JML subtype tests
     // FIXME - review
+    // FIXME - unify the use of the termination var?
     public void visitTry(JCTry that) {
         currentBlock.statements.add(comment(that.pos,"try..."));
 
@@ -2755,7 +2756,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
         processBlockStatements(false);
     }
     
-    // Should not get here because catch statements are handled with the try statement
+    // OK
+    /** Should call this because catch statements are handled in try. */
     public void visitCatch(JCCatch that) { 
         shouldNotBeCalled(that); 
     }
@@ -2772,7 +2774,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         
         // We create a new auxiliary variable to hold the branch condition, so 
         // we can track its value and so the subexpression does not get
-        // replicated.  We add an assumption about its value and add it to
+        // replicated.  We add an assumption about its value and add it to the
         // list of new variables
         String condName = BRANCHCONDITION_PREFIX + pos;
         JCIdent vd = newAuxIdent(condName,syms.booleanType,pos,true);
@@ -2780,13 +2782,13 @@ public class BasicBlocker2 extends JmlTreeScanner {
         currentMap.put((VarSymbol)vd.sym,pos,vd.sym.name); // FIXME - fold this into a newAuxIdent call?
         
         scan(that.cond);
-        JCExpression newexpr = treeutils.makeBinary(that.cond.pos,JCTree.EQ,vd,that.cond);
+        JCExpression newexpr = treeutils.makeBinary(that.cond.pos,JCTree.EQ,treeutils.booleqSymbol,vd,that.cond); // FIXME - that.cond or result?
         addAssumeNoDef(pos,that,Label.BRANCHC,newexpr,currentBlock.statements);
         
         // Now create an (unprocessed) block for everything that follows the
         // if statement
         BasicBlock b = newBlock(restName,pos,currentBlock);// it gets all the followers of the current block
-        List<JCStatement> temp = b.statements;
+        List<JCStatement> temp = b.statements; // empty
         b.statements = remainingStatements; // it gets all of the remaining statements
         remainingStatements = temp;
         blocksToDo.add(0,b); // push it on the front of the to do list
@@ -2795,9 +2797,12 @@ public class BasicBlocker2 extends JmlTreeScanner {
         // Now make the else block, also unprocessed
         b = newBlock(elseName,pos);
         JCExpression c = treeutils.makeUnary(pos,JCTree.NOT,vd);
-        JmlTree.JmlStatementExpr t = factory.at(that.cond.pos + 1).JmlExpressionStatement(JmlToken.ASSUME,Label.BRANCHE,c);
-        copyEndPosition(t,that.cond);
-        b.statements.add(t);
+        // FIXME - do we want this position to be the position of the first else statement? at least document the +1
+        
+        addAssumeNoDef(that.cond.pos+1,that,Label.BRANCHE,c,b.statements);
+//        JmlTree.JmlStatementExpr t = factory.at(that.cond.pos + 1).JmlExpressionStatement(JmlToken.ASSUME,Label.BRANCHE,c);
+//        copyEndPosition(t,that.cond);
+//        b.statements.add(t);
         if (that.elsepart != null) b.statements.add(that.elsepart);
         blocksToDo.add(0,b);
         follows(b,brest);
@@ -2806,15 +2811,17 @@ public class BasicBlocker2 extends JmlTreeScanner {
         // Now make the then block, also still unprocessed
         b = newBlock(thenName,pos);
         c = vd;
-        t = factory.at(that.cond.pos).JmlExpressionStatement(JmlToken.ASSUME,Label.BRANCHT,c);
-        copyEndPosition(t,that.cond);
-        b.statements.add(t);
+        addAssumeNoDef(that.cond.pos,that,Label.BRANCHT,c,b.statements);
+//        t = factory.at(that.cond.pos).JmlExpressionStatement(JmlToken.ASSUME,Label.BRANCHT,c);
+//        copyEndPosition(t,that.cond);
+//        b.statements.add(t);
         b.statements.add(that.thenpart);
         blocksToDo.add(0,b);
         follows(b,brest);
         follows(currentBlock,b);
     }
     
+    // FIXME - REVIEW
     public void visitExec(JCExpressionStatement that)    { 
         // This includes assignments and stand-alone method invocations
         scan(that.expr);
@@ -2841,7 +2848,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             if (b == null) log.noticeWriter.println("NO BREAK BLOCK: " + s);
             else replaceFollows(currentBlock,b);
         } else {
-            Log.instance(context).error("esc.not.implemented","break statements with labels in BasicBlocker");
+            log.error("esc.not.implemented","break statements with labels in BasicBlocker");
         }
     }
     
@@ -2855,42 +2862,60 @@ public class BasicBlocker2 extends JmlTreeScanner {
             if (b == null) log.noticeWriter.println("NO CONTINUE BLOCK: " + blockName);
             else replaceFollows(currentBlock,b);
         } else {
-            Log.instance(context).warning("esc.not.implemented","continue statements with labels in BasicBlocker");
+            log.warning("esc.not.implemented","continue statements with labels in BasicBlocker");
         }
     }
     
-    // OK
+    // OK - presumes that the program has already been modified to record
+    // the return value
     public void visitReturn(JCReturn that) {
+        
+        // FIXME - need to check what shuold/does happen if the return statement
+        // is in a catch or finally block
+        
         if (finallyStack.isEmpty()) {
-            // This is the case only because JmlAssertionAdder wraps everything in a try-finally statement
-            Log.instance(context).warning("esc.internal.error","finally stack is unexpectedly empty");
+            // We don't expect the finallyStack to ever be empty when there is
+            // a return statement only because
+            // JmlAssertionAdder wraps everything in a try-finally statement
+            // TODO - generalize this
+            log.warning("esc.internal.error","finally stack is unexpectedly empty");
         } else {
             BasicBlock finallyBlock = finallyStack.get(0);
             replaceFollows(currentBlock,finallyBlock);
         }
         if (!remainingStatements.isEmpty()) {
-            // Not fatal
-            Log.instance(context).warning("esc.internal.error","Unexpected statements following a return statement are ignored");
+            // Not fatal, but does indicate a problem with the original
+            // program, which the compiler may have already identified
+            log.warning(remainingStatements.get(0).pos,
+                    "esc.internal.error",
+                    "Unexpected statements following a return statement are ignored");
         }
     }
     
-    // FIXME - review
+    // OK - presumes that the program has already been modified to record
+    // the value of the exception being thrown
     public void visitThrow(JCThrow that) { 
         
         // FIXME - if we are already in a catch block we keep the finally block
         // as our follower.
         
         if (finallyStack.isEmpty()) {
-            // This is the case only because JmlAssertionAdder wraps everything in a try-finally statement
-            Log.instance(context).warning("esc.internal.error","finally stack is unexpectedly empty");
+            // We don't expect the finallyStack to ever be empty when there is
+            // a return statement only because
+            // JmlAssertionAdder wraps everything in a try-finally statement
+            // TODO - generalize this
+            log.warning("esc.internal.error","finally stack is unexpectedly empty");
         } else {
             BasicBlock finallyBlock = finallyStack.get(0);
             replaceFollows(currentBlock,finallyBlock);
         }
         
         if (!remainingStatements.isEmpty()) {
-            // Not fatal
-            Log.instance(context).warning("esc.internal.error","Unexpected statements following a throw statement");
+            // Not fatal, but does indicate a problem with the original
+            // program, which the compiler may have already identified
+            log.warning(remainingStatements.get(0).pos,
+                    "esc.internal.error",
+                    "Unexpected statements following a throw statement");
         }
     }
     
@@ -2998,22 +3023,27 @@ public class BasicBlocker2 extends JmlTreeScanner {
                     JCIdent label = (JCIdent)that.args.get(1);
                     currentMap = labelmaps.get(label.name);
                     if (currentMap == null) {
-                        // FIXME Internal error - no map for the label
+                        // This should have already been reported
+                        log.error(label.pos,"jml.unknown.label",label.name.toString());
+                        // Use premap, just to keep going, though that may
+                        // cause other errors
+                        currentMap = premap;
                     }
                     that.args.get(0).accept(this);
                     that.args = com.sun.tools.javac.util.List.<JCExpression>of(that.args.get(0));
                 }
-                that.token = JmlToken.BSSAME; // A no-op
+                that.token = JmlToken.BSSAME; // A no-op // TODO - Review this
             } finally {
                 currentMap = savedMap;
             }
+        } else if (that.token == null) {
+            super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
         } else {
-            for (JCExpression e: that.args) {
-                e.accept(this);
-            }
+            log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker: " + that.token.internedName());
+//            for (JCExpression e: that.args) {
+//                e.accept(this);
+//            }
         }
-        //toLogicalForm.put(that,result);
-
     }
     
     
@@ -3077,7 +3107,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //            JCExpression preCondition = trSpecExpr(entry.pre,log.currentSourceFile()); // FIXME - fix this
 //            for (JCTree sr: entry.storerefs) {
 //                if (sr == null) {
-//                    Log.instance(context).error(pos,"jml.internal.error","Unexpected null store-ref in BasicBlocker.havocAssignables");
+//                    log.error(pos,"jml.internal","Unexpected null store-ref in BasicBlocker.havocAssignables");
 //                    continue;
 //                }
 //                int npos = pos*100000 + sr.pos;
@@ -3299,7 +3329,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //                        havocEverything(preCondition,sr.pos);
 //                    }
 //                } else {
-//                    Log.instance(context).error(sr.pos,"jml.internal.error","Unexpected kind of store-ref in BasicBlocker.havocAssignables: " + sr.getClass());
+//                    log.error(sr.pos,"jml.internal","Unexpected kind of store-ref in BasicBlocker.havocAssignables: " + sr.getClass());
 //                }
 //            }
 //        }
@@ -3401,26 +3431,29 @@ public class BasicBlocker2 extends JmlTreeScanner {
         }
         currentMap.everythingIncarnation = newpos; // FIXME - this now applies to every not-yet-referenced variable, independent of the preCondition
     }
-    
-    // OK
-    public void visitSkip(JCSkip that) {
-        // do nothing
+
+    /** This method is not called for top-level classes, since the BasicBlocker is invoked
+     * directly for each method.
+     */
+    // FIXME - what about for anonymous classes or local classes or nested classes
+    @Override
+    public void visitClassDef(JCClassDecl that) {
+        // Nested classes are found in JmlEsc.  We get to this point if there is a local
+        // class declaration within method body.
+        
+        JmlEsc.instance(context).visitClassDef(that);
     }
-    
-    //OK
-    public void visitJmlStatement(JmlStatement that) {
-        shouldNotBeCalled(that);
+
+    // FIXME - review this, and compare to the above
+    @Override
+    public void visitJmlClassDecl(JmlClassDecl that) {
+        // Nested classes are found in JmlEsc.  We get to this point if there is a local
+        // class declaration within method body.
+        
+        JmlEsc.instance(context).visitClassDef(that);
     }
-    
-    //OK
-    public void visitJmlStatementLoop(JmlStatementLoop that) { 
-        shouldNotBeCalled(that); // These are the specs for loops - they are handled in the loop visitors
-    }
-    
-    //OK
-    public void visitJmlStatementSpec(JmlStatementSpec that) {
-        shouldNotBeCalled(that);
-    }
+
+
     
     // OK
     public void visitJmlStatementExpr(JmlStatementExpr that) { 
@@ -3430,7 +3463,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             scan(that.expression);
             currentBlock.statements.add(that);
         } else {
-            log.error("esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.token.internedName());
+            log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.token.internedName());
         }
     }
     
@@ -3497,36 +3530,33 @@ public class BasicBlocker2 extends JmlTreeScanner {
     
     // Visit methods for Expressions for the most part just use the super class's
     // visit methods. These just call visitors on each subexpression.
+    // Everything is transformed in place.
     // There are a few nodes that get special treatment:
     //  JCIdent - the name is overwritten with the single-assignment name (note that
     //     the name will be out of synch with the symbol)
     //  \old and \pre expressions - these need to find the correct scope and translate
-    //     JCIdent nodes within their scopes using the correct signle-assignment names
+    //     JCIdent nodes within their scopes using the correct single-assignment names
         
     
     public Map<JCTree,JCTree> toLogicalForm = new HashMap<JCTree,JCTree>();
     public Map<JCTree,String> toValue = new HashMap<JCTree,String>();
     
-    // FIXME - review this
+    // OK
     public void visitIdent(JCIdent that) {
         if (that.sym instanceof Symbol.VarSymbol){ 
             Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
-            JCIdent id = newIdentUse(vsym,that.pos); // FIXME - all we need is a current name
-            that.name = id.name;
-            //copyEndPosition(id,that);
+            that.name = getCurrentName(vsym);
         } else if (that.sym == null) {
             // Temporary variables that are introduced by decomposing expressions do not have associated symbols
-            // They are also only used once and only used locally, so we do not track them for DSA purposes
+            // They are also only initialized once and only used locally, so we do not track them for DSA purposes
             // Just skip
         } else {
-            System.out.println("THIS KIND OF IDENT IS NOT HANDLED: " + that);
+            log.error(that.pos,"jml.internal","THIS KIND OF IDENT IS NOT HANDLED: " + that);
         }
-
-//        toLogicalForm.put(that,result);
     }
     
     
-    
+    // FIXME - review
     public void visitAssign(JCAssign that) {
         //scan(that.lhs);
         scan(that.rhs);
@@ -3601,8 +3631,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     
     // OK
     public void visitSynchronized(JCSynchronized that)   { 
-        scan(that.getExpression());
-        scan(that.body);
+        super.visitSynchronized(that);
     }
     
     // FIXME - review and document
@@ -3698,38 +3727,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //        }
     }
     
-//
-//    public void visitJmlBinary(JmlBinary that) { 
-//        JCExpression left = trExpr(that.lhs);
-//        JCExpression right;
-//        if (that.op == JmlToken.IMPLIES) {
-//            JCExpression prev = condition;
-//            try {
-//                condition = treeutils.makeBinary(that.lhs.pos,JCTree.AND,condition,left);
-//                right = trExpr(that.rhs);
-//            } finally {
-//                condition = prev;
-//            }
-//        } else if (that.op == JmlToken.REVERSE_IMPLIES) {
-//            // This is rhs=>lhs, which is equivalent to lhs || !rhs
-//            // The short-circuit semantics is  (lhs ? true : !rhs)   [ instead of ( !rhs ? true : lhs) ]
-//            JCExpression prev = condition;
-//            try {
-//                condition = treeutils.makeBinary(that.lhs.pos,JCTree.AND,condition,treeutils.makeUnary(that.lhs.pos,JCTree.NOT,left));
-//                right = trExpr(that.rhs);
-//            } finally {
-//                condition = prev;
-//            }
-//        } else {
-//            right = trExpr(that.rhs);
-//        }
-//
-//        result = treeutils.makeJmlBinary(that.pos,that.op,left,right);
-//        toLogicalForm.put(that,result);
-//    }
-//    
-//    // FIXME - how are these checked for definedness?
-//    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+
+    // FIXME - how are these checked for definedness?
+    @Override public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        notImpl(that);
 //        JmlToken op = that.op;
 //        if (op == JmlToken.BSFORALL || op == JmlToken.BSEXISTS) {
 //            JCExpression prevCondition = condition;
@@ -3755,22 +3756,13 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //            notImpl(that);
 //        }
 //        toLogicalForm.put(that,result);
-//    }
-//
-//    public void visitJmlSetComprehension(JmlSetComprehension that) { notImpl(that); }
-//    
-//    public void visitJmlLblExpression(JmlLblExpression that) {
-//        // The token is BSLBLANY, BSLBLPOS, BSLBLNEG. The substring(2) strips off the BS.
-//        // The form of this string is parsed when the value is retrieved from the prover context
-//        String n = "$$" + that.token.toString().substring(2) + "$" + that.pos + "$" + that.label;
-//        JCIdent id = newAuxIdent(n,that.type,that.pos,false);
-//        JCExpression e = treeutils.makeEquality(that.pos,id,trExpr(that.expression));
-//        addAssume(that.getStartPosition(),Label.LBL,e);
-//        result = id;
-//        toLogicalForm.put(that,result);
-//    }
-//    
-//    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
+    }
+
+    // FIXME _ implement
+    @Override public void visitJmlSetComprehension(JmlSetComprehension that) { notImpl(that); }
+    
+    
+    @Override public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
 //        switch (that.token) {
 //            case BSNOTMODIFIED:
 //                // Allows multiple arguments; they may be store-refs with wildcards (FIXME)
@@ -3799,63 +3791,61 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //
 //            default: notImpl(that);
 //        }
-//    }
+    }
     
-    public void visitJmlGroupName(JmlGroupName that)               { notImpl(that); }
-    public void visitJmlTypeClauseIn(JmlTypeClauseIn that)         { notImpl(that); }
-    public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that)     { notImpl(that); }
-    public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that)     { notImpl(that); }
-    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that)     { notImpl(that); }
-    public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) { notImpl(that); }
-    public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) { notImpl(that); }
-    public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) { notImpl(that); }
-    public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) { notImpl(that); }
-    public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) { notImpl(that); }
-    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) { notImpl(that); }
-    public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) { notImpl(that); }
-    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) { notImpl(that); }
-    public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) { notImpl(that); }
-    public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) { notImpl(that); }
-    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) { notImpl(that); }
-    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) { notImpl(that); }
-    public void visitJmlSpecificationCase(JmlSpecificationCase that){ notImpl(that); }
-    public void visitJmlMethodSpecs(JmlMethodSpecs that)           { notImpl(that); }
-    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that){ notImpl(that); }
-    public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that)   { notImpl(that); }
-    public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that){ notImpl(that); }
+    @Override public void visitJmlChoose(JmlChoose that)                     { notImpl(that); }
+    @Override public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that)                     { notImpl(that); }
+    @Override public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that)                     { notImpl(that); }
+    @Override public void visitJmlModelProgramStatement(JmlModelProgramStatement that)                     { notImpl(that); }
+    @Override public void visitJmlGroupName(JmlGroupName that)               { notImpl(that); }
+    @Override public void visitJmlTypeClauseIn(JmlTypeClauseIn that)         { notImpl(that); }
+    @Override public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that)     { notImpl(that); }
+    @Override public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that)     { notImpl(that); }
+    @Override public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that)     { notImpl(that); }
+    @Override public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) { notImpl(that); }
+    @Override public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) { notImpl(that); }
+    @Override public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) { notImpl(that); }
+    @Override public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) { notImpl(that); }
+    @Override public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) { notImpl(that); }
+    @Override public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) { notImpl(that); }
+    @Override public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) { notImpl(that); }
+    @Override public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) { notImpl(that); }
+    @Override public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) { notImpl(that); }
+    @Override public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) { notImpl(that); }
+    @Override public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) { notImpl(that); }
+    @Override public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) { notImpl(that); }
+    @Override public void visitJmlSpecificationCase(JmlSpecificationCase that){ notImpl(that); }
+    @Override public void visitJmlMethodSpecs(JmlMethodSpecs that)           { notImpl(that); }
+    @Override public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that){ notImpl(that); }
+    @Override public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that)   { notImpl(that); }
+    @Override public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that){ notImpl(that); }
+
+    // These should all be translated away prior to calling the basic blocker
+    @Override public void visitJmlBinary(JmlBinary that)           { shouldNotBeCalled(that); }
+    @Override public void visitJmlLblExpression(JmlLblExpression that) { shouldNotBeCalled(that); }    
+    @Override public void visitJmlStatement(JmlStatement that) { shouldNotBeCalled(that); }
 
     // These do not need to be implemented
-    public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
-    public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
-    public void visitJmlCompilationUnit(JmlCompilationUnit that)   { shouldNotBeCalled(that); }
-    public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
+    @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
+    @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
+    @Override public void visitJmlCompilationUnit(JmlCompilationUnit that)   { shouldNotBeCalled(that); }
+    @Override public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
+    @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementSpec(JmlStatementSpec that) { shouldNotBeCalled(that); }
 
-    /** This method is not called for top-level classes, since the BasicBlocker is invoked
-     * directly for each method.
-     */
-    // FIXME - what about for anonymous classes or local classes or nested classes
-    @Override
-    public void visitClassDef(JCClassDecl that) {
-        // Nested classes are found in JmlEsc.  We get to this point if there is a local
-        // class declaration within method body.
+// Do not need to override these methods
+//  @Override public void visitSkip(JCSkip that) { super.visitSkip(that); }
+//  @Override public void visitBinary(JCBinary that) { super.visitBinary(that); }
+//  @Override public void visitUnary(JCUnary that) { super.visitUnary(that); }
+//  @Override public void visitParens(JCParens that) { super.visitParens(that); }
+//  @Override public void visitConditional(JCConditional that) { super.visitConditional(that); }
         
-        JmlEsc.instance(context).visitClassDef(that);
+    public void visitJmlStatementLoop(JmlStatementLoop that) { 
+        shouldNotBeCalled(that); // These are the specs for loops - they are handled in the loop visitors
     }
-
-// Do not need to override this method
-//    @Override
-//    public void visitJmlClassDecl(JmlClassDecl that) {
-//        super.visitJmlClassDecl(that);
-//    }
     
-    /** This method should never be called */
-    @Override
-    public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
-    
-    /** This method should never be called */
-    @Override
-    public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
-    
+    // FIXME - what about Indexed, TypeCast, TypeTest, AssignOp, NewClass, NewArray
 
     /** This class is a tree walker that finds any references to classes in the
      * tree being walked: types of anything, explicit type literals
@@ -4142,7 +4132,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             // the typespecs will have essentially null
             // innards, but the object should be there.
             // If this point is reached, some class somehow escaped being loaded.
-            Log.instance(context).error("jml.internal","No typespecs for class " + csym);
+            log.error("jml.internal","No typespecs for class " + csym);
             return null;
         }
         JCClassDecl tree = typeSpecs.decl;
@@ -4192,7 +4182,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
                     copy.expression = treetrans.translate(copy.expression);
                     classInfo.axioms.add(copy);
                 } else {
-                    Log.instance(context).warning("esc.not.implemented","JmlEsc does not yet implement (and ignores) " + token.internedName());
+                    log.warning("esc.not.implemented","JmlEsc does not yet implement (and ignores) " + token.internedName());
                     // FIXME - readable if, writable if, monitors for, in, maps, initializer, static_initializer, (model/ghost declaration?)
                 }
             }
@@ -4243,7 +4233,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //                t.w.append("END\n");
 //                return t.w.toString();
 //            } catch (IOException e) {
-//                Log.instance(context).noticeWriter.println("IOException");
+//                log.noticeWriter.println("IOException");
 //                return "";
 //            }
 //        }
@@ -4365,13 +4355,13 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //    } 
     
 
-    /** A runtime exception used to jump up to a finally block in the visitor calling stack */
-    private static class ReturnException extends RuntimeException {
-        private static final long serialVersionUID = -3475328526478936978L;}
-
-    /** A runtime exception used to jump up to a finally block in the visitor calling stack */
-    private static class ExException extends RuntimeException {
-        private static final long serialVersionUID = -5610207201211221750L;}
+//    /** A runtime exception used to jump up to a finally block in the visitor calling stack */
+//    private static class ReturnException extends RuntimeException {
+//        private static final long serialVersionUID = -3475328526478936978L;}
+//
+//    /** A runtime exception used to jump up to a finally block in the visitor calling stack */
+//    private static class ExException extends RuntimeException {
+//        private static final long serialVersionUID = -5610207201211221750L;}
     
     /** Outputs the counterexample information in more readable form
      * @param context the compilation context
@@ -4388,9 +4378,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //        } catch (ExException e) {
 //            // ignore
 //        } catch (IOException e) {
-//            Log.instance(context).noticeWriter.println("ABORTED");
+//            log.noticeWriter.println("ABORTED");
 //        } catch (RuntimeException e) {
-//            Log.instance(context).noticeWriter.println("ABORTED");
+//            log.noticeWriter.println("ABORTED");
 //            throw e;
 //        } 
 //        return s;

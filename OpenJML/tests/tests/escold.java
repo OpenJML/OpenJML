@@ -30,7 +30,50 @@ public class escold extends escnew {
                 ,"/tt/TestJava.java:6: warning: Label LBL_BB has value true",29
                 );
     }
+
+    // Messages have a different location
+    public void testExplicitAssert() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires true;\n"
+                +"  public void m1bad(int i) {\n"
+                +"    //@ assert i == 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i == 0;\n"
+                +"  public void m1ok(int i) {\n"
+                +"    //@ assert i == 0 ;\n"
+                +"  }\n"
+                
+                +"  public void m1okb(int i) {\n"
+                +"    //@ assume i == 0 ;\n"
+                +"    //@ assert i == 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  public void m2bad(int i) {\n"
+                +"    assert i == 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i == 0;\n"
+                +"  public void m2ok(int i) {\n"
+                +"    assert i == 0 : \"ASD\" ;\n"
+                +"  }\n"
+                
+                +"  public void m2okb(int i) {\n"
+                +"    //@ assume i == 0 ;\n"
+                +"    assert i == 0 ;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m2bad",12
+                );
+    }
     
+
     public void testBox() {
         // Was not implemented in old esc
     }

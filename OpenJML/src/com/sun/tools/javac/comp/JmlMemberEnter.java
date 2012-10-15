@@ -2424,7 +2424,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         try {
             Env<AttrContext> env = enter.typeEnvs.get(sym);
             if (env == null) {
-                log.error("jml.internal.error","JmlMemberEnter.complete called with a null env, presumably from a binary class, which should not be the argument of this complete call: " + sym);
+                log.error("jml.internal","JmlMemberEnter.complete called with a null env, presumably from a binary class, which should not be the argument of this complete call: " + sym);
                 return;
             }
             super.complete(sym);

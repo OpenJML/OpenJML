@@ -372,7 +372,7 @@ public class JmlEsc extends JmlTreeScanner {
         
         // Get the denested specs for the method - FIXME - when might they be null?
         if (tree.sym == null) {
-            log.error("jml.internal.error", "Unexpected null symbol for " + decl.name);
+            log.error("jml.internal.notsobad", "Unexpected null symbol for " + decl.name);
         }
         JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
 
