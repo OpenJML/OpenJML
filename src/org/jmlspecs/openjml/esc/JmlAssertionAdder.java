@@ -988,7 +988,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitVarDef(JCVariableDecl that) {
         JCExpression init = scanret(that.init);
-        if (init != null) init = addImplicitConversion(that.type,init);
+        if (init != null) init = addImplicitConversion(that.pos,that.type,init);
+        
+        if (init != null && !init.type.isPrimitive() && specs.isNonNull(that.sym,that.sym.enclClass())) {
+            // FIXME _ fix this back at the declaration of $$values$...
+            //if (!that.getName().toString().startsWith("$$values$")) 
+            JCExpression nn = treeutils.makeBinary(init.pos, JCTree.NE,treeutils.boolneSymbol, init, treeutils.nulllit);
+            addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,currentStatements,that.pos);
+        }
+        
         // FIXME - need to make a unique symbol
         JCVariableDecl stat = M.at(that.pos).VarDef(that.sym,init);
         addStat(stat);
@@ -1372,7 +1380,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - need endpos in the above, and presumably nearly everywhere else???
     
     // FIXME - check this
-    public JCExpression addImplicitConversion(Type lhstype, JCExpression rhs) {
+    public JCExpression addImplicitConversion(int pos, Type lhstype, JCExpression rhs) {
         if (types.isSameType(lhstype,rhs.type)) return rhs;
         if (lhstype.isPrimitive() && !rhs.type.isPrimitive()) {
             // int = Integer and the like
@@ -1392,6 +1400,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     M.JmlMethodInvocation(id, List.<JCExpression>of(eresult)),
                     rhs);
             addAssume(rhs.pos,Label.EXPLICIT_ASSUME,e,currentStatements);
+            e = treeutils.makeNeqObject(pos, eresult, treeutils.nulllit);
+            addAssume(pos,Label.EXPLICIT_ASSUME,e,currentStatements);
+
         } else {
             
         }
@@ -1404,7 +1415,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCIdent id = (JCIdent)that.lhs;
             JCExpression lhs = scanret(that.lhs);
             JCExpression rhs = scanret(that.rhs);
-            rhs = addImplicitConversion(lhs.type,rhs);
+            rhs = addImplicitConversion(that.pos,lhs.type, rhs);
 
             if (specs.isNonNull(id.sym,methodDecl.sym.enclClass())) {
                 JCExpression e = treeutils.makeNeqObject(that.pos, rhs, treeutils.nulllit);
@@ -2053,7 +2064,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(stat);
         } else {
             JCExpression init = scanret(that.init);
-            if (init != null) init = addImplicitConversion(that.type,init);
+            if (init != null) init = addImplicitConversion(init.pos,that.type,init);
+
+            if (init != null && !init.type.isPrimitive() && specs.isNonNull(that.sym,that.sym.enclClass())) {
+                // FIXME _ fix this back at the declaration of $$values$...
+                //if (!that.getName().toString().startsWith("$$values$")) 
+                JCExpression nn = treeutils.makeBinary(init.pos, JCTree.NE,treeutils.boolneSymbol, init, treeutils.nulllit);
+                addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,currentStatements,that.pos);
+            }
+
             // FIXME - need to make a unique symbol
             JmlVariableDecl stat = M.at(that.pos).VarDef(that.sym,init);
             addStat(stat);

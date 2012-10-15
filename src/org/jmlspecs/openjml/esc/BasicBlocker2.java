@@ -1,10 +1,11 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml.esc;
 
 import static com.sun.tools.javac.code.TypeTags.CLASS;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,17 +20,13 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlInternalError;
-import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
-import org.jmlspecs.openjml.JmlTree.JmlBinary;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
 import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
@@ -48,7 +45,6 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlPrimitiveTypeTree;
-import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlStatement;
 import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
@@ -74,10 +70,6 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
-import org.jmlspecs.openjml.proverinterface.IProver;
-import org.jmlspecs.openjml.proverinterface.IProverResult;
-import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
-import org.jmlspecs.openjml.proverinterface.ProverException;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
@@ -124,7 +116,6 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCParens;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCSkip;
@@ -158,21 +149,34 @@ import com.sun.tools.javac.util.Position;
  * needed to convert control flow into basic blocks
  * <LI> The name field of JCIdent nodes are rewritten in place to
  * convert the program to single-assignment form. Note that this means that 
- * expressions and subexpressions may not be shared across statements or 
+ * expressions and subexpressions of the input tree may not be shared across statements or 
  * within expressions.
  * <LI> The JML \\old and \\pre expressions are recognized and translated to use
  * the appropriate single-assignment identifiers.
  * </UL>
+ * <P>
+ * The input tree must consist of
+ * <UL>
+ * <LI> A valid Java program (with any Java constructs)
+ * <LI> JML assume and assert statements, with JML expressions
+ * <LI> The JML expressions contain only
+ * <UL>
+ * <LI> Java operators
+ * <LI> quantified expressions
+ * <LI> set comprehension expressions
+ * <LI> \\old and \\pre expressions
+ * <LI> [ FIXME ??? JML type literals, subtype operations, method calls in specs?]
+ * </UL
+ * </UL>
  *
  * <P>
- * Basic block form contains only this subset of AST nodes:
+ * Basic block output form contains only this subset of AST nodes:
  * <UL>
  * <LI> JCLiteral - numeric (all of them? FIXME), null, boolean, class (String?, character?)
  * <LI> JCIdent
  * <LI> JCParens
  * <LI> JCUnary
  * <LI> JCBinary
- * <LI> JmlBinary
  * <LI> JCConditional
  * <LI> JmlBBFieldAccess
  * <LI> JmlBBArrayAccess
@@ -317,9 +321,6 @@ public class BasicBlocker2 extends JmlTreeScanner {
     /** Suffix for the name of a basic block for a finally block */
     public static final String FINALLY = "_finally";
     
-//    /** Suffix for the name of a 'catchrest' basic block */
-//    public static final String CATCHREST = "_catchrest";
-    
     /** Suffix for the name of a basic block holding the body of a loop */
     public static final String LOOPBODY = "_LoopBody";
     
@@ -381,7 +382,6 @@ public class BasicBlocker2 extends JmlTreeScanner {
 
     // Caution - the following are handy, but they are shared, so they won't
     // have proper position information
-    // TODO - get them from treeutils
     
     /** Holds an AST node for a boolean true literal, initialized in the constructor */
     @NonNull final protected JCLiteral trueLiteral;
@@ -431,10 +431,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
     /** Place to put new background assertions, such as class predicates */
     protected List<JCExpression> background;
     
-    /** List of blocks yet to be processed, that is, translated from conventional program to basic program state) */
+    /** List of blocks yet to be processed, that is, translated from conventional program to basic program state */
     protected java.util.List<BasicBlock> blocksToDo;
     
-    /** List of blocks completed processing - in basic state */
+    /** List of blocks completed processing - in basic block state */
     protected java.util.List<BasicBlock> blocksCompleted;
     
     /** A map of names to blocks */
@@ -471,15 +471,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
     /** True if the method being converted is static */
     protected boolean isStatic;
     
-    /** True if the method being converted is a helper method */
-    protected boolean isHelper;  // FIXME - no longer in this method
-
-    /** The class info block when walking underneath a given class. */
-    protected JmlClassInfo classInfo; // FIXME - no longer in this method
-    
 
     // FIXME - document the following; check when initialized
-    
+    // FIXME - exceptionVar and terminationVar are no longer needed I think
     protected JCIdent exceptionVar = null;
     protected JCIdent heapVar;
     protected JCIdent terminationVar;  // 0=no termination requested; 1=return executed; 2 = exception happening
@@ -1174,7 +1168,6 @@ public class BasicBlocker2 extends JmlTreeScanner {
         unique = 0;
         isConstructor = methodDecl.sym.isConstructor();  // FIXME - careful if there is nesting???
         isStatic = methodDecl.sym.isStatic();
-        isHelper = utils.isHelper(methodDecl.sym);
         inSpecExpression = false;
         if (classDecl.sym == null) {
             log.error("jml.internal","The class declaration in BasicBlocker.convertMethodBody appears not to be typechecked");
@@ -1186,7 +1179,6 @@ public class BasicBlocker2 extends JmlTreeScanner {
             log.error("jml.internal","There is no class information for " + classDecl.sym);
             return null;
         }
-        this.classInfo = classInfo;
         newdefs = new LinkedList<BasicProgram.Definition>();
         newpdefs = new LinkedList<JCExpression>();
         background = new LinkedList<JCExpression>();
