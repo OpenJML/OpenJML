@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml.esc;
 
 import java.util.ArrayList;
@@ -7,11 +11,7 @@ import java.util.List;
 
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
-import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
-import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.smtlib.ICommand;
 import org.smtlib.ICommand.IScript;
@@ -34,34 +34,30 @@ import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
-import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
-import com.sun.tools.javac.tree.JCTree.JCAssign;
-import com.sun.tools.javac.tree.JCTree.JCAssignOp;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.tree.JCTree.JCNewArray;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCTypeApply;
-import com.sun.tools.javac.tree.JCTree.JCTypeCast;
-import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
-import com.sun.tools.javac.tree.JCTree.JCTypeUnion;
-import com.sun.tools.javac.tree.JCTree.JCUnary;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.JCTree.JCWildcard;
-import com.sun.tools.javac.tree.JCTree.TypeBoundKind;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Names;
 
+/** This class translates a BasicBlock program into SMTLIB. 
+ * The input program is a BasicBlock program, which may consist of the
+ * following kinds of statements:
+ * <UL>
+ * <LI>declaration statements with or without initializers (FIXME - what kinds of types)
+ * <LI>JML assume statements
+ * <LI>JML assert statements
+ * <LI>JML comment statements
+ * </UL>
+ * Expressions may include the following:
+ * <UL>
+ * <LI>Java operators: + - * / % comparisons bit-operations logic-operators
+ * <LI>field access - FIXME?
+ * <LI>array access - FIXME?
+ * <LI>STORE and SELECT functions using Java method class (JCMethodInvocation)
+ * <LI>method calls (FIXME - any restrictions?)
+ * </UL>
+ */
 public class SMTTranslator extends JmlTreeScanner {
 
     /** The error log */
@@ -70,6 +66,7 @@ public class SMTTranslator extends JmlTreeScanner {
     /** The symbol table for this compilation context */
     protected Symtab syms;
     
+    /** The Names table for this compilation context */
     protected Names names;
     
     /** The factory for creating SMTLIB expressions */
@@ -78,6 +75,7 @@ public class SMTTranslator extends JmlTreeScanner {
     /** SMTLIB subexpressions - the result of each visit call */
     protected IExpr result;
     
+    /** Commonly used SMTLIB expressions - using these shares structure */
     protected ISort refSort;
     protected ISort intSort;
     protected ISort boolSort;
@@ -90,14 +88,33 @@ public class SMTTranslator extends JmlTreeScanner {
     protected IScript script; // FIXME - make abstract
     protected List<ICommand> commands;
     
+    // Strings used in our use of SMT. Strings that are part of SMTLIB itself
+    // are used verbatim in the code.
+    public static final String store = "store";
+    public static final String select = "select";
+    public static final String NULL = "NULL";
+    public static final String this_ = "this";
+    public static final String REF = "REF";
+    public static final String length = "length";
+    
+    
     public SMTTranslator(Context context) {
         log = Log.instance(context);
         syms = Symtab.instance(context);
         names = Names.instance(context);
+        F = new org.smtlib.impl.Factory();
+        nullRef = F.symbol(NULL);
+        thisRef = F.symbol(this_);
+        refSort = F.createSortExpression(F.symbol(REF));
+        lengthRef = F.symbol(length);
     }
     
+    // FIXME - want to be able to produce AUFBV programs as well
+    // FIXME - this converts the whole program into one big SMT program
+    //  - might want the option to produce many individual programs, i.e.
+    //  one for each assertion, or a form that accommodates push/pop/coreids etc.
+    
     public ICommand.IScript convert(BasicProgram program) {
-        F = new org.smtlib.impl.Factory();
         script = new Script();
         ICommand c;
         commands = script.commands();
@@ -109,16 +126,20 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(c);
         
         // add background statements
-        c = new C_declare_sort(F.symbol("REF"),F.numeral(0));
+        c = new C_declare_sort(F.symbol(REF),F.numeral(0));
         commands.add(c);
-        c = new C_declare_fun(nullRef = F.symbol("NULL"),new LinkedList<ISort>(), refSort = F.createSortExpression(F.symbol("REF")));
+        c = new C_declare_fun(nullRef,new LinkedList<ISort>(), refSort);
         commands.add(c);
-        c = new C_declare_fun(thisRef = F.symbol("this"),new LinkedList<ISort>(), refSort);
+        c = new C_declare_fun(thisRef,new LinkedList<ISort>(), refSort);
         commands.add(c);
         c = new C_assert(F.fcn(F.symbol("distinct"), thisRef, nullRef));
         commands.add(c);
         List<ISort> args = new LinkedList<ISort>();
-        c = new C_declare_fun(lengthRef = F.symbol("length"),args, F.createSortExpression(F.symbol("Array"),refSort,F.createSortExpression(F.symbol("Int",null))));
+        c = new C_declare_fun(lengthRef,
+                args, 
+                F.createSortExpression(F.symbol("Array"),
+                refSort,
+                F.createSortExpression(F.symbol("Int",null))));
         commands.add(c);
         args = new LinkedList<ISort>();
         args.add(refSort);
@@ -138,7 +159,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 c = new C_assert(ex);
                 commands.add(c);
             } catch (RuntimeException ee) {
-                // skip - error already issued
+                // skip - error already issued // FIXME - better error recovery?
             }
         }
         
@@ -151,7 +172,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         convertSort(id.type));
                 commands.add(c);
             } catch (RuntimeException ee) {
-                // skip - error already issued
+                // skip - error already issued// FIXME - better error recovery?
             }
         }
         
@@ -165,7 +186,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         result);
                 commands.add(c);
             } catch (RuntimeException ee) {
-                // skip - error already issued
+                // skip - error already issued // FIXME - better error recovery?
             }
         }
         
@@ -194,6 +215,9 @@ public class SMTTranslator extends JmlTreeScanner {
         return script;
     }
     
+    /** Converts a BasicBlock into SMTLIB, adding commands into the
+     * current 'commands' list.
+     */
     public void convertBasicBlock(BasicProgram.BasicBlock block) {
         Iterator<JCStatement> iter = block.statements.iterator();
         IExpr tail; 
@@ -216,6 +240,10 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(new C_assert(ex));
     }
     
+    /** A helper method for convertBasicBlock. We need to construct the
+     * expression representing a basicBlock from the end back to the 
+     * beginning; we use recursive calls on this method to do that.
+     */
     public IExpr convert(Iterator<JCStatement> iter, IExpr tail) {
         if (!iter.hasNext()) {
             return tail;
@@ -271,6 +299,8 @@ public class SMTTranslator extends JmlTreeScanner {
         
     }
     
+    // FIXME - review this
+    /** Converts a Java/JML type into an SMT Sort */
     public ISort convertSort(Type t) {
         if ( t == null) {
             log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
@@ -292,6 +322,7 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
+    /** Converts an AST expression into SMT form. */
     public IExpr convertExpr(JCExpression expr) {
         expr.accept(this);
         return result;
@@ -303,11 +334,15 @@ public class SMTTranslator extends JmlTreeScanner {
         log.error("jml.internal","Not yet supported expression node in converting BasicPrograms to SMTLIB: " + tree.getClass());
     }
     
+    public void shouldNotBeCalled(JCTree tree) {
+        log.error("jml.internal","This node should not be present in converting BasicPrograms to SMTLIB: " + tree.getClass());
+    }
+    
     @Override
     public void visitApply(JCMethodInvocation tree) {
         JCExpression m = tree.meth;
         if (m instanceof JCIdent) {
-            if (((JCIdent)m).name.toString().equals("STORE")) {
+            if (((JCIdent)m).name.toString().equals(BasicBlocker2.STOREString)) {
                 result = F.fcn(F.symbol("store", null),
                         convertExpr(tree.args.get(0)),
                         convertExpr(tree.args.get(1)),
@@ -322,6 +357,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
+        // FIXME - I think this should not be called?
         List<IExpr> newargs = new LinkedList<IExpr>();
         for (JCExpression e: that.args) {
             scan(e);
@@ -331,26 +367,31 @@ public class SMTTranslator extends JmlTreeScanner {
         else result = newargs.get(0); // FIXME - this is needed for \old and \pre but a better solution should be found (cf. testLabeled)
     }
 
+    @Override
     public void visitNewClass(JCNewClass tree) {
-        notImpl(tree);
+        shouldNotBeCalled(tree);
         super.visitNewClass(tree);
     }
 
+    @Override
     public void visitNewArray(JCNewArray tree) {
-        notImpl(tree);
+        shouldNotBeCalled(tree);
         super.visitNewArray(tree);
     }
 
+    @Override
     public void visitAssign(JCAssign tree) {
-        notImpl(tree);
+        shouldNotBeCalled(tree);
         super.visitAssign(tree);
     }
 
+    @Override
     public void visitAssignop(JCAssignOp tree) {
-        notImpl(tree); // This should never be implemented
+        shouldNotBeCalled(tree);
         super.visitAssignop(tree);
     }
 
+    @Override
     public void visitUnary(JCUnary tree) {
         int op = tree.getTag();
         tree.arg.accept(this);
@@ -370,6 +411,7 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
 
+    @Override
     public void visitBinary(JCBinary tree) {
         int op = tree.getTag();
         tree.lhs.accept(this);
@@ -414,14 +456,18 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.fcn(F.symbol("*",null), args, null);
                 break;
             case JCTree.DIV:
-                if (tree.type.tag == TypeTags.INT)
-                    result = F.fcn(F.symbol("div",null), args, null);
-                else
+                // FIXME - what kinds of primitive types should be expected
+                if (tree.type.tag == TypeTags.FLOAT)
                     result = F.fcn(F.symbol("/",null), args, null);
+                else if (tree.type.tag == TypeTags.DOUBLE)
+                    result = F.fcn(F.symbol("/",null), args, null);
+                else
+                    result = F.fcn(F.symbol("div",null), args, null);
                 break;
             case JCTree.MOD:
                 result = F.fcn(F.symbol("mod",null), args, null);
                 break;
+                // FIXME - implement these
 //            case JCTree.SL:
 //                result = F.fcn(F.symbol("or",null), args, null);
 //                break;
@@ -446,16 +492,19 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
 
+    @Override
     public void visitTypeCast(JCTypeCast tree) {
-        notImpl(tree);
+        notImpl(tree); // TODO
         super.visitTypeCast(tree);
     }
 
+    @Override
     public void visitTypeTest(JCInstanceOf tree) {
-        notImpl(tree);
+        notImpl(tree); // TODO
         super.visitTypeTest(tree);
     }
 
+    @Override
     public void visitIndexed(JCArrayAccess tree) {
         scan(tree.indexed);
         IExpr array = result;
@@ -468,12 +517,14 @@ public class SMTTranslator extends JmlTreeScanner {
             result = F.fcn(F.symbol("asRefArray",null), array);
             result = F.fcn(F.symbol("select",null),result,index);
         } else {
-            System.out.println("NOT IMPLEMENTED in visitIndexed");
+            notImpl(tree);
             // result = ??? // FIXME
         }
     }
 
+    @Override
     public void visitSelect(JCFieldAccess tree) {
+        // FIXME - review
         // o.f becomes f[o] where f has sort (Array REF type)
         if (tree.selected != null) doFieldAccess(tree.selected,tree.sym);
     }
@@ -491,6 +542,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
     }
 
+    @Override
     public void visitIdent(JCIdent tree) {
         if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && !tree.sym.isStatic()) {
             // a select from this
@@ -544,26 +596,31 @@ public class SMTTranslator extends JmlTreeScanner {
 //
 
 
+    @Override
     public void visitTypeIdent(JCPrimitiveTypeTree tree) {
         notImpl(tree);
         super.visitTypeIdent(tree);
     }
 
+    @Override
     public void visitTypeArray(JCArrayTypeTree tree) {
         notImpl(tree);
         super.visitTypeArray(tree);
     }
 
+    @Override
     public void visitTypeApply(JCTypeApply tree) {
         notImpl(tree);
         super.visitTypeApply(tree);
     }
 
+    @Override
     public void visitTypeUnion(JCTypeUnion tree) {
         notImpl(tree);
         super.visitTypeUnion(tree);
     }
 
+    @Override
     public void visitTypeParameter(JCTypeParameter tree) {
         notImpl(tree);
         super.visitTypeParameter(tree);
@@ -580,5 +637,111 @@ public class SMTTranslator extends JmlTreeScanner {
         notImpl(tree);
         super.visitTypeBoundKind(tree);
     }
+    
+    // These should all be translated away prior to calling the basic blocker,
+    // or should never be called in the first place, because they are not
+    // expressions
+    // FIXME - what about calls of anonymous classes
+    @Override public void visitJmlBinary(JmlBinary that)           { shouldNotBeCalled(that); }
+    @Override public void visitJmlChoose(JmlChoose that)           { shouldNotBeCalled(that); }
+    @Override public void visitJmlClassDecl(JmlClassDecl that)           { shouldNotBeCalled(that); }
+    @Override public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlDoWhileLoop(JmlDoWhileLoop that)  { shouldNotBeCalled(that); }
+    @Override public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlForLoop(JmlForLoop that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlGroupName(JmlGroupName that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlLblExpression(JmlLblExpression that) { shouldNotBeCalled(that); }    
+//    public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) { shouldNotBeCalled(that); }
+//    public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) { shouldNotBeCalled(that); }
+//    public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) { shouldNotBeCalled(that); }
+//    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) { shouldNotBeCalled(that); }
+//    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) { shouldNotBeCalled(that); }
+//    public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) { shouldNotBeCalled(that); }
+//    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) { shouldNotBeCalled(that); }
+//    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatement(JmlStatement that) { shouldNotBeCalled(that); }
+//    public void visitJmlMethodInvocation(JmlMethodInvocation that) { shouldNotBeCalled(that); }
+//    public void visitJmlMethodSpecs(JmlMethodSpecs that)           { shouldNotBeCalled(that); }
+//    public void visitJmlModelProgramStatement(JmlModelProgramStatement that) { shouldNotBeCalled(that); }
+//    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) { shouldNotBeCalled(that); }
+//    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that)     { shouldNotBeCalled(that); }
+//    public void visitJmlSetComprehension(JmlSetComprehension that) { shouldNotBeCalled(that); }
+//    public void visitJmlSingleton(JmlSingleton that)               { shouldNotBeCalled(that); }
+//    public void visitJmlSpecificationCase(JmlSpecificationCase that) { shouldNotBeCalled(that); }
+//    public void visitJmlStatement(JmlStatement that) { shouldNotBeCalled(that); }
+//    public void visitJmlStatementDecls(JmlStatementDecls that) { shouldNotBeCalled(that); }
+//    public void visitJmlStatementExpr(JmlStatementExpr that) { shouldNotBeCalled(that); }
+//    public void visitJmlStatementLoop(JmlStatementLoop that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementSpec(JmlStatementSpec that) { shouldNotBeCalled(that); }
+//    public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) { shouldNotBeCalled(that); }
+//    public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) { shouldNotBeCalled(that); }
+//    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) { shouldNotBeCalled(that); }
+//    public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) { shouldNotBeCalled(that); }
+//    public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) { shouldNotBeCalled(that); }
+//    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) { shouldNotBeCalled(that); }
+//    public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) { shouldNotBeCalled(that); }
+//    public void visitJmlTypeClauseIn(JmlTypeClauseIn that) { shouldNotBeCalled(that); }
+//    public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) { shouldNotBeCalled(that); }
+//    public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) { shouldNotBeCalled(that); }
+//    public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) { shouldNotBeCalled(that); }
+//    public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) { shouldNotBeCalled(that); }
+//    public void visitJmlVariableDecl(JmlVariableDecl that) { shouldNotBeCalled(that); }
+//    public void visitJmlWhileLoop(JmlWhileLoop that) { shouldNotBeCalled(that); }
+
+    // These should never be called, since we are only translating expressions
+    @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
+    @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
+    @Override public void visitJmlCompilationUnit(JmlCompilationUnit that)   { shouldNotBeCalled(that); }
+    @Override public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
+    @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
+
+//    public void visitClassDef(JCClassDecl that)          ;
+//    public void visitMethodDef(JCMethodDecl that)        ;
+//    public void visitVarDef(JCVariableDecl that)         ;
+//    public void visitSkip(JCSkip that)                   ;
+//    public void visitBlock(JCBlock that)                 ;
+//    public void visitDoLoop(JCDoWhileLoop that)          ;
+//    public void visitWhileLoop(JCWhileLoop that)         ;
+//    public void visitForLoop(JCForLoop that)             ;
+//    public void visitForeachLoop(JCEnhancedForLoop that) ;
+//    public void visitLabelled(JCLabeledStatement that)   ;
+//    public void visitSwitch(JCSwitch that)               ;
+//    public void visitCase(JCCase that)                   ;
+//    public void visitSynchronized(JCSynchronized that)   ;
+//    public void visitTry(JCTry that)                     ;
+//    public void visitCatch(JCCatch that)                 ;
+//    public void visitConditional(JCConditional that)     ;
+//    public void visitIf(JCIf that)                       ;
+//    public void visitExec(JCExpressionStatement that)    ;
+//    public void visitBreak(JCBreak that)                 ;
+//    public void visitContinue(JCContinue that)           ;
+//    public void visitReturn(JCReturn that)               ;
+//    public void visitThrow(JCThrow that)                 ;
+//    public void visitAssert(JCAssert that)               ;
+//    public void visitApply(JCMethodInvocation that)      ;
+//    public void visitNewClass(JCNewClass that)           ;
+//    public void visitNewArray(JCNewArray that)           ;
+//    public void visitParens(JCParens that)               ;
+//    public void visitAssign(JCAssign that)               ;
+//    public void visitAssignop(JCAssignOp that)           ;
+//    public void visitUnary(JCUnary that)                 ;
+//    public void visitBinary(JCBinary that)               ;
+//    public void visitTypeCast(JCTypeCast that)           ;
+//    public void visitTypeTest(JCInstanceOf that)         ;
+//    public void visitIndexed(JCArrayAccess that)         ;
+//    public void visitSelect(JCFieldAccess that)          ;
+//    public void visitIdent(JCIdent that)                 ;
+//    public void visitLiteral(JCLiteral that)             ;
+//    public void visitTypeIdent(JCPrimitiveTypeTree that) ;
+//    public void visitTypeArray(JCArrayTypeTree that)     ;
+//    public void visitTypeApply(JCTypeApply that)         ;
+//    public void visitTypeParameter(JCTypeParameter that) ;
+//    public void visitWildcard(JCWildcard that)           ;
+//    public void visitTypeBoundKind(TypeBoundKind that)   ;
+//    public void visitAnnotation(JCAnnotation that)       ;
+//    public void visitModifiers(JCModifiers that)         ;
+//    public void visitErroneous(JCErroneous that)         ;
+//    public void visitLetExpr(LetExpr that)               ;
 
 }

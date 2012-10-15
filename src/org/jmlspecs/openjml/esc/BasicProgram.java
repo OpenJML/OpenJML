@@ -1,32 +1,28 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml.esc;
 
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
-import org.jmlspecs.annotation.*;
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.JmlPretty;
-import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTree.JmlBinary;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Position;
 
 /**
  * A BasicProgram is an equivalent representation of a method:
@@ -37,7 +33,8 @@ import com.sun.tools.javac.util.Position;
  * <LI>all statements have been converted to assumptions and assertions
  * <LI>the AST used for expressions is simplified
  * </UL>
- * The BasicBlocks are allowed to have regular Java/JML statements but are then
+ * The BasicBlocks are allowed to have regular Java/JML statements (as an 
+ * interim state) but are then
  * massaged (by the BasicBlocker) into the official BasicProgram form.  This 
  * class just holds the data and does not provide transforming functionality.
  * 
@@ -46,21 +43,6 @@ import com.sun.tools.javac.util.Position;
 // Note: everything declared protected is intended for use just in this class
 // and any future derived classes - not in the containing package
 public class BasicProgram {
-
-    /** A List of declarations of variables
-     * that are used in this BasicProgram; note that these identifiers
-     * have encoded names that are different than the declared name,
-     * because of DSA renaming.
-     */
-    // FIXME - we want to get rid of this
-    //@ non_null
-    //protected Collection<JCIdent> declarations = new ArrayList<JCIdent>();
-    
-    /** Returns the declarations in this program
-     * 
-     * @return the declarations of variables in this program
-     */
-    //public Collection<JCIdent> declarations() { return declarations; }
     
     /** The method declaration generating this program */
     protected JCMethodDecl methodDecl;
@@ -95,10 +77,10 @@ public class BasicProgram {
             this.expr = null;
         }
         
-        /** Returns the lazily created equalilty for the definition */
+        /** Returns the lazily created equality for the definition */
         public JCExpression expr(Context context) {
             if (expr != null) return expr;
-            expr = JmlTree.Maker.instance(context).Binary(JCTree.EQ,id,value);
+            expr = JmlTree.Maker.instance(context).Binary(JCTree.EQ,id,value); // use treeutils?
             expr.pos = id.pos;  // FIXME _ end position not set, do we need it?
             expr.type = Symtab.instance(context).booleanType;
             return expr;
@@ -114,6 +96,8 @@ public class BasicProgram {
      *  used in the block equations but are not block equations themselves.
      */
     protected List<Definition> definitions = new ArrayList<Definition>();
+    
+    // FIXME - and what are these?
     protected List<JCExpression> pdefinitions = new ArrayList<JCExpression>();
 
     /** A map of expressions and ids that are the assumptions to be checked for vacuity. */
@@ -143,7 +127,7 @@ public class BasicProgram {
     
     /** A list of blocks that constitute this BasicProgram. */
     //@ non_null
-    ArrayList<BasicBlock> blocks = new ArrayList<BasicBlock>();
+    protected ArrayList<BasicBlock> blocks = new ArrayList<BasicBlock>();
     
     /** Returns this program's list of blocks 
      * @return this program's blocks
@@ -151,9 +135,10 @@ public class BasicProgram {
     @Pure @NonNull
     public List<BasicBlock> blocks() { return blocks; }
     
+    // FIXME - document
     public Map<JCTree,JCTree> toLogicalForm = null;
     
-    // FIXME E-document
+    // FIXME -document
     public JCIdent assumeCheckVar;
     
     /** The identifier for the starting block - must match one of the blocks. */
@@ -212,6 +197,7 @@ public class BasicProgram {
         }
     }
 
+    /** Writes the BasicProgram to a string with the given initial string */
     public String write(String header) {
         StringWriter sw = new StringWriter();
         sw.append(header);
@@ -219,10 +205,12 @@ public class BasicProgram {
         return sw.toString();
     }
 
+    /** Writes the program to a String, returning it. */
     @Override
     public String toString() {
         return write("");
     }
+    
     /** This class holds a basic block (a sequence of non-branching
      * statements, expressions have no embedded calls or side-effects such
      * as assignments).
@@ -251,7 +239,7 @@ public class BasicProgram {
         // AFTER   b.succeeding -> NONE; this.succeeding -> List
         protected BasicBlock(@NonNull JCIdent id, @NonNull BasicBlock b) {
             this(id);
-            List<BasicBlock> s = succeeding; // empty I expect
+            List<BasicBlock> s = succeeding; // empty, just don't create a new empty list
             succeeding = b.succeeding;
             b.succeeding = s;
             for (BasicBlock f: succeeding) {
@@ -298,12 +286,7 @@ public class BasicProgram {
             return s.toString();
         }
         
-        /** Writes out the block to log.noticeWriter, for diagnostic purposes */
-        public void write() {
-            write(new OutputStreamWriter(System.out),null);
-        }
-        
-        /** Writes out the block to the given Writer
+        /** Writes out the basic block to the given Writer
          * 
          * @param w where to put a String representation of the block
          */

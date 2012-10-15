@@ -753,7 +753,7 @@ public class JmlEnter extends Enter {
             nspecs = specTypeDecl.typeSpecs;
         } else {
             String msg = "Unexpected control branch taken in JmlEnter.combineSpecs";
-            log.error("jml.internal.error",msg);
+            log.error("jml.internal",msg);
             throw new JmlInternalError(msg);
         }
 
