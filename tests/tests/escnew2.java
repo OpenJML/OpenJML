@@ -21,269 +21,268 @@ public class escnew2 extends EscBase {
         //print = true;
     }
 
-//    public void testNNParam() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//        +" import org.jmlspecs.annotation.*; \n"
-//        +"public class TestJava { \n"
-//        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(o); \n"
-//        +" } \n"
-//        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(o); // ERROR \n"
-//        +" } \n"
-//        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(o); // ERROR if default is NonNull \n"
-//        +" } \n"
-//        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(oo); \n"
-//        +" } \n"
-//        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(oo); \n"
-//        +" } \n"
-//        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(oo); \n"
-//        +" } \n"
-//        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(ooo); \n"
-//        +" } \n"
-//        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(ooo);  // ERROR if default is Nullable \n"
-//        +" } \n"
-//        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(ooo); \n"
-//        +" } \n"
-//        +" public void n1(@Nullable Object s) {} \n"
-//        +" public void n2(@NonNull Object s) {} \n"
-//        +" public void n3(Object s) {} \n"
-//        +" public TestJava() {}\n"
-//        +" } \n"
-//        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-//        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-//        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
-//        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-//        );
-//    }
-//
-//    public void testNN2Param() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//        +" import org.jmlspecs.annotation.*; \n"
-//        +"@NullableByDefault public class TestJava { \n"
-//        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(o); \n"
-//        +" } \n"
-//        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(o); // ERROR \n"
-//        +" } \n"
-//        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(o); // ERROR if default is NonNull \n"
-//        +" } \n"
-//        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(oo); \n"
-//        +" } \n"
-//        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(oo); \n"
-//        +" } \n"
-//        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(oo); \n"
-//        +" } \n"
-//        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(ooo); \n"
-//        +" } \n"
-//        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(ooo);  // ERROR if default is Nullable \n"
-//        +" } \n"
-//        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(ooo); \n"
-//        +" } \n"
-//        +" public void n1(@Nullable Object s) {} \n"
-//        +" public void n2(@NonNull Object s) {} \n"
-//        +" public void n3(Object s) {} \n"
-//        +" public TestJava() {}\n"
-//        +" } \n"
-//        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-//        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-//        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
-//        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-//        );
-//    }
-//
-//    public void testNN3Param() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//        +" import org.jmlspecs.annotation.*; \n"
-//        +"@NonNullByDefault public class TestJava { \n"
-//        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(o); \n"
-//        +" } \n"
-//        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(o); // ERROR \n"
-//        +" } \n"
-//        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(o); // ERROR if default is NonNull \n"
-//        +" } \n"
-//        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(oo); \n"
-//        +" } \n"
-//        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(oo); \n"
-//        +" } \n"
-//        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(oo); \n"
-//        +" } \n"
-//        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(ooo); \n"
-//        +" } \n"
-//        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(ooo);  // ERROR if default is Nullable \n"
-//        +" } \n"
-//        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(ooo); \n"
-//        +" } \n"
-//        +" public void n1(@Nullable Object s) {} \n"
-//        +" public void n2(@NonNull Object s) {} \n" // Line 32
-//        +" public void n3(Object s) {} \n"    // Line 33
-//        +" public TestJava() {}\n"
-//        +" } \n"
-//        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-//        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-//        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
-//        ,"/tt/TestJava.java:33: warning: Associated declaration",24
-//        );
-//    }
-//    public void testNN4Param() {
-//        options.put("-nullableByDefault",null);
-//        options.put("-nonnullByDefault","");
-//        helpTCX("tt.TestJava","package tt; \n"
-//        +" import org.jmlspecs.annotation.*; \n"
-//        +"public class TestJava { \n"
-//        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(o); \n"
-//        +" } \n"
-//        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(o); // ERROR \n"
-//        +" } \n"
-//        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(o); // ERROR if default is NonNull \n"
-//        +" } \n"
-//        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(oo); \n"
-//        +" } \n"
-//        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(oo); \n"
-//        +" } \n"
-//        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(oo); \n"
-//        +" } \n"
-//        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(ooo); \n"
-//        +" } \n"
-//        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(ooo);  // ERROR if default is Nullable \n"
-//        +" } \n"
-//        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(ooo); \n"
-//        +" } \n"
-//        +" public void n1(@Nullable Object s) {} \n"
-//        +" public void n2(@NonNull Object s) {} \n"
-//        +" public void n3(Object s) {} \n"
-//        +" public TestJava() {}\n"
-//        +" } \n"
-//        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-//        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-//        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
-//        ,"/tt/TestJava.java:33: warning: Associated declaration",24
-//        );
-//    }
-//
-//    public void testNN5Param() {
-//        options.put("-nullableByDefault",null);
-//        options.put("-nonnullByDefault","");
-//        helpTCX("tt.TestJava","package tt; \n"
-//        +" import org.jmlspecs.annotation.*; \n"
-//        +"@NullableByDefault public class TestJava { \n"
-//        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(o); \n"
-//        +" } \n"
-//        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(o); // ERROR \n"
-//        +" } \n"
-//        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(o); // ERROR if default is NonNull \n"
-//        +" } \n"
-//        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(oo); \n"
-//        +" } \n"
-//        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(oo); \n"
-//        +" } \n"
-//        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(oo); \n"
-//        +" } \n"
-//        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(ooo); \n"
-//        +" } \n"
-//        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(ooo);  // ERROR if default is Nullable \n"
-//        +" } \n"
-//        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(ooo); \n"
-//        +" } \n"
-//        +" public void n1(@Nullable Object s) {} \n"
-//        +" public void n2(@NonNull Object s) {} \n"
-//        +" public void n3(Object s) {} \n"
-//        +" public TestJava() {}\n"
-//        +" } \n"
-//        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-//        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-//        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
-//        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-//        );
-//    }
-//
-//    public void testNN6Param() {
-//        options.put("-nullableByDefault",null);
-//        options.put("-nonnullByDefault","");
-//        helpTCX("tt.TestJava","package tt; \n"
-//        +" import org.jmlspecs.annotation.*; \n"
-//        +"@NonNullByDefault public class TestJava { \n"
-//        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(o); \n"
-//        +" } \n"
-//        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(o); // ERROR \n"
-//        +" } \n"
-//        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(o); // ERROR if default is NonNull \n"
-//        +" } \n"
-//        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(oo); \n"
-//        +" } \n"
-//        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(oo); \n"
-//        +" } \n"
-//        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(oo); \n"
-//        +" } \n"
-//        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n1(ooo); \n"
-//        +" } \n"
-//        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n2(ooo);  // ERROR if default is Nullable \n"
-//        +" } \n"
-//        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
-//        +"     n3(ooo); \n"
-//        +" } \n"
-//        +" public void n1(@Nullable Object s) {} \n"
-//        +" public void n2(@NonNull Object s) {} \n" // Line 32
-//        +" public void n3(Object s) {} \n"    // Line 33
-//        +" public TestJava() {}\n"
-//        +" } \n"
-//        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-//        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-//        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
-//        ,"/tt/TestJava.java:33: warning: Associated declaration",24
-//        );
-//    }
-// FIXME - fix the assumptions on calling methods
+    public void testNNParam() {
+        helpTCX("tt.TestJava","package tt; \n"
+        +" import org.jmlspecs.annotation.*; \n"
+        +"public class TestJava { \n"
+        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(o); \n"
+        +" } \n"
+        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(o); // ERROR \n"
+        +" } \n"
+        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(o); // ERROR if default is NonNull \n"
+        +" } \n"
+        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(oo); \n"
+        +" } \n"
+        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(oo); \n"
+        +" } \n"
+        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(oo); \n"
+        +" } \n"
+        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(ooo); \n"
+        +" } \n"
+        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(ooo);  // ERROR if default is Nullable \n"
+        +" } \n"
+        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(ooo); \n"
+        +" } \n"
+        +" public void n1(@Nullable Object s) {} \n"
+        +" public void n2(@NonNull Object s) {} \n"
+        +" public void n3(Object s) {} \n"
+        +" public TestJava() {}\n"
+        +" } \n"
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        );
+    }
+
+    public void testNN2Param() {
+        helpTCX("tt.TestJava","package tt; \n"
+        +" import org.jmlspecs.annotation.*; \n"
+        +"@NullableByDefault public class TestJava { \n"
+        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(o); \n"
+        +" } \n"
+        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(o); // ERROR \n"
+        +" } \n"
+        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(o); // ERROR if default is NonNull \n"
+        +" } \n"
+        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(oo); \n"
+        +" } \n"
+        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(oo); \n"
+        +" } \n"
+        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(oo); \n"
+        +" } \n"
+        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(ooo); \n"
+        +" } \n"
+        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(ooo);  // ERROR if default is Nullable \n"
+        +" } \n"
+        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(ooo); \n"
+        +" } \n"
+        +" public void n1(@Nullable Object s) {} \n"
+        +" public void n2(@NonNull Object s) {} \n"
+        +" public void n3(Object s) {} \n"
+        +" public TestJava() {}\n"
+        +" } \n"
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        );
+    }
+
+    public void testNN3Param() {
+        helpTCX("tt.TestJava","package tt; \n"
+        +" import org.jmlspecs.annotation.*; \n"
+        +"@NonNullByDefault public class TestJava { \n"
+        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(o); \n"
+        +" } \n"
+        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(o); // ERROR \n"
+        +" } \n"
+        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(o); // ERROR if default is NonNull \n"
+        +" } \n"
+        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(oo); \n"
+        +" } \n"
+        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(oo); \n"
+        +" } \n"
+        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(oo); \n"
+        +" } \n"
+        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(ooo); \n"
+        +" } \n"
+        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(ooo);  // ERROR if default is Nullable \n"
+        +" } \n"
+        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(ooo); \n"
+        +" } \n"
+        +" public void n1(@Nullable Object s) {} \n"
+        +" public void n2(@NonNull Object s) {} \n" // Line 32
+        +" public void n3(Object s) {} \n"    // Line 33
+        +" public TestJava() {}\n"
+        +" } \n"
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
+        ,"/tt/TestJava.java:33: warning: Associated declaration",24
+        );
+    }
+    public void testNN4Param() {
+        options.put("-nullableByDefault",null);
+        options.put("-nonnullByDefault","");
+        helpTCX("tt.TestJava","package tt; \n"
+        +" import org.jmlspecs.annotation.*; \n"
+        +"public class TestJava { \n"
+        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(o); \n"
+        +" } \n"
+        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(o); // ERROR \n"
+        +" } \n"
+        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(o); // ERROR if default is NonNull \n"
+        +" } \n"
+        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(oo); \n"
+        +" } \n"
+        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(oo); \n"
+        +" } \n"
+        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(oo); \n"
+        +" } \n"
+        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(ooo); \n"
+        +" } \n"
+        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(ooo);  // ERROR if default is Nullable \n"
+        +" } \n"
+        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(ooo); \n"
+        +" } \n"
+        +" public void n1(@Nullable Object s) {} \n"
+        +" public void n2(@NonNull Object s) {} \n"
+        +" public void n3(Object s) {} \n"
+        +" public TestJava() {}\n"
+        +" } \n"
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
+        ,"/tt/TestJava.java:33: warning: Associated declaration",24
+        );
+    }
+
+    public void testNN5Param() {
+        options.put("-nullableByDefault",null);
+        options.put("-nonnullByDefault","");
+        helpTCX("tt.TestJava","package tt; \n"
+        +" import org.jmlspecs.annotation.*; \n"
+        +"@NullableByDefault public class TestJava { \n"
+        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(o); \n"
+        +" } \n"
+        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(o); // ERROR \n"
+        +" } \n"
+        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(o); // ERROR if default is NonNull \n"
+        +" } \n"
+        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(oo); \n"
+        +" } \n"
+        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(oo); \n"
+        +" } \n"
+        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(oo); \n"
+        +" } \n"
+        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(ooo); \n"
+        +" } \n"
+        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(ooo);  // ERROR if default is Nullable \n"
+        +" } \n"
+        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(ooo); \n"
+        +" } \n"
+        +" public void n1(@Nullable Object s) {} \n"
+        +" public void n2(@NonNull Object s) {} \n"
+        +" public void n3(Object s) {} \n"
+        +" public TestJava() {}\n"
+        +" } \n"
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        );
+    }
+
+    public void testNN6Param() {
+        options.put("-nullableByDefault",null);
+        options.put("-nonnullByDefault","");
+        helpTCX("tt.TestJava","package tt; \n"
+        +" import org.jmlspecs.annotation.*; \n"
+        +"@NonNullByDefault public class TestJava { \n"
+        +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(o); \n"
+        +" } \n"
+        +" public void m2(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(o); // ERROR \n"
+        +" } \n"
+        +" public void m3(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(o); // ERROR if default is NonNull \n"
+        +" } \n"
+        +" public void m4(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(oo); \n"
+        +" } \n"
+        +" public void m5(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(oo); \n"
+        +" } \n"
+        +" public void m6(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(oo); \n"
+        +" } \n"
+        +" public void m7(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n1(ooo); \n"
+        +" } \n"
+        +" public void m8(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n2(ooo);  // ERROR if default is Nullable \n"
+        +" } \n"
+        +" public void m9(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
+        +"     n3(ooo); \n"
+        +" } \n"
+        +" public void n1(@Nullable Object s) {} \n"
+        +" public void n2(@NonNull Object s) {} \n" // Line 32
+        +" public void n3(Object s) {} \n"    // Line 33
+        +" public TestJava() {}\n"
+        +" } \n"
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
+        ,"/tt/TestJava.java:33: warning: Associated declaration",24
+        );
+    }
     
     public void testNNAssign() {
         helpTCX("tt.TestJava","package tt; \n"

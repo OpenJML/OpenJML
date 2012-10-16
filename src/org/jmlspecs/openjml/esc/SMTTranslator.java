@@ -85,7 +85,9 @@ public class SMTTranslator extends JmlTreeScanner {
     
     
     /** The SMTLIB script as it is being constructed */
-    protected IScript script; // FIXME - make abstract
+    protected IScript script;
+    
+    /** An alias to script.commands() */
     protected List<ICommand> commands;
     
     // Strings used in our use of SMT. Strings that are part of SMTLIB itself
@@ -293,7 +295,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
             }
         } catch (RuntimeException ee) {
-            // skip - error already issued
+            // skip - error already issued // FIXME - better recovery
         }
         return F.symbol("false",null);
         
@@ -410,6 +412,13 @@ public class SMTTranslator extends JmlTreeScanner {
                 throw new RuntimeException();
         }
     }
+    
+    @Override public void visitParens(JCParens that) {
+        // Since SMT-LIB consists of S-expressions, we do not need to 
+        // add additional parentheses for resolving precedence
+        super.visitParens(that);
+    }
+
 
     @Override
     public void visitBinary(JCBinary tree) {
@@ -518,7 +527,7 @@ public class SMTTranslator extends JmlTreeScanner {
             result = F.fcn(F.symbol("select",null),result,index);
         } else {
             notImpl(tree);
-            // result = ??? // FIXME
+            result = null;
         }
     }
 
@@ -529,6 +538,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree.selected != null) doFieldAccess(tree.selected,tree.sym);
     }
     
+    // FIXME - review
     protected void doFieldAccess(JCExpression object, Symbol field) {
         if (field != syms.lengthVar) {
             ISort arrsort = F.createSortExpression(F.symbol("Array"),refSort,convertSort(field.type));
@@ -570,7 +580,12 @@ public class SMTTranslator extends JmlTreeScanner {
             super.visitLiteral(tree);
         }
     }
-    
+
+    @Override public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) { notImpl(that); } // FIXME - maybe
+    @Override public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that)     { notImpl(that); } // FIXME - not impl
+    @Override public void visitJmlSetComprehension(JmlSetComprehension that) { notImpl(that); }
+    @Override public void visitJmlSingleton(JmlSingleton that)               { notImpl(that); }
+
 //    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
 //        List<IDeclaration> params = new LinkedList<IDeclaration>();
 //        for (JCVariableDecl decl: that.decls) {
@@ -642,6 +657,12 @@ public class SMTTranslator extends JmlTreeScanner {
     // or should never be called in the first place, because they are not
     // expressions
     // FIXME - what about calls of anonymous classes
+    @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
+    @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
+    @Override public void visitJmlCompilationUnit(JmlCompilationUnit that)   { shouldNotBeCalled(that); }
+    @Override public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
+    @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlBinary(JmlBinary that)           { shouldNotBeCalled(that); }
     @Override public void visitJmlChoose(JmlChoose that)           { shouldNotBeCalled(that); }
     @Override public void visitJmlClassDecl(JmlClassDecl that)           { shouldNotBeCalled(that); }
@@ -651,97 +672,63 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitJmlForLoop(JmlForLoop that) { shouldNotBeCalled(that); }
     @Override public void visitJmlGroupName(JmlGroupName that) { shouldNotBeCalled(that); }
     @Override public void visitJmlLblExpression(JmlLblExpression that) { shouldNotBeCalled(that); }    
-//    public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) { shouldNotBeCalled(that); }
-//    public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) { shouldNotBeCalled(that); }
-//    public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) { shouldNotBeCalled(that); }
-//    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) { shouldNotBeCalled(that); }
-//    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) { shouldNotBeCalled(that); }
-//    public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) { shouldNotBeCalled(that); }
-//    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) { shouldNotBeCalled(that); }
-//    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlStatement(JmlStatement that) { shouldNotBeCalled(that); }
-//    public void visitJmlMethodInvocation(JmlMethodInvocation that) { shouldNotBeCalled(that); }
-//    public void visitJmlMethodSpecs(JmlMethodSpecs that)           { shouldNotBeCalled(that); }
-//    public void visitJmlModelProgramStatement(JmlModelProgramStatement that) { shouldNotBeCalled(that); }
-//    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) { shouldNotBeCalled(that); }
-//    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that)     { shouldNotBeCalled(that); }
-//    public void visitJmlSetComprehension(JmlSetComprehension that) { shouldNotBeCalled(that); }
-//    public void visitJmlSingleton(JmlSingleton that)               { shouldNotBeCalled(that); }
-//    public void visitJmlSpecificationCase(JmlSpecificationCase that) { shouldNotBeCalled(that); }
-//    public void visitJmlStatement(JmlStatement that) { shouldNotBeCalled(that); }
-//    public void visitJmlStatementDecls(JmlStatementDecls that) { shouldNotBeCalled(that); }
-//    public void visitJmlStatementExpr(JmlStatementExpr that) { shouldNotBeCalled(that); }
-//    public void visitJmlStatementLoop(JmlStatementLoop that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodSpecs(JmlMethodSpecs that)           { shouldNotBeCalled(that); }
+    @Override public void visitJmlModelProgramStatement(JmlModelProgramStatement that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlSpecificationCase(JmlSpecificationCase that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementDecls(JmlStatementDecls that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementExpr(JmlStatementExpr that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementLoop(JmlStatementLoop that) { shouldNotBeCalled(that); }
     @Override public void visitJmlStatementSpec(JmlStatementSpec that) { shouldNotBeCalled(that); }
-//    public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) { shouldNotBeCalled(that); }
-//    public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) { shouldNotBeCalled(that); }
-//    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) { shouldNotBeCalled(that); }
-//    public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) { shouldNotBeCalled(that); }
-//    public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) { shouldNotBeCalled(that); }
-//    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) { shouldNotBeCalled(that); }
-//    public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) { shouldNotBeCalled(that); }
-//    public void visitJmlTypeClauseIn(JmlTypeClauseIn that) { shouldNotBeCalled(that); }
-//    public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) { shouldNotBeCalled(that); }
-//    public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) { shouldNotBeCalled(that); }
-//    public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) { shouldNotBeCalled(that); }
-//    public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) { shouldNotBeCalled(that); }
-//    public void visitJmlVariableDecl(JmlVariableDecl that) { shouldNotBeCalled(that); }
-//    public void visitJmlWhileLoop(JmlWhileLoop that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseIn(JmlTypeClauseIn that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlVariableDecl(JmlVariableDecl that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlWhileLoop(JmlWhileLoop that) { shouldNotBeCalled(that); }
 
-    // These should never be called, since we are only translating expressions
-    @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
-    @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
-    @Override public void visitJmlCompilationUnit(JmlCompilationUnit that)   { shouldNotBeCalled(that); }
-    @Override public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
-    @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
-    @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
-
-//    public void visitClassDef(JCClassDecl that)          ;
-//    public void visitMethodDef(JCMethodDecl that)        ;
-//    public void visitVarDef(JCVariableDecl that)         ;
-//    public void visitSkip(JCSkip that)                   ;
-//    public void visitBlock(JCBlock that)                 ;
-//    public void visitDoLoop(JCDoWhileLoop that)          ;
-//    public void visitWhileLoop(JCWhileLoop that)         ;
-//    public void visitForLoop(JCForLoop that)             ;
-//    public void visitForeachLoop(JCEnhancedForLoop that) ;
-//    public void visitLabelled(JCLabeledStatement that)   ;
-//    public void visitSwitch(JCSwitch that)               ;
-//    public void visitCase(JCCase that)                   ;
-//    public void visitSynchronized(JCSynchronized that)   ;
-//    public void visitTry(JCTry that)                     ;
-//    public void visitCatch(JCCatch that)                 ;
-//    public void visitConditional(JCConditional that)     ;
-//    public void visitIf(JCIf that)                       ;
-//    public void visitExec(JCExpressionStatement that)    ;
-//    public void visitBreak(JCBreak that)                 ;
-//    public void visitContinue(JCContinue that)           ;
-//    public void visitReturn(JCReturn that)               ;
-//    public void visitThrow(JCThrow that)                 ;
-//    public void visitAssert(JCAssert that)               ;
-//    public void visitApply(JCMethodInvocation that)      ;
-//    public void visitNewClass(JCNewClass that)           ;
-//    public void visitNewArray(JCNewArray that)           ;
-//    public void visitParens(JCParens that)               ;
-//    public void visitAssign(JCAssign that)               ;
-//    public void visitAssignop(JCAssignOp that)           ;
-//    public void visitUnary(JCUnary that)                 ;
-//    public void visitBinary(JCBinary that)               ;
-//    public void visitTypeCast(JCTypeCast that)           ;
-//    public void visitTypeTest(JCInstanceOf that)         ;
-//    public void visitIndexed(JCArrayAccess that)         ;
-//    public void visitSelect(JCFieldAccess that)          ;
-//    public void visitIdent(JCIdent that)                 ;
-//    public void visitLiteral(JCLiteral that)             ;
-//    public void visitTypeIdent(JCPrimitiveTypeTree that) ;
-//    public void visitTypeArray(JCArrayTypeTree that)     ;
-//    public void visitTypeApply(JCTypeApply that)         ;
-//    public void visitTypeParameter(JCTypeParameter that) ;
-//    public void visitWildcard(JCWildcard that)           ;
-//    public void visitTypeBoundKind(TypeBoundKind that)   ;
-//    public void visitAnnotation(JCAnnotation that)       ;
-//    public void visitModifiers(JCModifiers that)         ;
-//    public void visitErroneous(JCErroneous that)         ;
-//    public void visitLetExpr(LetExpr that)               ;
+    @Override public void visitClassDef(JCClassDecl that) { shouldNotBeCalled(that); }
+    @Override public void visitVarDef(JCVariableDecl that)  { shouldNotBeCalled(that); }
+    @Override public void visitSkip(JCSkip that) { shouldNotBeCalled(that); }
+    @Override public void visitBlock(JCBlock that) { shouldNotBeCalled(that); }
+    @Override public void visitDoLoop(JCDoWhileLoop that) { shouldNotBeCalled(that); }
+    @Override public void visitWhileLoop(JCWhileLoop that) { shouldNotBeCalled(that); }
+    @Override public void visitForLoop(JCForLoop that) { shouldNotBeCalled(that); }
+    @Override public void visitForeachLoop(JCEnhancedForLoop that) { shouldNotBeCalled(that); }
+    @Override public void visitLabelled(JCLabeledStatement that) { shouldNotBeCalled(that); }
+    @Override public void visitSwitch(JCSwitch that) { shouldNotBeCalled(that); }
+    @Override public void visitCase(JCCase that) { shouldNotBeCalled(that); }
+    @Override public void visitSynchronized(JCSynchronized that) { shouldNotBeCalled(that); }
+    @Override public void visitTry(JCTry that) { shouldNotBeCalled(that); }
+    @Override public void visitCatch(JCCatch that) { shouldNotBeCalled(that); }
+    @Override public void visitConditional(JCConditional that) { shouldNotBeCalled(that); }
+    @Override public void visitIf(JCIf that) { shouldNotBeCalled(that); }
+    @Override public void visitExec(JCExpressionStatement that) { shouldNotBeCalled(that); }
+    @Override public void visitBreak(JCBreak that) { shouldNotBeCalled(that); }
+    @Override public void visitContinue(JCContinue that) { shouldNotBeCalled(that); }
+    @Override public void visitReturn(JCReturn that) { shouldNotBeCalled(that); }
+    @Override public void visitThrow(JCThrow that) { shouldNotBeCalled(that); }
+    @Override public void visitAssert(JCAssert that) { shouldNotBeCalled(that); }
+ 
+    // Some of these could be notImpl
+    @Override public void visitAnnotation(JCAnnotation that) { shouldNotBeCalled(that); }
+    @Override public void visitModifiers(JCModifiers that) { shouldNotBeCalled(that); }
+    @Override public void visitErroneous(JCErroneous that) { shouldNotBeCalled(that); }
+    @Override public void visitLetExpr(LetExpr that) { shouldNotBeCalled(that); }
 
 }
