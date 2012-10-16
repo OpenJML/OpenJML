@@ -80,6 +80,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.Position;
 import com.sun.tools.javac.util.PropagatedException;
 
 /**
@@ -568,8 +569,13 @@ public class JmlEsc extends JmlTreeScanner {
                     } else if (label == Label.ASSIGNABLE) {
                         log.warning(assertStat.pos,"esc.assertion.invalid",label,decl.getName() + cf);
                         log.warning(assertStat.declPos, "jml.associated.decl");
+                    } else if (label != Label.EXPLICIT_ASSERT && label != Label.EXPLICIT_ASSUME){
+                        log.warning(assertStat.pos,"esc.assertion.invalid",label,decl.getName() + cf); 
+                        if (assertStat.pos != assertStat.declPos && assertStat.declPos != Position.NOPOS){
+                            log.warning(assertStat.declPos, "jml.associated.decl");
+                        }
                     } else {
-                        log.warning(assertStat.pos,"esc.assertion.invalid",label,decl.getName() + cf);                        
+                        log.warning(assertStat.pos,"esc.assertion.invalid",label,decl.getName() + cf); 
                     }
                     
 //                    if (jfo != null) log.useSource(jfo);
