@@ -2467,15 +2467,35 @@ public class JmlTree implements IJmlTree {
      * that take an expression, such as assert, assume, unreachable
      */
     public static class JmlStatementExpr extends JmlAbstractStatement {
+        /** The kind of statement - e.g. ASSSERT, ASSUME, COMMENT, ... */
         public JmlToken token;
+        
+        /** The associated expression (e.g. the asserted condition) */
         public JCTree.JCExpression expression;
+        
+        /** An associated optional expression (e.g. such as the one thata
+         * can come with a Java assert statement).
+         */
         public JCTree.JCExpression optionalExpression = null;
-        public int line; // FIXME - I don't think this is used
-        public JavaFileObject source;  // FIXME -  I don't think this is needed
+        
+        /** The line number corresponding to pos */
+        public int line; 
+        
+        /** The sousrce file in which the statement sits (and the file to which pos and line correspond) */
+        public JavaFileObject source;
+        
+        /** A Lable that gives detail about the kind of assertion or assumption */
         public Label label;
-        public int declPos; // the source position that generated the assert
-                            // (for an explicit assert or assume, this should
-                            // be the same as this.pos)
+        
+        /** The file containing the specification (e.g. clause) from which this
+         * assertion or assumption arises; if null then is the same as source. 
+         * (source and pos are the location in 
+         * the code where the assertion or assumption is being stated.)
+         */
+        public JavaFileObject associatedSource = null;
+        
+        /** The position within associatedSource */
+        public int declPos;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementExpr(int pos, JmlToken token, Label label, JCTree.JCExpression expression) {
