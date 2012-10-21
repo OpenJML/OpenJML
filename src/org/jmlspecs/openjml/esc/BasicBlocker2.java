@@ -294,11 +294,17 @@ public class BasicBlocker2 extends JmlTreeScanner {
     /** Suffix for the name of a basic block for a finally block */
     public static final String FINALLY = "_finally";
     
+    /** Suffix for the name of a basic block for a finally block */
+    public static final String AFTERTRY = "_AfterTry";
+    
     /** Suffix for the name of a basic block holding the body of a loop */
     public static final String LOOPBODY = "_LoopBody";
     
     /** Suffix for the name of a basic block holding the code after a loop */
     public static final String LOOPAFTER = "_LoopAfter";
+    
+    /** Suffix for the name of a basic block holding the code after a loop */
+    public static final String LOOPAFTERDO = "_LoopAfterDo";
     
     /** Suffix for the name of a basic block holding the code where continue statements go */
     public static final String LOOPCONTINUE = "_LoopContinue";
@@ -403,9 +409,6 @@ public class BasicBlocker2 extends JmlTreeScanner {
     
     /** Place to put new background assertions, such as class predicates */
     protected List<JCExpression> background;
-    
-    /** List of blocks yet to be processed, that is, translated from conventional program to basic program state */
-    protected java.util.List<BasicBlock> blocksToDo;
     
     /** List of blocks completed processing - in basic block state */
     protected java.util.List<BasicBlock> blocksCompleted;
@@ -1016,19 +1019,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             }
             break;  // all preceding blocks were processed
         }
-        // FIXME - replace this with some anonymous classes in OO fashion
-        String nm = b.id.toString();
-        if (nm.endsWith(FINALLY)) {
-            // Once we are processing a finally block, all returns and throws
-            // exit the finally block and go to whatever enclosing finally blocks
-            // there are.
-            BasicBlock bb = finallyStack.remove(0);
-            if (bb != b) {
-                log.warning("esc.internal.error","Mismatched finally blocks: " + b.id.name + " " + bb.id.name);
-            }
-        } else if (nm.endsWith(LOOPAFTER)) {
-            loopStack.remove(0);
-        }
+
         //log.noticeWriter.println("Starting block " + b.id);
         setCurrentBlock(b);
     }
@@ -1051,9 +1042,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
      */
     protected void completed(@NonNull BasicBlock b) {
         if (b == null) return;
+        if (blockmaps.get(b) != null) return; // Already completed - if a block's precessing is ended early, it may be completed twice
         blocksCompleted.add(b);
         blockmaps.put(b,currentMap);
-        blockLookup.put(b.id.name.toString(),b);
         currentMap = null; // Defensive - so no inadvertent assignments
         //log.noticeWriter.println("Completed block " + b.id);
     }
@@ -1138,6 +1129,23 @@ public class BasicBlocker2 extends JmlTreeScanner {
         return bb;
     }
     
+    /** Returns a new, empty BasicBlock, but the new block takes all of the 
+     * followers and the remaining statements of the current block; the 
+     * currentBlock will then have no remaining statements and no followers.
+     * 
+     * @param name the name to give the block
+     * @param pos a position to associate with the JCIdent for the block
+     * @return the new block
+     */
+    protected BasicBlock newBlockWithRest(@NonNull String name, int pos) {
+        BasicBlock b = newBlock(name,pos,currentBlock);// it gets all the followers of the current block
+        // We do this switch to avoid creating more new lists
+        List<JCStatement> temp = b.statements; // empty
+        b.statements = remainingStatements; // it gets all of the remaining statements
+        remainingStatements = temp; // empty
+        return b;
+    }
+    
     /** Converts the top-level block of a method into the elements of a BasicProgram 
      * 
      * @param methodDecl the method to convert to to a BasicProgram
@@ -1167,7 +1175,6 @@ public class BasicBlocker2 extends JmlTreeScanner {
         newdefs = new LinkedList<BasicProgram.Definition>();
         newpdefs = new LinkedList<JCExpression>();
         background = new LinkedList<JCExpression>();
-        blocksToDo = new LinkedList<BasicBlock>();
         blocksCompleted = new ArrayList<BasicBlock>();
         blockLookup = new java.util.HashMap<String,BasicBlock>();
         blockmaps.clear();
@@ -1203,7 +1210,6 @@ public class BasicBlocker2 extends JmlTreeScanner {
         // Then the program
         bodyBlock.statements.addAll(block.getStatements());
         follows(startBlock,bodyBlock);
-        blocksToDo.add(0,bodyBlock);
         
         // Handle the start block a little specially
         // It does not have any statements in it
@@ -1240,11 +1246,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
 
         completed(currentBlock);
 
-        // Pick a block to do and process it
-        // They should be in partial order
-        while (!blocksToDo.isEmpty()) {
-            processBlock(blocksToDo.remove(0));
-        }
+        processBlock(bodyBlock);
         
         // Finished processing all the blocks
         // Make the BasicProgram
@@ -1519,7 +1521,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     // FIXME - modifies the content of currentBlock.statements
     protected @NonNull JCIdent addAuxVariable(@NonNull String name, @NonNull Type type, @NonNull JCExpression expr, boolean makeDefinition, boolean saveInMap) {
         JCExpression newexpr = expr;//trExpr(expr);
-        int pos = expr.getPreferredPosition();
+        int pos = expr == null ? Position.NOPOS : expr.getPreferredPosition(); // FIXME - NOPOS is not really want we want
         JCIdent vd = newAuxIdent(name,type,pos,false);
         if (saveInMap) {
             currentMap.put((VarSymbol)vd.sym,pos,vd.name);
@@ -1527,7 +1529,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         // FIXME - use a definition?
         if (makeDefinition) {
             //newdefs.add(treeutils.makeEquality(newexpr.pos,vd,newexpr));
-            newdefs.add(new BasicProgram.Definition(newexpr.pos,vd,newexpr));
+            newdefs.add(new BasicProgram.Definition(pos,vd,newexpr));
         } else {
             JmlTree.JmlStatementExpr asm = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME,Label.SYN,treeutils.makeEquality(newexpr.pos,vd,newexpr));
             currentBlock.statements.add(asm);
@@ -2087,7 +2089,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     
     public void visitJmlWhileLoop(JmlWhileLoop that)  { 
         currentBlock.statements.add(comment(that.pos,"while..."));
-        visitLoopWithSpecs(that, null, that.cond, null, that.body, that.loopSpecs);
+        visitLoopWithSpecs(that, null, that.cond, null, that.body, null);
     }
     
     public void visitWhileLoop(JCWhileLoop that) {
@@ -2158,30 +2160,24 @@ public class BasicBlocker2 extends JmlTreeScanner {
     // FIXME - check and document
     protected void visitLoopWithSpecs(JCTree that, List<JCStatement> init, JCExpression test, List<JCExpressionStatement> update, JCStatement body, List<JmlStatementLoop> loopSpecs) {
         loopStack.add(0,that);
+        breakStack.add(0,that);
         int pos = that.pos;
         BasicBlock bloopBody = newBlock(barblockPrefix + pos + LOOPBODY,pos);
         BasicBlock bloopContinue = newBlock(barblockPrefix + pos + LOOPCONTINUE,pos);
         BasicBlock bloopEnd = newBlock(barblockPrefix + pos + LOOPEND,pos);
         BasicBlock bloopBreak = newBlock(barblockPrefix + pos + LOOPBREAK,pos);
         String restName = barblockPrefix + pos + LOOPAFTER;
-        blockLookup.put(bloopContinue.id.name.toString(),bloopContinue);
-        blockLookup.put(bloopBreak.id.name.toString(),bloopBreak);
+//        blockLookup.put(bloopContinue.id.name.toString(),bloopContinue);
+//        blockLookup.put(bloopBreak.id.name.toString(),bloopBreak);
 
         // Now create an (unprocessed) block for everything that follows the
         // loop statement
-        BasicBlock brest = newBlock(restName,pos,currentBlock);// it gets all the followers of the current block
-        List<JCStatement> temp = brest.statements; // an empty list
-        brest.statements = remainingStatements; // it gets all of the remaining statements
-        remainingStatements = temp;
-        blocksToDo.add(0,brest); // push it on the front of the to do list
+        BasicBlock brest = newBlockWithRest(restName,pos);// it gets all the followers and statements of the current block
 
         // Finish out the current block with the loop initialization
         if (init != null) remainingStatements.addAll(init);
         processBlockStatements(false);
         
-        // check the loop invariants (translated)
-        addLoopInvariants(JmlToken.ASSERT,loopSpecs,that.getStartPosition(),currentBlock,Label.LOOP_INVARIANT_PRELOOP);
-
         // Now havoc any variables changed in the loop body
         {
             List<JCExpression> targets = TargetFinder.findVars(body,null);
@@ -2194,7 +2190,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
             //log.noticeWriter.println("HEAP NOW " + currentMap.get((VarSymbol) heapVar.sym) + " " + (wpos+1));
             for (JCExpression e: targets) {
                 if (e instanceof JCIdent) {
-                    newIdentIncarnation((JCIdent)e,wpos);
+                    JCIdent id = newIdentIncarnation((JCIdent)e,wpos);
+                    program.declarations.add(id);
                 //} else if (e instanceof JCFieldAccess) {
                 //} else if (e instanceof JCArrayAccess) {
                     
@@ -2205,53 +2202,20 @@ public class BasicBlocker2 extends JmlTreeScanner {
             }
         }
         
-        // assume the loop invariants (translated)
-        addLoopInvariants(JmlToken.ASSUME,loopSpecs,that.getStartPosition(),currentBlock, Label.LOOP_INVARIANT);
+
+        scan(test);
         
-        // compute the loop variants
-        if (loopSpecs != null) for (JmlStatementLoop loopspec: loopSpecs) {
-            if (loopspec.token == JmlToken.DECREASES) {
-                String dec = "$$decreases" + "$" + loopspec.getStartPosition();
-                //JCIdent id = addAuxVariable(dec,syms.longType,trSpecExpr(loopspec.expression,log.currentSourceFile()),false,true);
-                JCIdent id = addAuxVariable(dec,syms.longType,(loopspec.expression),false,true);
-                loopspec.sym = (VarSymbol)id.sym;
-            }
-        }
-        
-        // compute the loop condition
-        int testPos = test == null ? that.pos : test.getStartPosition();
-        String loopTestVarName = "loopCondition"  
-            + "$" + testPos + "$" + testPos; // FIXME - end position?
-        //JCIdent loopTest = addAuxVariable(loopTestVarName,syms.booleanType,test == null ? trueLiteral : trJavaExpr(test),false,false);
-        JCIdent loopTest = addAuxVariable(loopTestVarName,syms.booleanType,test == null ? trueLiteral : (test),false,false);
         completed(currentBlock);
+        
         BasicBlock bloopStart = currentBlock;
         follows(bloopStart,bloopBody);
-        follows(bloopStart,bloopEnd);
+        if (tempFromForeachLoop) follows(bloopStart,bloopEnd);
 
-        // Create and process the loop body block
-        startBlock(bloopBody);
-        
-        // assume the loop condition (translated)
-        addAssume(loopTest.pos,Label.LOOP,loopTest,bloopBody.statements);
-        
-        // check that the loop variants are not negative (translated)
-        if (loopSpecs != null) for (JmlStatementLoop loopspec: loopSpecs) {
-            if (loopspec.token == JmlToken.DECREASES) {
-                int p = loopspec.getStartPosition();
-                JCIdent v = newIdentUse(loopspec.sym,p); // FIXME - probably not the right use position
-                //JCExpression e = treeutils.makeBinary(p,JCTree.GT,v,trSpecExpr(treeutils.makeIntLit(p,0),log.currentSourceFile()));
-                JCExpression e = treeutils.makeBinary(p,JCTree.GT,v,(treeutils.makeIntLiteral(p,0)));
-                addAssert(Label.LOOP_DECREASES_NEGATIVE,e,p,currentBlock.statements,body.getStartPosition(),log.currentSourceFile(),loopspec);
-            }
-        }
-        
-        // do the loop body - the loop body will continue to be processed after
-        // we setup the remaining blocks for later processing
-        remainingStatements.add(body);
+        // Create the loop body block
+        bloopBody.statements.add(body);
         follows(bloopBody,bloopContinue);
         
-        // Create an unprocessed loop continue block (untranslated)
+        // Create the loop continue block
         // do the update
         if (update != null) bloopContinue.statements.addAll(update);
         
@@ -2259,66 +2223,201 @@ public class BasicBlocker2 extends JmlTreeScanner {
         if (end <= 0) {
             log.noticeWriter.println("BAD EBND");
         }
-        // Check that loop invariants are still established
-        addUntranslatedLoopInvariants(JmlToken.ASSERT,loopSpecs,end,bloopContinue,Label.LOOP_INVARIANT);
-        // Check that loop variants are decreasing
-        if (loopSpecs != null) for (JmlStatementLoop loopspec: loopSpecs) {
-            if (loopspec.token == JmlToken.DECREASES) {
-                int p = loopspec.getPreferredPosition();
-                JCIdent v = newIdentUse(loopspec.sym,p); // FIXME - probably not the right use position
-                JCExpression newexpr = loopspec.expression;
-                //JCExpression e = treeutils.makeBinary(newexpr.getStartPosition(),JCTree.LT,trSpecExpr(newexpr,log.currentSourceFile()),v);
-                JCExpression e = treeutils.makeBinary(newexpr.getStartPosition(),JCTree.LT,(newexpr),v);
-                addUntranslatedAssert(Label.LOOP_DECREASES,e,loopspec.getStartPosition(),bloopContinue.statements,end,log.currentSourceFile()); // FIXME - track which continue is causing a problem?
-            }
-        }
         
-        // Create the LoopEnd block (untranslated)
+        // Create the (empty) LoopEnd block
         follows(bloopEnd,bloopBreak);
-        JCExpression neg = treeutils.makeUnary(loopTest.pos,JCTree.NOT,loopTest);  // loopTest is already processed - but that is OK since it is just an auxiliary ident
-        addUntranslatedAssume(neg.pos,Label.LOOP,neg,bloopEnd.statements);
         
-        // Create the LoopBreak block (untranslated)
+        // Create the (empty) LoopBreak block
         follows(bloopBreak,brest);
-        addUntranslatedLoopInvariants(JmlToken.ASSERT,loopSpecs,end+1,bloopBreak,Label.LOOP_INVARIANT_ENDLOOP);
 
-        // Push the blocks at the beginning of the todo list (in appropriate order)
-        blocksToDo.add(0,bloopBreak);
-        blocksToDo.add(0,bloopEnd);
-        blocksToDo.add(0,bloopContinue);
+        // Now process all the blocks
+        processBlock(bloopBody);
+        processBlock(bloopContinue);
+        processBlock(bloopEnd);
+        processBlock(bloopBreak);
+        loopStack.remove(0);
+        breakStack.remove(0);
+        processBlock(brest);
         
-        // Go on to process the loopBody block
     }
     
-    // FIXME - REVIEW and document
-    protected void addLoopInvariants(JmlToken t, java.util.List<JmlStatementLoop> loopSpecs, int usepos, BasicBlock block, Label label) {
-        if (loopSpecs == null) return;
-        for (JmlStatementLoop loopspec: loopSpecs) {
-            if (loopspec.token == JmlToken.LOOP_INVARIANT) {
-                block.statements.add(comment(loopspec));
-                JCExpression e = (loopspec.expression);
-                if (t == JmlToken.ASSUME) addAssume(e.pos,label,e,block.statements);
-                else addAssert(label,e,loopspec.getStartPosition(),block.statements,usepos,log.currentSourceFile(),loopspec);
-            }
-        }
-    }
+//    protected void visitLoopWithSpecsOld(JCTree that, List<JCStatement> init, JCExpression test, List<JCExpressionStatement> update, JCStatement body, List<JmlStatementLoop> loopSpecs) {
+//        loopStack.add(0,that);
+//        int pos = that.pos;
+//        BasicBlock bloopBody = newBlock(barblockPrefix + pos + LOOPBODY,pos);
+//        BasicBlock bloopContinue = newBlock(barblockPrefix + pos + LOOPCONTINUE,pos);
+//        BasicBlock bloopEnd = newBlock(barblockPrefix + pos + LOOPEND,pos);
+//        BasicBlock bloopBreak = newBlock(barblockPrefix + pos + LOOPBREAK,pos);
+//        String restName = barblockPrefix + pos + LOOPAFTER;
+//        blockLookup.put(bloopContinue.id.name.toString(),bloopContinue);
+//        blockLookup.put(bloopBreak.id.name.toString(),bloopBreak);
+//
+//        // Now create an (unprocessed) block for everything that follows the
+//        // loop statement
+//        BasicBlock brest = newBlock(restName,pos,currentBlock);// it gets all the followers of the current block
+//        List<JCStatement> temp = brest.statements; // an empty list
+//        brest.statements = remainingStatements; // it gets all of the remaining statements
+//        remainingStatements = temp;
+//        blocksToDo.add(0,brest); // push it on the front of the to do list
+//
+//        // Finish out the current block with the loop initialization
+//        if (init != null) remainingStatements.addAll(init);
+//        processBlockStatements(false);
+//        
+//        // check the loop invariants (translated)
+//        addLoopInvariants(JmlToken.ASSERT,loopSpecs,that.getStartPosition(),currentBlock,Label.LOOP_INVARIANT_PRELOOP);
+//
+//        // Now havoc any variables changed in the loop body
+//        {
+//            List<JCExpression> targets = TargetFinder.findVars(body,null);
+//            TargetFinder.findVars(test,targets);
+//            if (update != null) TargetFinder.findVars(update,targets);
+//            // synthesize a modifies list
+//            int wpos = body.pos+1;
+//            //log.noticeWriter.println("HEAP WAS " + currentMap.get((VarSymbol) heapVar.sym));
+//            newIdentIncarnation(heapVar,wpos);
+//            //log.noticeWriter.println("HEAP NOW " + currentMap.get((VarSymbol) heapVar.sym) + " " + (wpos+1));
+//            for (JCExpression e: targets) {
+//                if (e instanceof JCIdent) {
+//                    newIdentIncarnation((JCIdent)e,wpos);
+//                //} else if (e instanceof JCFieldAccess) {
+//                //} else if (e instanceof JCArrayAccess) {
+//                    
+//                } else {
+//                    // FIXME - havoc in loops
+//                    log.noticeWriter.println("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
+//                }
+//            }
+//        }
+//        
+//        // assume the loop invariants (translated)
+//        addLoopInvariants(JmlToken.ASSUME,loopSpecs,that.getStartPosition(),currentBlock, Label.LOOP_INVARIANT);
+//        
+//        // compute the loop variants
+//        if (loopSpecs != null) for (JmlStatementLoop loopspec: loopSpecs) {
+//            if (loopspec.token == JmlToken.DECREASES) {
+//                String dec = "$$decreases" + "_" + loopspec.getStartPosition();
+//                //JCIdent id = addAuxVariable(dec,syms.longType,trSpecExpr(loopspec.expression,log.currentSourceFile()),false,true);
+//                JCIdent id = addAuxVariable(dec,syms.longType,(loopspec.expression),false,true);
+//                loopspec.sym = (VarSymbol)id.sym;
+//            }
+//        }
+//        
+//        // compute the loop condition
+//        int testPos = test == null ? that.pos : test.getStartPosition();
+//        String loopTestVarName = "loopCondition"  
+//            + "_" + testPos + "_" + testPos; // FIXME - end position?
+//        //JCIdent loopTest = addAuxVariable(loopTestVarName,syms.booleanType,test == null ? trueLiteral : trJavaExpr(test),false,false);
+//
+//        JCIdent loopTest = 
+//                  newAuxIdent(loopTestVarName,syms.booleanType,testPos,false); // FIXME _ test might be null
+//        program.declarations.add(loopTest);
+//
+//        scan(test);
+//        
+//        //JCIdent loopTest = addAuxVariable(loopTestVarName,syms.booleanType,null,true,false);
+////        addAssumeNoDef(that.getStartPosition(),that,
+////                Label.SYN, treeutils.makeEquality(testPos,loopTest, test), currentBlock.statements);
+//        loopTest = addAuxVariable(loopTestVarName,syms.booleanType,test == null ? trueLiteral : (test),false,false);
+//        completed(currentBlock);
+//        BasicBlock bloopStart = currentBlock;
+//        follows(bloopStart,bloopBody);
+//        follows(bloopStart,bloopEnd);
+//
+//        // Create and process the loop body block
+//        startBlock(bloopBody);
+//        
+//        // assume the loop condition (translated)
+//        addAssume(loopTest.pos,Label.LOOP,loopTest,bloopBody.statements);
+//        
+//        // check that the loop variants are not negative (translated)
+//        if (loopSpecs != null) for (JmlStatementLoop loopspec: loopSpecs) {
+//            if (loopspec.token == JmlToken.DECREASES) {
+//                int p = loopspec.getStartPosition();
+//                JCIdent v = newIdentUse(loopspec.sym,p); // FIXME - probably not the right use position
+//                //JCExpression e = treeutils.makeBinary(p,JCTree.GT,v,trSpecExpr(treeutils.makeIntLit(p,0),log.currentSourceFile()));
+//                JCExpression e = treeutils.makeBinary(p,JCTree.GT,v,(treeutils.makeIntLiteral(p,0)));
+//                addAssert(Label.LOOP_DECREASES_NEGATIVE,e,p,currentBlock.statements,body.getStartPosition(),log.currentSourceFile(),loopspec);
+//            }
+//        }
+//        
+//        // do the loop body - the loop body will continue to be processed after
+//        // we setup the remaining blocks for later processing
+//        remainingStatements.add(body);
+//        follows(bloopBody,bloopContinue);
+//        
+//        // Create an unprocessed loop continue block (untranslated)
+//        // do the update
+//        if (update != null) bloopContinue.statements.addAll(update);
+//        
+//        int end = endPos(body);
+//        if (end <= 0) {
+//            log.noticeWriter.println("BAD EBND");
+//        }
+//        // Check that loop invariants are still established
+//        addUntranslatedLoopInvariants(JmlToken.ASSERT,loopSpecs,end,bloopContinue,Label.LOOP_INVARIANT);
+//        // Check that loop variants are decreasing
+//        if (loopSpecs != null) for (JmlStatementLoop loopspec: loopSpecs) {
+//            if (loopspec.token == JmlToken.DECREASES) {
+//                int p = loopspec.getPreferredPosition();
+//                JCIdent v = newIdentUse(loopspec.sym,p); // FIXME - probably not the right use position
+//                JCExpression newexpr = loopspec.expression;
+//                //JCExpression e = treeutils.makeBinary(newexpr.getStartPosition(),JCTree.LT,trSpecExpr(newexpr,log.currentSourceFile()),v);
+//                JCExpression e = treeutils.makeBinary(newexpr.getStartPosition(),JCTree.LT,(newexpr),v);
+//                addUntranslatedAssert(Label.LOOP_DECREASES,e,loopspec.getStartPosition(),bloopContinue.statements,end,log.currentSourceFile()); // FIXME - track which continue is causing a problem?
+//            }
+//        }
+//        
+//        // Create the LoopEnd block (untranslated)
+//        follows(bloopEnd,bloopBreak);
+//        JCExpression neg = treeutils.makeUnary(loopTest.pos,JCTree.NOT,loopTest);  // loopTest is already processed - but that is OK since it is just an auxiliary ident
+//        addUntranslatedAssume(neg.pos,Label.LOOP,neg,bloopEnd.statements);
+//        
+//        // Create the LoopBreak block (untranslated)
+//        follows(bloopBreak,brest);
+//        addUntranslatedLoopInvariants(JmlToken.ASSERT,loopSpecs,end+1,bloopBreak,Label.LOOP_INVARIANT_ENDLOOP);
+//
+//        // Push the blocks at the beginning of the todo list (in appropriate order)
+//        blocksToDo.add(0,bloopBreak);
+//        blocksToDo.add(0,bloopEnd);
+//        blocksToDo.add(0,bloopContinue);
+//        
+//        // Go on to process the loopBody block
+//    }
+//    
+//    // FIXME - REVIEW and document
+//    protected void addLoopInvariants(JmlToken t, java.util.List<JmlStatementLoop> loopSpecs, int usepos, BasicBlock block, Label label) {
+//        if (loopSpecs == null) return;
+//        for (JmlStatementLoop loopspec: loopSpecs) {
+//            if (loopspec.token == JmlToken.LOOP_INVARIANT) {
+//                block.statements.add(comment(loopspec));
+//                JCExpression e = (loopspec.expression);
+//                if (t == JmlToken.ASSUME) addAssume(e.pos,label,e,block.statements);
+//                else addAssert(label,e,loopspec.getStartPosition(),block.statements,usepos,log.currentSourceFile(),loopspec);
+//            }
+//        }
+//    }
+//    
+//    // FIXME - REVIEW and document
+//    protected void addUntranslatedLoopInvariants(JmlToken t, java.util.List<JmlStatementLoop> loopSpecs, int usepos, BasicBlock block, Label label) {
+//        if (loopSpecs == null) return;
+//        for (JmlStatementLoop loopspec: loopSpecs) {
+//            if (loopspec.token == JmlToken.LOOP_INVARIANT) {
+//                block.statements.add(comment(loopspec));
+//                JCExpression e = loopspec.expression;
+//                if (t == JmlToken.ASSUME) addUntranslatedAssume(usepos,label,e,block.statements);
+//                else addUntranslatedAssert(label,e,loopspec.getStartPosition(),block.statements,usepos,log.currentSourceFile());
+//            }
+//        }
+//    }
     
-    // FIXME - REVIEW and document
-    protected void addUntranslatedLoopInvariants(JmlToken t, java.util.List<JmlStatementLoop> loopSpecs, int usepos, BasicBlock block, Label label) {
-        if (loopSpecs == null) return;
-        for (JmlStatementLoop loopspec: loopSpecs) {
-            if (loopspec.token == JmlToken.LOOP_INVARIANT) {
-                block.statements.add(comment(loopspec));
-                JCExpression e = loopspec.expression;
-                if (t == JmlToken.ASSUME) addUntranslatedAssume(usepos,label,e,block.statements);
-                else addUntranslatedAssert(label,e,loopspec.getStartPosition(),block.statements,usepos,log.currentSourceFile());
-            }
-        }
-    }
+    boolean tempFromForeachLoop = false;
     
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
         currentBlock.statements.add(comment(that.pos,"for..."));
+        tempFromForeachLoop = true;
         visitForeachLoopWithSpecs(that,that.loopSpecs);
+        tempFromForeachLoop = false;
     }
 
     public void visitForeachLoop(JCEnhancedForLoop that) {
@@ -2336,54 +2435,56 @@ public class BasicBlocker2 extends JmlTreeScanner {
             // make   int $$index = 0;   as the initialization
 //            Name name = names.fromString("$$index$"+that.pos);
 //            JCVariableDecl decl = makeVariableDecl(name,syms.intType,treeutils.makeIntLiteral(0,pos),pos);
-            JCVariableDecl decl = ((JmlEnhancedForLoop)that).indexDecl;
-            JCVariableDecl vdecl = ((JmlEnhancedForLoop)that).indexDecl;
-            com.sun.tools.javac.util.List<JCStatement> initList = com.sun.tools.javac.util.List.<JCStatement>of(decl,vdecl);
+//            JCVariableDecl decl = ((JmlEnhancedForLoop)that).indexDecl;
+//            JCVariableDecl vdecl = ((JmlEnhancedForLoop)that).indexDecl;
+//            com.sun.tools.javac.util.List<JCStatement> initList = com.sun.tools.javac.util.List.<JCStatement>of(decl,vdecl);
 
             // make assume \values.size() == 0
             
-            // make   $$index < <expr>.length   as the loop test
-            JCIdent id = (JCIdent)factory.at(pos).Ident(decl);
-            id.type = decl.type;
-            JCExpression fa = factory.at(pos).Select(that.getExpression(),syms.lengthVar);
-            fa.type = syms.intType;
-            JCExpression test = treeutils.makeBinary(pos,JCTree.LT,id,fa);
+//            // make   $$index < <expr>.length   as the loop test
+//            JCIdent id = (JCIdent)factory.at(pos).Ident(decl);
+//            id.type = decl.type;
+//            JCExpression fa = factory.at(pos).Select(that.getExpression(),syms.lengthVar);
+//            fa.type = syms.intType;
+//            JCExpression test = treeutils.makeBinary(pos,JCTree.LT,id,fa);
 
-            // make   $$index = $$index + 1  as the update list
-            JCIdent idd = (JCIdent)factory.at(pos+1).Ident(decl);
-            id.type = decl.type;
-            JCAssign asg = factory.at(idd.pos).Assign(idd,
-                    treeutils.makeBinary(idd.pos,JCTree.PLUS,id,treeutils.makeIntLiteral(pos,1)));
-            asg.type = syms.intType;
-            JCExpressionStatement update = factory.at(idd.pos).Exec(asg);
-            com.sun.tools.javac.util.List<JCExpressionStatement> updateList = com.sun.tools.javac.util.List.<JCExpressionStatement>of(update);
+//            // make   $$index = $$index + 1  as the update list
+//            JCIdent idd = (JCIdent)factory.at(pos+1).Ident(decl);
+//            id.type = decl.type;
+//            JCAssign asg = factory.at(idd.pos).Assign(idd,
+//                    treeutils.makeBinary(idd.pos,JCTree.PLUS,id,treeutils.makeIntLiteral(pos,1)));
+//            asg.type = syms.intType;
+//            JCExpressionStatement update = factory.at(idd.pos).Exec(asg);
+//            com.sun.tools.javac.util.List<JCExpressionStatement> updateList = com.sun.tools.javac.util.List.<JCExpressionStatement>of(update);
             
-            // make   <var> = <expr>[$$index]    as the initialization of the target and prepend it to the body
-            JCArrayAccess aa = factory.at(pos).Indexed(that.getExpression(),id);
-            aa.type = that.getVariable().type;
-            JCIdent v = (JCIdent)factory.at(pos).Ident(that.getVariable());
-            v.type = aa.type;
-            asg = factory.at(pos).Assign(v,aa);
-            asg.type = v.type;
+//            // make   <var> = <expr>[$$index]    as the initialization of the target and prepend it to the body
+//            JCArrayAccess aa = factory.at(pos).Indexed(that.getExpression(),id);
+//            aa.type = that.getVariable().type;
+//            JCIdent v = (JCIdent)factory.at(pos).Ident(that.getVariable());
+//            v.type = aa.type;
+//            asg = factory.at(pos).Assign(v,aa);
+//            asg.type = v.type;
             ListBuffer<JCStatement> newbody = new ListBuffer<JCStatement>();
-            newbody.append(factory.at(pos).Exec(asg));
+//            newbody.append(factory.at(pos).Exec(asg));
             newbody.append(that.body);
             
             // add 0 <= $$index && $$index <= <expr>.length
             // as an additional loop invariant
-            JCExpression e1 = treeutils.makeBinary(pos,JCTree.LE,treeutils.makeIntLiteral(pos,0),id);
-            JCExpression e2 = treeutils.makeBinary(pos,JCTree.LE,id,fa);
-            JCExpression e3 = treeutils.makeBinary(pos,JCTree.AND,e1,e2);
-            JmlStatementLoop inv =factory.at(pos).JmlStatementLoop(JmlToken.LOOP_INVARIANT,e3);
-            if (loopSpecs == null) {
-                loopSpecs = com.sun.tools.javac.util.List.<JmlStatementLoop>of(inv);
-            } else {
-                ListBuffer<JmlStatementLoop> buf = new ListBuffer<JmlStatementLoop>();
-                buf.appendList(loopSpecs);
-                buf.append(inv);
-                loopSpecs = buf.toList();
-            }
-            visitLoopWithSpecs(that,initList,test,updateList,factory.at(that.body.pos).Block(0,newbody.toList()),loopSpecs);
+//            JCExpression e1 = treeutils.makeBinary(pos,JCTree.LE,treeutils.makeIntLiteral(pos,0),id);
+//            JCExpression e2 = treeutils.makeBinary(pos,JCTree.LE,id,fa);
+//            JCExpression e3 = treeutils.makeBinary(pos,JCTree.AND,e1,e2);
+//            JmlStatementLoop inv =factory.at(pos).JmlStatementLoop(JmlToken.LOOP_INVARIANT,e3);
+//            if (loopSpecs == null) {
+//                loopSpecs = com.sun.tools.javac.util.List.<JmlStatementLoop>of(inv);
+//            } else {
+//                ListBuffer<JmlStatementLoop> buf = new ListBuffer<JmlStatementLoop>();
+//                buf.appendList(loopSpecs);
+//                buf.append(inv);
+//                loopSpecs = buf.toList();
+//            }
+            visitLoopWithSpecs(that,null,treeutils.trueLit,null,factory.at(that.body.pos).Block(0,newbody.toList()),null);
+            
+            
         } else {
             notImpl(that); // FIXME
         }
@@ -2425,12 +2526,13 @@ public class BasicBlocker2 extends JmlTreeScanner {
         JCExpression test = that.getCondition();
         JCStatement body = that.getStatement();
         loopStack.add(0,that);
+        breakStack.add(0,that);
         int pos = that.pos;
         BasicBlock bloopStart = currentBlock;
         BasicBlock bloopContinue = newBlock(barblockPrefix + pos + LOOPCONTINUE,pos);
         BasicBlock bloopEnd = newBlock(barblockPrefix + pos + LOOPEND,pos);
         BasicBlock bloopBreak = newBlock(barblockPrefix + pos + LOOPBREAK,pos);
-        String restName = barblockPrefix + pos + LOOPAFTER;
+        String restName = barblockPrefix + pos + LOOPAFTERDO;
 
         // Create an (unprocessed) block for everything that follows the
         // loop statement
@@ -2438,11 +2540,11 @@ public class BasicBlocker2 extends JmlTreeScanner {
         List<JCStatement> temp = brest.statements;
         brest.statements = remainingStatements; // it gets all of the remaining statements
         remainingStatements = temp;
-        blocksToDo.add(0,brest); // push it on the front of the to do list
+        //blocksToDo.add(0,brest); // push it on the front of the to do list
 
         // Back to the current block
-        // test the loop invariants
-        addLoopInvariants(JmlToken.ASSERT,loopSpecs,that.getStartPosition(),currentBlock, Label.LOOP_INVARIANT_PRELOOP);
+//        // test the loop invariants
+//        addLoopInvariants(JmlToken.ASSERT,loopSpecs,that.getStartPosition(),currentBlock, Label.LOOP_INVARIANT_PRELOOP);
 
         // Now havoc any variables changed in the loop
         {
@@ -2452,7 +2554,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
             int wpos = body.pos;
             for (JCExpression e: targets) {
                 if (e instanceof JCIdent) {
-                    newIdentIncarnation((JCIdent)e,wpos);
+                    JCIdent id = newIdentIncarnation((JCIdent)e,wpos);
+                    program.declarations.add(id);
                 } else {
                     // FIXME - havoc in loops
                     log.noticeWriter.println("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
@@ -2460,62 +2563,35 @@ public class BasicBlocker2 extends JmlTreeScanner {
             }
         }
 
-        // assume the loop invariant
-        addLoopInvariants(JmlToken.ASSUME,loopSpecs,that.getStartPosition(),currentBlock, Label.LOOP_INVARIANT);
-
-        // Compute the loop variant and Check that the variant is not negative
-        if (loopSpecs != null) for (JmlStatementLoop loopspec: loopSpecs) {
-            if (loopspec.token == JmlToken.DECREASES) {
-                int p = loopspec.getStartPosition();
-                JCIdent v = newIdentUse(loopspec.sym,p);
-                JCExpression e = treeutils.makeBinary(p,JCTree.GE,v,treeutils.makeIntLiteral(p,0));
-                addAssert(Label.LOOP_DECREASES_NEGATIVE,e,p,currentBlock.statements,body.getStartPosition(),log.currentSourceFile(),loopspec); // FIXME - track which continue is causing a problem?
-            }
-        }
+//        // assume the loop invariant
+//        addLoopInvariants(JmlToken.ASSUME,loopSpecs,that.getStartPosition(),currentBlock, Label.LOOP_INVARIANT);
+//
+//        // Compute the loop variant and Check that the variant is not negative
+//        if (loopSpecs != null) for (JmlStatementLoop loopspec: loopSpecs) {
+//            if (loopspec.token == JmlToken.DECREASES) {
+//                int p = loopspec.getStartPosition();
+//                JCIdent v = newIdentUse(loopspec.sym,p);
+//                JCExpression e = treeutils.makeBinary(p,JCTree.GE,v,treeutils.makeIntLiteral(p,0));
+//                addAssert(Label.LOOP_DECREASES_NEGATIVE,e,p,currentBlock.statements,body.getStartPosition(),log.currentSourceFile(),loopspec); // FIXME - track which continue is causing a problem?
+//            }
+//        }
         // do the loop body
         remainingStatements.add(that.body);
         processBlockStatements(true);
+        
         follows(bloopStart,bloopContinue);
-
-        // Create a loop continue block
-        startBlock(bloopContinue);
-        processBlockStatements(false);
-        // Compute the loop condition, with any side-effect
-        String loopTestVarName = "forCondition"  
-            + "$" + test.getStartPosition() + "$" + test.getStartPosition(); // FIXME - end position?
-        JCIdent loopTest = addAuxVariable(loopTestVarName,syms.booleanType,(test),false,false);
-
-        // Check that loop invariants are still established
-        addLoopInvariants(JmlToken.ASSERT,loopSpecs,endPos(body),currentBlock,Label.LOOP_INVARIANT); // FIXME - use end position?
-
-        // Check that loop variants are decreasing
-        if (loopSpecs != null) for (JmlStatementLoop loopspec: loopSpecs) {
-            if (loopspec.token == JmlToken.DECREASES) {
-                int p = loopspec.getPreferredPosition();
-                JCIdent id = newIdentUse(loopspec.sym,p);
-                JCExpression newexpr = (loopspec.expression);
-                JCExpression e = treeutils.makeBinary(newexpr.getStartPosition(),JCTree.LT,newexpr,id);
-                addAssert(Label.LOOP_DECREASES,e,loopspec.getStartPosition(),currentBlock.statements,body.getStartPosition(),log.currentSourceFile(),loopspec); // FIXME - track which continue is causing a problem?
-            }
-        }
         follows(bloopContinue,bloopEnd);
-        completed(bloopContinue);
-
-        // Create the LoopEnd block
-        startBlock(bloopEnd);
         follows(bloopEnd,bloopBreak);
-        JCExpression neg = treeutils.makeUnary(loopTest.pos,JCTree.NOT,loopTest);
-        addUntranslatedAssume(loopTest.pos,Label.LOOP,neg,currentBlock.statements);
-        completed(bloopEnd);
-
-        // fill in the LoopBreak block
-        startBlock(bloopBreak);
         follows(bloopBreak,brest);
-        addLoopInvariants(JmlToken.ASSERT,loopSpecs,endPos(body),currentBlock, Label.LOOP_INVARIANT_ENDLOOP);
-        completed(bloopBreak);
+        
+        processBlock(bloopContinue);
+        processBlock(bloopEnd);
+        processBlock(bloopBreak);
+        processBlock(brest);
 
         currentBlock = null;
         loopStack.remove(0);
+        breakStack.remove(0);
     }
     
     // OK
@@ -2577,6 +2653,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         
         // Create the ending block name
         String endBlock = barblockPrefix + pos + "_switchEnd";
+        BasicBlock brest = null;
         
         try {
             breakStack.add(0,that);
@@ -2595,12 +2672,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
 
             // Now create an (unprocessed) block for everything that follows the
             // switch statement
-            BasicBlock b = newBlock(endBlock,pos,currentBlock);// it gets all the followers of the current block
-            List<JCStatement> temp = b.statements;
-            b.statements = remainingStatements; // it gets all of the remaining statements
-            remainingStatements = temp;
-            blocksToDo.add(0,b); // push it on the front of the to do list
-            BasicBlock brest = b;
+            brest = newBlockWithRest(endBlock,pos);// it gets all the followers of the current block
 
             // Now we need to make an unprocessed block for each of the case statements,
             // adding them to the todo list at the end
@@ -2675,14 +2747,16 @@ public class BasicBlocker2 extends JmlTreeScanner {
                 
                 addUntranslatedAssume(pos,Label.CASECONDITION,eq,blockForTest.statements);
             }
-            // push all of the blocks onto the to do list
-            while (!blocks.isEmpty()) {
-                blocksToDo.add(0,blocks.removeLast());
+            
+            processBlockStatements(true); // Complete the current block
+            // Now process all of the blocks we created
+            for (BasicBlock b: blocks) {
+                processBlock(b);
             }
-            // continue on to complete the current block
         } finally {
-            breakStack.remove(0);  // FIXME - this is not going to work for embedded breaks
+            breakStack.remove(0);  // FIXME - this is not going to work for embedded breaks - maybe does now
         }
+        if (brest != null) processBlock(brest);
     }
     
     // OK
@@ -2734,9 +2808,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
         // Create an (unprocessed) block for everything that follows the
         // try statement
         int pos = that.pos;
-        BasicBlock brest = newBlock(barblockPrefix + pos + "afterTry",pos,currentBlock);// it gets all the followers of the current block
+        BasicBlock brest = newBlockWithRest(barblockPrefix + pos + AFTERTRY,pos);// it gets all the followers of the current block
         brest.statements.addAll(remainingStatements); // it gets all of the remaining statements
-        blocksToDo.add(0,brest);
+        
         remainingStatements.clear();
         remainingStatements.add(that.getBlock());
         
@@ -2745,24 +2819,26 @@ public class BasicBlocker2 extends JmlTreeScanner {
         String finallyBlockName = barblockPrefix + pos + FINALLY;
         BasicBlock finallyBlock = newBlock(finallyBlockName,pos);
         JCBlock finallyStat = that.getFinallyBlock();
-        if (finallyStat != null) finallyBlock.statements.add(finallyStat); // it gets the (unprocessed) statements of the finally statement
-        blocksToDo.add(0,finallyBlock); // push it on the front of the to do list
+        if (finallyStat != null) finallyBlock.statements.addAll(finallyStat.getStatements()); // it gets the (unprocessed) statements of the finally statement
         follows(currentBlock,finallyBlock);
         follows(finallyBlock,brest);
 
         finallyStack.add(0,finallyBlock);
 
         // Finish the processing of the current block 
-        processBlockStatements(false);
+        processBlockStatements(true);
+        finallyStack.remove(0);
+        processBlock(finallyBlock);
+        processBlock(brest);
     }
     
-    // OK
-    /** Should call this because catch statements are handled in try. */
+    // is this true FIMXE review this
+    /** Should call this because catch statements are desugared before calling the BasicBlocker. */
     public void visitCatch(JCCatch that) { 
         shouldNotBeCalled(that); 
     }
     
-    // FIXME - Rreview
+    // OK
     public void visitIf(JCIf that) {
         int pos = that.pos;
         currentBlock.statements.add(comment(pos,"if..."));
@@ -2771,54 +2847,27 @@ public class BasicBlocker2 extends JmlTreeScanner {
         String thenName = barblockPrefix + pos + THENSUFFIX;
         String elseName = barblockPrefix + pos + ELSESUFFIX;
         String restName = barblockPrefix + pos + AFTERIF;
-        
-        // We create a new auxiliary variable to hold the branch condition, so 
-        // we can track its value and so the subexpression does not get
-        // replicated.  We add an assumption about its value and add it to the
-        // list of new variables
-        String condName = BRANCHCONDITION_PREFIX + pos;
-        JCIdent vd = newAuxIdent(condName,syms.booleanType,pos,true);
-        program.declarations.add(vd);
-        currentMap.put((VarSymbol)vd.sym,pos,vd.sym.name); // FIXME - fold this into a newAuxIdent call?
-        
-        scan(that.cond);
-        JCExpression newexpr = treeutils.makeBinary(that.cond.pos,JCTree.EQ,treeutils.booleqSymbol,vd,that.cond); // FIXME - that.cond or result?
-        addAssumeNoDef(pos,that,Label.BRANCHC,newexpr,currentBlock.statements);
-        
+                
         // Now create an (unprocessed) block for everything that follows the
         // if statement
-        BasicBlock b = newBlock(restName,pos,currentBlock);// it gets all the followers of the current block
-        List<JCStatement> temp = b.statements; // empty
-        b.statements = remainingStatements; // it gets all of the remaining statements
-        remainingStatements = temp;
-        blocksToDo.add(0,b); // push it on the front of the to do list
-        BasicBlock brest = b;
+        BasicBlock brest = newBlockWithRest(restName,pos);// it gets all the followers of the current block
         
-        // Now make the else block, also unprocessed
-        b = newBlock(elseName,pos);
-        JCExpression c = treeutils.makeUnary(pos,JCTree.NOT,vd);
-        // FIXME - do we want this position to be the position of the first else statement? at least document the +1
+        // Now make the then block
+        BasicBlock thenBlock = newBlock(thenName,pos);
+        thenBlock.statements.add(that.thenpart);
+        follows(thenBlock,brest);
+        follows(currentBlock,thenBlock);
         
-        addAssumeNoDef(that.cond.pos+1,that,Label.BRANCHE,c,b.statements);
-//        JmlTree.JmlStatementExpr t = factory.at(that.cond.pos + 1).JmlExpressionStatement(JmlToken.ASSUME,Label.BRANCHE,c);
-//        copyEndPosition(t,that.cond);
-//        b.statements.add(t);
-        if (that.elsepart != null) b.statements.add(that.elsepart);
-        blocksToDo.add(0,b);
-        follows(b,brest);
-        follows(currentBlock,b);
+        // Now make the else block
+        BasicBlock elseBlock = newBlock(elseName,pos);
+        if (that.elsepart != null) elseBlock.statements.add(that.elsepart);
+        follows(elseBlock,brest);
+        follows(currentBlock,elseBlock);
         
-        // Now make the then block, also still unprocessed
-        b = newBlock(thenName,pos);
-        c = vd;
-        addAssumeNoDef(that.cond.pos,that,Label.BRANCHT,c,b.statements);
-//        t = factory.at(that.cond.pos).JmlExpressionStatement(JmlToken.ASSUME,Label.BRANCHT,c);
-//        copyEndPosition(t,that.cond);
-//        b.statements.add(t);
-        b.statements.add(that.thenpart);
-        blocksToDo.add(0,b);
-        follows(b,brest);
-        follows(currentBlock,b);
+        processBlockStatements(true); // finish current block
+        processBlock(thenBlock);
+        processBlock(elseBlock);
+        processBlock(brest);
     }
     
     // FIXME - REVIEW
@@ -2827,8 +2876,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
         scan(that.expr);
     }
     
-    // FIXME - review and document
-    protected java.util.List<JCStatement> breakStack = new java.util.LinkedList<JCStatement>();
+    /** This is a stack of loops and switch statements - anything that can 
+     * contain a break statement
+     */
+    protected java.util.List<JCTree> breakStack = new java.util.LinkedList<JCTree>();
     
     // FIXME - needs review
     public void visitBreak(JCBreak that) { 
@@ -2843,7 +2894,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             // FIXME - for safety, check and warn if there are any remaining statements in the block
         } else if (that.label == null) {
             JCTree t = loopStack.get(0);
-            String s = barblockPrefix + t.pos + "LoopBreak";
+            String s = barblockPrefix + t.pos + LOOPBREAK;
             BasicBlock b = blockLookup.get(s);
             if (b == null) log.noticeWriter.println("NO BREAK BLOCK: " + s);
             else replaceFollows(currentBlock,b);

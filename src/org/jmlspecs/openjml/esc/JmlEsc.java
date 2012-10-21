@@ -568,8 +568,12 @@ public class JmlEsc extends JmlTreeScanner {
                         int pos = assertStat.pos;
                         if (pos == Position.NOPOS) pos = terminationPos;
                         if (assertStat.source != null) prev = log.useSource(assertStat.source);
-                        log.warning(pos,"esc.assertion.invalid",label,decl.getName() + cf,
-                                assertStat.optionalExpression == null ? "" : ": " + assertStat.optionalExpression);
+                        String extra = "";
+                        JCExpression optional = assertStat.optionalExpression;
+                        if (optional != null) {
+                            if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString();
+                        }
+                        log.warning(pos,"esc.assertion.invalid",label,decl.getName() + cf,extra);
                         // TODO - above we include the optionalExpression as part of the error message
                         // however, it is an expression, and not evaluated for ESC. Even if it is
                         // a literal string, it is printed with quotes around it.

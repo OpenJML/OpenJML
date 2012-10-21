@@ -7,19 +7,20 @@ package tests;
  * @author David R. Cok
  *
  */
-public class rac extends RacBase {
+public class racnew extends RacBase {
 
     /** Sets the classpath used for these tests.  The bin in the classpath
      * brings in the currently compiled runtime classes (so we don't have
      * to build jmlruntime.jar)
      */
-    String[] ordrac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
+    String[] ordrac = new String[]{jdk, "-ea", "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
 
     protected void setUp() throws Exception {
         rac = ordrac;
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
+        options.put("-newesc", "");
         options.put("-showNotImplemented", "");
         options.put("-noPurityCheck",""); // System specs have a lot of purity errors, so turn this off for now
         options.put("-noInternalSpecs",   ""); // Faster with this option; should work either way
@@ -35,6 +36,13 @@ public class rac extends RacBase {
     }
 
     /** Basic Hello World test, with no RAC tests triggered */
+    public void testJavaExit() {
+        expectedRACExit = 5;
+        helpTCX("tt.TestJavaExit","package tt; public class TestJavaExit { public static void main(String[] args) { System.exit(5); }}"
+                );
+    }
+
+    /** Basic Hello World test, with no RAC tests triggered */
     public void testJavaNull() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) {  }}"
                 );
@@ -42,7 +50,7 @@ public class rac extends RacBase {
 
     /** Simple test of output from a JML set statement */
     public void testJML() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { //@ ghost int i = 0; \n //@ set i = 1; \n //@ set System.out.println(i); \n System.out.println(\"END\"); }}"
+        helpTCX("tt.TestJML","package tt; public class TestJML { public static void main(String[] args) { //@ ghost int i = 0; \n //@ set i = 1; \n //@ set System.out.println(i); \n System.out.println(\"END\"); }}"
                 ,"1"
                 ,"END"
                 );

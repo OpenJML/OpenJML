@@ -290,6 +290,22 @@ public class JmlTreeUtils {
     public JCLiteral makeLit(int pos, Type type, Object value) { // FIXME  I don't think it is correct for char literals
         return factory.at(pos).Literal(type.tag, value).setType(type.constType(value));
     }
+
+    /** Returns true if the argument is a boolean Literal with value true */
+    public boolean isTrueLit(JCTree tree) {
+        if (tree == trueLit) return true;
+        if (!(tree instanceof JCLiteral)) return false;
+        if (tree.type.tag != TypeTags.BOOLEAN) return false;
+        return (Boolean)((JCLiteral)tree).getValue();
+    }
+    
+    /** Returns true if the argument is a boolean Literal with value true */
+    public boolean isFalseLit(JCTree tree) {
+        if (tree == falseLit) return true;
+        if (!(tree instanceof JCLiteral)) return false;
+        if (tree.type.tag != TypeTags.BOOLEAN) return false;
+        return !(Boolean)((JCLiteral)tree).getValue();
+    }
     
     /** Makes an attributed AST that is a copy of a given literal AST */
     public JCLiteral makeDuplicateLiteral(int pos, JCLiteral lit) {
