@@ -41,7 +41,7 @@ public abstract class RacBase extends JmlTestCase {
      * program.  The first argument is the java executable; the null argument
      * is replaced by the class name of the class containing the main method.     
      * */
-    String[] defrac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
+    String[] defrac = new String[]{jdk, "-ea", "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
 
     /** These are actual command-line arguments, if they are set differently
      * by a subclass.
@@ -127,9 +127,9 @@ public abstract class RacBase extends JmlTestCase {
      */
     public void helpTCX(String classname, String s, Object... list) {
 
-        if (this.getClass() == racsystem.class) {
-//            System.out.println("racsystem tests disabled");
-//            return;  // FIXME - turning off these tests for now
+        if (this.getClass() == racnew.class) {
+            System.out.println("racnew tests disabled");
+            return;  // FIXME - turning off these tests for now
         }
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
         StreamGobbler out=null,err=null;

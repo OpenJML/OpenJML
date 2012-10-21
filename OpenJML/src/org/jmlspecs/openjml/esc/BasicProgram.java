@@ -179,7 +179,7 @@ public class BasicProgram {
             for (Definition e: definitions) {
                 e.id.accept(pw);
                 pw.print(" ::: ");
-                e.value.accept(pw);
+                if (e.value != null) e.value.accept(pw);
                 pw.println();
                 w.flush();
             }
