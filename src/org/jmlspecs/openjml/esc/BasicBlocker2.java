@@ -2167,8 +2167,6 @@ public class BasicBlocker2 extends JmlTreeScanner {
         BasicBlock bloopEnd = newBlock(barblockPrefix + pos + LOOPEND,pos);
         BasicBlock bloopBreak = newBlock(barblockPrefix + pos + LOOPBREAK,pos);
         String restName = barblockPrefix + pos + LOOPAFTER;
-//        blockLookup.put(bloopContinue.id.name.toString(),bloopContinue);
-//        blockLookup.put(bloopBreak.id.name.toString(),bloopBreak);
 
         // Now create an (unprocessed) block for everything that follows the
         // loop statement
@@ -2178,30 +2176,22 @@ public class BasicBlocker2 extends JmlTreeScanner {
         if (init != null) remainingStatements.addAll(init);
         processBlockStatements(false);
         
-        // Now havoc any variables changed in the loop body
-        {
-            List<JCExpression> targets = TargetFinder.findVars(body,null);
-            TargetFinder.findVars(test,targets);
-            if (update != null) TargetFinder.findVars(update,targets);
-            // synthesize a modifies list
-            int wpos = body.pos+1;
-            //log.noticeWriter.println("HEAP WAS " + currentMap.get((VarSymbol) heapVar.sym));
-            newIdentIncarnation(heapVar,wpos);
-            //log.noticeWriter.println("HEAP NOW " + currentMap.get((VarSymbol) heapVar.sym) + " " + (wpos+1));
-            for (JCExpression e: targets) {
-                if (e instanceof JCIdent) {
-                    JCIdent id = newIdentIncarnation((JCIdent)e,wpos);
-                    program.declarations.add(id);
-                //} else if (e instanceof JCFieldAccess) {
-                //} else if (e instanceof JCArrayAccess) {
-                    
-                } else {
-                    // FIXME - havoc in loops
-                    log.noticeWriter.println("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
-                }
-            }
-        }
+//        // Now havoc any variables changed in the loop body
+//        {
+//            ListBuffer<JCExpression> targets = TargetFinder.findVars(body,null);
+//            TargetFinder.findVars(test,targets);
+//            if (update != null) TargetFinder.findVars(update,targets);
+//            // synthesize a modifies list
+//            int wpos = body.pos+1;
+//            //log.noticeWriter.println("HEAP WAS " + currentMap.get((VarSymbol) heapVar.sym));
+//            newIdentIncarnation(heapVar,wpos);
+//            //log.noticeWriter.println("HEAP NOW " + currentMap.get((VarSymbol) heapVar.sym) + " " + (wpos+1));
+//            for (JCExpression e: targets) {
+//                havoc(e);
+//            }
+//        }
         
+        // FIXME - havoc the heap variable
 
         scan(test);
         
@@ -2546,22 +2536,18 @@ public class BasicBlocker2 extends JmlTreeScanner {
 //        // test the loop invariants
 //        addLoopInvariants(JmlToken.ASSERT,loopSpecs,that.getStartPosition(),currentBlock, Label.LOOP_INVARIANT_PRELOOP);
 
-        // Now havoc any variables changed in the loop
-        {
-            List<JCExpression> targets = TargetFinder.findVars(body,null);
-            TargetFinder.findVars(test,targets);
-            // synthesize a modifies list
-            int wpos = body.pos;
-            for (JCExpression e: targets) {
-                if (e instanceof JCIdent) {
-                    JCIdent id = newIdentIncarnation((JCIdent)e,wpos);
-                    program.declarations.add(id);
-                } else {
-                    // FIXME - havoc in loops
-                    log.noticeWriter.println("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
-                }
-            }
-        }
+//        // Now havoc any variables changed in the loop
+//        {
+//            ListBuffer<JCExpression> targets = TargetFinder.findVars(body,null);
+//            TargetFinder.findVars(test,targets);
+//            // synthesize a modifies list
+//            int wpos = body.pos;
+//            for (JCExpression e: targets) {
+//                havoc(e);
+//            }
+//        }
+        
+        // FIXME - havoc the heap variable
 
 //        // assume the loop invariant
 //        addLoopInvariants(JmlToken.ASSUME,loopSpecs,that.getStartPosition(),currentBlock, Label.LOOP_INVARIANT);
@@ -3453,6 +3439,23 @@ public class BasicBlocker2 extends JmlTreeScanner {
     }
     
     // FIXME - review and document
+    protected void havoc(JCExpression storeref) {
+        if (storeref instanceof JCIdent) {
+            JCIdent id = newIdentIncarnation((JCIdent)storeref,storeref.pos);
+            program.declarations.add(id);
+            //} else if (e instanceof JCFieldAccess) {
+            //} else if (e instanceof JCArrayAccess) {
+
+        } else {
+            // FIXME - havoc in loops
+            log.noticeWriter.println("UNIMPLEMENTED HAVOC  " + storeref.getClass());
+        }
+
+    }
+    
+
+    
+    // FIXME - review and document
     protected void havocEverything(JCExpression preCondition, int newpos) {
         // FIXME - if the precondition is true, then we do not need to add the 
         // assumptions - we just need to call newIdentIncarnation to make a new
@@ -3507,6 +3510,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
 
     
     // OK
+    @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) { 
         if (that.token == JmlToken.COMMENT) {
             currentBlock.statements.add(that);
@@ -3515,6 +3519,14 @@ public class BasicBlocker2 extends JmlTreeScanner {
             currentBlock.statements.add(that);
         } else {
             log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.token.internedName());
+        }
+    }
+    
+    // OK
+    @Override
+    public void visitJmlStatementHavoc(JmlStatementHavoc that) { 
+        for (JCExpression item : that.storerefs) {
+            havoc(item);
         }
     }
     
@@ -4048,14 +4060,14 @@ public class BasicBlocker2 extends JmlTreeScanner {
     // FIXME - is the tree already in reduced BasicBlock form?
     public static class TargetFinder extends JmlTreeScanner {
         
-        private List<JCExpression> vars;
+        private ListBuffer<JCExpression> vars;
         
         public TargetFinder() {}
         
         /** Finds variables in the given JCTree, adding them to the list that is the 
          * second argument; the second argument is returned.
          */
-        public static /*@Nullable*/List<JCExpression> findVars(JCTree that, /*@Nullable*/List<JCExpression> v) {
+        public static /*@Nullable*/ListBuffer<JCExpression> findVars(JCTree that, /*@Nullable*/ListBuffer<JCExpression> v) {
             if (that == null) return v;
             TargetFinder vf = new TargetFinder();
             return vf.find(that,v);
@@ -4064,7 +4076,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         /** Finds variables in the given JCTrees, adding them to the list that is the 
          * second argument; the second argument is returned.
          */
-        public static List<JCExpression> findVars(Iterable<? extends JCTree> list, /*@Nullable*/List<JCExpression> v) {
+        public static ListBuffer<JCExpression> findVars(Iterable<? extends JCTree> list, /*@Nullable*/ListBuffer<JCExpression> v) {
             TargetFinder vf = new TargetFinder();
             return vf.find(list,v);
         }
@@ -4072,8 +4084,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
         /** Finds variables in the given JCTrees, adding them to the list that is the 
          * second argument; the second argument is returned.
          */
-        public List<JCExpression> find(Iterable<? extends JCTree> list, /*@Nullable*/List<JCExpression> v) {
-            if (v == null) vars = new ArrayList<JCExpression>();
+        public ListBuffer<JCExpression> find(Iterable<? extends JCTree> list, /*@Nullable*/ListBuffer<JCExpression> v) {
+            if (v == null) vars = new ListBuffer<JCExpression>();
             else vars = v;
             for (JCTree t: list) t.accept(this);
             return vars;
@@ -4082,9 +4094,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
         /** Finds variables in the given JCTrees, adding them to the list that is the 
          * second argument; the second argument is returned.
          */
-        public List<JCExpression> find(JCTree that, List<JCExpression> v) {
+        public ListBuffer<JCExpression> find(JCTree that, ListBuffer<JCExpression> v) {
             if (that == null) return v;
-            if (v == null) vars = new ArrayList<JCExpression>();
+            if (v == null) vars = new ListBuffer<JCExpression>();
             else vars = v;
             that.accept(this);
             return vars;

@@ -329,6 +329,13 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
+    public void visitJmlStatementHavoc(JmlStatementHavoc that) {
+        JmlStatementHavoc r = that;
+        r.storerefs = translate(that.storerefs);
+        result = r;
+    }
+
+    @Override
     public void visitJmlStatementLoop(JmlStatementLoop that) {
         JmlStatementLoop r = that;
         r.expression = translate(that.expression);

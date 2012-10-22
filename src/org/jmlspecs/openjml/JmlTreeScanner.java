@@ -226,6 +226,10 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(tree.optionalExpression);
     }
 
+    public void visitJmlStatementHavoc(JmlStatementHavoc tree) {
+        scan(tree.storerefs);
+    }
+
     public void visitJmlStatementLoop(JmlStatementLoop tree) {
         scan(tree.expression);
     }

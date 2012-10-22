@@ -318,6 +318,11 @@ public class JmlTreeUtils {
         return factory.at(pos).Literal(TypeTags.INT, value).setType(syms.intType.constType(value));
     }
 
+    /** Make an attributed tree representing a null literal. */
+    public JCLiteral makeNullLiteral(int pos) {
+        return makeDuplicateLiteral(pos,nulllit);
+    }
+
     /** Makes a constant boolean literal AST node.
      * @param pos the position to use for the node
      * @param value the boolean value of the constant node

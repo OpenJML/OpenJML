@@ -465,6 +465,22 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         
     }
 
+    public void visitJmlStatementHavoc(JmlStatementHavoc that) {
+        try { 
+            if (useJMLComments) print ("//@ ");  // FIXME - this is needed in lots more places
+            print(that.token.internedName());
+
+            print(" ");
+            boolean first = true;
+            for (JCTree item: that.storerefs) {
+                if (first) first = false; else print(", ");
+                item.accept(this);
+            }
+            print("; ");
+        } catch (IOException e) { perr(that,e); }
+        
+    }
+
     public void visitJmlStatementDecls(JmlStatementDecls that) {
         try { notImpl(that);  // FIXME
         } catch (IOException e) { perr(that,e); }
