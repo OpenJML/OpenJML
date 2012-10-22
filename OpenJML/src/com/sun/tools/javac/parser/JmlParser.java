@@ -455,6 +455,29 @@ public class JmlParser extends EndPosParser {
                     // ste.source = log.currentSourceFile();
                     // ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
+                } else if (jtoken == JmlToken.HAVOC ) {
+                    S.setJmlKeyword(false);
+                    S.nextToken();
+
+                    ListBuffer<JCExpression> list = parseStoreRefList(false);
+                    if (S.token() == SEMI) {
+                        // OK, go on
+                    } else if (S.jmlToken() == ENDJMLCOMMENT) {
+                        syntaxError(S.pos(), null, "jml.missing.semi");
+                    }
+                    S.setJmlKeyword(true);
+                    if (S.token() != SEMI) {
+                        // error already reported
+                        skipThroughSemi();
+                    } else {
+                        if (list.isEmpty()) {
+                            syntaxError(S.pos(), null, "jml.use.nothing.assignable");
+                        }
+                        S.nextToken();
+                    }
+                    st = toP(jmlF.at(pos).JmlHavocStatement(list.toList()));
+                    S.setJmlKeyword(true); // This comes a token too late.
+                    needSemi = false;
                 } else if (jtoken == JmlToken.SET || jtoken == JmlToken.DEBUG) {
                     S.setJmlKeyword(false);
                     S.nextToken();

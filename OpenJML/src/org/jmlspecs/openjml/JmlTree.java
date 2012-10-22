@@ -82,6 +82,7 @@ public class JmlTree implements IJmlTree {
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlEnhancedForLoop JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlStatementExpr JmlExpressionStatement(JmlToken t, Label label, JCTree.JCExpression e);
+        JmlStatementHavoc JmlHavocStatement(List<JCTree.JCExpression> e);
         JmlForLoop JmlForLoop(JCForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlGroupName JmlGroupName(JCExpression selection);
         JmlImport JmlImport(JCTree qualid, boolean staticImport, boolean isModel);
@@ -424,6 +425,12 @@ public class JmlTree implements IJmlTree {
             return new JmlStatementExpr(pos,t,label,e);
         }
         
+        /** Creates a JML havoc statement */
+        @Override
+        public JmlStatementHavoc JmlHavocStatement(List<JCTree.JCExpression> e) {
+            return new JmlStatementHavoc(pos,e);
+        }
+        
         /** This creates a pseudo-statement in a method body that is actually a block of method specifications */
         @Override
         public JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs) {
@@ -698,7 +705,8 @@ public class JmlTree implements IJmlTree {
     public static final int JMLSTATEMENTSPEC = JMLBINARY + 1;
     public static final int JMLSTATEMENTLOOP = JMLSTATEMENTSPEC + 1;
     public static final int JMLSTATEMENTEXPR = JMLSTATEMENTLOOP + 1;
-    public static final int JMLSTATEMENTDECLS = JMLSTATEMENTEXPR + 1;
+    public static final int JMLSTATEMENTHAVOC = JMLSTATEMENTEXPR + 1;
+    public static final int JMLSTATEMENTDECLS = JMLSTATEMENTHAVOC + 1;
     public static final int JMLMETHODCLAUSEGROUP = JMLSTATEMENTDECLS + 1;
     public static final int JMLMETHODCLAUSECALLABLE = JMLMETHODCLAUSEGROUP + 1;
     public static final int JMLMETHODCLAUSEDECL = JMLMETHODCLAUSECALLABLE + 1;
@@ -2481,10 +2489,10 @@ public class JmlTree implements IJmlTree {
         /** The line number corresponding to pos */
         public int line; 
         
-        /** The sousrce file in which the statement sits (and the file to which pos and line correspond) */
+        /** The source file in which the statement sits (and the file to which pos and line correspond) */
         public JavaFileObject source;
         
-        /** A Lable that gives detail about the kind of assertion or assumption */
+        /** A Label that gives detail about the kind of assertion or assumption */
         public Label label;
         
         /** The file containing the specification (e.g. clause) from which this
@@ -2536,7 +2544,57 @@ public class JmlTree implements IJmlTree {
             }
         }
     }
+
+    /** This class represents a JML havoc statement, which declares that
+     * the specified variables (store-refs) have unknown values.
+     */
+    public static class JmlStatementHavoc extends JmlAbstractStatement {
+        /** Should always be HAVOC */
+        public JmlToken token;
+        
+        /** The store-refs whose values are unknown */
+        public List<JCTree.JCExpression> storerefs;
+                
+        /** The source file in which the statement sits (and the file to which pos and line correspond) */
+        public JavaFileObject source;
+        
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlStatementHavoc(int pos, List<JCTree.JCExpression> storerefs) {
+            this.pos = pos;
+            this.token = JmlToken.HAVOC;
+            this.storerefs = storerefs;
+        }
     
+        @Override
+        public int getTag() {
+            return JMLSTATEMENTEXPR;
+        }
+        
+        @Override
+        public Kind getKind() { 
+            return Kind.OTHER; // See note above
+        }
+    
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlStatementHavoc(this); 
+            } else {
+                //System.out.println("A JmlStatementExpr expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+    
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlStatementHavoc(this, d);
+            } else {
+                //System.out.println("A JmlStatementHavoc expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+    }
     /** This is a special kind of assume statement, one that is defining a new variable;
      * it does not occur in source code, but is created upon transforming declarations and
      * assignments into assume statements. Some provers are able to deal differently with

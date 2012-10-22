@@ -6,8 +6,7 @@ package com.sun.tools.javac.comp;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.IJmlVisitor;
-import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -39,6 +38,7 @@ import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlStatement;
 import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTree.JmlStatementHavoc;
 import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
 import org.jmlspecs.openjml.JmlTree.JmlStatementSpec;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
@@ -56,7 +56,6 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
-import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
@@ -306,6 +305,11 @@ public class JmlFlow extends Flow implements IJmlVisitor {
     public void visitJmlStatementExpr(JmlStatementExpr that) {
         scanExpr(that.expression);
         scanExpr(that.optionalExpression);
+    }
+
+    @Override
+    public void visitJmlStatementHavoc(JmlStatementHavoc that) {
+        scan(that.storerefs);
     }
 
     @Override

@@ -48,6 +48,7 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlStatement(JmlStatement that)               ;
     public void visitJmlStatementDecls(JmlStatementDecls that)     ;
     public void visitJmlStatementExpr(JmlStatementExpr that)       ;
+    public void visitJmlStatementHavoc(JmlStatementHavoc that)       ;
     public void visitJmlStatementLoop(JmlStatementLoop that)       ;
     public void visitJmlStatementSpec(JmlStatementSpec that)       ;
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that);

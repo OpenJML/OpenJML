@@ -407,6 +407,14 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     @Override
+    public JCTree visitJmlStatementHavoc(JmlStatementHavoc that, Void p) {
+        JmlStatementHavoc copy = M.at(that.pos).JmlHavocStatement(
+                copy(that.storerefs,p));
+        copy.type = that.type;
+        return copy;
+    }
+
+    @Override
     public JCTree visitJmlStatementLoop(JmlStatementLoop that, Void p) {
         JmlStatementLoop copy = M.at(that.pos).JmlStatementLoop(
                 that.token,

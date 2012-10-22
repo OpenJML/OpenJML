@@ -98,6 +98,10 @@ public class escold extends escnew {
         // old esc did not check for this problem
     }
     
+    public void testHavoc() {
+        // old esc did not implement havoc
+    }
+    
     public void testAssignable5() {
         noAssociatedDeclaration = true;
         super.testAssignable5();

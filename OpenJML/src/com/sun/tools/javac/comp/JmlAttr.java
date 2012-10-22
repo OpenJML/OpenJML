@@ -3035,6 +3035,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = null; // No type returned
     }
 
+    /** This handles JML statements such as assert and assume and unreachable and hence_by. */
+    public void visitJmlStatementHavoc(JmlTree.JmlStatementHavoc tree) {
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
+        boolean prev = pureEnvironment;
+        pureEnvironment = true;
+        if (tree.storerefs != null) {
+            for (JCTree e: tree.storerefs) {
+                attribExpr(e, env, Type.noType);
+            }
+        }
+        pureEnvironment = prev;
+        jmlresolve.setAllowJML(prevAllowJML);
+        result = null; // No type returned
+    }
+
     boolean savedSpecOK = false; // FIXME - never read
     
     public void attribLoopSpecs(List<JmlTree.JmlStatementLoop> loopSpecs, Env<AttrContext> loopEnv) {

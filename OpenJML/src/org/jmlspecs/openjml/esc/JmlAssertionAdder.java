@@ -16,9 +16,7 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicBlocker2.TargetFinder;
 
-
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
@@ -28,7 +26,6 @@ import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
-
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
@@ -119,6 +116,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     JCTree result;
     JCExpression eresult;
     protected boolean esc ; // if false, then translating for rac
+    protected boolean rac ; // if false, then translating for rac
     
     /** Returns a new JCBlock representing the rewritten body of the given method declaration */
     public JCBlock convertMethodBody(JCMethodDecl decl) {
@@ -143,6 +141,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public JmlAssertionAdder(Context context, boolean esc) {
         this.context = context;
         this.esc = esc;
+        this.rac = !esc;
         this.log = Log.instance(context);
         this.M = JmlTree.Maker.instance(context);
         this.names = Names.instance(context);
@@ -259,9 +258,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return M.at(decl.pos).Block(0,initialStatements.toList());
     }
     
+    /** Converts a non-expression AST, returning the result value. */
     public <T extends JCTree> T convert(T tree) {
         scan(tree);
         return (T)result;
+    }
+    
+    /** Converts an AST, returning the result value. */
+    public <T extends JCExpression> T convert(T tree) {
+        scan(tree);
+        return (T)eresult;
     }
     
     /** Start collecting statements for a new block; push currentStatements onto a stack for later use */
@@ -331,7 +337,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 st.optionalExpression = info;
                 stats.add(st);
                 return st;
-            } else {
+            } 
+            if (rac) {
                 JCDiagnostic diag = JCDiagnostic.Factory.instance(context).warning(log.currentSource(), null, "esc.assertion.invalid", label, "","");
                 String msg = diag.getMessage(null);
                 if (info == null) {
@@ -342,6 +349,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 stats.add(st);
                 return st;
             }
+            return null;
     }
     
     /** Adds an assertion with the given label and (already translated) expression
@@ -428,7 +436,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             JCVariableDecl dd = treeutils.makeVariableDecl(M.Name("PRE_"+d.name.toString()), d.type, 
                     M.Ident(d.sym), decl.pos);
-            if (!esc) dd.sym.owner = d.sym.owner;
+            if (rac) dd.sym.owner = d.sym.owner;
             preparams.put(d.sym,dd);
             addStat(initialStats,dd);
         }
@@ -1108,6 +1116,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCExpression e = scanret(((JmlMethodClauseExpr)clause).expression);
                                 addAssume(that.pos,Label.POSTCONDITION,e,currentStatements,clause.pos,clause.sourcefile);
                                 break;
+                            case ASSIGNABLE:
+                                
                             default:
                                 // FIXME - implement others
                                 break;
@@ -1853,8 +1863,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitBinary(JCBinary that) {
-        JCExpression lhs = scanret(that.lhs);
-        JCExpression rhs = scanret(that.rhs);
+        JCExpression lhs = scanret(that.getLeftOperand());
+        JCExpression rhs = scanret(that.getRightOperand());
         addBinaryChecks(that,that.getTag(),lhs,rhs);
         JCBinary bin = treeutils.makeBinary(that.pos,that.getTag(),that.getOperator(),lhs,rhs);
         eresult = newTemp(bin);
@@ -1863,14 +1873,40 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitTypeCast(JCTypeCast that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        JCExpression lhs = scanret(that.getExpression());
+        JCTree clazz = scanret(that.getType());
+        JCTypeCast e = M.at(that.pos).TypeCast(clazz,lhs);
+        e.setType(that.type);
+        treeutils.copyEndPosition(e,that);
+        // Check that expression is either null or the correct type
+        JCExpression eqnull = treeutils.makeEqObject(that.pos,lhs,treeutils.makeNullLiteral(that.pos));
+        if (esc) {
+            // FIXME - not yet implemented as an assertion
+        }
+        if (rac) {
+            JCExpression typeok = M.at(that.pos).TypeTest(e, clazz);
+            typeok.setType(syms.booleanType);
+            // FIXME - end position?
+            JCExpression cond = treeutils.makeOr(that.pos, eqnull, typeok);
+            addAssert(that.pos,Label.POSSIBLY_BADCAST,cond,currentStatements);
+            eresult = newTemp(e);
+        }
     }
 
     @Override
     public void visitTypeTest(JCInstanceOf that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        JCExpression lhs = scanret(that.getExpression());
+        JCTree clazz = scanret(that.getType());
+        JCInstanceOf e = M.at(that.pos).TypeTest(lhs,clazz);
+        e.setType(that.type);
+        treeutils.copyEndPosition(e,that);
+        // No checks needed
+        if (esc) {
+            // FIXME - not yet implemented as an assertion
+        }
+        if (rac) {
+            eresult = newTemp(e);
+        }
     }
 
     // OK
@@ -1935,37 +1971,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitTypeIdent(JCPrimitiveTypeTree that) {
-        // TODO Auto-generated method stub
         throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitTypeArray(JCArrayTypeTree that) {
-        // TODO Auto-generated method stub
         throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitTypeApply(JCTypeApply that) {
-        // TODO Auto-generated method stub
         throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitTypeParameter(JCTypeParameter that) {
-        // TODO Auto-generated method stub
         throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitWildcard(JCWildcard that) {
-        // TODO Auto-generated method stub
         throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitTypeBoundKind(TypeBoundKind that) {
-        // TODO Auto-generated method stub
         throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
@@ -2032,6 +2062,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
         // esc does not get here, but rac does
+        if (esc) throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
         List<JCTree> defs = scanret(that.defs);
         // FIXME - replicate all the other AST nodes
         JmlCompilationUnit n = M.at(that.pos).TopLevel(that.packageAnnotations,that.pid,defs);
@@ -2058,31 +2089,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
-//      // Now havoc any variables changed in the loop body
-//      {
-//          java.util.List<JCExpression> targets = TargetFinder.findVars(that.body,null);
-//          TargetFinder.findVars(test,targets);
-//          //if (update != null) TargetFinder.findVars(update,targets);
-//          // synthesize a modifies list
-//          int wpos = that.body.pos+1;
-//          //log.noticeWriter.println("HEAP WAS " + currentMap.get((VarSymbol) heapVar.sym));
-//          newIdentIncarnation(heapVar,wpos);
-//          //log.noticeWriter.println("HEAP NOW " + currentMap.get((VarSymbol) heapVar.sym) + " " + (wpos+1));
-//          for (JCExpression e: targets) {
-//              if (e instanceof JCIdent) {
-//                  JCIdent id = newIdentIncarnation((JCIdent)e,wpos);
-//                  program.declarations.add(id);
-//              //} else if (e instanceof JCFieldAccess) {
-//              //} else if (e instanceof JCArrayAccess) {
-//                  
-//              } else {
-//                  // FIXME - havoc in loops
-//                  log.noticeWriter.println("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
-//              }
-//          }
-//      }
       
         pushBlock();
+        
+        // Havoc any variables changed in the loop
+        {
+            ListBuffer<JCExpression> targets = TargetFinder.findVars(that.getStatement(),null);
+            TargetFinder.findVars(that.getCondition(),targets);
+            // synthesize a modifies list
+            JmlStatementHavoc st = M.at(that.body.pos).JmlHavocStatement(targets.toList());
+            st.type = Type.noType;
+            addStat(st);
+        }
+
         scan(that.body);
 
         pushBlock();
@@ -2114,11 +2133,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
-        // Need to add specifications; also index and values variables
+        // FIXME Need to add specifications; also index and values variables
         JCVariableDecl v = M.at(that.var.pos).VarDef(that.var.sym,null);
         v.setType(that.var.type);
         JCExpression e = scanret(that.expr);
         pushBlock();
+        // Now havoc any variables changed in the loop
+        {
+            ListBuffer<JCExpression> targets = TargetFinder.findVars(that.getStatement(),null);
+            TargetFinder.findVars(that.getExpression(),targets);
+            // synthesize a modifies list
+            JmlStatementHavoc st = M.at(that.body.pos).JmlHavocStatement(targets.toList());
+            addStat(st);
+        }
         scan(that.body);
         JCBlock b = popBlock(0,that.body.pos);
         addStat(M.at(that.pos).ForeachLoop(v, e, b));
@@ -2152,6 +2179,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             condBlock = popBlock(0,that.cond.pos);
         }
         pushBlock();
+        
+        // Now havoc any variables changed in the loop
+        {
+            ListBuffer<JCExpression> targets = TargetFinder.findVars(that.getStatement(),null);
+            TargetFinder.findVars(that.getCondition(),targets);
+            // synthesize a modifies list
+            JmlStatementHavoc st = M.at(that.body.pos).JmlHavocStatement(targets.toList());
+            addStat(st);
+        }
+
         
         // FIXME - need to add the increment onto the update statements
         // FIXME - need to transform the update statements, but ForLoop wants a list of JCExpressionStatement not JCStatement
@@ -2354,6 +2391,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
 
+    // OK
+    @Override
+    public void visitJmlStatementHavoc(JmlStatementHavoc that) {
+        JmlStatementHavoc st = M.at(that.pos).JmlHavocStatement(jmlrewriter.translate(that.storerefs));
+        st.type = Type.noType;
+        addStat(st);
+        result = st;
+    }
+
     @Override
     public void visitJmlStatementLoop(JmlStatementLoop that) {
         // TODO Auto-generated method stub
@@ -2468,6 +2514,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         // FIXME - need to add specs; 
         pushBlock();
+        
+        // Now havoc any variables changed in the loop
+        {
+            ListBuffer<JCExpression> targets = TargetFinder.findVars(that.getStatement(),null);
+            TargetFinder.findVars(that.getCondition(),targets);
+            // synthesize a modifies list
+            JmlStatementHavoc st = M.at(that.body.pos).JmlHavocStatement(targets.toList());
+            addStat(st);
+        }
+
 //        // Now havoc any variables changed in the loop body
 //        {
 //            java.util.List<JCExpression> targets = TargetFinder.findVars(that.body,null);
@@ -2570,6 +2626,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
          * copy of the given expression, not changing the original. */
         protected JCExpression translate(JCExpression that) {
             return translate(that,treeutils.trueLit,false);
+        }
+        
+        /** The translate methods are the entry point into the rewriter; this one
+         * makes a copy of the input list, making copies of each list element, 
+         * not changing the original list or its elements. */
+        protected List<JCExpression> translate(List<JCExpression> list) {
+            ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
+            for (JCExpression item : list) {
+                newlist.add(translate(item));
+            }
+            return newlist.toList();
         }
 
         /** The translate methods are the entry point into the rewriter; they make a rewritten
