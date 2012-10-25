@@ -78,9 +78,9 @@ public class escold extends escnew {
         // Was not implemented in old esc
     }
     
-    public void testAssignable2() {
-        // FIXME - skip until problem in escnew is fixed
-    }
+//    public void testAssignable2() {
+//        // FIXME - skip until problem in escnew is fixed
+//    }
     
     public void testNullThrow() {
         // FIXME - skip until problem in escnew is fixed
@@ -102,28 +102,28 @@ public class escold extends escnew {
         // old esc did not implement havoc
     }
     
-    public void testAssignable5() {
-        noAssociatedDeclaration = true;
-        super.testAssignable5();
-    }
-    
-    public void testAssignable1() {
-        noAssociatedDeclaration = true;
-        super.testAssignable5();
-    }
-    
-    public void testAssignable3() {
-        noAssociatedDeclaration = true;
-        super.testAssignable5();
-    }
-    
-    public void testAssignable4() {
-        noAssociatedDeclaration = true;
-        super.testAssignable5();
-    }
-    
-    public void testAssignable6() {
-        noAssociatedDeclaration = true;
-        super.testAssignable5();
-    }
+//    public void testAssignable5() {
+//        noAssociatedDeclaration = true;
+//        super.testAssignable5();
+//    }
+//    
+//    public void testAssignable1() {
+//        noAssociatedDeclaration = true;
+//        super.testAssignable5();
+//    }
+//    
+//    public void testAssignable3() {
+//        noAssociatedDeclaration = true;
+//        super.testAssignable5();
+//    }
+//    
+//    public void testAssignable4() {
+//        noAssociatedDeclaration = true;
+//        super.testAssignable5();
+//    }
+//    
+//    public void testAssignable6() {
+//        noAssociatedDeclaration = true;
+//        super.testAssignable5();
+//    }
 }

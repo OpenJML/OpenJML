@@ -486,6 +486,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
         the mapping of variables to incarnations to use when in the scope of 
         an \old */
     @NonNull protected VarMap premap;
+    
+    final protected Set<Symbol> isDefined = new HashSet<Symbol>();
 
     /** The jfoMap and jfoArray keep track of a mapping between JavaFileObjects and
      * unique Integers. When position information in an encoded identifier refers to 
@@ -752,9 +754,17 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @return the new name
      */
     protected Name encodedName(VarSymbol sym, int incarnationPosition) {
-        if (incarnationPosition == 0 || sym.owner == null)
-            return sym.getQualifiedName();
-        else
+        if (incarnationPosition == 0 || sym.owner == null) {
+            Name n = sym.getQualifiedName();
+            if (!isDefined.contains(sym)) {
+                System.out.println("AddedC " + sym + " " + n);
+                JCIdent id = treeutils.makeIdent(0, sym);
+                id.name = n;
+                program.declarations.add(id);
+                isDefined.add(sym);
+            }
+            return n;
+        } else
             return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition + "___" + (unique++));
         //return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition);
     }
@@ -1157,6 +1167,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             JmlMethodSpecs denestedSpecs, @NonNull JCClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
         
         this.methodDecl = (JmlMethodDecl)methodDecl;
+        this.isDefined.clear();
         program = new BasicProgram();
         unique = 0;
         isConstructor = methodDecl.sym.isConstructor();  // FIXME - careful if there is nesting???
@@ -3609,12 +3620,21 @@ public class BasicBlocker2 extends JmlTreeScanner {
         if (that.sym instanceof Symbol.VarSymbol){ 
             Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
             that.name = getCurrentName(vsym);
+            if (!isDefined.contains(that.sym)) {
+                isDefined.add(that.sym);
+                System.out.println("Added " + that.sym + " " + that.name);
+                program.declarations.add(that);
+            }
         } else if (that.sym == null) {
             // Temporary variables that are introduced by decomposing expressions do not have associated symbols
             // They are also only initialized once and only used locally, so we do not track them for DSA purposes
             // Just skip
+        } else if (that.sym instanceof Symbol.ClassSymbol) {
+            // Just skip
+        } else if (that.sym instanceof Symbol.PackageSymbol) {
+            // Just skip
         } else {
-            log.error(that.pos,"jml.internal","THIS KIND OF IDENT IS NOT HANDLED: " + that);
+            log.error(that.pos,"jml.internal","THIS KIND OF IDENT IS NOT HANDLED: " + that + " " + that.sym.getClass());
         }
     }
     
@@ -3681,6 +3701,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
     public void visitVarDef(JCVariableDecl that) { 
         currentBlock.statements.add(comment(that));
         JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
+        isDefined.add(lhs.sym);
+        System.out.println("Added " + lhs.sym + " " + lhs.name);
         if (that.init != null) {
             // Create and store the new lhs incarnation before translating the
             // initializer because the initializer is in the scope of the newly
