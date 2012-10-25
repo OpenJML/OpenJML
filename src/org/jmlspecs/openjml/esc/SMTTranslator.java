@@ -169,9 +169,13 @@ public class SMTTranslator extends JmlTreeScanner {
         
         for (JCIdent id: program.declarations) {
             try {
+                ISort sort = convertSort(id.type);
+                if (id.sym.owner instanceof Symbol.ClassSymbol && !id.sym.isStatic() && !id.sym.name.toString().equals("this")) {
+                    sort = F.createSortExpression(F.symbol("Array"),refSort,sort);
+                }
                 c = new C_declare_fun(F.symbol(id.name.toString()),
                         new LinkedList<ISort>(),
-                        convertSort(id.type));
+                        sort);
                 commands.add(c);
             } catch (RuntimeException ee) {
                 // skip - error already issued// FIXME - better error recovery?
@@ -350,6 +354,16 @@ public class SMTTranslator extends JmlTreeScanner {
                         convertExpr(tree.args.get(1)),
                         convertExpr(tree.args.get(2))
                         );
+                return;
+            }
+        } else if (m == null) {
+            if (tree instanceof JmlBBFieldAssignment) {
+                result = F.fcn(F.symbol("store", null),
+                        convertExpr(tree.args.get(1)),
+                        convertExpr(tree.args.get(2)),
+                        convertExpr(tree.args.get(3))
+                        );
+                result = F.fcn(F.symbol("=", null), convertExpr(tree.args.get(0)),result);
                 return;
             }
         }

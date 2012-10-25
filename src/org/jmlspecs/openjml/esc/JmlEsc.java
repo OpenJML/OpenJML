@@ -378,7 +378,7 @@ public class JmlEsc extends JmlTreeScanner {
         JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
 
         JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true);
-        JCBlock newblock = assertionAdder.convertMethodBody(decl);
+        JCBlock newblock = assertionAdder.convertMethodBody(decl,currentClassDecl);
         
         if (newblock == null) {
             if (print) log.noticeWriter.println("BLOCK IS NULL");
