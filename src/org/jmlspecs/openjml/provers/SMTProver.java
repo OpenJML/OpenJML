@@ -147,7 +147,12 @@ public class SMTProver extends AbstractProver implements IProver {
     
     @Override
     protected String[] app() {
-        return new String[]{app,"-jar","C:/cygwin/home/dcok/eclipseProjects/SMTProjects/SMT/jSMTLIB.jar"};
+        String solver = System.getProperty("openjml.solver.smtCommandLine");
+        if (solver == null || solver.isEmpty()) {
+            return new String[]{app,"-jar","C:/cygwin/home/dcok/eclipseProjects/SMTProjects/SMT/jSMTLIB.jar"};
+        } else {
+            return solver.split(",");
+        }
     }
     
     /** Does the startup work */

@@ -3,6 +3,13 @@ package tests;
 
 public class escnewassignable extends EscBase {
 
+    // Forms to test: x, this.x, , this.*
+    // xx, T.xx, tt.T.x, T.* tt.T.*
+    // o.x o.oo.x, m(o).x o.*, o.oo.*, m(o).* 
+    // a[i].x a[i].* a[*].x a[*].* a[i .. j].x a[i ..*].x a[*..j].x a[*..*].x a[i .. j].* a[i ..*].* a[*..j].* a[*..*].*
+    // a[i] a[i..j] a[*] a[i..*] a[*..j] a[*..*]
+    // \everything \nothing \not_specified
+    
     protected void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
@@ -220,6 +227,27 @@ public class escnewassignable extends EscBase {
                 +"    y = 0 ;\n"
                 +"  }\n"
 
+                +"  //@ requires true; \n"
+                +"  //@ assignable y; \n"
+                +"  //@ also requires true; \n"
+                +"  //@ assignable this.*; \n"
+                +"  public void m0bad(int i) {\n"
+                +"    x = 0 ;\n"
+                +"  }\n"
+
+                +"  //@ requires true; \n"  // TODO check that the semantics of JML is that assignable clauses may be split like this
+                +"  //@ assignable y; \n"
+                +"  //@ assignable this.*; \n"
+                +"  public void m0good(int i) {\n"
+                +"    x = 0 ;\n"
+                +"  }\n"
+
+                +"  //@ requires true; \n"
+                +"  //@ assignable y, this.*; \n"
+                +"  public void m00good(int i) {\n"
+                +"    x = 0 ;\n"
+                +"  }\n"
+
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m1bad",7
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
@@ -227,6 +255,8 @@ public class escnewassignable extends EscBase {
                 ,"/tt/TestJava.java:8: warning: Associated declaration",7
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assignable) in method m3bad",7
                 ,"/tt/TestJava.java:12: warning: Associated declaration",7
+                ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assignable) in method m0bad",7
+                ,"/tt/TestJava.java:29: warning: Associated declaration",7
                 );
     }
 
