@@ -38,6 +38,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 
 /** This class translates a BasicBlock program into SMTLIB. 
@@ -358,12 +359,12 @@ public class SMTTranslator extends JmlTreeScanner {
             }
         } else if (m == null) {
             if (tree instanceof JmlBBFieldAssignment) {
-                result = F.fcn(F.symbol("store"),
+                IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
                         convertExpr(tree.args.get(1)),
                         convertExpr(tree.args.get(2)),
                         convertExpr(tree.args.get(3))
                         );
-                result = F.fcn(F.symbol("="), convertExpr(tree.args.get(0)),result);
+                result = F.fcn(F.symbol("="), convertExpr(tree.args.get(0)),right);
                 return;
             }
         }
@@ -549,31 +550,38 @@ public class SMTTranslator extends JmlTreeScanner {
     public void visitSelect(JCFieldAccess tree) {
         // FIXME - review
         // o.f becomes f[o] where f has sort (Array REF type)
-        if (tree.selected != null) doFieldAccess(tree.selected,tree.sym);
+        if (tree.selected != null) doFieldAccess(tree.selected,tree.name,tree.sym);
     }
     
     // FIXME - review
-    protected void doFieldAccess(JCExpression object, Symbol field) {
+    protected void doFieldAccess(JCExpression object, Name name, Symbol field) {
         if (field != syms.lengthVar) {
             ISort arrsort = F.createSortExpression(F.symbol("Array"),refSort,convertSort(field.type));
             List<ISort> args = new LinkedList<ISort>();
-            ICommand c = new C_declare_fun(F.symbol(field.name.toString()),
+            ICommand c = new C_declare_fun(F.symbol(name.toString()),
                     args,arrsort);
             commands.add(c);
+        } 
+        if (field.isStatic()) {
+            result = F.symbol(name.toString());
+        } else {
+            result = F.fcn(F.symbol("select"),F.symbol(name.toString()),
+                    object == null ? thisRef: convertExpr(object));
         }
-        result = F.fcn(F.symbol("select"),F.symbol(field.name.toString()),
-                object == null ? thisRef: convertExpr(object));
         
     }
 
     @Override
     public void visitIdent(JCIdent tree) {
-        if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && !tree.sym.isStatic()) {
-            // a select from this
-            doFieldAccess(null,tree.sym);
-        } else {
+//        if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && !tree.sym.isStatic()) {
+//            // a select from this
+//            // This is defensive programming - all implicit uses of this are
+//            // supposed to have been made explicit
+        // NOPE - adds extra field accesses
+//            doFieldAccess(null,tree.name,tree.sym);
+//        } else {
             result = F.symbol(tree.name.toString());
-        } 
+//        } 
     }
 
     @Override

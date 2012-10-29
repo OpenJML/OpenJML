@@ -84,7 +84,7 @@ public abstract class EscBase extends JmlTestCase {
                     if (j >= collector.getDiagnostics().size()) {
                         // OK - just skip
                     } else if (list[2*i].toString().equals(noSource(collector.getDiagnostics().get(j))) &&
-                            -col == collector.getDiagnostics().get(j).getColumnNumber()) {
+                            -col == Math.abs(collector.getDiagnostics().get(j).getColumnNumber())) {
                         j++;
                     } else {
                         // Not equal and the expected error is optional so just skip

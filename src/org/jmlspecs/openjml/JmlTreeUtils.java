@@ -411,6 +411,18 @@ public class JmlTreeUtils {
         id.type = sym.type;
         return id;
     }
+    
+    /** Makes an AST for a field selection (attributed)
+     * @param sym the symbol for which to make an identifier
+     * @return the AST
+     */ 
+    public JCFieldAccess makeSelect(int pos, JCExpression lhs, Symbol sym) {
+        JCFieldAccess fa = factory.Select(lhs, sym.name);
+        fa.pos = pos;
+        fa.type = sym.type;
+        fa.sym = sym;
+        return fa;
+    }
 
 
     /** Makes a Java unary operator node; it may be constant-folded

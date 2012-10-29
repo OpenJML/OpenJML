@@ -364,6 +364,9 @@ public class JmlEsc extends JmlTreeScanner {
         progress(1,2,"Starting proof of " + decl.sym.owner.name + "." + decl.name + " with prover " + proverToUse);
         
         if (print) {
+            log.noticeWriter.println("");
+            log.noticeWriter.println("--------------------------------------");
+            log.noticeWriter.println("");
             log.noticeWriter.println("STARTING PROOF OF " + decl.name);
             log.noticeWriter.println(JmlPretty.write(decl.body));
         }
@@ -492,8 +495,12 @@ public class JmlEsc extends JmlTreeScanner {
     public String getValue(String id, SMT smt, ISolver solver) {
         org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id);
         IResponse resp = solver.get_value(s);
-        org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
-        return se.toString();
+        if (resp instanceof IResponse.IError) {
+            return resp.toString();
+        } else {
+            org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
+            return se.toString();
+        }
     }
 
     int terminationPos = 0;
