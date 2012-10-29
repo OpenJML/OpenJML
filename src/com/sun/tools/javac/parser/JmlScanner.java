@@ -148,7 +148,7 @@ public class JmlScanner extends DocCommentScanner {
     protected boolean       jml        = false;
 
     /** The set of keys for identifying optional comments */
-    /*@NonNull*/ protected Set<Name>     keys;
+    /*@NonNull*/ protected Set<String>     keys;
     
     /** A mode of the scanner that determines whether end of jml comment tokens are returned */
     public boolean returnEndOfCommentTokens = true;
@@ -226,7 +226,7 @@ public class JmlScanner extends DocCommentScanner {
     
     /** The current set of conditional keys used by the scanner.
      */
-    public Set<Name> keys() {
+    public Set<String> keys() {
         return keys;
     }
 
@@ -324,7 +324,7 @@ public class JmlScanner extends DocCommentScanner {
             sp = 0; // See the use of sp in Scanner - if sp is not reset, then the
                     // next identifier is appended to the key
             Name key = name();
-            if (keys.contains(key)) {
+            if (keys.contains(key.toString())) {
                 if (isplus) foundplus = true;
                 else {
                     // negative key found - return

@@ -3101,7 +3101,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         JmlToken prevClauseType = currentClauseType;
         currentClauseType = tree.token;
-        attribStat(tree.statement,env);
+        if (tree.statement != null) attribStat(tree.statement,env);
         currentClauseType = prevClauseType;
         jmlresolve.setAllowJML(prevAllowJML);
     }

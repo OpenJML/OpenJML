@@ -140,12 +140,17 @@ public class JmlTreeUtils {
     final public Symbol objectneSymbol;
     final public Symbol booleqSymbol;
     final public Symbol boolneSymbol;
+    final public Symbol intminusSymbol;
+    final public Symbol intplusSymbol;
+//    final public Symbol intminusasgSymbol;
+//    final public Symbol intplusasgSymbol;
     final public Symbol inteqSymbol;
     final public Symbol intltSymbol;
     final public Symbol intleSymbol;
     final public JCLiteral trueLit;
     final public JCLiteral falseLit;
     final public JCLiteral zero;
+    final public JCLiteral one;
     final public JCLiteral nulllit;
     final public JCLiteral maxIntLit;
 
@@ -191,12 +196,17 @@ public class JmlTreeUtils {
         objectneSymbol = findOpSymbol("!=",syms.objectType);
         booleqSymbol = findOpSymbol("==",syms.booleanType);
         boolneSymbol = findOpSymbol("!=",syms.booleanType);
+        intminusSymbol = findOpSymbol("-",syms.intType);
+        intplusSymbol = findOpSymbol("+",syms.intType);
+//        intminusasgSymbol = findOpSymbol("-=",syms.intType);
+//        intplusasgSymbol = findOpSymbol("+=",syms.intType);
         inteqSymbol = findOpSymbol("==",syms.intType);
         intltSymbol = findOpSymbol("<",syms.intType);
         intleSymbol = findOpSymbol("<=",syms.intType);
         trueLit = makeLit(0,syms.booleanType,1);
         falseLit = makeLit(0,syms.booleanType,0);
         zero = makeLit(0,syms.intType,0);
+        one = makeLit(0,syms.intType,1);
         nulllit = makeLit(0,syms.botType, null);
         maxIntLit = makeLit(0,syms.intType,Integer.MAX_VALUE);
 

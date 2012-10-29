@@ -94,6 +94,11 @@ public class escold extends escnew {
         // old esc did not check for this problem
     }
     
+    public void testShortCircuit() {}
+    public void testAssignOp() {}
+    public void testGhostSetNoDebug() {}
+
+    
     public void testPostcondition4() {
         // old esc did not check for this problem
     }

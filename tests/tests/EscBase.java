@@ -21,6 +21,7 @@ public abstract class EscBase extends JmlTestCase {
     int expectedExit = 0;
     int expectedErrors = 0;
     boolean noAssociatedDeclaration;
+    String[] args;
 
     protected void setUp() throws Exception {
         testspecpath = testspecpath1;
@@ -36,6 +37,7 @@ public abstract class EscBase extends JmlTestCase {
         expectedErrors = 0;
         noAssociatedDeclaration = false;
         print = false;
+        args = new String[]{};
     }
     
     protected void tearDown() throws Exception {
@@ -71,7 +73,7 @@ public abstract class EscBase extends JmlTestCase {
             
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);
-            int ex = main.compile(new String[]{}, context, files, null);
+            int ex = main.compile(args, context, files, null);
             
             if (print) printErrors();
             int j = 0;

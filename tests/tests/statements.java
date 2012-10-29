@@ -154,6 +154,17 @@ public class statements extends TCBase {
                 );
     }
     
+    public void testSet2() {
+        helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; set if (true) {}; \n i = 0; \n}}"
+                ,"/A.java:2: A set or debug statement may only contain assignments or method calls",23
+                );
+    }
+    
+    public void testSet3() {
+        helpTCF("A.java"," class A { boolean o; void m() { int i; \n //@ ghost boolean j; set j =  (o <==> \\old(o)); \n i = 0; \n}}"
+                );
+    }
+    
     public void testDebug() {
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug m(); \n i = 0; \n}}"
                 );
@@ -162,6 +173,12 @@ public class statements extends TCBase {
     public void testDebug1() {
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug m() \n i = 0; \n}}"
                 ,"/A.java:2: ';' expected",28
+                );
+    }
+
+    public void testDebug2() {
+        helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug while (true) {}; \n i = 0; \n}}"
+                ,"/A.java:2: A set or debug statement may only contain assignments or method calls",25
                 );
     }
 

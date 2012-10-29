@@ -106,7 +106,7 @@ public class JmlTree implements IJmlTree {
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlToken t, JmlToken also, List<JmlMethodClause> clauses);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlToken t, JmlToken also, JCBlock block);
-        JmlStatement JmlStatement(JmlToken t, JCTree.JCStatement e);
+        JmlStatement JmlStatement(JmlToken t, JCTree.JCExpressionStatement e);
         JmlStatementDecls JmlStatementDecls(ListBuffer<JCTree.JCStatement> list);
         JmlStatementLoop JmlStatementLoop(JmlToken t, JCTree.JCExpression e);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
@@ -511,7 +511,7 @@ public class JmlTree implements IJmlTree {
         
         /** Creates JML statements such as set and debug */
         @Override
-        public JmlStatement JmlStatement(JmlToken t, JCTree.JCStatement e) {
+        public JmlStatement JmlStatement(JmlToken t, JCTree.JCExpressionStatement e) {
             return new JmlStatement(pos,t,e);
         }
 
@@ -2385,10 +2385,10 @@ public class JmlTree implements IJmlTree {
      */
     public static class JmlStatement extends JmlAbstractStatement {
         public JmlToken token;
-        public JCTree.JCStatement statement;
+        public JCTree.JCExpressionStatement statement;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlStatement(int pos, JmlToken token, JCTree.JCStatement statement) {
+        protected JmlStatement(int pos, JmlToken token, JCTree.JCExpressionStatement statement) {
             this.pos = pos;
             this.token = token;
             this.statement = statement;
