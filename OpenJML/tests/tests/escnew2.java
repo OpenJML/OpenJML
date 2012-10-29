@@ -676,5 +676,134 @@ public class escnew2 extends EscBase {
                 );
     }
     
+    public void testFieldAssign() {
+        // FIXME - need to figure out how to handle bad responses
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  int i; static int j;\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == 2; \n"
+                +"  public int m1bad(boolean b) {\n"
+                +"    i = 1;\n"
+                +"    if (b) i = 2;\n"
+                +"    return i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures b ==> \\result == 2; \n"
+                +"  public int m1good(boolean b) {\n"
+                +"    i = 1;\n"
+                +"    if (b) i = 2;\n"
+                +"    return i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == 10; \n"
+                +"  public int m2bad(boolean b) {\n"
+                +"    j = 1;\n"
+                +"    if (b) TestJava.j = TestJava.j + this.j + j;\n"
+                +"    if (b) tt.TestJava.j = TestJava.j + this.j + j;\n"
+                +"    if (b) this.j = j + 1;\n"
+                +"    return tt.TestJava.j;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures b ==> \\result == 10; \n"
+                +"  public int m2good(boolean b) {\n"
+                +"    j = 1;\n"
+                +"    if (b) TestJava.j = TestJava.j + this.j + j;\n"
+                +"    if (b) tt.TestJava.j = TestJava.j + this.j + j;\n"
+                +"    if (b) this.j = j + 1;\n"
+                +"    return tt.TestJava.j;\n"
+                +"  }\n"
+                
+                +"  //@ requires o != null; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == 1; \n"
+                +"  public int m3bad(TestJava o) {\n"
+                +"    o.i = 1;\n"
+                +"    i = 2;\n"
+                +"    return o.i;\n"
+                +"  }\n"
+                
+                +"  //@ requires this != o && o != null; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == 1; \n"
+                +"  public int m3good(TestJava o) {\n"
+                +"    o.i = 1;\n"
+                +"    i = 2;\n"
+                +"    return o.i;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java: error: A catastrophic JML internal error occurred.  Please report the bug with as much information as you can."+"\n"+
+                    "  Reason: (error \"Invalid token: [Array1]\")",-1
+                    ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                    ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                    ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+                    ,"/tt/TestJava.java:20: warning: Associated declaration",7
+                    ,"/tt/TestJava.java:43: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                    ,"/tt/TestJava.java:39: warning: Associated declaration",7
+                );
+    }
+    
+    public void testInvariant1() {
+        //options.put("-showbb","");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  static int ii;\n"
+                +"  int i;\n"
+                
+                +"  //@ invariant i >= 0;\n"
+                +"  //@ static invariant ii >= 0;\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m1bad() {\n"
+                +"    i = -i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m2bad() {\n"
+                +"    ii = -ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  static public void m3bad() {\n"
+                +"    ii = -ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m1good() {\n"
+                +"    ++i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m2good() {\n"
+                +"    ++ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  static public void m3good() {\n"
+                +"    ++ii;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Invariant) in method m1bad",15
+                ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Invariant) in method m2bad",15
+                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Invariant) in method m3bad",22
+                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                );
+    }
+    
 
 }

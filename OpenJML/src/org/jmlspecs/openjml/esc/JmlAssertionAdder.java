@@ -18,6 +18,7 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicBlocker2.TargetFinder;
 
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
@@ -454,26 +455,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addAssume(p,Label.BRANCHT,cond,ensureStats);
         addAssume(p,Label.BRANCHE,treeutils.makeNot(cond.pos,cond),exsureStats);
         
+        boolean methodIsStatic = methodDecl.sym.isStatic();
         JmlSpecs.TypeSpecs tspecs = specs.get(classDecl.sym);
-//        for (JmlTypeClause clause : tspecs.clauses) {
-//            switch (clause.token) {
-//                case INVARIANT:
-//                    JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
-//                    addAssume(methodDecl.pos,Label.INVARIANT,
-//                               jmlrewriter.translate(t.expression),ensureStats,
-//                               clause.pos,clause.source);
-//                    break;
-//                case AXIOM:
-//                    JmlTypeClauseExpr tt = (JmlTypeClauseExpr)clause;
-//                    addAssume(methodDecl.pos,Label.AXIOM,
-//                               jmlrewriter.translate(tt.expression),ensureStats,
-//                               clause.pos,clause.source);
-//                    break;
-//                default:
-//                    // Skip
-//                    
-//            }
-//        }
+        // FIXME - iterate over parent classes and interfaces
+        for (JmlTypeClause clause : tspecs.clauses) {
+            JmlTypeClauseExpr t;
+            switch (clause.token) {
+                // FIXME - add in assume of non-null fields
+                case INVARIANT:
+                    if (!methodIsStatic || Utils.instance(context).hasAny(clause.modifiers,Flags.STATIC)) {
+                        t = (JmlTypeClauseExpr)clause;
+                        addAssume(methodDecl.pos,Label.INVARIANT,
+                                jmlrewriter.translate(t.expression),initialStats,
+                                clause.pos,clause.source);
+                    }
+                    break;
+                case AXIOM:
+                    t = (JmlTypeClauseExpr)clause;
+                    addAssume(methodDecl.pos,Label.AXIOM,
+                               jmlrewriter.translate(t.expression),initialStats,
+                               clause.pos,clause.source);
+                    break;
+                default:
+                    // Skip
+                    
+            }
+        }
         JCExpression combinedPrecondition = null;
         for (JmlSpecificationCase scase : denestedSpecs.cases) {
             JCIdent preident = null;
@@ -547,7 +554,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
         }
-        
+
+        // FIXME - iterate over parent classes and interfaces
+        for (JmlTypeClause clause : tspecs.clauses) {
+            JmlTypeClauseExpr t;
+            switch (clause.token) {
+                // FIXME - add in assert of non-null fields - check staticness
+                case INVARIANT:
+                    if (!methodIsStatic || Utils.instance(context).hasAny(clause.modifiers,Flags.STATIC)) {
+                        t = (JmlTypeClauseExpr)clause;
+                        addAssert(methodDecl.pos,Label.INVARIANT,
+                                jmlrewriter.translate(t.expression),ensureStats,
+                                clause.pos,clause.source);
+                    }
+                    break;
+                case CONSTRAINT:
+                    if (!methodIsStatic || Utils.instance(context).hasAny(clause.modifiers,Flags.STATIC)) {
+                        t = (JmlTypeClauseExpr)clause;
+                        addAssert(methodDecl.pos,Label.CONSTRAINT,
+                                jmlrewriter.translate(t.expression),ensureStats,
+                                clause.pos,clause.source);
+                    }
+                    break;
+                default:
+                    // Skip
+                    
+            }
+        }
+
         p = methodDecl.pos;
         M.at(p);
         JCStatement ifstat = M.If(cond,M.Block(0, ensureStats.toList()),M.Block(0,exsureStats.toList()));
@@ -558,6 +592,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // FIXME - associated location? where?
             addAssume(combinedPrecondition.pos,Label.PRECONDITION,combinedPrecondition,initialStats);
         }
+        
+
     }
     
 //    /** Checks that an assignment is allowed by the class's assignable clauses*/
@@ -1134,12 +1170,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         } else if (pstoreref instanceof JCFieldAccess) {
             JCFieldAccess pfa = (JCFieldAccess)pstoreref;
-            if (pfa.sym != null && fa.sym != pfa.sym) return treeutils.falseLit;
+            if (pfa.sym != null && fa.sym != pfa.sym) {
+                // a.x vs b.y with x != y, so automatically false
+                return treeutils.falseLit;
+            }
             if (pfa.sym != null && fa.sym == pfa.sym && !pfa.sym.isStatic()) {
+                // a.x vs. b.x  with b (and a) not static, so result is (a == b)
                 JCExpression result = treeutils.makeEqObject(pos, fa.selected, jmlrewriter.translate(pfa.selected));
                 return result;
             }
             if (pfa.sym != null && fa.sym == pfa.sym && pfa.sym.isStatic()) {
+                // a.x vs. b.x  with b (and a) static, so result is true if a and b are the same type
                 JCExpression e = fa.selected;
                 Symbol fs = e instanceof JCIdent ? ((JCIdent)e).sym :
                     e instanceof JCFieldAccess ? ((JCFieldAccess)e).sym :
@@ -1153,6 +1194,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return result;
             }
             if (pfa.sym == null) {
+                // a.x vs b.* (x may be *, a,b may be expressions or types)
+                // FIXME - it matters here whether this.* includes static fields
                 JCExpression e = fa.selected;
                 Symbol fs = e instanceof JCIdent ? ((JCIdent)e).sym :
                     e instanceof JCFieldAccess ? ((JCFieldAccess)e).sym :
@@ -1162,6 +1205,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         e instanceof JCFieldAccess ? ((JCFieldAccess)e).sym :
                             null;
                 if (pfs instanceof Symbol.ClassSymbol) {
+                    // ?.x vs
+                    boolean same = fs == pfs;
+                    JCExpression result = same ? treeutils.trueLit : treeutils.falseLit;
+                    return result;
+                } else if (fs instanceof Symbol.ClassSymbol) {
                     boolean same = fs == pfs;
                     JCExpression result = same ? treeutils.trueLit : treeutils.falseLit;
                     return result;
@@ -2062,22 +2110,35 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
         } else if (that.lhs instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)(that.lhs);
-            JCExpression obj = scanret(fa.selected);
-            JCExpression e = treeutils.makeNeqObject(obj.pos, obj, treeutils.nulllit);
-            addAssert(that.pos, Label.POSSIBLY_NULL, e, currentStatements);
-            
-            JCFieldAccess newfa = M.at(fa.pos).Select(obj, fa.name);
+            JCFieldAccess newfa;
+            if (!fa.sym.isStatic()) {
+                JCExpression obj = scanret(fa.selected);
+                JCExpression e = treeutils.makeNeqObject(obj.pos, obj, treeutils.nulllit);
+                addAssert(that.pos, Label.POSSIBLY_NULL, e, currentStatements);
+                newfa = treeutils.makeSelect(that.pos, obj, fa.sym);
+            } else {
+                // We must evaluate the fa.lhs if it is an expression and not a type; null does not matter
+                if (!isATypeTree(fa.selected)) {
+                    scan(fa.selected);
+                }
+                // If the field is static, substitute the type tree
+                
+                JCExpression obj = treeutils.makeType(fa.pos, fa.sym.owner.type);
+                newfa = treeutils.makeSelect(that.pos, obj, fa.sym);
+                
+            }
             newfa.sym = fa.sym;
             newfa.type = fa.type;
             JCExpression rhs = scanret(that.rhs);
             if (specs.isNonNull(fa.sym,methodDecl.sym.enclClass())) {
-                e = treeutils.makeNeqObject(fa.pos, rhs, treeutils.nulllit);
+                JCExpression e = treeutils.makeNeqObject(fa.pos, rhs, treeutils.nulllit);
                 // FIXME - location of nnonnull declaration?
                 addAssert(that.pos, Label.POSSIBLY_NULL_ASSIGNMENT, e, currentStatements);
             }
-            JCExpression assign = treeutils.makeAssign(that.pos,newfa, rhs);
-            eresult = assign;
-           
+            JCExpression assign = treeutils.makeAssign(that.pos, newfa, rhs);
+            addStat(M.at(that.pos).Exec(assign));
+            eresult = newfa;
+               
         } else if (that.lhs instanceof JCArrayAccess) {
             JCArrayAccess aa = (JCArrayAccess)(that.lhs);
             JCExpression array = scanret(aa.indexed);
@@ -2096,17 +2157,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression rhs = scanret(that.rhs);
             JCArrayAccess lhs = M.at(aa.pos).Indexed(array,index);
             lhs.type = aa.type;
-            eresult = M.at(that.pos).Assign(lhs,rhs);
-            eresult.type = that.type;
+            JCExpression assign = treeutils.makeAssign(that.pos,lhs,rhs);
+            addStat(M.at(that.pos).Exec(assign));
+            eresult = lhs;
             
         } else {
             error(that.pos,"An unknown kind of assignment seen in JmlAssertionAdder: " + that.lhs.getClass());
         }
     }
+    
+    // FIXME _ document; does this work correctly for this and super?
+    protected boolean isATypeTree(JCExpression tree) {
+        if (tree instanceof JCIdent) {
+            return !(((JCIdent)tree).sym instanceof VarSymbol);
+        }
+        if (tree instanceof JCFieldAccess) {
+            return !(((JCFieldAccess)tree).sym instanceof VarSymbol);
+        }
+        return false;
+    }
 
     // OK
     @Override
     public void visitAssignop(JCAssignOp that) {
+        visitAssignopHelper(that,false);
+    }
+
+    // OK
+    protected void visitAssignopHelper(JCAssignOp that, boolean scanned) {
         JCExpression lhs = that.lhs;
         JCExpression rhs = that.rhs;
         int op = that.getTag();
@@ -2119,8 +2197,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             //    temp = lhs' op tempRHS
             //    lhs' = temp
             
-            lhs = scanret(lhs); // This may no longer be a JCIdent
-            rhs = scanret(rhs);
+            lhs = scanned ? lhs : scanret(lhs); // This may no longer be a JCIdent
+            rhs = scanned ? rhs : scanret(rhs);
             addBinaryChecks(that, op, lhs, rhs);
 
             rhs = treeutils.makeBinary(that.pos,op ,lhs,rhs);
@@ -2138,20 +2216,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
         } else if (lhs instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)lhs;
-            lhs = scanret(fa.selected);
-            JCExpression e = treeutils.makeNeqObject(lhs.pos, lhs, treeutils.nulllit);
-            addAssert(that.pos, Label.POSSIBLY_NULL, e, currentStatements);
-            
-            rhs = scanret(rhs);
-            if (specs.isNonNull(fa.sym,methodDecl.sym.enclClass())) {
-                e = treeutils.makeNeqObject(fa.pos, rhs, treeutils.nulllit);
-                // FIXME - location of nnonnull declaration?
-                addAssert(that.pos, Label.POSSIBLY_NULL_ASSIGNMENT, e, currentStatements);
-            }
-            
-            lhs = M.at(fa.pos).Select(lhs, fa.sym);
-            lhs.type = fa.type;
+            if (fa.sym.isStatic()) {
+                // FIXME - if fa.selected is actually an expression, we need to evaluate and discard it
+                JCExpression tree = treeutils.makeType(fa.selected.pos, fa.sym.owner.type);
+                JCFieldAccess newfa = treeutils.makeSelect(fa.selected.pos, tree, fa.sym);
+                newfa.name = fa.name;
+                lhs = newfa;
+                rhs = scanned ? rhs : scanret(rhs);
+                
+            } else {
+                lhs = scanned ? fa.selected : scanret(fa.selected);
+                JCExpression e = treeutils.makeNeqObject(lhs.pos, lhs, treeutils.nulllit);
+                addAssert(that.pos, Label.POSSIBLY_NULL, e, currentStatements);
 
+                rhs = scanned ? rhs : scanret(rhs);
+                if (specs.isNonNull(fa.sym,methodDecl.sym.enclClass())) {
+                    e = treeutils.makeNeqObject(fa.pos, rhs, treeutils.nulllit);
+                    // FIXME - location of nnonnull declaration?
+                    addAssert(that.pos, Label.POSSIBLY_NULL_ASSIGNMENT, e, currentStatements);
+                }
+
+                lhs = treeutils.makeSelect(fa.pos, lhs, fa.sym);
+
+            }
             addBinaryChecks(that,op,lhs,rhs);
             checkAssignable(methodDecl, lhs, that);
 
@@ -2159,15 +2246,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // identifiers that will be captured by the lhs.
             rhs = treeutils.makeBinary(that.pos,op ,lhs,rhs);
             JCIdent id = newTemp(rhs);
-            eresult = treeutils.makeAssign(that.pos, lhs, id);
+            JCAssign assign = treeutils.makeAssign(that.pos, lhs, id);
+            currentStatements.add(M.at(that.pos).Exec(assign));
+            eresult = lhs;
         } else if (lhs instanceof JCArrayAccess) {
             JCArrayAccess aa = (JCArrayAccess)lhs;
-            JCExpression array = scanret(aa.indexed);
+            JCExpression array = scanned ? aa.indexed : scanret(aa.indexed);
             JCExpression e = treeutils.makeNeqObject(array.pos, array, treeutils.nulllit);
             // FIXME - location of nnonnull declaration?
             addAssert(that.pos, Label.POSSIBLY_NULL, e, currentStatements);
 
-            JCExpression index = scanret(aa.index);
+            JCExpression index = scanned ? aa.index: scanret(aa.index);
             e = treeutils.makeBinary(index.pos, JCTree.GE, index, treeutils.zero);
             addAssert(that.pos, Label.POSSIBLY_NEGATIVEINDEX, e, currentStatements);
             JCFieldAccess newfa = M.at(array.pos).Select(array, syms.lengthVar.name);
@@ -2176,7 +2265,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             e = treeutils.makeBinary(index.pos, JCTree.LT, index, newfa);
             addAssert(that.pos, Label.POSSIBLY_TOOLARGEINDEX, e, currentStatements);
 
-            rhs = scanret(rhs);
+            rhs = scanned ? rhs : scanret(rhs);
             lhs = M.at(aa.pos).Indexed(array,index);
             lhs.type = aa.type;
 
@@ -2213,14 +2302,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCIdent id = newTemp(arg);
             JCAssignOp b = M.at(that.pos).Assignop(JCTree.MINUS_ASG,arg,treeutils.one);
             b.type = that.type;
-            visitAssignop(b);
+            visitAssignopHelper(b,true);
             eresult = id;
         } else if (tag == JCTree.POSTINC){
             JCExpression arg = scanret(that.getExpression());
             JCIdent id = newTemp(arg);
             JCAssignOp b = M.at(that.pos).Assignop(JCTree.PLUS_ASG,arg,treeutils.one);
             b.type = that.type;
-            visitAssignop(b);
+            visitAssignopHelper(b,true);
             eresult = id;
         } else {
             JCExpression arg = scanret(that.getExpression());
@@ -2358,19 +2447,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitSelect(JCFieldAccess that) {
-        scan(that.selected);
-        JCExpression selected = eresult;
-        // Check that the selected expression is not null
-        if ((that.selected instanceof JCIdent) && 
-                !(((JCIdent)that.selected).sym.owner instanceof Symbol.PackageSymbol)) {
+        if (that.sym.isStatic()) {
+            // This is the type name, so the tree should be copied, but without inserting temporary assignments
+            JCExpression typetree = treeutils.makeType(that.selected.pos,that.selected.type);
+            JCFieldAccess fa = treeutils.makeSelect(that.pos,typetree,that.sym);
+            fa.name = that.name;
+            eresult = newTemp(fa);
+            
+        } else {
+            JCExpression selected = scanret(that.selected);
+
             JCExpression nonnull = treeutils.makeNeqObject(that.pos, selected, 
                     treeutils.nulllit);
             addAssert(that.pos,Label.POSSIBLY_NULL,nonnull,currentStatements);
+            
+            JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,that.sym);
+            eresult = newTemp(fa);
         }
-        JCFieldAccess fa = M.at(that.pos).Select(selected,that.name);
-        fa.sym = that.sym;
-        fa.setType(that.type);
-        eresult = newTemp(fa);
     }
     
     // OK
@@ -2378,28 +2471,39 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitIdent(JCIdent that) {
         JCIdent id = currentArgsMap.get(that.sym);
-        if (id == null) {
-            // The symbol is not an argument
-            if (that.sym.owner instanceof Symbol.ClassSymbol 
-                    && !that.sym.isStatic()
-                    && !that.sym.name.toString().equals("this")) {
-                // It is a non-static class field, so we prepend 'this'
-                id = treeutils.makeIdent(that.pos,classDecl.thisSymbol);
-                JCFieldAccess fa = M.at(that.pos).Select(id,that.sym.name);
-                fa.sym = that.sym;
-                fa.type = that.type;
-                eresult = fa;
-            } else {
-                // local variable or a static class field - just leave it as 
-                // an ident
-                id = treeutils.makeIdent(that.pos, that.sym);
-                eresult = id;
-            }
-        } else {
+        if (id != null) {
             // If the symbol is in the currentArgsMap it is an argument and
             // may have been renamed
             id = treeutils.makeIdent(that.pos, id.sym);
             eresult = id;
+           // The symbol is not an argument
+        } else if (!(that.sym.owner instanceof Symbol.ClassSymbol)) {
+            // local variable  - just leave it as 
+            // an ident
+            id = treeutils.makeIdent(that.pos, that.sym);
+            eresult = id;
+
+            // FIXME - can compare against symbols, or names?
+        } else if (that.sym.name.toString().equals("this")) {
+            // 'this' - leave it as it is
+            id = treeutils.makeIdent(that.pos, that.sym);
+            eresult = id;
+        } else if (that.sym.name.toString().equals("super")) {
+            // 'super' - leave it as it is
+            id = treeutils.makeIdent(that.pos, that.sym);
+            eresult = id;
+
+        } else if (!that.sym.isStatic()) {
+            // It is a non-static class field, so we prepend 'this'
+            // FIXME - do we need to use the current this?
+            id = treeutils.makeIdent(that.pos,classDecl.thisSymbol);
+            JCFieldAccess fa = treeutils.makeSelect(that.pos,id,that.sym);
+            eresult = fa;
+        } else {
+            // static class field - add the qualified name
+            JCExpression typetree = treeutils.makeType(that.pos,that.sym.owner.type);
+            JCFieldAccess fa = treeutils.makeSelect(that.pos,typetree,that.sym);
+            eresult = fa;
         }
     }
 

@@ -487,7 +487,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         an \old */
     @NonNull protected VarMap premap;
     
-    final protected Set<Symbol> isDefined = new HashSet<Symbol>();
+    final protected Set<Name> isDefined = new HashSet<Name>();
 
     /** The jfoMap and jfoArray keep track of a mapping between JavaFileObjects and
      * unique Integers. When position information in an encoded identifier refers to 
@@ -756,12 +756,11 @@ public class BasicBlocker2 extends JmlTreeScanner {
     protected Name encodedName(VarSymbol sym, int incarnationPosition) {
         if (incarnationPosition == 0 || sym.owner == null) {
             Name n = sym.getQualifiedName();
-            if (!isDefined.contains(sym)) {
+            if (isDefined.add(n)) {
                 System.out.println("AddedC " + sym + " " + n);
                 JCIdent id = treeutils.makeIdent(0, sym);
                 id.name = n;
                 program.declarations.add(id);
-                isDefined.add(sym);
             }
             return n;
         } else
@@ -3616,12 +3615,12 @@ public class BasicBlocker2 extends JmlTreeScanner {
     public Map<JCTree,String> toValue = new HashMap<JCTree,String>();
     
     // OK
+    @Override
     public void visitIdent(JCIdent that) {
         if (that.sym instanceof Symbol.VarSymbol){ 
             Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
             that.name = getCurrentName(vsym);
-            if (!isDefined.contains(that.sym)) {
-                isDefined.add(that.sym);
+            if (isDefined.add(that.name)) {
                 System.out.println("Added " + that.sym + " " + that.name);
                 program.declarations.add(that);
             }
@@ -3635,6 +3634,31 @@ public class BasicBlocker2 extends JmlTreeScanner {
             // Just skip
         } else {
             log.error(that.pos,"jml.internal","THIS KIND OF IDENT IS NOT HANDLED: " + that + " " + that.sym.getClass());
+        }
+    }
+    
+    @Override
+    public void visitSelect(JCFieldAccess that) {
+        if (!(that.sym instanceof Symbol.VarSymbol)) return; // This is a qualified type name 
+        if (that.sym.isStatic()) {
+            that.name = getCurrentName((Symbol.VarSymbol)that.sym);
+            JCIdent id = treeutils.makeIdent(that.pos,that.sym);
+            id.name = that.name;
+            if (isDefined.add(that.name)) {
+                System.out.println("AddedF " + that.sym + " " + that.name);
+                program.declarations.add(id);
+            }
+            result = id;
+            
+        } else {
+            that.name = getCurrentName((Symbol.VarSymbol)that.sym);
+            if (isDefined.add(that.name)) {
+                System.out.println("AddedF " + that.sym + " " + that.name);
+                JCIdent id = treeutils.makeIdent(that.pos,that.sym);
+                id.name = that.name;
+                program.declarations.add(id);
+            }
+            result = that;
         }
     }
     
@@ -3656,12 +3680,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
         if (left instanceof JCIdent) {
             JCIdent id = (JCIdent)left;
             JCIdent newid = newIdentIncarnation(id,left.pos);
-            currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, right));
-//            JCBinary expr = treeutils.makeEquality(pos,newid,right);
-//            copyEndPosition(expr,right);
-//            
-//            // FIXME - set line and source
-//            addAssume(TreeInfo.getStartPos(statement),statement,Label.ASSIGNMENT,expr,newstatements);
+            currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
+            JCBinary expr = treeutils.makeEquality(pos,newid,right);
+            copyEndPosition(expr,right);
+            addAssume(TreeInfo.getStartPos(statement),Label.ASSIGNMENT,expr);
             return newid;
         } else if (left instanceof JCArrayAccess) {
             JCIdent arr = getArrayIdent(right.type);
@@ -3680,28 +3702,54 @@ public class BasicBlocker2 extends JmlTreeScanner {
             //newIdentIncarnation(heapVar,pos);
             return left;
         } else if (left instanceof JCFieldAccess) {
-            JCFieldAccess fa = (JCFieldAccess)left;
-            JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,pos);
-            JCIdent newfield = newIdentIncarnation(oldfield,pos);
-            JCExpression expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,right);
-            expr.pos = pos;
-            expr.type = restype;
+            VarSymbol sym = (VarSymbol)selectorSym(left);
+            if (sym.isStatic()) {
+                JCIdent id = newIdentUse(sym,left.pos);
+                JCIdent newid = newIdentIncarnation(id,left.pos);
+                currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
+                JCBinary expr = treeutils.makeEquality(pos,newid,right);
+                copyEndPosition(expr,right);
+                addAssume(TreeInfo.getStartPos(statement),Label.ASSIGNMENT,expr);
+                return newid;
+            } else {
+                JCFieldAccess fa = (JCFieldAccess)left;
+                JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,pos);
+                if (isDefined.add(oldfield.name)) {
+                    System.out.println("AddedFF " + oldfield.sym + " " + oldfield.name);
+                    program.declarations.add(oldfield);
+                }
+                JCIdent newfield = newIdentIncarnation(oldfield,pos);
+                if (isDefined.add(newfield.name)) {
+                    System.out.println("AddedFF " + newfield.sym + " " + newfield.name);
+                    program.declarations.add(newfield);
+                }
+                JCExpression expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,right);
+                expr.pos = pos;
+                expr.type = restype;
 
-            // FIXME - set line and source
-            addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,currentBlock.statements);
-            newIdentIncarnation(heapVar,pos);
+                // FIXME - set line and source
+                addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,currentBlock.statements);
+                newIdentIncarnation(heapVar,pos);
+            }
             return left;
         } else {
             log.error("jml.internal","Unexpected case in BasicBlocker.doAssignment: " + left.getClass() + " " + left);
             return null;
         }
     }
+    
+    protected Symbol selectorSym(JCTree tree) {
+        if (tree instanceof JCIdent) return ((JCIdent)tree).sym;
+        if (tree instanceof JCFieldAccess) return ((JCFieldAccess)tree).sym;
+        log.error("jml.internal","Unexpected case in selectorSym: " + tree.getClass() + " " + tree);
+        return null;
+    }
 
     // OK -= except FIXME - review newIdentIncarnation
     public void visitVarDef(JCVariableDecl that) { 
         currentBlock.statements.add(comment(that));
         JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
-        isDefined.add(lhs.sym);
+        isDefined.add(lhs.name);
         System.out.println("Added " + lhs.sym + " " + lhs.name);
         if (that.init != null) {
             // Create and store the new lhs incarnation before translating the

@@ -10,6 +10,25 @@ Product pieces
 - set of Java annotations
 Integration with JMLUnitNG, Joe's project
 
+RECENT THINGS NOT TO FORGET
+- DONE: assignment to non-static fields
+- tests for constraint and axiom
+- inherited specs
+- inherited method specs with renaming
+- check on esc and rac mix everywhere
+- loops and loop specs
+
+- sort out set and debug
+- assignable with model fields
+- represents, model fields, in and maps
+
+- refining statements
+- anonymous class expressions
+- local class declarations
+- model class declaration
+- model programs
+- otherwise/else?
+
 VARIOUS TASKS
 run jmldoc instead of javadoc
 implement method calls, new objects
