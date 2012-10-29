@@ -11,7 +11,6 @@ import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Names;
 
 // TODO - should test unicode, especially with multiple backslashes
 // TODO - should test errPos for error tokens (is endPos set?)
@@ -77,8 +76,7 @@ public class scanner extends JmlTestCase {
             Log.instance(context).useSource(new TestJavaFileObject(s) );
             Scanner sc = fac.newScanner(s, true);
             if (keys != null) {
-                Names names = Names.instance(context);
-                for (String k: keys) { ((JmlScanner)sc).keys().add(names.fromString(k)); }
+                for (String k: keys) { ((JmlScanner)sc).keys().add(k); }
             }
             int i = 0;
             while (i<list.length) {

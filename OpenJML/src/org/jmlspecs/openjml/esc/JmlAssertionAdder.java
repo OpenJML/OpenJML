@@ -6,8 +6,10 @@ package org.jmlspecs.openjml.esc;
 
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 import javax.tools.JavaFileObject;
 
@@ -315,7 +317,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Issue an internal error message and throw an exception. */
     public void error(int pos, String msg) {
         log.error(pos, "esc.internal.error", msg);
-        throw new RuntimeException(msg);
+        throw new JmlInternalError(msg);
     }
     
 
@@ -452,7 +454,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addAssume(p,Label.BRANCHT,cond,ensureStats);
         addAssume(p,Label.BRANCHE,treeutils.makeNot(cond.pos,cond),exsureStats);
         
-        
+        JmlSpecs.TypeSpecs tspecs = specs.get(classDecl.sym);
+//        for (JmlTypeClause clause : tspecs.clauses) {
+//            switch (clause.token) {
+//                case INVARIANT:
+//                    JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
+//                    addAssume(methodDecl.pos,Label.INVARIANT,
+//                               jmlrewriter.translate(t.expression),ensureStats,
+//                               clause.pos,clause.source);
+//                    break;
+//                case AXIOM:
+//                    JmlTypeClauseExpr tt = (JmlTypeClauseExpr)clause;
+//                    addAssume(methodDecl.pos,Label.AXIOM,
+//                               jmlrewriter.translate(tt.expression),ensureStats,
+//                               clause.pos,clause.source);
+//                    break;
+//                default:
+//                    // Skip
+//                    
+//            }
+//        }
         JCExpression combinedPrecondition = null;
         for (JmlSpecificationCase scase : denestedSpecs.cases) {
             JCIdent preident = null;
@@ -878,11 +899,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCVariableDecl vdecl = treeutils.makeVarDef(that.type, ifname, null, that.pos);
         addStat(vdecl);
         pushBlock();
+        addAssume(that.truepart.pos,Label.BRANCHT,cond,currentStatements);
         scan(that.truepart);
         addAssumeEqual(that.truepart.pos, Label.ASSIGNMENT, 
-                  treeutils.makeIdent(that.truepart.pos, vdecl.sym), eresult, currentStatements);
+                treeutils.makeIdent(that.truepart.pos, vdecl.sym), eresult, currentStatements);
         JCBlock trueblock = popBlock(0,that.truepart.pos);
         pushBlock();
+        addAssume(that.truepart.pos,Label.BRANCHE,treeutils.makeNot(that.cond.pos, cond),currentStatements);
         scan(that.falsepart);
         addAssumeEqual(that.falsepart.pos, Label.ASSIGNMENT, 
                 treeutils.makeIdent(that.falsepart.pos, vdecl.sym), eresult, currentStatements);
@@ -1277,6 +1300,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         log.error(storeref.pos,"esc.not.implemented", "Assignability comparison: " + storeref + " vs. " + pstoreref);
         return treeutils.falseLit;
+    }
+    
+    protected void checkAssignable(JCMethodDecl mdecl, JCExpression lhs, JCAssignOp that) {
+        for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
+            JCExpression check = checkAssignable(false,lhs,c);
+            if (check != treeutils.trueLit) {
+                int pos = c.pos;
+                for (JmlMethodClause m : c.clauses) {
+                    if (m.token == JmlToken.ASSIGNABLE) { pos = m.pos; break; }
+                }
+                addAssert(that.pos,Label.ASSIGNABLE,check,currentStatements,pos,c.sourcefile);
+            }
+        }
+
     }
     
     protected @Nullable
@@ -2024,7 +2061,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             eresult = lhs;
             
         } else if (that.lhs instanceof JCFieldAccess) {
-            // FIXME - needs a declaration of the new array
             JCFieldAccess fa = (JCFieldAccess)(that.lhs);
             JCExpression obj = scanret(fa.selected);
             JCExpression e = treeutils.makeNeqObject(obj.pos, obj, treeutils.nulllit);
@@ -2043,7 +2079,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             eresult = assign;
            
         } else if (that.lhs instanceof JCArrayAccess) {
-            // FIXME - needs a declaration of the new array
             JCArrayAccess aa = (JCArrayAccess)(that.lhs);
             JCExpression array = scanret(aa.indexed);
             JCExpression e = treeutils.makeNeqObject(array.pos, array, treeutils.nulllit);
@@ -2069,7 +2104,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
 
-    // FIXME - needs review and work
+    // OK
     @Override
     public void visitAssignop(JCAssignOp that) {
         JCExpression lhs = that.lhs;
@@ -2077,26 +2112,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int op = that.getTag();
         op -= JCTree.ASGOffset;
         if (lhs instanceof JCIdent) {
-            JCIdent newlhs = treeutils.makeIdent(lhs.pos,((JCIdent)lhs).sym);
-            lhs = scanret(lhs);
+            // We start with: id = expr
+            // We generate
+            //    ... statements for the subexpressions of expr
+            //    tempRHS = ...
+            //    temp = lhs' op tempRHS
+            //    lhs' = temp
+            
+            lhs = scanret(lhs); // This may no longer be a JCIdent
             rhs = scanret(rhs);
             addBinaryChecks(that, op, lhs, rhs);
-            
-            rhs = treeutils.makeBinary(that.pos,op ,lhs,rhs);
-            
-            // FIXME - only applies to operators on objects (e.g. Strings?)
-            if (specs.isNonNull(((JCIdent)lhs).sym,methodDecl.sym.enclClass())) {
-                JCExpression e = treeutils.makeNeqObject(that.pos, rhs, treeutils.nulllit);
-                // FIXME - location of nnonnull declaration?
 
-                addAssert(that.pos, Label.POSSIBLY_NULL_ASSIGNMENT, e, currentStatements);
-            }
-            // FIXME - review the following
+            rhs = treeutils.makeBinary(that.pos,op ,lhs,rhs);
+
+            checkAssignable(methodDecl, lhs, that);
+
             // Note that we need to introduce the temporary since the rhs contains
-            // identifiers that will be captured by the lhs.
+            // identifiers that may be captured by the lhs.
             JCIdent id = newTemp(rhs);
-            addStat(M.Exec(treeutils.makeAssign(that.pos, newlhs, id)));
-            eresult = treeutils.makeIdent(lhs.pos,((JCIdent)lhs).sym);
+            addStat(M.Exec(treeutils.makeAssign(that.pos, lhs, id)));
+            if (lhs instanceof JCIdent) eresult = treeutils.makeIdent(lhs.pos,((JCIdent)lhs).sym);
+            else {
+                eresult = newTemp(lhs);
+            }
+            
         } else if (lhs instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)lhs;
             lhs = scanret(fa.selected);
@@ -2107,13 +2146,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (specs.isNonNull(fa.sym,methodDecl.sym.enclClass())) {
                 e = treeutils.makeNeqObject(fa.pos, rhs, treeutils.nulllit);
                 // FIXME - location of nnonnull declaration?
-
                 addAssert(that.pos, Label.POSSIBLY_NULL_ASSIGNMENT, e, currentStatements);
             }
+            
             lhs = M.at(fa.pos).Select(lhs, fa.sym);
             lhs.type = fa.type;
 
             addBinaryChecks(that,op,lhs,rhs);
+            checkAssignable(methodDecl, lhs, that);
 
             // Note that we need to introduce the temporary since the rhs contains
             // identifiers that will be captured by the lhs.
@@ -2124,6 +2164,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCArrayAccess aa = (JCArrayAccess)lhs;
             JCExpression array = scanret(aa.indexed);
             JCExpression e = treeutils.makeNeqObject(array.pos, array, treeutils.nulllit);
+            // FIXME - location of nnonnull declaration?
             addAssert(that.pos, Label.POSSIBLY_NULL, e, currentStatements);
 
             JCExpression index = scanret(aa.index);
@@ -2140,6 +2181,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             lhs.type = aa.type;
 
             addBinaryChecks(that,op,lhs,rhs);
+            checkAssignable(methodDecl, lhs, that);
+            
             // Note that we need to introduce the temporary since the rhs contains
             // identifiers that will be captured by the lhs.
             rhs = treeutils.makeBinary(that.pos,op ,lhs,rhs);
@@ -2147,18 +2190,44 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             eresult = treeutils.makeAssign(that.pos, lhs, id);
         } else {
-            // FIXME - better error message
-            throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+            error(that.pos,"Unexpected kind of AST in jmlAssertionAdder.visitAssignOp: " + that.getClass());
         }
     }
 
+    // OK
     @Override
     public void visitUnary(JCUnary that) {
-        // FIXME - what about ++ --
-        JCExpression arg = scanret(that.getExpression());
-        addUnaryChecks(that,that.getTag(),arg);
-        JCExpression expr = treeutils.makeUnary(that.pos,that.getTag(),that.getOperator(),arg);
-        eresult = newTemp(expr);
+        int tag = that.getTag();
+        if (tag == JCTree.PREDEC) {
+            JCAssignOp b = M.at(that.pos).Assignop(JCTree.MINUS_ASG,that.getExpression(),treeutils.one);
+            b.type = that.type;
+            visitAssignop(b);
+            return;
+        } else if (tag == JCTree.PREINC) {
+            JCAssignOp b = M.at(that.pos).Assignop(JCTree.PLUS_ASG,that.getExpression(),treeutils.one);
+            b.type = that.type;
+            visitAssignop(b);
+            return;
+        } else if (tag == JCTree.POSTDEC){
+            JCExpression arg = scanret(that.getExpression());
+            JCIdent id = newTemp(arg);
+            JCAssignOp b = M.at(that.pos).Assignop(JCTree.MINUS_ASG,arg,treeutils.one);
+            b.type = that.type;
+            visitAssignop(b);
+            eresult = id;
+        } else if (tag == JCTree.POSTINC){
+            JCExpression arg = scanret(that.getExpression());
+            JCIdent id = newTemp(arg);
+            JCAssignOp b = M.at(that.pos).Assignop(JCTree.PLUS_ASG,arg,treeutils.one);
+            b.type = that.type;
+            visitAssignop(b);
+            eresult = id;
+        } else {
+            JCExpression arg = scanret(that.getExpression());
+            addUnaryChecks(that,that.getTag(),arg);
+            JCExpression expr = treeutils.makeUnary(that.pos,that.getTag(),that.getOperator(),arg);
+            eresult = newTemp(expr);
+        }
     }
     
     /** Creates a declaration for a unique temporary name with the given type and position. */
@@ -2203,14 +2272,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
     }
 
+    // OK
     @Override
     public void visitBinary(JCBinary that) {
+        if (that.getTag() == JCTree.OR){
+            JCConditional cond = M.at(that.pos).Conditional(that.lhs,treeutils.trueLit,that.rhs);
+            cond.type = that.type;
+            visitConditional(cond);
+            return;
+        }
+        if (that.getTag() == JCTree.AND){
+            JCConditional cond = M.at(that.pos).Conditional(that.lhs,that.rhs,treeutils.falseLit);
+            cond.type = that.type;
+            visitConditional(cond);
+            return;
+        }
         JCExpression lhs = scanret(that.getLeftOperand());
         JCExpression rhs = scanret(that.getRightOperand());
         addBinaryChecks(that,that.getTag(),lhs,rhs);
         JCBinary bin = treeutils.makeBinary(that.pos,that.getTag(),that.getOperator(),lhs,rhs);
         eresult = newTemp(bin);
-        // FIXME - do this differently for short-circuit operations
     }
 
     @Override
@@ -2389,7 +2470,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlBinary(JmlBinary that) {
         // Should be using jmlrewriter
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
@@ -2519,8 +2600,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addStat(vd);
         JCStatement increment = M.at(that.pos).Exec(
                 treeutils.makeAssign(that.pos, treeutils.makeIdent(that.pos,vd.sym), 
-                        // FIXME - PLUS needs a symbol to run in RAC
-                  treeutils.makeBinary(that.pos,JCTree.PLUS,treeutils.makeIdent(that.pos, vd.sym),treeutils.makeLit(that.pos,syms.intType,1))));
+                  treeutils.makeBinary(that.pos,JCTree.PLUS,treeutils.intplusSymbol,treeutils.makeIdent(that.pos, vd.sym),treeutils.makeLit(that.pos,syms.intType,1))));
         JCBlock condBlock = null;
         if (that.cond != null) {
             pushBlock();
@@ -2566,14 +2646,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK - should never encounter this when processing method bodies
     @Override
     public void visitJmlImport(JmlImport that) {
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlLblExpression(JmlLblExpression that) {
         // should be using jmlrewriter
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
@@ -2644,7 +2724,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         // should be using jmlrewriter
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
@@ -2669,21 +2749,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         // should be using jmlrewriter
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {
         // should be using jmlrewriter
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlSingleton(JmlSingleton that) {
         // should be using jmlrewriter
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
     
 
@@ -2696,15 +2776,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlStatement(JmlStatement that) {
         switch (that.token) {
-            // FIXME - should be using jmlrewriter
+            // FIXME - should be using jmlrewriter to handle JML constructs in set, debug statements
             case SET:
                 scan(that.statement);
+                //jmlrewriter.translate(that.statement.getExpression());
                 break;
             case DEBUG:
-                // FIXME - fix test
-                //if (Utils.instance(context).commentKeys.contains("DEBUG")) {
+                Set<String> keys = Utils.instance(context).commentKeys;
+                if (keys.contains("DEBUG")) {
                     scan(that.statement);
-                //}
+                    //jmlrewriter.translate(that.statement.getExpression());
+                }
                 break;
             default:
                 String msg = "Unknown token in JmlAssertionAdder.visitJmlStatement: " + that.token.internedName();
@@ -2771,76 +2853,76 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
+    // OK
     @Override
     public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("Unexpected visit call in JmlAssertionAdder: " + that.getClass());
+        error(that.pos,"Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
@@ -3014,38 +3096,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // OK
         @Override
         public void visitTopLevel(JCCompilationUnit that) {
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         // OK
         @Override
         public void visitImport(JCImport that) {
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
+        
+        // FIXME - can any of these statements happen in anonymous class expressions or in mdoel programs?
 
         @Override
         public void visitClassDef(JCClassDecl that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 
         }
 
         @Override
         public void visitMethodDef(JCMethodDecl that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 
         }
 
         @Override
         public void visitVarDef(JCVariableDecl that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //            scan(that.init);
 //            JCExpression init = that.init == null ? null : eresult;
 //            // FIXME - need to make a unique symbol
@@ -3057,16 +3133,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         public void visitSkip(JCSkip that) {
             //addStat(that); // using the same statement - no copying
                             // Caution - JML statements are subclasses of JCSkip
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitBlock(JCBlock that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //            push();
 //            scan(that.stats);
 //            JCBlock block = popBlock(that.flags,that.pos);
@@ -3075,72 +3147,52 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitDoLoop(JCDoWhileLoop that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitWhileLoop(JCWhileLoop that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitForLoop(JCForLoop that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitForeachLoop(JCEnhancedForLoop that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitLabelled(JCLabeledStatement that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitSwitch(JCSwitch that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitCase(JCCase that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitSynchronized(JCSynchronized that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitTry(JCTry that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitCatch(JCCatch that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         // OK
@@ -3165,9 +3217,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitIf(JCIf that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //            scan(that.cond);
 //            JCExpression cond = ejmlresult;
 //            push();
@@ -3181,9 +3231,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitExec(JCExpressionStatement that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
 //           addStat(comment(that));
 //            scan(that.getExpression());
 //            JCExpression arg = ejmlresult;
@@ -3193,37 +3241,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitBreak(JCBreak that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitContinue(JCContinue that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitReturn(JCReturn that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitThrow(JCThrow that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitAssert(JCAssert that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
@@ -3263,8 +3301,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitAssignop(JCAssignOp that) {
-            // FIXME
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
@@ -3507,72 +3544,54 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                  // FIXME - need <: operator
                  case SUBTYPE_OF:   
                  default:
-                     // TODO Auto-generated method stub
-                     throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+                     error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
                     
             }
         }
 
         @Override
         public void visitJmlChoose(JmlChoose that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlClassDecl(JmlClassDecl that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlForLoop(JmlForLoop that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlGroupName(JmlGroupName that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlImport(JmlImport that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         // OK
@@ -3587,65 +3606,47 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlMethodDecl(JmlMethodDecl that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
@@ -3703,16 +3704,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitJmlMethodSpecs(JmlMethodSpecs that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
@@ -3751,8 +3748,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     
                 case BSEXCEPTION:
                     if (exceptionSym == null) {
-                        log.error(that.pos,"esc.internal.error", "It appears that \\exception is used where no exception value is defined" );
-                        throw new RuntimeException("It appears that \\exception is used where no exception value is defined");
+                        error(that.pos,"It appears that \\exception is used where no exception value is defined" );
                     } else {
                         ejmlresult = treeutils.makeIdent(that.pos,exceptionSym);
                     }
@@ -3767,15 +3763,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                        result = newIdentUse((VarSymbol)that.info,that.pos);
 //                    }
 //                    break;
-//                    
+//                
 //                case BSLOCKSET:
 //                case BSSAME:
-//                case BSNOTSPECIFIED:
-//                case BSNOTHING:
-//                case BSEVERYTHING:
-//                    Log.instance(context).error(that.pos, "jml.unimplemented.construct",that.token.internedName(),"BasicBlocker.visitJmlSingleton");
-//                    // FIXME - recovery possible?
-//                    break;
+                   
+
+                case BSNOTSPECIFIED:
+                case BSNOTHING:
+                case BSEVERYTHING:
+                    error(that.pos, "Should not be attempting to translate this construct in JmlAssertion Adder's JML rewriter: " + that.token.internedName());
+                    break;
 
                 default:
                     Log.instance(context).error(that.pos, "jml.unknown.construct",that.token.internedName(),"BasicBlocker.visitJmlSingleton");
@@ -3787,142 +3784,102 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public void visitJmlSpecificationCase(JmlSpecificationCase that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStatement(JmlStatement that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStatementDecls(JmlStatementDecls that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStatementExpr(JmlStatementExpr that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStatementLoop(JmlStatementLoop that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStatementSpec(JmlStatementSpec that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlVariableDecl(JmlVariableDecl that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
         @Override
         public void visitJmlWhileLoop(JmlWhileLoop that) {
-            // FIXME - can these happen in an anonymous class expression
-            log.error(that.pos,"esc.internal.error", "Unexpected call in JmlExpressionRewriter of " + that.getClass() );
-            throw new RuntimeException("Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
+            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
         }
 
     }

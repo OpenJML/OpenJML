@@ -417,6 +417,7 @@ public class JmlEsc extends JmlTreeScanner {
         if (print) log.noticeWriter.println(smt.smtConfig.defaultPrinter.toString(r));
         if (r.toString().equals("unsat")) {// FIXME - should have a better means of checking this
             if (print) log.noticeWriter.println("Method checked OK");
+            
         } else {
             if (print) log.noticeWriter.println("Some assertion not valid"); // FIXME - counterexample
             if (trace) log.noticeWriter.println("\nTRACE\n");
@@ -464,7 +465,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public boolean getBoolValue(String id, SMT smt, ISolver solver) {
-        org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id,null);
+        org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id);
         IResponse resp = solver.get_value(s);
         if (resp instanceof org.smtlib.sexpr.ISexpr.ISeq){
             org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
@@ -482,14 +483,14 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public int getIntValue(String id, SMT smt, ISolver solver) {
-        org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id,null);
+        org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id);
         IResponse resp = solver.get_value(s);
         org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
         return Integer.parseInt(se.toString());
     }
 
     public String getValue(String id, SMT smt, ISolver solver) {
-        org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id,null);
+        org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id);
         IResponse resp = solver.get_value(s);
         org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
         return se.toString();

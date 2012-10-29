@@ -536,14 +536,13 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (!picked) utils.check = true;
 
         String keysString = options.get(JmlOption.KEYS.optionName());
-        // TODO - why use Names here?
-        utils.commentKeys = new HashSet<Name>();
+        utils.commentKeys = new HashSet<String>();
         if (keysString != null) {
             String[] keys = keysString.split(",");
-            for (String k: keys) utils.commentKeys.add(Names.instance(context).fromString(k));
+            for (String k: keys) utils.commentKeys.add(k);
         }
-        if (utils.esc) utils.commentKeys.add(Names.instance(context).fromString("ESC")); 
-        if (utils.rac) utils.commentKeys.add(Names.instance(context).fromString("RAC")); 
+        if (utils.esc) utils.commentKeys.add("ESC"); 
+        if (utils.rac) utils.commentKeys.add("RAC"); 
         JmlSpecs.instance(context).initializeSpecsPath();
 
         if (options.get(JmlOption.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);

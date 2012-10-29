@@ -1,5 +1,13 @@
 package tests;
 
+import java.util.Set;
+
+import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.Utils;
+
+import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
+
 
 public class escnew extends EscBase {
 
@@ -564,6 +572,8 @@ public class escnew extends EscBase {
     
 
     public void testGhostSet() {
+        //args = new String[] { "-keys=DEBUG" };
+        options.put(JmlOption.KEYS.optionName(), "DEBUG");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -592,10 +602,46 @@ public class escnew extends EscBase {
                 +"      //@ debug k = 1;\n"
                 +"      //@ assert k == 1; \n"
                 +"  }\n"
+
+                // FIXME - need to handle jml constructs in set, debug statements
+//                +"  public void m3bad() {\n"
+//                +"      //@ ghost boolean k = true;"
+//                +"      //@ set k = (k <=!=> k);\n"
+//                +"      //@ assert k; \n"
+//                +"  }\n"
+//                
+//                +"  public void m3good() {\n"
+//                +"      //@ ghost boolean k = true;"
+//                +"      //@ set k = (k <==> k);\n"
+//                +"      //@ assert k; \n"
+//                +"  }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",11
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method m2bad",11
+                );
+    }
+    
+    public void testGhostSetNoDebug() {
+        // debug is not enabled 
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m2good(int i) {\n"
+                +"      //@ ghost int k = 0;"
+                +"      //@ debug k = 1;\n"
+                +"      //@ assert k == 0; \n"
+                +"  }\n"
+                
+                +"  //@ requires i != 0; \n"
+                +"  public void m2bad(int i) {\n"
+                +"      //@ ghost int k = 0;"
+                +"      //@ debug k = 1;\n"
+                +"      //@ assert k == 1; \n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m2bad",11
                 );
     }
     
@@ -721,6 +767,61 @@ public class escnew extends EscBase {
                 );
     }
 
+    public void testIncDec() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { static int i; \n"
+                
+                +"  //@ assignable \\everything;\n"
+                +"  //@ ensures \\result == i;\n"
+                +"  //@ ensures i == \\old(i) + 1;\n"
+                +"  public int m1ok() {\n"
+                +"    return ++i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything;\n"
+                +"  //@ ensures \\result == i;\n"
+                +"  //@ ensures i == \\old(i) - 1;\n"
+                +"  public int m2ok() {\n"
+                +"    return --i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything;\n"
+                +"  //@ ensures \\result == \\old(i);\n"
+                +"  //@ ensures i == \\old(i) + 1;\n"
+                +"  public int m3ok() {\n"
+                +"    return i++;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything;\n"
+                +"  //@ ensures \\result == i;\n"
+                +"  //@ ensures i == \\old(i) + 1;\n"
+                +"  public int m3bad() {\n"
+                +"    return i++;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything;\n"
+                +"  //@ ensures \\result == \\old(i);\n"
+                +"  //@ ensures i == \\old(i) - 1;\n"
+                +"  public int m4ok() {\n"
+                +"    return i--;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything;\n"
+                +"  //@ ensures \\result == i;\n"
+                +"  //@ ensures i == \\old(i) - 1;\n"
+                +"  public int m4bad() {\n"
+                +"    return i--;\n"
+                +"  }\n"
+                
+               
+                +"}"
+                ,"/tt/TestJava.java:25: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                ,"/tt/TestJava.java:22: warning: Associated declaration",7
+                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Postcondition) in method m4bad",5
+                ,"/tt/TestJava.java:34: warning: Associated declaration",7
+                );
+    }
+
     // Just testing binary and unary 
     public void testJMLBinaryUnary() {
         helpTCX("tt.TestJava","package tt; \n"
@@ -790,6 +891,92 @@ public class escnew extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                );
+    }
+
+    public void testShortCircuit() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { int f; \n"
+                
+                +"  public boolean m1bad(boolean b, int i) {\n"
+                +"    return i != 0 || (20/i <= 20) ;\n"
+                +"  }\n"
+                
+                +"  //@ ensures \\result;\n"
+                +"  public boolean m1ok(boolean b, int i) {\n"
+                +"    return i == 0 || (i/i > 0) ;\n"
+                +"  }\n"
+                
+                +"  public boolean m2bad(boolean b, int i) {\n"
+                +"    return i == 0 && (20/i <= 20) ;\n"
+                +"  }\n"
+                
+                +"  public boolean m2ok(boolean b, int i) {\n"
+                +"    return i != 0 && (20/i <= 20) ;\n"
+                +"  }\n"
+                
+                +"  public boolean m3bad(@Nullable TestJava t) {\n"
+                +"    return t != null || t.f == 1 ;\n"
+                +"  }\n"
+                
+                +"  public boolean m3ok(@Nullable TestJava t) {\n"
+                +"    return t != null && t.f == 1 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a;\n"
+                +"  //@ ensures \\result;\n"
+                +"  //@ also \n"
+                +"  //@ requires !a;\n"
+                +"  //@ ensures \\result == b;\n"
+                +"  public boolean m4ok(boolean a, boolean b) {\n"
+                +"    return a || b ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a;\n"
+                +"  //@ ensures b;\n"
+                +"  //@ also \n"
+                +"  //@ requires !a;\n"
+                +"  //@ ensures \\result == b;\n"
+                +"  public boolean m4bad(boolean a, boolean b) {\n"
+                +"    return a || b ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a;\n"
+                +"  //@ ensures \\result == b;\n"
+                +"  //@ also \n"
+                +"  //@ requires !a;\n"
+                +"  //@ ensures \\result == false;\n"
+                +"  public boolean m5ok(boolean a, boolean b) {\n"
+                +"    return a && b ;\n"
+                +"  }\n"
+                
+                // FIXME - it should be valid, but returns unknown
+                // Keep these - the result is unknown on some solvers and
+                // exposed a bug in handling unknown results
+                +"  //@ requires i < 2 && i > -2; ensures \\result;\n"
+                +"  public boolean m1bugOK(int i) {\n"
+                +"    return i == 0 || (20/i <= 20) ;\n"
+                +"  }\n"
+                
+                // Look at the counterexample on this one (TODO)
+                +"  //@ ensures \\result;\n"
+                +"  public boolean m1bug(int i) {\n"
+                +"    return i == 0 || (20/i <= 20) ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i < 30 && i > -30; ensures \\result;\n"
+                +"  public boolean m1bugOK2(int i) {\n"
+                +"    return i == 0 || (20/i <= 20) ;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1bad",25
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",25
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3bad",26
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Postcondition) in method m4bad",5
+                ,"/tt/TestJava.java:31: warning: Associated declaration",7
+                ,"/tt/TestJava.java:52: warning: The prover cannot establish an assertion (Postcondition) in method m1bug",5
+                ,"/tt/TestJava.java:50: warning: Associated declaration",7
                 );
     }
 
@@ -1028,7 +1215,7 @@ public class escnew extends EscBase {
     }
 
     public void testAssignOp() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
@@ -1039,16 +1226,102 @@ public class escnew extends EscBase {
                 +"    return (i+=1) ;\n"
                 +"  }\n"
                 
-                +"  //@ ensures \\result == j+1;\n"
+                +"  //@ ensures \\result == j+j+1;\n"
                 +"  public int m1good(int j) {\n"
                 +"    int i = j ;\n"
-                +"    return (i+=1) ;\n"
+                +"    return (i+=j+1) ;\n"
+                +"  }\n"
+                
+                +"  public int m2bad(int j) {\n"
+                +"    int i = j ;\n"
+                +"    return (i/=j) ;\n"
+                +"  }\n"
+                
+                +"  //@ requires j != 0;\n"
+                +"  public int m2good(int j) {\n"
+                +"    int i = j ;\n"
+                +"    return (i/=j) ;\n"
+                +"  }\n"
+                
+                +"  //@ requires t != null;\n"
+                +"  //@ requires i != 0;\n"
+                +"  public void m3bad(TestJava t, int i) {\n"
+                +"    t.f /= i ;\n"
+                +"  }\n"
+                
+                +"  //@ assignable t.f;\n"
+                +"  //@ requires t != null;\n"
+                +"  public void m3badb(TestJava t, int i) {\n"
+                +"    t.f /= i ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i != 0;\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public void m3badc(@Nullable TestJava t, int i) {\n"
+                +"    t.f /= i ;\n"
+                +"  }\n"
+                
+                +"  //@ requires t != null;\n"
+                +"  //@ requires i != 0;\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public void m3good(TestJava t, int i) {\n"
+                +"    t.f /= i ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i != 0;\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public void m4bad(@Nullable int[] a, int i) {\n"
+                +"    a[0] /= i ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a.length == 4;\n"
+                +"  //@ requires i != 0;\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public void m4badb(@NonNull int[] a, int i) {\n"
+                +"    a[-1] /= i ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a.length == 4;\n"
+                +"  //@ requires i != 0;\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public void m4badc(@NonNull int[] a, int i) {\n"
+                +"    a[4] /= i ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a.length == 4;\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public void m4badd(@NonNull int[] a, int i) {\n"
+                +"    a[0] /= i ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a.length == 4;\n"
+                +"  //@ requires i != 0;\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public void m4good(@NonNull int[] a, int i) {\n"
+                +"    a[0] /= i ;\n"
+                +"  }\n"
+                
+                +"  public void m10ok(boolean i) {\n"
+                +"    int x = 10 ;\n"
+                +"    int y = 20 ;\n"
+                +"    x = (y += x + 1) + 2 ;\n"
+                +"    //@ assert x == 33 ;\n"
+                +"    //@ assert y == 31 ;\n"
                 +"  }\n"
                 
                 
                 +"}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",14
+                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assignable) in method m3bad",9
+                ,"/tt/TestJava.java:23: warning: Associated declaration",7
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3badb",9
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3badc",9
+                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m4bad",10
+                ,"/tt/TestJava.java:53: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m4badb",11
+                ,"/tt/TestJava.java:59: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4badc",10
+                ,"/tt/TestJava.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4badd",10
                 );
     }
 
@@ -1186,6 +1459,14 @@ public class escnew extends EscBase {
                 +"    if (i) x = 1; else x = 2; ;\n"
                 +"    x = x + 1 ;\n"
                 +"    //@ assert x < 4 ;\n"
+                +"  }\n"
+                
+                +"  public void m2ok(boolean i) {\n"
+                +"    int x = 10 ;\n"
+                +"    int y ;\n"
+                +"    x = (y = x + 1) + 2 ;\n"
+                +"    //@ assert x == 13 ;\n"
+                +"    //@ assert y == 11 ;\n"
                 +"  }\n"
                 
                 

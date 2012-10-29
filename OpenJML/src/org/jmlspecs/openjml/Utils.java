@@ -91,7 +91,7 @@ public class Utils {
     public boolean doc = false;
     
     /** The set of keys that control the use of optional comments, set from options */
-    public Set<Name> commentKeys;
+    public Set<String> commentKeys;
     
     /** A bit that indicates that a declaration was declared within a JML annotation */
     final public static long JMLBIT = 1L << 50; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.

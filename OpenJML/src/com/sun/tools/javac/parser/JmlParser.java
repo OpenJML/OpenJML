@@ -481,8 +481,17 @@ public class JmlParser extends EndPosParser {
                 } else if (jtoken == JmlToken.SET || jtoken == JmlToken.DEBUG) {
                     S.setJmlKeyword(false);
                     S.nextToken();
+                    // Only StatementExpressions are allowed - 
+                    // assignment statements and stand-alone method calls -
+                    // but JML constructs are allowed.
                     JCStatement t = super.parseStatement();
-                    st = toP(jmlF.at(pos).JmlStatement(jtoken, t));
+                    if (!(t instanceof JCExpressionStatement)) {
+                        jmlerror(t.getStartPosition(),
+                                t.getEndPosition(endPositions),
+                                "jml.bad.statement.in.set.debug");
+                        t = null;
+                    }
+                    st = toP(jmlF.at(pos).JmlStatement(jtoken, (JCExpressionStatement)t));
                     S.setJmlKeyword(true); // This comes a token too late.
                     needSemi = false;
 
