@@ -569,10 +569,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     break;
                 case CONSTRAINT:
+                    // FIXME - need to check the list of method signatures
                     if (!methodIsStatic || Utils.instance(context).hasAny(clause.modifiers,Flags.STATIC)) {
-                        t = (JmlTypeClauseExpr)clause;
+                        JmlTypeClauseConstraint tt = (JmlTypeClauseConstraint)clause;
                         addAssert(methodDecl.pos,Label.CONSTRAINT,
-                                jmlrewriter.translate(t.expression),ensureStats,
+                                jmlrewriter.translate(tt.expression),ensureStats,
                                 clause.pos,clause.source);
                     }
                     break;
@@ -2155,7 +2156,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addAssert(that.pos, Label.POSSIBLY_TOOLARGEINDEX, e, currentStatements);
             
             JCExpression rhs = scanret(that.rhs);
-            JCArrayAccess lhs = M.at(aa.pos).Indexed(array,index);
+            JCArrayAccess lhs = new JmlBBArrayAccess(null,array,index);
+            lhs.pos = aa.pos;
             lhs.type = aa.type;
             JCExpression assign = treeutils.makeAssign(that.pos,lhs,rhs);
             addStat(M.at(that.pos).Exec(assign));
@@ -2266,7 +2268,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addAssert(that.pos, Label.POSSIBLY_TOOLARGEINDEX, e, currentStatements);
 
             rhs = scanned ? rhs : scanret(rhs);
-            lhs = M.at(aa.pos).Indexed(array,index);
+            lhs = new JmlBBArrayAccess(null,array,index);
+            lhs.pos = aa.pos;
             lhs.type = aa.type;
 
             addBinaryChecks(that,op,lhs,rhs);
@@ -2439,7 +2442,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 length);
         addAssert(that.pos,Label.POSSIBLY_TOOLARGEINDEX,compare,currentStatements);
 
-        JCArrayAccess aa = M.at(that.pos).Indexed(indexed,index);
+        JCArrayAccess aa = new JmlBBArrayAccess(null,indexed,index);
+        aa.pos = that.pos;
         aa.setType(that.type);
         eresult = newTemp(aa);
     }
@@ -3491,7 +3495,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             compare = treeutils.makeImplies(that.pos, condition, compare);
             addAssert(that.pos,Label.UNDEFINED_TOOLARGEINDEX,compare,currentStatements);
 
-            JCArrayAccess aa = M.at(that.pos).Indexed(indexed,index);
+            //JCArrayAccess aa = M.at(that.pos).Indexed(indexed,index);
+            JmlBBArrayAccess aa = new JmlBBArrayAccess(null,indexed,index); // FIXME - switch to factory
+            aa.pos = that.pos;
             aa.setType(that.type);
             ejmlresult = aa;
         }

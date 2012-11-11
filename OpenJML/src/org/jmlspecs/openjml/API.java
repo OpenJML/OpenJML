@@ -112,7 +112,7 @@ public class API implements IAPI {
      */
     @Override
     public int execute(@NonNull String ... args) {
-        int ret = org.jmlspecs.openjml.Main.execute(args);
+        int ret = org.jmlspecs.openjml.Main.execute(new PrintWriter(System.out, true), diagListener, args);
         return ret;
     }
     
@@ -139,6 +139,8 @@ public class API implements IAPI {
     /** The encapsulated org.jmlspecs.openjml.Main object */
     protected Main main = null;
     //@ initially main != null;
+    
+    protected DiagnosticListener<? extends JavaFileObject> diagListener = null;
     
     /** The encapsulated compilation context */
     // protected invariant main != null ==> mail.context == context;
@@ -169,6 +171,7 @@ public class API implements IAPI {
         }
         main = new Main(Strings.applicationName,writer,listener,args);
         context = main.context;
+        this.diagListener = listener;
         Log.instance(context).multipleErrors = true;
     }
     

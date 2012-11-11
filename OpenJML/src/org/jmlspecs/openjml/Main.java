@@ -292,7 +292,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param args the command-line arguments
      * @return the exit code
      */
-    public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull String[] args) {
+    public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, @NonNull String[] args) {
         int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
         try {
             if (args == null) {

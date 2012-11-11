@@ -494,7 +494,7 @@ public class JmlCompiler extends JavaCompiler {
                 // FIXME - does this happen?
                 env.toplevel = rac.translate(env.toplevel);
             }
-            if (true || JmlOption.isOption(context,"-showrac")) {
+            if (JmlOption.isOption(context,"-showrac")) {
                 log.noticeWriter.println("TRANSLATED RAC");
                 log.noticeWriter.println(JmlPretty.writeJava(env.tree,true));
             }
@@ -527,7 +527,7 @@ public class JmlCompiler extends JavaCompiler {
             // FIXME - does this happen?
             env.toplevel = rac.translate(env.toplevel);
         }
-        if (true || JmlOption.isOption(context,"-showrac")) {
+        if (JmlOption.isOption(context,"-showrac")) {
             log.noticeWriter.println("TRANSLATED RAC");
             log.noticeWriter.println(JmlPretty.writeJava(env.tree,true));
         }

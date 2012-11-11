@@ -47,7 +47,7 @@ import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.Attr;
 import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
@@ -60,6 +60,7 @@ import com.sun.tools.javac.tree.JCTree.JCCase;
 import com.sun.tools.javac.tree.JCTree.JCCatch;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCConditional;
 import com.sun.tools.javac.tree.JCTree.JCContinue;
 import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
@@ -77,6 +78,7 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCParens;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCSkip;
@@ -93,7 +95,6 @@ import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCWildcard;
 import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.tree.JCTree.TypeBoundKind;
-import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -710,7 +711,23 @@ public class BasicBlocker2 extends JmlTreeScanner {
     }
     
     // METHODS
-    
+
+//    @Override
+//    public void scan(com.sun.tools.javac.util.List<? extends JCTree> trees) {
+//        if (trees != null)
+//        for (com.sun.tools.javac.util.List<? extends JCTree> l = trees; l.nonEmpty(); l = l.tail) {
+//            scan(l.head);
+//        }
+//    }
+
+    public void scanList(com.sun.tools.javac.util.List<JCExpression> trees) {
+        if (trees != null)
+        for (com.sun.tools.javac.util.List<JCExpression> l = trees; l.nonEmpty(); l = l.tail) {
+            scan(l.head);
+            l.head = result;
+        }
+    }
+
     /** Should not need this when everything is implemented */
     protected void notImpl(JCTree that) {
         log.noticeWriter.println("NOT IMPLEMENTED: BasicBlocker2 - " + that.getClass());
@@ -757,7 +774,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         if (incarnationPosition == 0 || sym.owner == null) {
             Name n = sym.getQualifiedName();
             if (isDefined.add(n)) {
-                System.out.println("AddedC " + sym + " " + n);
+                //System.out.println("AddedC " + sym + " " + n);
                 JCIdent id = treeutils.makeIdent(0, sym);
                 id.name = n;
                 program.declarations.add(id);
@@ -766,6 +783,23 @@ public class BasicBlocker2 extends JmlTreeScanner {
         } else
             return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition + "___" + (unique++));
         //return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition);
+    }
+    
+    protected Name encodedArrayName(VarSymbol sym, int incarnationPosition) {
+        Name n;
+        if (incarnationPosition == 0) {
+            n = sym.getQualifiedName();
+        } else {
+            n = names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition + "___" + (unique++));
+        }
+        if (isDefined.add(n)) {
+            //System.out.println("AddedC " + sym + " " + n);
+            JCIdent id = treeutils.makeIdent(0, sym);
+            id.name = n;
+            program.declarations.add(id);
+        }
+        return n;
+//return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition);
     }
     
     // FIXME - review and document
@@ -902,6 +936,14 @@ public class BasicBlocker2 extends JmlTreeScanner {
         return n;
     }
     
+    protected JCIdent newArrayIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
+        JCIdent n = factory.at(incarnationPosition).Ident(encodedArrayName(vsym,incarnationPosition));
+        n.type = vsym.type;
+        n.sym = vsym;
+        currentMap.put(vsym,incarnationPosition,n.name);
+        return n;
+    }
+    
     // FIXME - review
     /** Creates a newly incarnated variable corresponding to the given declaration.
      * The incarnation number will be the position of the declaration for some
@@ -942,7 +984,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
     // FIXME - document
     protected JCIdent newArrayIncarnation(Type componentType, int usePosition) {
         JCIdent id = getArrayIdent(componentType);
-        id = newIdentIncarnation((VarSymbol)id.sym,usePosition);
+        id = newArrayIdentIncarnation((VarSymbol)id.sym,usePosition);
         //currentMap.put((VarSymbol)id.sym,Integer.valueOf(usePosition),id.name);
         return id;
     }
@@ -1510,7 +1552,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         if (id == null) {
             id = factory.Ident(names.fromString(s));
             id.pos = 0;
-            id.type = componentType;
+            id.type = new ArrayType(componentType,syms.arrayClass);
             VarSymbol sym = new VarSymbol(0,id.name,id.type,null);
             sym.pos = 0;
             id.sym = sym;
@@ -3085,6 +3127,11 @@ public class BasicBlocker2 extends JmlTreeScanner {
             }
         } else if (that.token == null) {
             super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
+            scan(that.typeargs);
+            scan(that.meth);
+            that.meth = result;
+            scanList(that.args);
+            result = that;
         } else {
             log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker: " + that.token.internedName());
 //            for (JCExpression e: that.args) {
@@ -3635,8 +3682,14 @@ public class BasicBlocker2 extends JmlTreeScanner {
         } else {
             log.error(that.pos,"jml.internal","THIS KIND OF IDENT IS NOT HANDLED: " + that + " " + that.sym.getClass());
         }
+        result = that;
     }
-    
+
+    public void visitLiteral(JCLiteral tree) {
+        result = tree;
+    }
+
+
     @Override
     public void visitSelect(JCFieldAccess that) {
         if (!(that.sym instanceof Symbol.VarSymbol)) return; // This is a qualified type name 
@@ -3661,6 +3714,25 @@ public class BasicBlocker2 extends JmlTreeScanner {
             result = that;
         }
     }
+    
+    public void visitIndexed(JCArrayAccess that) {
+        scan(that.indexed);
+        JCExpression indexed = result;
+        scan(that.index);
+        JCExpression index = result;
+        JCIdent arr = getArrayIdent(that.type);
+        if (that instanceof JmlBBArrayAccess) {
+            that.indexed = indexed;
+            that.index = index;
+            ((JmlBBArrayAccess)that).arraysId = arr;
+            result = that;
+        } else {
+            log.warning(that,"jml.internal","Did not expect a JCArrayAccess node in BasicBlocker2.visitIndexed");
+            result = new JmlBBArrayAccess(arr,indexed,index);
+        }
+    }
+
+
     
     
     // FIXME - review
@@ -3691,16 +3763,17 @@ public class BasicBlocker2 extends JmlTreeScanner {
             JCExpression index = ((JCArrayAccess)left).index;
             JCIdent nid = newArrayIncarnation(right.type,left.pos);
             
-            JCExpression rhs = makeStore(ex,index,right);
-//            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,((JCArrayAccess)left).index,right);
-//            expr.pos = pos;
-//            expr.type = restype;
+            //JCExpression rhs = makeStore(ex,index,right);
+            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,((JCArrayAccess)left).index,right);
+            expr.pos = pos;
+            expr.type = restype;
 
             // FIXME - set line and source
-            JCBinary bin = treeutils.makeEquality(Position.NOPOS,nid,rhs);
-            addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,bin,currentBlock.statements);
+//            JCBinary bin = treeutils.makeEquality(Position.NOPOS,nid,expr);
+//            copyEndPosition(bin,expr);
+            addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,currentBlock.statements);
             //newIdentIncarnation(heapVar,pos);
-            return left;
+            return right;
         } else if (left instanceof JCFieldAccess) {
             VarSymbol sym = (VarSymbol)selectorSym(left);
             if (sym.isStatic()) {
@@ -3823,7 +3896,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
     // FIXME - use a constructed name?
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         if (that.sym == null || that.sym.owner == null) {
-            scan(that.init);
+            if (that.init != null) {
+                scan(that.init);
+                that.init = result;
+            }
             if (that.init instanceof JCMethodInvocation) {
                 that.init = null;
                 currentBlock.statements.add(that);
@@ -3836,6 +3912,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         } else {
             JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
             scan(that.init);
+            that.init = result;
             currentBlock.statements.add(treeutils.makeVarDef(that.type, lhs.name, that.sym.owner, that.init));
         }
 
@@ -3967,12 +4044,39 @@ public class BasicBlocker2 extends JmlTreeScanner {
     @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlStatementSpec(JmlStatementSpec that) { shouldNotBeCalled(that); }
 
+    // Expressions just need to set the result field
+    @Override public void visitBinary(JCBinary that) {
+        scan(that.lhs);
+        that.lhs = result;
+        scan(that.rhs);
+        that.rhs = result;
+        result = that; 
+    }
+    
+    @Override public void visitUnary(JCUnary that) { 
+        scan(that.arg);
+        that.arg = result;
+        result = that; 
+    }
+    
+    @Override public void visitParens(JCParens that) { 
+        scan(that.expr);
+        that.expr = result;
+        result = that; 
+    }
+    
+    @Override public void visitConditional(JCConditional that) { 
+        scan(that.cond);
+        that.cond = result;
+        scan(that.truepart);
+        that.truepart = result;
+        scan(that.falsepart);
+        that.falsepart = result;
+        result = that; 
+    }
+
 // Do not need to override these methods
 //  @Override public void visitSkip(JCSkip that) { super.visitSkip(that); }
-//  @Override public void visitBinary(JCBinary that) { super.visitBinary(that); }
-//  @Override public void visitUnary(JCUnary that) { super.visitUnary(that); }
-//  @Override public void visitParens(JCParens that) { super.visitParens(that); }
-//  @Override public void visitConditional(JCConditional that) { super.visitConditional(that); }
         
     public void visitJmlStatementLoop(JmlStatementLoop that) { 
         shouldNotBeCalled(that); // These are the specs for loops - they are handled in the loop visitors
@@ -4040,7 +4144,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             if (!that.type.isPrimitive()) types.add(that.type);
             super.visitIdent(that);
         }
- 
+        
         // visitIf - statement: just scan the component expressions
         // visitImport - statement: just scan the component expressions
         // visitIndexed - FIXME

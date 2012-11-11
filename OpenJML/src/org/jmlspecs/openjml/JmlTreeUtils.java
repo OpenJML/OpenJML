@@ -744,7 +744,7 @@ public class JmlTreeUtils {
      * @param init  the initialization expression for the new AST
      * @return the AST for the declaration
      */
-    public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, JCExpression init) {
+    public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, @NonNull JCExpression init) {
         int modifierFlags = 0;
         VarSymbol v = new VarSymbol(modifierFlags, name, type, owner);
         JCVariableDecl d = factory.VarDef(v,init);

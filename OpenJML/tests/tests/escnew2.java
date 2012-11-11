@@ -752,6 +752,60 @@ public class escnew2 extends EscBase {
                 );
     }
     
+    public void testArrayAssign() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  int i; static int j[];\n"
+                
+                +"  //@ requires a.length > 3; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  public int m0bada(int[] a) {\n"
+                +"    a[1] = 1;\n"
+                +"    return a[0];\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  public int m0badb(int[] a) {\n"
+                +"    a[1] = 1;\n"
+                +"    return a[0];\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null && a.length > 3; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == \\old(a[0]); \n"
+                +"  public int m0badc(int[] a) {\n"
+                +"    a[-1] = 1;\n"
+                +"    return a[0];\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null && a.length > 3; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == \\old(a[0]); \n"
+                +"  public int m1good(int[] a) {\n"
+                +"    a[1] = 1;\n"
+                +"    return a[0];\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null && a.length > 3 && i >= 0 && i <= 1; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == \\old(a[0]); \n"
+                +"  public int m1bad(int[] a, int i) {\n"
+                +"    a[i] = 1;\n"
+                +"    return a[0];\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m0bada",17
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m0badb",10
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m0badc",11
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:33: warning: Associated declaration",7
+                );
+    }
+    
     public void testInvariant1() {
         //options.put("-showbb","");
         helpTCX("tt.TestJava","package tt; \n"
@@ -802,6 +856,87 @@ public class escnew2 extends EscBase {
                 ,"/tt/TestJava.java:7: warning: Associated declaration",14
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Invariant) in method m3bad",22
                 ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                );
+    }
+    
+    public void testConstraint1() {
+        //options.put("-showbb","");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  static int ii;\n"
+                +"  int i;\n"
+                
+                +"  //@ constraint i >= \\old(i);\n"
+                +"  //@ static constraint ii >= \\old(ii);\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m1bad() {\n"
+                +"    i = -i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m2bad() {\n"
+                +"    ii = -ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  static public void m3bad() {\n"
+                +"    ii = -ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m1good() {\n"
+                +"    ++i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m2good() {\n"
+                +"    ++ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  static public void m3good() {\n"
+                +"    ++ii;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Constraint) in method m1bad",15
+                ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Constraint) in method m2bad",15
+                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Constraint) in method m3bad",22
+                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                );
+    }
+    
+    public void testAxiom1() {
+        //options.put("-showbb","");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+// FIXME - use this               // +"  //@ axiom (\\forall TestJava o; o.i == o.ii);\n"
+                +"  //@ axiom i == ii;\n"
+                +"  static int ii;\n"
+                +"  int i;\n"
+                
+               
+                +"  //@ assignable \\everything; \n"
+                +"  public void m1good() {\n"
+                +"    //@ assert i == ii;\n"
+                +"  }\n"
+                
+                
+//                +"  //@ assignable \\everything; \n"
+//                +"  static public void m3good() {\n"
+//                +"    ++ii;\n"
+//                +"  }\n"
+                
+                
+                +"}"
                 );
     }
     
