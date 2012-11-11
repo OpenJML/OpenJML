@@ -72,6 +72,7 @@
   </extension>
 
 <!-- This extension adds the preference page -->
+<!--
    <extension
          id="org.jmlspecs.eclipse.preferencesPage"
          name="JML Preferences"
@@ -81,6 +82,28 @@
          name="JML" 
          class="org.jmlspecs.openjml.eclipse.Preferences"
          category="org.eclipse.jdt.ui.preferences.JavaBasePreferencePage"> 
+      </page>
+   </extension>
+-->
+   <!-- This adds the OpenJML preference page -->
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="org.jmlspecs.openjml.eclipse.SettingsPage"
+            id="org.jmlspecs.openjml.eclipse.SettingsPage"
+            name="%PreferencePage">
+      </page>
+      <page
+            class="org.jmlspecs.openjml.eclipse.PathsPage"
+            id="org.jmlspecs.openjml.eclipse.PathsPage"
+            category="org.jmlspecs.openjml.eclipse.SettingsPage"
+            name="%PreferencePage.Paths">
+      </page>
+      <page
+            class="org.jmlspecs.openjml.eclipse.SolversPage"
+            id="org.jmlspecs.openjml.eclipse.SolversPage"
+            category="org.jmlspecs.openjml.eclipse.SettingsPage"
+            name="%PreferencePage.Solvers">
       </page>
    </extension>
    
@@ -394,6 +417,48 @@
     </objectContribution>
   </extension>
 
+<!-- This next section creates the needed menus for the plugin -->
+<extension
+         point="org.eclipse.ui.menus">
+      <!-- These next few menus add CodeSonar menu options to the Main Menu for Eclipse --> 
+      <menuContribution
+             allPopups="false"
+             locationURI="menu:org.eclipse.ui.main.menu">
+          <menu
+                label="%mainmenu.label"
+                tooltip="%mainmenu.tooltip">
+             <command
+               label="Delete RAC files"
+               tooltip="Deletes RAC-compiled class files for selected resources"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ClearForRAC"
+               commandId="org.jmlspecs.eclipse.commands.ClearForRAC"
+               style="push">
+             </command>
+             <!--
+             <command
+                   commandId="codesonar.commands.deleteWarnings"
+                   style="push"
+                   tooltip="%command.description.deleteWarnings">
+             </command>
+             <command
+                   commandId="codesonar.commands.deactivateCodesonar"
+                   style="push"
+                   tooltip="%command.description.deactivateCodesonar">
+             </command>
+             <command
+                   commandId="codesonar.commands.activateCodesonar"
+                   style="push"
+                   tooltip="%command.description.activateCodesonar">
+             </command>
+             <command
+                   commandId="codesonar.commands.startVisualization"
+                   style="push"
+                   tooltip="%command.description.startVisualization">
+             </command>
+             -->
+          </menu>
+       </menuContribution>
+ </extension>
 <!-- These extensions add menu items to the menubar and toolbar -->
   <extension
          point="org.eclipse.ui.actionSets">
@@ -408,7 +473,8 @@
                   name="JMLGroup">
             </separator>
          </menu>
-        
+
+<!--        
          <action
                label="Delete RAC files"
                tooltip="Deletes RAC-compiled class files for selected resources"
@@ -417,6 +483,7 @@
                id="org.jmlspecs.openjml.eclipse.MenuActions.ClearForRAC"
                definitionId="org.jmlspecs.eclipse.commands.ClearForRAC">
          </action>
+         -->
          <action
                label="Disable for RAC"
                tooltip="Disables selected resources from being compiled with runtime checks"
@@ -909,7 +976,8 @@
             name="RAC - delete all class files"
             description="Delete all RAC-compiled class files"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
-            id="org.jmlspecs.eclipse.commands.ClearForRAC">
+            id="org.jmlspecs.eclipse.commands.ClearForRAC"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ClearForRAC">
       </command>
       <command
             name="Delete JML Markers"
