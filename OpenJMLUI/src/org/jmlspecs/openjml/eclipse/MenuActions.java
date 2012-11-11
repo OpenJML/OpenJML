@@ -8,6 +8,7 @@ package org.jmlspecs.openjml.eclipse;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -28,8 +29,11 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
+import org.eclipse.ui.handlers.HandlerUtil;
+
 
 /**
  * This class holds the implementations of utility classes registered against
@@ -380,15 +384,21 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      * This action deletes RAC-compiled class files.
      * @author David Cok
      */
-    static public class ClearForRAC extends MenuActions {
+    static public class ClearForRAC extends org.eclipse.core.commands.AbstractHandler {
         // This is done in the UI thread. 
         @Override
-        public final void run(final IAction action) {
+        public final Object execute(final ExecutionEvent event) {
+            IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+            IWorkbenchPage activePage = window.getActivePage();
+            ISelection selection = activePage.getSelection();
+            Shell shell = window.getShell();
+            Utils utils = Activator.getDefault().utils;
             try {
                 utils.clearForRac(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ClearForRac",e);
             }
+            return null;
         }
     }
 
