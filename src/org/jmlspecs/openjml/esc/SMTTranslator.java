@@ -171,10 +171,16 @@ public class SMTTranslator extends JmlTreeScanner {
         for (JCIdent id: program.declarations) {
             try {
                 ISort sort = convertSort(id.type);
+                String nm = id.name.toString();
                 if (id.sym.owner instanceof Symbol.ClassSymbol && !id.sym.isStatic() && !id.sym.name.toString().equals("this")) {
                     sort = F.createSortExpression(F.symbol("Array"),refSort,sort);
+                } else if (nm.startsWith("arrays_")) { // FIXME - use the constant string
+                    sort = convertSort(((Type.ArrayType)id.type).getComponentType());
+                    ISort intSort = convertSort(syms.intType); // FIXME: Make this a constant like Bool?
+                    sort = F.createSortExpression(F.symbol("Array"),intSort,sort); 
+                    sort = F.createSortExpression(F.symbol("Array"),refSort,sort);
                 }
-                c = new C_declare_fun(F.symbol(id.name.toString()),
+                c = new C_declare_fun(F.symbol(nm),
                         new LinkedList<ISort>(),
                         sort);
                 commands.add(c);
@@ -367,6 +373,26 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.fcn(F.symbol("="), convertExpr(tree.args.get(0)),right);
                 return;
             }
+            else if (tree instanceof JmlBBArrayAssignment) {
+                // [0] = store([1],[2], store(select([1],[2]),[3],[4]))
+                IExpr.IFcnExpr sel = F.fcn(F.symbol("select"),
+                        convertExpr(tree.args.get(1)),
+                        convertExpr(tree.args.get(2))
+                        );
+                IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
+                                sel,
+                                convertExpr(tree.args.get(3)),
+                                convertExpr(tree.args.get(4))
+                                );
+
+                IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
+                        convertExpr(tree.args.get(1)),
+                        convertExpr(tree.args.get(2)),
+                        newarray
+                        );
+                result = F.fcn(F.symbol("="), convertExpr(tree.args.get(0)),right);
+                return;
+            }
         }
         notImpl(tree);
         super.visitApply(tree);
@@ -530,20 +556,39 @@ public class SMTTranslator extends JmlTreeScanner {
 
     @Override
     public void visitIndexed(JCArrayAccess tree) {
+        if (tree instanceof JmlBBArrayAccess) {
+            JmlBBArrayAccess aa = (JmlBBArrayAccess)tree;
+            // select(select(arraysId,a).i)
+            IExpr.IFcnExpr sel = F.fcn(F.symbol("select"),
+                    convertExpr(aa.arraysId),
+                    convertExpr(aa.indexed)
+                    );
+            sel = F.fcn(F.symbol("select"),
+                    sel,
+                    convertExpr(aa.index)
+                    );
+            result = sel;
+            return;
+        }
+
+        // FIXME: This should never be called!
         scan(tree.indexed);
         IExpr array = result;
         scan(tree.index);
         IExpr index = result;
-        if (tree.type.tag == syms.intType.tag) {
-            result = F.fcn(F.symbol("asIntArray"), array);
-            result = F.fcn(F.symbol("select"),result,index);
-        } else if (!tree.type.isPrimitive()) {
-            result = F.fcn(F.symbol("asRefArray"), array);
-            result = F.fcn(F.symbol("select"),result,index);
-        } else {
-            notImpl(tree);
-            result = null;
-        }
+        result = F.fcn(F.symbol("select"),result,array);
+        result = F.fcn(F.symbol("select"),result,index);
+
+//        if (tree.type.tag == syms.intType.tag) {
+//            result = F.fcn(F.symbol("asIntArray"), array);
+//            result = F.fcn(F.symbol("select"),result,index);
+//        } else if (!tree.type.isPrimitive()) {
+//            result = F.fcn(F.symbol("asRefArray"), array);
+//            result = F.fcn(F.symbol("select"),result,index);
+//        } else {
+//            notImpl(tree);
+//            result = null;
+//        }
     }
 
     @Override
