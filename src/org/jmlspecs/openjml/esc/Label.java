@@ -4,6 +4,9 @@
  */
 package org.jmlspecs.openjml.esc;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /** This class defines labels used for identifying different kinds of assumptions
  * and assertions.  The human readable string may not have whitespace or any
  * non-alphanumeric characters (and must start with a letter).
@@ -15,6 +18,8 @@ package org.jmlspecs.openjml.esc;
  * @author David Cok
  */
 public class Label {
+    
+    static protected Map<String,Label> map = new HashMap<String,Label>();
 
     /** Human-readable description of this kind of assertion or assumption */
     //@ non_null
@@ -25,6 +30,7 @@ public class Label {
      */
     public Label(/*@ non_null */ String s) {
         this.info = s;
+        map.put(s, this);
     }
     
     /** Returns the info String for this instance
@@ -33,6 +39,10 @@ public class Label {
     //@ non_null
     public String toString() {
         return info;
+    }
+    
+    static public Label find(String s) {
+        return map.get(s);
     }
     
     /** Used for explicit, user-provided JML assume statements */

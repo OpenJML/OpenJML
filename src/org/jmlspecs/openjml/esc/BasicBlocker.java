@@ -1216,7 +1216,7 @@ public class BasicBlocker extends JmlTreeScanner {
     protected @NonNull BasicProgram convertMethodBody(@NonNull JCMethodDecl methodDecl, 
             JmlMethodSpecs denestedSpecs, @NonNull JCClassDecl classDecl) {
         this.methodDecl = (JmlMethodDecl)methodDecl;
-        program = new BasicProgram();
+        program = new BasicProgram(context);
         unique = 0;
         isConstructor = methodDecl.sym.isConstructor();  // FIXME - careful if there is nesting???
         isStatic = methodDecl.sym.isStatic();
