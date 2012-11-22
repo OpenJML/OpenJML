@@ -20,8 +20,6 @@ import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 
 /**
@@ -42,11 +40,16 @@ import com.sun.tools.javac.util.Context;
  */
 // Note: everything declared protected is intended for use just in this class
 // and any future derived classes - not in the containing package
-public class BasicProgram {
+public class BasicProgram extends BasicBlockProgram<BasicProgram.BasicBlock> {
     
-    /** The method declaration generating this program */
-    protected JCMethodDecl methodDecl;
-    
+    public BasicProgram(Context context) {
+        super(context);
+    }
+
+    /** Factory method to create a new block. */
+    @Override
+    protected BasicBlockProgram.BlockParent<BasicBlock> newBlock(JCIdent id) { return new BasicBlock(id); }
+        
     /** The id of the starting block */
     //@ non_null
     protected JCIdent startId;
@@ -125,15 +128,6 @@ public class BasicProgram {
         return background;
     }
     
-    /** A list of blocks that constitute this BasicProgram. */
-    //@ non_null
-    protected ArrayList<BasicBlock> blocks = new ArrayList<BasicBlock>();
-    
-    /** Returns this program's list of blocks 
-     * @return this program's blocks
-     */
-    @Pure @NonNull
-    public List<BasicBlock> blocks() { return blocks; }
     
     // FIXME - document
     public Map<JCTree,JCTree> toLogicalForm = null;
@@ -219,14 +213,14 @@ public class BasicProgram {
      * @author David Cok
      *
      */
-    static public class BasicBlock {
+    static public class BasicBlock extends BasicBlockProgram.BlockParent<BasicBlock> {
         
         /** A constructor creating an empty block with a name 
          * 
          * @param id the name of the block
          */
         BasicBlock(/*@ non_null*/JCIdent id) { 
-            this.id = id;
+            super(id);
         }
         
         /** A constructor creating an empty block with a given name; the
@@ -248,35 +242,6 @@ public class BasicProgram {
             }
         }
         
-        /** The identifier of the block */
-        /*@ non_null*/protected JCIdent id;
-        
-        /** Returns the id of the block
-         * @return the block's id
-         */
-        @Pure @NonNull
-        public JCIdent id() { return id; }
-        
-        /** The ordered list of statements in the block */
-        @NonNull protected List<JCStatement> statements = new LinkedList<JCStatement>();
-        
-        /** Returns the block's statements
-         * @return the block's statements
-         */
-        @Pure @NonNull
-        public List<JCStatement> statements() { return statements; }
-        
-        /** The set of blocks that succeed this one */
-        @NonNull protected List<BasicBlock> succeeding = new ArrayList<BasicBlock>();
-        
-        /** Returns the block's followers
-         * @return the block's followers
-         */
-        @Pure @NonNull
-        public List<BasicBlock> succeeding() { return succeeding; }
-        
-        /** The set of blocks that precede this one */ // FIXME - is this ever needed?
-        /*@ non_null*/List<BasicBlock> preceding = new ArrayList<BasicBlock>();
         
         /** Generates a human-readable String representation of the block */
         @Override // @NonNull

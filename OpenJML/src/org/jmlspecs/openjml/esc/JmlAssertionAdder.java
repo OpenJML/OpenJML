@@ -38,11 +38,67 @@ import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
 
-/** This method translates an attributed Java+JML AST, creating a new Java-compatible AST
+/** This class translates an attributed Java+JML AST, creating a new Java-compatible AST
  * that includes assertions to check for all the various JML conditions that need checking.
  * The resulting AST is a complete copy - it does not share any mutable structure with the original
- * AST, so the original AST can be reused. It also represents each identifier in a separate
+ * AST, so the original AST can be reused; it represents each identifier in a separate
  * JCIdent, so that a succeeding Single-assignment step can change identifier names in place.
+ * <P>
+ * There are three modes of translation:
+ * <UL>
+ * <LI>esc=true,rac=false: This inserts all required assertions as JML assert
+ * and assume statements, Java assignments and variable declarations,
+ * retaining the Java control flow statements.
+ * <LI>rac=true,esc=false: This inserts all executable JML checks as Java assert statements.
+ * The translated AST is a transformation of the original program, but is
+ * functionally equivalent to it.
+ * <LI>esc=false, rac=false: This creates a copy of the original AST, without
+ * any JML checks. It is a functionally equivalent strict copy.
+ * <LI>esc=true,rac=true: unsupported.
+ * </UL>
+ * <P>
+ * With either rac or esc on, the translated AST uses only a subset of Java
+ * functionality. All JML features are translated into assertions.
+ * <UL>
+ * <LI>Java expressions:
+ * </UL>
+ * <LI>binary operations - arithmetic, bit, logical all allowed in Java statements and JML assertions;
+ * instanceof is allowed in Java, translated into a type relationship in JML
+ * <LI>unary operations - minus and negation allowed; pre- and post-increment
+ * and decrement converted to separate operations and assignment
+ * <LI>assignment - retained 
+ * <LI>assign-op - separated into operation and assignment
+ * <LI>type cast - TBD
+ * <LI>field selection - TBD
+ * <LI>array index - retained, but uses JmlBBArrayAccess nodes instead of JCArrayAccess
+ * <LI> 
+ * <LI>object allocation - TBD
+ * <LI>array allocation - TBD
+ * <LI>anonymous class expression - TBD
+ * <LI>...TBD
+ * </UL>
+ * <LI>Java statements:
+ * <UL>
+ * <LI>if, switch, try statements are retained
+ * <LI>for, while, do, foreach statements are retained but may be transformed 
+ * into other loop types to accommodate inserting loop specifications
+ * <LI>variable declarations - TBD
+ * <LI>local class declarations - TBD
+ * <LI>method declarations, class declarations, import declarations - all retained
+ * </UL>
+ * <LI> JML expressions:
+ * <UL>
+ * <LI> binary logical operations - converted to Java equivalents
+ * <LI> subtype operation - TBD
+ * <LI> ... TBD
+ * </UL>
+ * <LI> JML statements and features:
+ * <UL>
+ * <LI> assert, assume statements - is esc mode, these are retained as JML statements
+ * in rac mode, they are converted to RAC checks
+ * <LI> method clauses: requires, ensures, signals - converted to assertions
+ * </UL>
+ * 
  *
  */
 // FIXME - should we use the copier instead??

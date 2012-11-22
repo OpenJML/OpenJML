@@ -143,7 +143,7 @@ public class Pretty extends JCTree.Visitor {
      *  @param contextPrec    The precedence level in force so far.
      *  @param ownPrec        The new precedence level.
      */
-    void open(int contextPrec, int ownPrec) throws IOException {
+    protected void open(int contextPrec, int ownPrec) throws IOException { // DRC - changed to protected
         if (ownPrec < contextPrec) out.write("(");
     }
 
@@ -152,7 +152,7 @@ public class Pretty extends JCTree.Visitor {
      *  @param contextPrec    The precedence level we revert to.
      *  @param ownPrec        The inner precedence level.
      */
-    void close(int contextPrec, int ownPrec) throws IOException {
+    protected void close(int contextPrec, int ownPrec) throws IOException { // DRC - changed to protected
         if (ownPrec < contextPrec) out.write(")");
     }
 

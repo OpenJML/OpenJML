@@ -3,6 +3,8 @@
  * Author: David R. Cok
  */
 package org.jmlspecs.openjml.esc;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -47,6 +49,7 @@ import org.jmlspecs.openjml.provers.AbstractProver;
 import org.jmlspecs.openjml.provers.CVC3Prover;
 import org.jmlspecs.openjml.provers.SimplifyProver;
 import org.jmlspecs.openjml.provers.YicesProver;
+import org.jmlspecs.openjml.utils.ExecProcess;
 import org.smtlib.ICommand;
 import org.smtlib.IResponse;
 import org.smtlib.IResponse.IError;
@@ -282,6 +285,10 @@ public class JmlEsc extends JmlTreeScanner {
         //Log.printLines(log.noticeWriter,"["+(++ord)+"] "+ "ESC: Checking method "+ name);
         if (escdebug) log.noticeWriter.println(node.toString()); // print the method
 
+        if (JmlOption.isOption(context, JmlOption.BOOGIE)) {
+            proveWithBoogie(node);
+            return;
+        }
         boolean doTimingTests = false;
         
         if (!doTimingTests) {
@@ -353,6 +360,89 @@ public class JmlEsc extends JmlTreeScanner {
         if (cancelled) throw new PropagatedException(new Main.JmlCanceledException("ESC operation cancelled"));
     }
     
+    public boolean proveWithBoogie(JCMethodDecl decl) {
+        boolean print = true; //true;
+        if (print && decl.name.toString().equals("<init>")) {
+            log.noticeWriter.println("SKIPPING PROOF OF " + decl.name);
+            return true;
+        }
+        proverToUse = "z3";
+        progress(1,2,"Starting proof of " + decl.sym.owner.name + "." + decl.name + " with prover " + proverToUse);
+        
+        if (print) {
+            log.noticeWriter.println("");
+            log.noticeWriter.println("--------------------------------------");
+            log.noticeWriter.println("");
+            log.noticeWriter.println("STARTING PROOF OF " + decl.name);
+            log.noticeWriter.println(JmlPretty.write(decl.body));
+        }
+        
+        JmlMethodDecl tree = (JmlMethodDecl)decl;
+        JmlClassDecl currentClassDecl = (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)decl.sym.owner).tree;
+
+        // Get the denested specs for the method - FIXME - when might they be null?
+        if (tree.sym == null) {
+            log.error("jml.internal.notsobad", "Unexpected null symbol for " + decl.name);
+        }
+        JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
+
+        JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true);
+        JCBlock newblock = assertionAdder.convertMethodBody(decl,currentClassDecl);
+        
+        BoogieProgram program = new Boogier(context).convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl, assertionAdder);
+        String filename = "boogie_" + decl.getName() + ".bpl";
+        StringWriter sw = new StringWriter();
+        String programString;
+        try {
+            program.write(sw);
+            FileWriter fw = new FileWriter(filename);
+            programString = sw.toString();
+            fw.append(programString);
+            fw.close();
+        } catch (IOException e) {
+            System.out.println("Could not write boogie output file");
+            return false;
+        }
+        
+        ExecProcess p = new ExecProcess(context,null,"F:/NaumannProject/Boogie/boogie.exe","/nologo","/proverWarnings:1","/coalesceBlocks:0", filename);
+        try {
+            p.start();
+            int exitVal = p.readToCompletion();
+            System.out.println("Boogie exit val " + exitVal);
+            String out = p.outputString.toString();
+            System.out.println("OUTPUT: " + out);
+            System.out.println("ERROR: " + p.errorString.toString());
+            if (out.contains("This assertion might not hold")) {
+                int k = out.indexOf('(');
+                int kk = out.indexOf(',');
+                int line = Integer.parseInt(out.substring(k+1,kk));
+                k = 0;
+                while (--line > 0) k = 1 + programString.indexOf('\n',k);
+                kk = 1 + programString.indexOf("\"",programString.indexOf(":reason",k));
+                int kkk = programString.indexOf('"',kk);
+                String reason = programString.substring(kk,kkk);
+                kk = 5 + programString.indexOf(":pos",k);
+                kkk = programString.indexOf('}',kk);
+                int pos = Integer.parseInt(programString.substring(kk,kkk));
+                Label label = Label.find(reason);
+                
+                log.warning(pos,"esc.assertion.invalid",
+                        label == null ? Label.EXPLICIT_ASSERT : label,
+                        decl.getName() ,"");
+
+                return false;
+            } else if (out.contains(" 0 errors")) {
+                return true;
+            } else {
+                System.out.println("Unknown result");
+            }
+        } catch (Exception e) {
+            System.out.println("EXCEPTION: " + e);
+            return false;
+        }
+        
+        return true;
+    }
     
     public boolean newProveMethod(JCMethodDecl decl) {
         boolean print = true; //true;

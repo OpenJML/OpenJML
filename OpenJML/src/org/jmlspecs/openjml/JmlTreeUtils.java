@@ -412,6 +412,12 @@ public class JmlTreeUtils {
         return id;
     }
     
+    public JCIdent makeIdent(int pos, String name, Type type) {
+        VarSymbol sym = makeVarSymbol(0,name,type,pos);
+        return makeIdent(pos,sym);
+    }
+    
+    
     /** Makes an AST for a field selection (attributed)
      * @param sym the symbol for which to make an identifier
      * @return the AST
@@ -690,6 +696,18 @@ public class JmlTreeUtils {
         d.type = type;
         return d;
     }
+    
+    // FIXME - might be a problem having no owner
+    /** Creates a new VarSymbol with the given name and type and modifier flags 
+     * (and no owner);
+     * the declaration position is 'pos'. */
+    public VarSymbol makeVarSymbol(long flags, @NonNull String name, @NonNull Type type, int pos) {
+        VarSymbol v = new VarSymbol(flags,names.fromString(name),type,null);
+        v.pos = pos;
+        return v;
+    }
+    
+
 
     /** Makes an attributed variable declaration along with a new VarSymbol (which is not 
      * put into the symbol table); the declaration has no modifiers; it is

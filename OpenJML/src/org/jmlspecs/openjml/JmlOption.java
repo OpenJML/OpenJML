@@ -35,6 +35,8 @@ public enum JmlOption implements IOption {
         { public void process(Options options) { options.put(COMMAND.name,"rac"); }},
     ESC("-esc",false,"Enables static checking - abbreviation for -command esc")
         { public void process(Options options) { options.put(COMMAND.name,"esc"); }},
+    BOOGIE("-boogie",false,"Enables static checking with boogie")
+        { public void process(Options options) { options.put(COMMAND.name,"esc"); options.put(BOOGIE.name, "");}},
     USEJAVACOMPILER("-java",false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)"),
     NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored"),
     SPECS("-specspath",true,"Specifies the directory path to search for specification files"),
