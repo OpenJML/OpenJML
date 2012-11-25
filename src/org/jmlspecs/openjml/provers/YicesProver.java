@@ -187,35 +187,33 @@ public class YicesProver extends AbstractProver implements IProver {
     }
 
     public String prompt() {
-        return "yices > ";
+        return "yices> ";
     }
 
     /** Does the startup work */
     public void start() throws ProverException {
-//        if (app == null) {
-//            throw new ProverException("No registered executable found; specify it using -D" + getProverPathKey(YICES));
-//        } else if (!new java.io.File(app).exists()) {
-//            throw new ProverException("The specified executable does not appear to exist: " + app);
-//        }
-//        try {
-//            // The interactive mode is used so that we get a prompt back, thereby
-//            // knowing when we have received the prover's response
-//            if (false) {
-//                log.noticeWriter.print("About to exec: " + app + " :");
-//                for (String s: app()) log.noticeWriter.print(" " + s);
-//                log.noticeWriter.println("");
-//            }
-//            process = Runtime.getRuntime().exec(app());
-//        } catch (IOException e) {
-//            process = null;
-//            throw new ProverException("Failed to launch prover process: " + app + " " + e);
-//        }
-//        // TODO: assess performance of using buffered readers/writers
-//        toProver = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-//        fromProver = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//        errors = new InputStreamReader(process.getErrorStream());
-//        eatPrompt(false);  // Whether there is output to eat depends on the level of -v
-        super.start();
+        if (app == null) {
+            throw new ProverException("No registered executable found; specify it using -D" + getProverPathKey(YICES));
+        } else if (!new java.io.File(app).exists()) {
+            throw new ProverException("The specified executable does not appear to exist: " + app);
+        }
+        try {
+            // The interactive mode is used so that we get a prompt back, thereby
+            // knowing when we have received the prover's response
+            if (false) {
+                log.noticeWriter.print("About to exec: " + app + " :");
+                for (String s: app()) log.noticeWriter.print(" " + s);
+                log.noticeWriter.println("");
+            }
+            process = Runtime.getRuntime().exec(app());
+        } catch (IOException e) {
+            process = null;
+            throw new ProverException("Failed to launch prover process: " + app + " " + e);
+        }
+        // TODO: assess performance of using buffered readers/writers
+        toProver = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+        fromProver = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        errors = new InputStreamReader(process.getErrorStream());
         eatPrompt(false);  // Whether there is output to eat depends on the level of -v
         background();
     }
@@ -255,202 +253,202 @@ public class YicesProver extends AbstractProver implements IProver {
         return eatPrompt(interactive);
     }
 
-//    public String eatPrompt(boolean wait) throws ProverException {
-//        // We read characters until we get to the sequence "> ", which is the
-//        // end of the Yices prover's prompt (which is "yices> ").  Be careful 
-//        // that sequence is not elsewhere in the input as well.
-//        // FIXME - need a better way to read both inputs
-//        // FIXME - this probably can be made a lot more efficient
-//        try {
-//            //            if (interactive && false) {
-//            //                buf.position(0);
-//            //                outer: while (true) {
-//            //                    int n = fromProver.read();
-//            //                    if (n < 0) {
-//            //                        throw new ProverException("Prover died");
-//            //                    }
-//            //                    char c = (char)n;
-//            //                    buf.append(c);
-//            //                    if (c != '>') continue;
-//            //                    while (true) {
-//            //                        n = fromProver.read();
-//            //                        if (n < 0) {
-//            //                            throw new ProverException("Prover died");
-//            //                        }
-//            //                        c = (char)n;
-//            //                        buf.append(c);
-//            //                        if (c == ' ') break outer;
-//            //                        if (c != '>') break;
-//            //                    }
-//            //                }
-//            //                buf.limit(buf.position());
-//            //                buf.rewind();
-//            //                String s = buf.toString();
-//            //                buf.clear();
-//            //                if (errors.ready()) {
-//            //                    while (errors.ready()) {
-//            //                        int n = errors.read(buf);
-//            //                        if (n < 0) throw new ProverException("Prover died");
-//            //                        if (n == 0) break;
-//            //                    }
-//            //                    if (buf.position() > 0) {
-//            //                        buf.limit(buf.position());
-//            //                        buf.rewind();
-//            //                        String errorString = buf.toString();
-//            //                        if (!errorString.startsWith("\nWARNING") &&
-//            //                                !errorString.startsWith("Yices (version") &&
-//            //                                !errorString.startsWith("searching")) {
-//            //                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
-//            //                            throw new ProverException("Prover error message: " + errorString);
-//            //                        } else {
-//            //                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
-//            //                        }
-//            //                    }
-//            //                    buf.clear();
-//            //                }
-//            //                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
-//            //                return s;
-//            //            } else 
-//            if (interactive) {
-//                int offset = 0;
-//                String s = "";
-//                int truncated = 0;
-//                while (true) { // There is always a prompt to read, so it is OK to block
-//                    // until it is read.  That gives the prover process time to
-//                    // do its processing.
-//                    int n = fromProver.read(cbuf,offset,cbuf.length-offset);
-//                    if (n < 0) {
-//                        int off = 0;
-//                        while (errors.ready()) {
-//                            int nn = errors.read(cbuf,off,cbuf.length-off);
-//                            if (nn < 0) {
-//                                if (showCommunication >= 2) log.noticeWriter.print("Prover died-eStream");
-//                                throw new ProverException("Prover died-eStream: read so far: " + String.valueOf(cbuf,0,off));
-//                            }
-//                            if (nn == 0) break;
-//                            off += nn;
-//                        }
-//                        String serr = String.valueOf(cbuf,0,off);
-//                        if (showCommunication >= 2) log.noticeWriter.println("NO INPUT - ERROR READ: " + serr);
-//                        try {
-//                            process.exitValue();
-//                            throw new ProverException("Prover has terminated");
-//                        } catch (IllegalThreadStateException e) {
-//                            try { Thread.sleep(2000); } catch (InterruptedException ee) {}
-//                        }
-//                        continue;
-//                    }
-//                    offset += n;
-//                    if (offset > 1 && cbuf[offset-2] == '>' && cbuf[offset-1] ==' ') break;
-//                    if (offset > cbuf.length-1000) {
-//                        if (s.length() > 180000) {
-//                            // excessive length
-//                            String sss = String.valueOf(cbuf,0,200);
-//                            truncated += offset;
-//                            log.noticeWriter.println("TRUNCATING " + s.length() + " " + truncated );//+ " " + sss);
-//                        } else {
-//                            String sss = String.valueOf(cbuf,0,200);
-//                            s = s + String.valueOf(cbuf,0,offset);
-//                            log.noticeWriter.println("BUFFER FULL " + s.length() );//+ " " + sss);
-//                        }
-//                        offset = 0;
-//                    }
-//                }
-//                if (truncated == 0) s = s + String.valueOf(cbuf,0,offset);
-//                //                if (truncated > 0) {
-//                //                    log.noticeWriter.println("OUTPUT LENGTH " + s.length() + " " + truncated);
-//                //                    throw new ProverException("Excessive output: " + s.length() + " " + truncated);
-//                //                }
-//
-//                if (truncated == 0 && JmlEsc.escdebug) {
-//                    // Check that output assertion identifiers are correct
-//                    String pat = "id: ";
-//                    int k = s.lastIndexOf(pat)+ pat.length();
-//                    int kk = s.indexOf("\n",k);
-//                    if (k >= pat.length()) {
-//                        k = Integer.valueOf(s.substring(k,kk));
-//                        if (k != assumeCounter) {
-//                            log.noticeWriter.println("Warning: prover returned id = " + k + " but assumeCounter is " + assumeCounter);
-//                        }
-//                    }
-//                }
-//                offset = 0;
-//                if (errors.ready()) {
-//                    while (errors.ready()) {
-//                        int n = errors.read(cbuf,offset,cbuf.length-offset);
-//                        if (n < 0) throw new ProverException("Prover died");
-//                        if (n == 0) break;
-//                        offset += n;
-//                    }
-//                    if (offset > 0) {
-//                        String errorString = new String(cbuf,0,offset);
-//                        //if (errorString.startsWith("searching")) log.noticeWriter.println("SEARCHING " + errorString.length());
-//                        if (!errorString.startsWith("\nWARNING") &&
-//                                !errorString.startsWith("Yices (version") &&
-//                                !errorString.startsWith("searching")) {
-//                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
-//                            throw new ProverException("Prover error message: " + errorString);
-//                        } else {
-//                            if (showCommunication >= 3) {
-//                                log.noticeWriter.println("HEARD ERROR: " + errorString);
-//                            }
-//                        }
-//                    }
-//                }
-//                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
-//                return s;
-//            } else {
-//                // In non-interactive mode, there may be no input at all
-//                // We sleep briefly, hoping that the target process will have time to put out any output
-//                try { Thread.sleep(1); } catch (Exception e) { /* No action needed */ }
-//                int offset = 0;
-//                if (wait) {
-//                    // TODO: Problem: When the prover produces a counterexample, it does not always do so promptly.
-//                    // So the loop below tends to exit before all (or any) counterexample information is retrieved.
-//                    do {
-//                        int n = fromProver.read(cbuf,offset,cbuf.length-offset);
-//                        if (n < 0) {
-//                            throw new ProverException("Prover died");
-//                        }
-//                        offset += n;
-//                    } while (fromProver.ready());
-//                } else {
-//                    while (fromProver.ready()) {
-//                        int n = fromProver.read(cbuf,offset,cbuf.length-offset);
-//                        if (n < 0) {
-//                            throw new ProverException("Prover died");
-//                        }
-//                        offset += n;
-//                    }
-//                }
-//                String s = new String(cbuf,0,offset);
-//                offset = 0;
-//                if (errors.ready()) {
-//                    while (errors.ready()) {
-//                        int n = errors.read(cbuf,offset,cbuf.length-offset);
-//                        if (n < 0) throw new ProverException("Prover died");
-//                        if (n == 0) break;
-//                        offset += n;
-//                    }
-//                    if (offset > 0) {
-//                        String errorString = new String(cbuf,0,offset);
-//                        if (!errorString.startsWith("\nWARNING") &&
-//                                !errorString.startsWith("Yices (version") &&
-//                                !errorString.startsWith("searching")) {
-//                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
-//                            throw new ProverException("Prover error message: " + errorString);
-//                        } else {
-//                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
-//                        }
-//                    }
-//                }
-//                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
-//                return s;
-//            }
-//        } catch (IOException e) {
-//            throw new ProverException("IO Error on reading from prover: " + e);
-//        }
-//    }
+    public String eatPrompt(boolean wait) throws ProverException {
+        // We read characters until we get to the sequence "> ", which is the
+        // end of the Yices prover's prompt (which is "yices> ").  Be careful 
+        // that sequence is not elsewhere in the input as well.
+        // FIXME - need a better way to read both inputs
+        // FIXME - this probably can be made a lot more efficient
+        try {
+            //            if (interactive && false) {
+            //                buf.position(0);
+            //                outer: while (true) {
+            //                    int n = fromProver.read();
+            //                    if (n < 0) {
+            //                        throw new ProverException("Prover died");
+            //                    }
+            //                    char c = (char)n;
+            //                    buf.append(c);
+            //                    if (c != '>') continue;
+            //                    while (true) {
+            //                        n = fromProver.read();
+            //                        if (n < 0) {
+            //                            throw new ProverException("Prover died");
+            //                        }
+            //                        c = (char)n;
+            //                        buf.append(c);
+            //                        if (c == ' ') break outer;
+            //                        if (c != '>') break;
+            //                    }
+            //                }
+            //                buf.limit(buf.position());
+            //                buf.rewind();
+            //                String s = buf.toString();
+            //                buf.clear();
+            //                if (errors.ready()) {
+            //                    while (errors.ready()) {
+            //                        int n = errors.read(buf);
+            //                        if (n < 0) throw new ProverException("Prover died");
+            //                        if (n == 0) break;
+            //                    }
+            //                    if (buf.position() > 0) {
+            //                        buf.limit(buf.position());
+            //                        buf.rewind();
+            //                        String errorString = buf.toString();
+            //                        if (!errorString.startsWith("\nWARNING") &&
+            //                                !errorString.startsWith("Yices (version") &&
+            //                                !errorString.startsWith("searching")) {
+            //                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
+            //                            throw new ProverException("Prover error message: " + errorString);
+            //                        } else {
+            //                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
+            //                        }
+            //                    }
+            //                    buf.clear();
+            //                }
+            //                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
+            //                return s;
+            //            } else 
+            if (interactive) {
+                int offset = 0;
+                String s = "";
+                int truncated = 0;
+                while (true) { // There is always a prompt to read, so it is OK to block
+                    // until it is read.  That gives the prover process time to
+                    // do its processing.
+                    int n = fromProver.read(cbuf,offset,cbuf.length-offset);
+                    if (n < 0) {
+                        int off = 0;
+                        while (errors.ready()) {
+                            int nn = errors.read(cbuf,off,cbuf.length-off);
+                            if (nn < 0) {
+                                if (showCommunication >= 2) log.noticeWriter.print("Prover died-eStream");
+                                throw new ProverException("Prover died-eStream: read so far: " + String.valueOf(cbuf,0,off));
+                            }
+                            if (nn == 0) break;
+                            off += nn;
+                        }
+                        String serr = String.valueOf(cbuf,0,off);
+                        if (showCommunication >= 2) log.noticeWriter.println("NO INPUT - ERROR READ: " + serr);
+                        try {
+                            process.exitValue();
+                            throw new ProverException("Prover has terminated");
+                        } catch (IllegalThreadStateException e) {
+                            try { Thread.sleep(2000); } catch (InterruptedException ee) {}
+                        }
+                        continue;
+                    }
+                    offset += n;
+                    if (offset > 1 && cbuf[offset-2] == '>' && cbuf[offset-1] ==' ') break;
+                    if (offset > cbuf.length-1000) {
+                        if (s.length() > 180000) {
+                            // excessive length
+                            String sss = String.valueOf(cbuf,0,200);
+                            truncated += offset;
+                            log.noticeWriter.println("TRUNCATING " + s.length() + " " + truncated );//+ " " + sss);
+                        } else {
+                            String sss = String.valueOf(cbuf,0,200);
+                            s = s + String.valueOf(cbuf,0,offset);
+                            log.noticeWriter.println("BUFFER FULL " + s.length() );//+ " " + sss);
+                        }
+                        offset = 0;
+                    }
+                }
+                if (truncated == 0) s = s + String.valueOf(cbuf,0,offset);
+                //                if (truncated > 0) {
+                //                    log.noticeWriter.println("OUTPUT LENGTH " + s.length() + " " + truncated);
+                //                    throw new ProverException("Excessive output: " + s.length() + " " + truncated);
+                //                }
+
+                if (truncated == 0 && JmlEsc.escdebug) {
+                    // Check that output assertion identifiers are correct
+                    String pat = "id: ";
+                    int k = s.lastIndexOf(pat)+ pat.length();
+                    int kk = s.indexOf("\n",k);
+                    if (k >= pat.length()) {
+                        k = Integer.valueOf(s.substring(k,kk));
+                        if (k != assumeCounter) {
+                            log.noticeWriter.println("Warning: prover returned id = " + k + " but assumeCounter is " + assumeCounter);
+                        }
+                    }
+                }
+                offset = 0;
+                if (errors.ready()) {
+                    while (errors.ready()) {
+                        int n = errors.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) throw new ProverException("Prover died");
+                        if (n == 0) break;
+                        offset += n;
+                    }
+                    if (offset > 0) {
+                        String errorString = new String(cbuf,0,offset);
+                        //if (errorString.startsWith("searching")) log.noticeWriter.println("SEARCHING " + errorString.length());
+                        if (!errorString.startsWith("\nWARNING") &&
+                                !errorString.startsWith("Yices (version") &&
+                                !errorString.startsWith("searching")) {
+                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
+                            throw new ProverException("Prover error message: " + errorString);
+                        } else {
+                            if (showCommunication >= 3) {
+                                log.noticeWriter.println("HEARD ERROR: " + errorString);
+                            }
+                        }
+                    }
+                }
+                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
+                return s;
+            } else {
+                // In non-interactive mode, there may be no input at all
+                // We sleep briefly, hoping that the target process will have time to put out any output
+                try { Thread.sleep(1); } catch (Exception e) { /* No action needed */ }
+                int offset = 0;
+                if (wait) {
+                    // TODO: Problem: When the prover produces a counterexample, it does not always do so promptly.
+                    // So the loop below tends to exit before all (or any) counterexample information is retrieved.
+                    do {
+                        int n = fromProver.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) {
+                            throw new ProverException("Prover died");
+                        }
+                        offset += n;
+                    } while (fromProver.ready());
+                } else {
+                    while (fromProver.ready()) {
+                        int n = fromProver.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) {
+                            throw new ProverException("Prover died");
+                        }
+                        offset += n;
+                    }
+                }
+                String s = new String(cbuf,0,offset);
+                offset = 0;
+                if (errors.ready()) {
+                    while (errors.ready()) {
+                        int n = errors.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) throw new ProverException("Prover died");
+                        if (n == 0) break;
+                        offset += n;
+                    }
+                    if (offset > 0) {
+                        String errorString = new String(cbuf,0,offset);
+                        if (!errorString.startsWith("\nWARNING") &&
+                                !errorString.startsWith("Yices (version") &&
+                                !errorString.startsWith("searching")) {
+                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
+                            throw new ProverException("Prover error message: " + errorString);
+                        } else {
+                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
+                        }
+                    }
+                }
+                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
+                return s;
+            }
+        } catch (IOException e) {
+            throw new ProverException("IO Error on reading from prover: " + e);
+        }
+    }
 
     public int assume(JCExpression tree) throws ProverException {
         try {
@@ -541,40 +539,35 @@ public class YicesProver extends AbstractProver implements IProver {
      */
     protected void send(String s) throws ProverException {
         sent.add(s);
-        super.send(s);
-//        if (showCommunication >= 2) {
-//            String ss = pretty(s);
-//            //            if (ss.startsWith("(define i1::int)")) {
-//            //                ss = ss.trim();
-//            //            }
-//            //log.noticeWriter.print("SENDING " + ss);
-//            log.noticeWriter.print("SENDING ["+assumeCounter+":" + s.length()+ "]" + ss);
-//            log.noticeWriter.flush();
-//        }
-//        //log.noticeWriter.println("SENDING ["+assumeCounter+":" + s.length()+ "]");
-//        try {
-//            if (s.length() > 2000) {
-//                int i = 0;
-//                for (; i< s.length()-2000; i+= 2000) {
-//                    //toProver.append(s.substring(i,i+2000));
-//                    eprocess.send(s.substring(i,i+2000));
-//                    try { Thread.sleep(1); } catch (Exception e) {}
-//                }
-//                //toProver.append(s.substring(i));
-//                eprocess.send(s.substring(i));
-//            } else {
-//                //toProver.append(s);
-//                eprocess.send(s);
-//            }
-//            //toProver.flush();
-//            //eprocess.flush();
-//        } catch (Exception e) {
-//            String se = e.toString();
-//            if (se.length() > 100) se = se.substring(0,100) + " .....";
-//            String msg = "Failed to write to prover: (" + s.length() + " chars) " + se;
-//            if (showCommunication >= 2) log.noticeWriter.print(msg);
-//            throw new ProverException(msg,e);
-//        }
+        if (showCommunication >= 2) {
+            String ss = pretty(s);
+            //            if (ss.startsWith("(define i1::int)")) {
+            //                ss = ss.trim();
+            //            }
+            //log.noticeWriter.print("SENDING " + ss);
+            log.noticeWriter.print("SENDING ["+assumeCounter+":" + s.length()+ "]" + ss);
+            log.noticeWriter.flush();
+        }
+        //log.noticeWriter.println("SENDING ["+assumeCounter+":" + s.length()+ "]");
+        try {
+            if (s.length() > 2000) {
+                int i = 0;
+                for (; i< s.length()-2000; i+= 2000) {
+                    toProver.append(s.substring(i,i+2000));
+                    try { Thread.sleep(1); } catch (Exception e) {}
+                }
+                toProver.append(s.substring(i));
+            } else {
+                toProver.append(s);
+            }
+            toProver.flush();
+        } catch (IOException e) {
+            String se = e.toString();
+            if (se.length() > 100) se = se.substring(0,100) + " .....";
+            String msg = "Failed to write to prover: (" + s.length() + " chars) " + se;
+            if (showCommunication >= 2) log.noticeWriter.print(msg);
+            throw new ProverException(msg);
+        }
     }
 
     public void reassertCounterexample(ICounterexample ce) {
@@ -728,7 +721,6 @@ public class YicesProver extends AbstractProver implements IProver {
             builder.append(s);
             builder.append(")\n");
             declare(s,null);
-            if (s.equals("bool")) return s;
         }
         try {
             send(builder.toString());
@@ -764,9 +756,9 @@ public class YicesProver extends AbstractProver implements IProver {
 
     public void define(String id, Type t) throws ProverException {
         if (isDefined(id)) return; // DO nothing if already defined
+        builder.setLength(0);
         String s = defineType(t);
         declare(id,s);
-        builder.setLength(0);
         builder.append("(define ");
         builder.append(id);
         builder.append("::");

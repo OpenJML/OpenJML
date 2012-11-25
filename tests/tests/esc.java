@@ -1,5 +1,8 @@
 package tests;
 
+import org.junit.Ignore;
+import org.junit.Test;
+
 import com.sun.tools.javac.util.Options;
 
 public class esc extends EscBase {
@@ -40,6 +43,7 @@ public class esc extends EscBase {
     
     // Just testing a binary method
     // It gave trouble because the specs were missing
+    @Test
     public void testGen() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -53,11 +57,8 @@ public class esc extends EscBase {
     }
     
 
+    @Test
     public void testForEachA() {
-//        options.put("-showbb","");
-//        options.put("-trace","");
-//        //options.put("-jmlverbose","");
-//        options.put("-method","m3");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -126,11 +127,8 @@ public class esc extends EscBase {
                 );
     }
 
+    @Test
     public void testForEach() {
-//        options.put("-showbb","");
-//        options.put("-trace","");
-//        options.put("-jmlverbose","");
-//        options.put("-method","m7y");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -198,7 +196,8 @@ public class esc extends EscBase {
                 );
     }
 
-    public void _testForEach3() {  // FIXME 0 diusabled
+    @Test
+    public void testForEach3() {  
         //options.put("-escdebug",""); options.put("-showbb",""); options.put("-showds",""); options.put("-trace",""); options.put("-method","m9");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -279,6 +278,7 @@ public class esc extends EscBase {
                 );
     }
 
+    @Test
     public void testForEachBad() {
         expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
@@ -341,6 +341,7 @@ public class esc extends EscBase {
     }
 
     // Test well-definedness within the implicit old
+    @Test
     public void testNonNullElements() {
         //options.put("-showbb",""); options.put("-method", "m1a"); options.put("-trace","");
         helpTCX("tt.TestJava","package tt; \n"
@@ -445,8 +446,7 @@ public class esc extends EscBase {
                 );
     }
     
-
-
+    @Test
     public void testNotModified() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -516,6 +516,7 @@ public class esc extends EscBase {
     }
     
     // Test well-definedness within the implicit old
+    @Test
     public void testNotModified2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -558,11 +559,8 @@ public class esc extends EscBase {
     
     // TODO - test not_modified and old nested in each other; remember to test definedness            
 
+    @Test
     public void testFresh() {
-//        print = true;
-//        options.put("-showbb","");
-//        options.put("-trace",   "");
-//        options.put("-subexpressions",   "");
         helpTCX("tt.TestJava","package tt; \n"
                 +"abstract public class TestJava { \n"
                 
@@ -753,11 +751,8 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables4() {
-//        options.put("-showbb","");
-//        options.put("-trace","");
-//        options.put("-jmlverbose","");
-//        options.put("-method","m2a");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -828,6 +823,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables1a() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -851,6 +847,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables1b() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -875,6 +872,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables1c() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -898,6 +896,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables1d() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -925,6 +924,7 @@ public class esc extends EscBase {
     
 
     
+    @Test
     public void testAssignables6a() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -948,6 +948,8 @@ public class esc extends EscBase {
                 +"}"
                 );
     }
+
+    @Test
     public void testAssignables6b() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -974,6 +976,8 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m3a",-9
                 );
     }
+
+    @Test
     public void testAssignables6c() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -997,6 +1001,8 @@ public class esc extends EscBase {
                 +"}"
                 );
     }
+    
+    @Test
     public void testAssignables6d() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -1024,6 +1030,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables5a() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -1048,6 +1055,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables5b() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -1074,6 +1082,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables5c() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -1098,6 +1107,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables5d() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -1123,6 +1133,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables5e() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -1145,6 +1156,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables5f() {
         //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
@@ -1169,6 +1181,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables2a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1229,6 +1242,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables2b() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1290,6 +1304,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables2c() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1354,6 +1369,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables3a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1391,6 +1407,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables3b() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1429,6 +1446,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testAssignables3c() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1466,6 +1484,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testMethodCallsWithExceptions() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1556,6 +1575,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testStrings() { // FIXME - hangs up when we try to check assumptions
         String v = Options.instance(context).get("-noCheckAssumptions");
         Options.instance(context).put("-noCheckAssumptions","");
@@ -1574,6 +1594,7 @@ public class esc extends EscBase {
         Options.instance(context).put("-noCheckAssumptions",v);
     }
 
+    @Test
     public void testRequires() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1594,6 +1615,7 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:12: warning: Invariants+Preconditions appear to be contradictory in method bq(boolean)",25);
     }
 
+    @Test
     public void testJava() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1639,8 +1661,8 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testAssert() {
-//        options.put("-showbb","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
@@ -1659,11 +1681,8 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testAssume() {
-//        options.put("-showbb","");
-//        options.put("-trace","");
-//        options.put("-jmlverbose","");
-//        options.put("-method","bassumeCHAIN1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
@@ -1697,6 +1716,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testDeadBranch() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1711,6 +1731,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testDecl() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1721,6 +1742,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testIncarnations() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1739,6 +1761,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testOld() {
       //options.put("-showbb","");
         helpTCX("tt.TestJava","package tt; \n"
@@ -1754,10 +1777,8 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testOld2() {
-//        options.put("-showbb","");
-//      options.put("-method","bok");
-//      options.put("-trace","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static int i;\n"
@@ -1773,6 +1794,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testReturn() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1787,6 +1809,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testThrow() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1797,6 +1820,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testNonNull() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -1814,6 +1838,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testNonNull2() {
         options.put("-nullableByDefault",null);
         options.put("-nonnullByDefault","");
@@ -1833,6 +1858,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testNonNull3() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -1852,6 +1878,7 @@ public class esc extends EscBase {
     
     // FIXME - the non-null return postcondition error message is not very clear (it is actually assigning null to a nonnull return value)
 
+    @Test
     public void testNonNull4() {
         options.put("-nullableByDefault",null);
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -1871,6 +1898,7 @@ public class esc extends EscBase {
     }
 
     // Tests that a cast is nonnull if the argument is
+    @Test
     public void testNonNull5() {
         options.put("-nullableByDefault",null);
         //options.put("-showbb", "");
@@ -1896,6 +1924,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testNonNullParam() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -1915,6 +1944,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testNonNullParam2() {
         options.put("-nullableByDefault",null);
         options.put("-nonnullByDefault","");
@@ -1936,6 +1966,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testNonNullParam3() {
         options.put("-nullableByDefault",null);
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -1956,6 +1987,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testNonNullParam4() {
         options.put("-nullableByDefault",null);
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -1976,6 +2008,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testMethodCall() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2004,6 +2037,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testMethodCall2() { // Had problems with static and non-static
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2032,6 +2066,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testMethodCallRet() {
         //options.put("-showbb",""); options.put("-trace",""); options.put("-method","inst2");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -2078,6 +2113,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testMethodCallThis() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2150,6 +2186,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testForLoopSpecs() {  // FIXME - want error position at the end of the statement that is the loop body
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2191,6 +2228,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testWhileSpecs() {
         //options.put("-showbb",""); options.put("-trace",""); options.put("-method","insta");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -2222,6 +2260,7 @@ public class esc extends EscBase {
     //                );
     //    }
 
+    @Test
     public void testIncDec() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2241,6 +2280,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testIncDec2() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2260,6 +2300,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testAssignOp() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2291,6 +2332,7 @@ public class esc extends EscBase {
         ); // TODO -  need %= <<= >>= >>>= &= |= ^=
     }
 
+    @Test
     public void testConditional() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2301,6 +2343,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testLblx() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2319,6 +2362,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testNewObject() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2332,6 +2376,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testNewArray() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2355,6 +2400,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testNewArrayMD1() { 
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2371,6 +2417,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testNewArrayMD2() { 
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2386,6 +2433,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testArrays() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2412,6 +2460,7 @@ public class esc extends EscBase {
         );
     }
     
+    @Test
     public void testArraysMD1() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2423,6 +2472,7 @@ public class esc extends EscBase {
         );
     }
     
+    @Test
     public void testArraysMD4() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2437,6 +2487,7 @@ public class esc extends EscBase {
         );
     }
     
+    @Test
     public void testArraysMD5() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2449,6 +2500,7 @@ public class esc extends EscBase {
         );
     }
     
+    @Test
     public void testArraysMD2() {
         //options.put("-method", "inst5x");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -2463,6 +2515,7 @@ public class esc extends EscBase {
         );
     }
     
+    @Test
     public void testArraysMD3() {
         //options.put("-method", "inst5x");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -2475,6 +2528,7 @@ public class esc extends EscBase {
         );
     }
     
+    @Test
     public void testFields() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2515,12 +2569,8 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testSwitch() {
-//        options.put("-showbb","");
-//        options.put("-counterexample","");
-//        options.put("-trace","");
-//        options.put("-method","inst1a");
-//        options.put("-jmldebug","");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  int f; static int sf;\n"
@@ -2540,6 +2590,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testTry() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2554,6 +2605,7 @@ public class esc extends EscBase {
         );
     }
     
+    @Test
     public void testTryWithMethodCall() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava  {\n"
@@ -2607,6 +2659,7 @@ public class esc extends EscBase {
     }
 
 
+    @Test
     public void testMisc() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2620,6 +2673,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testArith() {  // TODO - need more arithmetic support
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2635,6 +2689,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testPureMethodStatic() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2654,6 +2709,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testPureMethod() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2673,6 +2729,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testPureNonFunction() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2693,6 +2750,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testPureNoArguments() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2710,6 +2768,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testInheritedPost() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"abstract class TestJavaA { \n"
@@ -2736,6 +2795,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testInheritedPostA() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"abstract class TestJavaA { \n"
@@ -2760,6 +2820,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testInheritedPostB() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"abstract class TestJavaA { \n"
@@ -2783,6 +2844,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testInheritedPre() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"abstract class TestJavaA { \n"
@@ -2813,6 +2875,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testTrace() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -2861,6 +2924,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Ignore
     public void _testForwardInit() {
         expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
@@ -2875,6 +2939,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testGhostVars() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -2895,6 +2960,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testSetDebug() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -2935,6 +3001,7 @@ public class esc extends EscBase {
     /** Tests whether various ways of guarding a field reference are successful in
      * avoiding a failed assertion.
      */
+    @Test
     public void testUndefinedInJava() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -2984,6 +3051,7 @@ public class esc extends EscBase {
     /** Tests whether various ways of guarding a method call are successful in
      * avoiding a failed assertion.
      */
+    @Test
     public void testUndefinedMInJava() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3034,6 +3102,7 @@ public class esc extends EscBase {
     /** Tests whether various ways of guarding a method call are successful in
      * avoiding a failed assertion.
      */
+    @Test
     public void testUndefinedSMInJava() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3080,6 +3149,7 @@ public class esc extends EscBase {
     
     /** Tests whether the various kinds of undefined constructs are actually detected.
      */ 
+    @Test
     public void testUndefinedInJava2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3138,6 +3208,7 @@ public class esc extends EscBase {
     /** Tests whether various ways of guarding a field reference are successful in
      * avoiding a failed assertion.
      */
+    @Test
     public void testUndefinedInSpec() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3168,10 +3239,8 @@ public class esc extends EscBase {
 
     /** Tests whether the various kinds of undefined constructs are actually detected.
      */  // TODO - need pure method violating preconditions, bad array element assignment
+    @Test
     public void testUndefinedInSpec2() {
-//        options.put("-showbb","");
-//        options.put("-trace","");
-//        options.put("-method","m6");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int j;\n"
@@ -3228,6 +3297,7 @@ public class esc extends EscBase {
     /** Tests whether undefinedness is caught in various JML constructions */
     // TODO - loop invariants, variants,  represents,  signals, modifies 
     // TODO - old constructs, quantifications, set comprehension, pure methods - check other JMl expressions
+    @Test
     public void testUndefinedInSpec3() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -3266,6 +3336,7 @@ public class esc extends EscBase {
     }
     /** Tests whether undefinedness is caught in various JML constructions */
     // TODO - readable writable, represents, assert, other clauses
+    @Test
     public void testUndefinedInSpec4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3279,6 +3350,7 @@ public class esc extends EscBase {
         );
     }
     
+    @Test
     public void testUndefinedInSpec4d() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3294,6 +3366,7 @@ public class esc extends EscBase {
     }
     
     /** Check to catch undefinedness in an initially clause */
+    @Test
     public void testUndefinedInSpec4a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3308,6 +3381,7 @@ public class esc extends EscBase {
     }
 
     /** Check to catch undefinedness in a constraint clause */
+    @Test
     public void testUndefinedInSpec4b() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3322,6 +3396,7 @@ public class esc extends EscBase {
     }
 
     /** Check to catch undefinedness in a axiom clause */
+    @Test
     public void testUndefinedInSpec4c() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3335,6 +3410,7 @@ public class esc extends EscBase {
     }
     
     // TODO - class initialization
+    @Test
     public void _testUndefinedInSpec5() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3345,6 +3421,7 @@ public class esc extends EscBase {
         );
     }
 
+    @Test
     public void testUndefinedInJava6() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3379,6 +3456,7 @@ public class esc extends EscBase {
     // TODO - need tests within various Java constructs, including with short-circuits
 
     /** This test tests catch blocks */
+    @Test
     public void testCatch() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3409,6 +3487,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testCatch2() {
 //        options.put("-showbb","");
 //        options.put("-trace","");
@@ -3518,6 +3597,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testTypes() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3548,10 +3628,9 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m2a",9
                 );
     }
+
+    @Test
     public void testTypes2() {
-//        options.put("-showbb","");
-//        options.put("-trace","");
-//        JmlEsc.escdebug = true;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1(/*@non_null*/TestJava o) {\n"
@@ -3565,6 +3644,7 @@ public class esc extends EscBase {
                 );
     }
     
+    @Test
     public void testTypes3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3575,6 +3655,7 @@ public class esc extends EscBase {
                 );
     }
 
+    @Test
     public void testSignals1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3596,6 +3677,8 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:12: warning: Associated declaration",7
                 );
     }
+
+    @Test
     public void testSignals2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3617,6 +3700,8 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:12: warning: Associated declaration",7
                 );
     }
+
+    @Test
     public void testSignals3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3638,6 +3723,8 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:12: warning: Associated declaration",7
                 );
     }
+
+    @Test
     public void testSignals4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -3652,6 +3739,7 @@ public class esc extends EscBase {
                 );
     }
 
+    @Test
     public void testSignalsOnly() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

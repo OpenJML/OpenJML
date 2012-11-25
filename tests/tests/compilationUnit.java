@@ -1,6 +1,7 @@
 package tests;
 
 import org.jmlspecs.openjml.JmlTree.*;
+import org.junit.Test;
 
 import com.sun.tools.javac.tree.JCTree.*;
 
@@ -22,6 +23,7 @@ public class compilationUnit extends ParseBase {
 
   
     /** Quickie test of some pure Java code */
+    @Test
     public void testSomeJava() {
         checkCompilationUnit("package t; \nclass A{}",
                 JmlCompilationUnit.class,0,
@@ -32,6 +34,7 @@ public class compilationUnit extends ParseBase {
     }
     
     /** One refines clause with no package or imports */
+    @Test
     public void testRefines() {
         checkCompilationUnit("/*@ refines \"A.xxx\"; */ class A{}",
                 JmlCompilationUnit.class,4,
@@ -43,6 +46,7 @@ public class compilationUnit extends ParseBase {
 
 
     /** Tests a star import */
+    @Test
     public void testImports() {
         checkCompilationUnit("import java.io.*;  class A{}",
                 JmlCompilationUnit.class, 0,0,28,
@@ -56,6 +60,7 @@ public class compilationUnit extends ParseBase {
     }
     
     /** Tests a static star import */
+    @Test
     public void testImports2() {
         checkCompilationUnit("import static java.io.*;  class A{}",
                 JmlCompilationUnit.class, 0,0,35,
@@ -69,6 +74,7 @@ public class compilationUnit extends ParseBase {
     }
     
     /** Tests a static non-star import */
+    @Test
     public void testImports3() {
         checkCompilationUnit("import static java.io.File;  class A{}",
                 JmlCompilationUnit.class, 0,0,38,
@@ -82,6 +88,7 @@ public class compilationUnit extends ParseBase {
     }
     
     /** Tests a non-star import with modifier */
+    @Test
     public void testImports4() {
         checkCompilationUnit("import java.io.File;  public class A{}",
                 JmlCompilationUnit.class, 0,0,38,
@@ -95,6 +102,7 @@ public class compilationUnit extends ParseBase {
     }
     
     /** Tests a non-star import with 2 modifiers */
+    @Test
     public void testImports5() {
         checkCompilationUnit("import java.io.File;  public protected class A{}",
                 JmlCompilationUnit.class, 0,0,48,
@@ -108,6 +116,7 @@ public class compilationUnit extends ParseBase {
     }
     
     /** Tests parsing an annotation */
+    @Test
     public void testAnnotation() {
         checkCompilationUnit("@org.jmlspecs.annotation.Pure class A {}",
                 JmlCompilationUnit.class, 0,0,40,
@@ -123,6 +132,7 @@ public class compilationUnit extends ParseBase {
     }
 
     /** Tests parsing an annotation and modifier */
+    @Test
     public void testAnnotation1() {
         checkCompilationUnit("@org.jmlspecs.annotation.Pure public class A {}",
                 JmlCompilationUnit.class, 0,0,47,
@@ -138,6 +148,7 @@ public class compilationUnit extends ParseBase {
     }
 
     /** Tests parsing an annotation and modifier and annotation */
+    @Test
     public void testAnnotation1a() {
         checkCompilationUnit("@org.jmlspecs.annotation.Pure public @org.jmlspecs.annotation.NonNull class A {}",
                 JmlCompilationUnit.class, 0,0,80,
@@ -158,6 +169,7 @@ public class compilationUnit extends ParseBase {
     }
 
     /** Tests parsing a traditional JML annotation */
+    @Test
     public void testAnnotation2() {
         checkCompilationUnit("/*@ pure */ class A {}",
         JmlCompilationUnit.class, 4,4,22,
@@ -172,6 +184,7 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
+    @Test
     public void testRefining() {
         checkCompilationUnit("class A { void m() { /*@ refining requires true; ensures true; */ m(); }}",
               JmlCompilationUnit.class, 0,0,73,
@@ -196,6 +209,7 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
+    @Test
     public void testRefining2() {
         checkCompilationUnit("class A { void m() { /*@          requires true; ensures true; */ m(); }}",
               JmlCompilationUnit.class, 0,0,73,
@@ -220,6 +234,7 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
+    @Test
     public void testRequires() {
         checkCompilationUnit("class A { /*@ requires true; requires \\not_specified; */ void m() {}}",
                 JmlCompilationUnit.class, 0,0,69,
@@ -244,6 +259,7 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
+    @Test
     public void testEnsures() {
         checkCompilationUnit("class A { /*@ ensures  true; ensures  \\not_specified; */ void m() {}}",
                 JmlCompilationUnit.class, 0,0,69,
@@ -268,6 +284,7 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
+    @Test
     public void testCallable() {
         checkCompilationUnit("class A { /*@ callable \\nothing   ; */ void m() {}}",
                 JmlCompilationUnit.class, 0,0,51,
@@ -288,6 +305,7 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
+    @Test
     public void testCallable2() {
         checkCompilationUnit("class A { /*@ callable \\everything; */ void m() {}}",
                 JmlCompilationUnit.class, 0,0,51,

@@ -20,7 +20,7 @@ public class escall2 extends EscBase {
     @Parameters
     static public  Collection<String[]> datax() {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        //data.add(new String[]{"-boogie"}); 
+        data.add(new String[]{"-boogie"}); 
         data.add(new String[]{"-newesc"}); 
         data.add(new String[]{null}); 
         //data.add(new String[]{"-rac"}); 
@@ -28,6 +28,7 @@ public class escall2 extends EscBase {
     }
 
 
+    @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();

@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 public class binaries extends TCBase {
 
     @Override
@@ -10,6 +12,7 @@ public class binaries extends TCBase {
     }
 
     /** Tests that a system spec file is loaded from mock files - though this has no error reports to be sure it happened*/
+    @Test
     public void testBinary() {
         addMockFile("$A/java/io/File.jml",
                 "package java.io; //@ model class VVV{}\n public class File implements Serializable, Comparable<File> { \n//@model static public class TTT {} \n }");
@@ -21,6 +24,7 @@ public class binaries extends TCBase {
     }
 
     /** Tests that a system spec file with an unmatched Java method is errored */
+    @Test
     public void testBinary2() {
         addMockFile("$A/java/io/File.jml",
                 "package java.io; //@ model class VVV{ static int i; }\n" + 
@@ -39,6 +43,7 @@ public class binaries extends TCBase {
     }
     
     /** Tests that a system spec file with an matched Java method is checked */
+    @Test
     public void testBinary2a() {
         addMockFile("$A/java/io/File.jml",
                 "package java.io; //@ model class VVV{ static int i; }\n" + 
@@ -56,6 +61,7 @@ public class binaries extends TCBase {
     }
     
     /** Tests that model methods etc. in system spec files are actually checked */
+    @Test
     public void testBinary3() {
         addMockFile("$A/java/io/File.jml",
                 "package java.io; //@ model class VVV{ public static int i; }\n" + 
@@ -76,6 +82,7 @@ public class binaries extends TCBase {
     }
 
     /** Checks that a Java field in the spec file actually matches the binary; also various lookup tests */
+    @Test
     public void testBinary4() {
         addMockFile("$A/java/io/File.jml",
                 "package java.io; \n" + 
@@ -100,6 +107,7 @@ public class binaries extends TCBase {
     }
 
     /** Checks that an extra Java class in a spec file is reported */
+    @Test
     public void testBinary5() {
         addMockFile("$A/java/io/File.jml",
                 "package java.io; \n" + 
@@ -113,6 +121,4 @@ public class binaries extends TCBase {
                 ,"/$A/java/io/File.jml:4: This secondary type declaration (Extra) is not matched by a binary class",1
         );
     }
-
-
 }

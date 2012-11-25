@@ -1,6 +1,7 @@
 package tests;
 
 import org.jmlspecs.openjml.JmlOption;
+import org.junit.Test;
 
 /** This file contains miscellaneous cases that once were bugs.
     I made tests to reproduce them and test the fixes.  I leave
@@ -19,21 +20,25 @@ public class bugs extends TCBase {
     }
 
     
+    @Test
     public void testMiscBug() {
         helpTCF("A.java","public class A { \n void m() { Object o = null; }}"
         );
     }
     
+    @Test
     public void testMiscBug2() {
         helpTCF("A.java","public class A { \n void m(int j) { a.append((j+1) + q[j] ); } String N; StringBuffer a; int[] q; }"
         );
     }
     
+    @Test
     public void testMiscBug3() {
         helpTCF("A.java","public class A { //@ ensures \\result[1].equals(b(c)); \n Object[] m(int j) { return null; } String N; StringBuffer a; int[] q; }"
         ,"/A.java:1: cannot find symbol\n  symbol:   variable c\n  location: class A",50);
     }
     
+    @Test
     public void testMiscBug4() {
         helpTCF("A.java","public class A { //@ ensures equals(\\result.equals(b).c(p(0))); \n Object m(int j) { return null; } String b; StringBuffer a; int[] q; /*@pure*/int p(int i) { return 0; }}"
                 ,"/A.java:1: boolean cannot be dereferenced",54);
@@ -42,6 +47,7 @@ public class bugs extends TCBase {
     /** There was a problem with a JML keyword being unrecognized after a JML statement 
     * because the keyword mode was not turned on soon enough
     * */
+    @Test
     public void testMiscBug5() {  
         helpTCF("A.java","public class A {  int p(A a) { /*@ set a = null; set a = null; */\n return 0; }}"
                 );
@@ -50,6 +56,7 @@ public class bugs extends TCBase {
     /** A problem with backslashes in character literals because of the special
     * handling of backslashes - which has now all been simplified in the process
     * of fixing this problem */
+    @Test
     public void testMiscBug6() {
         helpTCF("A.java","public class A { //@ requires '\\t' != '\\n'; \n void p() {  }}"
                 );
@@ -58,12 +65,14 @@ public class bugs extends TCBase {
     /** A problem with backslashes in string literals because of the special
      * handling of backslashes - which has now all been simplified in the process
      * of fixing this problem */
+    @Test
     public void testMiscBug7() {
         helpTCF("A.java","public class A { //@ requires \"\\tA\\\\B\" != null; \n void p() {  }}"
                 );
     }
 
     /** Checking for mixed implications */
+    @Test
     public void testMiscBug8() {
         helpTCF("A.java","public class A { //@ requires true ==> false <== true; \n void p() {  }}"
                 ,"/A.java:1: ==> and <== operators may not be mixed without parentheses",46
@@ -71,47 +80,56 @@ public class bugs extends TCBase {
     }
     
     /** Check that 'this' is defined in interface specifications */
+    @Test
     public void testMisc9() {
         helpTCF("A.java","public interface A { //@ ensures \\typeof(this) != null; \n void p();}"
                 );
     }
 
+    @Test
     public void testMisc10() {
         helpTCF("A.java","public interface A { //@ instance ghost int i; \n } class B implements A { void p(A a) { //@ set a.i = 0; \n}}"
                 );
     }
     
+    @Test
     public void testMisc11() {
         options.put("-specspath",   testspecpath);
         helpTCF("A.java","public class A { private /*@ spec_public */ java.util.Vector pending; \n //@ invariant pending.elementCount == 0; \n} "
                 );
     }
 
+    @Test
     public void testMisc12() {
         helpTCF("A.java","abstract public class A { Object x; \n //@ ensures \\old(a) == null;  \n abstract void m(A a);  \n} "
                 );
     }
 
+    @Test
     public void testMisc13() {
         helpTCF("A.java","abstract public class A { \n //@ signals (Exception) true; signals (Exception) true; \n  void m(A a) {}  \n} "
                 );
     }
 
+    @Test
     public void testMisc14() {
         helpTCF("A.java","abstract public class A { \n //@ signals (Exception e) true; signals (Exception e) true; \n  void m(A a) {}  \n} "
                 );
     }
 
+    @Test
     public void testMisc15() {
         helpTCF("A.java","abstract public interface A { \n //@ public model void m(); \n  \n} class B implements A {}"
                 );
     }
 
+    @Test
     public void testMisc16() {
         helpTCF("A.java","public class A { \n int i; //@ in j; model int j; \n} "
                 );
     }
 
+    @Test
     public void testMisc17() {
         helpTCF("A.java","public class A { \n int k = m; int m = 0; \n//@ ghost int i = j; ghost int j = 0; \n} "
                 ,"/A.java:2: illegal forward reference",10
@@ -119,6 +137,7 @@ public class bugs extends TCBase {
                 );
     }
 
+    @Test
     public void testMisc18() {  // FIXME - this sort of thing ought to fail - all Java keywords need to be in Java land
         helpTCF("A.java","public class A { /*@ public non_null */ Object j;  \n} "
                 );
@@ -129,6 +148,7 @@ public class bugs extends TCBase {
     // Note the \t is a purposeful type - in the String it is a tab, though it
     // was intended to be a \\t... - a backslash.  That occasions the unresolved
     // method name ype
+    @Test
     public void testCollect() {
         helpTCF("A.java","\n"
                 +"public class A extends java.io.InputStream implements Comparable<A> { \n"
@@ -146,6 +166,7 @@ public class bugs extends TCBase {
               ); // TODO: Why duplicate error messages in this case
     }
 
+    @Test
     public void testCollect2() {
         helpTCF("A.java","\n"
                 +"public class A extends java.io.InputStream implements Comparable<A> { \n"
@@ -161,6 +182,4 @@ public class bugs extends TCBase {
                 // such package can be found, an error is reported, but it could
                 // have a clearer error message.
     }
-
-
 }
