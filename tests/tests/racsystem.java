@@ -17,7 +17,7 @@ public class racsystem extends RacBase {
 //    String[] sysrac = new String[]{jdk, "-Xbootclasspath/p:jdkbin"+z+"bin-runtime", "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
     String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
 
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         rac = sysrac;
         jdkrac = true;
         //noCollectDiagnostics = true;

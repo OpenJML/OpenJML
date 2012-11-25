@@ -26,7 +26,7 @@ public class scanner extends JmlTestCase {
     // TODO - do we need to collect and compare System.out,err
     
     /** Initializes a fresh scanner factory for each test */
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp(); // Sets up a main program, diagnostic collector
         fac = ScannerFactory.instance(context);
         Log.instance(context).multipleErrors = true;

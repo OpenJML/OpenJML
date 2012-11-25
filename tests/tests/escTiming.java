@@ -5,7 +5,7 @@ public class escTiming extends EscBase {
 
     public void test() {}  // Dummy to preclude JUnit error messages 
     
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-noPurityCheck","");

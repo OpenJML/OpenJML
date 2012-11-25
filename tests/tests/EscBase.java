@@ -1,12 +1,15 @@
 package tests;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.tools.JavaFileObject;
 
 import junit.framework.AssertionFailedError;
 
 import org.jmlspecs.openjml.JmlSpecs;
+import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
@@ -23,7 +26,7 @@ public abstract class EscBase extends JmlTestCase {
     boolean noAssociatedDeclaration;
     String[] args;
 
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         testspecpath = testspecpath1;
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
@@ -40,7 +43,19 @@ public abstract class EscBase extends JmlTestCase {
         args = new String[]{};
     }
     
-    protected void tearDown() throws Exception {
+
+    void setOption(String option) {
+        if (option == null) {
+            // nothing set
+        } else if (option.equals("-boogie")) {
+            options.put("-newesc","");
+            options.put("-boogie","");
+        } else {
+            options.put(option,"");
+        }
+    }
+
+    public void tearDown() throws Exception {
         super.tearDown();
         specs = null;
     }

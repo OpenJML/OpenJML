@@ -60,6 +60,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
+import org.jmlspecs.openjml.esc.BasicBlockProgram.BlockParent;
 import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
 
 import com.sun.tools.javac.code.Flags;
@@ -114,88 +115,61 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 
-/** This class converts a Java AST into a Boogie2 program. It leaves to whatever
- * tool processes the Boogie program the tasks of DSA and passification.
- * All Java (and JML) statements are rewritten into assignment, assume and
- * assert statements, with basic blocks being created to represent the control
- * flow. In addition, note the following:
- * <UL>
- * <LI> No assertions to represent Java or JML semantics are added, except for those
- * needed to convert control flow into basic blocks
- * </UL>
+/** This class is a base class for converting a Java AST into a basic block 
+ * program. The methods here take care of converting control flow
+ * into basic blocks, including adding assumptions at the beginning of blocks
+ * to control feasible paths. For example, an if(b) ... statement is replaced by
+ * two basic blocks, one for the then branch, beginning with 'assume b', and one
+ * for the else block, beginning with 'assume !b'.
+ * Derived classes are expected to handle tasks such as
+ * converting to single-assignment form. 
  * <P>
- * The input tree must consist of
- * <UL>
- * <LI> A valid Java program (with any Java constructs)
- * <LI> JML assume and assert statements, with JML expressions
- * <LI> The JML expressions contain only
- * <UL>
- * <LI> Java operators
- * <LI> quantified expressions
- * <LI> set comprehension expressions
- * <LI> \\old and \\pre expressions
- * <LI> [ FIXME ??? JML type literals, subtype operations, method calls in specs?]
- * </UL
- * </UL>
- *
+ * These Java statements are handled: if, switch, loops (for, while, do, foreach),
+ * return, throw.
  * <P>
- * Basic block output form contains only this subset of AST nodes:
- * <UL>
- * <LI> JCLiteral - numeric (all of them? FIXME), null, boolean, class (String?, character?)
- * <LI> JCIdent
- * <LI> JCParens
- * <LI> JCUnary
- * <LI> JCBinary
- * <LI> JCConditional
- * <LI> JmlBBFieldAccess
- * <LI> JmlBBArrayAccess
- * <LI> JmlBBFieldAssign
- * <LI> JmlBBArrayAssign
- * <LI> JCMethodInvocation - only pure methods within specifications
- * <LI> JmlMethodInvocation - old, typeof
- * <LI> JmlQuantifiedExpr - only forall and exists
- * <LI> JCTypeCast - but the clazz element now has a JCLiteral (which is a type literal)
- * <LI> [JCInstanceOf - not present - use a typeof and a subtype operation]
- * </UL>
+ * Expression ASTs are used as is (without copying), so there may be some
+ * structure sharing in the resulting basic block program.
  * 
+ * @typeparam T basic block type
+ * @typeparam P basic block program type
  * @author David Cok
  */
-public class BasicBlockerP extends JmlTreeScanner {
+abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBlockProgram<T>> extends JmlTreeScanner {
 
-    /////// To have a unique BoogieBlocker2 instance for each method translated
-    // In the initialization of tools, call  BoogieBlocker2.Factory.preRegister(context);
-    // Obtain a new BoogieBlocker2 when desired with  context.get(BoogieBlocker2.class);
+    /////// To have a unique Ter2 instance for each method translated
+    // In the initialization of tools, call  Ter2.Factory.preRegister(context);
+    // Obtain a new Ter2 when desired with  context.get(Ter2.class);
         
-//    /** Register a BoogieBlocker Factory, if nothing is registered yet */
+//    /** Register a Ter Factory, if nothing is registered yet */
 //    public static void preRegister(final Context context) {
 //        //if (context.get(key) != null) return;
-//        context.put(key, new Context.Factory<BoogieBlocker2>() {
+//        context.put(key, new Context.Factory<Ter2>() {
 //            @Override
-//            public BoogieBlocker2 make(Context context) {
-//                return new BoogieBlocker2(context);
+//            public Ter2 make(Context context) {
+//                return new Ter2(context);
 //            }
 //        });
 //    }
 //    
-//    final public static Context.Key<BoogieBlocker2> key =
-//        new Context.Key<BoogieBlocker2>();
+//    final public static Context.Key<Ter2> key =
+//        new Context.Key<Ter2>();
     
-    /////// To have one BoogieBlocker2 instance per context use this method without the pre-registration
+    /////// To have one Ter2 instance per context use this method without the pre-registration
     // Don't need pre-registration since we are not replacing any tool and not using a factory
-    // To obtain a reference to the instance of BoogieBlocker2 for the current context
-    //                                 BoogieBlocker2.instance(context);
+    // To obtain a reference to the instance of Ter2 for the current context
+    //                                 Ter2.instance(context);
     
 //    /** Get the instance for this context. 
 //     * 
 //     * @param context the compilation context
-//     * @return a (unique for the context) BoogieBlocker instance
+//     * @return a (unique for the context) Ter instance
 //     */
-//    public static BoogieBlocker2 instance(@NonNull Context context) {
-//        BoogieBlocker2 instance = context.get(key);
+//    public static Ter2 instance(@NonNull Context context) {
+//        Ter2 instance = context.get(key);
 //        // This is lazily initialized so that a derived class can preRegister to
-//        // replace this BoogieBlocker
+//        // replace this Ter
 //        if (instance == null) {
-//            instance = new BoogieBlocker2(context);
+//            instance = new Ter2(context);
 //        }
 //        return instance;
 //    }
@@ -235,7 +209,7 @@ public class BasicBlockerP extends JmlTreeScanner {
     /** Standard name for the starting block of the program (just has the preconditions) */
     public static final @NonNull String START_BLOCK_NAME = blockPrefix + "Start";
     
-    /** Standard name for the return block, whether or not a value is returned */
+    /** Standard name for the final return block, whether or not a value is returned */
     public static final @NonNull String RETURN_BLOCK_NAME = blockPrefix + "return";
     
     /** Standard name for the exception block */
@@ -274,6 +248,12 @@ public class BasicBlockerP extends JmlTreeScanner {
     /** Suffix for the name of a basic block after an if statement */
     public static final String AFTERIF = "_afterIf";
     
+    /** Suffix for the name of a basic block after a return statement */
+    public static final String RETURN = "_return";
+    
+    /** Suffix for the name of a basic block after a throw statement */
+    public static final String THROW = "_throw";
+    
     /** Prefix for branch condition variables */
     public static final String BRANCHCONDITION_PREFIX = "branchCondition_";
     
@@ -299,9 +279,6 @@ public class BasicBlockerP extends JmlTreeScanner {
     
     /** The JmlTreeUtils object, holding a bunch of tree-making utilities */
     @NonNull final protected JmlTreeUtils treeutils;
-    
-    /** The object that desugars JML */
-    @NonNull final protected JmlTranslator treetrans;
     
     /** General utilities */
     @NonNull final protected Utils utils;
@@ -332,19 +309,19 @@ public class BasicBlockerP extends JmlTreeScanner {
     protected List<JCExpression> background;
     
     /** List of blocks completed processing - in basic block state */
-    protected java.util.List<BoogieBlock> blocksCompleted;
+    protected java.util.List<T> blocksCompleted;
     
     /** A map of names to blocks */
-    protected java.util.Map<String,BoogieBlock> blockLookup;
+    protected java.util.Map<String,T> blockLookup;
     
     /** A variable to hold the block currently being processed */
-    protected BoogieBlock currentBlock;
+    protected T currentBlock;
     
     /** Ordered list of statements from the current block that are yet to be processed into basic program form */
     protected List<JCStatement> remainingStatements;
     
     /** The program being constructed */
-    protected BoogieProgram program = null;
+    protected P program = null;
     
     // Characteristics of the method under study
     // FIXME - what about methods in anonymous classes - do we have to be reentrant?
@@ -406,6 +383,16 @@ public class BasicBlockerP extends JmlTreeScanner {
         return jfoArray.get(i);
     }
     
+    /** Creates a block name - note that this format is presumed when 
+     * proof failures are being traced and understood.
+     * @param pos the character position of the statement for which the block is being generated
+     * @param kind a suffix to indicate the reason for block
+     * @return a composite name for a block
+     */
+    public static String blockName(int pos, String kind) {
+        return barblockPrefix + pos + kind;
+    }
+    
     /** The constructor, but use the instance() method to get a new instance,
      * in order to support extension.  This constructor should only be
      * invoked by a derived class constructor.
@@ -420,7 +407,6 @@ public class BasicBlockerP extends JmlTreeScanner {
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context); // FIXME - can this go away?
         this.treeutils = JmlTreeUtils.instance(context);
-        this.treetrans = JmlTranslator.instance(context); // FIXME - can this go away?
         this.utils = Utils.instance(context);
         this.scanMode = AST_JAVA_MODE;
         
@@ -430,6 +416,17 @@ public class BasicBlockerP extends JmlTreeScanner {
         zeroLiteral = treeutils.zero;
         
     }
+    
+    
+    abstract protected P newProgram(Context context);
+    
+    /** Creates a new block of the appropriate type, per the derived class of
+     * BaskicBlockerBase.
+     */
+    abstract protected T newBlock(JCIdent id);
+    
+    abstract protected T newBlock(JCIdent id, T b);
+    
     
     
     // METHODS
@@ -466,13 +463,13 @@ public class BasicBlockerP extends JmlTreeScanner {
      * 
      * @param b the block for which to initialize processing 
      */
-    protected void startBlock(@NonNull BoogieBlock b) {
+    protected void startBlock(@NonNull T b) {
         
         // Check that all preceding blocks are actually completed
         // This is defensive programming and should not actually be needed
         //log.noticeWriter.println("Checking block " + b.id());
         loop: while (true) {
-            for (BoogieBlock pb: b.preceding) {
+            for (T pb: b.preceding) {
                 //log.noticeWriter.println("   " + b.id() + " follows " + pb.id());
                 if (!blocksCompleted.contains(pb)) {
                     log.noticeWriter.println("Internal Error: block " + pb.id.name + " precedes block " + b.id.name + " , but was not processed before it");
@@ -491,7 +488,7 @@ public class BasicBlockerP extends JmlTreeScanner {
      * currentBlock
      * @param b the new currentBlock
      */
-    protected void setCurrentBlock(BoogieBlock b) {
+    protected void setCurrentBlock(T b) {
         currentBlock = b;
         remainingStatements = currentBlock.statements;
         currentBlock.statements = new ArrayList<JCStatement>();
@@ -501,11 +498,11 @@ public class BasicBlockerP extends JmlTreeScanner {
      * to the lookup Map.
      * @param b the completed block
      */
-    protected void completed(@NonNull BoogieBlock b) {
+    protected void completed(@NonNull T b) {
         if (b == null) return;
         if (blocksCompleted.contains(b)) return; // Already completed - if a block's processing is ended early, it will have already been marked completed
         blocksCompleted.add(b);
-        log.noticeWriter.println("Completed block " + b.id);
+        //log.noticeWriter.println("Completed block " + b.id);
     }
     
     /** Updates the data structures to indicate that the after block follows the
@@ -513,7 +510,7 @@ public class BasicBlockerP extends JmlTreeScanner {
      * @param before block that precedes after
      * @param after block that follows before
      */
-    protected void follows(@NonNull BoogieBlock before, @NonNull BoogieBlock after) {
+    protected void follows(@NonNull T before, @NonNull T after) {
         before.succeeding.add(after);
         after.preceding.add(before);
     }
@@ -523,8 +520,8 @@ public class BasicBlockerP extends JmlTreeScanner {
      * @param before block that precedes after
      * @param after list of blocks that follow before
      */
-    protected void follows(@NonNull BoogieBlock before, @NonNull List<BoogieBlock> after) {
-        for (BoogieBlock b: after) {
+    protected void follows(@NonNull T before, @NonNull List<T> after) {
+        for (T b: after) {
             before.succeeding.add(b);
             b.preceding.add(before);
         }
@@ -535,8 +532,8 @@ public class BasicBlockerP extends JmlTreeScanner {
      * @param before block whose follow list is to be changed
      * @param after new following block
      */
-    protected void replaceFollows(@NonNull BoogieBlock before, @NonNull BoogieBlock after) {
-        for (BoogieBlock b: before.succeeding) {
+    protected void replaceFollows(@NonNull T before, @NonNull T after) {
+        for (T b: before.succeeding) {
             b.preceding.remove(before);
         }
         before.succeeding.clear();
@@ -548,31 +545,31 @@ public class BasicBlockerP extends JmlTreeScanner {
      * @param before
      * @param after
      */
-    protected void replaceFollows(@NonNull BoogieBlock before, @NonNull List<BoogieBlock> after) {
-        for (BoogieBlock b: before.succeeding) {
+    protected void replaceFollows(@NonNull T before, @NonNull List<T> after) {
+        for (T b: before.succeeding) {
             b.preceding.remove(before);
         }
         before.succeeding.clear();
-        for (BoogieBlock b: after) {
+        for (T b: after) {
             follows(before,b);
         }
     }
     
     
-    /** Returns a new, empty BoogieBlock
+    /** Returns a new, empty block
      * 
      * @param name the name to give the block
      * @param pos a position to associate with the JCIdent for the block
      * @return the new block
      */
-    protected @NonNull BoogieBlock newBlock(@NonNull String name, int pos) {
+    protected @NonNull T newBlock(@NonNull String name, int pos) {
         JCIdent id = treeutils.makeIdent(pos,name,syms.booleanType);
-        BoogieBlock bb = new BoogieBlock(id);
+        T bb = newBlock(id);
         blockLookup.put(id.name.toString(),bb);
         return bb;
     }
     
-    /** Returns a new, empty BoogieBlock, but the new block takes all of the 
+    /** Returns a new, empty block, but the new block takes all of the 
      * followers of the given block; the previousBlock will then have no
      * followers.
      * 
@@ -581,14 +578,14 @@ public class BasicBlockerP extends JmlTreeScanner {
      * @param previousBlock the block that is giving up its followers
      * @return the new block
      */
-    protected @NonNull BoogieBlock newBlock(@NonNull String name, int pos, @NonNull BoogieBlock previousBlock) {
+    protected @NonNull T newBlock(@NonNull String name, int pos, @NonNull T previousBlock) {
         JCIdent id = treeutils.makeIdent(pos,name,syms.booleanType);
-        BoogieBlock bb = new BoogieBlock(id,previousBlock);
+        T bb = newBlock(id,previousBlock);
         blockLookup.put(id.name.toString(), bb);
         return bb;
     }
     
-    /** Returns a new, empty BoogieBlock, but the new block takes all of the 
+    /** Returns a new, empty T, but the new block takes all of the 
      * followers and the remaining statements of the current block; the 
      * currentBlock will then have no remaining statements and no followers.
      * 
@@ -596,8 +593,8 @@ public class BasicBlockerP extends JmlTreeScanner {
      * @param pos a position to associate with the JCIdent for the block
      * @return the new block
      */
-    protected BoogieBlock newBlockWithRest(@NonNull String name, int pos) {
-        BoogieBlock b = newBlock(name,pos,currentBlock);// it gets all the followers of the current block
+    protected T newBlockWithRest(@NonNull String name, int pos) {
+        T b = newBlock(name,pos,currentBlock);// it gets all the followers of the current block
         // We do this switch to avoid creating more new lists
         List<JCStatement> temp = b.statements; // empty
         b.statements = remainingStatements; // it gets all of the remaining statements
@@ -612,15 +609,15 @@ public class BasicBlockerP extends JmlTreeScanner {
      * @param classDecl the declaration of the containing class
      * @return the completed BasicProgram
      */
-    protected @NonNull BoogieProgram convertMethodBody(JCBlock block, @NonNull JCMethodDecl methodDecl, 
+    protected @NonNull P convertMethodBody(JCBlock block, @NonNull JCMethodDecl methodDecl, 
             JmlMethodSpecs denestedSpecs, @NonNull JCClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
         
         this.methodDecl = (JmlMethodDecl)methodDecl;
-        program = new BoogieProgram(context);
+        program = newProgram(context);
         isConstructor = methodDecl.sym.isConstructor();  // FIXME - careful if there is nesting???
         isStatic = methodDecl.sym.isStatic();
         if (classDecl.sym == null) {
-            log.error("jml.internal","The class declaration in BoogieBlocker.convertMethodBody appears not to be typechecked");
+            log.error("jml.internal","The class declaration in Ter.convertMethodBody appears not to be typechecked");
             return null;
         }
 
@@ -630,16 +627,16 @@ public class BasicBlockerP extends JmlTreeScanner {
 //            return null;
 //        }
         background = new LinkedList<JCExpression>();
-        blocksCompleted = new ArrayList<BoogieBlock>();
-        blockLookup = new java.util.HashMap<String,BoogieBlock>();
+        blocksCompleted = new ArrayList<T>();
+        blockLookup = new java.util.HashMap<String,T>();
         
         // Define the start block
         int pos = methodDecl.pos;
-        BoogieBlock startBlock = newBlock(START_BLOCK_NAME,pos);
+        T startBlock = newBlock(START_BLOCK_NAME,pos);
 
         // Define the body block
         // Put all the program statements in the Body Block
-        BoogieBlock bodyBlock = newBlock(BODY_BLOCK_NAME,methodDecl.body.pos);
+        T bodyBlock = newBlock(BODY_BLOCK_NAME,methodDecl.body.pos);
 
         // Then the program
         bodyBlock.statements.addAll(block.getStatements());
@@ -657,7 +654,7 @@ public class BasicBlockerP extends JmlTreeScanner {
         program.methodDecl = methodDecl;
 //        program.startId = startBlock.id;
         program.blocks.addAll(blocksCompleted);
-        program.background = background;
+        ((BoogieProgram)program).background = background;  // FIXME
         return program;
     }
     
@@ -665,7 +662,7 @@ public class BasicBlockerP extends JmlTreeScanner {
      * form, possibly creating new blocks on the todo list
      * @param block the block to process
      */
-    protected void processBlock(@NonNull BoogieBlock block) {
+    protected void processBlock(@NonNull T block) {
         if (block.preceding.isEmpty()) {
             // Delete any blocks that do not follow anything
             // This can happen for example if the block is an afterIf block
@@ -679,7 +676,7 @@ public class BasicBlockerP extends JmlTreeScanner {
             if (!block.statements.isEmpty()) {
                 log.warning("jml.internal","A basic block has no predecessors - ingoring it: " + block.id);
             }
-            for (BoogieBlock b: block.succeeding) {
+            for (T b: block.succeeding) {
                 b.preceding.remove(block);
             }
             return;// Don't add it to the completed blocks
@@ -694,7 +691,7 @@ public class BasicBlockerP extends JmlTreeScanner {
      * 
      * @param complete call 'completed' on the currentBlock, if true
      */
-    protected void processBlockStatements(BoogieBlock current, boolean complete) {
+    protected void processBlockStatements(T current, boolean complete) {
         while (!remainingStatements.isEmpty()) {
             JCStatement s = remainingStatements.remove(0);
             if (s != null) s.accept(this);  // A defensive check - statements in the list should not be null
@@ -987,15 +984,15 @@ public class BasicBlockerP extends JmlTreeScanner {
         loopStack.add(0,that);
         breakStack.add(0,that);
         int pos = that.pos;
-        BoogieBlock bloopBody = newBlock(barblockPrefix + pos + LOOPBODY,pos);
-        BoogieBlock bloopContinue = newBlock(barblockPrefix + pos + LOOPCONTINUE,pos);
-        BoogieBlock bloopEnd = newBlock(barblockPrefix + pos + LOOPEND,pos);
-        BoogieBlock bloopBreak = newBlock(barblockPrefix + pos + LOOPBREAK,pos);
-        String restName = barblockPrefix + pos + LOOPAFTER;
+        T bloopBody = newBlock(blockName(pos,LOOPBODY),pos);
+        T bloopContinue = newBlock(blockName(pos,LOOPCONTINUE),pos);
+        T bloopEnd = newBlock(blockName(pos,LOOPEND),pos);
+        T bloopBreak = newBlock(blockName(pos,LOOPBREAK),pos);
+        String restName = blockName(pos,LOOPAFTER);
 
         // Now create an (unprocessed) block for everything that follows the
         // loop statement
-        BoogieBlock brest = newBlockWithRest(restName,pos);// it gets all the followers and statements of the current block
+        T brest = newBlockWithRest(restName,pos);// it gets all the followers and statements of the current block
 
         // Finish out the current block with the loop initialization
         if (init != null) remainingStatements.addAll(init);
@@ -1022,7 +1019,7 @@ public class BasicBlockerP extends JmlTreeScanner {
         
         completed(currentBlock);
         
-        BoogieBlock bloopStart = currentBlock;
+        T bloopStart = currentBlock;
         follows(bloopStart,bloopBody);
         if (tempFromForeachLoop) follows(bloopStart,bloopEnd);
 
@@ -1174,15 +1171,15 @@ public class BasicBlockerP extends JmlTreeScanner {
         loopStack.add(0,that);
         breakStack.add(0,that);
         int pos = that.pos;
-        BoogieBlock bloopStart = currentBlock;
-        BoogieBlock bloopContinue = newBlock(barblockPrefix + pos + LOOPCONTINUE,pos);
-        BoogieBlock bloopEnd = newBlock(barblockPrefix + pos + LOOPEND,pos);
-        BoogieBlock bloopBreak = newBlock(barblockPrefix + pos + LOOPBREAK,pos);
-        String restName = barblockPrefix + pos + LOOPAFTERDO;
+        T bloopStart = currentBlock;
+        T bloopContinue = newBlock(blockName(pos,LOOPCONTINUE),pos);
+        T bloopEnd = newBlock(blockName(pos,LOOPEND),pos);
+        T bloopBreak = newBlock(blockName(pos,LOOPBREAK),pos);
+        String restName = blockName(pos,LOOPAFTERDO);
 
         // Create an (unprocessed) block for everything that follows the
         // loop statement
-        BoogieBlock brest = newBlock(restName,pos,currentBlock);// it gets all the followers of the current block
+        T brest = newBlock(restName,pos,currentBlock);// it gets all the followers of the current block
         List<JCStatement> temp = brest.statements;
         brest.statements = remainingStatements; // it gets all of the remaining statements
         remainingStatements = temp;
@@ -1293,8 +1290,8 @@ public class BasicBlockerP extends JmlTreeScanner {
         List<JCCase> cases = that.cases;
         
         // Create the ending block name
-        String endBlock = barblockPrefix + pos + "_switchEnd";
-        BoogieBlock brest = null;
+        String endBlock = blockName(pos,"_switchEnd"); // FIXME - define string?
+        T brest = null;
         
         try {
             breakStack.add(0,that);
@@ -1303,13 +1300,13 @@ public class BasicBlockerP extends JmlTreeScanner {
             // we can track its value and so the subexpression does not get
             // replicated.  We add an assumption about its value and add it to
             // list of new variables
-            String switchName = ("_switchExpression_" + pos);
+            String switchName = ("_switchExpression_" + pos); // FIXME - define string?
  
             JCIdent vd = treeutils.makeIdent(swpos,switchName,switchExpression.type);
-            program.declarations.add(vd);
+            ((BoogieProgram)program).declarations.add(vd);   // FIXME
             JCExpression newexpr = treeutils.makeBinary(swpos,JCTree.EQ,vd,switchExpression);
             addAssume(swpos,switchExpression,Label.SWITCH_VALUE,newexpr,currentBlock.statements);
-            BoogieBlock switchStart = currentBlock;
+            T switchStart = currentBlock;
 
             // Now create an (unprocessed) block for everything that follows the
             // switch statement
@@ -1318,8 +1315,8 @@ public class BasicBlockerP extends JmlTreeScanner {
             // Now we need to make an unprocessed block for each of the case statements,
             // adding them to the todo list at the end
             // Note that there might be nesting of other switch statements etc.
-            java.util.LinkedList<BoogieBlock> blocks = new java.util.LinkedList<BoogieBlock>();
-            BoogieBlock prev = null;
+            java.util.LinkedList<T> blocks = new java.util.LinkedList<T>();
+            T prev = null;
             JCExpression defaultCond = falseLiteral;
             JmlTree.JmlStatementExpr defaultAsm = null;
             for (JCCase caseStatement: cases) {
@@ -1328,9 +1325,9 @@ public class BasicBlockerP extends JmlTreeScanner {
                 int casepos = caseStatement.getStartPosition();
                 
                 // create a block for this case test
-                String caseName = barblockPrefix + caseStatement.getStartPosition() + "_case";
-                if (caseValue == null) caseName = barblockPrefix + casepos +"_default";
-                BoogieBlock blockForTest = newBlock(caseName,casepos);
+                String caseName = blockName(caseStatement.getStartPosition(),"_case");
+                if (caseValue == null) caseName = blockName(casepos,"_default");
+                T blockForTest = newBlock(caseName,casepos);
                 blocks.add(blockForTest);
                 follows(switchStart,blockForTest);
                 
@@ -1354,7 +1351,7 @@ public class BasicBlockerP extends JmlTreeScanner {
                     // falling through from the previous case
                     // since there is fall-through, the statements need to go in their own block
                     String caseStats = "_caseBody_" + caseStatement.getStartPosition(); // FIXME - is there certain to be a case statement
-                    BoogieBlock blockForStats = newBlock(caseStats,caseStatement.getStartPosition());
+                    T blockForStats = newBlock(caseStats,caseStatement.getStartPosition());
                     blockForStats.statements.addAll(stats);
                     follows(blockForTest,blockForStats);
                     replaceFollows(prev,blockForStats);
@@ -1380,7 +1377,7 @@ public class BasicBlockerP extends JmlTreeScanner {
                 // There was no default - we need to construct an empty one
                 // create a block for this case test
                 String caseName = "_defaultcase_" + pos ;
-                BoogieBlock blockForTest = newBlock(caseName,pos);
+                T blockForTest = newBlock(caseName,pos);
                 blocks.add(blockForTest);
                 follows(switchStart,blockForTest);
                 follows(blockForTest,brest);
@@ -1390,7 +1387,7 @@ public class BasicBlockerP extends JmlTreeScanner {
             
             processBlockStatements(currentBlock,true); // Complete the current block
             // Now process all of the blocks we created
-            for (BoogieBlock b: blocks) {
+            for (T b: blocks) {
                 processBlock(b);
             }
         } finally {
@@ -1403,11 +1400,11 @@ public class BasicBlockerP extends JmlTreeScanner {
     /** Should call this because case statements are handled in switch. */
     public void visitCase(JCCase that) { shouldNotBeCalled(that); }
     
-    /** Stack to hold BoogieBlocks for catch clauses, when try statements are nested */
-    protected java.util.List<BoogieBlock> catchStack = new java.util.LinkedList<BoogieBlock>();
+    /** Stack to hold Ts for catch clauses, when try statements are nested */
+    protected java.util.List<T> catchStack = new java.util.LinkedList<T>();
     
-    /** Stack to hold BoogieBlocks for finally clauses, when try statements are nested */
-    protected java.util.List<BoogieBlock> finallyStack = new java.util.LinkedList<BoogieBlock>();
+    /** Stack to hold Ts for finally clauses, when try statements are nested */
+    protected java.util.List<T> finallyStack = new java.util.LinkedList<T>();
 
     // This sets up a complicated arrangement of blocks
     //
@@ -1448,16 +1445,15 @@ public class BasicBlockerP extends JmlTreeScanner {
         // Create an (unprocessed) block for everything that follows the
         // try statement
         int pos = that.pos;
-        BoogieBlock brest = newBlockWithRest(barblockPrefix + pos + AFTERTRY,pos);// it gets all the followers of the current block
-        brest.statements.addAll(remainingStatements); // it gets all of the remaining statements
+        T brest = newBlockWithRest(blockName(pos,AFTERTRY),pos);// it gets all the followers of the current block
         
         remainingStatements.clear();
         remainingStatements.add(that.getBlock());
         
         // We make an empty finally block if the try statement does not
         // have one, just to simplify things
-        String finallyBlockName = barblockPrefix + pos + FINALLY;
-        BoogieBlock finallyBlock = newBlock(finallyBlockName,pos);
+        String finallyBlockName = blockName(pos,FINALLY);
+        T finallyBlock = newBlock(finallyBlockName,pos);
         JCBlock finallyStat = that.getFinallyBlock();
         if (finallyStat != null) finallyBlock.statements.addAll(finallyStat.getStatements()); // it gets the (unprocessed) statements of the finally statement
         follows(currentBlock,finallyBlock);
@@ -1473,7 +1469,7 @@ public class BasicBlockerP extends JmlTreeScanner {
     }
     
     // is this true FIMXE review this
-    /** Should call this because catch statements are desugared before calling the BoogieBlocker. */
+    /** Should call this because catch statements are desugared before calling the Ter. */
     public void visitCatch(JCCatch that) { 
         shouldNotBeCalled(that); 
     }
@@ -1484,22 +1480,22 @@ public class BasicBlockerP extends JmlTreeScanner {
         currentBlock.statements.add(comment(pos,"if..."));
         
         // Create a bunch of block names
-        String thenName = barblockPrefix + pos + THENSUFFIX;
-        String elseName = barblockPrefix + pos + ELSESUFFIX;
-        String restName = barblockPrefix + pos + AFTERIF;
+        String thenName = blockName(pos,THENSUFFIX);
+        String elseName = blockName(pos,ELSESUFFIX);
+        String restName = blockName(pos,AFTERIF);
                 
         // Now create an (unprocessed) block for everything that follows the
         // if statement
-        BoogieBlock brest = newBlockWithRest(restName,pos);// it gets all the followers of the current block
+        T brest = newBlockWithRest(restName,pos);// it gets all the followers of the current block
         
         // Now make the then block
-        BoogieBlock thenBlock = newBlock(thenName,pos);
+        T thenBlock = newBlock(thenName,pos);
         thenBlock.statements.add(that.thenpart);
         follows(thenBlock,brest);
         follows(currentBlock,thenBlock);
         
         // Now make the else block
-        BoogieBlock elseBlock = newBlock(elseName,pos);
+        T elseBlock = newBlock(elseName,pos);
         if (that.elsepart != null) elseBlock.statements.add(that.elsepart);
         follows(elseBlock,brest);
         follows(currentBlock,elseBlock);
@@ -1534,12 +1530,12 @@ public class BasicBlockerP extends JmlTreeScanner {
             // FIXME - for safety, check and warn if there are any remaining statements in the block
         } else if (that.label == null) {
             JCTree t = loopStack.get(0);
-            String s = barblockPrefix + t.pos + LOOPBREAK;
-            BoogieBlock b = blockLookup.get(s);
+            String s = blockName(t.pos,LOOPBREAK);
+            T b = blockLookup.get(s);
             if (b == null) log.noticeWriter.println("NO BREAK BLOCK: " + s);
             else replaceFollows(currentBlock,b);
         } else {
-            log.error("esc.not.implemented","break statements with labels in BoogieBlocker");
+            log.error("esc.not.implemented","break statements with labels in Ter");
         }
     }
     
@@ -1548,18 +1544,31 @@ public class BasicBlockerP extends JmlTreeScanner {
         currentBlock.statements.add(comment(that));
         if (that.label == null) {
             JCTree t = loopStack.get(0);
-            String blockName = blockPrefix + t.pos + LOOPCONTINUE;
-            BoogieBlock b = blockLookup.get(blockName);
+            String blockName = blockName(t.pos,LOOPCONTINUE);
+            T b = blockLookup.get(blockName);
             if (b == null) log.noticeWriter.println("NO CONTINUE BLOCK: " + blockName);
             else replaceFollows(currentBlock,b);
         } else {
-            log.warning("esc.not.implemented","continue statements with labels in BoogieBlocker");
+            log.warning("esc.not.implemented","continue statements with labels in Ter");
         }
     }
     
     // OK - presumes that the program has already been modified to record
     // the return value
     public void visitReturn(JCReturn that) {
+        if (!remainingStatements.isEmpty()) {
+            // Not fatal, but does indicate a problem with the original
+            // program, which the compiler may have already identified
+            log.warning(remainingStatements.get(0).pos,
+                    "esc.internal.error",
+                    "Unexpected statements following a return statement are ignored");
+            remainingStatements.clear();
+        }
+        T b = newBlockWithRest(blockName(that.pos,RETURN),that.pos);
+        follows(currentBlock,b);
+        completed(currentBlock);
+        startBlock(b);
+        completed(b);
         
         // FIXME - need to check what shuold/does happen if the return statement
         // is in a catch or finally block
@@ -1571,21 +1580,28 @@ public class BasicBlockerP extends JmlTreeScanner {
             // TODO - generalize this
             log.warning("esc.internal.error","finally stack is unexpectedly empty");
         } else {
-            BoogieBlock finallyBlock = finallyStack.get(0);
-            replaceFollows(currentBlock,finallyBlock);
-        }
-        if (!remainingStatements.isEmpty()) {
-            // Not fatal, but does indicate a problem with the original
-            // program, which the compiler may have already identified
-            log.warning(remainingStatements.get(0).pos,
-                    "esc.internal.error",
-                    "Unexpected statements following a return statement are ignored");
+            T finallyBlock = finallyStack.get(0);
+            replaceFollows(b,finallyBlock);
         }
     }
     
     // OK - presumes that the program has already been modified to record
     // the value of the exception being thrown
     public void visitThrow(JCThrow that) { 
+        
+        if (!remainingStatements.isEmpty()) {
+            // Not fatal, but does indicate a problem with the original
+            // program, which the compiler may have already identified
+            log.warning(remainingStatements.get(0).pos,
+                    "esc.internal.error",
+                    "Unexpected statements following a throw statement");
+            remainingStatements.clear();
+        }
+        T b = newBlockWithRest(blockName(that.pos,THROW),that.pos);
+        follows(currentBlock,b);
+        completed(currentBlock);
+        startBlock(b);
+        completed(b);
         
         // FIXME - if we are already in a catch block we keep the finally block
         // as our follower.
@@ -1597,17 +1613,10 @@ public class BasicBlockerP extends JmlTreeScanner {
             // TODO - generalize this
             log.warning("esc.internal.error","finally stack is unexpectedly empty");
         } else {
-            BoogieBlock finallyBlock = finallyStack.get(0);
+            T finallyBlock = finallyStack.get(0);
             replaceFollows(currentBlock,finallyBlock);
         }
         
-        if (!remainingStatements.isEmpty()) {
-            // Not fatal, but does indicate a problem with the original
-            // program, which the compiler may have already identified
-            log.warning(remainingStatements.get(0).pos,
-                    "esc.internal.error",
-                    "Unexpected statements following a throw statement");
-        }
     }
     
 

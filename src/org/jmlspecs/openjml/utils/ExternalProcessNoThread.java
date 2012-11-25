@@ -1,3 +1,7 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
 package org.jmlspecs.openjml.utils;
 
 import java.io.BufferedReader;
@@ -8,105 +12,82 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 
+import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
-public class ExecProcess  {
+public class ExternalProcessNoThread implements IExternalProcess {
 
-    static class ThreadedReader extends Thread {
-        Reader is;
-        StringBuilder output;
-       
-        ThreadedReader(Reader is, StringBuilder output) {
-          this.is = is;
-          this.output = output;
-        }
-       
-        public void run() {
-          try {
-            int c;
-            while ((c = is.read()) != -1)
-                output.append((char) c);
-          } catch (IOException x) {
-            // FIXME - handle error
-          }
-        }
-      }
-       
-      
-      
-      public int showCommunication = 0;
+    /** A debugging flag - 0 = show nothing; 1 = show errors; 2 = show something; 3 = show everything */
+    // Value should be 1 for ordinary operation
+    // @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_SHOULD_BE_FINAL")
+    static public int showCommunication = 1;
     
-    protected Context context;
-    protected Log log;
-    protected String[] app;
-    protected @Nullable String prompt;
+    public Context context;
+    public Log log;
+    public String[] app;
+    public @Nullable String prompt;
     
-    public ExecProcess(Context context, String prompt, String... app) {
+    public ExternalProcessNoThread(Context context, @Nullable String prompt, String[] app) {
         this.context = context;
         this.log = Log.instance(context);
         this.app = app;
+        this.prompt = prompt;
     }
         
+
+    public void restartProver() throws ProverException {
+        kill();
+        start();
+    }
+
     
-    /** The process being managed */
-    protected Process process = null;
-    
-    /** The stream connection to send information to the process. */
+    /** The stream connection to send information to the prover process. */
     //@ invariant process != null ==> toProver != null;
     protected Writer toProver;
     
-    /** The stream connection to read information from the process. */
+    /** The stream connection to read information from the prover process. */
     //@ invariant process != null ==> fromProver != null;
     protected Reader fromProver;
     
-    /** The error stream connection to read information from the process. */
+    /** The error stream connection to read information from the prover process. */
     //@ invariant process != null ==> errors != null;
     protected Reader errors;
     
-    public StringBuilder outputString = new StringBuilder();
-    public StringBuilder errorString = new StringBuilder();
-    
-    ThreadedReader errorReader;
-    ThreadedReader outputReader;
+    protected Process process;
 
     public String[] app() { return app; }
     
     /** Does the startup work */
     public void start() throws ProverException {
-        outputString.setLength(0);
-        errorString.setLength(0);
         String[] app = app();
         if (app == null) {
-            throw new ProverException("No path to the executable found");
+            throw new ProverException("No path to the executable found; specify it using -Dopenjml.prover.cvc3");
         } else {
             java.io.File f = new java.io.File(app[0]);
             if (!f.exists()) log.noticeWriter.println("Does not appear to exist: " + app[0]);
             //if (!f.exists()) throw new ProverException("The specified executable does not appear to exist: " + app[0]);
         }
         try {
-            process = new ProcessBuilder(app()).start();
+            process = Runtime.getRuntime().exec(app);
         } catch (IOException e) {
             process = null;
-            throw new ProverException("Failed to launch process: " + app + " " + e);
+            throw new ProverException("Failed to launch prover process: " + app + " " + e);
         }
         // TODO: assess performance of using buffered readers/writers
         toProver = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
         fromProver = new BufferedReader(new InputStreamReader(process.getInputStream()));
         errors = new InputStreamReader(process.getErrorStream());
-        
-        errorReader = new ThreadedReader(errors, errorString);
-     
-        outputReader = new ThreadedReader(fromProver, outputString);
-     
-        errorReader.start();
-        outputReader.start();
-
-        if (prompt() != null) eatPrompt();
+        //eatPrompt(false);
     }    
+    
+    public void kill() {
+        process.destroy();
+        process = null;
+    }
     
     /** Does the actual work of sending information to the prover process.  You 
      * need to call eatPrompt for each newline you send.  This method does not 
@@ -115,10 +96,8 @@ public class ExecProcess  {
      * @throws ProverException if something goes wrong
      */
     public void send(String s) throws ProverException {
-        outputString.setLength(0);
-        errorString.setLength(0);
         if (showCommunication >= 2) {
-            log.noticeWriter.println("SENDING ["+s.length()+ "]" + s);
+            log.noticeWriter.print("SENDING ["+s.length()+ "]" + s); // ss has a newline so we only use print here
             log.noticeWriter.flush();
         }
         try {
@@ -144,6 +123,10 @@ public class ExecProcess  {
         }
     }
 
+    public String eatPrompt() throws ProverException {
+        return eatPrompt(true);
+    }
+
     /** A buffer to hold input */
     /*@ non_null */
     protected char[] cbuf = new char[3000000];
@@ -152,30 +135,147 @@ public class ExecProcess  {
      * should look for.  The string may not contain any CR/NL characters.
      * @return the prompt string
      */
-    public @Nullable String prompt() { return prompt; }
+    public @NonNull String prompt() { return prompt; }
     
-    public int readToCompletion() {
-     
-        int exitVal = -1;
+    @Override
+    public int readToCompletion() throws ProverException {
+        // We read characters until the process terminates
+        // FIXME - need a better way to read both inputs
+        // FIXME - this probably can be made a lot more efficient
+//        boolean interactive = true;
+//        char[] prompt = prompt().toCharArray();
         try {
-            exitVal = process.waitFor();
-            errorReader.join();   // Handle condition where the
-            outputReader.join();  // process ends before the threads finish
-        } catch (InterruptedException e) {
-            // OK
+//            if (interactive) {
+//                int offset = 0;
+//                String s = "";
+//                while (errors.ready()) {
+//                    int n = errors.read(cbuf,offset,cbuf.length-offset);
+//                    if (n < 0) throw new ProverException("Prover died");
+//                    if (n == 0) break;
+//                    offset += n;
+//                }
+//                if (offset > 0) {
+//                    log.noticeWriter.println("ERROR: " + String.valueOf(cbuf,0,offset));
+//                }
+//                int truncated = 0;
+//                while (true) { // There is always a prompt to read, so it is OK to block
+//                        // until it is read.  That gives the prover process time to
+//                        // do its processing.
+//                    //log.noticeWriter.println(" ... LISTENING");
+//                    int n = fromProver.read(cbuf,offset,cbuf.length-offset);
+//                    if (n < 0) {
+//                        int off = 0;
+//                        while (errors.ready()) {
+//                            int nn = errors.read(cbuf,off,cbuf.length-off);
+//                            if (nn < 0) throw new ProverException("Prover died-eStream");
+//                            if (nn == 0) break;
+//                            off += nn;
+//                        }
+//                        String serr = String.valueOf(cbuf,0,off);
+//                        if (!serr.startsWith("searching")) log.noticeWriter.println("ERROR STREAM ON DEATH: " + serr);
+//                        throw new ProverException("Prover died");
+//                    }
+//                    offset += n;
+//                    
+//                    if (endsWith(offset,prompt)) break;
+//                    if (offset > cbuf.length-1000) {
+//                        if (s.length() > 280000) {
+//                            // excessive length
+//                            truncated += offset;
+//                        } else {
+//                            s = s + String.valueOf(cbuf,0,offset);
+//                            log.noticeWriter.println("BUFFER FULL " + s.length());
+//                        }
+//                        offset = 0;
+//                    }
+//                }
+//                if (truncated > 0) {
+//                    log.noticeWriter.println("OUTPUT LENGTH " + s.length() + truncated);
+//                    throw new ProverException("Excessive output: " + s.length() + truncated);
+//                }
+//                s = s + String.valueOf(cbuf,0,offset);
+//                offset = 0;
+//                if (errors.ready()) {
+//                    while (errors.ready()) {
+//                        int n = errors.read(cbuf,offset,cbuf.length-offset);
+//                        if (n < 0) throw new ProverException("Prover died");
+//                        if (n == 0) break;
+//                        offset += n;
+//                    }
+//                    if (offset > 0) {
+//                        String errorString = new String(cbuf,0,offset);
+//                        if (!errorString.startsWith("\nWARNING") &&
+//                                !errorString.startsWith("CVC3 (version") &&
+//                                !errorString.startsWith("searching")) {
+//                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
+//                            throw new ProverException("Prover error message: " + errorString);
+//                        } else {
+//                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
+//                        }
+//                    }
+//                }
+//                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
+//                return s;
+//            } else {
+                // In non-interactive mode, there may be no input at all
+                // We sleep briefly, hoping that the target process will have time to put out any output
+                try { Thread.sleep(1); } catch (Exception e) { /* No action needed */ }
+                int offset = 0;
+                if (true) { // FIXME - true or false?
+                    // TODO: Problem: When the prover produces a counterexample, it does not always do so promptly.
+                    // So the loop below tends to exit before all (or any) counterexample information is retrieved.
+                    do {
+                        int n = fromProver.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) {
+                            return process.exitValue();
+                        }
+                        offset += n;
+                    } while (fromProver.ready());
+                } else {
+                    while (fromProver.ready()) {
+                        int n = fromProver.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) {
+                            throw new ProverException("Prover died");
+                        }
+                        offset += n;
+                    }
+                }
+                String s = new String(cbuf,0,offset);
+                offset = 0;
+                if (errors.ready()) {
+                    while (errors.ready()) {
+                        int n = errors.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) throw new ProverException("Prover died");
+                        if (n == 0) break;
+                        offset += n;
+                    }
+                    if (offset > 0) {
+                        String errorString = new String(cbuf,0,offset);
+                        if (!errorString.startsWith("\nWARNING") &&
+                                !errorString.startsWith("CVC3 (version") &&
+                                !errorString.startsWith("searching")) {
+                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
+                            throw new ProverException("Prover error message: " + errorString);
+                        } else {
+                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
+                        }
+                    }
+                }
+                if (showCommunication >= 3) Log.instance(context).noticeWriter.println("HEARD: " + s);
+//            }
+        } catch (IOException e) {
+            throw new ProverException("IO Error on reading from prover: " + e);
         }
-        return exitVal;
+        return -2;
     }
     
-    
-    // FIXME - this code needs complete redoing to work with the threads above.
-    protected String eatPrompt() throws ProverException {
-        // We read characters until we get to the prompt sequence 
+    protected String eatPrompt(boolean wait) throws ProverException {
+        // We read characters until we get to the prompt sequence "> "
         // that marks the end of the input.  Be careful 
         // that sequence is not elsewhere in the input as well.
         // FIXME - need a better way to read both inputs
         // FIXME - this probably can be made a lot more efficient
-        boolean interactive = prompt() != null;
+        boolean interactive = true;
         char[] prompt = prompt().toCharArray();
         try {
             if (interactive) {
@@ -254,17 +354,17 @@ public class ExecProcess  {
                 // We sleep briefly, hoping that the target process will have time to put out any output
                 try { Thread.sleep(1); } catch (Exception e) { /* No action needed */ }
                 int offset = 0;
-//                if (wait) {
-//                    // TODO: Problem: When the prover produces a counterexample, it does not always do so promptly.
-//                    // So the loop below tends to exit before all (or any) counterexample information is retrieved.
-//                    do {
-//                        int n = fromProver.read(cbuf,offset,cbuf.length-offset);
-//                        if (n < 0) {
-//                            throw new ProverException("Prover died");
-//                        }
-//                        offset += n;
-//                    } while (fromProver.ready());
-//                } else {
+                if (wait) {
+                    // TODO: Problem: When the prover produces a counterexample, it does not always do so promptly.
+                    // So the loop below tends to exit before all (or any) counterexample information is retrieved.
+                    do {
+                        int n = fromProver.read(cbuf,offset,cbuf.length-offset);
+                        if (n < 0) {
+                            throw new ProverException("Prover died");
+                        }
+                        offset += n;
+                    } while (fromProver.ready());
+                } else {
                     while (fromProver.ready()) {
                         int n = fromProver.read(cbuf,offset,cbuf.length-offset);
                         if (n < 0) {
@@ -272,7 +372,7 @@ public class ExecProcess  {
                         }
                         offset += n;
                     }
-//                }
+                }
                 String s = new String(cbuf,0,offset);
                 offset = 0;
                 if (errors.ready()) {
@@ -311,4 +411,5 @@ public class ExecProcess  {
         return true;
     }
     
+ 
 }

@@ -1,22 +1,39 @@
 package tests;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.Utils;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Names;
-
-
+@RunWith(Parameterized.class)
 public class escboogie extends EscBase {
 
-    protected void setUp() throws Exception {
+    String option;
+    
+    public escboogie(String option) {
+        this.option = option;
+    }
+    
+    @Parameters
+    static public  Collection<String[]> datax() {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        data.add(new String[]{"-boogie"}); 
+        data.add(new String[]{"-newesc"}); 
+        data.add(new String[]{null}); 
+        //data.add(new String[]{"-rac"}); 
+        return data;
+    }
+    
+
+    public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        options.put("-newesc","");
-        options.put("-boogie","");
         options.put("-noPurityCheck","");
+        setOption(option);
+
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
         //options.put("-showbb",   "");
@@ -28,7 +45,8 @@ public class escboogie extends EscBase {
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
     }
-
+    
+    @Test
     public void testSimple() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -38,92 +56,262 @@ public class escboogie extends EscBase {
                 +"    //@ assert i>0 ;\n"
                 +"  }\n"
                 
-//                +"  //@ requires i>=0;\n"
-//                +"  public void m2bad(int i) {\n"
-//                +"    //@ assert i>0 ;\n"
-//                +"  }\n"
+                +"  //@ requires i>=0;\n"
+                +"  public void m2bad(int i) {\n"
+                +"    //@ assert i>0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i>=0;\n"
+                +"  //@ ensures \\result>0;\n"
+                +"  public int m3bad(int i) {\n"
+                +"    return i ;\n"
+                +"  }\n"
                 
                 +"  public void m1good(int i) {\n"
                 +"    //@ assume i>0 ;\n"
                 +"    //@ assert i>0 ;\n"
                 +"  }\n"
                 
-//                +"  //@ requires i>0;\n"
-//                +"  public void m2good(int i) {\n"
-//                +"    //@ assert i>=0 ;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i>0;\n"
-//                +"  //@ also\n"
-//                +"  //@ requires i==0;\n"
-//                +"  public void m3good(int i) {\n"
-//                +"    //@ assert i>=0 ;\n"
-//                +"  }\n"
+                +"  //@ requires i>0;\n"
+                +"  public void m2good(int i) {\n"
+                +"    //@ assert i>=0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i>=0;\n"
+                +"  //@ ensures \\result>=0;\n"
+                +"  public int m3good(int i) {\n"
+                +"    return i ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i>0;\n"
+                +"  //@ also\n"
+                +"  //@ requires i==0;\n"
+                +"  public void m4good(int i) {\n"
+                +"    //@ assert i>=0 ;\n"
+                +"  }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
- //               ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2bad",9
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2bad",9
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                ,"/tt/TestJava.java:12: warning: Associated declaration",7
                 );
     }
     
-//    public void testPrecondition1() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +"public class TestJava { \n"
-//                
-//                +"  \n"
-//                +"  public void m1bad(int i) {\n"
-//                +"    //@ assert i>0 ;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i>=0;\n"
-//                +"  public void m2bad(int i) {\n"
-//                +"    //@ assert i>0 ;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i>0;\n"
-//                +"  public void m1good(int i) {\n"
-//                +"    //@ assert i>0 ;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i>0;\n"
-//                +"  public void m2good(int i) {\n"
-//                +"    //@ assert i>=0 ;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i>0;\n"
-//                +"  //@ also\n"
-//                +"  //@ requires i==0;\n"
-//                +"  public void m3good(int i) {\n"
-//                +"    //@ assert i>=0 ;\n"
-//                +"  }\n"
-//                
-//                +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
-//                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2bad",9
-//                );
-//    }
-//    
-//    public void testPrecondition2() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +"public class TestJava { \n"
-//                
-//                +"  //@ requires i>0;\n"
-//                +"  //@ ensures false;\n"
-//                +"  public void m1a(int i) {\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i>0;\n"
-//                +"  //@ requires i<0;\n"
-//                +"  //@ ensures false;\n"  // FIXME - this should eventually warn about infeasible preconditions
-//                +"  public void m1b(int i) {\n"
-//                +"  }\n"
-//                +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m1a",15
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
-//                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method m1b(int)",-15
-//                );
-//    }
-//    
+    @Test
+    public void testFieldAccess() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                 
+                +"  int f; \n"
+                
+                +"  public void m1bad(TestJava o) {\n"
+                +"    //@ assume o.f >0 ;\n"
+                +"    //@ assert f > 0 ;\n"
+                +"  }\n"
+                
+                +"  public void m2bad(@Nullable TestJava o) {\n"
+                +"    //@ assume o.f >0 ;\n"
+                +"  }\n"
+                
+                +"  public void m1good(TestJava o) {\n"
+                +"    //@ assume o.f >0 ;\n"
+                +"    //@ assume o == this ;\n"
+                +"    //@ assert f > 0 ;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m2bad",17
+                );
+    }
+    
+    @Test
+    public void testArrayAccess() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires a.length > 5; \n"
+                +"  public void m1bad(@Nullable int[] a) {\n"
+                +"    //@ assume a[1] == 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null; \n"
+                +"  public void m2bad(int[] a) {\n"
+                +"    //@ assume a[1] == 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null; \n"
+                +"  //@ requires a.length > 5; \n"
+                +"  public void m3bad(int[] a) {\n"
+                +"    //@ assume a[-1] == 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null; \n"
+                +"  //@ requires a.length > 5; \n"
+                +"  //@ requires b.length > 5; \n"
+                +"  public void m4bad(int[] a, int[] b) {\n"
+                +"    //@ assume a[1] == 5 ;\n"
+                +"    //@ assert b[1] == 5 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null; \n"
+                +"  //@ requires a.length > 5; \n"
+                +"  public void m1good(int[] a, int[] b) {\n"
+                +"    //@ assume a[1] == 5 ;\n"
+                +"    //@ assume a == b ;\n"
+                +"    //@ assert b[1] ==5 ;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1bad",17
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m2bad",17
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m3bad",17
+                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assert) in method m4bad",9
+                );
+    }
+    
+    @Test
+    public void testArrayAssign() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires a.length > 5; \n"
+                +"  public void m1bad(@Nullable int[] a) {\n"
+                +"    a[1] = 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null; \n"
+                +"  public void m2bad(int[] a) {\n"
+                +"    a[1] = 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null; \n"
+                +"  //@ requires a.length > 5; \n"
+                +"  public void m3bad(int[] a) {\n"
+                +"    a[-1] = 0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null; \n"
+                +"  //@ requires a.length > 5; \n"
+                +"  //@ requires b.length > 5; \n"
+                +"  public void m4bad(int[] a, int[] b) {\n"
+                +"    a[1] = 5 ;\n"
+                +"    //@ assert b[1] ==5 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null; \n"
+                +"  //@ requires a.length > 5; \n"
+                +"  public void m1good(int[] a, int[] b) {\n"
+                +"    a[1] = 5;\n"
+                +"    //@ assume a == b ;\n"
+                +"    //@ assert b[1] ==5 ;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1bad",17
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m2bad",6
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m3bad",6
+                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assert) in method m4bad",9
+                );
+    }
+    
+    @Test
+    public void testFieldAssign() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                 
+                +"  int f; \n"
+                
+                +"  public void m1bad(TestJava o) {\n"
+                +"    o.f = 1 ;\n"
+                +"    //@ assert f > 0 ;\n"
+                +"  }\n"
+                
+                +"  public void m2bad(@Nullable TestJava o) {\n"
+                +"    o.f = 1 ;\n"
+                +"    //@ assert f > 0 ;\n"
+                +"  }\n"
+                
+                +"  public void m1good(TestJava o) {\n"
+                +"    o.f = 1 ;\n"
+                +"    //@ assume o == this ;\n"
+                +"    //@ assert f > 0 ;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2bad",6
+                );
+    }
+    
+    @Test
+    public void testPrecondition1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  \n"
+                +"  public void m1bad(int i) {\n"
+                +"    //@ assert i>0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i>=0;\n"
+                +"  public void m2bad(int i) {\n"
+                +"    //@ assert i>0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i>0;\n"
+                +"  public void m1good(int i) {\n"
+                +"    //@ assert i>0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i>0;\n"
+                +"  public void m2good(int i) {\n"
+                +"    //@ assert i>=0 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i>0;\n"
+                +"  //@ also\n"
+                +"  //@ requires i==0;\n"
+                +"  public void m3good(int i) {\n"
+                +"    //@ assert i>=0 ;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2bad",9
+                );
+    }
+    
+    @Test
+    public void testPrecondition2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires i>0;\n"
+                +"  //@ ensures false;\n"
+                +"  public void m1a(int i) {\n"
+                +"  }\n"
+                
+                +"  //@ requires i>0;\n"
+                +"  //@ requires i<0;\n"
+                +"  //@ ensures false;\n"  // FIXME - this should eventually warn about infeasible preconditions
+                +"  public void m1b(int i) {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m1a",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method m1b(int)",-15
+                );
+    }
+    
+//    @Test
 //    public void testPrecondition3() {
 //        helpTCX("tt.TestJava","package tt; \n"
 //                +"public class TestJava { \n"
@@ -141,7 +329,7 @@ public class escboogie extends EscBase {
 //                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",17
 //                );
 //    }
-//
+
 //    public void testPostcondition1() {
 //        helpTCX("tt.TestJava","package tt; \n"
 //                +"public class TestJava { \n"

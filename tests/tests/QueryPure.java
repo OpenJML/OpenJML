@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 public class QueryPure extends TCBase {
 
     @Override
@@ -9,6 +11,7 @@ public class QueryPure extends TCBase {
         super.setUp();
     }
     
+    @Test
     public void testClass1() {
         helpTCF("A.java",
                 "//@ pure\n" +  // OK
@@ -16,6 +19,7 @@ public class QueryPure extends TCBase {
         );
     }
     
+    @Test
     public void testClass2() {
         helpTCF("A.java",
                 "//@ query\n" +   // OK
@@ -23,6 +27,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testClass3() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -31,6 +36,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testClass4() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -39,6 +45,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testClass5() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -48,6 +55,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testClass6() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -57,6 +65,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testClass7() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -66,6 +75,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testClass8() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -75,6 +85,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testClass9() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -84,6 +95,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testMethod1() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -94,6 +106,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testMethod2() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -104,6 +117,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testMethod3() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -114,6 +128,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testMethod4() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -124,6 +139,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testMethod5() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -135,6 +151,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testMethod6() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -146,6 +163,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testMethod7() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -157,6 +175,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testMethod8() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -168,6 +187,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testMethod9() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -179,6 +199,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testCacheExample() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -193,6 +214,7 @@ public class QueryPure extends TCBase {
         );
     }
         
+    @Test
     public void testSimplerCacheExample() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -207,6 +229,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testAnotherCacheExample() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -220,6 +243,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testAnotherValidExample() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -233,6 +257,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testInvariant() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -247,6 +272,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testForwardRef() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -257,6 +283,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testCircular() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -268,6 +295,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery0() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -282,6 +310,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery1() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -297,6 +326,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery2() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -312,6 +342,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery3() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -327,6 +358,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery4() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -345,6 +377,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery5() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -362,6 +395,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery6() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -379,6 +413,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery7() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -401,6 +436,7 @@ public class QueryPure extends TCBase {
     
     // Note the difference between this test and the one below - here the attempt to resolve value on line 3 fails because it is 
     // processed before the datagroup 'value' is created
+    @Test
     public void testQuery8() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -420,6 +456,7 @@ public class QueryPure extends TCBase {
 
     // This test typechecks OK because the use of 'value' on line 3 is not resolved until after all Java declarations are
     // resolved - particularly value(), which will create the datagroup named value
+    @Test
     public void testQuery8b() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -437,6 +474,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery8OK() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -455,6 +493,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery8a() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -483,6 +522,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery9() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -499,6 +539,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery10() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -516,6 +557,7 @@ public class QueryPure extends TCBase {
         );
     }
 
+    @Test
     public void testQuery11() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +

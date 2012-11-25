@@ -1,22 +1,51 @@
 package tests;
 
+import java.util.ArrayList;
+import java.util.Collection;
 
-public class esc2 extends EscBase {
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-    protected void setUp() throws Exception {
+@RunWith(Parameterized.class)
+public class escall2 extends EscBase {
+
+    String option;
+    
+    public escall2(String option) {
+        this.option = option;
+    }
+    
+    @Parameters
+    static public  Collection<String[]> datax() {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        //data.add(new String[]{"-boogie"}); 
+        data.add(new String[]{"-newesc"}); 
+        data.add(new String[]{null}); 
+        //data.add(new String[]{"-rac"}); 
+        return data;
+    }
+
+
+    public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-noPurityCheck","");
         options.put("-nullableByDefault",""); // Because the tests were written this way
-//        options.put("-jmlverbose",   "");
-//        options.put("-showbb","");
+        //options.put("-jmlverbose",   "");
+        //options.put("-method",   "m2bad");
+        //options.put("-showbb",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
+        //options.put("-showce",   "");
         //options.put("-trace",   "");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
+        //print = true;
     }
-    
+
+    @Test
     public void testNNParam() {
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
@@ -60,6 +89,7 @@ public class esc2 extends EscBase {
         );
     }
 
+    @Test
     public void testNN2Param() {
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
@@ -103,6 +133,7 @@ public class esc2 extends EscBase {
         );
     }
 
+    @Test
     public void testNN3Param() {
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
@@ -145,6 +176,7 @@ public class esc2 extends EscBase {
         ,"/tt/TestJava.java:33: warning: Associated declaration",24
         );
     }
+    @Test
     public void testNN4Param() {
         options.put("-nullableByDefault",null);
         options.put("-nonnullByDefault","");
@@ -190,6 +222,7 @@ public class esc2 extends EscBase {
         );
     }
 
+    @Test
     public void testNN5Param() {
         options.put("-nullableByDefault",null);
         options.put("-nonnullByDefault","");
@@ -235,6 +268,7 @@ public class esc2 extends EscBase {
         );
     }
 
+    @Test
     public void testNN6Param() {
         options.put("-nullableByDefault",null);
         options.put("-nonnullByDefault","");
@@ -279,7 +313,8 @@ public class esc2 extends EscBase {
         ,"/tt/TestJava.java:33: warning: Associated declaration",24
         );
     }
-
+    
+    @Test
     public void testNNAssign() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -347,6 +382,7 @@ public class esc2 extends EscBase {
     }
     
 
+    @Test
     public void testNNAssign2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -418,6 +454,7 @@ public class esc2 extends EscBase {
     }
     
 
+    @Test
     public void testNNAssign3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -484,6 +521,7 @@ public class esc2 extends EscBase {
                 );
     }
     
+    @Test
     public void testNNAssignB() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -527,6 +565,7 @@ public class esc2 extends EscBase {
                 );
     }
         
+    @Test
     public void testNNAssignB1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -572,6 +611,7 @@ public class esc2 extends EscBase {
                 );
     }
     
+    @Test
     public void testNNAssignB2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -615,8 +655,8 @@ public class esc2 extends EscBase {
                 );
     }
     
+    @Test
     public void testDZero() {
-        //options.put("-showbb","");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -692,6 +732,276 @@ public class esc2 extends EscBase {
 //                );
 //    }
 
+    // FIXME @Test
+    public void testFieldAssign() {
+        // FIXME - need to figure out how to handle bad responses
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  int i; static int j;\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == 2; \n"
+                +"  public int m1bad(boolean b) {\n"
+                +"    i = 1;\n"
+                +"    if (b) i = 2;\n"
+                +"    return i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures b ==> \\result == 2; \n"
+                +"  public int m1good(boolean b) {\n"
+                +"    i = 1;\n"
+                +"    if (b) i = 2;\n"
+                +"    return i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == 10; \n"
+                +"  public int m2bad(boolean b) {\n"
+                +"    j = 1;\n"
+                +"    if (b) TestJava.j = TestJava.j + this.j + j;\n"
+                +"    if (b) tt.TestJava.j = TestJava.j + this.j + j;\n"
+                +"    if (b) this.j = j + 1;\n"
+                +"    return tt.TestJava.j;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures b ==> \\result == 10; \n"
+                +"  public int m2good(boolean b) {\n"
+                +"    j = 1;\n"
+                +"    if (b) TestJava.j = TestJava.j + this.j + j;\n"
+                +"    if (b) tt.TestJava.j = TestJava.j + this.j + j;\n"
+                +"    if (b) this.j = j + 1;\n"
+                +"    return tt.TestJava.j;\n"
+                +"  }\n"
+                
+                +"  //@ requires o != null; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == 1; \n"
+                +"  public int m3bad(TestJava o) {\n"
+                +"    o.i = 1;\n"
+                +"    i = 2;\n"
+                +"    return o.i;\n"
+                +"  }\n"
+                
+                +"  //@ requires this != o && o != null; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == 1; \n"
+                +"  public int m3good(TestJava o) {\n"
+                +"    o.i = 1;\n"
+                +"    i = 2;\n"
+                +"    return o.i;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java: error: A catastrophic JML internal error occurred.  Please report the bug with as much information as you can."+"\n"+
+                    "  Reason: (error \"Invalid token: [Array1]\")",-1
+                    ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                    ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                    ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+                    ,"/tt/TestJava.java:20: warning: Associated declaration",7
+                    ,"/tt/TestJava.java:43: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                    ,"/tt/TestJava.java:39: warning: Associated declaration",7
+                );
+    }
+    
+    // FIXME @Test
+    public void testArrayAssign() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  int i; static int j[];\n"
+                
+                +"  //@ requires a.length > 3; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  public int m0bada(int[] a) {\n"
+                +"    a[1] = 1;\n"
+                +"    return a[0];\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  public int m0badb(int[] a) {\n"
+                +"    a[1] = 1;\n"
+                +"    return a[0];\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null && a.length > 3; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == \\old(a[0]); \n"
+                +"  public int m0badc(int[] a) {\n"
+                +"    a[-1] = 1;\n"
+                +"    return a[0];\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null && a.length > 3; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == \\old(a[0]); \n"
+                +"  public int m1good(int[] a) {\n"
+                +"    a[1] = 1;\n"
+                +"    return a[0];\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null && a.length > 3 && i >= 0 && i <= 1; \n"
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures \\result == \\old(a[0]); \n"
+                +"  public int m1bad(int[] a, int i) {\n"
+                +"    a[i] = 1;\n"
+                +"    return a[0];\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m0bada",17
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m0badb",10
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m0badc",11
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:33: warning: Associated declaration",7
+                );
+    }
+    
+    // FIXME @Test
+    public void testInvariant1() {
+        //options.put("-showbb","");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  static int ii;\n"
+                +"  int i;\n"
+                
+                +"  //@ invariant i >= 0;\n"
+                +"  //@ static invariant ii >= 0;\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m1bad() {\n"
+                +"    i = -i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m2bad() {\n"
+                +"    ii = -ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  static public void m3bad() {\n"
+                +"    ii = -ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m1good() {\n"
+                +"    ++i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m2good() {\n"
+                +"    ++ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  static public void m3good() {\n"
+                +"    ++ii;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Invariant) in method m1bad",15
+                ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Invariant) in method m2bad",15
+                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Invariant) in method m3bad",22
+                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                );
+    }
+    
+    // FIXME @Test
+    public void testConstraint1() {
+        //options.put("-showbb","");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  static int ii;\n"
+                +"  int i;\n"
+                
+                +"  //@ constraint i >= \\old(i);\n"
+                +"  //@ static constraint ii >= \\old(ii);\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m1bad() {\n"
+                +"    i = -i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m2bad() {\n"
+                +"    ii = -ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  static public void m3bad() {\n"
+                +"    ii = -ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m1good() {\n"
+                +"    ++i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  public void m2good() {\n"
+                +"    ++ii;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  static public void m3good() {\n"
+                +"    ++ii;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Constraint) in method m1bad",15
+                ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Constraint) in method m2bad",15
+                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Constraint) in method m3bad",22
+                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                );
+    }
+    
+    // FIXME @Test
+    public void testAxiom1() {
+        //options.put("-showbb","");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+// FIXME - use this               // +"  //@ axiom (\\forall TestJava o; o.i == o.ii);\n"
+                +"  //@ axiom i == ii;\n"
+                +"  static int ii;\n"
+                +"  int i;\n"
+                
+               
+                +"  //@ assignable \\everything; \n"
+                +"  public void m1good() {\n"
+                +"    //@ assert i == ii;\n"
+                +"  }\n"
+                
+                
+//                +"  //@ assignable \\everything; \n"
+//                +"  static public void m3good() {\n"
+//                +"    ++ii;\n"
+//                +"  }\n"
+                
+                
+                +"}"
+                );
+    }
+    
+    @Test
     public void testArrayAccess() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -713,6 +1023,7 @@ public class esc2 extends EscBase {
                 );
     }
    
+    @Test
     public void testAssignable() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

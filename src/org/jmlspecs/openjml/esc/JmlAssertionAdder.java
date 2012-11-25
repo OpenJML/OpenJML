@@ -2171,7 +2171,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!fa.sym.isStatic()) {
                 JCExpression obj = scanret(fa.selected);
                 JCExpression e = treeutils.makeNeqObject(obj.pos, obj, treeutils.nulllit);
-                addAssert(that.pos, Label.POSSIBLY_NULL, e, currentStatements);
+                addAssert(that.lhs.getPreferredPosition(), Label.POSSIBLY_NULL, e, currentStatements);
                 newfa = treeutils.makeSelect(that.pos, obj, fa.sym);
             } else {
                 // We must evaluate the fa.lhs if it is an expression and not a type; null does not matter
@@ -2197,19 +2197,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             eresult = newfa;
                
         } else if (that.lhs instanceof JCArrayAccess) {
+            // that.lhs.getPreferredPosition() is the position of the [ in 
+            // the array access expression
             JCArrayAccess aa = (JCArrayAccess)(that.lhs);
             JCExpression array = scanret(aa.indexed);
             JCExpression e = treeutils.makeNeqObject(array.pos, array, treeutils.nulllit);
-            addAssert(that.pos, Label.POSSIBLY_NULL, e, currentStatements);
+            addAssert(that.lhs.getPreferredPosition(), Label.POSSIBLY_NULL, e, currentStatements);
 
             JCExpression index = scanret(aa.index);
             e = treeutils.makeBinary(index.pos, JCTree.GE, index, treeutils.zero);
-            addAssert(that.pos, Label.POSSIBLY_NEGATIVEINDEX, e, currentStatements);
+            addAssert(that.lhs.getPreferredPosition(), Label.POSSIBLY_NEGATIVEINDEX, e, currentStatements);
             JCFieldAccess newfa = M.at(array.pos).Select(array, syms.lengthVar.name);
             newfa.type = syms.intType;
             newfa.sym = syms.lengthVar;
             e = treeutils.makeBinary(index.pos, JCTree.LT, index, newfa);
-            addAssert(that.pos, Label.POSSIBLY_TOOLARGEINDEX, e, currentStatements);
+            addAssert(that.lhs.getPreferredPosition(), Label.POSSIBLY_TOOLARGEINDEX, e, currentStatements);
             
             JCExpression rhs = scanret(that.rhs);
             JCArrayAccess lhs = new JmlBBArrayAccess(null,array,index);
@@ -3536,20 +3538,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression nonnull = treeutils.makeBinary(that.indexed.pos, JCTree.NE, indexed, 
                     treeutils.nulllit);
             nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
-            addAssert(that.pos,Label.UNDEFINED_NULL,nonnull,currentStatements);
+            addAssert(that.getPreferredPosition(),Label.UNDEFINED_NULL,nonnull,currentStatements);
 
             scan(that.index);
             JCExpression index = ejmlresult;
             JCExpression compare = treeutils.makeBinary(that.index.pos, JCTree.LE, treeutils.zero, 
                     index);
             compare = treeutils.makeImplies(that.pos, condition, compare);
-            addAssert(that.pos,Label.UNDEFINED_NEGATIVEINDEX,compare,currentStatements);
+            addAssert(that.getPreferredPosition(),Label.UNDEFINED_NEGATIVEINDEX,compare,currentStatements);
             
             JCExpression length = treeutils.makeLength(that.indexed.pos,indexed);
             compare = treeutils.makeBinary(that.pos, JCTree.LT, index, 
                     length);
             compare = treeutils.makeImplies(that.pos, condition, compare);
-            addAssert(that.pos,Label.UNDEFINED_TOOLARGEINDEX,compare,currentStatements);
+            addAssert(that.getPreferredPosition(),Label.UNDEFINED_TOOLARGEINDEX,compare,currentStatements);
 
             //JCArrayAccess aa = M.at(that.pos).Indexed(indexed,index);
             JmlBBArrayAccess aa = new JmlBBArrayAccess(null,indexed,index); // FIXME - switch to factory

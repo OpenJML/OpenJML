@@ -32,7 +32,7 @@ public abstract class TCBase extends JmlTestCase {
     int expectedExit = -1;
     boolean useSystemSpecs = false;
 
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         testspecpath = testspecpath1;
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
@@ -49,7 +49,7 @@ public abstract class TCBase extends JmlTestCase {
         print = false;
     }
     
-    protected void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         super.tearDown();
         specs = null;
     }

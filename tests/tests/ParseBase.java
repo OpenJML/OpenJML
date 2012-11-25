@@ -42,7 +42,7 @@ abstract public class ParseBase extends JmlTestCase {
      */
     boolean jml;
 
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         options.put("compilePolicy","check");  // Don't do code generation
         options.put("-specspath",   testspecpath);
@@ -56,7 +56,7 @@ abstract public class ParseBase extends JmlTestCase {
         jml = false;
     }
 
-    protected void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         super.tearDown();
         fac = null;
         sfac = null;

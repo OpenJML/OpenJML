@@ -4,7 +4,7 @@ import org.junit.*;
 public class modifiers extends TCBase {
 
     @Before
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
       //noCollectDiagnostics = true;
       //jmldebug = true;
       super.setUp();
