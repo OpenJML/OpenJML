@@ -8,7 +8,7 @@ package tests;
  */
 public class esclocation extends EscBase {
 
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-noPurityCheck","");

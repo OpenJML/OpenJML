@@ -15,7 +15,7 @@ public class racnew extends RacBase {
      */
     String[] ordrac = new String[]{jdk, "-ea", "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
 
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         rac = ordrac;
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;

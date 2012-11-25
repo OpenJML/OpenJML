@@ -49,7 +49,7 @@ import org.jmlspecs.openjml.provers.AbstractProver;
 import org.jmlspecs.openjml.provers.CVC3Prover;
 import org.jmlspecs.openjml.provers.SimplifyProver;
 import org.jmlspecs.openjml.provers.YicesProver;
-import org.jmlspecs.openjml.utils.ExecProcess;
+import org.jmlspecs.openjml.utils.ExternalProcess;
 import org.smtlib.ICommand;
 import org.smtlib.IResponse;
 import org.smtlib.IResponse.IError;
@@ -388,6 +388,7 @@ public class JmlEsc extends JmlTreeScanner {
 
         JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true);
         JCBlock newblock = assertionAdder.convertMethodBody(decl,currentClassDecl);
+        log.noticeWriter.println(JmlPretty.write(newblock));
         
         BoogieProgram program = new Boogier(context).convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl, assertionAdder);
         String filename = "boogie_" + decl.getName() + ".bpl";
@@ -403,8 +404,15 @@ public class JmlEsc extends JmlTreeScanner {
             System.out.println("Could not write boogie output file");
             return false;
         }
-        
-        ExecProcess p = new ExecProcess(context,null,"F:/NaumannProject/Boogie/boogie.exe","/nologo","/proverWarnings:1","/coalesceBlocks:0", filename);
+        log.noticeWriter.println(programString);
+
+        ExternalProcess p = new ExternalProcess(context,null,
+                "F:/NaumannProject/Boogie/boogie.exe",
+                "/nologo",
+                "/proverWarnings:1",
+                "/coalesceBlocks:0",
+                "/removeEmptyBlocks:0",
+                filename);
         try {
             p.start();
             int exitVal = p.readToCompletion();
@@ -421,20 +429,47 @@ public class JmlEsc extends JmlTreeScanner {
                 kk = 1 + programString.indexOf("\"",programString.indexOf(":reason",k));
                 int kkk = programString.indexOf('"',kk);
                 String reason = programString.substring(kk,kkk);
-                kk = 5 + programString.indexOf(":pos",k);
+                kk = 4 + programString.indexOf(":id",k);
                 kkk = programString.indexOf('}',kk);
-                int pos = Integer.parseInt(programString.substring(kk,kkk));
+                String id = programString.substring(kk,kkk);
+                JmlStatementExpr assertStat = program.assertMap.get(id);
                 Label label = Label.find(reason);
-                
-                log.warning(pos,"esc.assertion.invalid",
-                        label == null ? Label.EXPLICIT_ASSERT : label,
-                        decl.getName() ,"");
-
+                // FIXME - defensive chjeck assertStat not null
+                kk = out.indexOf("_return"); // FIXME - use defined String
+                if (kk >= 0) {
+                    kkk = out.lastIndexOf("BL_",kk) + "BL_".length(); // FIXME - use defined String
+                    try {
+                        terminationPos = Integer.parseInt(out.substring(kkk,kk));
+                    } catch (NumberFormatException e) {
+                        System.out.println("NO RETURN FOUND");
+                        // continue
+                    }
+                }
+                if (terminationPos == 0) terminationPos = decl.pos;
+                JavaFileObject prev = null;
+                int pos = assertStat.pos;
+                if (pos == Position.NOPOS) pos = terminationPos;
+                if (assertStat.source != null) prev = log.useSource(assertStat.source);
+                String extra = "";
+                JCExpression optional = assertStat.optionalExpression;
+                if (optional != null) {
+                    if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString();
+                }
+                log.warning(pos,"esc.assertion.invalid",label,decl.getName(),extra);
+                // TODO - above we include the optionalExpression as part of the error message
+                // however, it is an expression, and not evaluated for ESC. Even if it is
+                // a literal string, it is printed with quotes around it.
+                if (prev != null) log.useSource(prev);
+                if (assertStat.declPos != Position.NOPOS) {
+                    if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
+                    log.warning(assertStat.declPos, "jml.associated.decl");
+                    if (assertStat.associatedSource != null) log.useSource(prev);
+                }
                 return false;
             } else if (out.contains(" 0 errors")) {
                 return true;
             } else {
-                System.out.println("Unknown result");
+                log.error(0,"jml.internal","Unknown result returned from prover"); // FIXME - use a different message
             }
         } catch (Exception e) {
             System.out.println("EXCEPTION: " + e);

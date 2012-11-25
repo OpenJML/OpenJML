@@ -8,7 +8,7 @@ import org.jmlspecs.openjml.esc.JmlEsc;
  */
 public class escgeneric extends EscBase {
 
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         //print = true;
         //noCollectDiagnostics = true;
         super.setUp();

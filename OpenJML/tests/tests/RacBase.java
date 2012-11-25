@@ -60,7 +60,7 @@ public abstract class RacBase extends JmlTestCase {
      * <BR>expectedRacExit - the expected exit code from running the RACed program
      * <BR>expectedErrors - the expected number of errors from openjml (typically and by default 0)
      */
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         //System.out.println("Using " + jdk);
         
         // Use the default specs path for tests
@@ -93,7 +93,7 @@ public abstract class RacBase extends JmlTestCase {
         print = false;
     }
     
-    protected void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         super.tearDown();
         specs = null;
     }

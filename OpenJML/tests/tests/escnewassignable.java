@@ -10,7 +10,7 @@ public class escnewassignable extends EscBase {
     // a[i] a[i..j] a[*] a[i..*] a[*..j] a[*..*]
     // \everything \nothing \not_specified
     
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-newesc","");

@@ -10,7 +10,7 @@ import com.sun.tools.javac.util.Options;
  */
 public class escnowarn extends EscBase {
 
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-noPurityCheck","");

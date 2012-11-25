@@ -30,6 +30,7 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.esc.BasicBlockProgram.BlockParent;
 import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
 
 import com.sun.tools.javac.code.Flags;
@@ -148,7 +149,7 @@ import com.sun.tools.javac.util.Position;
  * 
  * @author David Cok
  */
-public class Boogier extends BasicBlockerP {
+public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgram> {
 
     /////// To have a unique BoogieBlocker2 instance for each method translated
     // In the initialization of tools, call  BoogieBlocker2.Factory.preRegister(context);
@@ -339,6 +340,23 @@ public class Boogier extends BasicBlockerP {
         
     }
     
+    @Override
+    protected BoogieProgram newProgram(Context context) {
+        return new BoogieProgram(context);
+    }
+    
+
+    
+    @Override
+    protected BoogieBlock newBlock(JCIdent id){
+        return new BoogieProgram.BoogieBlock(id);
+    }
+    
+    @Override
+    protected BoogieBlock newBlock(JCIdent id, BoogieBlock b){
+        return new BoogieProgram.BoogieBlock(id, b);
+    }
+    
     
     // METHODS
 
@@ -366,7 +384,7 @@ public class Boogier extends BasicBlockerP {
         return treeutils.trType(pos,type);
     }
     
-
+    Set<Symbol> isDefined = new HashSet<Symbol>();
     
     // FIXME - review
     /** Creates name for a symbol unique to its declaration
@@ -1524,39 +1542,41 @@ public class Boogier extends BasicBlockerP {
             that.name = getCurrentName((Symbol.VarSymbol)that.sym);
             JCIdent id = treeutils.makeIdent(that.pos,that.sym);
             id.name = that.name;
-//            if (isDefined.add(that.name)) {
+            if (isDefined.add(that.sym)) {
 //                System.out.println("AddedF " + that.sym + " " + that.name);
                 program.declarations.add(id);
-//            }
+            }
             result = id;
             
         } else {
             that.name = getCurrentName((Symbol.VarSymbol)that.sym);
-//            if (isDefined.add(that.name)) {
+            scan(that.selected);
+            if (isDefined.add(that.sym)) {
 //                System.out.println("AddedF " + that.sym + " " + that.name);
                 JCIdent id = treeutils.makeIdent(that.pos,that.sym);
                 id.name = that.name;
                 program.declarations.add(id);
-//            }
+            }
             result = that;
         }
     }
     
     public void visitIndexed(JCArrayAccess that) {
         scan(that.indexed);
-        JCExpression indexed = result;
         scan(that.index);
-        JCExpression index = result;
-        JCIdent arr = getArrayIdent(that.type);
-        if (that instanceof JmlBBArrayAccess) {
-            that.indexed = indexed;
-            that.index = index;
-            ((JmlBBArrayAccess)that).arraysId = arr;
-            result = that;
-        } else {
-            log.warning(that,"jml.internal","Did not expect a JCArrayAccess node in BoogieBlocker2.visitIndexed");
-            result = new JmlBBArrayAccess(arr,indexed,index); // FIXME -= factory
-        }
+        result = that;
+        
+//        JCIdent arr = getArrayIdent(that.type);
+//        
+//        if (that instanceof JmlBBArrayAccess) {
+//            that.indexed = indexed;
+//            that.index = index;
+//            ((JmlBBArrayAccess)that).arraysId = arr;
+//            result = that;
+//        } else {
+//            log.warning(that,"jml.internal","Did not expect a JCArrayAccess node in BoogieBlocker2.visitIndexed");
+//            result = new JmlBBArrayAccess(arr,indexed,index); // FIXME -= factory
+//        }
     }
 
 
@@ -1574,67 +1594,72 @@ public class Boogier extends BasicBlockerP {
     // FIXME - embedded assignments to array elements are not implemented; no warning either
     // FIXME - is all implicit casting handled
     // Note that the left and right expressions are translated.
-    protected JCExpression doAssignment(Type restype, JCExpression left, JCExpression right, int pos, JCExpression statement) {
-        if (left instanceof JCIdent) {
-            JCIdent id = (JCIdent)left;
-            JCIdent newid = id;
-            currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
-            JCBinary expr = treeutils.makeEquality(pos,newid,right);
-            copyEndPosition(expr,right);
-            addAssume(TreeInfo.getStartPos(statement),Label.ASSIGNMENT,expr);
-            return newid;
-        } else if (left instanceof JCArrayAccess) {
-//            JCIdent arr = getArrayIdent(right.type);
-//            JCExpression ex = ((JCArrayAccess)left).indexed;
-//            JCExpression index = ((JCArrayAccess)left).index;
-//            JCIdent nid = newArrayIncarnation(right.type,left.pos);
-//            
-//            //JCExpression rhs = makeStore(ex,index,right);
-//            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,((JCArrayAccess)left).index,right);
-//            expr.pos = pos;
-//            expr.type = restype;
-//
-//            // FIXME - set line and source
-////            JCBinary bin = treeutils.makeEquality(Position.NOPOS,nid,expr);
-////            copyEndPosition(bin,expr);
-//            addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,currentBlock.statements);
-//            //newIdentIncarnation(heapVar,pos);
-            return right;
-        } else if (left instanceof JCFieldAccess) {
-            VarSymbol sym = (VarSymbol)selectorSym(left);
-            if (sym.isStatic()) {
-                JCIdent id = treeutils.makeIdent(left.pos,sym);
-                JCIdent newid = id;
-                currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
-                JCBinary expr = treeutils.makeEquality(pos,newid,right);
-                copyEndPosition(expr,right);
-                addAssume(TreeInfo.getStartPos(statement),Label.ASSIGNMENT,expr);
-                return newid;
-            } else {
-                JCFieldAccess fa = (JCFieldAccess)left;
-                JCIdent oldfield = treeutils.makeIdent(pos,(VarSymbol)fa.sym);
-//                if (isDefined.add(oldfield.name)) {
-//                    System.out.println("AddedFF " + oldfield.sym + " " + oldfield.name);
+    protected JCExpression doAssignment(Type restype, JCExpression left, JCExpression right, int pos, JCExpression assignExpr) {
+        scan(left);
+        scan(right);
+        currentBlock.statements.add(treeutils.makeAssignStat(pos,left,right));
+        return assignExpr;
+//        if (left instanceof JCIdent) {
+////            JCIdent id = (JCIdent)left;
+////            JCIdent newid = id;
+////            currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
+////            JCBinary expr = treeutils.makeEquality(pos,newid,right);
+////            copyEndPosition(expr,right);
+////            addAssume(TreeInfo.getStartPos(statement),Label.ASSIGNMENT,expr);
+//            currentBlock.statements.add(treeutils.makeAssignStat(pos,left,right));
+//            return assignExpr;
+//        } else if (left instanceof JCArrayAccess) {
+////            JCIdent arr = getArrayIdent(right.type);
+////            JCExpression ex = ((JCArrayAccess)left).indexed;
+////            JCExpression index = ((JCArrayAccess)left).index;
+////            JCIdent nid = newArrayIncarnation(right.type,left.pos);
+////            
+////            //JCExpression rhs = makeStore(ex,index,right);
+////            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,((JCArrayAccess)left).index,right);
+////            expr.pos = pos;
+////            expr.type = restype;
+////
+////            // FIXME - set line and source
+//////            JCBinary bin = treeutils.makeEquality(Position.NOPOS,nid,expr);
+//////            copyEndPosition(bin,expr);
+////            addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,currentBlock.statements);
+////            //newIdentIncarnation(heapVar,pos);
+//            return right;
+//        } else if (left instanceof JCFieldAccess) {
+//            VarSymbol sym = (VarSymbol)selectorSym(left);
+//            if (sym.isStatic()) {
+//                JCIdent id = treeutils.makeIdent(left.pos,sym);
+//                JCIdent newid = id;
+//                currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
+//                JCBinary expr = treeutils.makeEquality(pos,newid,right);
+//                copyEndPosition(expr,right);
+//                addAssume(TreeInfo.getStartPos(assignExpr),Label.ASSIGNMENT,expr);
+//                return newid;
+//            } else {
+//                JCFieldAccess fa = (JCFieldAccess)left;
+//                JCIdent oldfield = treeutils.makeIdent(pos,(VarSymbol)fa.sym);
+//                if (isDefined.add(fa.sym)) {
+////                    System.out.println("AddedFF " + oldfield.sym + " " + oldfield.name);
 //                    program.declarations.add(oldfield);
 //                }
-                JCIdent newfield = oldfield;
-//                if (isDefined.add(newfield.name)) {
-//                    System.out.println("AddedFF " + newfield.sym + " " + newfield.name);
-//                    program.declarations.add(newfield);
-//                }
-                JCExpression expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,right);
-                expr.pos = pos;
-                expr.type = restype;
-
-                // FIXME - set line and source
-                addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,currentBlock.statements);
-//                newIdentIncarnation(heapVar,pos);
-            }
-            return left;
-        } else {
-            log.error("jml.internal","Unexpected case in BoogieBlocker.doAssignment: " + left.getClass() + " " + left);
-            return null;
-        }
+//                JCIdent newfield = oldfield;
+////                if (isDefined.add(newfield.name)) {
+////                    System.out.println("AddedFF " + newfield.sym + " " + newfield.name);
+////                    program.declarations.add(newfield);
+////                }
+//                JCExpression expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,right);
+//                expr.pos = pos;
+//                expr.type = restype;
+//
+//                // FIXME - set line and source
+////                addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,currentBlock.statements);
+////                newIdentIncarnation(heapVar,pos);
+//            }
+//            return left;
+//        } else {
+//            log.error("jml.internal","Unexpected case in BoogieBlocker.doAssignment: " + left.getClass() + " " + left);
+//            return null;
+//        }
     }
     
     protected Symbol selectorSym(JCTree tree) {
@@ -2234,7 +2259,7 @@ public class Boogier extends BasicBlockerP {
                 JmlToken token = c.token;
                 if (token == JmlToken.INVARIANT) {
                     JmlTypeClauseExpr copy = (JmlTypeClauseExpr)c.clone();
-                    copy.expression = treetrans.translate(copy.expression);
+                    //copy.expression = treetrans.translate(copy.expression);
                     if (isStatic) classInfo.staticinvariants.add(copy);
                     else          classInfo.invariants.add(copy);
                 } else if (token == JmlToken.REPRESENTS) {
@@ -2247,7 +2272,7 @@ public class Boogier extends BasicBlockerP {
                     classInfo.initiallys.add((JmlTypeClauseExpr)c);
                 } else if (token == JmlToken.AXIOM) {
                     JmlTypeClauseExpr copy = (JmlTypeClauseExpr)c.clone();
-                    copy.expression = treetrans.translate(copy.expression);
+                    //copy.expression = treetrans.translate(copy.expression);
                     classInfo.axioms.add(copy);
                 } else {
                     log.warning("esc.not.implemented","JmlEsc does not yet implement (and ignores) " + token.internedName());

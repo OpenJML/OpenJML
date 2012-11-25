@@ -38,18 +38,13 @@ import com.sun.tools.javac.util.Context;
  */
 // Note: everything declared protected is intended for use just in this class
 // and any future derived classes - not in the containing package
-abstract public class BasicBlockProgram<T extends BasicBlockProgram.BlockParent<?>> {
+abstract public class BasicBlockProgram<T extends BasicBlockProgram.BlockParent<?>> extends BasicBlockProgramBase {
     
     public BasicBlockProgram(Context context) {
-        syms = Symtab.instance(context);
+        super(context);
         blocks = new ArrayList<T>();
     }
 
-    @NonNull final public Symtab syms;
-    
-    /** The method declaration generating this program */
-    protected JCMethodDecl methodDecl;
-    
     /** Factory method to create a new block. */
     abstract protected BlockParent<T> newBlock(JCIdent id);
     
@@ -62,18 +57,6 @@ abstract public class BasicBlockProgram<T extends BasicBlockProgram.BlockParent<
      */
     @Pure @NonNull
     public List<T> blocks() { return blocks; }
-    
-    /** Writes out the BasicProgram to the given Writer (e.g. log.noticeWriter) for diagnostics */
-    abstract public void write(Writer w);
-    
-    /** Writes the BasicProgram to a string with the given initial string */
-    abstract public String write(String header);
-
-    /** Writes the program to a String, returning it. */
-    @Override
-    public String toString() {
-        return write("");
-    }
     
     static public class BlockParent<T> {
         /** The identifier of the block */

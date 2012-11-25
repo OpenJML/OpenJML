@@ -131,7 +131,7 @@ public class SpecsBase extends TCBase {
 
 
     
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         useSystemSpecs = true;
         super.setUp();
         // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)

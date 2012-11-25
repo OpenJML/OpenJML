@@ -11,6 +11,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.junit.Test;
 
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlParser;
@@ -34,7 +35,7 @@ import com.sun.tools.javac.util.Log;
  */
 public class expressions extends ParseBase {
 
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
         jml = true;
@@ -131,6 +132,7 @@ public class expressions extends ParseBase {
 
 
     /** Test scanning something very simple */
+    @Test
     public void testSomeJava() {
         jml = false;
         helpExpr("a",
@@ -140,6 +142,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning Java binary expression to check node positions */
+    @Test
     public void testBinary() {
         jml = false;
         helpExpr("aa+bbb",
@@ -149,6 +152,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning Java binary expression to check node positions */
+    @Test
     public void testJCBinary() {
         jml = false;
         helpExpr("a+b*c",
@@ -168,6 +172,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning JML equivalence expression */
+    @Test
     public void testJMLBinary1() {
         helpExpr("a <==> b",
                 JmlBinary.class, 2,
@@ -176,6 +181,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning JML inequivalence expression */
+    @Test
     public void testJMLBinary2() {
         helpExpr("a <=!=>b",
                 JmlBinary.class, 0,2,8,
@@ -184,6 +190,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning JML implies expression */
+    @Test
     public void testJMLBinary3() {
         helpExpr("a ==>  b",
                 JmlBinary.class, 0,2,8,
@@ -192,6 +199,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning JML reverse implies expression */
+    @Test
     public void testJMLBinary4() {
         helpExpr("a <==  b",
                 JmlBinary.class, 0,2,8,
@@ -200,6 +208,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test JML left association for <==> */
+    @Test
     public void testJMLprecedence() {
         helpExpr("a <==> b <==> c <==> d",
                 JmlBinary.class, 0,16,22,
@@ -212,6 +221,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test JML right association for ==> */
+    @Test
     public void testJMLprecedence1() {
         helpExpr("a ==>  b ==>  c ==>  d",
                 JmlBinary.class, 0,2,22,
@@ -224,6 +234,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test JML left association for <== */
+    @Test
     public void testJMLprecedence1a() {
         helpExpr("a <==  b <==  c <==  d",
                 JmlBinary.class, 16,
@@ -236,6 +247,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test precedence between equiv and implies operators */
+    @Test
     public void testJMLprecedence2() {
         helpExpr("a ==>  b <==> c ==>  d",
                 JmlBinary.class, 9,
@@ -248,6 +260,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test association of equiv operators */
+    @Test
     public void testJMLprecedence2a() {
         helpExpr("a <==> b <==> c <==> d",
                 JmlBinary.class, 16,
@@ -260,6 +273,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test precedence between equivalence and Java operators */
+    @Test
     public void testJMLprecedence3() {
         helpExpr("a +    b <==> c ||   d",
                 JmlBinary.class, 9,
@@ -272,6 +286,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test precedence between implies and Java operators */
+    @Test
     public void testJMLprecedence4() {
         helpExpr("a +    b ==>  c ||   d",
                 JmlBinary.class, 9,
@@ -284,6 +299,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test precedence between equivalence and assignment, ternary operators */
+    @Test
     public void testJMLprecedence5() {
         helpExpr("a = b<==>bb ? c<=!=>cc : d<==>dd",
                 JCAssign.class, 2,
@@ -301,6 +317,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test precedence between lock and other operators */
+    @Test
     public void testJMLprecedence6() {
         helpExpr("a << b <# c == d",
                 JCBinary.class, 12,
@@ -314,6 +331,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test precedence between lock and other operators */
+    @Test
     public void testJMLprecedence7() {
         helpExpr("a == b <#=c << d",
                 JCBinary.class, 2,
@@ -327,6 +345,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test associativity of lock operators */
+    @Test
     public void testJMLprecedence8() {
         helpExpr("a <# b <#=c <# d",
                 JmlBinary.class, 12,
@@ -340,6 +359,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test precedence between lock and equivalence */
+    @Test
     public void testJMLprecedence9() {
         helpExpr("a <==> b <#=c <==> d",
                 JmlBinary.class, 14,
@@ -353,6 +373,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning \result expression */
+    @Test
     public void testResult() {
         helpExpr(" \\result + \\result",
                 JCBinary.class, 9,
@@ -361,6 +382,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning \old expression */
+    @Test
     public void testOld() {
         helpExpr(" \\old(a+b)",
                 JmlMethodInvocation.class, 5,
@@ -370,6 +392,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning \elemtype expression */
+    @Test
     public void testElemtype() {
         helpExpr(" \\elemtype(a+b)",
                 JmlMethodInvocation.class, 10,
@@ -379,6 +402,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning \nonnullelements expression */
+    @Test
     public void testNonnullelements() {
         helpExpr(" \\nonnullelements(a+b)",
                 JmlMethodInvocation.class, 17,
@@ -388,6 +412,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning \typeof expression */
+    @Test
     public void testTypeofA() {
         helpExpr(" \\typeof(a+b)",
                 JmlMethodInvocation.class, 8,
@@ -397,6 +422,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning \max(\lockset) expression */
+    @Test
     public void testMaxLockset() {
         helpExpr(" \\max(\\lockset)",
                 JmlMethodInvocation.class, 5,
@@ -404,11 +430,13 @@ public class expressions extends ParseBase {
     }
 
     /** Test scanning \max(\lockset) expression */
+    @Test
     public void testMaxLocksetError2() {
         helpExprErrors(" \\max","/TEST.java:1: reached end of file while parsing");
     }
 
     /** Test precedence of <= operator */
+    @Test
     public void testCompare() {
         helpExpr(" a == b <= c",
                 JCBinary.class, 1,3,12,
@@ -419,6 +447,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test precedence of <= operator */
+    @Test
     public void testCompare2() {
         helpExpr(" a <= b == c",
                 JCBinary.class, 1,8,12,
@@ -428,6 +457,7 @@ public class expressions extends ParseBase {
                   JCIdent.class ,11,11,12);
     }
     /** Test precedence of <: operator */
+    @Test
     public void testSubTypeof() {
         helpExpr(" a == b <: c",
                 JCBinary.class, 1,3,12,
@@ -438,6 +468,7 @@ public class expressions extends ParseBase {
     }
 
     /** Test precedence of <: operator */
+    @Test
     public void testSubTypeof2() {
         helpExpr(" a <: b == c",
                 JCBinary.class, 1,8,12,
@@ -448,9 +479,10 @@ public class expressions extends ParseBase {
     }
     
     /** Test precedence of <: operator */
+    @Test
     public void testSubTypeof3() {
         helpExpr(" a <: b << c",
-                JmlBinary.class, 3, // FIXME - Bug in parser, should be 3
+                JmlBinary.class, 3,
                 JCIdent.class, 1,
                 JCBinary.class, 8,
                 JCIdent.class ,6,
@@ -458,6 +490,7 @@ public class expressions extends ParseBase {
     }
     
     /** Test precedence of <: operator */
+    @Test
     public void testSubTypeof4() {
         helpExpr(" a << b <: c",
                 JmlBinary.class, 8,
@@ -467,6 +500,7 @@ public class expressions extends ParseBase {
                 JCIdent.class ,11);
     }
     
+    @Test
     public void testQuantifier() {
         helpExpr(" \\exists  int i; 0 <= i; i < 0  ",
                 JmlQuantifiedExpr.class,1,
@@ -481,6 +515,7 @@ public class expressions extends ParseBase {
                 JCLiteral.class ,29);
     }
 
+    @Test
     public void testQuantifier2() {
         helpExpr("(\\forall  int i; 0 <= i; i < 0 ) ",
                 JCParens.class, 0,
@@ -496,6 +531,7 @@ public class expressions extends ParseBase {
                 JCLiteral.class ,29);
     }
 
+    @Test
     public void testQuantifier3() {
         helpExpr("(\\sum     int i; 0 <= i; i + 1 ) ",
                 JCParens.class, 0,
@@ -511,6 +547,7 @@ public class expressions extends ParseBase {
                 JCLiteral.class ,29);
     }
 
+    @Test
     public void testQuantifier4() {
         helpExpr("(\\product int i; ; i + 1 ) ",
                 JCParens.class, 0,
@@ -523,6 +560,7 @@ public class expressions extends ParseBase {
                 JCLiteral.class ,23);
     }
 
+    @Test
     public void testQuantifier5() {
         helpExpr("(\\min     int i;   i + 1 ) ",
                 JCParens.class, 0,
@@ -535,6 +573,7 @@ public class expressions extends ParseBase {
                 JCLiteral.class ,23);
     }
 
+    @Test
     public void testQuantifier6() {
         helpExpr("(\\max     int i;   i + 1 ) ",
                 JCParens.class, 0,
@@ -547,7 +586,6 @@ public class expressions extends ParseBase {
                 JCLiteral.class ,23);
     }
 
-    // Just a framework used for debugging and new tests
 //    public void testMisc() {
 //        print = true;
 //        helpExpr("(\\result==j) ==> \\typeof(o) <: \\type(oo) ",
