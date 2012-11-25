@@ -26,6 +26,7 @@ public abstract class EscBase extends JmlTestCase {
     boolean noAssociatedDeclaration;
     String[] args;
 
+    @Override
     public void setUp() throws Exception {
         testspecpath = testspecpath1;
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
@@ -55,6 +56,7 @@ public abstract class EscBase extends JmlTestCase {
         }
     }
 
+    @Override
     public void tearDown() throws Exception {
         super.tearDown();
         specs = null;

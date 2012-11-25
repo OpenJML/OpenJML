@@ -1,6 +1,7 @@
 package tests;
 
 import org.jmlspecs.openjml.JmlOption;
+import org.junit.Test;
 
 // FIXME - needs documentation and more tests
 public class arith extends TCBase {
@@ -15,6 +16,7 @@ public class arith extends TCBase {
     }
     
     /** See the FIXME in BigInteger.spec */
+    @Test
     public void testSomeJava() {
         options.put("-specspath",   testspecpath);
         JmlOption.putOption(context,JmlOption.NOPURITYCHECK);

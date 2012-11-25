@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 
 
 /** Tests emitting counterexample information and tracing, though the text
@@ -23,6 +25,7 @@ public class counterexamples extends EscBase {
     }
     
     /** Tests an explicit assertion */
+    @Test
     public void testCE1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -37,6 +40,7 @@ public class counterexamples extends EscBase {
     }
     
     /** Tests a postcondition */
+    @Test
     public void testCE2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -53,6 +57,7 @@ public class counterexamples extends EscBase {
     }
     
     /** Tests a called precondition and method and constructor arguments */
+    @Test
     public void testCE3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -73,6 +78,7 @@ public class counterexamples extends EscBase {
     }
     
     /** Tests assignments */
+    @Test
     public void testCE4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -101,6 +107,7 @@ public class counterexamples extends EscBase {
     }
     
     /** Tests if statements */
+    @Test
     public void testCE5() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -124,6 +131,7 @@ public class counterexamples extends EscBase {
     }
     
     /** Tests loops */
+    @Test
     public void testCE6() {
         //options.put("-showbb",""); options.put("-method","m1"); options.put("-showds","");
         helpTCX("tt.TestJava","package tt; \n"
@@ -158,6 +166,7 @@ public class counterexamples extends EscBase {
     }
     
     /** Tests pure methods */
+    @Test
     public void testCE7() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -206,6 +215,7 @@ public class counterexamples extends EscBase {
     }
 
     /** Tests alternate returns */
+    @Test
     public void testCE8() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -240,6 +250,7 @@ public class counterexamples extends EscBase {
     }
 
     /** Tests switch statements */
+    @Test
     public void testCE9() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -278,6 +289,7 @@ public class counterexamples extends EscBase {
     
 
     /** Tests called method return */
+    @Test
     public void testCE10() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -314,6 +326,7 @@ public class counterexamples extends EscBase {
     }
     
     /** Tests method calls in expressions */
+    @Test
     public void testCE11() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -343,6 +356,7 @@ public class counterexamples extends EscBase {
     
     // FIXME - synchronized is not translated or reported in tracing
     /** Tests misc statements: synchronized, block */
+    @Test
     public void testCE12() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -361,6 +375,7 @@ public class counterexamples extends EscBase {
     }
     
     /** Tests initializations */
+    @Test
     public void testCE13() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -381,6 +396,7 @@ public class counterexamples extends EscBase {
     }
     
     /** Tests JML statements */
+    @Test
     public void testCE14() {
         options.put("-bb","");
         helpTCX("tt.TestJava","package tt; \n"
@@ -408,6 +424,7 @@ public class counterexamples extends EscBase {
     
     
     /** Tests try/catch/finally */
+    @Test
     public void testCE15() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -483,7 +500,5 @@ public class counterexamples extends EscBase {
                 );
     }
     
- 
-
 }
 
