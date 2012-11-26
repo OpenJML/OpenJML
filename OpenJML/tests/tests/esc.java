@@ -24,22 +24,23 @@ public class esc extends EscBase {
     }
  
     // FIXME - causes a prover failure
-//    public void testCollect() {
-//        options.put("-showbb","");
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
-//                +"  //@ invariant \\type(Short) <: \\type(java.lang.Long);\n"
-//                +"  public String m(java.lang.Integer i, Number b) {\n"
-//                +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
-//                +"    boolean bb = b instanceof Double;\n"
-//                +"    Object o = (Class<?>)v.getClass();\n"
-//                +"    v.add(0,new Integer(0));\n"  // FIXME add(0,0) fails because of a lack of autoboxing
-//                +"    bb = v.elements().hasMoreElements();\n"
-//                +"    return null; \n"
-//                +"  }\n"
-//                +"}\n"
-//              );
-//    }
+    @Test @Ignore
+    public void testCollect() {
+        options.put("-showbb","");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
+                +"  //@ invariant \\type(Short) <: \\type(java.lang.Long);\n"
+                +"  public String m(java.lang.Integer i, Number b) {\n"
+                +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
+                +"    boolean bb = b instanceof Double;\n"
+                +"    Object o = (Class<?>)v.getClass();\n"
+                +"    v.add(0,new Integer(0));\n"  // FIXME add(0,0) fails because of a lack of autoboxing
+                +"    bb = v.elements().hasMoreElements();\n"
+                +"    return null; \n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
 
     
     // Just testing a binary method
@@ -243,7 +244,8 @@ public class esc extends EscBase {
 
     // FIXME - troubles with enhanced-for statements with complicated generics
     // FIXME - need more testing with foreach and iterables
-    public void _testForEach2() {
+    @Test @Ignore
+    public void testForEach2() {
         helpTCX("tt.TestJava","package tt; import java.util.*; \n"
                 +"public class TestJava { \n"
                 
@@ -2175,7 +2177,8 @@ public class esc extends EscBase {
 
     // TODO - more tests needed, and with specs
     // FIXME (test disabled) - need a loop invariant to prove this
-    public void _testForeachSpecs() { 
+    @Test @Ignore
+    public void testForeachSpecs() { 
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst(int[] a) { \n"
@@ -2207,7 +2210,8 @@ public class esc extends EscBase {
         );
     }
 
-    public void _testDoWhileSpecs() { // FIXME - figure out this better  // FIXME - want error position at the right place  // Note test is disabled
+    @Test @Ignore
+    public void testDoWhileSpecs() { // FIXME - figure out this better  // FIXME - want error position at the right place  // Note test is disabled
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst() { int i = 5; /*@ loop_invariant i>0; decreases i; */ do { i = i-1; } while (i>0); /*@ assert i == 0; */ }\n"
@@ -2249,17 +2253,18 @@ public class esc extends EscBase {
     }
 
     // FIXME - need to sort out loop invariants for while loops with side effects
-    //    public void testWhileSpecs2() {
-    //        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-    //                +"public class TestJava { \n"
-    //                +"  public void insta() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (--i > 0) { } /*@ assert i == 0; */ }\n"
-    //                +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i-- >0) { } /*@ assert i == 0; */ }\n"
-    //                              +"}",
-    //                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method instb",91,
-    //                 "/tt/TestJava.java:4: warning: Associated declaration",71,
-    //                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method instb", 108
-    //                );
-    //    }
+    @Test @Ignore
+    public void testWhileSpecs2() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                +"  public void insta() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (--i > 0) { } /*@ assert i == 0; */ }\n"
+                +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i-- >0) { } /*@ assert i == 0; */ }\n"
+                +"}",
+                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method instb",91,
+                "/tt/TestJava.java:4: warning: Associated declaration",71,
+                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method instb", 108
+                );
+    }
 
     @Test
     public void testIncDec() {
@@ -2925,8 +2930,8 @@ public class esc extends EscBase {
         );
     }
 
-    @Ignore
-    public void _testForwardInit() {
+    @Test @Ignore
+    public void testForwardInit() {
         expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

@@ -1,18 +1,16 @@
 package tests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
 
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlSpecs;
-import org.junit.runners.Parameterized.Parameters;
 
-import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
-import static org.junit.Assert.*;
 
 
 public abstract class EscBase extends JmlTestCase {
@@ -44,7 +42,7 @@ public abstract class EscBase extends JmlTestCase {
     }
     
 
-    void setOption(String option) {
+    protected void setOption(String option) {
         if (option == null) {
             // nothing set
         } else if (option.equals("-boogie")) {
@@ -61,27 +59,8 @@ public abstract class EscBase extends JmlTestCase {
         specs = null;
     }
 
-//    public void helpFailure(String failureMessage, String s, Object ... list) {
-//        noExtraPrinting = true;
-//        boolean failed = false;
-//        try {
-//            helpTC(s,list);
-//        } catch (AssertionFailedError a) {
-//            failed = true;
-//            assertEquals("Failure report wrong",failureMessage,a.getMessage());
-//        }
-//        if (!failed) fail("Test Harness failed to report an error");
-//    }
-
-//    public void helpTC(String s, Object ... list) {
-//        helpTCX(null,s,list);
-//    }
-//
-//    public void helpTCF(String filename,String s, Object ... list) {
-//        helpTCX(filename,s,list);
-//    }
     
-    public void helpTCX(String classname, String s, Object... list) {
+    protected void helpTCX(String classname, String s, Object... list) {
         try {
             expectedErrors = list.length/2;
             String filename = classname.replace(".","/")+".java";

@@ -2,7 +2,7 @@ package tests;
 
 import org.junit.Test;
 
-
+// FIXME - there is nothing checking that these give correct results
 
 /** Tests emitting counterexample information and tracing, though the text
  * of the output is not actually checked - needs visual observation.

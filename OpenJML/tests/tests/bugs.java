@@ -145,8 +145,8 @@ public class bugs extends TCBase {
 
     // Checks a bug in Arr whereby an unresolved method symbol fails to have
     // its tree.type field set
-    // Note the \t is a purposeful type - in the String it is a tab, though it
-    // was intended to be a \\t... - a backslash.  That occasions the unresolved
+    // Note the \t is a purposeful typo - in the String it is a tab, though it
+    // was intended to be a \\t... - a backslash.  As a tab it causes the unresolved
     // method name ype
     @Test
     public void testCollect() {

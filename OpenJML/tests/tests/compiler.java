@@ -8,6 +8,7 @@ import java.io.PrintStream;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -285,6 +286,7 @@ public class compiler {
     //@Test  // FIXME - this requires jmlruntime.jar - don't want to require running the release build before
     // running the JUnit tests, so we'll disable this for not - not having success building the jmlruntime.jar
     // library programmatically
+    @Test @Ignore
     public void testSourcePath4() throws Exception {
         if (!new java.io.File("jars/jmlruntime.jar").exists()) {
             System.setErr(savederr);
