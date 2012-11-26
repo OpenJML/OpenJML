@@ -61,6 +61,7 @@ public class api extends TestCase {
     boolean print = false;
     boolean capture = true;
     
+    @Override
     protected void setUp() throws Exception {
         //capture = false; 
         super.setUp();
@@ -70,6 +71,7 @@ public class api extends TestCase {
         if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
     }
     
+    @Override
     protected void tearDown() {
         berr = null;
         bout = null;

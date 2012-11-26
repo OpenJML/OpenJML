@@ -7,6 +7,7 @@ import com.sun.tools.javac.util.Options;
 
 public class esc extends EscBase {
 
+    @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();

@@ -23,6 +23,7 @@ public class compiler extends TestCase {
     boolean capture = true;
     String projHome = System.getProperty("openjml.eclipseProjectLocation").replace("C:","").replace("\\","/");
     
+    @Override
     protected void setUp() throws Exception {
         //capture = false; print = true;
         super.setUp();
@@ -32,6 +33,7 @@ public class compiler extends TestCase {
         if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
     }
     
+    @Override
     protected void tearDown() {
         // Do this just in case the test fails without having reset the streams
         berr = null;

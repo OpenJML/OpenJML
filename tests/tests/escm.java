@@ -1,8 +1,11 @@
 package tests;
 
+import org.junit.Test;
+
 
 public class escm extends EscBase {
 
+    @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
@@ -20,6 +23,7 @@ public class escm extends EscBase {
     }
     
     /** This test checks that nested, local and anonymous classes are handled */
+    @Test
     public void testNestedClass() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -54,6 +58,7 @@ public class escm extends EscBase {
     }
    
     /** This test checks that the specs of methods in nested, local and anonymous classes are used */
+    @Test
     public void testNestedMethodSpecs() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -96,6 +101,7 @@ public class escm extends EscBase {
     }
    
     /** This test checks that the specs of nested, local and anonymous classes are used */
+    @Test
     public void testNestedClassSpecs() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -143,6 +149,7 @@ public class escm extends EscBase {
     }
     
     /** This tests that the specs of model classes and methods are checked */
+    @Test
     public void testModelSpecs() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -209,7 +216,7 @@ public class escm extends EscBase {
         );
     }
 
-
+    @Test
     public void testAnon() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

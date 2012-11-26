@@ -176,6 +176,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     /** This does some setup, but most of it has to be left to the derived classes because we have to
      * set the options before we register most of the JML tools.
      */
+    @Override
     @Before
     public void setUp() throws Exception {
         main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null);
@@ -188,6 +189,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     }
 
     /** Nulls out all the references visible in this class */
+    @Override
     @After
     public void tearDown() throws Exception {
         context = null;

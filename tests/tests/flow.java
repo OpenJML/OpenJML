@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 public class flow extends TCBase {
 
 
@@ -11,11 +13,13 @@ public class flow extends TCBase {
     }
 
     /** Forward reference from invariant is OK */
+    @Test
     public void testForwardReference() {
         helpTC("public class TEST { \n//@ invariant b;\n  boolean b;}");
     }
 
     /** Forward reference in model class */
+    @Test
     public void testForwardReference2() {
         addMockFile("$A/A.jml","public class A { }\n//@ model class B { int b = c; int c = 0; }\n\n");
         helpTCF("A.java","public class A { }"
@@ -24,6 +28,7 @@ public class flow extends TCBase {
     }
 
     /** Flow checks for model methods*/
+    @Test
     public void testModelMethod() {
         addMockFile("$A/A.jml","public class A { \n//@ model int m() {} \n}");
         helpTCF("A.java","public class A { }"
@@ -32,6 +37,7 @@ public class flow extends TCBase {
     }
 
     /** Check on name of file  - not particularly a flow check */
+    @Test
     public void testFileName() {
         helpTCF("A.java","public class B { }"
         ,"/A.java:1: class B is public, should be declared in a file named B.java",8
@@ -39,6 +45,7 @@ public class flow extends TCBase {
     }
 
     /** Check on name of file */
+    @Test
     public void testFileName3() {
         helpTCF("A.java","public class A { } //@ model public class B {}"
         ,"/A.java:1: class B is public, should be declared in a file named B.java",37
@@ -46,6 +53,7 @@ public class flow extends TCBase {
     }
 
     /** Check on name of file  - not particularly a flow check */
+    @Test
     public void testFileNameModel() {
         helpTCF("A.java","/*@ model public class B { } */"
         ,"/A.java:1: class B is public, should be declared in a file named B.java",18
@@ -53,6 +61,7 @@ public class flow extends TCBase {
     }
 
     /** Flow checks for ghost fields */
+    @Test
     public void testGhostForwardReference() {
         addMockFile("$A/A.jml","public class A { \n//@ ghost int i = j; ghost int j; \n}");
         helpTCF("A.java","public class A { }"
@@ -61,6 +70,7 @@ public class flow extends TCBase {
     }
     
     /** Flow checks for quantified expression */
+    @Test
     public void testQuantifiedFlow() {
         helpTCF("A.java","public class A { \n"
                 +" public static void m() {\n"
@@ -72,6 +82,7 @@ public class flow extends TCBase {
     }
 
     /** Flow checks for a non-executable quantified expression */
+    @Test
     public void testQuantifiedNonExFlow() {
         helpTCF("A.java","public class A { \n"
                 +" public static void m() {\n"
