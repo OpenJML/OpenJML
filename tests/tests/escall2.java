@@ -3,6 +3,7 @@ package tests;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -713,27 +714,28 @@ public class escall2 extends EscBase {
     }
     
 //    // THIS ONE BLOWS THE PROVER ??? FIXME (literal divide by zero)
-//    public void testDZero2() {
-////        options.put("-showbb","");
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +" import org.jmlspecs.annotation.*; \n"
-//                +"public class TestJava { \n"
-//                
-//                +"  public void m1() {\n"
-//                +"    int q = 5;\n"
-//                +"    int r = q/(1-1);\n" // ERROR
-//                +"  }\n"
-//                
-//                +"  public void m2() {\n"
-//                +"    int q = 5;\n"
-//                +"    int r = q/0;\n" // ERROR
-//                +"  }\n"
-//                
-//                +"}"
-//                );
-//    }
+    @Test @Ignore
+    public void testDZero2() {
+//        options.put("-showbb","");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1() {\n"
+                +"    int q = 5;\n"
+                +"    int r = q/(1-1);\n" // ERROR
+                +"  }\n"
+                
+                +"  public void m2() {\n"
+                +"    int q = 5;\n"
+                +"    int r = q/0;\n" // ERROR
+                +"  }\n"
+                
+                +"}"
+                );
+    }
 
-    // FIXME @Test
+    @Test @Ignore
     public void testFieldAssign() {
         // FIXME - need to figure out how to handle bad responses
         expectedExit = 1;
@@ -810,7 +812,7 @@ public class escall2 extends EscBase {
                 );
     }
     
-    // FIXME @Test
+    @Test @Ignore
     public void testArrayAssign() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -865,7 +867,7 @@ public class escall2 extends EscBase {
                 );
     }
     
-    // FIXME @Test
+    @Test @Ignore
     public void testInvariant1() {
         //options.put("-showbb","");
         helpTCX("tt.TestJava","package tt; \n"
@@ -919,7 +921,7 @@ public class escall2 extends EscBase {
                 );
     }
     
-    // FIXME @Test
+    @Test @Ignore
     public void testConstraint1() {
         //options.put("-showbb","");
         helpTCX("tt.TestJava","package tt; \n"
@@ -973,7 +975,7 @@ public class escall2 extends EscBase {
                 );
     }
     
-    // FIXME @Test
+    @Test @Ignore
     public void testAxiom1() {
         //options.put("-showbb","");
         helpTCX("tt.TestJava","package tt; \n"
