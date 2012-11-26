@@ -1,8 +1,12 @@
 package tests;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
@@ -10,13 +14,14 @@ import java.util.TreeSet;
 
 import javax.tools.JavaFileObject;
 
-import junit.framework.AssertionFailedError;
-import junit.framework.TestSuite;
-
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.JmlSpecs.Dir;
+import org.jmlspecs.openjml.Main;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.util.Context;
@@ -91,6 +96,8 @@ import com.sun.tools.javac.util.Log;
 // Since these tests are a bit time-consuming (about 2 min right now) and will be
 // more so as more spec files are added, you can turn them off with the dotests
 // flag.
+
+@RunWith(Parameterized.class)
 public class SpecsBase extends TCBase {
 
     /** Enables or disables this suite of tests */
@@ -98,18 +105,27 @@ public class SpecsBase extends TCBase {
     
     /** If true, then a progress message is printed as each test is executed.*/
     private static boolean verbose;
-    
-    /** Sets up a test suite dynamically */
-    public static TestSuite suite() { 
-        verbose = false;
-        TestSuite suite = new TestSuite(); 
-        suite.setName("SpecsBase");
-        if (dotests) {
-            Set<String> names = findAllFiles(null);
-            for (String n: names) suite.addTest(new SpecsBase(n));  
+
+    @Parameters
+    static public  Collection<String[]> datax() {
+        Collection<String[]> data = new ArrayList<String[]>(1000);
+        for (String f: findAllFiles(null)) {
+            data.add(new String[]{ f});
         }
-        return suite;
+        return data;
     }
+
+//    /** Sets up a test suite dynamically */
+//    public static TestSuite suite() { 
+//        verbose = false;
+//        TestSuite suite = new TestSuite(); 
+//        suite.setName("SpecsBase");
+//        if (dotests) {
+//            Set<String> names = findAllFiles(null);
+//            for (String n: names) suite.addTest(new SpecsBase(n));  
+//        }
+//        return suite;
+//    }
 
     /** Runs the test in dynamically created test mode */
     public void runTest() { checkClass(classname); }
@@ -126,11 +142,11 @@ public class SpecsBase extends TCBase {
      */
     public SpecsBase(String classname) {
         this.classname = classname;
-        setName(classname);
+        //setName(classname);
     }
 
 
-    
+    @Override
     public void setUp() throws Exception {
         useSystemSpecs = true;
         super.setUp();
@@ -174,7 +190,7 @@ public class SpecsBase extends TCBase {
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
-        } catch (AssertionFailedError e) {
+        } catch (AssertionError e) {
             if (!print && !noExtraPrinting) printErrors();
             throw e;
         }
@@ -186,6 +202,7 @@ public class SpecsBase extends TCBase {
      * To use method #2 as described above, comment out suite() and runTest() 
      * and enable this test by removing the leading underscore
      */
+    @Test
     public void testSpecificationFiles() {
         if (!dotests) {
             System.out.println("System spec tests (test.SpecBase) are being skipped " + System.getProperty("java.version"));

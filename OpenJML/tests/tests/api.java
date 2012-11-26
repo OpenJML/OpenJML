@@ -15,8 +15,7 @@ import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
 
-import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
+import static org.junit.Assert.*;
 
 import org.jmlspecs.openjml.API;
 import org.jmlspecs.openjml.Factory;
@@ -28,7 +27,11 @@ import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTags;
@@ -50,7 +53,10 @@ import com.sun.tools.javac.util.Name;
 
 
 /** Tests the API class */
-public class api extends TestCase {
+public class api {
+    
+    @Rule
+    public TestName name = new TestName();
 
     ByteArrayOutputStream berr;
     ByteArrayOutputStream bout;
@@ -61,18 +67,17 @@ public class api extends TestCase {
     boolean print = false;
     boolean capture = true;
     
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         //capture = false; 
-        super.setUp();
         savederr = System.err;
         savedout = System.out;
         if (capture) System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
         if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
     }
     
-    @Override
-    protected void tearDown() {
+    @After
+    public void tearDown() {
         berr = null;
         bout = null;
         System.setErr(savederr);
@@ -111,20 +116,20 @@ public class api extends TestCase {
         String actualErr = berr.toString();
         String actualOut = bout.toString();
         if (print) {
-            System.out.println("TEST: " + getName());
+            System.out.println("TEST: " + name.getMethodName());
             System.out.println("ERR: " + actualErr);
             System.out.println("OUT: " + actualOut);
         }
         if (capture && errOutput != null) try {
             compareStrings(errOutput,actualErr);
-        } catch (AssertionFailedError ex) {
-            if (!print) System.out.println("TEST: " + getName() + eol + actualErr);
+        } catch (AssertionError ex) {
+            if (!print) System.out.println("TEST: " + name.getMethodName() + eol + actualErr);
             throw ex;
         }
         if (capture && output != null) try {
             compareStrings(output,actualOut);
-        } catch (AssertionFailedError ex) {
-            if (!print) System.out.println("TEST: " + getName() + eol + actualOut);
+        } catch (AssertionError ex) {
+            if (!print) System.out.println("TEST: " + name.getMethodName() + eol + actualOut);
             throw ex;
         }
     }
@@ -934,7 +939,7 @@ public class api extends TestCase {
             int n = m.typecheck(jcu);
             check("","");
             assertTrue(n == 0);
-        } catch(junit.framework.AssertionFailedError e) {
+        } catch(AssertionError e) {
             throw e;
         } catch (Exception e) {
             check("","");
@@ -1332,7 +1337,7 @@ public class api extends TestCase {
             m.doESC(csym);
             check("","");
             assertEquals(4,dlist.size());
-        } catch(junit.framework.AssertionFailedError e) {
+        } catch(AssertionError e) {
             throw e;
         } catch (Exception e) {
             check("","");
@@ -1363,7 +1368,7 @@ public class api extends TestCase {
             jfo = api.makeJFOfromFile(new File("testfiles/testNoErrors/A.java"));
             assertEquals(JavaFileObject.Kind.SOURCE,jfo.getKind());
             assertEquals(fc,jfo.getCharContent(true).toString());
-        } catch(junit.framework.AssertionFailedError e) {
+        } catch(AssertionError e) {
             throw e;
         } catch (Exception e) {
             e.printStackTrace(System.out);

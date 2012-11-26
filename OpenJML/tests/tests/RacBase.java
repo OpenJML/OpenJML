@@ -1,14 +1,14 @@
 package tests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 
 import javax.tools.JavaFileObject;
 
-import junit.framework.AssertionFailedError;
-
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -60,6 +60,7 @@ public abstract class RacBase extends JmlTestCase {
      * <BR>expectedRacExit - the expected exit code from running the RACed program
      * <BR>expectedErrors - the expected number of errors from openjml (typically and by default 0)
      */
+    @Override
     public void setUp() throws Exception {
         //System.out.println("Using " + jdk);
         
@@ -93,6 +94,7 @@ public abstract class RacBase extends JmlTestCase {
         print = false;
     }
     
+    @Override
     public void tearDown() throws Exception {
         super.tearDown();
         specs = null;
@@ -207,7 +209,7 @@ public abstract class RacBase extends JmlTestCase {
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
-        } catch (AssertionFailedError e) {
+        } catch (AssertionError e) {
             if (!print && !noExtraPrinting) {
                 if (out != null) {
                     String[] lines = out.input().split(term);

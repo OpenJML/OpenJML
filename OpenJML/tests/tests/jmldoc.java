@@ -1,18 +1,22 @@
 package tests;
 
 import java.io.ByteArrayOutputStream;
+
 import java.io.PrintStream;
 
 import org.junit.*;
+import org.junit.rules.TestName;
 
-import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
+import static org.junit.Assert.*;
+
 
 /** This class contains tests of the jmldoc functionality.  It calls the actual
  * jmldoc entry point on external java files.
  * @author David Cok
  */
-public class jmldoc extends TestCase {
+public class jmldoc {
+    @Rule
+    public TestName name = new TestName();
 
     ByteArrayOutputStream berr;
     ByteArrayOutputStream bout;
@@ -23,21 +27,18 @@ public class jmldoc extends TestCase {
     boolean print = false;
     boolean capture = true;
     
-    @Override
     @Before
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         //capture = false;
         //print = true;
-        super.setUp();
         savederr = System.err;
         savedout = System.out;
         if (capture) System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
         if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
     }
     
-    @Override
     @After
-    protected void tearDown() {
+    public void tearDown() {
         berr = null;
         bout = null;
         System.setErr(savederr);
@@ -65,7 +66,7 @@ public class jmldoc extends TestCase {
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (capture) try {
             String tail = ""; //exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
-            if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + errOutput);
+            if (print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + errOutput);
             String expected = output[0];
             if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
             else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
@@ -76,7 +77,7 @@ public class jmldoc extends TestCase {
             }
             if (output.length > 1) {
                 expected = output[1];
-                if (print) System.out.println("TEST: " + getName() + " STANDARD OUT: " + eol + actualOutput);
+                if (print) System.out.println("TEST: " + name.getMethodName() + " STANDARD OUT: " + eol + actualOutput);
                 if (all == 0) {
                     assertEquals("The standard out is wrong",expected+tail,actualOutput);
                 } else if (all == -1) {
@@ -86,8 +87,8 @@ public class jmldoc extends TestCase {
                 }
             }
             assertEquals("The exit code is wrong",exitcode,e);
-        } catch (AssertionFailedError ex) {
-            if (!print) System.out.println("TEST: " + getName() + " exit=" + e + eol + actualOutput);
+        } catch (AssertionError ex) {
+            if (!print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + actualOutput);
             throw ex;
         }
     }

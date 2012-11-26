@@ -1,17 +1,24 @@
 package tests;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-
+import org.junit.rules.TestName;
 
 /** Tests running the tool as if from the command-line (for typechecking);
  * includes erroneous command-line argument combinations and combinations
  * of class, source, and specs paths. */
-public class compiler extends TestCase {
+public class compiler {
+    
+    @Rule
+    public TestName name = new TestName();
 
     ByteArrayOutputStream berr;
     ByteArrayOutputStream bout;
@@ -23,18 +30,17 @@ public class compiler extends TestCase {
     boolean capture = true;
     String projHome = System.getProperty("openjml.eclipseProjectLocation").replace("C:","").replace("\\","/");
     
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         //capture = false; print = true;
-        super.setUp();
         savederr = System.err;
         savedout = System.out;
         if (capture) System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
         if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
     }
     
-    @Override
-    protected void tearDown() {
+    @After
+    public void tearDown() {
         // Do this just in case the test fails without having reset the streams
         berr = null;
         bout = null;
@@ -70,7 +76,7 @@ public class compiler extends TestCase {
         if (print) System.out.println("ACTUAL ERR: " + errOutput);
         if (capture) try {
             String tail = "";
-            if (print) System.out.println("TEST: " + getName() + " exit=" + e + eol + errOutput);
+            if (print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + errOutput);
             String expected = output[0].replace("${PROJ}",projHome);
             if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
             else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
@@ -83,7 +89,7 @@ public class compiler extends TestCase {
                 expected = output[1].replace("${PROJ}",projHome);
                 int k = actualOutput.indexOf("Note:");
                 String actual = k>=0 ? actualOutput.substring(0,k) : actualOutput; 
-                if (print) System.out.println("TEST: " + getName() + " STANDARD OUT: " + eol + actual);
+                if (print) System.out.println("TEST: " + name.getMethodName() + " STANDARD OUT: " + eol + actual);
                 if (all == 0) {
                     assertEquals("The standard out is wrong",expected+tail,actual);
                 } else if (all == -1) {
@@ -93,8 +99,8 @@ public class compiler extends TestCase {
                 }
             }
             assertEquals("The exit code is wrong",exitcode,e);
-        } catch (AssertionFailedError ex) {
-            if (!print) System.out.println("TEST: " + getName() + " exit=" + e + eol + berr.toString());
+        } catch (AssertionError ex) {
+            if (!print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + berr.toString());
             throw ex;
         }
     }

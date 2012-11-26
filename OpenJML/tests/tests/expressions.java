@@ -4,8 +4,6 @@ import java.util.List;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
-import junit.framework.AssertionFailedError;
-
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
@@ -28,6 +26,7 @@ import com.sun.tools.javac.tree.JCTree.JCParens;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
+import static org.junit.Assert.*;
 
 /** These test the AST structure produced by parsing various expressions -
  * checking the node type and position.
@@ -48,7 +47,7 @@ public class expressions extends ParseBase {
         boolean failed = false;
         try {
             helpExpr(s,list);
-        } catch (AssertionFailedError a) {
+        } catch (AssertionError a) {
             failed = true;
             assertEquals("Failure report wrong",failureMessage,a.getMessage());
         }

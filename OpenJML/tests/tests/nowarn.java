@@ -2,6 +2,7 @@ package tests;
 
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.junit.Test;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCErroneous;
@@ -20,6 +21,7 @@ public class nowarn extends ParseBase {
         super.setUp();
     }
     
+    @Test
     public void testNowarn() {
         checkCompilationUnit("/*@ nowarn Z; */package t; //@ nowarn X; \n/*@ nowarn Y; */ class A{}",
                 JmlCompilationUnit.class,16,
@@ -29,6 +31,7 @@ public class nowarn extends ParseBase {
         checkMessages();
     }
     
+    @Test
     public void testNowarn2() {
         checkCompilationUnit("package /*@ nowarn Z ZZ ZZZ; */t; //@ nowarn X,A,B; \n/*@ nowarn Y, YY,  YYY; */ class A{}",
                 JmlCompilationUnit.class,0,
@@ -38,6 +41,7 @@ public class nowarn extends ParseBase {
         checkMessages();
     }
     
+    @Test
     public void testNowarn3() {
         checkCompilationUnit("package /*@ nowarn Z ; nowarn Q; */t; //@ nowarn X,A,B; \n/*@ nowarn Y, YY,  YYY; */ class A{}",
                 JmlCompilationUnit.class,0,
@@ -47,6 +51,7 @@ public class nowarn extends ParseBase {
         checkMessages();
     }
     
+    @Test
     public void testNowarn4() {
         checkCompilationUnit("package /*@ nowarn Z  */t; //@ nowarn X\n/*@ nowarn ; */ class A{}",
                 JmlCompilationUnit.class,0,
@@ -57,6 +62,7 @@ public class nowarn extends ParseBase {
                 "/TEST.java:1: warning: A nowarn pragma must end with a semicolon",40);
     }
     
+    @Test
     public void testNowarn5() {
         checkCompilationUnit("package /*@ nowarn Z  */t; //@ nowarn X\n/*@ nowarn ; */ class A{}",
                 JmlCompilationUnit.class,0,
@@ -67,6 +73,7 @@ public class nowarn extends ParseBase {
                 "/TEST.java:1: warning: A nowarn pragma must end with a semicolon",40);
     }
     
+    @Test
     public void testNowarn6() {
         checkCompilationUnit("package /*@ nowarn nowarn */t; \n class /*@ nowarn ; */A{}",
                 JmlCompilationUnit.class,0,
@@ -76,7 +83,7 @@ public class nowarn extends ParseBase {
         checkMessages("/TEST.java:1: warning: A nowarn pragma must end with a semicolon",27);
     }
     
-    
+    @Test
     public void testNowarnA() {
         checkCompilationUnit("package t; \n/*@ pure nowarn Y; */ class A{}",
                 JmlCompilationUnit.class,0,
@@ -92,6 +99,7 @@ public class nowarn extends ParseBase {
         checkMessages();
     }
     
+    @Test
     public void testNowarnB() {
         checkCompilationUnit("package t; \n/*@ pure nowarn Y */ class A{}",
                 JmlCompilationUnit.class,0,
@@ -107,6 +115,7 @@ public class nowarn extends ParseBase {
         checkMessages("/TEST.java:2: warning: A nowarn pragma must end with a semicolon",19);
     }
     
+    @Test
     public void testNowarnC() {
         checkCompilationUnit("package t; \n/*@ pure nowarn C; nullable_by_default */ class A{}",
                 JmlCompilationUnit.class,0,
@@ -127,6 +136,7 @@ public class nowarn extends ParseBase {
         checkMessages();
     }
     
+    @Test
     public void testNowarnD() {
         checkCompilationUnit("package t; \n/*@ pure nowarn C nullable            */ class A{}",
                 JmlCompilationUnit.class,0,
@@ -142,6 +152,7 @@ public class nowarn extends ParseBase {
         checkMessages("/TEST.java:2: warning: A nowarn pragma must end with a semicolon",39);
     }
   
+    @Test
     public void testNowarnE() {
         checkCompilationUnit("package t; \n/*@  nowarn C! ; */ class A{}",
                 JmlCompilationUnit.class,0,

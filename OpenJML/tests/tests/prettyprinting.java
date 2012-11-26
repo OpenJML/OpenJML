@@ -1,8 +1,11 @@
 package tests;
 
-import org.jmlspecs.openjml.JmlPretty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
-import com.sun.tools.javac.parser.JmlParser;
+import org.jmlspecs.openjml.JmlPretty;
+import org.junit.Test;
+
 import com.sun.tools.javac.parser.Parser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Log;
@@ -55,6 +58,7 @@ public class prettyprinting extends ParseBase {
     
     String eol = System.getProperty("line.separator");
 
+    @Test
     public void testSimpleClass() {
         helpPP(
                 eol +
@@ -63,6 +67,7 @@ public class prettyprinting extends ParseBase {
         );
     }
 
+    @Test
     public void testPackage() {
         helpPP(
                 "package t;" + eol + 
@@ -72,6 +77,7 @@ public class prettyprinting extends ParseBase {
         );
     }
 
+    @Test
     public void testImport() {
         helpPP(
                 "package t;" + eol + 
@@ -83,6 +89,7 @@ public class prettyprinting extends ParseBase {
         );
     }
 
+    @Test
     public void testImportStar() {
         helpPP(
                 "package t;" + eol + eol +
@@ -93,6 +100,7 @@ public class prettyprinting extends ParseBase {
         );
     }
 
+    @Test
     public void testModelImport() {
         helpPP(
                 "package t;" + eol + eol +
@@ -103,6 +111,7 @@ public class prettyprinting extends ParseBase {
         );
     }
 
+    @Test
     public void testClassModifiers() {
         helpPP(
                 eol + 
@@ -111,6 +120,7 @@ public class prettyprinting extends ParseBase {
         );
     }
    
+    @Test
     public void testMethodDecl() {
         helpPP(
                 eol +
@@ -122,6 +132,7 @@ public class prettyprinting extends ParseBase {
         );
     }
    
+    @Test
     public void testMethodModifiers() {
         helpPP(
                 eol + 
@@ -133,6 +144,7 @@ public class prettyprinting extends ParseBase {
         );
     }
    
+    @Test
     public void testMethodStatements() {
         precise = true;
         helpPP(

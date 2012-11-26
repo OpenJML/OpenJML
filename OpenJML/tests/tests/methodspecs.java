@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 public class methodspecs extends TCBase {
 
     @Override
@@ -10,6 +12,7 @@ public class methodspecs extends TCBase {
     }
 
     /** Tests bad keyword */
+    @Test
     public void testBadKeyword() {
         helpTC(" class A { \n"
                 +"//@ also\n"
@@ -22,6 +25,7 @@ public class methodspecs extends TCBase {
     }
 
     /** Tests bad keyword */
+    @Test
     public void testBadKeyword2() {
         helpTC(" class A { \n"
                 +"//@ also\n"
@@ -42,6 +46,7 @@ public class methodspecs extends TCBase {
     // equires like a variable, so this is parsed as a declaration in JML.  It
     // does not check until later that there is no ghost or model.
     /** Tests bad keyword */
+    @Test
     public void testBadKeyword3() {
         helpTC(" class A { \n"
                 +"//@ r equires true;\n"
@@ -55,6 +60,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests multiple signals_only*/
+    @Test
     public void testMultipleSignalsOnly() {
         helpTC(" class A { \n"
                 +"//@ requires true;\n"
@@ -67,6 +73,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests one signals_only*/
+    @Test
     public void testOneSignalsOnly() {
         helpTC(" class A { \n"
                 +"//@ requires true;\n"
@@ -77,6 +84,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests bad signals_only*/
+    @Test
     public void testBadSignalsOnly() {
         helpTC(" class A { \n"
                 +"//@ requires true;\n"
@@ -88,6 +96,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests signals_only \\nothing*/ // OK
+    @Test
     public void testNothingSignalsOnly() {
         helpTC(" class A { \n"
                 +"//@ requires true;\n"
@@ -98,6 +107,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests empty signals_only*/
+    @Test
     public void testEmptySignalsOnly() {
         helpTC(" class A { \n"
                 +"//@ requires true;\n"
@@ -109,6 +119,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests multiple signals_only in different cases*/
+    @Test
     public void testMultipleSignalsOnly2() {
         helpTC(" class A { \n"
                 +"//@ requires true;\n"
@@ -125,6 +136,7 @@ public class methodspecs extends TCBase {
     }
         
     /** Tests multiple signals_only in different cases */
+    @Test
     public void testMultipleSignalsOnly3() {
         helpTC(" class A { \n"
                 +"//@ requires true;\n"
@@ -139,6 +151,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests pure assignable*/
+    @Test
     public void testPureAssignable() {
         helpTC(" class A { \n"
                 +"//@ requires true;\n"
@@ -155,6 +168,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests pure assignable*/
+    @Test
     public void testPureAssignable2() {
         helpTC(" class A { int k; static int sk; \n"
                 +"//@ requires true;\n"
@@ -173,6 +187,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests pure assignable*/
+    @Test
     public void testPureAssignable3() {
         helpTC(" class B { int bk; static int sbk; } class A extends B { int k; static int sk; \n"
                 +"//@ requires true;\n"
@@ -194,6 +209,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests pure assignable*/
+    @Test
     public void testPureAssignable4() {
         helpTC(" interface B { /*@ model instance int bk; model int sbk; */} class A implements B { int k; static int sk; \n"
                 +"//@ requires true;\n"
@@ -212,6 +228,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests exceptional ensures */
+    @Test
     public void testExceptionalEnsures() {
         helpTC(" class A { \n"
                 +"//@ behavior\n"
@@ -226,6 +243,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests exceptional ensures */
+    @Test
     public void testExceptionalEnsures2() {
         helpTC(" class A { \n"
                 +"//@ behavior\n"
@@ -240,6 +258,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests normal signals */
+    @Test
     public void testNormalSignals() {
         helpTC(" class A { \n"
                 +"//@ behavior\n"
@@ -254,6 +273,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests normal signals */
+    @Test
     public void testNormalSignals2() {
         helpTC(" class A { \n"
                 +"//@ behavior\n"
@@ -269,6 +289,7 @@ public class methodspecs extends TCBase {
     
     
     /** Tests normal signals_only */
+    @Test
     public void testNormalSignalsOnly() {
         helpTC(" class A { \n"
                 +"//@ behavior\n"
@@ -283,6 +304,7 @@ public class methodspecs extends TCBase {
     }
     
     /** Tests normal signals_only */
+    @Test
     public void testNormalSignalsOnly2() {
         helpTC(" class A { \n"
                 +"//@ behavior\n"

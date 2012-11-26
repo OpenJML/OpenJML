@@ -1,7 +1,6 @@
 package tests;
 import static com.sun.tools.javac.parser.Token.*;
 import static org.jmlspecs.openjml.JmlToken.*;
-import junit.framework.AssertionFailedError;
 
 import org.jmlspecs.openjml.JmlToken;
 import org.junit.Test;
@@ -11,6 +10,7 @@ import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.util.Log;
+import static org.junit.Assert.*;
 
 // TODO - should test unicode, especially with multiple backslashes
 // TODO - should test errPos for error tokens (is endPos set?)
@@ -26,6 +26,7 @@ public class scanner extends JmlTestCase {
     // TODO - do we need to collect and compare System.out,err
     
     /** Initializes a fresh scanner factory for each test */
+    @Override
     public void setUp() throws Exception {
         super.setUp(); // Sets up a main program, diagnostic collector
         fac = ScannerFactory.instance(context);
@@ -47,7 +48,7 @@ public class scanner extends JmlTestCase {
         boolean failed = false;
         try {
             helpScanner(s,list,positions,numErrors);
-        } catch (AssertionFailedError a) {
+        } catch (AssertionError a) {
             failed = true;
             assertEquals("Failure report wrong",failureMessage,a.getMessage());
         }

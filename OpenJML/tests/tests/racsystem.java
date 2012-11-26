@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 /** These tests check the RAC functionality of outputting a stack trace along with
  * notification of failed RAC assertions.  These test that library class files 
  * recompiled with RAC actually get used and produce errors.  Hence the need to 
@@ -17,6 +19,7 @@ public class racsystem extends RacBase {
 //    String[] sysrac = new String[]{jdk, "-Xbootclasspath/p:jdkbin"+z+"bin-runtime", "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
     String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
 
+    @Override
     public void setUp() throws Exception {
         rac = sysrac;
         jdkrac = true;
@@ -94,6 +97,7 @@ public class racsystem extends RacBase {
     
 
     /** Testing with getting a stack trace using showStack */
+    @Test
     public void testFile2d() {
         expectedRACExit = 0;
         expectedNotes = 2;
@@ -115,6 +119,7 @@ public class racsystem extends RacBase {
                 );
     }
     
+    @Test
     public void testFile3() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT EXCEPTION\"); } \n"
@@ -129,6 +134,7 @@ public class racsystem extends RacBase {
     }
     
     /** Not sure what this is supposed to test (TODO) */
+    @Test
     public void testHashCode() {
         expectedNotes = 2;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
@@ -147,6 +153,7 @@ public class racsystem extends RacBase {
      * routine with String... did not work.  Here we use String[] which
      * did work.
      */
+    @Test
     public void testMain() {
         expectedNotes = 2;
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
@@ -164,6 +171,7 @@ public class racsystem extends RacBase {
     /** This tests a bug in which matching with no specs file to a main
      * routine with String... did not work.  
      */
+    @Test
     public void testMain2() {
         expectedNotes = 0;
         options.put("-noInternalSpecs","");

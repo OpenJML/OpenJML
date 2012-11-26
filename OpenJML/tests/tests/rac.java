@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 /** These tests exercise the RAC checking.  They compile a test class 
  * using RAC and then execute the resulting program, catching that
  * programs output.  All the tests here have valid JML - they are testing
@@ -15,6 +17,7 @@ public class rac extends RacBase {
      */
     String[] ordrac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
 
+    @Override
     public void setUp() throws Exception {
         rac = ordrac;
         jdkrac = false;
@@ -28,20 +31,20 @@ public class rac extends RacBase {
     }
 
     /** Basic Hello World test, with no RAC tests triggered */
-    public void testJava() {
+    @Test public void testJava() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { System.out.println(\"HELLO WORLD\"); }}"
                 ,"HELLO WORLD"
                 );
     }
 
     /** Basic Hello World test, with no RAC tests triggered */
-    public void testJavaNull() {
+    @Test public void testJavaNull() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) {  }}"
                 );
     }
 
     /** Simple test of output from a JML set statement */
-    public void testJML() {
+    @Test public void testJML() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { //@ ghost int i = 0; \n //@ set i = 1; \n //@ set System.out.println(i); \n System.out.println(\"END\"); }}"
                 ,"1"
                 ,"END"
@@ -49,7 +52,7 @@ public class rac extends RacBase {
     }
 
     /** JML assert statement failure */
-    public void testAssertion() {
+    @Test public void testAssertion() {
         helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { //@ assert false; \n System.out.println(\"END\"); }}"
                 ,"/tt/TestAssert.java:1: JML assertion is false"
                 ,"END"
@@ -57,7 +60,7 @@ public class rac extends RacBase {
     }
 
     /** JML labeled assert statement failure */
-    public void testAssertion2() {
+    @Test public void testAssertion2() {
         helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { //@ assert false: \"ABC\"; \n System.out.println(\"END\"); }}"
                 ,"/tt/TestAssert.java:1: JML assertion is false (ABC)"
                 ,"END"
@@ -73,7 +76,7 @@ public class rac extends RacBase {
     }
 
     /** Assumption failure */
-    public void testAssumption() {
+    @Test public void testAssumption() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { //@ assume false; \n System.out.println(\"END\"); }}"
                 ,"/tt/TestJava.java:1: JML assumption is false"
                 ,"END"
@@ -81,7 +84,7 @@ public class rac extends RacBase {
     }
 
     /** Labeled assumption failure */
-    public void testAssumption2() {
+    @Test public void testAssumption2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { //@ assume false: \"DEF\"; \n System.out.println(\"END\"); }}"
                 ,"/tt/TestJava.java:1: JML assumption is false (DEF)"
                 ,"END"
@@ -89,7 +92,7 @@ public class rac extends RacBase {
     }
 
     /** Failed unreachable statement */
-    public void testUnreachable() {
+    @Test public void testUnreachable() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { //@ unreachable; \n System.out.println(\"END\"); }}"
                 ,"/tt/TestJava.java:1: JML unreachable statement reached"
                 ,"END"
@@ -97,7 +100,7 @@ public class rac extends RacBase {
     }
 
     /** Successful precondition */
-    public void testPrecondition() {
+    @Test public void testPrecondition() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(0); System.out.println(\"END\"); }\n" +
                 " /*@ requires i == 0; */ static void m(int i) {} " +
                 "}"
@@ -106,7 +109,7 @@ public class rac extends RacBase {
     }
     
     /** Failed precondition */
-    public void testPrecondition2() {
+    @Test public void testPrecondition2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(0); System.out.println(\"END\"); }\n" +
                 " /*@ requires i != 0; */ \n" +
                 " static void m(int i) {} " +
@@ -117,7 +120,7 @@ public class rac extends RacBase {
     }
     
     /** Failed precondition */
-    public void testPrecondition3() {
+    @Test public void testPrecondition3() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(-1); m(0); System.out.println(\"END\"); }\n" +
                 " /*@ requires i > 0; */ \n" +
                 " /*@ requires i < 0; */ \n" +
@@ -131,7 +134,7 @@ public class rac extends RacBase {
     }
     
     /** Failed precondition with nowarn */
-    public void testPrecondition2NoWarn() {
+    @Test public void testPrecondition2NoWarn() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); \n" +
                 "System.out.println(\"END\"); }\n" +
@@ -142,7 +145,7 @@ public class rac extends RacBase {
                 );
     }
     
-    public void testNonnullPrecondition() {
+    @Test public void testNonnullPrecondition() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(null,1); System.out.println(\"END\"); }\n" +
                 " /*@ requires true; */ \nstatic void m(/*@non_null*/ Object o, int i) {} " +
                 "}"
@@ -151,7 +154,7 @@ public class rac extends RacBase {
                 );
     }
     
-    public void testNonnullPrecondition2() {
+    @Test public void testNonnullPrecondition2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(null,1); System.out.println(\"END\"); }\n" +
                 " static void m(/*@non_null*/ Object o, int i) {} " +
                 "}"
@@ -160,7 +163,7 @@ public class rac extends RacBase {
                 );
     }
     
-    public void testNonnullPostcondition() {
+    @Test public void testNonnullPostcondition() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(null,1); System.out.println(\"END\"); }\n" +
                 " static /*@non_null*/Object m( /*@nullable*/Object o, int i) { return null; } " +
                 "}"
@@ -171,7 +174,7 @@ public class rac extends RacBase {
     
     // TODO need multiple requires, multiple spec cases
 
-    public void testPostcondition() {
+    @Test public void testPostcondition() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures k == i; */ static int m(int i) { k = i; return 13; } " +
                 "}"
@@ -179,7 +182,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testPostcondition1() {
+    @Test public void testPostcondition1() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures k == 0; */ \nstatic int m(int i) { k = i; return 13; } " +
                 "}"
@@ -188,7 +191,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testPostcondition1Nowarn() {
+    @Test public void testPostcondition1Nowarn() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures k == 0; */ /*@ nowarn Postcondition;*/\n"+
                 " static int m(int i) { k = i; return 13; } " +
@@ -197,7 +200,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testPostcondition2() {
+    @Test public void testPostcondition2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ requires true; \nalso \nrequires false; \nensures k == 0; */ static void m(int i) { k = i; } " +
                 "}"
@@ -205,7 +208,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testPostcondition3() {
+    @Test public void testPostcondition3() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ requires true; \nensures true; \nalso \nrequires false; \nensures k == 0; */ static void m(int i) { k = i; } " +
                 "}"
@@ -213,7 +216,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testPostcondition4() {
+    @Test public void testPostcondition4() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ requires true; \nensures k != i; \nalso \nrequires true; \nensures k == 0; */ static void m(int i) { k = i; } " +
                 "}"
@@ -223,7 +226,7 @@ public class rac extends RacBase {
                 );
     }
     
-    public void testPostcondition5() {
+    @Test public void testPostcondition5() {
         expectedRACExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -247,7 +250,7 @@ public class rac extends RacBase {
                 );
     }
     
-    public void testSignals() {
+    @Test public void testSignals() {
         helpTCX("tt.TestJava","package tt; public class TestJava {\n"
                 +" public static void main(String[] args) { \n"
                 +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
@@ -261,7 +264,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testSignals2() {
+    @Test public void testSignals2() {
         helpTCX("tt.TestJava","package tt; public class TestJava {\n"
                 +" public static void main(String[] args) { \n"
                 +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
@@ -275,7 +278,7 @@ public class rac extends RacBase {
                 );
     }
     
-    public void testSignalsOnly() {
+    @Test public void testSignalsOnly() {
         helpTCX("tt.TestJava","package tt; public class TestJava {\n"
                 +" public static void main(String[] args) { \n"
                 +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
@@ -289,7 +292,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testSignalsOnly1() {
+    @Test public void testSignalsOnly1() {
         helpTCX("tt.TestJava","package tt; public class TestJava {\n"
                 +" public static void main(String[] args) { \n"
                 +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
@@ -302,7 +305,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testSignalsOnly2() {
+    @Test public void testSignalsOnly2() {
         helpTCX("tt.TestJava","package tt; public class TestJava {\n"
                 +" public static void main(String[] args) { \n"
                 +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
@@ -316,7 +319,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testSignalsOnlyDefault() {
+    @Test public void testSignalsOnlyDefault() {
         helpTCX("tt.TestJava","package tt; public class TestJava {\n"
                 +" public static void main(String[] args) { \n"
                 +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
@@ -330,7 +333,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testSignalsOnlyDefault1() {
+    @Test public void testSignalsOnlyDefault1() {
         helpTCX("tt.TestJava","package tt; public class TestJava {\n"
                 +" public static void main(String[] args) { \n"
                 +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
@@ -343,7 +346,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testResult() {
+    @Test public void testResult() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures \\result == 4; */ static int m(int i) { return 4; } " +
                 "}"
@@ -351,7 +354,7 @@ public class rac extends RacBase {
         );
     }
 
-    public void testResult1() {
+    @Test public void testResult1() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures \\result == 4; */ static int m(int i) { return 5; } " +
                 "}"
@@ -360,7 +363,7 @@ public class rac extends RacBase {
         );
     }
     
-    public void testLabel() {
+    @Test public void testLabel() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures (\\lblneg ENS \\result == 1); */ static int m(int i) { return i; } " +
                 "}"
@@ -371,7 +374,7 @@ public class rac extends RacBase {
         );        
     }
     
-    public void testLabel2() {
+    @Test public void testLabel2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures (\\lblneg ENS (\\lbl RES \\result) == 1); */ static int m(int i) { return i; } " +
                 "}"
@@ -384,7 +387,7 @@ public class rac extends RacBase {
         );        
     }
     
-    public void testOld() {
+    @Test public void testOld() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures (\\lbl ENS \\old(k)) == k; */ static int m(int i) { k=i; return i; } " +
                 "}"
@@ -396,7 +399,7 @@ public class rac extends RacBase {
         );        
     }
     
-    public void testOld2() {
+    @Test public void testOld2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " static int m(int i) { //@ assert (\\lbl AST \\old(k)) == 0; \n k=i; //@ assert (\\lbl AST2 \\old(k)) == 0;\n //@ assert (\\lbl AST3 k) == 0; \n return i; } " +
                 "}"
@@ -413,7 +416,7 @@ public class rac extends RacBase {
         );        
     }
     
-    public void testOld3() {
+    @Test public void testOld3() {
         //print = true; options.put("-showrac","");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 + "public static void main(String[] args) { \n"
@@ -442,7 +445,7 @@ public class rac extends RacBase {
         );        
     }
     
-    public void testInformal() {
+    @Test public void testInformal() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " static int m(int i) { System.out.println(i); //@ assert (i==0) <==> (* informal *); \n return i; } " +
                 "}"
@@ -453,7 +456,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testElemtype() {
+    @Test public void testElemtype() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" 
                 +"Object o = new String[3]; Object oo = new int[5]; Object o3 = new Integer(4);\n"
                 +"//@ ghost nullable java.lang.Class t; ghost nullable \\TYPE tt; \n"
@@ -475,7 +478,7 @@ public class rac extends RacBase {
     }
     
 
-    public void testTypeOf() {
+    @Test public void testTypeOf() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new Object()); m(new String()); m(Boolean.TRUE); System.out.println(\"END\"); } \n" +
                 " //@ requires (\\lbl CLS \\typeof(i).erasure()) == Object.class; \n" +
@@ -494,7 +497,7 @@ public class rac extends RacBase {
         
     }
     
-    public void testTypeOf1() {
+    @Test public void testTypeOf1() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new Object[1]); m(new String[2]); System.out.println(\"END\"); } \n" +
                 " //@ requires (\\lbl CLS \\typeof(i)) == \\type(Object); \n" +
@@ -511,7 +514,7 @@ public class rac extends RacBase {
         
     }
     
-    public void testTypeOf2() {
+    @Test public void testTypeOf2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); System.out.println(\"END\"); } \n" +
                 " //@ requires (\\lbl CLS \\typeof(i)) == \\type(Object); \n" +
@@ -541,7 +544,7 @@ public class rac extends RacBase {
         
     }
     
-    public void testTypeOf3() {
+    @Test public void testTypeOf3() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
@@ -557,7 +560,7 @@ public class rac extends RacBase {
     }
 
     // FIXME - want typeof to return a JML type with type parameter information
-    public void testTypeOf4() {
+    @Test public void testTypeOf4() {
         helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new LinkedList<String>()); m(new LinkedList<Integer>());  m(new HashSet<Integer>()); System.out.println(\"END\"); } \n" +
                 " //@ requires (\\lbl CLS \\typeof(i)) .equals( \\type(LinkedList<Integer>) ); \n" +
@@ -578,7 +581,7 @@ public class rac extends RacBase {
     }
     
 
-    public void testNonnullelement() {
+    @Test public void testNonnullelement() {
         helpTCX("tt.TestJava","package tt; public class TestJava { static int z = 0; public static void main(String[] args) { \n" +
                 "String[] s2null = new String[]{null,\"B\"}; \n" +
                 "String[] s2 = new String[]{\"A\",\"B\"}; \n" +
@@ -607,7 +610,7 @@ public class rac extends RacBase {
         
     }
     
-    public void testNonnullelement2() {
+    @Test public void testNonnullelement2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -623,7 +626,7 @@ public class rac extends RacBase {
         
     }
     
-    public void testLbl() {
+    @Test public void testLbl() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -659,7 +662,7 @@ public class rac extends RacBase {
         
     }
     
-    public void testLblConst() {
+    @Test public void testLblConst() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } static int i = 0; \n" +
@@ -799,7 +802,7 @@ public class rac extends RacBase {
         
     }
 
-    public void testUndefined() {
+    @Test public void testUndefined() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); m(1); m(2); System.out.println(\"END\"); } \n" +
                 " //@ requires 10/i != 0; \n" +
@@ -821,7 +824,7 @@ public class rac extends RacBase {
         
     }
     
-    public void testUndefined2() {
+    @Test public void testUndefined2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); m(1); System.out.println(\"END\"); } \n" +
                 " //@ requires i != 0; \n" +
@@ -835,7 +838,7 @@ public class rac extends RacBase {
         
     }
     
-    public void testForLoop2() {
+    @Test public void testForLoop2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " m(); System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
@@ -850,7 +853,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testForLoop() {
+    @Test public void testForLoop() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " m(); System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
@@ -866,7 +869,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testForEachLoop() {
+    @Test public void testForEachLoop() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " m(); System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
@@ -882,7 +885,7 @@ public class rac extends RacBase {
                 ,"END"
                 );
     }
-    public void testForEachLoop2() {
+    @Test public void testForEachLoop2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " m(); System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
@@ -903,7 +906,7 @@ public class rac extends RacBase {
     }
 
     
-    public void testLoop() {
+    @Test public void testLoop() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); m(0); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
@@ -917,7 +920,7 @@ public class rac extends RacBase {
     }
 
     
-    public void testLoop2() {
+    @Test public void testLoop2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); m(0); m(-1); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
@@ -941,7 +944,7 @@ public class rac extends RacBase {
     }
 
     
-    public void testDoLoop() {
+    @Test public void testDoLoop() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); m(1); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
@@ -955,7 +958,7 @@ public class rac extends RacBase {
     }
 
     
-    public void testDoLoop2() {
+    @Test public void testDoLoop2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); m(0); m(-1); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
@@ -980,7 +983,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testSpecFile() {
+    @Test public void testSpecFile() {
         addMockFile("$A/tt/A.jml","package tt; public class A { //@ ghost static int i = 0;\n  //@ invariant i == 0; \n //@ requires i == 1;\n static int m(); }");
         helpTCX("tt.A","package tt; public class A { static int m() { return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
                 ,"/$A/tt/A.jml:3: JML precondition is false"
@@ -989,7 +992,7 @@ public class rac extends RacBase {
         
     }
 
-    public void testSpecFile2() {
+    @Test public void testSpecFile2() {
         addMockFile("$A/tt/A.jml","package tt; public class A { //@ ghost static int i = 0;\n  //@ invariant i == 0; \n //@ ensures i == 1;\n static int m(); }");
         helpTCX("tt.A","package tt; public class A { static int m() { //@ set i = 1; \n return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
                 ,"END"
@@ -997,7 +1000,7 @@ public class rac extends RacBase {
         
     }
 
-    public void testSpecModelMethod() {
+    @Test public void testSpecModelMethod() {
         addMockFile("$A/tt/A.jml","package tt; public class A { " 
                 +"/*@ model static pure int mm() { return 5; } */ "
                 +"//@ ghost static int i = 0;\n  "
@@ -1035,7 +1038,7 @@ public class rac extends RacBase {
         
     }
     
-    public void testStaticInvariant() {
+    @Test public void testStaticInvariant() {
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ static invariant i == 0; \n "
                 +"static void m(); \n"
@@ -1057,7 +1060,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testStaticInvariant2() { 
+    @Test public void testStaticInvariant2() { 
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ static invariant i == 0; \n "
                 +"void m(); \n"
@@ -1080,7 +1083,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testInvariant() { 
+    @Test public void testInvariant() { 
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"void m(); \n"
@@ -1102,7 +1105,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testInitially() {
+    @Test public void testInitially() {
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ initially i == 1; \n "
                 +"//@ initially j == 1; \n "
@@ -1127,7 +1130,7 @@ public class rac extends RacBase {
     }
 
 
-    public void testConstraint() {
+    @Test public void testConstraint() {
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ constraint i == \\old(i)+1; \n "
                 +"void m(); \n"
@@ -1151,7 +1154,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testHelper() {
+    @Test public void testHelper() {
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"/*@ helper */ void m(); \n"
@@ -1171,7 +1174,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testSuchThat() {
+    @Test public void testSuchThat() {
         expectedErrors = 1;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
@@ -1187,7 +1190,7 @@ public class rac extends RacBase {
 
     }
     
-    public void testModelField() {
+    @Test public void testModelField() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
                 +"//@ static model int i; \n "
@@ -1207,7 +1210,7 @@ public class rac extends RacBase {
 
     }
     
-    public void testModelFieldST() {
+    @Test public void testModelFieldST() {
         expectedErrors = 1;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
@@ -1231,7 +1234,7 @@ public class rac extends RacBase {
     }
     
     /** Duplicate represents */
-    public void testModelField1() {
+    @Test public void testModelField1() {
         expectedExit = 1;
         expectedErrors = 1;
         helpTCX("tt.A","package tt; public class A { \n"
@@ -1255,7 +1258,7 @@ public class rac extends RacBase {
     // file (PA or QA) does not get written.
     
     /** Represents with super model field */
-    public void testModelField3() {
+    @Test public void testModelField3() {
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
                 +" int j = 5; \n "
                 +"//@  represents this.i = j+1; \n "
@@ -1278,7 +1281,7 @@ public class rac extends RacBase {
     }
 
     /** Represents with super model field */
-    public void testModelField3a() {
+    @Test public void testModelField3a() {
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
                 +" int j = 5; \n "
                 +"//@  represents super.i = j+1; \n "
@@ -1302,7 +1305,7 @@ public class rac extends RacBase {
 
 
     /** Represents with super model field */
-    public void testModelField4() {
+    @Test public void testModelField4() {
         helpTCX("tt.QA","package tt; public class QA extends QB { \n"
                 +" int j = 5; \n "
                 +"public static void main(String[] args) { \n"
@@ -1326,7 +1329,7 @@ public class rac extends RacBase {
     }
 
     /** Model field with no represents */
-    public void testModelField2() {
+    @Test public void testModelField2() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
                 +"//@ static model int i; \n "
@@ -1341,7 +1344,7 @@ public class rac extends RacBase {
     }
     
     /** Forall, exists quantifier */
-    public void testForallQuantifier() {
+    @Test public void testForallQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; 0<=i && i<=5; i >= 2); \n "
@@ -1355,7 +1358,7 @@ public class rac extends RacBase {
     }
     
     /** Forall, exists quantifier */
-    public void testForallQuantifier2() {
+    @Test public void testForallQuantifier2() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; 0<=i && i<=5; i >= 0); \n "
@@ -1369,7 +1372,7 @@ public class rac extends RacBase {
     }
     
     /** Forall, exists quantifier */
-    public void testForallQuantifier3() {
+    @Test public void testForallQuantifier3() {
         expectedErrors = 2;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
@@ -1385,7 +1388,7 @@ public class rac extends RacBase {
         );
     }
     
-    public void testForallQuantifier4() {
+    @Test public void testForallQuantifier4() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; 0<i && i<=5; (\\exists int j; 0<=j && j < 5; j<i)); \n "
@@ -1399,7 +1402,7 @@ public class rac extends RacBase {
     }
     
     /** Numof quantifier */
-    public void testCountQuantifier() {
+    @Test public void testCountQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\num_of int i; 0 <= i && i <= 5; true); \n "
@@ -1413,7 +1416,7 @@ public class rac extends RacBase {
     }
     
     /** Numof quantifier */
-    public void testCountQuantifier3() {
+    @Test public void testCountQuantifier3() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n = (\\num_of int i; 0 <= i && i < 5; i >= 2); \n "
@@ -1427,7 +1430,7 @@ public class rac extends RacBase {
     }
     
     /** Numof quantifier */
-    public void testCountQuantifierExt() {
+    @Test public void testCountQuantifierExt() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static int m = 2;\n"
                 +"public static void main(String[] argv) { \n "
@@ -1443,7 +1446,7 @@ public class rac extends RacBase {
     }
     
     /** Numof quantifier */
-    public void testCountQuantifierExtE() {
+    @Test public void testCountQuantifierExtE() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static int m = 2;\n"
                 +"//@ ensures (\\num_of int i; 0 <= i && i < 5; i >= m) == 3;\n"
@@ -1458,7 +1461,7 @@ public class rac extends RacBase {
     
     // FIXME - quantifiers witrh multiple declarations
     /** Numof quantifier */
-    public void testCountTwo() {
+    @Test public void testCountTwo() {
         expectedErrors = 1;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
@@ -1473,7 +1476,7 @@ public class rac extends RacBase {
     }
     
     /** Sum quantifier */
-    public void testSumQuantifier() {
+    @Test public void testSumQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\sum int i; 0<i && i<=5; i+1); \n "
@@ -1487,7 +1490,7 @@ public class rac extends RacBase {
     }
     
     /** Sum quantifier */
-    public void testProdQuantifier() {
+    @Test public void testProdQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\product int i; 0<i && i<=5; i+1); \n "
@@ -1501,7 +1504,7 @@ public class rac extends RacBase {
     }
     
     /** Max quantifier */
-    public void testMaxQuantifier() {
+    @Test public void testMaxQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\max int i; 0<=i && i<=5 && (i%2)==0; i+1); \n "
@@ -1515,7 +1518,7 @@ public class rac extends RacBase {
     }
     
     /** Max quantifier, with function call */
-    public void testMaxQuantifier2() {
+    @Test public void testMaxQuantifier2() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"  public static int inc(int i) { return i + 10; }\n"
                 +"public static void main(String[] argv) { \n "
@@ -1530,7 +1533,7 @@ public class rac extends RacBase {
     }
     
     /**  quantifier over short */
-    public void testShortQuantifier() {
+    @Test public void testShortQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost short n1 = (\\max int i; 0<=i && i<=5; (short)(i+10)); \n "
@@ -1544,7 +1547,7 @@ public class rac extends RacBase {
     }
     
     /**  quantifier over short */
-    public void testShortQuantifierB() {
+    @Test public void testShortQuantifierB() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost short n1 = (\\max short i; 2<=i && i<=5; i); \n "
@@ -1558,7 +1561,7 @@ public class rac extends RacBase {
     }
     
     /**  quantifier over byte */
-    public void testByteQuantifier() {
+    @Test public void testByteQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost byte n1 = (\\max int i; 2<=i && i<=5; (byte)i); \n "
@@ -1572,7 +1575,7 @@ public class rac extends RacBase {
     }
     
     /**  quantifier over byte */
-    public void testByteQuantifierB() {
+    @Test public void testByteQuantifierB() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost byte n1 = (\\max byte i; 2<=i && i<=5; i); \n "
@@ -1586,7 +1589,7 @@ public class rac extends RacBase {
     }
     
     /**  quantifier over long */
-    public void testLongQuantifier() {
+    @Test public void testLongQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\max int i; 0<=i && i<=5; (i+10L)); \n "
@@ -1600,7 +1603,7 @@ public class rac extends RacBase {
     }
     
     /**  quantifier over long */
-    public void testLongQuantifierB() {
+    @Test public void testLongQuantifierB() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\max long i; 0<=i && i<=5; (i+10L)); \n "
@@ -1614,7 +1617,7 @@ public class rac extends RacBase {
     }
     
     /**  quantifier over double */
-    public void testDoubleQuantifier() {
+    @Test public void testDoubleQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost double n1 = (\\max int i; 0<=i && i<=5; (double)(i+10.5)); \n "
@@ -1628,7 +1631,7 @@ public class rac extends RacBase {
     }
     
     /**  quantifier over float */
-    public void testFloatQuantifier() {
+    @Test public void testFloatQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost float n1 = (\\max int i; 0<=i && i<=5; (float)(i+10.5)); \n "
@@ -1642,7 +1645,7 @@ public class rac extends RacBase {
     }
     
     /**  quantifier over char */
-    public void testCharQuantifier() {
+    @Test public void testCharQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost char n1 = (\\max int i; 'a'<i && i<='q'; (char)i); \n "
@@ -1656,7 +1659,7 @@ public class rac extends RacBase {
     }
     
     /**  quantifier over char */
-    public void testCharQuantifierB() {
+    @Test public void testCharQuantifierB() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost char n1 = (\\max char i; 'a'<i && i<='q'; i); \n "
@@ -1670,7 +1673,7 @@ public class rac extends RacBase {
     }
     
     /** Min quantifier */
-    public void testMinQuantifier() {
+    @Test public void testMinQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\min int i; 0<=i && i<=5 && (i%2)==1; i+1); \n "
@@ -1684,7 +1687,7 @@ public class rac extends RacBase {
     }
     
     /** Max quantifier */
-    public void testMaxLongQuantifier() {
+    @Test public void testMaxLongQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n = (\\max int i; 0<=i && i<=5 && (i%2)==0; (long)i+1); \n "
@@ -1698,7 +1701,7 @@ public class rac extends RacBase {
     }
     
     /** Min quantifier */
-    public void testMinLongQuantifier() {
+    @Test public void testMinLongQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n = (\\min int i; 0<=i && i<=5 && (i%2)==1; (long)i+1); \n "
@@ -1712,7 +1715,7 @@ public class rac extends RacBase {
     }
     
     /** Max quantifier */
-    public void testMaxDoubleQuantifier() {
+    @Test public void testMaxDoubleQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost double n = (\\max int i; 0<=i && i<=5 && (i%2)==0; (double)i+1); \n "
@@ -1726,7 +1729,7 @@ public class rac extends RacBase {
     }
     
     /** double quantifier */
-    public void testMinDoubleQuantifier() {
+    @Test public void testMinDoubleQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost double n = (\\min int i; 0<=i && i<=5 && (i%2)==1; (double)i+1); \n "
@@ -1740,7 +1743,7 @@ public class rac extends RacBase {
     }
     
     /** boolean quantifier */
-    public void testBooleanQuantifier() {
+    @Test public void testBooleanQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +" boolean bb = true;"
@@ -1757,7 +1760,7 @@ public class rac extends RacBase {
     }
     
     /** Object quantifier */
-    public void testObjectQuantifier() {
+    @Test public void testObjectQuantifier() {
         expectedNotes = 0;
         helpTCX("tt.A","package tt; import java.util.*; public class A { \n"
                 +"public static void main(String[] argv) { \n "
@@ -1776,7 +1779,7 @@ public class rac extends RacBase {
     }
     
 //    /** Represents with super model field */
-//    public void testModelField5() {
+//    @Test public void testModelField5() {
 //        print = true;
 //        addMockFile("$A/tt/B.java","package tt; class B{ //@ model int i; \n}");
 //        helpTCX("tt.A","package tt; public class A extends tt.B { \n"
@@ -1796,7 +1799,7 @@ public class rac extends RacBase {
 //
 //    }
 
-    public void testNullAssignment() {
+    @Test public void testNullAssignment() {
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; @NullableByDefault public class A  { \n"
                 +"/*@non_null*/ static String o=\"\",oo=\"\"; static Object ooo;\n"
                 +"public static void main(String[] args) { \n"
@@ -1813,7 +1816,7 @@ public class rac extends RacBase {
 
     }
 
-    public void testNullAssignment2() {
+    @Test public void testNullAssignment2() {
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; @NullableByDefault public class A  { \n"
                 +"/*@non_null*/ static Object o,oo; static Object ooo;\n"
                 +"public static void main(String[] args) { \n"
@@ -1827,7 +1830,7 @@ public class rac extends RacBase {
 
     }
 
-    public void testNullInitialization() {
+    @Test public void testNullInitialization() {
 //        noCollectDiagnostics = true;
 //        print = true;
         helpTCX("tt.A","package tt; /*@nullable_by_default*/ public class A  { \n"
@@ -1848,7 +1851,7 @@ public class rac extends RacBase {
 
     }
     
-    public void testNullDefault() {
+    @Test public void testNullDefault() {
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"/*@nullable*/ static Object o,oo = null; \n"
                 +"static Object ooo = null;\n"
@@ -1872,7 +1875,7 @@ public class rac extends RacBase {
     // check other expression types
     // what about assignable
     // check any problems with grouped clauses
-    public void testNotImplemented() {
+    @Test public void testNotImplemented() {
         expectedErrors = 20;
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"//@ axiom true;\n"
@@ -1927,7 +1930,7 @@ public class rac extends RacBase {
 
     }
     
-    public void testNotImplemented2() {
+    @Test public void testNotImplemented2() {
         expectedErrors = 3;
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"public static void main(String[] args) { \n"
@@ -1953,7 +1956,7 @@ public class rac extends RacBase {
                 );
     }
      // FIXME - does not do inherited invariant checking when super classes are not public
-    public void testSuperInvariant() {
+    @Test public void testSuperInvariant() {
         //print = true; options.put("-showrac","");
         helpTCX("tt.A","package tt; public class A  extends B { \n"
                 +" public void m() {} //@ invariant i == 1; \n"
@@ -1990,7 +1993,7 @@ public class rac extends RacBase {
     }
 
     // FIXME - does not do inherited invariant checking
-    public void testSuperInvariantB() {
+    @Test public void testSuperInvariantB() {
         //print = true; options.put("-showrac","");
         addMockFile("$A/tt/B.java","package tt; public class B extends tt.C { \n"
                 +"//@  invariant i == 2; \n"
@@ -2037,7 +2040,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testStaticInhInvariant() {
+    @Test public void testStaticInhInvariant() {
         addMockFile("$A/tt/B.java","package tt; public class B extends tt.C { \n"
                 +"//@ static invariant i == 2; \n"
                 +"}\n"
@@ -2082,7 +2085,7 @@ public class rac extends RacBase {
                 );
     }
     
-    public void testAssignable() {
+    @Test public void testAssignable() {
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static int j,k;\n"
                 +"  //@ requires i > 0;\n"
@@ -2102,12 +2105,12 @@ public class rac extends RacBase {
 
     }
     
-    public void testSynchronized() {
+    @Test public void testSynchronized() {
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i; \n synchronized (this) { i = 0; } \n}}"
                 );
     }
 
-    public void testForEach3() {
+    @Test public void testForEach3() {
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list); }"
                 +"static void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
@@ -2118,7 +2121,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testForEach3bad() {
+    @Test public void testForEach3bad() {
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list);}"
                 +"static void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
@@ -2130,7 +2133,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testForEach4() {
+    @Test public void testForEach4() {
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{1,2,3}; m(aa); }"
                 +"static void m(Integer[] list) { \n "
                 +"int sum = 0; \n"
@@ -2141,7 +2144,7 @@ public class rac extends RacBase {
                 );
     }
 
-    public void testForEach4bad() {
+    @Test public void testForEach4bad() {
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{0,0,0}; m(aa); }"
                 +"static void m(Integer[] list) { \n "
                 +"int sum = 0; \n"

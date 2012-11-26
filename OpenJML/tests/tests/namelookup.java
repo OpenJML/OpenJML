@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 public class namelookup extends TCBase {
 
     @Override
@@ -9,6 +11,7 @@ public class namelookup extends TCBase {
         super.setUp();
     }
     
+    @Test
     public void testLookup() {
         helpTCF("A.java",
                 " class A { int k;  \n" +
@@ -21,6 +24,7 @@ public class namelookup extends TCBase {
         );
     }
 
+    @Test
     public void testLookup2() {
         helpTCF("A.java",
                 " public class A { int k; float d; \n" +
@@ -42,6 +46,7 @@ public class namelookup extends TCBase {
         );
     }
 
+    @Test
     public void testLookup3() {
         helpTCF("A.java",
                 " public class A { int k; Object o; \n" +
@@ -58,6 +63,7 @@ public class namelookup extends TCBase {
         "/A.java:8: incomparable types: int and <nulltype>",23);
     }
 
+    @Test
     public void testDupField() {
         helpTCF("A.java",
                 " class A { //@ ghost int k;  \n" +
@@ -69,6 +75,7 @@ public class namelookup extends TCBase {
         );
     }
 
+    @Test
     public void testDupField1() {
         addMockFile("$A/A.jml",
                 " class A { int k;  \n" +
@@ -86,6 +93,7 @@ public class namelookup extends TCBase {
         );
     }
 
+    @Test
     public void testDupField1b() {
         addMockFile("$A/A.jml",
                 " class A { int k;  \n" +
@@ -102,6 +110,7 @@ public class namelookup extends TCBase {
         );
     }
 
+    @Test
     public void testDupField1a() {
         addMockFile("$A/A.jml",
                 " class A { int k;  \n" +
@@ -117,6 +126,7 @@ public class namelookup extends TCBase {
         );
     }
 
+    @Test
     public void testDupField2() {
         helpTCF("A.java",
                 " class A { int k;  \n" +
@@ -128,6 +138,7 @@ public class namelookup extends TCBase {
                 );
     }
 
+    @Test
     public void testDupVar() {
         helpTCF("A.java",
                 " class A { int k;  \n" +
@@ -138,6 +149,7 @@ public class namelookup extends TCBase {
         "/A.java:3: d is already defined in m(double)",11);
     }
 
+    @Test
     public void testDupVar2() {
         helpTCF("A.java",
                 " class A { int k;  \n" +
@@ -148,6 +160,7 @@ public class namelookup extends TCBase {
         "/A.java:3: d is already defined in m(double)",21);
     }
 
+    @Test
     public void testGhostField() {
         helpTCF("A.java",
                 " class A {   \n" +
@@ -161,6 +174,7 @@ public class namelookup extends TCBase {
         "/A.java:5: incompatible types\n  required: boolean\n  found:    double",18);
     }
 
+    @Test
     public void testModelField() {
         helpTCF("A.java",
                 " class A {   \n" +
@@ -174,6 +188,7 @@ public class namelookup extends TCBase {
         "/A.java:5: incompatible types\n  required: boolean\n  found:    double",18);
     }
 
+    @Test
     public void testModelMethod() {
         helpTCF("A.java",
                 " class A {   \n" +
@@ -187,6 +202,7 @@ public class namelookup extends TCBase {
         "/A.java:5: incompatible types\n  required: boolean\n  found:    double",19);
     }
 
+    @Test
     public void testModelMethod2() {
         helpTCF("A.java",
                 " class A {   int k() { return 0; }\n" +
@@ -201,6 +217,7 @@ public class namelookup extends TCBase {
         );
     }
 
+    @Test
     public void testModelMethod3() {
         helpTCF("A.java",
                 " class A { /*@pure*/  int k(int i) { return 0; }\n" +
@@ -214,6 +231,7 @@ public class namelookup extends TCBase {
         "/A.java:4: incompatible types\n  required: boolean\n  found:    int",18);
     }
 
+    @Test
     public void testModelMethod4() {
         helpTCF("A.java",
                 " class A {   static /*@pure*/int k(int i) { return 0; }\n" +
@@ -235,6 +253,7 @@ public class namelookup extends TCBase {
     }
 
     /** No body for model method is OK */
+    @Test
     public void testModelMethod5() {
         helpTCF("A.java",
                 " class A {   \n" +
@@ -249,6 +268,7 @@ public class namelookup extends TCBase {
         );
     }
 
+    @Test
     public void testModelClass() {
         helpTCF("A.java",
                 " public class A {   \n" +
@@ -269,6 +289,7 @@ public class namelookup extends TCBase {
         );
     }
  
+    @Test
     public void testModelClass2() {
         helpTCF("A.java",
                 " class A {   \n" +
@@ -289,6 +310,7 @@ public class namelookup extends TCBase {
             );
     }
 
+    @Test
     public void testModelClass3() {
         addMockFile("$A/A.jml",
                 "public class A {   \n" +
@@ -327,13 +349,14 @@ public class namelookup extends TCBase {
        ,"/$A/A.jml:11: This specification declaration of type AA has the same name as a previous JML type declaration",11
        ,"/$A/A.jml:2: Associated declaration",11
        ,"/$A/A.jml:13: This specification declaration of type BB does not match any Java type declaration in /A.java",11
-       // FISME: Would prefer this: ,"/$A/A.jml:13: This specification declaration of type BB in A does not match any Java type declaration.",11
+       // FIXME: Would prefer this: ,"/$A/A.jml:13: This specification declaration of type BB in A does not match any Java type declaration.",11
         ,"/A.java:3: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
         ,"/A.java:5: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
         ,"/A.java:6: incompatible types\n  required: boolean\n  found:    double",22
         );
     }
  
+    @Test
     public void testToplevelModel() {
         addMockFile("$A/A.jml",
                 "public class A {   \n" +

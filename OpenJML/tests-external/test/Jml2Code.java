@@ -7,11 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
-
-
-public class Jml2Code  extends TestCase {
+public class Jml2Code {
 
         static private boolean dotests = true;  // Change this to enable/disable tests
         
