@@ -28,6 +28,7 @@ public class escboogie extends EscBase {
     }
     
 
+    @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();

@@ -1,6 +1,7 @@
 package tests;
 
 import org.jmlspecs.openjml.JmlSpecs;
+import org.junit.Test;
 
 public class generics extends TCBase {
 
@@ -14,12 +15,14 @@ public class generics extends TCBase {
     }
 
     /** Test something very simple with no errors*/
+    @Test
     public void testSimpleGeneric() {
         addMockFile("$A/A.jml","public class A<T> { /*@ non_null*/ T t; /*@ non_null pure*/ T item(); }");
         helpTCF("A.java","public class A<T> { T t; T item() { return t; }}");
     }
 
     /** Test with a binary class*/
+    @Test
     public void testBinaryGeneric() {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","package java.util; public interface Collection<E> extends java.lang.Iterable<E> { public boolean add(E t); }");
@@ -27,6 +30,7 @@ public class generics extends TCBase {
     }
 
     /** Test mismatched type parameters*/
+    @Test
     public void testSimpleGeneric1() {
         addMockFile("$A/A.jml","public class A {  }");
         //specs.printDatabase();
@@ -36,6 +40,7 @@ public class generics extends TCBase {
     }
 
     /** Test with a binary class*/
+    @Test
     public void testBinaryGeneric2() {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","public interface Collection extends java.lang.Iterable {  }");
@@ -45,6 +50,7 @@ public class generics extends TCBase {
     }
 
     /** Test with a binary class*/
+    @Test
     public void testBinaryGeneric3() {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","public interface Collection<Z> extends java.lang.Iterable<Z> {  }");
@@ -55,6 +61,7 @@ public class generics extends TCBase {
     }
 
     /** Test with a binary class*/
+    @Test
     public void testBinaryGeneric4() {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","public interface Collection<E,Z> extends java.lang.Iterable<E> {  }");
@@ -63,12 +70,14 @@ public class generics extends TCBase {
                 );
     }
     
+    @Test
     public void testMethod() {
         helpTCF("A.java","public class A<X> {\n  <T>T doit(T t) { return t; } }"
                 );
         
     }
     
+    @Test
     public void testMethod2() {
         addMockFile("$A/java/util/Vector.jml","public class Vector<E> extends java.util.AbstractList<E> implements java.util.List<E>, java.util.RandomAccess, java.lang.Cloneable, java.io.Serializable { \npublic <T> T[] toArray(T[] t); }");
         helpTCF("A.java","public class A<X> { java.util.Vector<X> t; }"
@@ -77,6 +86,7 @@ public class generics extends TCBase {
         
     }
     
+    @Test
     public void testForEach1() {
         helpTCF("A.java"," class A { void m(java.util.List<Integer> list) { " +
                 " //@ loop_invariant o != null; decreasing 6; \n" +
@@ -86,6 +96,7 @@ public class generics extends TCBase {
     }
 
 
+    @Test
     public void testForEach2() {
         helpTCF("A.java"," class A { void m(Integer[] list) { \n" +
                 " //@ loop_invariant o != 0; decreasing 6; \n" +
@@ -95,6 +106,7 @@ public class generics extends TCBase {
     }
 
 
+    @Test
     public void testForEach3() {
         helpTCF("A.java"," class A { void m(java.util.List<Integer> list) { \n" +
                 " //@ loop_invariant o != 0; decreasing 6; \n" +
@@ -103,6 +115,7 @@ public class generics extends TCBase {
                 );
     }
 
+    @Test
     public void testForEach4() {
         helpTCF("A.java",
                 " class A { void m(Integer[] list) { \n" +

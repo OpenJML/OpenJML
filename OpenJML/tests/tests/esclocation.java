@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 
 /** This class of JUnit tests checks that assertion violations for assertions
  * declared in other files are printed with source code from the other file.
@@ -8,6 +10,7 @@ package tests;
  */
 public class esclocation extends EscBase {
 
+    @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
@@ -19,6 +22,7 @@ public class esclocation extends EscBase {
         //JmlEsc.escdebug = true;
     }
     
+    @Test
     public void testLocationRequires() {
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@   requires false;\n"
@@ -39,6 +43,7 @@ public class esclocation extends EscBase {
                 );
     }
     
+    @Test
     public void testLocationEnsures() {
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@   ensures false;\n"
@@ -56,6 +61,7 @@ public class esclocation extends EscBase {
                 );
     }
     
+    @Test
     public void testLocationEnsures2() {
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@   ensures false;\n"
@@ -74,6 +80,7 @@ public class esclocation extends EscBase {
                 );
     }
     
+    @Test
     public void testLocationSignals() {
 //        options.put("-progress","");
 //        options.put("-jmlverbose","");
@@ -94,6 +101,7 @@ public class esclocation extends EscBase {
                 );
     }
     
+    @Test
     public void testLocationInvariant() {
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@ invariant i>=0;\n"
@@ -114,6 +122,7 @@ public class esclocation extends EscBase {
                 );
     }
     
+    @Test
     public void testLocationInitially() {
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@ initially i>=0;\n"
@@ -133,6 +142,7 @@ public class esclocation extends EscBase {
     }
     
     
+    @Test
     public void testLocationConstraint() {
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@ constraint i>=\\old(i);\n"

@@ -5,6 +5,7 @@ public class escTiming extends EscBase {
 
     public void test() {}  // Dummy to preclude JUnit error messages 
     
+    @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
@@ -18,7 +19,7 @@ public class escTiming extends EscBase {
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
     }
 
-    // Disabled - takes about 5 minutes
+    // FIXME - Disabled - takes about 5 minutes
     public void _testTimingIf() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public abstract class TestJava { \n"

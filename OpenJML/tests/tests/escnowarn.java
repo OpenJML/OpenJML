@@ -1,6 +1,7 @@
 package tests;
 
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.junit.Test;
 
 import com.sun.tools.javac.util.Options;
 
@@ -21,6 +22,7 @@ public class escnowarn extends EscBase {
         //JmlEsc.escdebug = true;
     }
     
+    @Test
     public void testNowarnRequires() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -37,6 +39,7 @@ public class escnowarn extends EscBase {
                 );
     }
     
+    @Test
     public void testNowarnRequiresNW() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -51,6 +54,7 @@ public class escnowarn extends EscBase {
                 );
     }
     
+    @Test
     public void testNowarnEnsures() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -66,6 +70,7 @@ public class escnowarn extends EscBase {
                 );
     }
     
+    @Test
     public void testNowarnEnsuresNW() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -78,7 +83,8 @@ public class escnowarn extends EscBase {
                 +"}"
                 );
     }
-    
+
+    //  FIXME - disabled tests
 //    public void testLocationEnsures2() {
 //        addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
 //                +"  //@   ensures false;\n"

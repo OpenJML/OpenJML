@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 /** These tests use the internal specs so that they trigger any checking of
  * specs that are referenced by Object.
  * @author David Cok
@@ -19,6 +21,7 @@ public class internalSpecs extends TCBase {
 
     /** Scan something very simple but use the internal spaces to see what 
      * problems there might be in the specs and to be sure they are pulled in. */
+    @Test
     public void testPure() {
         helpTC(" class A { /*@ pure */ boolean m() { return true; }  \n //@ invariant m(); \n}"
         );

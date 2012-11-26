@@ -1,6 +1,8 @@
 package tests;
 
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /** This class of JUnit tests checks various uses of generic types.
  * @author David R. Cok
@@ -8,6 +10,7 @@ import org.jmlspecs.openjml.esc.JmlEsc;
  */
 public class escgeneric extends EscBase {
 
+    @Override
     public void setUp() throws Exception {
         //print = true;
         //noCollectDiagnostics = true;
@@ -22,11 +25,8 @@ public class escgeneric extends EscBase {
     }
     
     // FIXME - disabled until we get generic types implemented better
+    @Test
     public void testConstructor() {
-//        options.put("-showbb","");
-//        options.put("-trace","");
-//        options.put("-method","ma");
-        //JmlEsc.escdebug = true;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -47,9 +47,8 @@ public class escgeneric extends EscBase {
     }
     
     /** Tests that we can reason about the result of \\typeof */
+    @Test
     public void testTypeOf() {
-//        options.put("-showbb","");
-//        options.put("-trace","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -69,6 +68,7 @@ public class escgeneric extends EscBase {
                 );
     }
     
+    @Test
     public void testGenericType() {
 //        options.put("-showbb","");
 //        options.put("-trace","");
@@ -108,6 +108,7 @@ public class escgeneric extends EscBase {
         );
     }
 
+    @Test
     public void testStatic() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -128,6 +129,7 @@ public class escgeneric extends EscBase {
         );
     }
 
+    @Test
     public void testTypeParameter() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -148,6 +150,7 @@ public class escgeneric extends EscBase {
                 );
     }
     
+    @Test
     public void testTypeParameter2() {
 //        options.put("-showbb","");
 //        options.put("-trace","");
@@ -174,29 +177,31 @@ public class escgeneric extends EscBase {
     }
  
     // FIXME - autoboxing not working for ESC
-//    public void testForEach3() {
-//      options.put("-showbb","");
-//      options.put("-trace","");
-//            options.put("-method","m");
-//        helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "
-//                +"int sum = 0; \n"
-//                +"//@ loop_invariant sum >= 0; \n"
-//                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
-//                +"//@ assert sum >= 0; \n"
-//                +"}}"
-//                );
-//    }
-//
-//    public void testForEach3bad() {
-//        helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "
-//                +"int sum = 0; \n"
-//                +"//@ loop_invariant sum >= 0; \n"
-//                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
-//                +"//@ assert sum > 0; \n"
-//                +"}}"
-//                );
-//    }
-//
+    @Ignore @Test
+    public void testForEach3() {
+      options.put("-showbb","");
+      options.put("-trace","");
+            options.put("-method","m");
+        helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
+                +"//@ assert sum >= 0; \n"
+                +"}}"
+                );
+    }
+
+    @Ignore @Test
+    public void testForEach3bad() {
+        helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
+                +"//@ assert sum > 0; \n"
+                +"}}"
+                );
+    }
+
     
 }
     

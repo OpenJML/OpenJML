@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 
 public class escnewassignable extends EscBase {
 
@@ -10,6 +12,7 @@ public class escnewassignable extends EscBase {
     // a[i] a[i..j] a[*] a[i..*] a[*..j] a[*..*]
     // \everything \nothing \not_specified
     
+    @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
@@ -27,6 +30,7 @@ public class escnewassignable extends EscBase {
         //print = true;
     }
 
+    @Test
     public void testAssignable1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -51,6 +55,7 @@ public class escnewassignable extends EscBase {
                 );
     }
 
+    @Test
     public void testAssignable2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -72,6 +77,7 @@ public class escnewassignable extends EscBase {
                 );
     }
 
+    @Test
     public void testAssignable3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -102,6 +108,7 @@ public class escnewassignable extends EscBase {
                 );
     }
 
+    @Test
     public void testAssignable4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -123,6 +130,7 @@ public class escnewassignable extends EscBase {
                 );
     }
 
+    @Test
     public void testAssignable5() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -189,10 +197,8 @@ public class escnewassignable extends EscBase {
                 );
     }
 
+    @Test
     public void testAssignable6() {
-        //      options.put("-showbb","");
-        //    options.put("-trace", "");
-        //    options.put("-method","m1good");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int x,xx; static int y,yy; \n"
@@ -260,6 +266,7 @@ public class escnewassignable extends EscBase {
                 );
     }
 
+    @Test
     public void testAssignableM1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

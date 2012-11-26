@@ -15,6 +15,7 @@ import com.sun.tools.javac.util.Names;
 
 public class escnew extends EscBase {
 
+    @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();

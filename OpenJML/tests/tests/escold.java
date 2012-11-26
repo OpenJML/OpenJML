@@ -1,7 +1,10 @@
 package tests;
 
+import org.junit.Test;
+
 public class escold extends escnew {
 
+    @Override
     public void setUp() throws Exception {
         super.setUp();
         options.put("-newesc",null);
@@ -10,6 +13,7 @@ public class escold extends escnew {
     }
     
     // messages are in a different order
+    @Test
     public void testJmlLabelExpression() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -32,6 +36,7 @@ public class escold extends escnew {
     }
 
     // Messages have a different location
+    @Test
     public void testExplicitAssert() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -74,6 +79,7 @@ public class escold extends escnew {
     }
     
 
+    @Test
     public void testBox() {
         // Was not implemented in old esc
     }
@@ -82,27 +88,35 @@ public class escold extends escnew {
 //        // FIXME - skip until problem in escnew is fixed
 //    }
     
+    @Test
     public void testNullThrow() {
         // FIXME - skip until problem in escnew is fixed
     }
     
+    @Test
     public void testUnreachable() {
         // FIXME - skip until problem in escnew is fixed
     }
     
+    @Test
     public void testNullSynchronized() {
         // old esc did not check for this problem
     }
     
+    @Test
     public void testShortCircuit() {}
+    @Test
     public void testAssignOp() {}
+    @Test
     public void testGhostSetNoDebug() {}
 
     
+    @Test
     public void testPostcondition4() {
         // old esc did not check for this problem
     }
     
+    @Test
     public void testHavoc() {
         // old esc did not implement havoc
     }

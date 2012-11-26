@@ -11,6 +11,7 @@ import org.junit.Test;
  */
 public class counterexamples extends EscBase {
 
+    @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();

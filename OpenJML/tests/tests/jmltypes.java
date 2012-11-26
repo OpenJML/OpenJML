@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 
 /** These tests do typechecking on all the aspects of JML types.
  * <BR> \TYPE - the type of types in JML, somewhat like, but not equivalent to Class<?>
@@ -20,6 +22,7 @@ public class jmltypes extends TCBase {
         super.setUp();
     }
     
+    @Test
     public void testUninitGhost() {
         helpTCF("A.java",
                 "import java.util.Vector; public class A { \n" +
@@ -42,6 +45,7 @@ public class jmltypes extends TCBase {
                 );
     }
 
+    @Test
     public void testOK1() {
         helpTCF("A.java",
                 "public class A { \n" +
@@ -57,6 +61,7 @@ public class jmltypes extends TCBase {
                 );
     }
 
+    @Test
     public void testOK2() {
         helpTCF("A.java",
                 "public class A { \n" +
@@ -70,6 +75,7 @@ public class jmltypes extends TCBase {
                 );
     }
 
+    @Test
     public void testOK3() {
         helpTCF("A.java",
                 "class B<T> {}\n" +
@@ -84,6 +90,7 @@ public class jmltypes extends TCBase {
                 );
     }
 
+    @Test
     public void testBad() {
         helpTCF("A.java",
                 "public class A { \n" +
@@ -113,6 +120,7 @@ public class jmltypes extends TCBase {
                 
     }
     
+    @Test
     public void testBadJava() {
         helpTCF("A.java",
                 "public class A<T extends java.io.File> { \n" +
@@ -123,6 +131,7 @@ public class jmltypes extends TCBase {
         );
     }
     
+    @Test
     public void testBadJava2() {
         helpTCF("A.java",
                 "public class A<T extends java.io.File> { \n" +

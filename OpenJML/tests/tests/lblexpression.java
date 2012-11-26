@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 public class lblexpression extends TCBase {
 
 
@@ -10,6 +12,7 @@ public class lblexpression extends TCBase {
         super.setUp();
     }
     
+    @Test
     public void testlbl() {
         helpTCF("A.java",
                 " class A { int k;  \n" +
@@ -21,6 +24,7 @@ public class lblexpression extends TCBase {
         );
     }
 
+    @Test
     public void testlbl2() {
         helpTCF("A.java",
                 " class A { int k;  \n" +
@@ -32,6 +36,7 @@ public class lblexpression extends TCBase {
         );
     }
 
+    @Test
     public void testlbl3() {
         helpTCF("A.java",
                 " class A { int k;  \n" +
@@ -43,6 +48,7 @@ public class lblexpression extends TCBase {
         );
     }
 
+    @Test
     public void testlblany() {
         helpTCF("A.java",
                 " class A { int k;  \n" +
@@ -53,6 +59,7 @@ public class lblexpression extends TCBase {
         );
     }
 
+    @Test
     public void testlblany2() {
         helpTCF("A.java",
                 " class A { int k;  \n" +

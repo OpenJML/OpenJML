@@ -35,6 +35,7 @@ import com.sun.tools.javac.util.Log;
  */
 public class expressions extends ParseBase {
 
+    @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
@@ -586,6 +587,7 @@ public class expressions extends ParseBase {
                 JCLiteral.class ,23);
     }
 
+    // FIXME - disabled
 //    public void testMisc() {
 //        print = true;
 //        helpExpr("(\\result==j) ==> \\typeof(o) <: \\type(oo) ",

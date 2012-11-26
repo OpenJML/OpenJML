@@ -23,6 +23,7 @@ public class jmldoc extends TestCase {
     boolean print = false;
     boolean capture = true;
     
+    @Override
     @Before
     protected void setUp() throws Exception {
         //capture = false;
@@ -34,6 +35,7 @@ public class jmldoc extends TestCase {
         if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
     }
     
+    @Override
     @After
     protected void tearDown() {
         berr = null;
@@ -142,6 +144,7 @@ public class jmldoc extends TestCase {
                   );
     }
     
+    // FIXME - disabled tests
 //    @Test
 //    public void testRecursiveCP() throws Exception {
 //        helper(new String[]
