@@ -18,6 +18,7 @@ import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.Dir;
 import org.jmlspecs.openjml.Main;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -104,31 +105,17 @@ public class SpecsBase extends TCBase {
     static private boolean dotests = true;  // Change this to enable/disable dynamic tests
     
     /** If true, then a progress message is printed as each test is executed.*/
-    private static boolean verbose;
+    private static boolean verbose = true;
 
     @Parameters
     static public  Collection<String[]> datax() {
+        if (!dotests) return new ArrayList<String[]>(0);
         Collection<String[]> data = new ArrayList<String[]>(1000);
         for (String f: findAllFiles(null)) {
             data.add(new String[]{ f});
         }
         return data;
     }
-
-//    /** Sets up a test suite dynamically */
-//    public static TestSuite suite() { 
-//        verbose = false;
-//        TestSuite suite = new TestSuite(); 
-//        suite.setName("SpecsBase");
-//        if (dotests) {
-//            Set<String> names = findAllFiles(null);
-//            for (String n: names) suite.addTest(new SpecsBase(n));  
-//        }
-//        return suite;
-//    }
-
-    /** Runs the test in dynamically created test mode */
-    public void runTest() { checkClass(classname); }
 
     /** The name of the class to be tested (which is also the name of the test)
      * when the suite mode is used. This is defined simply to enable debugging.
@@ -169,7 +156,7 @@ public class SpecsBase extends TCBase {
     //@ modifies foundErrors;
     public void helpTCFile(String filename, String s, String testClass) {
         try {
-            setUp();
+            setUp(); // FIXME - why this call?
             JavaFileObject f = new TestJavaFileObject(filename,s);
             if (filename != null) addMockFile("#B/" + filename,f);
             Log.instance(context).useSource(f);
@@ -197,18 +184,23 @@ public class SpecsBase extends TCBase {
         assertTrue("Found errors checking specs for " + testClass, !foundErrors);
     }
 
+    /** This test tests the file that is named as classname by the constructor */
+    @Test
+    public void testSpecificationFile() {
+        foundErrors = false;
+        checkClass(classname);
+        assertTrue("Errors found",!foundErrors);
+    }
+    
+    // This runs all classes as one test.
     /** The test to run - finds all system specs and runs tests on them in order
      * to at least be sure that the specifications parse and typecheck.
-     * To use method #2 as described above, comment out suite() and runTest() 
-     * and enable this test by removing the leading underscore
      */
-    @Test
     public void testSpecificationFiles() {
         if (!dotests) {
             System.out.println("System spec tests (test.SpecBase) are being skipped " + System.getProperty("java.version"));
             return;
         }
-        verbose = true;
         foundErrors = false;
         helpTCF("AJDK.java","public class AJDK {  }");  // smoke test
         SortedSet<String> classes = findAllFiles(specs); 
@@ -338,8 +330,9 @@ public class SpecsBase extends TCBase {
     // modifier checking in attribute testing.
 
     /** Use this to test the specs for a specific file */
+    
     public void testFileTemp() {
-//        checkClassGeneric("java.util.LinkedList");
+        checkClassGeneric("java.util.LinkedList");
     }
 
 }

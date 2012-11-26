@@ -1,4 +1,8 @@
 package tests;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
@@ -15,30 +19,29 @@ import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
 
-import static org.junit.Assert.*;
-
 import org.jmlspecs.openjml.API;
 import org.jmlspecs.openjml.Factory;
 import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -47,7 +50,6 @@ import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 
@@ -254,35 +256,35 @@ public class api {
         }
     }
     
-//    @Test
-//    public void testParseAndPrettyPrint3() {
-//        start(true);
-//        try {
-//            String s = parseAndPrettyPrintFromMultipleFiles();
-//            check("","");
-//            s = s.replace('\\','/');
-//            compareStrings(prettyprint,s);
-//        } catch (Exception e) {
-//            System.out.println(e);
-//            e.printStackTrace(System.out);
-//            assertTrue(false);
-//        }
-//    }
-//    
-//    @Test
-//    public void testParseAndPrettyPrint4() {
-//        start(true);
-//        try {
-//            String s = parseAndPrettyPrintFromFileArray();
-//            check("","");
-//            s = s.replace('\\','/');
-//            compareStrings(prettyprint,s);
-//        } catch (Exception e) {
-//            System.out.println(e);
-//            e.printStackTrace(System.out);
-//            assertTrue(false);
-//        }
-//    }
+    @Test @Ignore  // FIXME - just haven't got the comparison string correct yet
+    public void testParseAndPrettyPrint3() {
+        start(true);
+        try {
+            String s = parseAndPrettyPrintFromMultipleFiles();
+            check("","");
+            s = s.replace('\\','/');
+            compareStrings(prettyprint,s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    @Test @Ignore  // FIXME - just haven't got the comparison string correct yet
+    public void testParseAndPrettyPrint4() {
+        start(true);
+        try {
+            String s = parseAndPrettyPrintFromFileArray();
+            check("","");
+            s = s.replace('\\','/');
+            compareStrings(prettyprint,s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
     
     String parseAndPrettyPrintSingleFile() throws Exception {
         String f = "testfiles/testNoErrors/A.java";
@@ -336,11 +338,11 @@ public class api {
         try {
             IAPI m = Factory.makeAPI("-noPurityCheck");
             String s1 = "public class A { /*@ ensures X;*/ void f() {} }";
-            String s2 = "public class A { /*@ requires Z; ensures Y;*/ void f(); }";
+            //String s2 = "public class A { /*@ requires Z; ensures Y;*/ void f(); }";
             JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
-            JavaFileObject f2 = m.makeJFOfromString("A.jml",s2);
+            //JavaFileObject f2 = m.makeJFOfromString("A.jml",s2);
             JmlCompilationUnit ast1 = m.parseSingleFile(f1);
-            JmlCompilationUnit ast2 = m.parseSingleFile(f2);
+            //JmlCompilationUnit ast2 = m.parseSingleFile(f2);
             m.attachSpecs(ast1,ast1);
             int n = m.typecheck(ast1);
             endCapture();
@@ -380,53 +382,30 @@ public class api {
         }
     }
 
-//    FIXME - Bug in behavior when attaching null.
-//    @Test
-//    public void testAttach3() {
-//        start(true);
-//        try {
-//            IAPI m = Factory.makeAPI("-noPurityCheck");
-//            String s1 = "public class A { /*@ ensures X;*/ void f() {} }";
-//            String s2 = "public class A { /*@ requires Z; ensures Y;*/ void f(); }";
-//            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
-//            JavaFileObject f2 = m.makeJFOfromString("A.jml",s2);
-//            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
-//            JmlCompilationUnit ast2 = m.parseSingleFile(f2);
-//            m.attachSpecs(ast1,null);
-//            int n = m.typecheck(ast1);
-//            endCapture();
-//            if (n != 0) {
-//                System.out.println("Errors: " + n);
-//                assertTrue(false);
-//            }
-//        } catch (Exception e) {
-//            System.out.println(e);
-//            e.printStackTrace(System.out);
-//            assertTrue(false);
-//        }
-//    }
-//    
-//    @Test
-//    public void testAttach4() {
-//        start(true);
-//        try {
-//            IAPI m = Factory.makeAPI("-noPurityCheck");
-//            String s1 = "public class A { /*@ invariant X;*/ void f() {} }";
-//            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
-//            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
-//            m.attachSpecs(ast1,null);
-//            int n = m.typecheck(ast1);
-//            endCapture();
-//            if (n != 0) {
-//                System.out.println("Errors: " + n);
-//                assertTrue(false);
-//            }
-//        } catch (Exception e) {
-//            System.out.println(e);
-//            e.printStackTrace(System.out);
-//            assertTrue(false);
-//        }
-//    }
+    @Test
+    public void testAttach3() {
+        start(true);
+        try {
+            IAPI m = Factory.makeAPI("-noPurityCheck");
+            String s1 = "public class A { /*@ ensures true;*/ void f() {} }";
+            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
+            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
+            m.attachSpecs(ast1,null);
+            int n = m.typecheck(ast1);
+            endCapture();
+            if (n != 0) {
+                System.out.println("Errors: " + n);
+                System.out.println(bout.toString());
+                System.out.println(berr.toString());
+                assertTrue(false);
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
 
     @Test
     public void testAttach5() {
@@ -905,8 +884,8 @@ public class api {
     
     /** Test jmldoc through the API */ // FIXME - this and maybe others do not check for errors
     // jmldoc
-    // @Test // FIXME - disable until jmldoc is repaired
-//    public void testJmldoc() {
+     @Ignore @Test // FIXME - disable until jmldoc is repaired
+    public void testJmldoc() {
 //        File f = new java.io.File("tempdoc");
 //        if (f.exists()) {
 //            boolean b = deleteAll(f);
@@ -922,7 +901,7 @@ public class api {
 //        } catch (Exception e) {
 //            fail();
 //        }
-//    }
+    }
 
     public final static String program =
         "public class A { /*@ requires i > 0;*/void m(int i) {} void mm() { m(0); } int ff; int f; public static class B {} }";
@@ -1102,24 +1081,24 @@ public class api {
         }
     }
     
-//  /** Tests the parseAndCheck call */
-//  // parseAndCheck 
-//  @Test
-//  public void testParseAndCheckCrash() {
-//      start(true);
-//      try {
-//          java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
-//          IAPI m = Factory.makeAPI();
-//          m.setOption("-noPurityCheck");
-//          m.parseAndCheck(f,f);  // FIXME - duplicate entries causes crash
-//          check("","");
-//      } catch (Exception e) {
-//          check("","");
-//          System.out.println(e);
-//          e.printStackTrace(System.out);
-//          assertTrue(false);
-//      }
-//  }
+    /** Tests the parseAndCheck call */
+    // parseAndCheck 
+    @Ignore
+    public void testParseAndCheckCrash() {
+        start(true);
+        try {
+            java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
+            IAPI m = Factory.makeAPI();
+            m.setOption("-noPurityCheck");
+            m.parseAndCheck(f,f);  // FIXME - duplicate entries causes crash
+            check("","");
+        } catch (Exception e) {
+            check("","");
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
     
     /** Tests the parseAndCheck call */
     // parseAndCheck 
@@ -1354,7 +1333,11 @@ public class api {
         try {
             API api = new API();
             char[] cb = new char[10000];
-            int n = new FileReader(new File("testfiles/testNoErrors/A.java")).read(cb,0,cb.length);
+            FileReader fr = new FileReader(new File("testfiles/testNoErrors/A.java"));
+            int n = fr.read(cb,0,cb.length);
+            fr.close();
+            if (n == -1) fail("Failed to read A.java");
+            if (n == cb.length) fail("Buffer not large enough");
             String fc = new String(cb,0,n);
             JavaFileObject jfo = api.makeJFOfromFilename("testfiles/testNoErrors/A.java");
             assertEquals(JavaFileObject.Kind.SOURCE,jfo.getKind());
