@@ -6,14 +6,13 @@ import java.util.Collection;
 
 import javax.tools.JavaFileObject;
 
-import junit.framework.AssertionFailedError;
-
 import org.jmlspecs.openjml.JmlSpecs;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import static org.junit.Assert.*;
 
 
 public abstract class EscBase extends JmlTestCase {
@@ -126,7 +125,7 @@ public abstract class EscBase extends JmlTestCase {
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
-        } catch (AssertionFailedError e) {
+        } catch (AssertionError e) {
             if (!print && !noExtraPrinting) printErrors();
             throw e;
         }

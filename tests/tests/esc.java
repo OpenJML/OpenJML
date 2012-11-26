@@ -3411,8 +3411,8 @@ public class esc extends EscBase {
     }
     
     // TODO - class initialization
-    @Test
-    public void _testUndefinedInSpec5() {
+    @Test @Ignore
+    public void testUndefinedInSpec5() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static TestJava t;\n"

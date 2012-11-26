@@ -4,14 +4,13 @@ import java.net.URI;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
-import junit.framework.AssertionFailedError;
-
 import org.jmlspecs.openjml.JmlSpecs;
 
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import static org.junit.Assert.*;
 
 
 /** This is a base class for all tests that parse and typecheck a
@@ -32,6 +31,7 @@ public abstract class TCBase extends JmlTestCase {
     int expectedExit = -1;
     boolean useSystemSpecs = false;
 
+    @Override
     public void setUp() throws Exception {
         testspecpath = testspecpath1;
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
@@ -49,6 +49,7 @@ public abstract class TCBase extends JmlTestCase {
         print = false;
     }
     
+    @Override
     public void tearDown() throws Exception {
         super.tearDown();
         specs = null;
@@ -59,7 +60,7 @@ public abstract class TCBase extends JmlTestCase {
         boolean failed = false;
         try {
             helpTC(s,list);
-        } catch (AssertionFailedError a) {
+        } catch (AssertionError a) {
             failed = true;
             assertEquals("Failure report wrong",failureMessage,a.getMessage());
         }
@@ -114,7 +115,7 @@ public abstract class TCBase extends JmlTestCase {
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
-        } catch (AssertionFailedError e) {
+        } catch (AssertionError e) {
             if (!print && !noExtraPrinting) printErrors();
             throw e;
         }

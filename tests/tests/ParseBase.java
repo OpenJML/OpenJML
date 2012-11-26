@@ -1,22 +1,19 @@
 package tests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.util.LinkedList;
 import java.util.List;
-
-import junit.framework.AssertionFailedError;
 
 import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlTreeScanner;
 
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
-import com.sun.tools.javac.parser.JavacParser;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.JmlScanner;
-import com.sun.tools.javac.parser.Parser;
 import com.sun.tools.javac.parser.ParserFactory;
-import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.tree.JCTree;
@@ -42,6 +39,7 @@ abstract public class ParseBase extends JmlTestCase {
      */
     boolean jml;
 
+    @Override
     public void setUp() throws Exception {
         super.setUp();
         options.put("compilePolicy","check");  // Don't do code generation
@@ -56,6 +54,7 @@ abstract public class ParseBase extends JmlTestCase {
         jml = false;
     }
 
+    @Override
     public void tearDown() throws Exception {
         super.tearDown();
         fac = null;
@@ -81,7 +80,7 @@ abstract public class ParseBase extends JmlTestCase {
         boolean failed = false;
         try {
             checkCompilationUnit(s,list);
-        } catch (AssertionFailedError a) {
+        } catch (AssertionError a) {
             failed = true;
             assertEquals("Failure report wrong",failureMessage,a.getMessage());
         }
@@ -142,7 +141,7 @@ abstract public class ParseBase extends JmlTestCase {
             }
             if ( i != expected.length) fail("Incorrect number of nodes listed");
             if (parser.getScanner().token() != Token.EOF) fail("Not at end of input");
-        } catch (AssertionFailedError e) {
+        } catch (AssertionError e) {
             if (!print) printTree(actual);
             if (!print) printErrors();
             throw e;
@@ -151,7 +150,7 @@ abstract public class ParseBase extends JmlTestCase {
     
     /** Prints out the nodes of the tree */
     public void printTree(List<JCTree> list) {
-        System.out.println("NODES FOR " + getName());
+        System.out.println("NODES FOR " + name.getMethodName());
         for (JCTree t: list) {
             System.out.println(t.getClass() + " " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + parser.getEndPos(t));
         }

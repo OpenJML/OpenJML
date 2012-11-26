@@ -30,7 +30,7 @@ public class harnesstests extends TCBase {
     /** Test that harness reports a missing argument */
     @Test
     public void testHarness2() {
-        helpFailure("Message 0 mismatch expected:<:1: <identifier> expected> but was:</TEST.java:1: <identifier> expected>",
+        helpFailure("Message 0 mismatch expected:<[]:1: <identifier> exp...> but was:<[/TEST.java]:1: <identifier> exp...>",
                 " class A { QQ }",":1: <identifier> expected");
     }
 
@@ -44,7 +44,7 @@ public class harnesstests extends TCBase {
     /** Test that harness reports a mismatched message */
     @Test
     public void testHarness4() {
-        helpFailure("Message 0 mismatch expected:<X> but was:</TEST.java:1: <identifier> expected>",
+        helpFailure("Message 0 mismatch expected:<[X]> but was:<[/TEST.java:1: <identifier> expected]>",
                 " class A { QQ }","X",0,"",0,"",0);
     }
 

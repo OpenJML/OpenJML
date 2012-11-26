@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 /** These tests check various improper declarations of model and ghost
  * methods and fields.
  * @author David R. Cok
@@ -15,6 +17,7 @@ public class modelghost extends TCBase {
         super.setUp();
     }
     
+    @Test
     public void testMethod() {
         helpTCF("A.java",
                 "public class A { \n" +
@@ -87,6 +90,7 @@ public class modelghost extends TCBase {
                 );
     }
 
+    @Test
     public void testClass() {
         helpTCF("A.java",
                 "public class A { \n" +
@@ -131,6 +135,7 @@ public class modelghost extends TCBase {
                 
     }
     
+    @Test
     public void testField() {
         helpTCF("A.java",
                 "public class A { \n" +
@@ -188,6 +193,7 @@ public class modelghost extends TCBase {
                 );
     }
     
+    @Test
     public void testInitializer() {
         addMockFile("$A/A.jml","public class A { { i = 2; } }");
         helpTCF("A.java","public class A { int i; { i = 1; } } "
@@ -195,6 +201,7 @@ public class modelghost extends TCBase {
         );
     }
 
+    @Test
     public void testInitializer2() {
         addMockFile("$A/A.jml","public class A { /*@ model public class B { int i;  { i = 2; } } */ }");
         helpTCF("A.java","public class A { int i; { i = 1; } } "

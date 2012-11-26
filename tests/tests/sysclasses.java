@@ -1,5 +1,7 @@
 package tests;
 
+import org.junit.Test;
+
 public class sysclasses extends TCBase {
 
     // @edu.umd.cs.findbugs.annotations.SuppressWarnings("MS_SHOULD_BE_FINAL")
@@ -13,13 +15,13 @@ public class sysclasses extends TCBase {
         super.setUp();
     }
 
-//    /** Tests typechecking an invariant clause - OK*/
-//    public void testInvariant() {
+//    /** Tests typechecking an invariant clause - OK*/  // FIXME
+//    @Test public void testInvariant() {
 //        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ invariant b;\n}");
 //    }
 
     /** Tests using JMLDataGroup*/
-    public void testDataGroup() {
+    @Test public void testDataGroup() {
         helpTCF("A.java"," class A { //@ public model JMLDataGroup streamState;\n}"
                 ); // Gives a symbol not found error if the org.jmlspecs.lang package is not loaded
     }

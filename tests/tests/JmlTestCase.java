@@ -23,6 +23,9 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TestName;
+import static org.junit.Assert.*;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -42,8 +45,10 @@ import com.sun.tools.javac.util.Options;
  * @author David Cok
  *
  */
-public abstract class JmlTestCase extends junit.framework.TestCase {
+public abstract class JmlTestCase { //extends junit.framework.TestCase {
 
+    @Rule public TestName name = new TestName();
+    
     /** A purposefully short abbreviation for the system path separator
      * ( ; or : )
      */
@@ -176,7 +181,6 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     /** This does some setup, but most of it has to be left to the derived classes because we have to
      * set the options before we register most of the JML tools.
      */
-    @Override
     @Before
     public void setUp() throws Exception {
         main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null);
@@ -189,7 +193,6 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     }
 
     /** Nulls out all the references visible in this class */
-    @Override
     @After
     public void tearDown() throws Exception {
         context = null;
@@ -214,7 +217,7 @@ public abstract class JmlTestCase extends junit.framework.TestCase {
     
     /** Prints out the errors collected by the diagnostic listener */
     public void printErrors() {
-        System.out.println("ERRORS " + collector.getDiagnostics().size() + " " + getName());
+        System.out.println("ERRORS " + collector.getDiagnostics().size() + " " + name.getMethodName());
         for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
             long line = dd.getLineNumber();
             long start = dd.getStartPosition();
