@@ -406,8 +406,9 @@ public class JmlEsc extends JmlTreeScanner {
         }
         log.noticeWriter.println(programString);
 
+        String boogie = System.getProperty("openjml.prover.boogie");
         ExternalProcess p = new ExternalProcess(context,null,
-                "F:/NaumannProject/Boogie/boogie.exe",
+                boogie,
                 "/nologo",
                 "/proverWarnings:1",
                 "/coalesceBlocks:0",
