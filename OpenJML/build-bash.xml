@@ -58,5 +58,15 @@
         <delete dir="${basedir}/temp-release" />
         <delete dir="${basedir}/tempjars" failonerror="false" />
     </target>
-
+    
+    <target name="psf"
+        description="Generates the svn_commands file">
+        <exec executable="bash" 
+            osfamily="windows"
+            failonerror="true">
+            <arg value="${basedir}/convert-psf"/>
+            <arg value="OpenJML-projectSet.psf"/>
+            <arg value="svn_commands"/>
+            </exec>
+    </target>
 </project>
