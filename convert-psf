@@ -1,5 +1,7 @@
 ## This command string converts a .psf file from Eclipse into a set of 
-## svn commands; it translates from standard-in to standard-out
+## svn commands; it translates from standard-in to standard-out or from
+## first argument to second. It has the additional feature that if the
+## second argument exists and will be unchanged, it is not updated.
 
 if [ -z "$1" ] ; then
 

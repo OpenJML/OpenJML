@@ -61,8 +61,7 @@
     
     <target name="psf"
         description="Generates the svn_commands file">
-        <exec executable="bash" 
-            osfamily="windows"
+        <exec executable="/bin/bash" 
             failonerror="true">
             <arg value="${basedir}/convert-psf"/>
             <arg value="OpenJML-projectSet.psf"/>
