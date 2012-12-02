@@ -8,7 +8,9 @@ package org.jmlspecs.openjml.eclipse;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -16,7 +18,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -29,17 +30,15 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.handlers.HandlerUtil;
-
 
 /**
  * This class holds the implementations of utility classes registered against
  * menu items in the menubar and toolbar by plugin.xml
  */
-abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
+abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowActionDelegate {
 
     // IWorkbenchWindowActionDelegate is the interface for actions that
     // are contributed as menubar or toolbar items
@@ -56,13 +55,18 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     /** Cached value of the utility object */
     protected Utils utils = Activator.getDefault().utils;
     
-    /* (non-Javadoc)
-     * @see org.eclipse.ui.IActionDelegate#selectionChanged(org.eclipse.jface.action.IAction, org.eclipse.jface.viewers.ISelection)
-     */
-    @Override
-    public final void selectionChanged(final IAction action, final ISelection selection) {
-        this.selection = selection;
+    protected void getInfo(ExecutionEvent event) throws ExecutionException {
+    	window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
+    	shell = window.getShell();
+    	selection = window.getSelectionService().getSelection();
     }
+//    /* (non-Javadoc)
+//     * @see org.eclipse.ui.IActionDelegate#selectionChanged(org.eclipse.jface.action.IAction, org.eclipse.jface.viewers.ISelection)
+//     */
+//    @Override
+//    public final void selectionChanged(final IAction action, final ISelection selection) {
+//        this.selection = selection;
+//    }
 
     /**
      * We can use this method to dispose of any system
@@ -79,17 +83,17 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      * @param window The parent window
      * @see IWorkbenchWindowActionDelegate#init
      */
-    @Override
-    public void init(IWorkbenchWindow window) {
-        this.window = window;
-        this.shell = window.getShell();
-    }
+//    @Override
+//    public void init(IWorkbenchWindow window) {
+//        this.window = window;
+//        this.shell = window.getShell();
+//    }
 
     /** Called by the system in response to a menu selection (or other command).
      * This should be overridden for individual menu items.
      */
     @Override
-    abstract public void run(final IAction action);
+    abstract public Object execute(ExecutionEvent event);
 
     /**
      * This class implements the action for checking
@@ -101,15 +105,26 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      * @author David R. Cok
      */
     public static class CheckJML extends MenuActions {
-        @Override
-        public final void run(final IAction action) {
-            // For now at least, only IResources are accepted for selection
-            try {
-                utils.checkSelection(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.CheckJML",e);
-            }
-        }
+//        @Override
+//        public final void run(final IAction action) {
+//            // For now at least, only IResources are accepted for selection
+//            try {
+//                utils.checkSelection(selection,window,shell);
+//            } catch (Exception e) {
+//                utils.topLevelException(shell,"MenuActions.CheckJML",e);
+//            }
+//        }
+    	@Override
+    	public Object execute(ExecutionEvent event) {
+    		// For now at least, only IResources are accepted for selection
+    		try {
+        		getInfo(event);
+    			utils.checkSelection(selection,window,shell);
+    		} catch (Exception e) {
+    			utils.topLevelException(shell,"MenuActions.CheckJML",e);
+    		}
+    		return null;
+    	}
     }
 
     /** This class implements the action for doing ESC on the selected objects -
@@ -121,14 +136,17 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      *
      */
     public static class CheckESC extends MenuActions {
-        @Override
-        public final void run(final IAction action) {
-            try {
+    	@Override
+    	public Object execute(ExecutionEvent event) {
+    		// For now at least, only IResources are accepted for selection
+    		try {
+        		getInfo(event);
                 utils.checkESCSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.CheckESC",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /** This class implements the action for compiling RAC on the selected objects -
@@ -140,13 +158,15 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      */
     public static class RAC extends MenuActions {
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.racSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.RAC",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -156,15 +176,26 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      * 
      * @author David R. Cok
      */
-    public static class DeleteMarkers extends MenuActions {
-        @Override
-        public final void run(final IAction action) {
-            try {
-                utils.deleteMarkersInSelection(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.DeleteMarkers",e);
-            }
-        }
+    public static class DeleteJMLMarkers extends MenuActions {
+//        @Override
+//        public final void run(final IAction action) {
+//            try {
+//                utils.deleteMarkersInSelection(selection,window,shell);
+//            } catch (Exception e) {
+//                utils.topLevelException(shell,"MenuActions.DeleteJMLMarkers",e);
+//            }
+//        }
+    	@Override
+    	public Object execute(ExecutionEvent event) {
+    		// For now at least, only IResources are accepted for selection
+    		try {
+        		getInfo(event);
+        		utils.deleteMarkersInSelection(selection,window,shell);
+    		} catch (Exception e) {
+    			utils.topLevelException(shell,"MenuActions.DeleteJMLMarkers",e);
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -177,13 +208,15 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     static public class EnableJML extends MenuActions {
         // This is all done in the UI thread with no progress monitor
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.changeJmlNatureSelection(true,selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.EnableJML",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -195,13 +228,15 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     static public class DisableJML extends MenuActions {
         // This is all done in the UI thread with no progress monitor
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.changeJmlNatureSelection(false,selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.DisableJML",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -218,13 +253,15 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
         // thread.  However, the display of specs has to wait for that to
         // complete in any case.
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.showSpecsForSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ShowSpecs",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -237,13 +274,15 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     static public class SpecsEditor extends MenuActions {
         // This is done in the UI thread.
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.openSpecEditorForSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.SpecsEditor",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -256,13 +295,15 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     static public class ProofInformation extends MenuActions {
         // This is mostly done in the UI thread.  
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.showProofInfoForSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ShowProofInformation",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -275,13 +316,15 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     static public class ShowCounterexampleValue extends MenuActions {
         // This is not done in the UI thread.  
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.showCEValueForTextSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ShowCounterexampleValue",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -290,14 +333,16 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      */
     static public class AddToSpecsPath extends MenuActions {
         // This is done in the UI thread. 
-        @Override
-        public final void run(final IAction action) {
-            try {
+    	@Override
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.addSelectionToSpecsPath(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.AddToSpecsPath",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -307,13 +352,15 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     static public class RemoveFromSpecsPath extends MenuActions {
         // This is done in the UI thread. 
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.removeSelectionFromSpecsPath(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.RemoveFromSpecsPath",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -323,13 +370,15 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     static public class SpecsPath extends MenuActions {
         // This is done in the UI thread. 
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.manipulateSpecsPath(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.SpecsPath",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -338,14 +387,16 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
      */ // FIXME - do we really need to manipulate the classpath?
     static public class ClassPath extends MenuActions {
         // This is done in the UI thread. 
-        @Override
-        public final void run(final IAction action) {
-            try {
+    	@Override
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.manipulateClassPath(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ClassPath",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -355,13 +406,15 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     static public class EnableForRAC extends MenuActions {
         // This is done in the UI thread. 
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.markForRac(true,selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.EnableForRac",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
@@ -371,29 +424,32 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     static public class DisableForRAC extends MenuActions {
         // This is done in the UI thread. 
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.markForRac(false,selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.DisableForRac",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
     /**
      * This action deletes RAC-compiled class files.
      * @author David Cok
      */
-    static public class ClearForRAC extends org.eclipse.core.commands.AbstractHandler {
+    static public class ClearForRAC extends MenuActions {
         // This is done in the UI thread. 
         @Override
-        public final Object execute(final ExecutionEvent event) {
-            IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
-            IWorkbenchPage activePage = window.getActivePage();
-            ISelection selection = activePage.getSelection();
-            Shell shell = window.getShell();
-            Utils utils = Activator.getDefault().utils;
+        public Object execute(ExecutionEvent event) {
+//            IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+//            IWorkbenchPage activePage = window.getActivePage();
+//            ISelection selection = activePage.getSelection();
+//            Shell shell = window.getShell();
+//            Utils utils = Activator.getDefault().utils;
             try {
+            	getInfo(event);
                 utils.clearForRac(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ClearForRac",e);
@@ -701,13 +757,15 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
         // except for the actual creating of the specs path folders, // FIXME - this comment is not correct
         // since for some reason that can take a long time
         @Override
-        public final void run(final IAction action) {
-            try {
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
                 utils.jmldocSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.JmlDoc",e);
-            }
-        }
+    		}
+    		return null;
+    	}
     }
 
 
@@ -725,14 +783,16 @@ abstract public class MenuActions implements IWorkbenchWindowActionDelegate {
     	// except for the actual creating of the specs path folders,
     	// since for some reason that can take a long time
     	@Override
-    	public final void run(final IAction action) {
+    	public Object execute(ExecutionEvent event) {
     		try {
+    			getInfo(event);
     			IStatus result = editSpecsPath(shell);
     			if (Activator.options.uiverbosity >= 2) Log.log((result == Status.OK_STATUS ? "Completed" : "Cancelled") +
-    														" Edit specs path operation ");
+    					" Edit specs path operation ");
     		} catch (Exception e) {
     			utils.topLevelException(shell,"MenuActions.EditSpecsPath",e);
     		}
+    		return null;
     	}
 
 
