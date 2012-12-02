@@ -2,11 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: OpenJML
 Bundle-SymbolicName: org.jmlspecs.openjml.OpenJML;singleton:=true
-Bundle-Version: 0.1.2
+Bundle-Version: 0.0.0
 Bundle-Vendor: David R. Cok
 Bundle-Localization: plugin
-Require-Bundle: org.jmlspecs.annotation;bundle-version="[0.1.1,1.0.0)",
- org.jmlspecs.openjml.OpenJDK;bundle-version="0.1.1"
+Require-Bundle: org.jmlspecs.annotation,
+ org.jmlspecs.openjml.OpenJDK
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: com.sun.tools.javac.comp,
  com.sun.tools.javac.parser,
