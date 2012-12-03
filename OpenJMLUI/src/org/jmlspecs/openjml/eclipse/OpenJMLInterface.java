@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import javax.tools.JavaFileObject;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -131,78 +133,157 @@ public class OpenJMLInterface {
        specsPath = utils.getSpecsPath(jproject);
        // FIXME - presumes the listener is the ConsoleLogger
        PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener()).getConsoleStream());
+       List<String> opts = getOptions(jproject,Cmd.ESC);
        try { 
-    	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), new String[]{"-noInternalRuntime"}); 
+    	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), opts.toArray(new String[0])); //, new String[]{/*"-noInternalRuntime"*/}); 
        } catch (Exception e) {
     	   Log.errorlog("Failed to create an interface to OpenJML",e);
        }
    }
    
-    /** Executes the JML Check (syntax and typechecking) or the RAC compiler
-     * operations on the given set of resources.
-     * @param command either CHECK or RAC
-     * @param files the set of files (or containers) to check
-     * @param monitor the progress monitor the UI is using
-     */
-    public void executeExternalCommand(Cmd command, List<IResource> files, @Nullable IProgressMonitor monitor) {
-        try {
-            if (files.isEmpty()) {
-                Log.log("Nothing applicable to process");
-                Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process");
-                return;
-            }
-            IJavaProject jp = JavaCore.create(files.get(0).getProject());
-            List<String> args = getOptions(jp,command);
-            args.add(JmlOption.DIRS.optionName());
+   /** Executes the JML Check (syntax and typechecking) or the RAC compiler
+    * operations on the given set of resources.
+    * @param command either CHECK or RAC
+    * @param files the set of files (or containers) to check
+    * @param monitor the progress monitor the UI is using
+    */
+   public void executeExternalCommand(Cmd command, List<IResource> files, @Nullable IProgressMonitor monitor) {
+       try {
+           if (files.isEmpty()) {
+               Log.log("Nothing applicable to process");
+               Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process");
+               return;
+           }
+           IJavaProject jp = JavaCore.create(files.get(0).getProject());
+           List<String> args = getOptions(jp,command);
 
-            for (IResource r: files) {
-                args.add(r.getLocation().toString());
-            }
-            if (Activator.options.uiverbosity >= 2) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
-            if (monitor != null) {
-                monitor.setTaskName(command == Cmd.RAC ? "JML RAC" : "JML Checking");
-                monitor.subTask("Executing openjml");
-            }
-            try {
-                setMonitor(monitor);
-                int ret = api.execute(args.toArray(new String[args.size()]));
-                if (ret == 0) Log.log(Timer.timer.getTimeString() + " Completed");
-                else if (ret == 1) Log.log(Timer.timer.getTimeString() + " Completed with errors");
-                else if (ret >= 2) {
-                    StringBuilder ss = new StringBuilder();
-                    for (String r: args) {
-                        ss.append(r);
-                        ss.append(" ");
-                    }
-                    Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
-                    Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + eol + ss);
-                }
-                else if (ret >= 3) {
-                    StringBuilder ss = new StringBuilder();
-                    for (String r: args) {
-                        ss.append(r);
-                        ss.append(" ");
-                    }
-                    Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
-                    Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
-                }
-            } catch (JmlCanceledException e) {
-                throw e;
-            } catch (Throwable e) {
-                StringBuilder ss = new StringBuilder();
-                for (String c: args) {
-                    ss.append(c);
-                    ss.append(" ");
-                }
-                Log.errorlog("Failure to execute openjml: "+ss,e); 
-                Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Failure to execute openjml: " + e + " " + ss);
-            }
-            if (monitor != null) monitor.subTask("Completed openjml");
-        } catch (JmlCanceledException e) {
-            if (monitor != null) monitor.subTask("OpenJML Canceled: " + e.getMessage());
-        }
-    }
-    
+           for (IResource r: files) {
+           	if (r instanceof IProject) {
+           		args.add(JmlOption.DIR.optionName());
+                   args.add(r.getLocation().toString());
+           	} else {
+           		if (r instanceof IFolder) args.add(JmlOption.DIR.optionName());
+                   args.add(r.getLocation().toString());
+           	}
+           }
+           if (Activator.options.uiverbosity >= 2) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
+           if (monitor != null) {
+               monitor.setTaskName(command == Cmd.RAC ? "JML RAC" : "JML Checking");
+               monitor.subTask("Executing openjml");
+           }
+           try {
+               setMonitor(monitor);
+               int ret = api.execute(args.toArray(new String[args.size()]));
+               if (ret == 0) Log.log(Timer.timer.getTimeString() + " Completed");
+               else if (ret == 1) Log.log(Timer.timer.getTimeString() + " Completed with errors");
+               else if (ret >= 2) {
+                   StringBuilder ss = new StringBuilder();
+                   for (String r: args) {
+                       ss.append(r);
+                       ss.append(" ");
+                   }
+                   Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
+                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + eol + ss);
+               }
+               else if (ret >= 3) {
+                   StringBuilder ss = new StringBuilder();
+                   for (String r: args) {
+                       ss.append(r);
+                       ss.append(" ");
+                   }
+                   Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
+                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
+               }
+           } catch (JmlCanceledException e) {
+               throw e;
+           } catch (Throwable e) {
+               StringBuilder ss = new StringBuilder();
+               for (String c: args) {
+                   ss.append(c);
+                   ss.append(" ");
+               }
+               Log.errorlog("Failure to execute openjml: "+ss,e); 
+               Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Failure to execute openjml: " + e + " " + ss);
+           }
+           if (monitor != null) monitor.subTask("Completed openjml");
+       } catch (JmlCanceledException e) {
+           if (monitor != null) monitor.subTask("OpenJML Canceled: " + e.getMessage());
+       }
+   }
+   
+   /** Executes the JML Check (syntax and typechecking) or the RAC compiler
+    * operations on the given set of resources.
+    * @param command either CHECK or RAC
+    * @param files the set of files (or containers) to check
+    * @param monitor the progress monitor the UI is using
+    */
+   public void executeTypeCheck(List<IResource> files, @Nullable IProgressMonitor monitor) {
+       try {
+           if (files.isEmpty()) {
+               Log.log("Nothing applicable to process");
+               Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process");
+               return;
+           }
+           IJavaProject jp = JavaCore.create(files.get(0).getProject());
+           //List<String> args = getOptions(jp,Cmd.CHECK);
+           List<String> args = new ArrayList<String>();
+
+           // FIXME - need to expand into all files
+           
+           for (IResource r: files) {
+           	if (r instanceof IProject) {
+           		args.add(JmlOption.DIR.optionName());
+                   args.add(r.getLocation().toString());
+           	} else {
+           		if (r instanceof IFolder) args.add(JmlOption.DIR.optionName());
+                   args.add(r.getLocation().toString());
+           	}
+           }
+           if (Activator.options.uiverbosity >= 2) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
+           if (monitor != null) {
+               monitor.setTaskName("JML Checking");
+               monitor.subTask("Executing openjml");
+           }
+           try {
+               setMonitor(monitor);
+               int ret = api.typecheck(api.parseFiles(args.toArray(new String[args.size()])));
+               if (ret == 0) Log.log(Timer.timer.getTimeString() + " Completed");
+               else if (ret == 1) Log.log(Timer.timer.getTimeString() + " Completed with errors");
+               else if (ret >= 2) {
+                   StringBuilder ss = new StringBuilder();
+                   for (String r: args) {
+                       ss.append(r);
+                       ss.append(" ");
+                   }
+                   Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
+                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + eol + ss);
+               }
+               else if (ret >= 3) {
+                   StringBuilder ss = new StringBuilder();
+                   for (String r: args) {
+                       ss.append(r);
+                       ss.append(" ");
+                   }
+                   Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
+                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
+               }
+           } catch (JmlCanceledException e) {
+               throw e;
+           } catch (Throwable e) {
+               StringBuilder ss = new StringBuilder();
+               for (String c: args) {
+                   ss.append(c);
+                   ss.append(" ");
+               }
+               Log.errorlog("Failure to execute openjml: "+ss,e); 
+               Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Failure to execute openjml: " + e + " " + ss);
+           }
+           if (monitor != null) monitor.subTask("Completed openjml");
+       } catch (JmlCanceledException e) {
+           if (monitor != null) monitor.subTask("OpenJML Canceled: " + e.getMessage());
+       }
+   }
+   
     /** Executes the jmldoc tool on the given project, producing output according
      * to the current set of options.
      * @param p the project whose jmldocs are to be produced
@@ -249,36 +330,34 @@ public class OpenJMLInterface {
                 Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process");
                 return;
             }
-            if (api == null) {
-                List<IResource> rlist = new LinkedList<IResource>();
-                for (Object o: things) {
-                    if (o instanceof IResource) rlist.add((IResource)o);
-                    else if (o instanceof IAdaptable) {
-                        o = ((IAdaptable)o).getAdapter(IResource.class);
-                        if (o instanceof IResource) rlist.add((IResource)o);
-                    }
-                }
-                executeExternalCommand(Cmd.CHECK,rlist,monitor);
-            }
+//            if (api == null) {
+//                // FIXME - presumes the listener is a ConsoleLogger
+//                PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener()).getConsoleStream());
+//                api = new API(w,new EclipseDiagnosticListener(preq));
+//                api.setProgressReporter(new UIProgressReporter(api.context(),monitor,null));
+//            }
             setMonitor(monitor);
             if (monitor != null) monitor.subTask("Starting ESC");
            
             List<String> args = getOptions(jproject,Cmd.ESC);
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
-            args.add(JmlOption.DIRS.optionName());
             int n = args.size();
             
             IResource rr;
-            for (Object r: things) {
-                if (r instanceof IResource) args.add(((IResource)r).getLocation().toString());
-                else if (r instanceof IType || r instanceof IMethod) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
+            for (Object r: things) { // FIXME - an IType is adaptable to an IResource (the containing file), is not handled quite how we want
+                if (r instanceof IAdaptable && (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
+                	r = rr;
+                }
+                if (r instanceof IFolder) {
+                	args.add(JmlOption.DIR.optionName());
+                	args.add(((IResource)r).getLocation().toString());
+                } else if (r instanceof IProject) {
+                	args.add(JmlOption.DIR.optionName());
+                    args.add(((IResource)r).getLocation().toString());
+                } else if (r instanceof IResource) {
+                    args.add(((IResource)r).getLocation().toString());
+                } else if (r instanceof IType || r instanceof IMethod) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
                     elements.add((IJavaElement)r);
-                } else if (r instanceof IAdaptable && (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
-                    args.add(rr.getLocation().toString());
-                    // FIXME - presumes the listener is a ConsoleLogger
-                    PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener()).getConsoleStream());
-                    api = new API(w,new EclipseDiagnosticListener(preq));
-                    api.setProgressReporter(new UIProgressReporter(api.context(),monitor,null));
                 } else if (r instanceof IJavaElement) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
                     elements.add((IJavaElement)r);
                 } else Log.log("Ignoring " + r.getClass() + " " + r.toString());
@@ -320,6 +399,17 @@ public class OpenJMLInterface {
             for (IJavaElement je: elements) {
                 if (je instanceof IMethod) {
                     MethodSymbol msym = convertMethod((IMethod)je);
+                    if (msym == null) {
+                    	IResource r = je.getResource();
+                    	String filename = null;
+                    	try {
+                    		filename = r.getLocation().toString();
+                        	api.typecheck(api.parseFiles(filename));
+                        	msym = convertMethod((IMethod)je);
+                    	} catch (java.io.IOException e) {
+                    		// ERROR
+                    	}
+                    }
                     if (msym != null) {
                     	utils.deleteMarkers(je.getResource(),null); // FIXME - would prefer to delete markers and highlighting on just the method.
                     	IProverResult res = api.doESC(msym);
@@ -344,8 +434,8 @@ public class OpenJMLInterface {
         } catch (JmlCanceledException e) {
             Log.log("Canceled ESC operation");
             throw e;
-        } catch (java.io.IOException e) {
-            Log.errorlog("IOException during ESC",e); 
+//        } catch (java.io.IOException e) {
+//            Log.errorlog("IOException during ESC",e); 
         }
     }
 

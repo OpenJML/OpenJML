@@ -105,15 +105,6 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
      * @author David R. Cok
      */
     public static class CheckJML extends MenuActions {
-//        @Override
-//        public final void run(final IAction action) {
-//            // For now at least, only IResources are accepted for selection
-//            try {
-//                utils.checkSelection(selection,window,shell);
-//            } catch (Exception e) {
-//                utils.topLevelException(shell,"MenuActions.CheckJML",e);
-//            }
-//        }
     	@Override
     	public Object execute(ExecutionEvent event) {
     		// For now at least, only IResources are accepted for selection
@@ -382,10 +373,10 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
     }
 
     /**
-     * This action puts up a dialog that allows manipulation of the class path.
+     * This action puts up a dialog that shows the class, source, specs paths.
      * @author David Cok
-     */ // FIXME - do we really need to manipulate the classpath?
-    static public class ClassPath extends MenuActions {
+     */ 
+    static public class ShowPaths extends MenuActions {
         // This is done in the UI thread. 
     	@Override
     	public Object execute(ExecutionEvent event) {
@@ -393,7 +384,7 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
         		getInfo(event);
                 utils.manipulateClassPath(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ClassPath",e);
+                utils.topLevelException(shell,"MenuActions.ShowPaths",e);
     		}
     		return null;
     	}
@@ -778,6 +769,7 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
      * @author David Cok
      *
      */
+    /*
     static public class EditSpecsPath extends MenuActions {  // TODO - EditSpecsPath
     	// This is all done in the UI thread with no progress,
     	// except for the actual creating of the specs path folders,
@@ -794,13 +786,13 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
     		}
     		return null;
     	}
-
+*/
 
     	/** Internal helper routine to do the work of editing the specs path
     	 * @param shell the shell to own the windows
     	 * @return a Status value, e.g. OK_STATUS or CANCEL_STATUS
     	 */
-    	private IStatus editSpecsPath(Shell shell) { // FIXME - implement editSpecsPath
+/*    	private IStatus editSpecsPath(Shell shell) { // FIXME - implement editSpecsPath
     		// At the moment, the specsProject is independent of project, so we don't
     		// require any project selection to edit the path
     		//      final ProjectInfo jproject = new ProjectInfo(Activator.options,JMLBuilder.preq);
@@ -826,7 +818,7 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
     		return Status.OK_STATUS;
     	}
     }
-
+*/
     /** Just used to communicate between editSpecspath() and EditPath.
      * Note that the EditPath dialog gets disposed and not completely
      * usable after the open() call returns.

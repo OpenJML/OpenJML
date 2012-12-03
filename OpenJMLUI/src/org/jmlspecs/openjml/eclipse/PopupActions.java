@@ -95,13 +95,13 @@ abstract public class PopupActions implements IObjectActionDelegate {
      * in everything selected (recursively, for containers).  It is completed
      * in the UI thread, without a progress monitor.
      */
-    public static class DeleteMarkers extends PopupActions {
+    public static class DeleteJMLMarkers extends PopupActions {
         @Override
         public final void run(final IAction action) {
             try {
                 utils.deleteMarkersInSelection(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.DeleteMarkers",e);
+                utils.topLevelException(shell,"PopupActions.DeleteJMLMarkers",e);
             }
         }
     }

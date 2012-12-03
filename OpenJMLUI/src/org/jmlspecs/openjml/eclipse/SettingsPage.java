@@ -5,19 +5,26 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
-import org.eclipse.jface.preference.DirectoryFieldEditor;
+import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
-import org.eclipse.jface.preference.PathEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.jmlspecs.openjml.Strings;
 
 // FIXME - organize this page with some headings; tool tips;
 // FIXME - path editor, keys editor, other options, solvers page
@@ -31,7 +38,10 @@ IWorkbenchPreferencePage {
 
 	static public class POptions {
 		/** The prefix to be put on each key. */
-		final static public String prefix = "org.jmlspecs.openjml.preferences.";
+		final static public String prefix = Strings.optionPropertyPrefix;
+
+		/** A fake preference store key for the update button. */
+		final static public String updateKey = prefix + "update";
 
 //		/** The preference store key for the jmldebug option. */
 //		final static public String debugKey = prefix + "debug";
@@ -52,7 +62,7 @@ IWorkbenchPreferencePage {
 //		/** The preference store key for the parsePlus option. */
 //		final static public String parsePlusKey = prefix + "parsePlus";
 		/** The preference store key for the check purity option. */
-		final static public String checkPurityKey = prefix + "checkPurity";
+		final static public String checkPurityKey = prefix + "noPurityCheck";
 		/** The preference store key for the keys option. */
 		final static public String optionalKeysKey = prefix + "optionalKeys";
 		/** The preference store key for the showNotImplemented option. */
@@ -60,7 +70,7 @@ IWorkbenchPreferencePage {
 		/** The preference store key for the showNotExecutable option. */
 		final static public String showNotExecutableKey = prefix + "showNotExecutable";
 		/** The preference store key for the noInternalSpecs option. */
-		final static public String internalSpecsKey = prefix + "internalSpecs";
+		final static public String internalSpecsKey = prefix + "noInternalSpecs";
 		/** The preference store key for the noInternalRuntime option. */
 		final static public String noInternalRuntimeKey = prefix + "noInternalRuntime";
 		/** The preference store key for the autoAddRuntimeToProject option */
@@ -76,29 +86,69 @@ IWorkbenchPreferencePage {
     public void init(IWorkbench workbench) {
         setPreferenceStore(Activator.getDefault().getPreferenceStore());
     }
+    
+    @Override
+    public void addField(FieldEditor field) {
+    	super.addField(field);
+    	fieldMap.put(field.getPreferenceName(), field);
+    }
+    
+    protected Map<String,FieldEditor> fieldMap = new HashMap<String,FieldEditor>();
 
     @Override
     protected void createFieldEditors() {
-//        addField(new DirectoryFieldEditor("CODESONARPATH" ,
-//                "&Code Sonar Path",
-//                getFieldEditorParent()));
-//        addField(new StringFieldEditor("HUB", "&Code Sonar Hub", 
-//                getFieldEditorParent()));
-//        addField(new StringFieldEditor("USERNAME", "&Code Sonar Username",
-//                getFieldEditorParent()));
-//        Composite fieldEditorParent = getFieldEditorParent();
-//        password = new StringFieldEditor("PASSWORD", "&Code Sonar Password",
-//                fieldEditorParent);
-//        password.getTextControl(fieldEditorParent).setEchoChar('*');
-//        addField(password);
     	
     	// JML
 
-		//new LabeledSeparator(getFieldEditorParent(), "JML options");
+    	MouseListener listener = new MouseAdapter() {
+    		@Override
+			public void mouseUp(MouseEvent e) {
+				Properties properties = org.jmlspecs.openjml.Utils.findProperties(null);
+				for (Map.Entry<Object,Object> entry : properties.entrySet()) {
+					Object keyobj = entry.getKey();
+					if (!(keyobj instanceof String)) continue;
+					String key = (String)keyobj;
+					if (!(entry.getValue() instanceof String)) continue;
+					String value = (String)entry.getValue();
+					if (key.startsWith(Strings.optionPropertyPrefix)) {
+						FieldEditor field = fieldMap.get(key);
+						if (field != null) {
+							System.out.println("SETTING " + key + " " + value);
+							if (field instanceof BooleanFieldEditor) {
+								getPreferenceStore().setValue(key,!value.isEmpty());
+							} else if (field instanceof StringFieldEditor) {
+								getPreferenceStore().setValue(key,value);
+							} else if (field instanceof ComboFieldEditor) {
+								getPreferenceStore().setValue(key,value); // FIXME - how do we know it is a valid value
+							} else {
+								System.out.println("Ignoring unknown field editor type " + field.getClass() + " for property " + key + "=" + value);
+							}
+						} else {
+							System.out.println("No field editor for property " + key + "=" + value);
+						}
+					} else {
+						System.out.println("Ignoring property " + key + "=" + value);
+					}
+				}
+				initialize();
+			}
+		};
+		addField(new ButtonFieldEditor(POptions.updateKey,"",
+				"Update from properties files",
+				listener,
+				getFieldEditorParent())
+		);
+
+		addField(new LabelFieldEditor("zzzzz.JML","",SWT.NONE,
+				getFieldEditorParent()));
+		addField(new LabelFieldEditor("zzzzz.JML","JML Options",SWT.SEPARATOR|SWT.HORIZONTAL,
+				getFieldEditorParent()));
+
+		// FIXME - i10n these strings
 
         addField(new BooleanFieldEditor(POptions.nonnullByDefaultKey, "NonNull By Default",
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(POptions.checkPurityKey, "Check Purity",
+        addField(new BooleanFieldEditor(POptions.checkPurityKey, "Skip Purity Check",
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(POptions.showNotImplementedKey, "Warn about not-implemented constructs",
                 getFieldEditorParent()));
@@ -114,7 +164,10 @@ IWorkbenchPreferencePage {
         
         // RAC
         
-		//new LabeledSeparator(getFieldEditorParent(), "Options relating to RAC");
+		addField(new LabelFieldEditor("zzzzz.RAC","",SWT.NONE,
+				getFieldEditorParent()));
+		addField(new LabelFieldEditor("zzzzz.RAC","Options relating to RAC",SWT.SEPARATOR|SWT.HORIZONTAL,
+				getFieldEditorParent()));
 
         addField(new BooleanFieldEditor(POptions.checkSpecsPathKey, "Use the internal runtime library",
                 getFieldEditorParent()));
@@ -123,10 +176,13 @@ IWorkbenchPreferencePage {
 
         // Debug and verbosity
 
-		//new LabeledSeparator(getFieldEditorParent(), "Verboseness and Debugging");
+		addField(new LabelFieldEditor("zzzzz.VERBOSE","",SWT.NONE,
+				getFieldEditorParent()));
+		addField(new LabelFieldEditor("zzzzz.VERBOSE","Verboseness and Debugging",SWT.SEPARATOR|SWT.HORIZONTAL,
+				getFieldEditorParent()));
 
         addField(new ComboFieldEditor(POptions.verbosityKey, "Verbosity Level",
-        		new String[][]{ { "quiet", "quiet" }, {"verbose", "verbose"}, {"debug", "debug"}},
+        		new String[][]{ { "quiet", "quiet" }, {"normal", "normal"}, {"verbose", "verbose"}, {"debug", "debug"}},
                 getFieldEditorParent()));
         
 

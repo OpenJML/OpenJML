@@ -10,8 +10,6 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -934,8 +932,7 @@ public class Utils {
                     continue;
                 } else if (element instanceof IJavaElement) {
                     //                    try {
-                    IResource r = null;
-                    try { r = ((IJavaElement)element).getCorrespondingResource(); } catch (JavaModelException e) { /* ignore */ }
+                    IResource r = ((IJavaElement)element).getResource(); 
                     if (r != null) list.add(r);
                     else if (element instanceof IAdaptable && (r=(IResource)((IAdaptable)element).getAdapter(IResource.class))!=null) {
                         list.add(r);
@@ -1090,7 +1087,7 @@ public class Utils {
             IResource f; String n;
             if (r instanceof IProject || r instanceof IJavaProject) continue;
             if (r instanceof IPackageFragmentRoot) {
-                f = (IResource)r;
+                f = ((IPackageFragmentRoot)r).getResource();
                 n = ((IPackageFragmentRoot)r).getElementName();
             } else if (r instanceof IFile && "jar".equals(((IFile)r).getFileExtension())) {
                 f = (IFile)r;
@@ -1138,11 +1135,27 @@ public class Utils {
      */
     public void manipulateClassPath(ISelection selection, IWorkbenchWindow window, Shell shell) {
         Collection<IJavaProject> projects = getSelectedProjects(true,selection,window,shell);
+        if (projects.isEmpty()) {
+            showMessage(shell,"Show JML Paths", "No projects selected");
+        }
         for (IJavaProject jp: projects) {
             List<String> list = getClasspath(jp);
             StringBuilder ss = new StringBuilder();
-            for (String s: list) { ss.append(s); ss.append("\n"); }
-            showMessage(shell,"JML Classpath for project " + jp.getElementName(), ss.toString());
+            ss.append("Classpath:");
+            ss.append(eol);
+            for (String s: list) { ss.append(s); ss.append(eol); }
+            ss.append(eol);
+            // FIXME - needs source path
+            ss.append("Specs path:");
+            ss.append(eol);
+            for (IResource r: getSpecsPath(jp)) {
+            	ss.append(r.getLocation().toString());
+            	ss.append(eol);
+            }
+            showMessage(shell,"JML paths for project " + jp.getElementName(), 
+            		"Edit the paths in the JML preferences or use the" + eol +
+            		"Add to/Remove from JML Specs Path menu items" + eol + eol
+            		+ ss.toString());
         }
     }
     
@@ -1232,24 +1245,27 @@ public class Utils {
                     case IClasspathEntry.CPE_VARIABLE:
                         // Variables and containers are already resolved
                     default:
-                        Log.log("CPE NOT HANDLED" + i);  // FIXME - and better error message
+                        Log.errorlog("An unexpected kind of ClassPathEntry was ignored (project " + jproject.getElementName() + "): " + i,null);
                     break;
                 }
             }
-            Bundle b = Platform.getBundle("org.jmlspecs.OpenJMLUI");
-            URL url = b.getEntry("");
-            URI uri = url.toURI();
-            String s = uri.getPath();
-            //String ss = url.toExternalForm(); // FIXME - should this be used?
-            cpes.add(s);
+//            Bundle b = Platform.getBundle("org.jmlspecs.OpenJMLUI");
+//            URL url = b.getEntry("");
+//            URI uri = url.toURI();
+//            String s = uri.getPath();
+//            String ss = url.toExternalForm(); // FIXME - should this be used?
+            // We are trying to include the contents of OpenJMLUI on the classpath
+            // Why? Don't we already have annotations, specs, and the runtime library?  FIXME
+            // This just ends up as a /
+            //cpes.add(s);
             return cpes;
-        } catch (URISyntaxException e) {
-            throw new Utils.OpenJMLException("Failed in determining classpath",e);
+//        } catch (URISyntaxException e) {
+//            throw new Utils.OpenJMLException("Failed in determining classpath",e);
         } catch (JavaModelException e) {
             throw new Utils.OpenJMLException("Failed in determining classpath",e);
         }
     }
-
+    
     /** This class is an implementation of the interfaces needed to provide input
      * to and launch editors in the workspace.
      * @author David R. Cok
@@ -1759,6 +1775,8 @@ public class Utils {
     }
 
     static public final String[] suffixes = { ".refines-java", ".refines-spec", ".refines-jml", ".java", ".spec", ".jml" };
+    
+    static public final String eol = System.getProperty("line.separator");
 
     /** This method returns an int giving the precedence of the suffix of the
      * file name: -1 indicates not a JML file; 0 is the preferred suffix;

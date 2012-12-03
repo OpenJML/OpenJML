@@ -158,12 +158,13 @@
                id="JMLUI.jmldocAction">
        </action>
        <action
-               label="Show JML classpath"
+               label="Show paths"
                class="org.jmlspecs.openjml.eclipse.PopupActions$ClassPath"
                menubarPath="JML"
                enablesFor="+"
-               id="JMLUI.classpathAction">
+               id="JMLUI.showpathAction">
        </action>
+<!--
        <action
                label="Edit JML specs path"
                class="org.jmlspecs.openjml.eclipse.PopupActions$SpecsPath"
@@ -171,6 +172,7 @@
                enablesFor="+"
                id="JMLUI.specspathAction">
        </action>
+-->
        <action
                label="Add to JML specs path"
                class="org.jmlspecs.openjml.eclipse.PopupActions$AddToSpecsPath"
@@ -256,6 +258,20 @@
                enablesFor="+"
                id="JMLUI.addNatureActionWS">
        </action>
+       <action
+               label="Delete JML markers"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$DeleteJMLMarkers"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.deleteMarkerAction">
+       </action>
+       <action
+               label="Compile RAC"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$RAC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.checkRACAction">
+       </action>
     </objectContribution>
     <!-- These context menu items are enabled for any Resource -->
     <objectContribution
@@ -278,7 +294,7 @@
             id="JMLUI.contribution4">
        <action
                label="Delete JML markers"
-               class="org.jmlspecs.openjml.eclipse.PopupActions$DeleteMarkers"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$DeleteJMLMarkers"
                menubarPath="JML"
                enablesFor="+"
                id="JMLUI.deleteMarkerAction">
@@ -289,27 +305,6 @@
                menubarPath="JML"
                enablesFor="+"
                id="JMLUI.checkRACAction">
-       </action>
-    </objectContribution>
-    <!-- These context menu items are enabled for any working set -->
-    <objectContribution
-            adaptable="true"
-            objectClass="org.eclipse.ui.IWorkingSet"
-            nameFilter="*"
-            id="JMLUI.contribution4WS">
-       <action
-               label="Delete JML markers"
-               class="org.jmlspecs.openjml.eclipse.PopupActions$DeleteMarkers"
-               menubarPath="JML"
-               enablesFor="+"
-               id="JMLUI.deleteMarkerActionWS">
-       </action>
-       <action
-               label="Compile RAC"
-               class="org.jmlspecs.openjml.eclipse.PopupActions$RAC"
-               menubarPath="JML"
-               enablesFor="+"
-               id="JMLUI.checkRACActionWS">
        </action>
     </objectContribution>
   </extension>
@@ -429,14 +424,14 @@
 
 <!-- This next section creates the menu items on the Eclipse main menu -->
 <!-- FIXME - I think all the menu tooltips are ignored; is style=push the default? -->
+<!-- FIXME - all the labels need to be internationalized -->
 <extension
          point="org.eclipse.ui.menus">
       <menuContribution
              allPopups="false"
              locationURI="menu:org.eclipse.ui.main.menu">
           <menu
-                label="%mainmenu.label"
-                tooltip="%mainmenu.tooltip">
+                label="%mainmenu.label">
              <command
                label="JML type-check"
                tooltip="Type-checks JML in selected objects"
@@ -512,17 +507,19 @@
              </command>
              
              <command
-               label="Show JML classpath"
-               tooltip="Shows JML's class path"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.ClassPath"
-               commandId="org.jmlspecs.eclipse.commands.ClassPath">
+               label="Show JML paths"
+               tooltip="Shows JML's paths"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ShowPaths"
+               commandId="org.jmlspecs.eclipse.commands.ShowPaths">
              </command>
+             <!--
              <command
                label="Edit JML Specs Path"
                tooltip="Edits the specifications directory path"
                id="org.jmlspecs.openjml.eclipse.MenuActions.SpecsPath"
                commandId="org.jmlspecs.eclipse.commands.EditSpecsPath">
              </command>
+             -->
              <command
                label="Remove from JML Specs Path"
                tooltip="Removes folder from the specifications directory path"
@@ -984,6 +981,7 @@
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ShowCounterexampleValue"
             >
       </command>
+<!--
       <command
             name="Edit JML specs path"
             description="A wizard to edit the JML specifications directory path"
@@ -992,6 +990,7 @@
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$EditSpecsPath"
             >
       </command>
+      -->
       <command
             name="Add to JML specs path"
             description="Adds a folder to the JML specifications directory path"
@@ -1009,11 +1008,11 @@
             >
       </command>
       <command
-            name="Show JML class path"
-            description="Shows JML's class path"
+            name="Show JML paths"
+            description="Shows JML's paths"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
-            id="org.jmlspecs.eclipse.commands.ClassPath"
-            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ClassPath"
+            id="org.jmlspecs.eclipse.commands.ShowPaths"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ShowPaths"
             >
       </command>
       <command

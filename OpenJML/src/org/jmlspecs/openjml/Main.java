@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import javax.tools.DiagnosticListener;
@@ -559,7 +560,23 @@ public class Main extends com.sun.tools.javac.main.Main {
     // @edu.umd.cs.findbugs.annotations.SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     @Override
     public List<File> processArgs(String[] args) {
-        args = processJmlArgs(args,Options.instance(this.context));
+        Options options = Options.instance(this.context);
+        Properties properties = System.getProperties();
+        for (Map.Entry<Object,Object> p : properties.entrySet()) {
+            Object o = p.getKey();
+            String key;
+            if (o instanceof String && ((key=(String)o)).startsWith(Strings.optionPropertyPrefix)) {
+                String rest = key.substring(Strings.optionPropertyPrefix.length());
+                Object value = p.getValue();
+                if (!(value instanceof String)) continue;
+                String v = (String)value;
+                if (v.equals("true")) value = "";
+                else if (v.equals("false")) value  = null;
+                rest = "-" + rest;
+                options.put(rest, v);
+            }
+        }
+        args = processJmlArgs(args,options);
         List<File> files = super.processArgs(args);
         //args.addAll(computeDependencyClosure(files));
         setupOptions();
@@ -664,7 +681,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         filenames = new ListBuffer<File>();
         classnames = new ListBuffer<String>();
         register(context);
-        Utils.instance(context).findProperties(context);
+        Properties properties = Utils.instance(context).findProperties(context);
         for (Map.Entry<Object,Object> entry: System.getProperties().entrySet()) {
             String key = entry.getKey().toString();
             if (key.startsWith(Strings.optionPropertyPrefix)) {
@@ -673,6 +690,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         }
 
+        System.getProperties().putAll(properties);
         processArgs(CommandLine.parse(args));
         // FIXME - warn about ignored files? or process them?
         return this;

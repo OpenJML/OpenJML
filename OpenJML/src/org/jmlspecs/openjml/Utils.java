@@ -358,11 +358,11 @@ public class Utils {
     /** Finds OpenJML properties files in pre-defined places, reading their
      * contents and loading them into the System property set.
      */
-    public void findProperties(Context context) {
+    public static Properties findProperties(Context context) {
 
-      boolean verbose = Utils.instance(context).jmldebug ||
-          JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
-          Options.instance(context).get("-verbose") != null;
+//      boolean verbose = Utils.instance(context).jmldebug ||
+//          JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
+//          Options.instance(context).get("-verbose") != null;
       
       Properties properties = new Properties();
       // Load properties files found in these locations:
@@ -375,7 +375,7 @@ public class Utils {
           if (url2 != null) {
               String s = url2.getFile();
               boolean found = readProps(properties,s);
-              if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
+              if (found && context != null) Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
           }
       }
       
@@ -383,21 +383,21 @@ public class Utils {
       {
           String s = System.getProperty("user.home") + "/" + Strings.propertiesFileName;
           boolean found = readProps(properties,s);
-          if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
+          if (found && context != null) Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
       }
 
       // In the working directory
       {
           String s = System.getProperty("user.dir") + "/" + Strings.propertiesFileName;
           boolean found = readProps(properties,s);
-          if (found && verbose) Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
+          if (found && context != null) Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
       }
       
       // FIXME - add on the application classpath
       
       // FIXME - add on the command-line
 
-      if (verbose) {
+      if (false) {
           // Print out the properties
           for (String key: new String[]{"user.home","user.dir"}) {
               System.out.println("Environment:    " + key + " = " + System.getProperty(key));
@@ -406,7 +406,7 @@ public class Utils {
               System.out.println("Local property: " + entry.getKey() + " = " + entry.getValue());
           }
       }
-      System.getProperties().putAll(properties);
+      return properties;
   }
   
     /** Reads properties from the given file into the given Properties object.
