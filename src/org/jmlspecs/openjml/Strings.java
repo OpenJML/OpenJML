@@ -74,7 +74,7 @@ public class Strings {
     static public final char mockDirChar = '$';
     
     /** A property name prefix for adding new options or specifying values */
-    static public final String optionPropertyPrefix = "openjml.option.";
+    static public final String optionPropertyPrefix = "org.openjml.option.";
     
     /** A property name prefix for specifying information about provers */
     static public final String proverPropertyPrefix = "openjml.prover.";

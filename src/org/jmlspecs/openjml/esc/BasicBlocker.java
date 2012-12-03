@@ -1431,9 +1431,9 @@ public class BasicBlocker extends JmlTreeScanner {
     protected void addPreconditions(@NonNull JCMethodDecl tree, @NonNull JmlMethodSpecs denestedSpecs) {
         
         JmlClassInfo utilsInfo = getClassInfo("org.jmlspecs.utils.Utils");
-        addClassPreconditions(utilsInfo,currentBlock);
+        if (utilsInfo != null) addClassPreconditions(utilsInfo,currentBlock); // FIXME - need to get this - should not be null
         JmlClassInfo info = getClassInfo("java.lang.Long");  // TODO - this should happen with the accumulated referenced classes
-        addClassPreconditions(info,currentBlock);
+        if (info != null) addClassPreconditions(info,currentBlock);
 
         addClassPreconditions(classInfo,currentBlock);
 
