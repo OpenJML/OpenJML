@@ -344,8 +344,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         this.context = context;
         this.utils = Utils.instance(context);
         this.verbose = JmlOption.isOption(context,"-verbose") ||
-                        JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
-                        utils.jmldebug;
+                utils.jmlverbose >= Utils.JMLVERBOSE;
 
         this.specs = JmlSpecs.instance(context);
         this.factory = JmlTree.Maker.instance(context);
@@ -419,7 +418,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void attribClass(ClassSymbol c) throws CompletionFailure {
-        if (utils.jmldebug) log.noticeWriter.println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
         /*@Nullable*/ JmlSpecs.TypeSpecs classSpecs = specs.get(c);  // Get null if there are none yet
         if (classSpecs == null) {
@@ -445,10 +444,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if ((c.flags() & UNATTRIBUTED) == 0) return;
         // We let the super class turn it off to avoid recursion
 
-        if (utils.jmldebug) log.noticeWriter.println("Attributing-begin " + c + " " + level);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Attributing-begin " + c + " " + level);
         level++;
         if (c != syms.predefClass) {
-            context.get(Main.IProgressReporter.class).report(0,2,"typechecking " + c);
+            if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"typechecking " + c);
         }
 
         // classSpecs.file is only useful for the modifiers/annotations
@@ -501,9 +500,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             pureEnvironment = prevPureEnvironment;
             log.useSource(prev);
             level--;
-            if (utils.jmldebug) log.noticeWriter.println("Attributing-complete " + c.fullname + " " + level);
+            if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Attributing-complete " + c.fullname + " " + level);
             if (c != syms.predefClass) {
-                context.get(Main.IProgressReporter.class).report(0,2,"typechecked " + c);
+                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"typechecked " + c);
             }
             if (level == 0) completeTodo();
         }
@@ -514,7 +513,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         level++;
         while (!todo.isEmpty()) {
             ClassSymbol sym = todo.remove(0);
-            if (utils.jmldebug) log.noticeWriter.println("Retrieved for attribution " + sym + " " + todo.size());
+            if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Retrieved for attribution " + sym + " " + todo.size());
             attribClass(sym);
         }
         level--;
@@ -524,7 +523,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected void addTodo(ClassSymbol c) {
         if (!todo.contains(c)) {
             todo.add(c);
-            if (utils.jmldebug) log.noticeWriter.println("Queueing for attribution " + result.tsym + " " + todo.size());
+            if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Queueing for attribution " + result.tsym + " " + todo.size());
         }
     }
     
@@ -540,7 +539,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevIsInJmlDeclaration = isInJmlDeclaration;
         isInJmlDeclaration = utils.isJML(c.flags()); // REMOVED implementationAllowed ||
         ((JmlCheck)chk).setInJml(isInJmlDeclaration);
-        if (utils.jmldebug) log.noticeWriter.println("ATTRIBUTING-BODY " + c.fullname + " " + (isInJmlDeclaration?"inJML":"notInJML") + " WAS " + (prevIsInJmlDeclaration?"inJML":"notInJML"));
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("ATTRIBUTING-BODY " + c.fullname + " " + (isInJmlDeclaration?"inJML":"notInJML") + " WAS " + (prevIsInJmlDeclaration?"inJML":"notInJML"));
         JavaFileObject prev = log.useSource(((JmlCompilationUnit)env.toplevel).sourcefile);  // FIXME - no write for multiple source files
         boolean oldRelax = relax;
         try {
@@ -938,7 +937,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Do this before we walk the method body
             determineQueryAndSecret(jmethod,jmethod.methodSpecsCombined);
 
-            if (utils.jmldebug) log.noticeWriter.println("ATTRIBUTING METHOD " + env.enclClass.sym + " " + m.sym);
+            if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("ATTRIBUTING METHOD " + env.enclClass.sym + " " + m.sym);
             prevSource = log.useSource(jmethod.source());
             attribAnnotationTypes(m.mods.annotations,env); // This is needed at least for the spec files of binary classes
             annotate.flush();

@@ -76,6 +76,9 @@ public class Strings {
     /** A property name prefix for adding new options or specifying values */
     static public final String optionPropertyPrefix = "org.openjml.option.";
     
+    /** A property name prefix for adding new options or specifying values */
+    static public final String javaOptionPropertyPrefix = "org.openjml.java.option.";
+    
     /** A property name prefix for specifying information about provers */
     static public final String proverPropertyPrefix = "openjml.prover.";
     

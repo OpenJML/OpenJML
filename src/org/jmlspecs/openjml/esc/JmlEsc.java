@@ -169,13 +169,12 @@ public class JmlEsc extends JmlTreeScanner {
         this.names = Names.instance(context);
         this.factory = JmlTree.Maker.instance(context);
         this.verbose = JmlOption.isOption(context,"-verbose") ||
-            JmlOption.isOption(context,JmlOption.JMLVERBOSE) || 
-            Utils.instance(context).jmldebug;
+            Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
         this.showCounterexample = JmlOption.isOption(context,"-ce") || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE) || JmlOption.isOption(context,JmlOption.JMLVERBOSE);
         this.showSubexpressions = JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
         this.showTrace = showCounterexample || JmlOption.isOption(context,JmlOption.TRACE) || showSubexpressions;
         this.checkAssumptions = !JmlOption.isOption(context,"-noCheckAssumptions");
-        escdebug = escdebug || Utils.instance(context).jmldebug;
+        escdebug = escdebug || Utils.instance(context).jmlverbose >= Utils.JMLDEBUG;
         this.cfInfo = JmlOption.isOption(context,"-crossRefAssociatedInfo");
         pickProver();
 
@@ -814,7 +813,10 @@ public class JmlEsc extends JmlTreeScanner {
             return newProveMethod(node);
         }
         
-        progress(1,2,"Starting proof of " + node.sym.owner.name + "." + node.name + " with prover " + proverToUse);
+        boolean verboseProgress = Utils.instance(context).jmlverbose >= Utils.PROGRESS;
+        
+        if (verboseProgress) 
+        	progress(1,2,"Starting proof of " + node.sym.owner.name + "." + node.name + " with prover " + proverToUse);
         Utils.Timer timer = new Utils.Timer();
         
         
@@ -869,7 +871,8 @@ public class JmlEsc extends JmlTreeScanner {
                 }
                 //if (showTimes) log.noticeWriter.println("    ... prep           " +  t.elapsed()/1000.);
                 //log.noticeWriter.println("\t\t" + program.blocks().size() + " blocks, " + program.definitions().size() + " definitions, " + program.background().size() + " axioms, " + BasicBlocker.Counter.count(program) + " nodes");
-                progress(1,2,"Prover running on " + node.sym.owner.name + "." + node.name + " with prover " + proverToUse);
+                if (verboseProgress) 
+                	progress(1,2,"Prover running on " + node.sym.owner.name + "." + node.name + " with prover " + proverToUse);
                 ok = prove(node,program);
                 if (showTimes) log.noticeWriter.println("    ... prep and prove " +  t.elapsed()/1000.);
                 if (showTimes) {
@@ -897,7 +900,7 @@ public class JmlEsc extends JmlTreeScanner {
             log.useSource(prev);
         }
         //progress(1,1,"Completed proof [" + (ok?"   ":"not") + " proved] of " + node.sym.getQualifiedName() + " [" + timer.elapsed()/1000. + "]");
-        progress(1,1,"Completed proof attempt of " + node.sym.getQualifiedName() + " [" + timer.elapsed()/1000. + "] using " + proverToUse);
+        if (verboseProgress) progress(1,1,"Completed proof attempt of " + node.sym.getQualifiedName() + " [" + timer.elapsed()/1000. + "] using " + proverToUse);
         mostRecentProgram = program;
         return ok;
     }

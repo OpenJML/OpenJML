@@ -368,8 +368,7 @@ public class JmlSpecs {
     //@ requires \nonnullelements(specsPathArray);
     //@ assignable this.specsDirs;
     public void setSpecsPath(String[] specsPathArray) {
-        boolean verbose = utils.jmldebug ||
-            JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
+        boolean verbose = utils.jmlverbose >= Utils.JMLVERBOSE ||
             Options.instance(context).get("-verbose") != null;
 
         specsDirs = new LinkedList<Dir>();
@@ -832,7 +831,7 @@ public class JmlSpecs {
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
         spec.csymbol = type;
         specsmap.put(type,spec);
-        if (utils.jmldebug) log.noticeWriter.println("Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     /** Adds the specs for a given method to the database, overwriting anything
@@ -841,7 +840,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-        if (utils.jmldebug) log.noticeWriter.println("            Saving method specs for " + m.enclClass() + " " + m);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("            Saving method specs for " + m.enclClass() + " " + m);
         specsmap.get(m.enclClass()).methods.put(m,spec);
     }
     
@@ -853,7 +852,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the block
      */
     public void putSpecs(ClassSymbol csym, JCTree.JCBlock m, MethodSpecs spec) {
-        if (utils.jmldebug) log.noticeWriter.println("            Saving initializer block specs " );
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("            Saving initializer block specs " );
         specsmap.get(csym).blocks.put(m,spec);
     }
     
@@ -864,7 +863,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-        if (utils.jmldebug) log.noticeWriter.println("            Saving field specs for " + m.enclClass() + " " + m);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("            Saving field specs for " + m.enclClass() + " " + m);
         specsmap.get(m.enclClass()).fields.put(m,spec);
     }
     

@@ -1,4 +1,7 @@
 package tests;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +13,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -25,7 +27,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
-import static org.junit.Assert.*;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -186,7 +187,7 @@ public abstract class JmlTestCase { //extends junit.framework.TestCase {
         main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null);
         context = main.context();
         options = Options.instance(context);
-        if (jmldebug) { Utils.instance(context).jmldebug = true; options.put("-jmldebug", "");}
+        if (jmldebug) { Utils.instance(context).jmlverbose = Utils.JMLDEBUG; options.put("-jmlverbose", "4");} // FIXME - this is not the right way to set debugging
         print = false;
         mockFiles = new LinkedList<JavaFileObject>();
         //System.out.println("JUnit: Testing " + getName());

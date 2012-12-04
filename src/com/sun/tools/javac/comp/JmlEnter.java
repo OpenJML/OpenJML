@@ -171,7 +171,7 @@ public class JmlEnter extends Enter {
         }
         JmlCompilationUnit jmltree = (JmlCompilationUnit)tree;
 
-        context.get(Main.IProgressReporter.class).report(0,2,"entering " + jmltree.sourcefile.getName());
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"entering " + jmltree.sourcefile.getName());
         
         // Attach specification classes to the Java declarations
         if (jmltree.specsCompilationUnit != null) {
@@ -234,7 +234,7 @@ public class JmlEnter extends Enter {
             currentParentSpecList = prev;
 
         }
-        context.get(Main.IProgressReporter.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
     }
     
     public void matchClasses(List<JCTree> defs, List<JCTree> specsDefs, Collection<JmlClassDecl> modelTypesList) {
@@ -800,7 +800,7 @@ public class JmlEnter extends Enter {
      * compilation unit)
      */
     public void enterSpecsForBinaryClasses(ClassSymbol csymbol, JmlCompilationUnit speccu) {
-        if (utils.jmldebug) log.noticeWriter.println("ENTER TOPLEVEL (BINARY) " + csymbol);
+    	if (utils.jmlverbose >= Utils.JMLDEBUG)  log.noticeWriter.println("ENTER TOPLEVEL (BINARY) " + csymbol);
 
         // First do all the linking of java types to specifications
         // Since we do not have a Java compilation Unit to walk down, we will
@@ -914,7 +914,7 @@ public class JmlEnter extends Enter {
     protected void enterSpecsForBinaryClasses(ClassSymbol csymbol, ListBuffer<List<JCTree>> specsdefs) {
         if (specs.get(csymbol) != null) return; // Already completed
         
-        context.get(Main.IProgressReporter.class).report(0,2,"entering (binary) " + csymbol);
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"entering (binary) " + csymbol);
 
         // In the following call we (a) find any declarations in the specsdefs 
         // that match cysmbol by name (b) attach those to csymbol in the 
