@@ -1,6 +1,6 @@
 /*
- * This file is part of the Esc/Java plugin project.
- * Copyright 2004-2011 David R. Cok
+ * This file is part of the OpenJML plugin project.
+ * Copyright 2004-2013 David R. Cok
  * 
  */
 package org.jmlspecs.openjml.eclipse;
@@ -14,87 +14,90 @@ import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.jmlspecs.openjml.Strings;
 
-// FIXME - organize this page with some headings; tool tips;
-// FIXME - path editor, keys editor, other options, solvers page
+// FIXME - all strings need to be internationalized
+// FIXME - review for other options
 
 /**
  * This class creates a Preferences page in Eclipse
  * This page hold data needed for CodeSonar and Eclipse interaction
+ * <P>
+ * The preferences page manages various JML and OpenJML and plug-in specific
+ * options. As usual these are stored in the preferences store, but OpenJML
+ * uses the System properties to hold values of options, so we need also to 
+ * store new changed values in the System properties. Also, we have the
+ * unusual functionality to initialize the Eclipse preferences from properties.
+ * <P>
+ * The key used for preferences is the same as the key used in System properties.
+ * <P>
+ * Notes: Field editors are a convenient way to create a preferences page,
+ * but not quite convenient enough on a couple of counts. 
+ * <UL>
+ * <LI> We need to observe when fields are changed. The normal way to do this
+ * would be to register a listener, but only one listener is allowed, and 
+ * the implementation of FieldEditorPreferencePage overwrites (during initialize())
+ * any listener added when a field editor is created.
+ * <LI> So we have to put the propertyChange call on the derived SettingsPage
+ * itself, which means that it is the same listener for all fields.
+ * <LI> There is insufficient access to FieldEditorPreferencePage functionality
+ * such as the list of all fields or being able to force loads and stores.
+ * </UL>
  */
 public class SettingsPage extends FieldEditorPreferencePage implements
 IWorkbenchPreferencePage {
 
-	static public class POptions {
-		/** The prefix to be put on each key. */
-		final static public String prefix = Strings.optionPropertyPrefix;
-
-		/** A fake preference store key for the update button. */
-		final static public String updateKey = prefix + "update";
-
-//		/** The preference store key for the jmldebug option. */
-//		final static public String debugKey = prefix + "debug";
-		/** The preference store key for the checkSpecsPath option. */
-		final static public String checkSpecsPathKey = prefix + "checkSpecsPath";
-		/** The preference store key for the nonnullByDefault option. */
-		final static public String nonnullByDefaultKey = prefix + "nonnullByDefault";
-//		/** The preference store key for JML verbosity option. */
-//		final static public String jmlverbosityKey = prefix + "jmlverbosity";
-//		/** The preference store key for the verbosity (quiet, nowarnings, verbose) option. */
-		final static public String verbosityKey = prefix + "verbosity";
-		/** The preference store key for the uiverbosity option. */
-//		final static public String uiverbosityKey = prefix + "uiverbosity";
-//		/** The preference store key for the source option. */
-//		final static public String sourceKey = prefix + "javaSourceVersion";
-//		/** The preference store key for the specsProjectName option. */
-//		final static public String specsProjectNameKey = prefix + "specsProjectName";
-//		/** The preference store key for the parsePlus option. */
-//		final static public String parsePlusKey = prefix + "parsePlus";
-		/** The preference store key for the check purity option. */
-		final static public String checkPurityKey = prefix + "noPurityCheck";
-		/** The preference store key for the keys option. */
-		final static public String optionalKeysKey = prefix + "optionalKeys";
-		/** The preference store key for the showNotImplemented option. */
-		final static public String showNotImplementedKey = prefix + "showNotImplemented";
-		/** The preference store key for the showNotExecutable option. */
-		final static public String showNotExecutableKey = prefix + "showNotExecutable";
-		/** The preference store key for the noInternalSpecs option. */
-		final static public String internalSpecsKey = prefix + "noInternalSpecs";
-		/** The preference store key for the noInternalRuntime option. */
-		final static public String noInternalRuntimeKey = prefix + "noInternalRuntime";
-		/** The preference store key for the autoAddRuntimeToProject option */
-		final static public String autoAddRuntimeToProjectKey = prefix + "autoAddRuntimeToProject";
-	}
-
 	public SettingsPage() {
 		super(FLAT);
-//		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-//		setDescription("A demonstration of a preference page implementation");
+		// No descriptive text needed. setDescription("Options for OpenJML");
 	}
 	
     public void init(IWorkbench workbench) {
         setPreferenceStore(Activator.getDefault().getPreferenceStore());
     }
     
+    /** A mapping of option keys to field names */
+    protected Map<String,FieldEditor> fieldMap = new HashMap<String,FieldEditor>();
+
+    /** Overridden to add the field to the fieldMap */
     @Override
     public void addField(FieldEditor field) {
     	super.addField(field);
     	fieldMap.put(field.getPreferenceName(), field);
     }
     
-    protected Map<String,FieldEditor> fieldMap = new HashMap<String,FieldEditor>();
 
+    /** Cached copy of the verbosity editor so we can handle its change
+     * events specially.
+     */
+    protected FieldEditor verbosity;
+
+    /** Overriding the propertyChange callback in order to maintain copies
+     * of the option values appropriately.
+     */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		String key = e.getProperty();
+		Object value = e.getNewValue();
+		if (value instanceof String) {
+			System.setProperty(key,(String)value);
+			if (e.getSource() == verbosity) {
+        		Utils.uiverbose = Integer.parseInt((String)value);
+			}
+		}
+		super.propertyChange(e);
+	}
+
+	/** The method that constructs all the editors and arranges them on the
+	 * settings page.
+	 */
     @Override
     protected void createFieldEditors() {
     	
@@ -113,7 +116,6 @@ IWorkbenchPreferencePage {
 					if (key.startsWith(Strings.optionPropertyPrefix)) {
 						FieldEditor field = fieldMap.get(key);
 						if (field != null) {
-							System.out.println("SETTING " + key + " " + value);
 							if (field instanceof BooleanFieldEditor) {
 								getPreferenceStore().setValue(key,!value.isEmpty());
 							} else if (field instanceof StringFieldEditor) {
@@ -121,19 +123,21 @@ IWorkbenchPreferencePage {
 							} else if (field instanceof ComboFieldEditor) {
 								getPreferenceStore().setValue(key,value); // FIXME - how do we know it is a valid value
 							} else {
-								System.out.println("Ignoring unknown field editor type " + field.getClass() + " for property " + key + "=" + value);
+								Log.errorlog("Ignoring unknown field editor type " + field.getClass() + " for property " + key + "=" + value,null);
 							}
 						} else {
-							System.out.println("No field editor for property " + key + "=" + value);
+							// FIXME - eventually hide this when we think we have everything implemented
+							Log.log("No field editor for property " + key + "=" + value);
 						}
 					} else {
-						System.out.println("Ignoring property " + key + "=" + value);
+						// FIXME - eventually hide this when we think we have everything implemented
+						Log.log("Ignoring property " + key + "=" + value);
 					}
 				}
 				initialize();
 			}
 		};
-		addField(new ButtonFieldEditor(POptions.updateKey,"",
+		addField(new ButtonFieldEditor(Options.updateKey,"",
 				"Update from properties files",
 				listener,
 				getFieldEditorParent())
@@ -144,21 +148,21 @@ IWorkbenchPreferencePage {
 		addField(new LabelFieldEditor("zzzzz.JML","JML Options",SWT.SEPARATOR|SWT.HORIZONTAL,
 				getFieldEditorParent()));
 
-		// FIXME - i10n these strings
+		// FIXME - i10n all the strings
 
-        addField(new BooleanFieldEditor(POptions.nonnullByDefaultKey, "NonNull By Default",
+        addField(new BooleanFieldEditor(Options.nonnullByDefaultKey, "NonNull By Default",
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(POptions.checkPurityKey, "Skip Purity Check",
+        addField(new BooleanFieldEditor(Options.checkPurityKey, "Skip Purity Check",
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(POptions.showNotImplementedKey, "Warn about not-implemented constructs",
+        addField(new BooleanFieldEditor(Options.showNotImplementedKey, "Warn about not-implemented constructs",
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(POptions.showNotExecutableKey, "Warn about not-executable constructs",
+        addField(new BooleanFieldEditor(Options.showNotExecutableKey, "Warn about not-executable constructs",
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(POptions.checkSpecsPathKey, "Check Specification Path",
+        addField(new BooleanFieldEditor(Options.checkSpecsPathKey, "Check Specification Path",
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(POptions.internalSpecsKey, "Use internal specs",
+        addField(new BooleanFieldEditor(Options.noInternalSpecsKey, "Use external specs",
                 getFieldEditorParent()));
-        addField(new StringFieldEditor(POptions.optionalKeysKey, "Optional Annotation Keys",
+        addField(new StringFieldEditor(Options.optionalKeysKey, "Optional Annotation Keys",
                 getFieldEditorParent()));
         
         
@@ -169,9 +173,9 @@ IWorkbenchPreferencePage {
 		addField(new LabelFieldEditor("zzzzz.RAC","Options relating to RAC",SWT.SEPARATOR|SWT.HORIZONTAL,
 				getFieldEditorParent()));
 
-        addField(new BooleanFieldEditor(POptions.checkSpecsPathKey, "Use the internal runtime library",
+        addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, "Do not use the internal runtime library",
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(POptions.checkSpecsPathKey, "Add runtime library to project automatically",
+        addField(new BooleanFieldEditor(Options.checkSpecsPathKey, "Add runtime library to project automatically",
                 getFieldEditorParent()));
 
         // Debug and verbosity
@@ -181,32 +185,14 @@ IWorkbenchPreferencePage {
 		addField(new LabelFieldEditor("zzzzz.VERBOSE","Verboseness and Debugging",SWT.SEPARATOR|SWT.HORIZONTAL,
 				getFieldEditorParent()));
 
-        addField(new ComboFieldEditor(POptions.verbosityKey, "Verbosity Level",
-        		new String[][]{ { "quiet", "quiet" }, {"normal", "normal"}, {"verbose", "verbose"}, {"debug", "debug"}},
+        addField(new BooleanFieldEditor(Options.javaverboseKey, "Java verbose",
                 getFieldEditorParent()));
         
-
+        addField(verbosity=new ComboFieldEditor(Options.verbosityKey, "Verbosity Level",
+        		new String[][]{ { "quiet", "0" }, {"normal", "1"}, 
+        		    {"progress", "2"}, {"verbose", "3"}, {"debug", "4"}},
+                getFieldEditorParent()));
     }
     
-	static class LabeledSeparator extends Composite {
-		/**
-		 * @param parent  The container this widget is made part of
-		 * @param label	  The text to be used as the label in the widget
-		 */
-		public LabeledSeparator(/*@ non_null */ Composite parent, 
-				/*@ non_null */ String label) {
-			super(parent, SWT.NONE);
-			GridLayout layout = new GridLayout();
-			layout.numColumns = 2;
-			setLayout(layout);
-			GridData data = new GridData();
-			data.verticalAlignment = GridData.FILL;
-			data.horizontalAlignment = GridData.FILL;
-			setLayoutData(data);
-			new Label(this,SWT.SEPARATOR|SWT.HORIZONTAL);
-			new Label(this,SWT.NONE).setText(label);
-		}
-	}
-
 
 }

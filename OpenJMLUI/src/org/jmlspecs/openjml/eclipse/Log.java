@@ -12,7 +12,8 @@ import javax.tools.DiagnosticListener;
 
 /** The logging mechanism for the OpenJML plugin - used for reporting progress or
  * errors within the plugin itself (i.e. not messages arising from the use of
- * command-line OpenJML nor messages from analysis of user code).  All textual user output is sent to
+ * command-line OpenJML nor messages from analysis of user code).  All textual 
+ * user output is sent to
  * the static methods of this class; specific kinds of reporters register as listeners.
  * Actually - in the current implementation there can be only one listener.
  * @author David R. Cok
@@ -76,7 +77,7 @@ public class Log {
 	/** A class that listens to diagnostic messages coming in from OpenJDK
 	 * and reports them into the OpenJML logging mechanism for Log listeners
 	 * to hear. 
-	 */
+	 */ // FIXME - this appears not to be used?
 	final static public class UIListener<S> implements DiagnosticListener<S> {
 		public UIListener() {
 		}

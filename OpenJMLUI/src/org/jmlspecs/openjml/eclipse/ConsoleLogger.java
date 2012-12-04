@@ -19,7 +19,7 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 
-/** This class provides Log.IListener implementation that sends
+/** This class provides a Log.IListener implementation that sends
  * text written through methods in Log to the Eclipse console.
  */
 public class ConsoleLogger implements Log.IListener {

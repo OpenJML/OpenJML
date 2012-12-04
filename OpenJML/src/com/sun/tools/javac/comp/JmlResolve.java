@@ -292,7 +292,7 @@ public class JmlResolve extends Resolve {
       */
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
-         if (utils.jmldebug) log.noticeWriter.println("LOADING REQUESTED " + name );
+         if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("LOADING REQUESTED " + name );
          Symbol s = super.loadClass(env, name);
          // Here s can be a type or a package or not exist 
          // s may not exist because it is being tested whether such a type exists
@@ -311,7 +311,8 @@ public class JmlResolve extends Resolve {
              if (jmlcompiler == null) jmlcompiler = ((JmlCompiler)JmlCompiler.instance(context));
              jmlcompiler.loadSpecsForBinary(env,(ClassSymbol)s);
              //if (true || utils.jmldebug) log.noticeWriter.println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
-             if (specs.get((ClassSymbol)s) == null) log.noticeWriter.println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
+             if (specs.get((ClassSymbol)s) == null) 
+                 log.noticeWriter.println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
          } else {
              //log.noticeWriter.println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
          }

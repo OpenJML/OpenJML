@@ -32,13 +32,10 @@ public class Activator extends AbstractUIPlugin {
 	/** The instance of the tool's options for the one plugin instance in the UI 
 	 * version of the OpenJML tool. 
 	 * This is THE, COMMON, GLOBAL instance of the options structure shared
-	 * by all projects using this instance of the OpenJML tool. Don't instantiate
+	 * by all projects using this instance of the plug-in. Don't instantiate
 	 * another one, since this one gets shared by reference in places.  This is
 	 * initialized by Activator.start().
-	 * FIXME - perhaps in the future we would support different option sets
-	 * for different projects; if so we have to worry about separate instances
-	 * of other parameters not explicitly held in the options structure - e.g. the
-	 * items held in the UI version of the specspath (listItems).  */
+     */
 	public static Options options;
 
 	/**
@@ -58,17 +55,10 @@ public class Activator extends AbstractUIPlugin {
 		Log.log.setListener(new ConsoleLogger("JML Console"));
 		//Log.log("JML UI plugin started");
 		
-		// Various initialization: instances or options and utils; 
+		// Various initialization: instances of options and utils; 
 		// read all preferences
 		utils = new Utils();
 		Utils.readProperties();
-		options = Preferences.extractOptions(null);
-		
-		// Set a listener so that the options instance is updated whenever
-		// a preference is changed.
-		AbstractPreference.addListener(new AbstractPreference.Listener(){
-			public void run() { Preferences.extractOptions(options); }
-		});
 	}
 
 	/*

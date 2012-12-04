@@ -29,7 +29,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
@@ -55,8 +54,8 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.SpecPublic;
 import org.jmlspecs.openjml.API;
-import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.Factory;
+import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
@@ -149,6 +148,7 @@ public class OpenJMLInterface {
     */
    public void executeExternalCommand(Cmd command, List<IResource> files, @Nullable IProgressMonitor monitor) {
        try {
+    	   boolean verboseProgress = Utils.uiverbose >= Utils.NORMAL;
            if (files.isEmpty()) {
                Log.log("Nothing applicable to process");
                Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process");
@@ -166,7 +166,7 @@ public class OpenJMLInterface {
                    args.add(r.getLocation().toString());
            	}
            }
-           if (Activator.options.uiverbosity >= 2) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
+           if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
            if (monitor != null) {
                monitor.setTaskName(command == Cmd.RAC ? "JML RAC" : "JML Checking");
                monitor.subTask("Executing openjml");
@@ -174,8 +174,12 @@ public class OpenJMLInterface {
            try {
                setMonitor(monitor);
                int ret = api.execute(args.toArray(new String[args.size()]));
-               if (ret == 0) Log.log(Timer.timer.getTimeString() + " Completed");
-               else if (ret == 1) Log.log(Timer.timer.getTimeString() + " Completed with errors");
+               if (ret == 0) {
+            	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed");
+               }
+               else if (ret == 1) {
+            	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed with errors");
+               }
                else if (ret >= 2) {
                    StringBuilder ss = new StringBuilder();
                    for (String r: args) {
@@ -239,7 +243,7 @@ public class OpenJMLInterface {
                    args.add(r.getLocation().toString());
            	}
            }
-           if (Activator.options.uiverbosity >= 2) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
+           if (Utils.uiverbose >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
            if (monitor != null) {
                monitor.setTaskName("JML Checking");
                monitor.subTask("Executing openjml");
@@ -368,7 +372,7 @@ public class OpenJMLInterface {
                 return;
             }
             if (args.size() > n) {
-            	if (Activator.options.uiverbosity >= 1) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
+            	if (Utils.uiverbose >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
                 if (monitor != null) monitor.subTask("Executing openjml");
                 try {
                     if (monitor != null) monitor.setTaskName("ESC");
@@ -430,7 +434,7 @@ public class OpenJMLInterface {
             if (monitor != null) {
                 monitor.subTask("Completed ESC operation");
             }
-            Log.log("Completed ESC operation");
+            if (Utils.uiverbose >= Utils.NORMAL) Log.log("Completed ESC operation");
         } catch (JmlCanceledException e) {
             Log.log("Canceled ESC operation");
             throw e;
@@ -926,41 +930,42 @@ public class OpenJMLInterface {
      * @return the list of options and arguments
      */
     public @NonNull List<String> getOptions(IJavaProject jproject, Cmd cmd) {
-        Options opt = Activator.options;
+        //Options opt = Activator.options;
         List<String> opts = new LinkedList<String>();
         if (cmd == Cmd.ESC) {
             opts.add(JmlOption.ESC.optionName());
             opts.add("-crossRefAssociatedInfo");
             setYicesLocation();
         }
-        if (cmd == Cmd.RAC) {
-            opts.add(JmlOption.RAC.optionName());
-            opts.add("-d");
-            IFolder f = jproject.getProject().getFolder(opt.racbin);
-            if (!f.exists()) {
-                try {
-                    f.create(IResource.FORCE,true,null);
-                    f.refreshLocal(IResource.DEPTH_INFINITE,null);
-                } catch (CoreException e) {
-                    Log.errorlog("Exception in creating RAC output directory " + opt.racbin,e);
-                }
-            }
-            opts.add(f.getLocation().toString());
-        }
-        boolean verbose = opt.verbosity >= 2;
-        if (opt.debug) opts.add(JmlOption.JMLDEBUG.optionName());
+        // FIXME
+//        if (cmd == Cmd.RAC) {
+//            opts.add(JmlOption.RAC.optionName());
+//            opts.add("-d");
+//            IFolder f = jproject.getProject().getFolder(opt.racbin);
+//            if (!f.exists()) {
+//                try {
+//                    f.create(IResource.FORCE,true,null);
+//                    f.refreshLocal(IResource.DEPTH_INFINITE,null);
+//                } catch (CoreException e) {
+//                    Log.errorlog("Exception in creating RAC output directory " + opt.racbin,e);
+//                }
+//            }
+//            opts.add(f.getLocation().toString());
+//        }
+        boolean verbose = Utils.uiverbose >= Utils.NORMAL;
+        if (Utils.uiverbose >= Utils.DEBUG) opts.add(JmlOption.JMLDEBUG.optionName());
         //if (opt.verbosity != 0)  { opts.add(JmlOption.JMLVERBOSE.optionName()); } //opts.add(Integer.toString(opt.verbosity)); }
-        if (opt.source != null && !opt.source.isEmpty()) { opts.add("-source"); opts.add(opt.source); }
-        if (cmd != Cmd.JMLDOC && opt.destination != null && !opt.destination.isEmpty())  { opts.add("-d"); opts.add(opt.destination); }
-        if (!opt.checkPurity) opts.add(JmlOption.NOPURITYCHECK.optionName());
+// FIXME       if (opt.source != null && !opt.source.isEmpty()) { opts.add("-source"); opts.add(opt.source); }
+// FIXME        if (cmd != Cmd.JMLDOC && opt.destination != null && !opt.destination.isEmpty())  { opts.add("-d"); opts.add(opt.destination); }
+//        if (!opt.checkPurity) opts.add(JmlOption.NOPURITYCHECK.optionName());
         // FIXME if (opt.parsePlus) opts.add(JmlOption.PARSEPLUS.optionName());
-        if (opt.showNotImplemented) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
+//        if (opt.showNotImplemented) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
         // FIXME if (opt.showNotExecutable) opts.add(JmlOption.SHOWNOTEXECUTABLE.optionName());
         opts.add(JmlOption.NOINTERNALSPECS.optionName());
         opts.add(JmlOption.NOINTERNALRUNTIME.optionName());
-        if (!opt.checkSpecsPath) opts.add(JmlOption.NOCHECKSPECSPATH.optionName());
-        if (opt.nonnullByDefault) opts.add(JmlOption.NONNULLBYDEFAULT.optionName());
-        else                      opts.add(JmlOption.NULLABLEBYDEFAULT.optionName());
+// FIXME        if (!opt.checkSpecsPath) opts.add(JmlOption.NOCHECKSPECSPATH.optionName());
+//        if (opt.nonnullByDefault) opts.add(JmlOption.NONNULLBYDEFAULT.optionName());
+// FIXME       else                      opts.add(JmlOption.NULLABLEBYDEFAULT.optionName());
         
         if (cmd == Cmd.JMLDOC) {
             // jmldoc specific options
@@ -979,7 +984,7 @@ public class OpenJMLInterface {
         // Now determine the location of library specs and the internal 
         // runtime library
         
-        if (!opt.noInternalSpecs) {
+        if (!Options.isOption(Options.noInternalSpecsKey)) {
             try {
                 boolean somethingPresent = false;
                 String versionString = System.getProperty("java.version"); // FIXME - use eclipse version?
@@ -1086,7 +1091,7 @@ public class OpenJMLInterface {
             ss.append(s);
         }
 
-        if (!opt.noInternalRuntime) {
+        if (!Options.isOption(Options.noInternalRuntimeKey)) {
         	String runtime = utils.findInternalRuntime();
         	if (runtime != null) {
         		ss.append(File.pathSeparator);

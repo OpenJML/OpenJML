@@ -130,7 +130,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		if (Activator.options.uiverbosity >= 2) Log.log("Cleaning: " + getProject().getName());
+		if (Utils.uiverbose >= Utils.NORMAL) Log.log("Cleaning: " + getProject().getName());
 		deleteMarkers(getProject(),true);
 		cleanRacbin(getProject());
 	}
@@ -184,7 +184,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// We've already checked that this is a Java and a JML project
 		// Also all the resources should be from this project, because the
 		// builders work project by project
-		if (Activator.options.autoAddRuntimeToProject) Activator.getDefault().utils.addRuntimeToProjectClasspath(jproject);
+		if (Options.isOption(Options.autoAddRuntimeToProjectKey)) Activator.getDefault().utils.addRuntimeToProjectClasspath(jproject);
 		Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.CHECK,resourcesToBuild, monitor);
 	}
 
@@ -202,11 +202,12 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			return;
 		}
 
-		if (Activator.options.uiverbosity >= 2) Log.log("Full build " + project.getName());
+		if (Utils.uiverbose >= Utils.NORMAL) Log.log("Full build " + project.getName());
+		
 		Timer.timer.markTime(); // FIXME - where is this timer used
 		deleteMarkers(project,true);
 		if (monitor.isCanceled() || isInterrupted()) {
-			if (Activator.options.uiverbosity >= 2) Log.log("Build interrupted");
+			if (Utils.uiverbose >= Utils.NORMAL) Log.log("Build interrupted");
 			return;
 		}
 		ResourceVisitor v = new ResourceVisitor();
@@ -225,7 +226,8 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 * @return true if the build was cancelled
 	 * @throws CoreException when the JML model is out of whack
 	 */
-	static public boolean doBuild(IJavaProject jp, List<IResource> resources, IProgressMonitor monitor) throws CoreException {
+	static public boolean doBuild(IJavaProject jp, List<IResource> resources, 
+			IProgressMonitor monitor) throws CoreException {
 		ResourceVisitor v = new ResourceVisitor();
 		for (IResource r: resources) {
 			r.accept(v);
@@ -255,7 +257,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			return;
 		}
 
-		if (Activator.options.uiverbosity >= 2) Log.log("Incremental build " + project.getName());
+		if (Utils.uiverbose >= Utils.NORMAL) Log.log("Incremental build " + project.getName());
 		Timer.timer.markTime(); // FIXME - where is this timer used
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files and deletes markers
@@ -310,8 +312,8 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		deleteMarkers(resources,true); // FIXME - should this be done in another thread?  but it has to be completed before the checking starts
 		// FIXME - need to build one project at a time
 		try {
-			boolean cancelled = doBuild(JavaCore.create(((IResource)resources.get(0)).getProject()),resources, monitor);  // FIXME - build everything or update?
-			if (Activator.options.uiverbosity >= 1) Log.log(Timer.timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
+			boolean cancelled = doBuild(JavaCore.create(resources.get(0).getProject()),resources, monitor);  // FIXME - build everything or update?
+			if (Utils.uiverbose >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
 		} catch (Exception e) {
 			Log.errorlog("Exception occurred during JML check ",e);
 		}

@@ -156,7 +156,7 @@ public class Utils {
         deleteMarkers(res,shell);
         final Map<IJavaProject,List<IResource>> sorted = sortByProject(res);
         for (final IJavaProject jp : sorted.keySet()) {
-			if (Activator.options.autoAddRuntimeToProject) addRuntimeToProjectClasspath(jp);
+			if (Options.isOption(Options.autoAddRuntimeToProjectKey)) addRuntimeToProjectClasspath(jp);
             final List<IResource> ores = sorted.get(jp);
             Job j = new Job("JML Manual Check") {
                 public IStatus run(IProgressMonitor monitor) {
@@ -191,9 +191,9 @@ public class Utils {
         }
         final Map<IJavaProject,List<Object>> sorted = sortByProject(res);
         for (final IJavaProject jp : sorted.keySet()) {
-			if (Activator.options.autoAddRuntimeToProject) addRuntimeToProjectClasspath(jp);
+			if (Options.isOption(Options.autoAddRuntimeToProjectKey)) addRuntimeToProjectClasspath(jp);
             final List<Object> ores = sorted.get(jp);
-            if (Activator.options.uiverbosity >= 2) Log.log("Checking ESC (" + res.size() + " items)");
+            if (Utils.uiverbose >= Utils.NORMAL) Log.log("Checking ESC (" + res.size() + " items)");
             deleteMarkers(res,shell);
             Job j = new Job("Static Checks - Manual") {
                 public IStatus run(IProgressMonitor monitor) {
@@ -224,7 +224,8 @@ public class Utils {
         	// the local file system.
         	IPath path = ResourcesPlugin.getWorkspace().getRoot().getLocation().append(org.jmlspecs.openjml.Strings.propertiesFileName);
         	boolean found = org.jmlspecs.openjml.Utils.readProps(properties,path.toFile().getAbsolutePath());
-            if (found) Log.log("Properties read from the workspace: " + path.toOSString());
+            if (found && Utils.uiverbose >= Utils.VERBOSE) 
+            	Log.log("Properties read from the workspace: " + path.toOSString());
         }
         System.getProperties().putAll(properties);
     }
@@ -239,7 +240,7 @@ public class Utils {
             IResource res = project.findMember(org.jmlspecs.openjml.Strings.propertiesFileName);
             if (res != null) {
             	boolean found = org.jmlspecs.openjml.Utils.readProps(properties,res.getLocation().toOSString());
-                if (found && Activator.options.uiverbosity >= 1) Log.log("Properties read from the project directory: " + res.getLocation().toOSString());
+                if (found && Utils.uiverbose >= Utils.VERBOSE) Log.log("Properties read from the project directory: " + res.getLocation().toOSString());
             }
         }
         System.getProperties().putAll(properties);
@@ -289,14 +290,14 @@ public class Utils {
         }
         if (newlist.size() != 0) {
             try {
-            	if (Activator.options.uiverbosity >= 2) Log.log("Starting RAC " + newlist.size() + " files");
+            	if (Utils.uiverbose >= Utils.NORMAL) Log.log("Starting RAC " + newlist.size() + " files");
                 getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.RAC,newlist,monitor);
-                if (Activator.options.uiverbosity >= 2) Log.log("Completed RAC");
+                if (Utils.uiverbose >= Utils.NORMAL) Log.log("Completed RAC");
             } catch (Exception e) {
                 showExceptionInUI(null,e);
             }
         } else {
-        	if (Activator.options.uiverbosity >= 2) Log.log("Nothing to RAC");
+        	if (Utils.uiverbose >= Utils.NORMAL) Log.log("Nothing to RAC");
         }
     }
     
@@ -391,7 +392,7 @@ public class Utils {
         List<Object> list;
         String text;
         if (textSelection != null && window != null && (text=textSelection.getText()).length() != 0) {
-        	if (Activator.options.uiverbosity >= 2) Log.log("Selected text: " + text);
+        	if (Utils.uiverbose >= Utils.NORMAL) Log.log("Selected text: " + text);
             String classname = text.replace('.','/') + ".class";
             IEditorPart p = window.getActivePage().getActiveEditor();
             IEditorInput e = p==null? null : p.getEditorInput();
@@ -548,7 +549,7 @@ public class Utils {
                     launchJavaEditor(s,nm);
                 } else if (firstEditableLocation != null) {
                     IFile newfile = firstEditableLocation.getFile(name + ".jml");
-                    if (Activator.options.uiverbosity >= 2) Log.log("Creating " + newfile);
+                    if (Utils.uiverbose >= Utils.NORMAL) Log.log("Creating " + newfile);
                     // FIXME - add default content
                     // FIXME - be able to decline to create, or to choose location
                     boolean b = MessageDialog.openConfirm(
@@ -937,7 +938,7 @@ public class Utils {
                     else if (element instanceof IAdaptable && (r=(IResource)((IAdaptable)element).getAdapter(IResource.class))!=null) {
                         list.add(r);
                     } else {
-                    	if (Activator.options.uiverbosity >= 2) Log.log("No resource for " + ((IJavaElement)element).getElementName());
+                    	if (Utils.uiverbose >= Utils.NORMAL) Log.log("No resource for " + ((IJavaElement)element).getElementName());
                     }
                 }
             }
@@ -995,7 +996,7 @@ public class Utils {
                         (p!=null? " on project " + p.getElementName() : ""), e);
             }
         }
-        if (Activator.options.uiverbosity >= 2) Log.log("Completed JML Nature operation ");
+        if (Utils.uiverbose >= Utils.NORMAL) Log.log("Completed JML Nature operation ");
     }
 
     // Do this right here in the UI thread
@@ -1106,25 +1107,25 @@ public class Utils {
 
     // TODO _ document; also clarify the content
     public void manipulateSpecsPath(ISelection selection, IWorkbenchWindow window, Shell shell) {
-        Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
-        if (projects.size() == 0)  projects = getSelectedProjects(true,selection,window,shell);
-        for (IJavaProject jp: projects) {
-            List<IResource> list = getInterface(jp).specsPath;
-//            StringBuilder ss = new StringBuilder();
-//            for (IFile s: list) { ss.append(s.toString()); ss.append("\n"); }
-//            if (!Activator.options.noInternalSpecs) ss.append("<Using internal JML library specs>\n");
-//            ss.append("----------------\n");
-//            List<String> pdirs = getInterface(jp).getSpecsPath();
-//            for (String s: pdirs) { ss.append(s); ss.append("\n"); }
-            //showMessage(shell,"JML Specs path for project " + jp.getElementName(), ss.toString());
-            Dialog d = new SpecsPathEditor(shell,jp,list);
-            d.open();
-            if (d.getReturnCode() == Dialog.OK) {
-                // Save the altered items to persistent storage
-                putSpecsPath(jp,list);
-                Preferences.poptions.noInternalSpecs.setValue(Activator.options.noInternalSpecs);
-            }
-        }
+//        Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
+//        if (projects.size() == 0)  projects = getSelectedProjects(true,selection,window,shell);
+//        for (IJavaProject jp: projects) {
+//            List<IResource> list = getInterface(jp).specsPath;
+////            StringBuilder ss = new StringBuilder();
+////            for (IFile s: list) { ss.append(s.toString()); ss.append("\n"); }
+////            if (!Activator.options.noInternalSpecs) ss.append("<Using internal JML library specs>\n");
+////            ss.append("----------------\n");
+////            List<String> pdirs = getInterface(jp).getSpecsPath();
+////            for (String s: pdirs) { ss.append(s); ss.append("\n"); }
+//            //showMessage(shell,"JML Specs path for project " + jp.getElementName(), ss.toString());
+//            Dialog d = new SpecsPathEditor(shell,jp,list);
+//            d.open();
+//            if (d.getReturnCode() == Dialog.OK) {
+//                // Save the altered items to persistent storage
+//                putSpecsPath(jp,list);
+//                Preferences.poptions.noInternalSpecs.setValue(Activator.options.noInternalSpecs);
+//            }
+//        }
     }
 
     /** Shows the classpath for selected projects.  
@@ -1133,7 +1134,7 @@ public class Utils {
      * @param window the currently active window
      * @param shell the currently active shell (or null for default)
      */
-    public void manipulateClassPath(ISelection selection, IWorkbenchWindow window, Shell shell) {
+    public void showPaths(ISelection selection, IWorkbenchWindow window, Shell shell) {
         Collection<IJavaProject> projects = getSelectedProjects(true,selection,window,shell);
         if (projects.isEmpty()) {
             showMessage(shell,"Show JML Paths", "No projects selected");
@@ -1142,19 +1143,19 @@ public class Utils {
             List<String> list = getClasspath(jp);
             StringBuilder ss = new StringBuilder();
             ss.append("Classpath:");
-            ss.append(eol);
-            for (String s: list) { ss.append(s); ss.append(eol); }
-            ss.append(eol);
+            ss.append(Env.eol);
+            for (String s: list) { ss.append(s); ss.append(Env.eol); }
+            ss.append(Env.eol);
             // FIXME - needs source path
             ss.append("Specs path:");
-            ss.append(eol);
+            ss.append(Env.eol);
             for (IResource r: getSpecsPath(jp)) {
             	ss.append(r.getLocation().toString());
-            	ss.append(eol);
+            	ss.append(Env.eol);
             }
             showMessage(shell,"JML paths for project " + jp.getElementName(), 
-            		"Edit the paths in the JML preferences or use the" + eol +
-            		"Add to/Remove from JML Specs Path menu items" + eol + eol
+            		"Edit the paths in the JML preferences or use the" + Env.eol +
+            		"Add to/Remove from JML Specs Path menu items" + Env.eol + Env.eol
             		+ ss.toString());
         }
     }
@@ -1438,7 +1439,7 @@ public class Utils {
      */
     public void deleteMarkers(IResource resource, @Nullable Shell shell) {
         try {
-        	if (Activator.options.uiverbosity >= 2) Log.log("Deleting markers in " + resource.getName());
+        	if (Utils.uiverbose >= Utils.VERBOSE) Log.log("Deleting markers in " + resource.getName());
         	resource.deleteMarkers(JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
         	resource.deleteMarkers(ESC_MARKER_ID, false, IResource.DEPTH_INFINITE);
         	resource.deleteMarkers(JML_HIGHLIGHT_ID, false, IResource.DEPTH_INFINITE);
@@ -1485,7 +1486,7 @@ public class Utils {
                     else set.remove(r);
                 }
             } else {
-            	if (Activator.options.uiverbosity >= 2) Log.log("Not handling " + r.getClass());
+            	if (Utils.uiverbose >= Utils.VERBOSE) Log.log("Not handling " + r.getClass());
             }
         } catch (CoreException e) {
             Log.errorlog("Core Exception while traversing Resource tree (mark for RAC)",e);
@@ -1577,7 +1578,7 @@ public class Utils {
                     }
                 }
             } else {
-            	if (Activator.options.uiverbosity >= 2) Log.log("Not handling " + r.getClass());
+            	if (Utils.uiverbose >= Utils.VERBOSE) Log.log("Not handling " + r.getClass());
             }
         } catch (CoreException e) {
             Log.errorlog("Core Exception while traversing Resource tree (mark for RAC)",e);
@@ -1769,14 +1770,34 @@ public class Utils {
      * called within the UI thread.
      */
     public void topLevelException(Shell shell, String title, Exception e) {
-        //e.printStackTrace(sw); // TODO - show the stack trace?
+    	StringWriter sw = new StringWriter();
+    	PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw); // TODO - show the stack trace?
+    	String s = "Please report this internal bug, along with information about the context that caused the problem:" + Env.eol + Env.eol + sw.toString();
+    	final int maxlength = 2000; // Just a limit to keep from overfilling a dialog box
+    	if (s.length() > maxlength) {
+    	    s = s.substring(0,2000) + " ...";
+    	}
         showMessage(shell,"JML Top-level Exception: " + title,
-                e.toString());
+                s);
     }
 
-    static public final String[] suffixes = { ".refines-java", ".refines-spec", ".refines-jml", ".java", ".spec", ".jml" };
+    /** The suffixes allowed for JML files. */
+    static public final String[] suffixes = { ".jml", ".java" };
+    //static public final String[] suffixes = { ".refines-java", ".refines-spec", ".refines-jml", ".java", ".spec", ".jml" };
     
-    static public final String eol = System.getProperty("line.separator");
+    /** These constants should be the same as in org.jmlspecs.openjml.Utils, but
+     * we don't reference them directly to avoid a dependency (in case we reuse
+     * this plugin)
+     */
+    static public final int QUIET = 0;
+    static public final int NORMAL = 1;
+    static public final int VERBOSE = 3;
+    static public final int DEBUG = 4;
+    /** A value used within the plugin to control printing - compare this value 
+     * to the constants.
+     */
+    static public int uiverbose = NORMAL; // Should this be in options? FIXME
 
     /** This method returns an int giving the precedence of the suffix of the
      * file name: -1 indicates not a JML file; 0 is the preferred suffix;
@@ -1804,7 +1825,7 @@ public class Utils {
         try {
             Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
             if (selfBundle == null) {
-            	if (Activator.options.uiverbosity >= 2) Log.log("No self plugin");
+            	if (Utils.uiverbose >= Utils.NORMAL) Log.log("No self plugin"); // FIXME - an error?
             } else {
                 URL url;
                 url = FileLocator.toFileURL(selfBundle.getResource(""));
@@ -1814,12 +1835,12 @@ public class Utils {
                         File f = new File(root,"jmlruntime.jar");
                         if (f.exists()) {
                         	file = f.toString();
-                            if (Activator.options.uiverbosity >= 2) Log.log("Internal runtime location: " + file);
+                            if (Utils.uiverbose >= Utils.NORMAL) Log.log("Internal runtime location: " + file);
                         } else {
                         	f = new File(root,"../jmlruntime.jar");
                             if (f.exists()) {
                                 file = f.toString();
-                                if (Activator.options.uiverbosity >= 2) Log.log("Internal runtime location: " + file);
+                                if (Utils.uiverbose >= Utils.NORMAL) Log.log("Internal runtime location: " + file);
                             }
                         }
                     }

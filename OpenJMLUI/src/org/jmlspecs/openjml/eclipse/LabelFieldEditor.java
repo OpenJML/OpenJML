@@ -2,43 +2,34 @@ package org.jmlspecs.openjml.eclipse;
 
 
 import org.eclipse.jface.preference.FieldEditor;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 
 /**
- * A fake field editor that is just a label.
+ * A fake field editor that is just a label to be used as a separator; the st.
  */
 public class LabelFieldEditor extends FieldEditor {
 
 	/**
-	 * The <code>Combo</code> widget.
+	 * The Label widget.
 	 */
 	private Label fLabel;
 	
-	private String labelText;
-	
+	/** The style of the field - typically either SWT.NONE or SWT.SEPARATOR|SWT.HORIZONTAL */
 	private int style;
 	
 	/**
 	 * Create the combo box field editor.
 	 * 
-     * @param name the name of the preference this field editor works on
+     * @param name the key of the preference this field editor works on
      * @param labelText the label text of the field editor
-	 * @param entryNamesAndValues the names (labels) and underlying values to populate the combo widget.  These should be
-	 * arranged as: { {name1, value1}, {name2, value2}, ...}
+	 * @param style use SWT.SEPARATOR|SWT.HORIZONTAL to get a labeled horizontal rule, use SWT.NONE for no rule
 	 * @param parent the parent composite
 	 */
 	public LabelFieldEditor(String name, String labelText, int style, Composite parent) {
 		init(name, labelText);
-		this.labelText = labelText;
 		this.style = style;
 		createControl(parent);		
 	}
@@ -89,21 +80,21 @@ public class LabelFieldEditor extends FieldEditor {
 	 * @see org.eclipse.jface.preference.FieldEditor#doLoad()
 	 */
 	protected void doLoad() {
-		// Do nothing
+		// no state to load
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.preference.FieldEditor#doLoadDefault()
 	 */
 	protected void doLoadDefault() {
-		// Do nothing
+		// no state to load
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.preference.FieldEditor#doStore()
 	 */
 	protected void doStore() {
-		// Do nothing
+		// no state to store
 	}
 
 	/* (non-Javadoc)
@@ -119,10 +110,8 @@ public class LabelFieldEditor extends FieldEditor {
 	private Label getLabel(Composite parent) {
 		if (fLabel == null) {
 			fLabel = new Label(parent,style);
-			Font f = parent.getFont();
-			FontData[] fd = f.getFontData();
-			fd[0].setStyle(SWT.BOLD);
-			fLabel.setFont(f);
+			// FIXME - want the label itself to be bold
+			// FIXME - would rather use the light box around a group of controls as in other Preference pages
 		}
 		return fLabel;
 	}

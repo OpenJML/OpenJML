@@ -17,21 +17,22 @@ import org.eclipse.swt.widgets.Listener;
 public class ButtonFieldEditor extends FieldEditor {
 
 	/**
-	 * The <code>Combo</code> widget.
+	 * The Button widget.
 	 */
 	private Button fButton;
 	
+	/** The text on the button. */
 	private String buttonText;
 	
+	/** The listener for button presses (typically a mouse up or down event). */
 	private MouseListener listener;
 	
 	/**
 	 * Create the combo box field editor.
 	 * 
-     * @param name the name of the preference this field editor works on
+     * @param name the key of the preference this field editor works on
      * @param labelText the label text of the field editor
-	 * @param entryNamesAndValues the names (labels) and underlying values to populate the combo widget.  These should be
-	 * arranged as: { {name1, value1}, {name2, value2}, ...}
+	 * @param listener the action to take when the button is pressed or released
 	 * @param parent the parent composite
 	 */
 	public ButtonFieldEditor(String name, String labelText, String buttonText, MouseListener listener, Composite parent) {
@@ -87,21 +88,21 @@ public class ButtonFieldEditor extends FieldEditor {
 	 * @see org.eclipse.jface.preference.FieldEditor#doLoad()
 	 */
 	protected void doLoad() {
-		// FIXME;
+		// There is no state to update
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.preference.FieldEditor#doLoadDefault()
 	 */
 	protected void doLoadDefault() {
-		// FIXME;
+		// There is no state to update
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.preference.FieldEditor#doStore()
 	 */
 	protected void doStore() {
-		// Do nothing
+		// There is no state to store
 	}
 
 	/* (non-Javadoc)
@@ -112,7 +113,7 @@ public class ButtonFieldEditor extends FieldEditor {
 	}
 
 	/*
-	 * Lazily create and return the Combo control.
+	 * Lazily create and return the control.
 	 */
 	private Button getButton(Composite parent) {
 		if (fButton == null) {

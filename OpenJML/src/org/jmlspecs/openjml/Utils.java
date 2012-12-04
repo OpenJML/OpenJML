@@ -72,8 +72,13 @@ public class Utils {
     /** The error and warning log */
     public final Log log;
     
-    /** Global utility value that enables printing of debugging information. */
-    public boolean jmldebug = false;
+    /** Global utility value that enables printing of debugging or trace information. */
+    public int jmlverbose = 0; 
+    static public final int QUIET = 0;
+    static public final int NORMAL = 1;
+    static public final int PROGRESS = 2;
+    static public final int JMLVERBOSE = 3;
+    static public final int JMLDEBUG = 4;
 
     /** Do ESC - set by Main.setupOptions */
     public boolean esc = false;
@@ -375,7 +380,9 @@ public class Utils {
           if (url2 != null) {
               String s = url2.getFile();
               boolean found = readProps(properties,s);
-              if (found && context != null) Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
+              if (found && context != null &&
+            		  Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) 
+            	  Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
           }
       }
       
@@ -383,21 +390,25 @@ public class Utils {
       {
           String s = System.getProperty("user.home") + "/" + Strings.propertiesFileName;
           boolean found = readProps(properties,s);
-          if (found && context != null) Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
+          if (found && context != null &&
+        		  Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) 
+        	  Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
       }
 
       // In the working directory
       {
           String s = System.getProperty("user.dir") + "/" + Strings.propertiesFileName;
           boolean found = readProps(properties,s);
-          if (found && context != null) Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
+          if (found && context != null &&
+        		  Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) 
+        	  Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
       }
       
       // FIXME - add on the application classpath
       
       // FIXME - add on the command-line
 
-      if (false) {
+      if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) {
           // Print out the properties
           for (String key: new String[]{"user.home","user.dir"}) {
               System.out.println("Environment:    " + key + " = " + System.getProperty(key));

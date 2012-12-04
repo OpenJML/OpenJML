@@ -144,8 +144,8 @@ public class JmlEclipseProblem extends DefaultProblem {
 	public JmlEclipseProblem(IProblem p, ICompilationUnit icu) {
 		this((IFile)icu.getResource(), p.getMessage(), p.getID(), 
 				p.isError() ? ProblemSeverities.Error : p.isWarning() ? ProblemSeverities.Warning : -1,
-						p.getSourceStart(), p.getSourceEnd(), p.getSourceLineNumber(),
-						getSource(icu), -1, -1);
+				p.getSourceStart(), p.getSourceEnd(), p.getSourceLineNumber(),
+				getSource(icu), -1, -1);
 	}
 
 	/**
@@ -226,6 +226,8 @@ public class JmlEclipseProblem extends DefaultProblem {
 					// We're here if we have a non-JmlEclipseProblem, and consequently we
 					// have neither source text nor line start information.  So we have to
 					// open the resource and read the requisite number of lines.
+					// This is a bit expensive, but we only do it once for each 
+					// error message.
 					r = new BufferedReader(new InputStreamReader(((IFile)resource).getContents())); 
 				} 
 
@@ -234,44 +236,53 @@ public class JmlEclipseProblem extends DefaultProblem {
 				// Skip (line-1) lines of text, including line terminations,
 				// and count the number of characters read.
 
-				int count = 0;
-				int lastr = -2;
+				int count = 0; // Number of chars read
 				int c = 0;
 
 				--line;
 				if (line > 0) {
 					// TODO: This could perhaps be more efficient, but it is
 					// only used once per error message.
-					// FIXME: needs review and comment
-					while (true) {
-						c = r.read();
-						count++;
-						if (c == -1) return; // SHould not end before getting to the beginning of the desired line
+					c = r.read();
+					count++;
+					while (line > 0) {
+						if (c == -1) return; // SHould not end before getting 
+						                     // to the beginning of the desired line
+						                     // If we do, we just pretend that
+						                     // no text is available
 						if (c == '\r') {
-							lastr = count;
-							--line;
-							if (line == 0) {
+							do {
+								--line;
 								c = r.read();
 								count++;
-								if (c == -1) return;
-								break;
-							}
+								if (c == '\n') {
+									// Ignore this following NL
+									c = r.read();
+									count++;
+								}
+							} while (c == '\r');
 						} else if (c == '\n') {
-							if (lastr +1 != count) {
-								--line;
-								if (line == 0) break;
-							}
+					        --line;
+							c = r.read();
+							count++;
+						} else {
+							c = r.read();
+							count++;
 						}
 					}
 				}
-				if (c == '\r') {
+				// Have read the first character beyond the end of the requisite 
+				// number of lines to be skipped.
+				if (c == '\r' || c == '\n') {
+					// The next line is empty
 					sline = Env.eol;
-				} else if (c == 0 || c == '\n') {
-					sline = r.readLine() + Env.eol;
+				} else if (c == -1) {
+					// Still not enough data
+					return;
 				} else {
 					sline = (char)c + r.readLine() + Env.eol;
 				}
-				if (lineStart == -1) lineStart = count;
+				if (lineStart == -1) lineStart = count; // lineStart is 1-based
 				r.close();
 			} catch (Exception e) {
 				Log.errorlog("INTERNAL ERROR - Exception occurred while printing a Problem: "

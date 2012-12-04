@@ -3,15 +3,12 @@ package org.jmlspecs.openjml.jmldoc;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.LinkedList;
-import java.util.Locale;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjml.Main.IProgressReporter;
-import org.jmlspecs.openjml.Main.PrintProgressReporter;
 
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.util.Context;
@@ -180,7 +177,7 @@ public class Main extends org.jmlspecs.openjml.Main {
             }
         }
         if (context != null) {
-            Utils.instance(context).jmldebug = Options.instance(context).get(JmlOption.JMLDEBUG.optionName()) != null; 
+            // FIXME Utils.instance(context).jmlverbose = Options.instance(context).get(JmlOption.JMLDEBUG.optionName()) != null; 
             JmlSpecs.instance(context).initializeSpecsPath();
             if (!JmlOption.isOption(context,JmlOption.NOINTERNALRUNTIME)) {
             	appendRuntime(context);

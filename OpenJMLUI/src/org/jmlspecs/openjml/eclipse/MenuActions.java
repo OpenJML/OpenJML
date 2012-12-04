@@ -5,43 +5,22 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
  * This class holds the implementations of utility classes registered against
  * menu items in the menubar and toolbar by plugin.xml
  */
-abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowActionDelegate {
-
-    // IWorkbenchWindowActionDelegate is the interface for actions that
-    // are contributed as menubar or toolbar items
+abstract public class MenuActions extends AbstractHandler {
 
     /** Caches the value of the window, when informed of it. */
     protected IWorkbenchWindow window;
@@ -60,34 +39,15 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
     	shell = window.getShell();
     	selection = window.getSelectionService().getSelection();
     }
-//    /* (non-Javadoc)
-//     * @see org.eclipse.ui.IActionDelegate#selectionChanged(org.eclipse.jface.action.IAction, org.eclipse.jface.viewers.ISelection)
-//     */
-//    @Override
-//    public final void selectionChanged(final IAction action, final ISelection selection) {
-//        this.selection = selection;
-//    }
 
     /**
      * We can use this method to dispose of any system
      * resources we previously allocated.
-     * @see IWorkbenchWindowActionDelegate#dispose
+	 * @see org.eclipse.core.commands.IHandler#dispose()
      */
     @Override
     public void dispose() {
     }
-
-    /**
-     * We will cache window object in order to
-     * be able to provide a parent shell for the message dialog.
-     * @param window The parent window
-     * @see IWorkbenchWindowActionDelegate#init
-     */
-//    @Override
-//    public void init(IWorkbenchWindow window) {
-//        this.window = window;
-//        this.shell = window.getShell();
-//    }
 
     /** Called by the system in response to a menu selection (or other command).
      * This should be overridden for individual menu items.
@@ -168,17 +128,8 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
      * @author David R. Cok
      */
     public static class DeleteJMLMarkers extends MenuActions {
-//        @Override
-//        public final void run(final IAction action) {
-//            try {
-//                utils.deleteMarkersInSelection(selection,window,shell);
-//            } catch (Exception e) {
-//                utils.topLevelException(shell,"MenuActions.DeleteJMLMarkers",e);
-//            }
-//        }
     	@Override
     	public Object execute(ExecutionEvent event) {
-    		// For now at least, only IResources are accepted for selection
     		try {
         		getInfo(event);
         		utils.deleteMarkersInSelection(selection,window,shell);
@@ -261,7 +212,7 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
      * 
      * @author David Cok
      *
-     */
+     */ // FIXME - no longer used I believe since now we edit specs in the Preferences page
     static public class SpecsEditor extends MenuActions {
         // This is done in the UI thread.
         @Override
@@ -279,12 +230,8 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
     /**
      * This action pops up a dialog showing the proof result for the selected
      * Java element.
-     * 
-     * @author David Cok
-     *
      */
     static public class ProofInformation extends MenuActions {
-        // This is mostly done in the UI thread.  
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
@@ -300,9 +247,6 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
     /**
      * This action pops up a dialog showing the value of an expression in the
      * current counterexample.
-     * 
-     * @author David Cok
-     *
      */
     static public class ShowCounterexampleValue extends MenuActions {
         // This is not done in the UI thread.  
@@ -320,7 +264,6 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
 
     /**
      * This action adds selected folders to the specs path.
-     * @author David Cok
      */
     static public class AddToSpecsPath extends MenuActions {
         // This is done in the UI thread. 
@@ -338,7 +281,6 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
 
     /**
      * This action removes selected folders from the specs path.
-     * @author David Cok
      */
     static public class RemoveFromSpecsPath extends MenuActions {
         // This is done in the UI thread. 
@@ -356,8 +298,7 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
 
     /**
      * This action puts up a dialog that allows manipulation of the specs path.
-     * @author David Cok
-     */
+     */  // FIXME - is this still used?
     static public class SpecsPath extends MenuActions {
         // This is done in the UI thread. 
         @Override
@@ -382,7 +323,7 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
     	public Object execute(ExecutionEvent event) {
     		try {
         		getInfo(event);
-                utils.manipulateClassPath(selection,window,shell);
+                utils.showPaths(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ShowPaths",e);
     		}
@@ -434,11 +375,6 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
         // This is done in the UI thread. 
         @Override
         public Object execute(ExecutionEvent event) {
-//            IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
-//            IWorkbenchPage activePage = window.getActivePage();
-//            ISelection selection = activePage.getSelection();
-//            Shell shell = window.getShell();
-//            Utils utils = Activator.getDefault().utils;
             try {
             	getInfo(event);
                 utils.clearForRac(selection,window,shell);
@@ -760,291 +696,4 @@ abstract public class MenuActions extends AbstractHandler { //IWorkbenchWindowAc
     }
 
 
-    /**
-     * This action edits the specspath and sets up the appropriate
-     * structure for the new specs path.  No selection is needed or
-     * paid attention to (for now - until the specspath is made 
-     * dependent on the project).
-     * 
-     * @author David Cok
-     *
-     */
-    /*
-    static public class EditSpecsPath extends MenuActions {  // TODO - EditSpecsPath
-    	// This is all done in the UI thread with no progress,
-    	// except for the actual creating of the specs path folders,
-    	// since for some reason that can take a long time
-    	@Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			getInfo(event);
-    			IStatus result = editSpecsPath(shell);
-    			if (Activator.options.uiverbosity >= 2) Log.log((result == Status.OK_STATUS ? "Completed" : "Cancelled") +
-    					" Edit specs path operation ");
-    		} catch (Exception e) {
-    			utils.topLevelException(shell,"MenuActions.EditSpecsPath",e);
-    		}
-    		return null;
-    	}
-*/
-
-    	/** Internal helper routine to do the work of editing the specs path
-    	 * @param shell the shell to own the windows
-    	 * @return a Status value, e.g. OK_STATUS or CANCEL_STATUS
-    	 */
-/*    	private IStatus editSpecsPath(Shell shell) { // FIXME - implement editSpecsPath
-    		// At the moment, the specsProject is independent of project, so we don't
-    		// require any project selection to edit the path
-    		//      final ProjectInfo jproject = new ProjectInfo(Activator.options,JMLBuilder.preq);
-    		//      specsProjectText = jproject.options.specsProjectName;
-    		//      EditPath d = new EditPath(shell);
-    		//      boolean ok = d.open() == Window.OK;
-    		//      if (!ok) return Status.CANCEL_STATUS;
-    		//      jproject.options.specsProjectName = specsProjectText;
-    		//      final Shell sh = shell;
-    		//      Job j = new Job("Creating specs project") {
-    		//        public IStatus run(IProgressMonitor monitor) {
-    		//          // FIXME - should we provide a way to cancel this?  it might leave things in a bad state?
-    		//          jproject.specsproject = jproject.createEmptyJavaProject(specsProjectText,true,true);  // FIXME - errors?
-    		//          String errors = jproject.createSpecspathFolders(listItems);
-    		//          if (errors != null) showMessageInUI(sh,"JML Plugin",errors);
-    		//          return Status.OK_STATUS;
-    		//        }
-    		//      };
-    		//      j.setUser(true);
-    		//      j.schedule();
-    		//      IStatus res = j.getResult();
-    		//      if (res == Status.CANCEL_STATUS) return res;
-    		return Status.OK_STATUS;
-    	}
-    }
-*/
-    /** Just used to communicate between editSpecspath() and EditPath.
-     * Note that the EditPath dialog gets disposed and not completely
-     * usable after the open() call returns.
-     */
-    String[] listItems = null;
-
-    /** Keeps the previous list of items, so that the user can revert if desired."
-     */
-    String[] previousListItems = null;
-
-    /** Just used to communicate between editSpecspath() and EditPath.
-     * Note that the EditPath dialog gets disposed and not completely
-     * usable after the open() call returns.
-     */
-    private String specsProjectText = null;
-
-    /** This class holds functionality to allow editing the specs path in the UI */// FIXME - needs review
-    public class EditPath extends Dialog {
-
-    	/** The wdiget that hold sthe list of path items */
-    	org.eclipse.swt.widgets.List listcontrol;
-
-    	/** The widget that holds the name of the specs project. */
-    	Text specsProjectField;
-
-    	/** The text widget for the directory browser */
-    	Widgets.DirTextField dirTextField;
-
-    	/** The constructor, obviously. 
-    	 * @param shell the parent shell used for new windows
-    	 */
-    	public EditPath(Shell shell) { super(shell); }
-
-    	// FIXME - the sizes of the text field, the file browser field and the list
-    	// are not appearing as they should 
-    	protected Control createDialogArea(Composite parent) {
-    		if (Activator.options.uiverbosity >= 2) Log.log("Creating dialog area");
-    		Composite composite = (Composite)super.createDialogArea(parent);
-    		Composite vv = new Widgets.VComposite(composite);
-    		Composite hh = new Widgets.HComposite(vv,2);
-    		new Label(hh,SWT.CENTER).setText("Specifications project name");
-    		specsProjectField = new Text(hh,SWT.SINGLE);
-    		// FIXME - The spaces are just to make the field bigger - find a better way
-    		specsProjectField.setText(specsProjectText + "             ");
-    		// FIXME - the following does not work either
-    		specsProjectField.setSize(specsProjectField.getSize().x*5,specsProjectField.getLineHeight());
-    		dirTextField = new Widgets.DirTextField(vv,"Directory or jar file to add","","A widget that browses for directories to be added to the specs path",50);
-    		final Widgets.DirTextField f = dirTextField;
-    		Composite w = new Widgets.HComposite(vv,2);
-    		listcontrol = new org.eclipse.swt.widgets.List(w, SWT.V_SCROLL|SWT.BORDER|SWT.SINGLE);
-    		final org.eclipse.swt.widgets.List list = listcontrol;
-    		listcontrol.addSelectionListener(new SelectionListener() {
-    			public void widgetSelected(SelectionEvent e) { 
-    				int i = list.getSelectionIndex();
-    				if (Activator.options.uiverbosity >= 2) Log.log("Statemask " + e.stateMask + " " + i + " " + list.getItem(i));
-    				if (i<0) f.setText(list.getItem(i));  // FIXME - this is not working
-    				list.select(i);
-    				list.setFocus();
-    			};
-    			public void widgetDefaultSelected(SelectionEvent e) {
-    				if (Activator.options.uiverbosity >= 2) Log.log("Default selected " + e.stateMask);
-    			}
-    		});
-    		Composite v = new Widgets.VComposite(w);
-    		Button b = new Button(v,SWT.PUSH|SWT.CENTER);
-    		b.addSelectionListener(new SelectionListener() {
-    			public void widgetSelected(SelectionEvent e) { 
-    				int i = list.getSelectionIndex();
-    				//Log.log("ADD " + i + " " + f.value() + " " + list.getTopIndex());
-    				if (i == -1) i = list.getItemCount()-1;
-    				list.add(f.value(),i);
-    				list.select(i);
-    				list.setFocus();
-    			}
-    			public void widgetDefaultSelected(SelectionEvent e) {}
-    		});
-    		b.setText("Add");
-    		b = new Button(v,SWT.PUSH|SWT.CENTER);
-    		b.addSelectionListener(new SelectionListener() {
-    			public void widgetSelected(SelectionEvent e) { 
-    				int i = list.getSelectionIndex();
-    				//Log.log("ADD " + i + " " + f.value() + " " + list.getTopIndex());
-    				if (i == -1) i = list.getItemCount()-1;
-    				//            try {
-    				String s = "<internal specs>"; //JmlDriver.internalspecs();
-    				list.add(s,i);
-    				list.select(i);
-    				list.setFocus();
-    				//            } catch (IOException ee) {
-    				//              showMessage(shell,"JML UI Plugin Exception","Failed to find the internal specs library - see the error log");
-    				//              Log.errorlog("Failed to find the internal specs library",ee);
-    				//            }
-    			}
-    			public void widgetDefaultSelected(SelectionEvent e) {}
-    		});
-    		b.setText("Add Internal Specs");
-    		b = new Button(v,SWT.PUSH|SWT.CENTER);
-    		b.addSelectionListener(new SelectionListener() {
-    			public void widgetSelected(SelectionEvent e) { 
-    				int i = list.getSelectionIndex();
-    				//Log.log("REPLACE " + i + " " + e.text + " " + f.value());
-    				if ( i >= 0 && i < list.getItemCount()-1) {
-    					list.remove(i);
-    					list.add(f.value(),i);
-    					list.select(i);
-    					list.setFocus();
-    				}
-    			}
-    			public void widgetDefaultSelected(SelectionEvent e) {}
-    		});
-    		b.setText("Replace");
-    		b = new Button(v,SWT.PUSH|SWT.CENTER);
-    		b.addSelectionListener(new SelectionListener() {
-    			public void widgetSelected(SelectionEvent e) { 
-    				int i = list.getSelectionIndex();
-    				//Log.log("REMOVE " + i);
-    				// May not remove the last blank line
-    				if (i >= 0 && i < list.getItemCount()-1) {
-    					list.remove(i);
-    					list.setFocus();
-    				}
-    			}
-    			public void widgetDefaultSelected(SelectionEvent e) {}
-    		});
-    		b.setText("Remove");
-    		b = new Button(v,SWT.PUSH|SWT.CENTER);
-    		b.addSelectionListener(new SelectionListener() {
-    			public void widgetSelected(SelectionEvent e) { 
-    				int i = list.getSelectionIndex();
-    				//Log.log("UP " + i);
-    				// The test on getTopIndex is to prevent the last blank line
-    				// from being moved
-    				if (i > 0 && i < list.getItemCount()-1) {
-    					String s = list.getItem(i);
-    					list.remove(i);
-    					list.add(s,i-1);
-    					list.select(i-1);
-    					list.setFocus();
-    				}
-    			}
-    			public void widgetDefaultSelected(SelectionEvent e) {}
-    		});
-    		b.setText("Up");
-    		b = new Button(v,SWT.PUSH|SWT.CENTER);
-    		b.addSelectionListener(new SelectionListener() {
-    			public void widgetSelected(SelectionEvent e) { 
-    				int i = list.getSelectionIndex();
-    				//Log.log("DOWN " + i + " " + list.getTopIndex());
-    				if (i < list.getItemCount()-2) {
-    					String s = list.getItem(i);
-    					list.remove(i);
-    					list.add(s,i+1);
-    					list.select(i+1);
-    					list.setFocus();
-    				}
-    			}
-    			public void widgetDefaultSelected(SelectionEvent e) {}
-    		});
-    		b.setText("Down");
-
-    		b = new Button(v,SWT.PUSH|SWT.CENTER);
-    		b.addSelectionListener(new SelectionListener() {
-    			public void widgetSelected(SelectionEvent e) { 
-    				//Log.log("REVERT ");
-    				if (previousListItems != null) {
-    					list.setItems(previousListItems);
-    				}
-    				list.setFocus();
-    			}
-    			public void widgetDefaultSelected(SelectionEvent e) {}
-    		});
-    		b.setText("Revert");
-
-    		// Now find the existing list of specs path items
-    		IProject p = ResourcesPlugin.getWorkspace().getRoot().getProject(specsProjectText);
-    		List<String> listloc = null;
-    		if (p!= null && p.exists()) {
-    			IJavaProject jp = JavaCore.create(p);
-    			if (jp != null && jp.exists()) {
-    				IFolder ff = p.getFolder(Env.specsContainerName);
-    				int i = 0;
-    				listloc = new LinkedList<String>();
-    				if (ff != null && ff.exists()) {
-    					while (true) {
-    						String s = Env.specsFolderRoot + (++i);
-    						IFolder fs = ff.getFolder(s);
-    						if (fs == null || !fs.exists()) break;
-    						String loc = fs.getRawLocation().toOSString();
-    						//Log.log("FOLDER " + loc);
-    						listloc.add(loc);
-    					}
-    					listloc.add("");
-    				}
-    			}
-    		}
-    		if (listloc == null) {
-    			//          try {
-    			String specs = "<<internal specs>>"; //JmlDriver.internalspecs();
-    			listItems = new String[]{specs,""};
-    			//          } catch (IOException e) {
-    			//            Log.errorlog("Failed to find the internal specs library",e);
-    			//            showMessage(shell,"JML Plugin Exception","Failed to find the internal specs library (see error log): " + e);
-    			//            // No change in this case
-    			//            return composite;
-    			//          }
-    		} else {
-    			listItems = listloc.toArray(new String[listloc.size()]); // ALWAYS HAVE A LAST BLANK ITEM
-    		}
-    		list.setItems(listItems);
-    		list.setSize(list.getSize().y, list.getItemHeight()*10);
-    		if (Activator.options.uiverbosity >= 2) Log.log((listloc.size()-1) + " specs path items detected in the existing specs project named " + specsProjectText);
-    		return composite;
-    	}
-
-    	protected void configureShell(Shell newShell) {
-    		super.configureShell(newShell);
-    		newShell.setText("Specs path editor");
-    	}
-
-    	protected void okPressed() {
-    		// FIXME should we do some checking and not exit if there are
-    		// problems (e.g. entries that are duplicates or do not exist)
-    		previousListItems = listItems;
-    		listItems = listcontrol.getItems();
-    		specsProjectText = specsProjectField.getText().trim();
-    		super.okPressed();
-    	}
-    }
 }

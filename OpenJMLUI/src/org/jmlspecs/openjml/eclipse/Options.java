@@ -7,6 +7,10 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import org.jmlspecs.openjml.Strings;
+
+// FIXME - needs review and cleanup
+
 /**
  * This class holds options that control the global behavior
  * of the application.  If you add a new option, then you should
@@ -18,6 +22,53 @@ package org.jmlspecs.openjml.eclipse;
  *
  */ // TODO - this needs separation from the command-line and from Preferences
 public class Options {
+
+	static boolean isOption(String key) {
+		return System.getProperty(key) != null;
+	}
+	
+	/** The prefix to be put on each key. */
+	final static public String javaprefix = Strings.javaOptionPropertyPrefix;
+	/** The prefix to be put on each key. */
+	final static public String prefix = Strings.optionPropertyPrefix;
+
+	/** A fake preference store key for the update button. */
+	final static public String updateKey = prefix + "update";
+
+//	/** The preference store key for the jmldebug option. */
+//	final static public String debugKey = prefix + "debug";
+	/** The preference store key for the checkSpecsPath option. */
+	final static public String checkSpecsPathKey = prefix + "checkSpecsPath";
+	/** The preference store key for the nonnullByDefault option. */
+	final static public String nonnullByDefaultKey = prefix + "nonnullByDefault";
+//	/** The preference store key for JML verbosity option. */
+//	final static public String jmlverbosityKey = prefix + "jmlverbosity";
+	/** The preference store key for the Java verbosity (boolean). */
+	final static public String javaverboseKey = prefix + "verbose";
+	/** The preference store key for the verbosity (quiet, nowarnings, verbose) option. */
+	final static public String verbosityKey = prefix + "uiverbose";
+	/** The preference store key for the uiverbosity option. */
+//	final static public String uiverbosityKey = prefix + "uiverbosity";
+//	/** The preference store key for the source option. */
+//	final static public String sourceKey = prefix + "javaSourceVersion";
+//	/** The preference store key for the specsProjectName option. */
+//	final static public String specsProjectNameKey = prefix + "specsProjectName";
+//	/** The preference store key for the parsePlus option. */
+//	final static public String parsePlusKey = prefix + "parsePlus";
+	/** The preference store key for the check purity option. */
+	final static public String checkPurityKey = prefix + "noPurityCheck";
+	/** The preference store key for the keys option. */
+	final static public String optionalKeysKey = prefix + "optionalKeys";
+	/** The preference store key for the showNotImplemented option. */
+	final static public String showNotImplementedKey = prefix + "showNotImplemented";
+	/** The preference store key for the showNotExecutable option. */
+	final static public String showNotExecutableKey = prefix + "showNotExecutable";
+	/** The preference store key for the noInternalSpecs option. */
+	final static public String noInternalSpecsKey = prefix + "noInternalSpecs";
+	/** The preference store key for the noInternalRuntime option. */
+	final static public String noInternalRuntimeKey = prefix + "noInternalRuntime";
+	/** The preference store key for the autoAddRuntimeToProject option */
+	final static public String autoAddRuntimeToProjectKey = prefix + "autoAddRuntimeToProject";
 
     // Options relating to Eclipse or generic running of the tools
 

@@ -13,6 +13,8 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 // FIXME - organize this page ; tool tips;
 // FIXME - command arguments; adapter; adding/deleting solvers
 // FIXME - be able to reset to the incoming properties
+// FIXME - internationalize
+// FIXME - fix keys
 
 /**
  * This class creates a Preferences page in Eclipse
@@ -23,8 +25,6 @@ IWorkbenchPreferencePage {
 
 	public SolversPage() {
 		super(GRID);
-//		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-//		setDescription("A demonstration of a preference page implementation");
 	}
 	
     public void init(IWorkbench workbench) {

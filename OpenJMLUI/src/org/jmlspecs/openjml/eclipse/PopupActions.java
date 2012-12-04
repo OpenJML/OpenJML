@@ -10,6 +10,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
+// FIXME - needs to be changed to Eclipse 4.2
+
 /** This class and its inner classes implement the various utilities
  * that are defined when a right-mouse click is performed on menu items
  * in the Package Navigator and other similar Views.  The class names
@@ -254,7 +256,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
-                utils.manipulateClassPath(selection,null,shell);
+                utils.showPaths(selection,null,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"PopupActions.ClassPath",e);
             }

@@ -508,12 +508,12 @@ public class Main extends com.sun.tools.javac.main.Main {
         Utils utils = Utils.instance(context);
 
         if (options.get(JmlOption.JMLDEBUG.optionName()) != null) {
-            utils.jmldebug = true;
+            utils.jmlverbose = Utils.JMLDEBUG;
             options.put(JmlOption.PROGRESS.optionName(),"");
         }
         
         if (options.get(JmlOption.JMLVERBOSE.optionName()) != null) {
-            // ??? FIXME Utils.jmlverbose = true;
+            utils.jmlverbose = Utils.JMLVERBOSE;
             options.put(JmlOption.PROGRESS.optionName(),"");
         }
         
@@ -681,7 +681,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         filenames = new ListBuffer<File>();
         classnames = new ListBuffer<String>();
         register(context);
-        Properties properties = Utils.instance(context).findProperties(context);
+        Properties properties = Utils.findProperties(context);
         for (Map.Entry<Object,Object> entry: System.getProperties().entrySet()) {
             String key = entry.getKey().toString();
             if (key.startsWith(Strings.optionPropertyPrefix)) {
@@ -700,9 +700,6 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** Appends the internal runtime directory to the -classpath option.
      */
     static protected void appendRuntime(Context context) {
-        boolean verbose = Utils.instance(context).jmldebug ||
-            JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
-            Options.instance(context).get("-verbose") != null;
         
         String jmlruntimePath = null;
         
@@ -801,12 +798,14 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
 
         if (jmlruntimePath != null) {
-            if (verbose) Log.instance(context).noticeWriter.println("Using internal runtime " + jmlruntimePath);
+            if (Utils.instance(context).jmlverbose >= Utils.NORMAL) 
+                Log.instance(context).noticeWriter.println("Using internal runtime " + jmlruntimePath);
             String cp = Options.instance(context).get("-classpath");
             if (cp == null) cp = System.getProperty("java.class.path");
             cp = cp==null ? jmlruntimePath : (cp + java.io.File.pathSeparator + jmlruntimePath);
             Options.instance(context).put("-classpath",cp);
-            if (verbose) Log.instance(context).noticeWriter.println("Classpath: " + Options.instance(context).get("-classpath"));
+            if (Utils.instance(context).jmlverbose >= Utils.NORMAL) 
+                Log.instance(context).noticeWriter.println("Classpath: " + Options.instance(context).get("-classpath"));
         } else {
             Log.instance(context).warning("jml.no.internal.runtime");
         }

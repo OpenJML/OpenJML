@@ -30,7 +30,7 @@ import org.jmlspecs.annotation.SpecPublic;
 // should correct to that model.
 
 /**
- * This is an implementation of the IProblemRequestor
+ * This is an implementation of the Eclipse IProblemRequestor
  * interface as used in this application.  Upon receiving problem
  * reports (by calls of acceptProblem), it creates and records an Eclipse
  * problem marker specific to this plugin.
@@ -119,6 +119,8 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			final IResource r = f;
 			final int finalLineNumber = p.getSourceLineNumber();
 			final int column = p.getSourceStart();
+			// FIXME - review 0-1-based: documentation says both getSourceStart()
+			// and lineStart are 1-based which would make this computation off by one
 			final int finalOffset = p.getSourceStart() + jmlproblem.lineStart;
 			final int finalEnd = p.getSourceEnd() + 1 + jmlproblem.lineStart;
 			final String finalErrorMessage = p.getMessage();
@@ -140,7 +142,8 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) throws CoreException {
 					IMarker marker = r.createMarker(
-										staticCheckWarning ? Utils.ESC_MARKER_ID : Utils.JML_MARKER_ID);
+										staticCheckWarning ? Utils.ESC_MARKER_ID 
+															: Utils.JML_MARKER_ID);
 					marker.setAttribute(IMarker.LINE_NUMBER, 
 										finalLineNumber >= 1? finalLineNumber : 1);
 					if (column >= 0) {

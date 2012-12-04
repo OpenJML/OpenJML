@@ -76,9 +76,7 @@ public class JmlCompiler extends JavaCompiler {
         //shouldStopPolicy = CompileState.GENERATE;
         this.context = context;
         this.utils = Utils.instance(context);
-        this.verbose = JmlOption.isOption(context,"-verbose") ||
-                        JmlOption.isOption(context,JmlOption.JMLVERBOSE) || 
-                        utils.jmldebug;
+        this.verbose = utils.jmlverbose >= Utils.JMLVERBOSE;
         this.resolver = JmlResolve.instance(context);
     }
     
@@ -113,7 +111,7 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
         // TODO: Use a TaskEvent and a TaskListener here?
-        context.get(Main.IProgressReporter.class).report(0,2,"parsing " + fileobject.toUri() );
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"parsing " + fileobject.toUri() );
         JCCompilationUnit cu = super.parse(fileobject,content);
         if (inSequence) {
             return cu;
@@ -218,7 +216,7 @@ public class JmlCompiler extends JavaCompiler {
             // duplicate error messages) - what does JavaCompiler do?
             //log.noticeWriter.println(f.toUri().normalize().getPath() + " VS " + javaCU.getSourceFile().toUri().normalize().getPath());
             if (javaCU != null && f.equals(javaCU.getSourceFile())) {
-                if (utils.jmldebug) log.noticeWriter.println("The java file is its own specs for " + f);
+                if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("The java file is its own specs for " + f);
                 jmlcu = javaCU;
             } else {
                 jmlcu = (JmlCompilationUnit)parse(f);
@@ -291,10 +289,10 @@ public class JmlCompiler extends JavaCompiler {
             if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
             else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
         }
-        if (utils.jmldebug) if (speccu == null) log.noticeWriter.println("   LOADED CLASS " + csymbol + " FOUND NO SPECS");
+        if (utils.jmlverbose >= Utils.JMLDEBUG) if (speccu == null) log.noticeWriter.println("   LOADED CLASS " + csymbol + " FOUND NO SPECS");
         else log.noticeWriter.println("   LOADED CLASS " + csymbol + " PARSED SPECS");
         ((JmlEnter)enter).enterSpecsForBinaryClasses(csymbol,speccu);
-        if (utils.jmldebug) log.noticeWriter.println("NEST " + nestingLevel + " " + csymbol);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("NEST " + nestingLevel + " " + csymbol);
         if (nestingLevel==1) ((JmlMemberEnter)JmlMemberEnter.instance(context)).completeBinaryTodo();
         nestingLevel--;
      }
@@ -320,7 +318,7 @@ public class JmlCompiler extends JavaCompiler {
     /** Overridden in order to put out some information about stopping */
     @Override
     protected  <T> List<T> stopIfError(CompileState cs, List<T> list) {
-        if (errorCount() != 0) {
+        if (errorCount() != 0 && (utils.jmlverbose >= Utils.PROGRESS) ) {
             if (JmlOption.isOption(context,JmlOption.STOPIFERRORS)) {
                 context.get(Main.IProgressReporter.class).report(0,2,"Stopping because of parsing errors");
                 return List.<T>nil();
@@ -357,7 +355,8 @@ public class JmlCompiler extends JavaCompiler {
             if (env == null) return;
             // Continue with the usual compilation phases
             
-            context.get(Main.IProgressReporter.class).report(0,2,"desugar " + todo.size() + " " + 
+            if (utils.jmlverbose >= Utils.PROGRESS) 
+                context.get(Main.IProgressReporter.class).report(0,2,"desugar " + todo.size() + " " + 
                     (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
                         t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
             super.desugar(env,results);
@@ -442,8 +441,8 @@ public class JmlCompiler extends JavaCompiler {
         // We have to adjust the toplevel tree accordingly.  Presumably other
         // class declarations in the compilation unit will be translated on 
         // other calls.
-        context.get(Main.IProgressReporter.class).report(0,2,"rac " + utils.envString(env));
-        if (utils.jmldebug) log.noticeWriter.println("rac " + utils.envString(env));
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"rac " + utils.envString(env));
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("rac " + utils.envString(env));
         
         if (Options.instance(context).get("-newesc") != null) {
             if (env.tree instanceof JCClassDecl) {
