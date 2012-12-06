@@ -97,20 +97,20 @@ public class JMLNature implements IProjectNature {
 	 */
 	static public void enableJMLNature(@NonNull IProject project) {
 		try {
-			if (Utils.uiverbose >= Utils.NORMAL) Log.log("Enabling JML nature for project " + project.getName());
+			if (Utils.verboseness >= Utils.NORMAL) Log.log("Enabling JML nature for project " + project.getName());
 			IProjectDescription description = project.getDescription();
 			String[] natures = description.getNatureIds();
 
 			boolean hasJava = false;
 			for (int i = 0; i < natures.length; ++i) {
 				if (JML_NATURE_ID.equals(natures[i])) {
-					if (Utils.uiverbose >= Utils.VERBOSE) Log.log("JML Nature already present in " + project.getName());
+					if (Utils.verboseness >= Utils.VERBOSE) Log.log("JML Nature already present in " + project.getName());
 					return;
 				}
 				if (JAVA_NATURE_ID.equals(natures[i])) hasJava = true;
 			}
 			if (!hasJava) {
-				if (Utils.uiverbose >= Utils.VERBOSE) Log.log("Non-Java project: " + project.getName());
+				if (Utils.verboseness >= Utils.VERBOSE) Log.log("Non-Java project: " + project.getName());
 				return; // Was not a Java project after all
 			}
 
@@ -120,7 +120,7 @@ public class JMLNature implements IProjectNature {
 			newNatures[natures.length] = JML_NATURE_ID;
 			description.setNatureIds(newNatures);
 			project.setDescription(description, null);
-			if (Utils.uiverbose >= Utils.VERBOSE) Log.log("JML Nature added to " + project.getName());
+			if (Utils.verboseness >= Utils.VERBOSE) Log.log("JML Nature added to " + project.getName());
 
 		} catch (CoreException e) {
 			Log.errorlog("Failed to enable JML nature for " + project.getProject(), e);
@@ -133,7 +133,7 @@ public class JMLNature implements IProjectNature {
 	 */
 	static public void disableJMLNature(@NonNull IProject project) {
 		try {
-			if (Utils.uiverbose >= Utils.NORMAL) Log.log("Disabling nature on project " + project.getName());
+			if (Utils.verboseness >= Utils.NORMAL) Log.log("Disabling nature on project " + project.getName());
 			IProjectDescription description = project.getDescription();
 			String[] natures = description.getNatureIds();
 
@@ -149,11 +149,11 @@ public class JMLNature implements IProjectNature {
 					description.setNatureIds(newNatures);
 					project.setDescription(description, null);
 
-					if (Utils.uiverbose >= Utils.VERBOSE) Log.log("JML Nature removed from " + project.getName());
+					if (Utils.verboseness >= Utils.VERBOSE) Log.log("JML Nature removed from " + project.getName());
 					return;
 				}
 			}
-			if (Utils.uiverbose >= Utils.VERBOSE) Log.log("JML Nature not present in " + project.getName());
+			if (Utils.verboseness >= Utils.VERBOSE) Log.log("JML Nature not present in " + project.getName());
 
 		} catch (CoreException e) {
 			Log.errorlog("Failed to change JML nature for " + project.getProject(), e);

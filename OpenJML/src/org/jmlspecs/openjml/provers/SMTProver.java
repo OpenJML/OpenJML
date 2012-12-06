@@ -18,6 +18,7 @@ import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Options;
 
 public class SMTProver extends AbstractProver implements IProver {
 
@@ -147,9 +148,9 @@ public class SMTProver extends AbstractProver implements IProver {
     
     @Override
     protected String[] app() {
-        String solver = System.getProperty("openjml.solver.smtCommandLine");
+        String solver = Options.instance(context).get("openjml.solver.smtCommandLine");
         if (solver == null || solver.isEmpty()) {
-            return new String[]{app,"-jar","C:/cygwin/home/dcok/eclipseProjects/SMTProjects/SMT/jSMTLIB.jar"};
+            return new String[]{app,"-jar","C:/cygwin/home/dcok/eclipseProjects/SMTProjects/SMT/jSMTLIB.jar"};  // FIXME
         } else {
             return solver.split(",");
         }

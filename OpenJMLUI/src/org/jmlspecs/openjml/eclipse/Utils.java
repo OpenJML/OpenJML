@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -130,7 +131,7 @@ public class Utils {
      * @return the OpenJMLInterface for that project
      */
     public @NonNull OpenJMLInterface getInterface(@NonNull IJavaProject jproject) {
-    	readProjectProperties(jproject.getProject());
+    	//readProjectProperties(jproject.getProject());
         OpenJMLInterface i = projectMap.get(jproject);
         if (i == null) {
             projectMap.put(jproject, i = new OpenJMLInterface(jproject));
@@ -193,7 +194,7 @@ public class Utils {
         for (final IJavaProject jp : sorted.keySet()) {
 			if (Options.isOption(Options.autoAddRuntimeToProjectKey)) addRuntimeToProjectClasspath(jp);
             final List<Object> ores = sorted.get(jp);
-            if (Utils.uiverbose >= Utils.NORMAL) Log.log("Checking ESC (" + res.size() + " items)");
+            if (Utils.verboseness >= Utils.NORMAL) Log.log("Checking ESC (" + res.size() + " items)");
             deleteMarkers(res,shell);
             Job j = new Job("Static Checks - Manual") {
                 public IStatus run(IProgressMonitor monitor) {
@@ -213,7 +214,11 @@ public class Utils {
         }
     }
     
-    static public void readProperties() {
+    static public java.util.Properties getProperties() {
+		return org.jmlspecs.openjml.Utils.findProperties(null);
+    }
+    
+    static public java.util.Properties readProperties() {
     	// FIXME - as different projects are processed, they continually overwrite each other's properties
     	//Log.log("About to read properties");
         java.util.Properties properties = new java.util.Properties();
@@ -224,13 +229,13 @@ public class Utils {
         	// the local file system.
         	IPath path = ResourcesPlugin.getWorkspace().getRoot().getLocation().append(org.jmlspecs.openjml.Strings.propertiesFileName);
         	boolean found = org.jmlspecs.openjml.Utils.readProps(properties,path.toFile().getAbsolutePath());
-            if (found && Utils.uiverbose >= Utils.VERBOSE) 
+            if (found && Utils.verboseness >= Utils.VERBOSE) 
             	Log.log("Properties read from the workspace: " + path.toOSString());
         }
-        System.getProperties().putAll(properties);
+        return properties;
     }
 
-    public void readProjectProperties(IProject project) {
+    public java.util.Properties readProjectProperties(IProject project) {
     	// FIXME - as different projects are processed, they continually overwrite each other's properties
     	//Log.log("About to read properties");
     	readProperties();
@@ -240,10 +245,10 @@ public class Utils {
             IResource res = project.findMember(org.jmlspecs.openjml.Strings.propertiesFileName);
             if (res != null) {
             	boolean found = org.jmlspecs.openjml.Utils.readProps(properties,res.getLocation().toOSString());
-                if (found && Utils.uiverbose >= Utils.VERBOSE) Log.log("Properties read from the project directory: " + res.getLocation().toOSString());
+                if (found && Utils.verboseness >= Utils.VERBOSE) Log.log("Properties read from the project directory: " + res.getLocation().toOSString());
             }
         }
-        System.getProperties().putAll(properties);
+        return properties;
     }
 
     /** This routine initiates (as a Job) compiling RAC for all the Java files
@@ -290,14 +295,14 @@ public class Utils {
         }
         if (newlist.size() != 0) {
             try {
-            	if (Utils.uiverbose >= Utils.NORMAL) Log.log("Starting RAC " + newlist.size() + " files");
+            	if (Utils.verboseness >= Utils.NORMAL) Log.log("Starting RAC " + newlist.size() + " files");
                 getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.RAC,newlist,monitor);
-                if (Utils.uiverbose >= Utils.NORMAL) Log.log("Completed RAC");
+                if (Utils.verboseness >= Utils.NORMAL) Log.log("Completed RAC");
             } catch (Exception e) {
                 showExceptionInUI(null,e);
             }
         } else {
-        	if (Utils.uiverbose >= Utils.NORMAL) Log.log("Nothing to RAC");
+        	if (Utils.verboseness >= Utils.NORMAL) Log.log("Nothing to RAC");
         }
     }
     
@@ -392,7 +397,7 @@ public class Utils {
         List<Object> list;
         String text;
         if (textSelection != null && window != null && (text=textSelection.getText()).length() != 0) {
-        	if (Utils.uiverbose >= Utils.NORMAL) Log.log("Selected text: " + text);
+        	if (Utils.verboseness >= Utils.NORMAL) Log.log("Selected text: " + text);
             String classname = text.replace('.','/') + ".class";
             IEditorPart p = window.getActivePage().getActiveEditor();
             IEditorInput e = p==null? null : p.getEditorInput();
@@ -549,7 +554,7 @@ public class Utils {
                     launchJavaEditor(s,nm);
                 } else if (firstEditableLocation != null) {
                     IFile newfile = firstEditableLocation.getFile(name + ".jml");
-                    if (Utils.uiverbose >= Utils.NORMAL) Log.log("Creating " + newfile);
+                    if (Utils.verboseness >= Utils.NORMAL) Log.log("Creating " + newfile);
                     // FIXME - add default content
                     // FIXME - be able to decline to create, or to choose location
                     boolean b = MessageDialog.openConfirm(
@@ -938,7 +943,7 @@ public class Utils {
                     else if (element instanceof IAdaptable && (r=(IResource)((IAdaptable)element).getAdapter(IResource.class))!=null) {
                         list.add(r);
                     } else {
-                    	if (Utils.uiverbose >= Utils.NORMAL) Log.log("No resource for " + ((IJavaElement)element).getElementName());
+                    	if (Utils.verboseness >= Utils.NORMAL) Log.log("No resource for " + ((IJavaElement)element).getElementName());
                     }
                 }
             }
@@ -996,7 +1001,7 @@ public class Utils {
                         (p!=null? " on project " + p.getElementName() : ""), e);
             }
         }
-        if (Utils.uiverbose >= Utils.NORMAL) Log.log("Completed JML Nature operation ");
+        if (Utils.verboseness >= Utils.NORMAL) Log.log("Completed JML Nature operation ");
     }
 
     // Do this right here in the UI thread
@@ -1439,7 +1444,7 @@ public class Utils {
      */
     public void deleteMarkers(IResource resource, @Nullable Shell shell) {
         try {
-        	if (Utils.uiverbose >= Utils.VERBOSE) Log.log("Deleting markers in " + resource.getName());
+        	if (Utils.verboseness >= Utils.VERBOSE) Log.log("Deleting markers in " + resource.getName());
         	resource.deleteMarkers(JML_MARKER_ID, false, IResource.DEPTH_INFINITE);
         	resource.deleteMarkers(ESC_MARKER_ID, false, IResource.DEPTH_INFINITE);
         	resource.deleteMarkers(JML_HIGHLIGHT_ID, false, IResource.DEPTH_INFINITE);
@@ -1486,7 +1491,7 @@ public class Utils {
                     else set.remove(r);
                 }
             } else {
-            	if (Utils.uiverbose >= Utils.VERBOSE) Log.log("Not handling " + r.getClass());
+            	if (Utils.verboseness >= Utils.VERBOSE) Log.log("Not handling " + r.getClass());
             }
         } catch (CoreException e) {
             Log.errorlog("Core Exception while traversing Resource tree (mark for RAC)",e);
@@ -1578,7 +1583,7 @@ public class Utils {
                     }
                 }
             } else {
-            	if (Utils.uiverbose >= Utils.VERBOSE) Log.log("Not handling " + r.getClass());
+            	if (Utils.verboseness >= Utils.VERBOSE) Log.log("Not handling " + r.getClass());
             }
         } catch (CoreException e) {
             Log.errorlog("Core Exception while traversing Resource tree (mark for RAC)",e);
@@ -1797,7 +1802,7 @@ public class Utils {
     /** A value used within the plugin to control printing - compare this value 
      * to the constants.
      */
-    static public int uiverbose = NORMAL; // Should this be in options? FIXME
+    static public int verboseness = NORMAL; // Should this be in options? FIXME
 
     /** This method returns an int giving the precedence of the suffix of the
      * file name: -1 indicates not a JML file; 0 is the preferred suffix;
@@ -1825,7 +1830,7 @@ public class Utils {
         try {
             Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
             if (selfBundle == null) {
-            	if (Utils.uiverbose >= Utils.NORMAL) Log.log("No self plugin"); // FIXME - an error?
+            	if (Utils.verboseness >= Utils.NORMAL) Log.log("No self plugin"); // FIXME - an error?
             } else {
                 URL url;
                 url = FileLocator.toFileURL(selfBundle.getResource(""));
@@ -1835,12 +1840,12 @@ public class Utils {
                         File f = new File(root,"jmlruntime.jar");
                         if (f.exists()) {
                         	file = f.toString();
-                            if (Utils.uiverbose >= Utils.NORMAL) Log.log("Internal runtime location: " + file);
+                            if (Utils.verboseness >= Utils.NORMAL) Log.log("Internal runtime location: " + file);
                         } else {
                         	f = new File(root,"../jmlruntime.jar");
                             if (f.exists()) {
                                 file = f.toString();
-                                if (Utils.uiverbose >= Utils.NORMAL) Log.log("Internal runtime location: " + file);
+                                if (Utils.verboseness >= Utils.NORMAL) Log.log("Internal runtime location: " + file);
                             }
                         }
                     }

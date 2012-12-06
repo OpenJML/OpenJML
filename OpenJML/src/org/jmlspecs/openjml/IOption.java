@@ -23,4 +23,8 @@ public interface IOption {
      */
     /*@ non_null */
     public String help();
+    
+    /** The canonical form for the option */
+    /*@ nullable */
+    public String synonym();
 }

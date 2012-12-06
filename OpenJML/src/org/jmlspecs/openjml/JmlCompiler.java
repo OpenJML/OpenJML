@@ -111,7 +111,7 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
         // TODO: Use a TaskEvent and a TaskListener here?
-        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"parsing " + fileobject.toUri() );
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"parsing " + fileobject.toUri() );
         JCCompilationUnit cu = super.parse(fileobject,content);
         if (inSequence) {
             return cu;
@@ -320,10 +320,10 @@ public class JmlCompiler extends JavaCompiler {
     protected  <T> List<T> stopIfError(CompileState cs, List<T> list) {
         if (errorCount() != 0 && (utils.jmlverbose >= Utils.PROGRESS) ) {
             if (JmlOption.isOption(context,JmlOption.STOPIFERRORS)) {
-                context.get(Main.IProgressReporter.class).report(0,2,"Stopping because of parsing errors");
+                context.get(Main.IProgressListener.class).report(0,2,"Stopping because of parsing errors");
                 return List.<T>nil();
             } else {
-                context.get(Main.IProgressReporter.class).report(0,2,"Continuing bravely despite parsing errors");
+                context.get(Main.IProgressListener.class).report(0,2,"Continuing bravely despite parsing errors");
             }
         }
         return list;
@@ -356,7 +356,7 @@ public class JmlCompiler extends JavaCompiler {
             // Continue with the usual compilation phases
             
             if (utils.jmlverbose >= Utils.PROGRESS) 
-                context.get(Main.IProgressReporter.class).report(0,2,"desugar " + todo.size() + " " + 
+                context.get(Main.IProgressListener.class).report(0,2,"desugar " + todo.size() + " " + 
                     (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
                         t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
             super.desugar(env,results);
@@ -441,7 +441,7 @@ public class JmlCompiler extends JavaCompiler {
         // We have to adjust the toplevel tree accordingly.  Presumably other
         // class declarations in the compilation unit will be translated on 
         // other calls.
-        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"rac " + utils.envString(env));
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"rac " + utils.envString(env));
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("rac " + utils.envString(env));
         
         if (Options.instance(context).get("-newesc") != null) {

@@ -130,7 +130,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		if (Utils.uiverbose >= Utils.NORMAL) Log.log("Cleaning: " + getProject().getName());
+		if (Utils.verboseness >= Utils.NORMAL) Log.log("Cleaning: " + getProject().getName());
 		deleteMarkers(getProject(),true);
 		cleanRacbin(getProject());
 	}
@@ -202,12 +202,12 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			return;
 		}
 
-		if (Utils.uiverbose >= Utils.NORMAL) Log.log("Full build " + project.getName());
+		if (Utils.verboseness >= Utils.NORMAL) Log.log("Full build " + project.getName());
 		
 		Timer.timer.markTime(); // FIXME - where is this timer used
 		deleteMarkers(project,true);
 		if (monitor.isCanceled() || isInterrupted()) {
-			if (Utils.uiverbose >= Utils.NORMAL) Log.log("Build interrupted");
+			if (Utils.verboseness >= Utils.NORMAL) Log.log("Build interrupted");
 			return;
 		}
 		ResourceVisitor v = new ResourceVisitor();
@@ -257,7 +257,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			return;
 		}
 
-		if (Utils.uiverbose >= Utils.NORMAL) Log.log("Incremental build " + project.getName());
+		if (Utils.verboseness >= Utils.NORMAL) Log.log("Incremental build " + project.getName());
 		Timer.timer.markTime(); // FIXME - where is this timer used
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files and deletes markers
@@ -266,6 +266,8 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		v.resourcesToBuild.clear(); // Empties the list
 	}
 
+	// FIXME - duplicated in Utils?
+	
 	/** Deletes all JML problem markers on the given resource 
 	 * 
 	 * @param resource the resource whose markers are to be deleted
@@ -313,7 +315,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// FIXME - need to build one project at a time
 		try {
 			boolean cancelled = doBuild(JavaCore.create(resources.get(0).getProject()),resources, monitor);  // FIXME - build everything or update?
-			if (Utils.uiverbose >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
+			if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
 		} catch (Exception e) {
 			Log.errorlog("Exception occurred during JML check ",e);
 		}

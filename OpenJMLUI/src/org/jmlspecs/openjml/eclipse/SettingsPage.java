@@ -80,17 +80,27 @@ IWorkbenchPreferencePage {
     protected FieldEditor verbosity;
 
     /** Overriding the propertyChange callback in order to maintain copies
-     * of the option values appropriately.
+     * of the option values appropriately. This is called immediately when the
+     * field is changed (not when 'Apply' or 'OK' is clicked.)
      */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String key = e.getProperty();
+		Object f = e.getSource();
+		if (e.getNewValue() == e.getOldValue()) return;
+		if (!(f instanceof FieldEditor)) {
+			return; // FIXME - error to report?
+		}
+		FieldEditor field = (FieldEditor)f;
+		String key = field.getPreferenceName();
 		Object value = e.getNewValue();
 		if (value instanceof String) {
 			System.setProperty(key,(String)value);
 			if (e.getSource() == verbosity) {
-        		Utils.uiverbose = Integer.parseInt((String)value);
+        		Utils.verboseness = Integer.parseInt((String)value);
 			}
+		}
+		if (Utils.verboseness >= Utils.DEBUG) {
+			Log.log("Property changed: " + key + " = " + value);
 		}
 		super.propertyChange(e);
 	}
@@ -106,7 +116,7 @@ IWorkbenchPreferencePage {
     	MouseListener listener = new MouseAdapter() {
     		@Override
 			public void mouseUp(MouseEvent e) {
-				Properties properties = org.jmlspecs.openjml.Utils.findProperties(null);
+				Properties properties = Utils.getProperties();
 				for (Map.Entry<Object,Object> entry : properties.entrySet()) {
 					Object keyobj = entry.getKey();
 					if (!(keyobj instanceof String)) continue;

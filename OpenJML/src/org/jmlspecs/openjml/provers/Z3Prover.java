@@ -1,31 +1,24 @@
 package org.jmlspecs.openjml.provers;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.jmlspecs.openjml.proverinterface.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
+import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
-import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Type.ArrayType;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Options;
 
 // FIXME - needs implementation
 
@@ -58,7 +51,7 @@ public class Z3Prover extends AbstractProver implements IProver {
     //    
         /** The String by which to invoke the prover */
         /*@ nullable */
-        protected String app = "C:/home/mybin/z3"; // System.getProperty("openjml.prover.cvc3");
+        protected String app = Options.instance(context).get("openjml.prover.cvc3");
         
         /** The one instance of the associated translator */
         /*@ non_null */

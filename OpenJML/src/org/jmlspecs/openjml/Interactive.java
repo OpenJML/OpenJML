@@ -58,7 +58,7 @@ public class Interactive extends Main {
     /** The constructor for an object of this class, initiating the base class
      * with System.out as the output location. */
     public Interactive() throws Exception {
-        super("jml-interactive", new PrintWriter(System.out, true), null);
+        super("jml-interactive", new PrintWriter(System.out, true), null, null);
     }
     
     /** The top-level routine that implements the interactive command processing.

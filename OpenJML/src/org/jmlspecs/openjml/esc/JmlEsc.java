@@ -183,7 +183,7 @@ public class JmlEsc extends JmlTreeScanner {
     public void pickProver() {
         // Pick a prover to use
         proverToUse = JmlOption.value(context,JmlOption.PROVER);
-        if (proverToUse == null) proverToUse = System.getProperty(Strings.defaultProverProperty);
+        if (proverToUse == null) proverToUse = Options.instance(context).get(Strings.defaultProverProperty);
         if (proverToUse == null) proverToUse = YicesProver.YICES;
         
         //proverToUse = "cvc";
@@ -354,7 +354,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
 
     public void progress(int ticks, int level, String message) {
-        org.jmlspecs.openjml.Main.IProgressReporter pr = context.get(org.jmlspecs.openjml.Main.IProgressReporter.class);
+        org.jmlspecs.openjml.Main.IProgressListener pr = context.get(org.jmlspecs.openjml.Main.IProgressListener.class);
         boolean cancelled = pr == null ? false : pr.report(ticks,level,message);
         if (cancelled) throw new PropagatedException(new Main.JmlCanceledException("ESC operation cancelled"));
     }
@@ -405,7 +405,7 @@ public class JmlEsc extends JmlTreeScanner {
         }
         log.noticeWriter.println(programString);
 
-        String boogie = System.getProperty("openjml.prover.boogie");
+        String boogie = Options.instance(context).get("openjml.prover.boogie");
         ExternalProcess p = new ExternalProcess(context,null,
                 boogie,
                 "/nologo",
@@ -531,7 +531,7 @@ public class JmlEsc extends JmlTreeScanner {
         SMT smt = new SMT();
         smt.processCommandLine(new String[]{"-L","C:/cygwin/home/dcok/eclipseProjects/SMTProjects/SMT/logics"}, smt.smtConfig);
         
-        String exec = proverToUse.equals("test") ? null : System.getProperty("openjml.prover." + proverToUse);
+        String exec = proverToUse.equals("test") ? null : Options.instance(context).get("openjml.prover." + proverToUse);
         ISolver solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
         
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));

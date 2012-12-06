@@ -7,6 +7,8 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.util.Properties;
+
 import org.jmlspecs.openjml.Strings;
 
 // FIXME - needs review and cleanup
@@ -22,6 +24,8 @@ import org.jmlspecs.openjml.Strings;
  *
  */ // TODO - this needs separation from the command-line and from Preferences
 public class Options {
+	
+	static Properties properties = new Properties();
 
 	static boolean isOption(String key) {
 		return System.getProperty(key) != null;
@@ -46,9 +50,9 @@ public class Options {
 	/** The preference store key for the Java verbosity (boolean). */
 	final static public String javaverboseKey = prefix + "verbose";
 	/** The preference store key for the verbosity (quiet, nowarnings, verbose) option. */
-	final static public String verbosityKey = prefix + "uiverbose";
+	final static public String verbosityKey = prefix + "verboseness";
 	/** The preference store key for the uiverbosity option. */
-//	final static public String uiverbosityKey = prefix + "uiverbosity";
+	final static public String uiverbosityKey = prefix + "uiverbosity";
 //	/** The preference store key for the source option. */
 //	final static public String sourceKey = prefix + "javaSourceVersion";
 //	/** The preference store key for the specsProjectName option. */
