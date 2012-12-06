@@ -77,7 +77,7 @@ public class Main extends org.jmlspecs.openjml.Main {
                 } else {
                     new org.jmlspecs.openjml.jmldoc.ConfigurationJml();  // stores an instance in a static location
                     jmlContext = new Context();
-                    jmlContext.put(IProgressReporter.class,new PrintProgressReporter(jmlContext,System.out));
+                    jmlContext.put(IProgressListener.class,new PrintProgressReporter(jmlContext,System.out));
                     Context c = new Context();
                     Start jdoc = new JmlStart("jmldoc",c);//,"org.jmlspecs.openjml.jmldoc.StandardJml");
                     init(c);

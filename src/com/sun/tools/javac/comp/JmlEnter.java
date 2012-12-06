@@ -171,7 +171,7 @@ public class JmlEnter extends Enter {
         }
         JmlCompilationUnit jmltree = (JmlCompilationUnit)tree;
 
-        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"entering " + jmltree.sourcefile.getName());
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"entering " + jmltree.sourcefile.getName());
         
         // Attach specification classes to the Java declarations
         if (jmltree.specsCompilationUnit != null) {
@@ -234,7 +234,7 @@ public class JmlEnter extends Enter {
             currentParentSpecList = prev;
 
         }
-        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
     }
     
     public void matchClasses(List<JCTree> defs, List<JCTree> specsDefs, Collection<JmlClassDecl> modelTypesList) {
@@ -914,7 +914,7 @@ public class JmlEnter extends Enter {
     protected void enterSpecsForBinaryClasses(ClassSymbol csymbol, ListBuffer<List<JCTree>> specsdefs) {
         if (specs.get(csymbol) != null) return; // Already completed
         
-        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressReporter.class).report(0,2,"entering (binary) " + csymbol);
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"entering (binary) " + csymbol);
 
         // In the following call we (a) find any declarations in the specsdefs 
         // that match cysmbol by name (b) attach those to csymbol in the 

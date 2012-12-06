@@ -1,3 +1,9 @@
+Recent stuff
+- timing and messaging in plugin
+- debug output from OpenJML goes to wrong log
+- initialization of plug-in properties on startup
+- source of initialization (preferences or environment)
+
 Product pieces
 - typechecker for JML and extensions
 - user guide

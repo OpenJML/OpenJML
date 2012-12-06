@@ -215,10 +215,8 @@ public class SpecsBase extends TCBase {
         System.out.println("JRE version " + System.getProperty("java.version"));
         try {
             if (specs == null) {
-                Context context = new Context();
                 Main main = new Main();
-                main.register(context);
-                JavacFileManager.preRegister(context); // can't create it until Log has been set up
+                Context context = main.context();
                 specs = JmlSpecs.instance(context);
                 specs.setSpecsPath("$SY");
             }

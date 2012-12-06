@@ -184,7 +184,7 @@ public abstract class JmlTestCase { //extends junit.framework.TestCase {
      */
     @Before
     public void setUp() throws Exception {
-        main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null);
+        main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null,null);
         context = main.context();
         options = Options.instance(context);
         if (jmldebug) { Utils.instance(context).jmlverbose = Utils.JMLDEBUG; options.put("-jmlverbose", "4");} // FIXME - this is not the right way to set debugging

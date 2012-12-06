@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.proverinterface.IProver;
@@ -23,6 +24,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Options;
 
 public abstract class AbstractProver implements IProver {
 
@@ -49,10 +51,12 @@ public abstract class AbstractProver implements IProver {
         map.put("smt",org.jmlspecs.openjml.provers.SMTProver.class);
     }
     
+    @Nullable
     public String getProverPath(String proverKey) {
-        return System.getProperty(getProverPathKey(proverKey));
+        return Options.instance(context).get(getProverPathKey(proverKey));
     }
     
+    @NonNull
     public String getProverPathKey(String proverKey) {
         return Strings.proverPropertyPrefix + proverKey;
     }

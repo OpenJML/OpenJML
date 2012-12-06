@@ -15,7 +15,6 @@ import java.util.Collection;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
-import javax.tools.JavaFileObject.Kind;
 import javax.tools.SimpleJavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
@@ -25,7 +24,6 @@ import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
@@ -112,7 +110,7 @@ public class API implements IAPI {
      */
     @Override
     public int execute(@NonNull String ... args) {
-        int ret = org.jmlspecs.openjml.Main.execute(new PrintWriter(System.out, true), diagListener, args);
+        int ret = org.jmlspecs.openjml.Main.execute(new PrintWriter(System.out, true), diagListener, null, args);
         return ret;
     }
     
@@ -124,7 +122,13 @@ public class API implements IAPI {
      */
     @Override
     public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull String ... args) {
-        int ret = org.jmlspecs.openjml.Main.execute(writer,diagListener,args);
+        int ret = org.jmlspecs.openjml.Main.execute(writer,diagListener,null,args);
+        return ret;
+    }
+    
+    @Override
+    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull Options options) {
+        int ret = org.jmlspecs.openjml.Main.execute(writer,diagListener,options,null);
         return ret;
     }
     
@@ -137,7 +141,7 @@ public class API implements IAPI {
     //////////////// Non-static API ////////////////////////////////
     
     /** The encapsulated org.jmlspecs.openjml.Main object */
-    protected Main main = null;
+    public Main main = null; // FIXME - change this back to protected
     //@ initially main != null;
     
     protected DiagnosticListener<? extends JavaFileObject> diagListener = null;
@@ -156,6 +160,21 @@ public class API implements IAPI {
     public API(@NonNull String ... args) throws IOException {
         this(null,null,args);
     }
+    
+    private final String[] noargs = new String[0];
+    
+    //@ ensures isOpen;
+    public API(@Nullable PrintWriter writer, 
+            @Nullable DiagnosticListener<? extends JavaFileObject> listener, 
+            @NonNull Options options) throws java.io.IOException {
+        if (writer == null) {
+            writer = new PrintWriter(System.out);
+        }
+        main = new Main(Strings.applicationName,writer,listener,options,noargs);
+        context = main.context;
+        this.diagListener = listener;
+        Log.instance(context).multipleErrors = true;
+    }
         
     /** Creates an API that will send informational output to the
      * given PrintWriter and diagnostic output to the given listener.
@@ -169,7 +188,7 @@ public class API implements IAPI {
         if (writer == null) {
             writer = new PrintWriter(System.out);
         }
-        main = new Main(Strings.applicationName,writer,listener,args);
+        main = new Main(Strings.applicationName,writer,listener,null,args);
         context = main.context;
         this.diagListener = listener;
         Log.instance(context).multipleErrors = true;
@@ -189,7 +208,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#setProgressReporter(org.jmlspecs.openjml.Main.IProgressReporter)
      */
     @Override
-    public void setProgressReporter(@Nullable Main.IProgressReporter p) {
+    public void setProgressListener(@Nullable Main.IProgressListener p) {
         if (main.progressDelegate != null) {
             p.setContext(context);
             main.progressDelegate.setDelegate(p);

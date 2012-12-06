@@ -2,19 +2,15 @@ package org.jmlspecs.openjml;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.tools.DiagnosticListener;
-import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
-import org.jmlspecs.openjml.API.StringJavaFileObject;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -22,20 +18,20 @@ import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.Main.IProgressReporter;
+import org.jmlspecs.openjml.Main.IProgressListener;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Options;
 
 public interface IAPI {
     
@@ -51,10 +47,10 @@ public interface IAPI {
     @Pure
     public @Nullable Context context();
 
-    public static abstract class AbstractProgressReporter implements IProgressReporter {
+    public static abstract class AbstractProgressListener implements IProgressListener {
         protected Context context;
         
-        public AbstractProgressReporter() {
+        public AbstractProgressListener() {
         }
         
         @Override
@@ -69,7 +65,7 @@ public interface IAPI {
      * just one listener at a time).
      * @param p The listener
      */
-    public void setProgressReporter(@Nullable Main.IProgressReporter p);
+    public void setProgressListener(@Nullable Main.IProgressListener p);
 
     /** Executes the command-line version of OpenJML, returning the exit code.
      * All output and diagnostics are written to System.out.
@@ -88,6 +84,7 @@ public interface IAPI {
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
     public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull String ... args);
+    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull Options options);
     
     /** Executes the jmldoc tool on the given command-line arguments. */
     public int jmldoc(@NonNull String... args);

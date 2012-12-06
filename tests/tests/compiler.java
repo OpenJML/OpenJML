@@ -13,6 +13,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
+import com.sun.tools.javac.util.Options;
+
 /** Tests running the tool as if from the command-line (for typechecking);
  * includes erroneous command-line argument combinations and combinations
  * of class, source, and specs paths. */

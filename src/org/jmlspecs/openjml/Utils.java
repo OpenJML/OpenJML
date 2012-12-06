@@ -7,6 +7,7 @@ package org.jmlspecs.openjml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
@@ -96,7 +97,7 @@ public class Utils {
     public boolean doc = false;
     
     /** The set of keys that control the use of optional comments, set from options */
-    public Set<String> commentKeys;
+    public Set<String> commentKeys = new HashSet<String>();
     
     /** A bit that indicates that a declaration was declared within a JML annotation */
     final public static long JMLBIT = 1L << 50; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
@@ -369,7 +370,7 @@ public class Utils {
 //          JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
 //          Options.instance(context).get("-verbose") != null;
       
-      Properties properties = new Properties();
+      Properties properties = System.getProperties();
       // Load properties files found in these locations:
       // These are read in inverse order of priority, so that later reads
       // overwrite the earlier ones.

@@ -230,10 +230,11 @@ public class JmlSpecs {
     /** Initializes the specs path given the current settings of options.
      */
     public void initializeSpecsPath() {
+        Options options = Options.instance(context);
         String s = JmlOption.value(context,JmlOption.SPECS);
-        if (s == null) s = System.getProperty(Strings.specsPathEnvironmentPropertyName);
-        if (s == null) s = Options.instance(context).get(Strings.sourcepathOptionName);
-        if (s == null) s = Options.instance(context).get(Strings.classpathOptionName);
+        if (s == null) s = options.get(Strings.specsPathEnvironmentPropertyName);
+        if (s == null) s = options.get(Strings.sourcepathOptionName);
+        if (s == null) s = options.get(Strings.classpathOptionName);
         if (s == null) s = System.getProperty("java.class.path");
         if (s == null) s = "";
         setSpecsPath(s);
@@ -316,7 +317,7 @@ public class JmlSpecs {
         // Finally, for working in the Eclipse environment, see if there
         // is an environment variable that is set.
         
-        String sy = System.getProperty(Strings.eclipseSpecsProjectLocation);
+        String sy = Options.instance(context).get(Strings.eclipseSpecsProjectLocation);
         // These are used in testing - sy should be the trunk directory of the Specs project
         if (sy != null) {
             
@@ -397,7 +398,7 @@ public class JmlSpecs {
                     if (!todo.isEmpty()) log.warning("jml.bad.sp.var","$SY");
                 } else {
                     syIncluded = true;
-                    String dirs = System.getProperty(Strings.systemSpecsLocationEnvironmentPropertyName);
+                    String dirs = Options.instance(context).get(Strings.systemSpecsLocationEnvironmentPropertyName);
                     if (dirs != null) pushback(dirs,todo);
                     else {
                         if (!appendInternalSpecs(verbose,getSpecsPath())) {

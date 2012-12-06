@@ -24,51 +24,43 @@ import com.sun.tools.javac.util.Options;
 public enum JmlOption implements IOption {
     
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
-    DIR("-dir",true,"Process all files, recursively, within this directory"),
-    DIRS("-dirs",true,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)"),
-    COMMAND("-command",true,"The command to execute (check,esc,rac,compile)"),
-    CHECK("-check",false,"Does a JML syntax check - abbreviation for -command check")
-        { public void process(Options options) { options.put(COMMAND.name,"check"); }},
-    COMPILE("-compile",false,"Does a Java-only compiler - abbreviation for -command compile")
-        { public void process(Options options) { options.put(COMMAND.name,"compile"); }},
-    RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks - abbreviation for -command rac")
-        { public void process(Options options) { options.put(COMMAND.name,"rac"); }},
-    ESC("-esc",false,"Enables static checking - abbreviation for -command esc")
-        { public void process(Options options) { options.put(COMMAND.name,"esc"); }},
-    BOOGIE("-boogie",false,"Enables static checking with boogie")
-        { public void process(Options options) { options.put(COMMAND.name,"esc"); options.put(BOOGIE.name, "");}},
-    USEJAVACOMPILER("-java",false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)"),
-    NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored"),
-    SPECS("-specspath",true,"Specifies the directory path to search for specification files"),
-    NOCHECKSPECSPATH("-noCheckSpecsPath",false,"When on, no warnings for non-existent specification path directories are issued"),
-    NOPURITYCHECK("-noPurityCheck",false,"When on, no warnings for use of impure methods are issued"),
-    SHOW_NOT_IMPLEMENTED("-showNotImplemented",false,"When on, warnings about unimplemented constructs are issued"),
-    STOPIFERRORS("-stopIfParseErrors",true,"When enabled, stops after parsing if any files have parsing errors"),
-    NOINTERNALSPECS("-noInternalSpecs",false,"Disables automatically appending the internal specs directory to the specification path"),
-    NOINTERNALRUNTIME("-noInternalRuntime",false,"Disables automatically appending the internal JML runtime library to the classpath"),
-    NONNULLBYDEFAULT("-nonnullByDefault",false,"Makes references non_null by default")
-        { public void process(Options options) { options.put(NULLABLEBYDEFAULT.name,null); }},
-    NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default")
-        { public void process(Options options) { options.put(NONNULLBYDEFAULT.name,null); }},
-    KEYS("-keys",true,"Identifiers for optional JML comments"),
-    JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much (included in -verbose)")
-        { public void process(Options options) { options.put(PROGRESS.name,""); }},
-    JMLTESTING("-jmltesting",false,"Only used to generate tracing information during testing"),
-    PROGRESS("-progress",false,"Shows progress through compilation phases, includes -jmlverbose")
-        { public void process(Options options) { options.put(JMLVERBOSE.name,""); }},
+    DIR("-dir",true,"Process all files, recursively, within this directory",null),
+    DIRS("-dirs",true,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null),
+    COMMAND("-command",true,"The command to execute (check,esc,rac,compile)",null),
+    CHECK("-check",false,"Does a JML syntax check - abbreviation for -command check",null),
+    COMPILE("-compile",false,"Does a Java-only compiler - abbreviation for -command compile",null),
+    RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks - abbreviation for -command rac",null),
+    ESC("-esc",false,"Enables static checking - abbreviation for -command esc",null),
+    BOOGIE("-boogie",false,"Enables static checking with boogie",null),
+    USEJAVACOMPILER("-java",false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null),
+    NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored",null),
+    SPECS("-specspath",true,"Specifies the directory path to search for specification files",null),
+    NOCHECKSPECSPATH("-noCheckSpecsPath",false,"When on, no warnings for non-existent specification path directories are issued",null),
+    NOPURITYCHECK("-noPurityCheck",false,"When on, no warnings for use of impure methods are issued",null),
+    SHOW_NOT_IMPLEMENTED("-showNotImplemented",false,"When on, warnings about unimplemented constructs are issued",null),
+    STOPIFERRORS("-stopIfParseErrors",false,"When enabled, stops after parsing if any files have parsing errors",null),
+    NOINTERNALSPECS("-noInternalSpecs",false,"Disables automatically appending the internal specs directory to the specification path",null),
+    NOINTERNALRUNTIME("-noInternalRuntime",false,"Disables automatically appending the internal JML runtime library to the classpath",null),
+    NONNULLBYDEFAULT("-nonnullByDefault",false,"Makes references non_null by default",null),
+    NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default",null),
+    KEYS("-keys",true,"Identifiers for optional JML comments",null),
+    JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
+    JMLTESTING("-jmltesting",false,"Only used to generate tracing information during testing",null),
+    VERBOSENESS("-verboseness",true,"Level of verboseness (0=quiet...4=debug)",null),
+    QUIET("-quiet",false,"Only output warnings and errors","-verboseness="+Utils.QUIET),
+    PROGRESS("-progress",false,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS),
     //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove
-    TRACE("-trace",false,"ESC: Enables tracing of counterexamples"),
-    SHOWBB("-showbb",false,"ESC: Debug output of Basic Block program"),
-    COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample"),
-    SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions"),
-    JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)"),
-    ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!"),
-    ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files"),  // FIXME - fix or remove
-    ASSOCINFO("-crossRefAssociatedInfo",false,">..."),
-    METHOD("-method",true,"The method name on which to run ESC"),
-    PROVER("-prover",true,"The prover to use to check verification conditions")
+    TRACE("-trace",false,"ESC: Enables tracing of counterexamples",null),
+    SHOWBB("-showbb",false,"ESC: Debug output of Basic Block program",null),
+    COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample",null),
+    SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions",null),
+    JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
+    ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
+    ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files",null),  // FIXME - fix or remove
+    ASSOCINFO("-crossRefAssociatedInfo",false,">...",null),
+    METHOD("-method",true,"The method name on which to run ESC",null),
+    PROVER("-prover",true,"The prover to use to check verification conditions",null)
     ;
-    public void process(Options options) {}
     
 
     /** Holds the name of the option, as it is used in the command-line,
@@ -82,15 +74,22 @@ public enum JmlOption implements IOption {
     /** The help string for this option */
     final private String help;
     
+    /** The canonical form for the option */
+    final private String synonym;
+    
     /** Private constructor to create Enum instances.
      * @param s The option name, including any leading - character
      * @param hasArg Whether the option takes a (required) argument
      * @param help The associated help string
      */
-    private JmlOption(/*@ non_null */ String s, boolean hasArg, /*@ non_null */ String help) {
+    private JmlOption(/*@ non_null */ String s, 
+            boolean hasArg, 
+            /*@ non_null */ String help,
+            /*@ nullable */ String synonym) {
         this.name = s;
         this.hasArg = hasArg;
         this.help = help;
+        this.synonym = synonym;
     }
     
     /** Enables the given option
@@ -157,6 +156,12 @@ public enum JmlOption implements IOption {
     //@ non_null
     public String help() { return help; }
     
+    /**
+     * @return the canonical form for this option
+     */
+    //@ nullable
+    public String synonym() { return synonym; }
+    
     /** Finds the option with the given name, returning it if
      * found and returning null if not found.
      * @param s the name of the option to find
@@ -172,7 +177,7 @@ public enum JmlOption implements IOption {
     static {
         // Puts all the options in the map and adds any synonyms
         // synonyms include the all lowercase versions of each name
-        for (JmlOption n:JmlOption.values()) {
+        for (JmlOption n: JmlOption.values()) {
             map.put(n.name,n);
             map.put(n.name.toLowerCase(),n);
         }

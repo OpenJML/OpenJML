@@ -12,6 +12,7 @@ import org.jmlspecs.openjml.Strings;
 
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Options;
 
 /** This is a base class for unit test files that exercise the RAC.
  * It inherits from JmlTestCase the diagnostic collector implementation
@@ -76,7 +77,7 @@ public abstract class RacBase extends JmlTestCase {
         options.put("-rac",   "");
         options.put("-target","1.5");
         if (jdkrac) {
-            String sy = System.getProperty(Strings.eclipseProjectLocation);
+            String sy = Options.instance(context).get(Strings.eclipseProjectLocation);
             if (sy == null) {
                 fail("The OpenJML project location should be set using -D" + Strings.eclipseProjectLocation + "=...");
             } else if (!new File(sy).exists()) {
