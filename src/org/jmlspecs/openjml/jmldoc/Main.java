@@ -131,7 +131,11 @@ public class Main extends org.jmlspecs.openjml.Main {
             if (n != null) {
                 if (JmlOption.DIR.optionName().equals(a) || JmlOption.DIRS.optionName().equals(a)) {
                     java.util.List<File> todo = new LinkedList<File>();
-                    if (i < args.length) todo.add(new File(args[i++]));
+                    if (i < args.length) {
+                        todo.add(new File(args[i++]));
+                    } else {
+                        Log.instance(context).error("jml.last.option.wants.parameter",n.optionName());
+                    }
                     if (JmlOption.DIRS.optionName().equals(a)) {
                         while (i<args.length && args[i].length() > 0 && args[i].charAt(0) != '-') {
                             todo.add(new File(args[i]));
@@ -145,20 +149,24 @@ public class Main extends org.jmlspecs.openjml.Main {
                                 todo.add(ff);
                             }
                         } else if (!file.isFile()) {
-                            System.out.println("Not a file or directory: " + file); // FIXME - make a warning?
-                        } else if (file.getName().endsWith(".java")) {
+                            Log.instance(context).error("jml.option.is.not.a.file.or.dir",file);
+                        } else if (file.getName().endsWith(".java")) { // FIXME - handle checking suffixes more generically
+                            newargs.add(file.toString());
+                        } else if (file.getName().endsWith(".jml")) { // FIXME - is this right for jml
                             newargs.add(file.toString());
                         } else {
                             // Just skip it
                         }
                     }
                 } else if (JmlOption.ENDOPTIONS.optionName().equals(a)) {
-                    i = args.length;
+                    while (i < args.length) {
+                        newargs.add(args[i++]);
+                    }
                 } else if (n.hasArg()) {
                     if (i < args.length) {
                         options.put(n.optionName(),args[i++]);
                     } else {
-                        // error ? FIXME
+                        Log.instance(context).error("jml.last.option.wants.parameter",n.optionName());
                     }
                 } else {
                     options.put(n.optionName(),"");

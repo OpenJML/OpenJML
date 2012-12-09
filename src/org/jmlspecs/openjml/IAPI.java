@@ -84,7 +84,7 @@ public interface IAPI {
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
     public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull String ... args);
-    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull Options options);
+    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull Options options, @NonNull String ... args);
     
     /** Executes the jmldoc tool on the given command-line arguments. */
     public int jmldoc(@NonNull String... args);
@@ -386,17 +386,19 @@ public interface IAPI {
     /** Sets a command-line option to the given value 
      * @param name the option name, including the leading - sign
      * @param value the value to give the option
+     * @return false if an error occurred in processing options
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public void setOption(String name, String value);
+    public boolean setOption(String name, String value);
 
     /** Sets a command-line option to true 
      * @param name the option name, including the leading - sign
+     * @return false if an error occurred in processing options
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public void setOption(String name);
+    public boolean setOption(String name);
 
     /** Removes a command-line option 
      * @param name the option name, including the leading - sign

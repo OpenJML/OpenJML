@@ -1,8 +1,13 @@
 Recent stuff
-- timing and messaging in plugin
+- progress when multiple items are selected in plugin
 - debug output from OpenJML goes to wrong log
-- initialization of plug-in properties on startup
-- source of initialization (preferences or environment)
+- options not passed through to OpenJML - have to use args
+- options and specs read multiple times
+- test using an external source of specs and runtime library
+- finish converting debug System.out to log
+- options do not update on consecutive ESCs
+- editing of paths - both directories and jar files - figure out how to initialize and use the specs path
+- say number of errors in 'Completed proof attemp...'
 
 Product pieces
 - typechecker for JML and extensions

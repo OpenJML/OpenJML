@@ -370,6 +370,7 @@ public class Utils {
 //          JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
 //          Options.instance(context).get("-verbose") != null;
       
+    	boolean verbose = context != null && Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
       Properties properties = System.getProperties();
       // Load properties files found in these locations:
       // These are read in inverse order of priority, so that later reads
@@ -380,42 +381,51 @@ public class Utils {
           URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
           if (url2 != null) {
               String s = url2.getFile();
-              boolean found = readProps(properties,s);
-              if (found && context != null &&
-            		  Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) 
-            	  Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
+              try {
+                  boolean found = readProps(properties,s);
+                  if (found && verbose) 
+                      Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
+              } catch (java.io.IOException e) {
+                  Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+              }
           }
       }
       
       // In the user's home directory
       {
           String s = System.getProperty("user.home") + "/" + Strings.propertiesFileName;
-          boolean found = readProps(properties,s);
-          if (found && context != null &&
-        		  Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) 
-        	  Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
+          try {
+              boolean found = readProps(properties,s);
+              if (found && verbose) 
+                  Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
+          } catch (java.io.IOException e) {
+              Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+          }
       }
 
       // In the working directory
       {
           String s = System.getProperty("user.dir") + "/" + Strings.propertiesFileName;
-          boolean found = readProps(properties,s);
-          if (found && context != null &&
-        		  Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) 
-        	  Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
+          try {
+              boolean found = readProps(properties,s);
+              if (found && verbose) 
+                  Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
+          } catch (java.io.IOException e) {
+              Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+          }
       }
       
       // FIXME - add on the application classpath
       
       // FIXME - add on the command-line
 
-      if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) {
+      if (verbose) {
           // Print out the properties
           for (String key: new String[]{"user.home","user.dir"}) {
-              System.out.println("Environment:    " + key + " = " + System.getProperty(key));
+              Log.instance(context).noticeWriter.println("Environment:    " + key + " = " + System.getProperty(key));
           }
           for (java.util.Map.Entry<Object,Object> entry: properties.entrySet()) {
-              System.out.println("Local property: " + entry.getKey() + " = " + entry.getValue());
+              Log.instance(context).noticeWriter.println("Local property: " + entry.getKey() + " = " + entry.getValue());
           }
       }
       return properties;
@@ -426,17 +436,12 @@ public class Utils {
      * @param filename the file to read properties from
      * @return true if the file was found and read successfully
      */
-  public static boolean readProps(Properties properties, String filename) {
+  public static boolean readProps(Properties properties, String filename) throws java.io.IOException {
       File f = new File(filename);
       // Options may not be set yet
       if (f.exists()) {
-          try {
-              properties.load(new FileInputStream(f));
-              return true;
-          } catch (java.io.IOException e) {
-              // log is not yet set up
-              System.out.println("Failed to read property file " + filename); // FIXME - review
-          }
+          properties.load(new FileInputStream(f));
+          return true;
       }
       return false;
   }

@@ -372,6 +372,9 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                 }
             }
+        } catch (JmlCanceledException e) {
+            // Error message already issued
+            errorcode = EXIT_CMDERR;
         } catch (Exception e) {
             // Most exceptions are caught prior to this, so this will happen only for the
             // most catastrophic kinds of failure such as failures to initialize
@@ -501,16 +504,21 @@ public class Main extends com.sun.tools.javac.main.Main {
         String res = "";
         String s = args[i++];
         IOption o = JmlOption.find(s);
-        if (o!=null && o.synonym()!=null) s = o.synonym();
+        while (o!=null && o.synonym()!=null) {
+            s = o.synonym();
+            o = JmlOption.find(s);
+        }
         if (o == null) {
             int k = s.indexOf('=');
             if (k != -1) {
-                o = JmlOption.find(s.substring(0,k));
+                res = s.substring(k+1,s.length());
+                s = s.substring(0,k);
+                o = JmlOption.find(s);
                 if (o != null) {
-                    res = s.substring(k+1,s.length());
-                    if ("false".equals(res)) res = null;
+                    if (o.hasArg()) {}
+                    else if ("false".equals(res)) res = null;
                     else if ("true".equals(res)) res = "";
-                    else if (!o.hasArg()) {
+                    else {
                         res = "";
                         Log.instance(context).warning("jml.ignoring.parameter",s);
                     }
@@ -553,17 +561,19 @@ public class Main extends com.sun.tools.javac.main.Main {
             // An empty string is the value of the option if it takes no arguments
             // That is, for boolean options, "" (or any non-null) is true, null is false
             options.put(s,res);
+            String newres = options.get(s);
         }
         return i;
     }
     
-    /** This method is called after options are read, but before tools are registered and 
-     * before compilation actually begins; here any additional option
+    /** This method is called after options are read, but before tools are 
+     * registered and before compilation actually begins; 
+     * here any additional option checking or
      * processing can be performed.
      */
     // This should be able to be called without difficulty whenever any option
     // is changed
-    public void setupOptions() {
+    public boolean setupOptions() {
         // CAUTION: Do not initialize any of the tools in here
         // If, for example, JmlSpecs gets initialized, then Target will
         // get initialized and it will grab the current version of -target
@@ -571,33 +581,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
 
-        int level = 1;
-        if (options.get(JmlOption.JMLDEBUG.optionName()) != null) {
-            options.put(JmlOption.JMLDEBUG.optionName(), null);
-            level = Utils.JMLDEBUG;
-        } else if (options.get(JmlOption.JMLVERBOSE.optionName()) != null) {
-            options.put(JmlOption.JMLDEBUG.optionName(), null);
-            level = Utils.JMLVERBOSE;
-        } else if (options.get(JmlOption.PROGRESS.optionName()) != null) {
-            options.put(JmlOption.JMLDEBUG.optionName(), null);
-            level = Utils.PROGRESS;
-        } else if (options.get(JmlOption.QUIET.optionName()) != null) {
-            options.put(JmlOption.JMLDEBUG.optionName(), null);
-            level = Utils.NORMAL;
-        } else if (options.get(JmlOption.QUIET.optionName()) != null) {
-            options.put(JmlOption.JMLDEBUG.optionName(), null);
-            level = Utils.QUIET;
-        }
-        utils.jmlverbose = level;
+        utils.jmlverbose = Utils.NORMAL;
         String levelstring = options.get(JmlOption.VERBOSENESS.optionName());
         if (levelstring != null) {
             utils.jmlverbose = Integer.parseInt(levelstring);
-        }
-        
-        options.put(JmlOption.VERBOSENESS.optionName(), Integer.toString(level));
-        
-        if (options.get(JmlOption.USEJAVACOMPILER.optionName()) != null) {
-            Log.instance(context).noticeWriter.println("The -java option is ignored unless it is the first command-line argument"); // FIXME - change to a warning
         }
         
         if (utils.jmlverbose >= Utils.PROGRESS) {
@@ -608,14 +595,26 @@ public class Main extends com.sun.tools.javac.main.Main {
             if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
         }
         
-        String cmd = options.get(JmlOption.COMMAND.optionName());
-        utils.rac = "rac".equals(cmd) || (cmd == null && options.get(JmlOption.RAC.optionName()) != null);
-        utils.esc = "esc".equals(cmd) || (cmd == null && options.get(JmlOption.ESC.optionName()) != null);
-        utils.check = "check".equals(cmd) || (cmd == null && options.get(JmlOption.CHECK.optionName()) != null);
-        utils.compile = "compile".equals(cmd) || (cmd == null && options.get(JmlOption.COMPILE.optionName()) != null);
+        if (options.get(JmlOption.USEJAVACOMPILER.optionName()) != null) {
+            Log.instance(context).noticeWriter.println("The -java option is ignored unless it is the first command-line argument"); // FIXME - change to a warning
+        }
+        
+        Cmd cmd = Cmd.CHECK; // default
+        String val = options.get(JmlOption.COMMAND.optionName());
+        try {
+            if (val != null) cmd = Cmd.valueOf(val.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            Log.instance(context).error("jml.bad.command",val);
+            return false;
+        }
+        utils.rac = cmd == Cmd.RAC;
+        utils.esc = cmd == Cmd.ESC;
+        utils.check = cmd == Cmd.CHECK;
+        utils.compile = cmd == Cmd.COMPILE;
         boolean picked = utils.rac||utils.esc||utils.check||utils.compile;
         if (!picked && cmd != null) {
-            Log.instance(context).noticeWriter.println("Invalid argument to the -command option: " + cmd); // FIXME - change to a wanring
+            Log.instance(context).error("jml.unimplemented.command",cmd);
+            return false;
         }
         if (!picked) utils.check = true;
 
@@ -625,12 +624,13 @@ public class Main extends com.sun.tools.javac.main.Main {
             String[] keys = keysString.split(",");
             for (String k: keys) utils.commentKeys.add(k);
         }
+        
         if (utils.esc) utils.commentKeys.add("ESC"); 
         if (utils.rac) utils.commentKeys.add("RAC"); 
         JmlSpecs.instance(context).initializeSpecsPath();
 
         if (options.get(JmlOption.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);
-        
+        return true;
 }
     
 
@@ -646,7 +646,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         args = processJmlArgs(args,options);
         List<File> files = super.processArgs(args);
         //args.addAll(computeDependencyClosure(files));
-        setupOptions();
+        if (!setupOptions()) return null;
         return files;
     }
         
@@ -909,5 +909,12 @@ public class Main extends com.sun.tools.javac.main.Main {
         return context;
     }
     
+    /** An Enum type that gives a choice of various tools to be executed. */
+    public static enum Cmd { CHECK("check"), ESC("esc"), RAC("rac"), JMLDOC("doc"), COMPILE("compile");
+        String name;
+        public String toString() { return name; }
+        private Cmd(String name) { this.name = name; }
+        };
+
 
 }

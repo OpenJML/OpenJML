@@ -1005,7 +1005,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
     
     public void addRacMethods(ClassSymbol sym, Env<AttrContext> env) {
-        if (!JmlOption.isOption(context,JmlOption.RAC)) return;
+        if (!utils.rac) return;
         
         if ((sym.flags() & Flags.INTERFACE) != 0) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
         JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(sym);
@@ -1015,11 +1015,25 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            ex = jmlF.Apply(List.<JCExpression>nil(),ex,List.<JCExpression>nil());
 //            JCStatement st = jmlF.Exec(ex);
         //JCVariableDecl tp = jmlF.VarDef(jmlF.Modifiers(0),names.fromString("_JML$$this"),jmlF.Type(sym.type),null);
-        JmlTree.JmlMethodDecl m = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),names.fromString(JmlRac.invariantMethodString + "$$" + sym.flatName().toString().replace(".","$")),vd,
-                List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(),jmlF.Block(0,List.<JCStatement>nil()), null);
+        JmlTree.JmlMethodDecl m = jmlF.MethodDef(
+                jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),
+                names.fromString(JmlRac.invariantMethodString + "$$" + sym.flatName().toString().replace(".","$")),
+                vd,
+                List.<JCTypeParameter>nil(),
+                List.<JCVariableDecl>nil(),
+                List.<JCExpression>nil(),
+                jmlF.Block(0,List.<JCStatement>nil()), 
+                null);
         m.specsDecl = m;
-        JmlTree.JmlMethodDecl ms = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(Flags.PUBLIC|Flags.STATIC|Flags.SYNTHETIC),names.fromString(JmlRac.staticinvariantMethodString),vd,
-                List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(),jmlF.Block(0,List.<JCStatement>nil()), null);
+        JmlTree.JmlMethodDecl ms = jmlF.MethodDef(
+                jmlF.Modifiers(Flags.PUBLIC|Flags.STATIC|Flags.SYNTHETIC),
+                names.fromString(JmlRac.staticinvariantMethodString),
+                vd,
+                List.<JCTypeParameter>nil(),
+                List.<JCVariableDecl>nil(),
+                List.<JCExpression>nil(),
+                jmlF.Block(0,List.<JCStatement>nil()), 
+                null);
         ms.specsDecl = ms;
         
         utils.setJML(m.mods);

@@ -3573,7 +3573,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
             that.name = getCurrentName(vsym);
             if (isDefined.add(that.name)) {
-                System.out.println("Added " + that.sym + " " + that.name);
+                if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Added " + that.sym + " " + that.name);
                 program.declarations.add(that);
             }
         } else if (that.sym == null) {
@@ -3603,7 +3603,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             JCIdent id = treeutils.makeIdent(that.pos,that.sym);
             id.name = that.name;
             if (isDefined.add(that.name)) {
-                System.out.println("AddedF " + that.sym + " " + that.name);
+                if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedF " + that.sym + " " + that.name);
                 program.declarations.add(id);
             }
             result = id;
@@ -3611,7 +3611,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         } else {
             that.name = getCurrentName((Symbol.VarSymbol)that.sym);
             if (isDefined.add(that.name)) {
-                System.out.println("AddedF " + that.sym + " " + that.name);
+                if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedF " + that.sym + " " + that.name);
                 JCIdent id = treeutils.makeIdent(that.pos,that.sym);
                 id.name = that.name;
                 program.declarations.add(id);
@@ -3693,12 +3693,12 @@ public class BasicBlocker2 extends JmlTreeScanner {
                 JCFieldAccess fa = (JCFieldAccess)left;
                 JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,pos);
                 if (isDefined.add(oldfield.name)) {
-                    System.out.println("AddedFF " + oldfield.sym + " " + oldfield.name);
+                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + oldfield.sym + " " + oldfield.name);
                     program.declarations.add(oldfield);
                 }
                 JCIdent newfield = newIdentIncarnation(oldfield,pos);
                 if (isDefined.add(newfield.name)) {
-                    System.out.println("AddedFF " + newfield.sym + " " + newfield.name);
+                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + newfield.sym + " " + newfield.name);
                     program.declarations.add(newfield);
                 }
                 JCExpression expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,right);
@@ -3728,7 +3728,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         currentBlock.statements.add(comment(that));
         JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
         isDefined.add(lhs.name);
-        System.out.println("Added " + lhs.sym + " " + lhs.name);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Added " + lhs.sym + " " + lhs.name);
         if (that.init != null) {
             // Create and store the new lhs incarnation before translating the
             // initializer because the initializer is in the scope of the newly

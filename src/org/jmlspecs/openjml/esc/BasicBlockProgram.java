@@ -132,7 +132,7 @@ abstract public class BasicBlockProgram<T extends BasicBlockProgram.BlockParent<
                 }
                 w.flush();
             } catch (java.io.IOException e) {
-                System.out.println("EXCEPTION: " + e);
+                System.out.println("EXCEPTION: " + e); // FIXME
             }
         }
 
