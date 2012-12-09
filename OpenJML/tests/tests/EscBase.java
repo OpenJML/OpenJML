@@ -8,6 +8,7 @@ import java.net.URI;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
@@ -29,7 +30,8 @@ public abstract class EscBase extends JmlTestCase {
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
         options.put("-specspath",   testspecpath);
-        options.put("-esc","");
+        options.put("-command","esc");
+        Utils.instance(context).jmlverbose = 4;
         main.setupOptions();
         //main.register(context);
         specs = JmlSpecs.instance(context);

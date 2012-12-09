@@ -3383,7 +3383,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         result = check(that, resultType, VAL, pkind, pt);
         
-        if (Options.instance(context).get(JmlOption.RAC.optionName()) != null) {
+        if (utils.rac) {
             if (that.racexpr == null) createRacExpr(that,localEnv,resultType);
         }
         } finally {
@@ -4963,7 +4963,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Symbol n = expr.sym;
             JCIdent id = newids.get(n);
             if (id == null) {
-                System.out.println("ERROR");
+                System.out.println("ERROR"); // FIXME
             }
             return id;
 

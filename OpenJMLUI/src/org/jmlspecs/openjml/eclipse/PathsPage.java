@@ -5,11 +5,13 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.PathEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.jmlspecs.openjml.Strings;
 
 /**
  * This class creates a Preferences page in Eclipse
@@ -21,13 +23,15 @@ IWorkbenchPreferencePage {
 	// FIXME - fix the prefix
 	
 	/** The prefix to be put on each key. */
-	final static public String prefix = "org.jmlspecs.openjml.preferences.";
+	final static public String prefix = Strings.optionPropertyPrefix;
 
 
 	/** The preference store key for the classpath option. */
 	final static public String classpathKey = prefix + "classpath";
 	/** The preference store key for the classpath option. */
 	final static public String sourcepathKey = prefix + "sourcepath";
+	/** The preference store key for the classpath option. */
+	final static public String specspathDefaultKey = prefix + "specspathDefault";
 	/** The preference store key for the classpath option. */
 	final static public String specspathKey = prefix + "specspath";
 	/** The preference store key for the destination option. */
@@ -46,12 +50,15 @@ IWorkbenchPreferencePage {
     protected void createFieldEditors() {
         // Paths
 
+    	// Want an option to not specify the path
         addField(new PathEditor(classpathKey, "Class Path",
                 "X", getFieldEditorParent()));
-        addField(new PathEditor(sourcepathKey, "Source Path",
+        addField(new PathFieldEditor(sourcepathKey, "Source Path",
                 "Y",getFieldEditorParent()));
-        addField(new PathEditor(specspathKey, "Specifications Path",
-                "Z",getFieldEditorParent()));
+        addField(new BooleanFieldEditor(specspathDefaultKey, "Use default specs path",
+        		getFieldEditorParent()));
+        addField(new PathFieldEditor(specspathKey, "Specifications Path",
+                "Specs Directories",getFieldEditorParent()));
         addField(new DirectoryFieldEditor(destinationKey, "Output Files Directory",
                 getFieldEditorParent()));
 

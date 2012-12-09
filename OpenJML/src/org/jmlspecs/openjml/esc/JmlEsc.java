@@ -400,7 +400,7 @@ public class JmlEsc extends JmlTreeScanner {
             fw.append(programString);
             fw.close();
         } catch (IOException e) {
-            System.out.println("Could not write boogie output file");
+            log.noticeWriter.println("Could not write boogie output file"); // FIXME - error
             return false;
         }
         log.noticeWriter.println(programString);
@@ -416,10 +416,10 @@ public class JmlEsc extends JmlTreeScanner {
         try {
             p.start();
             int exitVal = p.readToCompletion();
-            System.out.println("Boogie exit val " + exitVal);
+            log.noticeWriter.println("Boogie exit val " + exitVal); // FIXME - guard or delete verbose output
             String out = p.outputString.toString();
-            System.out.println("OUTPUT: " + out);
-            System.out.println("ERROR: " + p.errorString.toString());
+            log.noticeWriter.println("OUTPUT: " + out);
+            log.noticeWriter.println("ERROR: " + p.errorString.toString());
             if (out.contains("This assertion might not hold")) {
                 int k = out.indexOf('(');
                 int kk = out.indexOf(',');
@@ -441,7 +441,7 @@ public class JmlEsc extends JmlTreeScanner {
                     try {
                         terminationPos = Integer.parseInt(out.substring(kkk,kk));
                     } catch (NumberFormatException e) {
-                        System.out.println("NO RETURN FOUND");
+                        log.noticeWriter.println("NO RETURN FOUND"); // FIXME
                         // continue
                     }
                 }
@@ -472,7 +472,7 @@ public class JmlEsc extends JmlTreeScanner {
                 log.error(0,"jml.internal","Unknown result returned from prover"); // FIXME - use a different message
             }
         } catch (Exception e) {
-            System.out.println("EXCEPTION: " + e);
+            System.out.println("EXCEPTION: " + e); // FIXME
             return false;
         }
         
@@ -574,7 +574,7 @@ public class JmlEsc extends JmlTreeScanner {
         terminationPos = 0;
         boolean ok = reportInvalidAssertion(program.startBlock(),smt,solver,decl);
         if (!ok) {
-            System.out.println("COULD NOT FIND INVALID ASSERTION");
+            log.noticeWriter.println("COULD NOT FIND INVALID ASSERTION"); // FIXME
             // COULD NOT FIND
         }
         
@@ -636,7 +636,7 @@ public class JmlEsc extends JmlTreeScanner {
     public boolean reportInvalidAssertion(BasicProgram.BasicBlock block, SMT smt, ISolver solver, JCMethodDecl decl) {
         String id = block.id.name.toString();
         boolean value = getBoolValue(id,smt,solver);
-        if (trace) System.out.println("Block " + id + " is " + value);
+        if (trace) log.noticeWriter.println("Block " + id + " is " + value);
         if (value) {
             return false;
         }
@@ -671,19 +671,19 @@ public class JmlEsc extends JmlTreeScanner {
             }
 
             if (trace) {
-                System.out.println("STATEMENT: " + stat);
+                log.noticeWriter.println("STATEMENT: " + stat);
                 if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSUME) {
                     JmlStatementExpr x = (JmlStatementExpr)stat;
                     if (x.expression instanceof JCBinary) {
                         JCExpression lhs = ((JCBinary)x.expression).lhs;
-                        System.out.println("VALUE: " + lhs + " = " + getValue(lhs.toString(),smt,solver));
+                        log.noticeWriter.println("VALUE: " + lhs + " = " + getValue(lhs.toString(),smt,solver));
                     } else if (x.expression instanceof JCIdent) {
                         Name n = ((JCIdent)x.expression).name;
-                        System.out.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
+                        log.noticeWriter.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
                     } 
                 } else if (stat instanceof JCVariableDecl) {
                         Name n = ((JCVariableDecl)stat).name;
-                        System.out.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
+                        log.noticeWriter.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
                 }
             }
             if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSERT) {

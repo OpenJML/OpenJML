@@ -74,7 +74,7 @@ public abstract class RacBase extends JmlTestCase {
         // Setup the options
         options.put("-specspath",   testspecpath);
         options.put("-d", "testdata"); // This is where the output program goes
-        options.put("-rac",   "");
+        options.put("-command",   "rac");
         options.put("-target","1.5");
         if (jdkrac) {
             String sy = Options.instance(context).get(Strings.eclipseProjectLocation);
@@ -130,8 +130,8 @@ public abstract class RacBase extends JmlTestCase {
      */
     public void helpTCX(String classname, String s, Object... list) {
 
-        if (this.getClass() == racnew.class) {
-            System.out.println("racnew tests disabled");
+        if (this.getClass() == racnew.class ) {
+            System.out.println("rac tests disabled");
             return;  // FIXME - turning off these tests for now
         }
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators

@@ -28,6 +28,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.Main.JmlCanceledException;
 import org.jmlspecs.openjml.esc.BasicBlocker;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.JmlEsc;
@@ -110,7 +111,7 @@ public class API implements IAPI {
      */
     @Override
     public int execute(@NonNull String ... args) {
-        int ret = org.jmlspecs.openjml.Main.execute(new PrintWriter(System.out, true), diagListener, null, args);
+        int ret = org.jmlspecs.openjml.Main.execute(main != null ? main.out : new PrintWriter(System.out, true), diagListener, null, args);
         return ret;
     }
     
@@ -127,8 +128,8 @@ public class API implements IAPI {
     }
     
     @Override
-    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull Options options) {
-        int ret = org.jmlspecs.openjml.Main.execute(writer,diagListener,options,null);
+    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull Options options, @NonNull String ... args) {
+        int ret = org.jmlspecs.openjml.Main.execute(writer,diagListener,options,args);
         return ret;
     }
     
@@ -434,7 +435,7 @@ public class API implements IAPI {
     @Override
     public void parseAndCheck(File... files) throws java.io.IOException {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
-        main.setupOptions();
+        if (!main.setupOptions()) throw new JmlCanceledException("");
         c.inSequence = false;
         Iterable<? extends JavaFileObject> sourceFileObjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(files);
         ListBuffer<JavaFileObject> list = ListBuffer.<JavaFileObject>lb();
@@ -596,9 +597,9 @@ public class API implements IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     @Override
-    public void setOption(String name, String value) {
+    public boolean setOption(String name, String value) {
         Options.instance(context).put(name,value);
-        main.setupOptions();
+        return main.setupOptions();
     }
 
     /* (non-Javadoc)
@@ -607,9 +608,9 @@ public class API implements IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     @Override
-    public void setOption(String name) {
+    public boolean setOption(String name) {
         Options.instance(context).put(name,"");
-        main.setupOptions();
+        return main.setupOptions();
     }
     
     // FIXME - not sure about remove; do these option handling routines work for Java and JML options?

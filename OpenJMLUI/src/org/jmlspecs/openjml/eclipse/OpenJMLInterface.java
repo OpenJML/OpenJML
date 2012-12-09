@@ -6,10 +6,9 @@ package org.jmlspecs.openjml.eclipse;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -118,24 +117,21 @@ public class OpenJMLInterface {
     @NonNull
     protected JmlProblemRequestor preq;
 
-    /** An Enum type that gives a choice of various tools to be executed. */
-    public static enum Cmd { CHECK, ESC, RAC, JMLDOC};
-
     /** The constructor, which initializes all of the fields of the object.
     *
     * @param jproject The java project associated with this instance of OpenJMLInterface
     */
    public OpenJMLInterface(@NonNull IJavaProject jproject) {
        this.jproject = jproject;
-	   initialize();
+	   initialize(null);
    }
    
-   public void initialize() {
+   public void initialize(/*@nullable*/ Main.Cmd cmd) {
        preq = new JmlProblemRequestor(jproject); 
        specsPath = utils.getSpecsPath(jproject);
        // FIXME - presumes the listener is the ConsoleLogger
        PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener()).getConsoleStream());
-       List<String> opts = getOptions(jproject,Cmd.ESC);
+       List<String> opts = getOptions(jproject,cmd);
        try { 
     	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), opts.toArray(new String[0])); //, new String[]{/*"-noInternalRuntime"*/}); 
        } catch (Exception e) {
@@ -149,7 +145,7 @@ public class OpenJMLInterface {
     * @param files the set of files (or containers) to check
     * @param monitor the progress monitor the UI is using
     */
-   public void executeExternalCommand(Cmd command, List<IResource> files, @Nullable IProgressMonitor monitor) {
+   public void executeExternalCommand(Main.Cmd command, List<IResource> files, @Nullable IProgressMonitor monitor) {
        try {
     	   boolean verboseProgress = Utils.verboseness >= Utils.NORMAL;
            if (files.isEmpty()) {
@@ -158,10 +154,14 @@ public class OpenJMLInterface {
                return;
            }
            IJavaProject jp = JavaCore.create(files.get(0).getProject());
-           List<String> args = getOptions(jp,command);
-           if (command == Cmd.CHECK) {
+           List<String> args;
+           if (command == Main.Cmd.CHECK) {
         	   api.close();
-        	   initialize();
+        	   initialize(command);
+        	   args = new ArrayList<String>();
+        	   args = getOptions(jp,command); // FIXME - somehow the options are not propagating through
+           } else {
+        	   args = getOptions(jp,command);
            }
 
            for (IResource r: files) {
@@ -170,12 +170,13 @@ public class OpenJMLInterface {
                    args.add(r.getLocation().toString());
            	} else {
            		if (r instanceof IFolder) args.add(JmlOption.DIR.optionName());
-                   args.add(r.getLocation().toString());
+                args.add(r.getLocation().toString());
            	}
            }
+           Timer.timer.markTime();
            if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
            if (monitor != null) {
-               monitor.setTaskName(command == Cmd.RAC ? "JML RAC" : "JML Checking");
+               monitor.setTaskName(command == Main.Cmd.RAC ? "JML RAC" : "JML Checking");
                monitor.subTask("Executing openjml");
            }
            try {
@@ -302,7 +303,7 @@ public class OpenJMLInterface {
      *     3 for internal or otherwise catastrophic errors
      */
     public int generateJmldoc(IJavaProject p) {
-        List<String> args = getOptions(p,Cmd.JMLDOC);
+        List<String> args = getOptions(p,Main.Cmd.JMLDOC);
         args.add("-d");
         args.add(p.getProject().getLocation().toString() + File.separator + "docx");
         //args.add(JmlOption.DIRS.optionName());
@@ -334,7 +335,7 @@ public class OpenJMLInterface {
      * @param things the set of files (or containers) or Java elements to check
      * @param monitor the progress monitor the UI is using
      */
-    public void executeESCCommand(Cmd command, List<Object> things, IProgressMonitor monitor) {
+    public void executeESCCommand(Main.Cmd command, List<Object> things, IProgressMonitor monitor) {
         try {
             if (things.isEmpty()) {
                 Log.log("Nothing applicable to process");
@@ -350,7 +351,7 @@ public class OpenJMLInterface {
             setMonitor(monitor);
             if (monitor != null) monitor.subTask("Starting ESC");
            
-            List<String> args = getOptions(jproject,Cmd.ESC);
+            List<String> args = getOptions(jproject,Main.Cmd.ESC);
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
             int n = args.size();
             
@@ -379,8 +380,11 @@ public class OpenJMLInterface {
                 return;
             }
             if (args.size() > n) {
-            	if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
-                if (monitor != null) monitor.subTask("Executing openjml");
+            	Timer.timer.markTime();
+            	if (Utils.verboseness >= Utils.NORMAL) {
+            		Log.log(Timer.timer.getTimeString() + " Executing static checks");
+            	}
+                if (monitor != null) monitor.subTask("Executing static checks");
                 try {
                     if (monitor != null) monitor.setTaskName("ESC");
                     int ret = api.execute(args.toArray(new String[args.size()]));
@@ -856,11 +860,11 @@ public class OpenJMLInterface {
                         (int)lineStart, (int)lineEnd);
 
                 preq.acceptProblem(problem);
-                // Log it as well - TODO - control this with verbosity
-                //if (verbose) {
+                // Log it as well
+                if (Utils.verboseness >= Utils.VERBOSE) {
                     if (severity == ProblemSeverities.Error) Log.errorlog(diagnostic.toString(),null);
                     else Log.log(diagnostic.toString());
-                //}
+                }
             }
         }
 
@@ -937,6 +941,12 @@ public class OpenJMLInterface {
         }
     }
 
+    String[] optionsToCopy = new String[] {
+    		Options.showNotImplementedKey,
+    		Options.checkPurityKey,
+    		Options.nonnullByDefaultKey
+    };
+
 
     /** Retrieves the options from the preference page, determines the 
      * corresponding options for OpenJML and sends them.
@@ -944,14 +954,31 @@ public class OpenJMLInterface {
      * @param cmd The command to be executed
      * @return the list of options and arguments
      */
-    public @NonNull List<String> getOptions(IJavaProject jproject, Cmd cmd) {
+    public @NonNull List<String> getOptions(IJavaProject jproject, Main.Cmd cmd) {
+    	
+    	//com.sun.tools.javac.util.Options openjmlOptions = com.sun.tools.javac.util.Options.instance(api.context());
+    	
         //Options opt = Activator.options;
         List<String> opts = new LinkedList<String>();
-        if (cmd == Cmd.ESC) {
-            opts.add(JmlOption.ESC.optionName());
-            opts.add("-crossRefAssociatedInfo");
-            setYicesLocation();
+        if (cmd != null) {
+            opts.add(JmlOption.COMMAND.optionName() +"="+ cmd);
         }
+        if (cmd == Main.Cmd.ESC) {
+            opts.add(JmlOption.ASSOCINFO.optionName());
+            //setYicesLocation();
+        }
+        
+//        for (String key: optionsToCopy) {
+//        	String value = Options.value(key);
+//        	if (key.startsWith(Strings.optionPropertyPrefix)) {
+//        		if ("false".equals(value)) value = null;
+//        		openjmlOptions.put(key, value);
+//        		String arg = "-" + key.substring(Strings.optionPropertyPrefix.length());
+//        		openjmlOptions.put(arg, value);
+//        	} else {
+//        		openjmlOptions.put(key, value);
+//        	}
+//        }
         // FIXME
 //        if (cmd == Cmd.RAC) {
 //            opts.add(JmlOption.RAC.optionName());
@@ -968,26 +995,24 @@ public class OpenJMLInterface {
 //            opts.add(f.getLocation().toString());
 //        }
         boolean verbose = Utils.verboseness >= Utils.NORMAL;
+
         opts.add(JmlOption.VERBOSENESS.optionName()+"="+Integer.toString(Utils.verboseness));
         
         if (Options.isOption(Options.javaverboseKey)) {
         	opts.add("-verbose"); // FIXME - no hard string
         }
         
-        //if (opt.verbosity != 0)  { opts.add(JmlOption.JMLVERBOSE.optionName()); } //opts.add(Integer.toString(opt.verbosity)); }
-// FIXME       if (opt.source != null && !opt.source.isEmpty()) { opts.add("-source"); opts.add(opt.source); }
-// FIXME        if (cmd != Cmd.JMLDOC && opt.destination != null && !opt.destination.isEmpty())  { opts.add("-d"); opts.add(opt.destination); }
-//        if (!opt.checkPurity) opts.add(JmlOption.NOPURITYCHECK.optionName());
-        // FIXME if (opt.parsePlus) opts.add(JmlOption.PARSEPLUS.optionName());
-//        if (opt.showNotImplemented) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
-        // FIXME if (opt.showNotExecutable) opts.add(JmlOption.SHOWNOTEXECUTABLE.optionName());
-        opts.add(JmlOption.NOINTERNALSPECS.optionName());
-        opts.add(JmlOption.NOINTERNALRUNTIME.optionName());
-// FIXME        if (!opt.checkSpecsPath) opts.add(JmlOption.NOCHECKSPECSPATH.optionName());
-//        if (opt.nonnullByDefault) opts.add(JmlOption.NONNULLBYDEFAULT.optionName());
-// FIXME       else                      opts.add(JmlOption.NULLABLEBYDEFAULT.optionName());
+        if (Options.isOption(Options.showNotImplementedKey)) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
+        //if (Options.isOption(Options.showNotExecutableKey)) opts.add(JmlOption.SHOW_NOT_EXECUTABLE.optionName());
+        if (Options.isOption(Options.checkPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
+        if (!Options.isOption(Options.checkSpecsPathKey)) opts.add(JmlOption.NOCHECKSPECSPATH.optionName());
+        opts.add(JmlOption.NONNULLBYDEFAULT.optionName()+"="+Options.isOption(Options.nonnullByDefaultKey));
+            
+        String prover = Options.value(Options.defaultProverKey);
+        opts.add(JmlOption.PROVER.optionName() +"="+ prover);
+        opts.add(JmlOption.PROVEREXEC.optionName() +"="+ Options.value(Options.proverPrefix + prover));
         
-        if (cmd == Cmd.JMLDOC) {
+        if (cmd == Main.Cmd.JMLDOC) {
             // jmldoc specific options
             opts.add("-private");
         }
@@ -1004,6 +1029,10 @@ public class OpenJMLInterface {
         // Now determine the location of library specs and the internal 
         // runtime library
         
+        // The plug-in always supplies the specs - either with the code below
+        // or because the user added it to the specspath. So we always tell
+        // openjml itself not to add specs
+        opts.add(JmlOption.NOINTERNALSPECS.optionName());
         if (!Options.isOption(Options.noInternalSpecsKey)) {
             try {
                 boolean somethingPresent = false;
@@ -1111,6 +1140,9 @@ public class OpenJMLInterface {
             ss.append(s);
         }
 
+        // The runtime library is always either in the classpath or added 
+        // here by the plugin, so openjml itself never adds it
+        opts.add(JmlOption.NOINTERNALRUNTIME.optionName());
         if (!Options.isOption(Options.noInternalRuntimeKey)) {
         	String runtime = utils.findInternalRuntime();
         	if (runtime != null) {
@@ -1140,25 +1172,25 @@ public class OpenJMLInterface {
         return opts;
     }
 
-    /**
-     * Update the value of the property openjml.prover.yices, using
-     * the value given by prover editor.
-     */
-    public static void setYicesLocation() {
-      Bundle yicesBundle = Platform.getBundle("yices.editor");
-      if (yicesBundle != null) try {
-        Class<?> editor = yicesBundle.loadClass("mobius.prover.yices.YicesEditor");
-        Method meth = editor.getMethod("getYicesLocation");
-        String loc = (String) meth.invoke(null);
-        System.setProperty("openjml.prover.yices", loc);
-      } catch (ClassNotFoundException e) {
-      } catch (SecurityException e) {
-      } catch (NoSuchMethodException e) {
-      } catch (IllegalArgumentException e) {
-      } catch (IllegalAccessException e) {
-      } catch (InvocationTargetException e) {
-      }
-    }
+//    /**
+//     * Update the value of the property openjml.prover.yices, using
+//     * the value given by prover editor.
+//     */
+//    public static void setYicesLocation() {
+//      Bundle yicesBundle = Platform.getBundle("yices.editor");
+//      if (yicesBundle != null) try {
+//        Class<?> editor = yicesBundle.loadClass("mobius.prover.yices.YicesEditor");
+//        Method meth = editor.getMethod("getYicesLocation");
+//        String loc = (String) meth.invoke(null);
+//        System.setProperty("openjml.prover.yices", loc);
+//      } catch (ClassNotFoundException e) {
+//      } catch (SecurityException e) {
+//      } catch (NoSuchMethodException e) {
+//      } catch (IllegalArgumentException e) {
+//      } catch (IllegalAccessException e) {
+//      } catch (InvocationTargetException e) {
+//      }
+//    }
     
     /** Sets the value of a command-line option in the OpenJml object
      * @param name the name of the option, including any leading - sign

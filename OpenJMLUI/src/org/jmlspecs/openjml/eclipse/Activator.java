@@ -58,7 +58,7 @@ public class Activator extends AbstractUIPlugin {
 		// Various initialization: instances of options and utils; 
 		// read all preferences
 		utils = new Utils();
-		Utils.readProperties();
+		utils.initializeProperties();
 	}
 
 	/*

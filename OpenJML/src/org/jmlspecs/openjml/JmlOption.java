@@ -26,40 +26,48 @@ public enum JmlOption implements IOption {
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
     DIR("-dir",true,"Process all files, recursively, within this directory",null),
     DIRS("-dirs",true,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null),
+    ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files",null),  // FIXME - fix or remove
+    KEYS("-keys",true,"Identifiers for optional JML comments",null),
     COMMAND("-command",true,"The command to execute (check,esc,rac,compile)",null),
-    CHECK("-check",false,"Does a JML syntax check - abbreviation for -command check",null),
-    COMPILE("-compile",false,"Does a Java-only compiler - abbreviation for -command compile",null),
-    RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks - abbreviation for -command rac",null),
-    ESC("-esc",false,"Enables static checking - abbreviation for -command esc",null),
+    CHECK("-check",false,"Does a JML syntax check","-command=check"),
+    COMPILE("-compile",false,"Does a Java-only compiler","-command=compile"),
+    RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks","-command=rac"),
+    ESC("-esc",false,"Enables static checking","-command=esc"),
     BOOGIE("-boogie",false,"Enables static checking with boogie",null),
     USEJAVACOMPILER("-java",false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null),
     NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored",null),
+
+    STOPIFERRORS("-stopIfParseErrors",false,"When enabled, stops after parsing if any files have parsing errors",null),
+
+    METHOD("-method",true,"The method name on which to run ESC",null),
+    PROVER("-prover",true,"The prover to use to check verification conditions",null),
+    PROVEREXEC("-exec",true,"The prover executable to use",null),
+
+    NONNULLBYDEFAULT("-nonnullByDefault",false,"Makes references non_null by default",null),
+    NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default","-nonnullByDefault=false"),
     SPECS("-specspath",true,"Specifies the directory path to search for specification files",null),
     NOCHECKSPECSPATH("-noCheckSpecsPath",false,"When on, no warnings for non-existent specification path directories are issued",null),
     NOPURITYCHECK("-noPurityCheck",false,"When on, no warnings for use of impure methods are issued",null),
-    SHOW_NOT_IMPLEMENTED("-showNotImplemented",false,"When on, warnings about unimplemented constructs are issued",null),
-    STOPIFERRORS("-stopIfParseErrors",false,"When enabled, stops after parsing if any files have parsing errors",null),
     NOINTERNALSPECS("-noInternalSpecs",false,"Disables automatically appending the internal specs directory to the specification path",null),
     NOINTERNALRUNTIME("-noInternalRuntime",false,"Disables automatically appending the internal JML runtime library to the classpath",null),
-    NONNULLBYDEFAULT("-nonnullByDefault",false,"Makes references non_null by default",null),
-    NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default",null),
-    KEYS("-keys",true,"Identifiers for optional JML comments",null),
-    JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
-    JMLTESTING("-jmltesting",false,"Only used to generate tracing information during testing",null),
+
+    SHOW_NOT_IMPLEMENTED("-showNotImplemented",false,"When on, warnings about unimplemented constructs are issued",null),
+
     VERBOSENESS("-verboseness",true,"Level of verboseness (0=quiet...4=debug)",null),
     QUIET("-quiet",false,"Only output warnings and errors","-verboseness="+Utils.QUIET),
+    NORMAL("-normal",false,"Limited output","-verboseness="+Utils.NORMAL),
     PROGRESS("-progress",false,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS),
-    //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove
+    JMLVERBOSE("-jmlverbose",false,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
+    JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
+
+    JMLTESTING("-jmltesting",false,"Only used to generate tracing information during testing",null),
     TRACE("-trace",false,"ESC: Enables tracing of counterexamples",null),
     SHOWBB("-showbb",false,"ESC: Debug output of Basic Block program",null),
     COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample",null),
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions",null),
-    JMLDEBUG("-jmldebug",false,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
-    ENDOPTIONS("--",false,"Terminates option processing - all remaining arguments are files",null),  // FIXME - fix or remove
-    ASSOCINFO("-crossRefAssociatedInfo",false,">...",null),
-    METHOD("-method",true,"The method name on which to run ESC",null),
-    PROVER("-prover",true,"The prover to use to check verification conditions",null)
+    ASSOCINFO("-crossRefAssociatedInfo",false,">...",null)
+    //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove
     ;
     
 
@@ -154,7 +162,13 @@ public enum JmlOption implements IOption {
      * @return the help string associated with this option
      */
     //@ non_null
-    public String help() { return help; }
+    public String help() { 
+        if (synonym() == null) {
+            return help; 
+        } else {
+            return help + " [" + synonym() + "]";
+        }
+    }
     
     /**
      * @return the canonical form for this option
@@ -182,6 +196,7 @@ public enum JmlOption implements IOption {
             map.put(n.name.toLowerCase(),n);
         }
         // Other synonyms
+        // FIXME - where did these come from - do we want them?
         map.put("-nonnull",NONNULLBYDEFAULT);
         map.put("-nullable",NULLABLEBYDEFAULT);
     }

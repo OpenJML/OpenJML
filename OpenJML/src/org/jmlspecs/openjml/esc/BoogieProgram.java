@@ -159,8 +159,8 @@ public class BoogieProgram extends BasicBlockProgram<BoogieProgram.BoogieBlock>{
             pw.print("}");
             pw.println();
         } catch (java.io.IOException e) {
-            System.out.println("EXCEPTION: " + e);
-            e.printStackTrace(System.out);
+            System.out.println("EXCEPTION: " + e); // FIXME
+            e.printStackTrace(System.out); // FIXME
         }
     }
 
@@ -240,7 +240,7 @@ public class BoogieProgram extends BasicBlockProgram<BoogieProgram.BoogieBlock>{
                 }
                 w.flush();
             } catch (java.io.IOException e) {
-                System.out.println("EXCEPTION: " + e);
+                System.out.println("EXCEPTION: " + e); // FIXME
             }
         }
 

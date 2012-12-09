@@ -32,33 +32,38 @@ where possible options include:
 JML options:
   -dir                       Process all files, recursively, within this directory
   -dirs                      Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)
+  --                         Terminates option processing - all remaining arguments are files
+  -keys                      Identifiers for optional JML comments
   -command                   The command to execute (check,esc,rac,compile)
-  -check                     Does a JML syntax check - abbreviation for -command check
-  -compile                   Does a Java-only compiler - abbreviation for -command compile
-  -rac                       Enables generating code instrumented with runtime assertion checks - abbreviation for -command rac
-  -esc                       Enables static checking - abbreviation for -command esc
+  -check                     Does a JML syntax check [-command=check]
+  -compile                   Does a Java-only compiler [-command=compile]
+  -rac                       Enables generating code instrumented with runtime assertion checks [-command=rac]
+  -esc                       Enables static checking [-command=esc]
+  -boogie                    Enables static checking with boogie
   -java                      When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)
   -noJML                     When on, the JML compiler is used, but all JML constructs are ignored
+  -stopIfParseErrors         When enabled, stops after parsing if any files have parsing errors
+  -method                    The method name on which to run ESC
+  -prover                    The prover to use to check verification conditions
+  -exec                      The prover executable to use
+  -nonnullByDefault          Makes references non_null by default
+  -nullableByDefault         Makes references nullable by default [-nonnullByDefault=false]
   -specspath                 Specifies the directory path to search for specification files
   -noCheckSpecsPath          When on, no warnings for non-existent specification path directories are issued
   -noPurityCheck             When on, no warnings for use of impure methods are issued
-  -showNotImplemented        When on, warnings about unimplemented constructs are issued
-  -stopIfParseErrors         When enabled, stops after parsing if any files have parsing errors
   -noInternalSpecs           Disables automatically appending the internal specs directory to the specification path
   -noInternalRuntime         Disables automatically appending the internal JML runtime library to the classpath
-  -nonnullByDefault          Makes references non_null by default
-  -nullableByDefault         Makes references nullable by default
-  -keys                      Identifiers for optional JML comments
-  -jmlverbose                Like -verbose, but only jml information and not as much (included in -verbose)
+  -showNotImplemented        When on, warnings about unimplemented constructs are issued
+  -verboseness               Level of verboseness (0=quiet...4=debug)
+  -quiet                     Only output warnings and errors [-verboseness=0]
+  -normal                    Limited output [-verboseness=1]
+  -progress                  Shows progress through compilation phases [-verboseness=2]
+  -jmlverbose                Like -verbose, but only jml information and not as much [-verboseness=3]
+  -jmldebug                  When on, the program emits lots of output (includes -progress) [-verboseness=4]
   -jmltesting                Only used to generate tracing information during testing
-  -progress                  Shows progress through compilation phases, includes -jmlverbose
   -trace                     ESC: Enables tracing of counterexamples
   -showbb                    ESC: Debug output of Basic Block program
   -counterexample            ESC: Enables output of complete, raw counterexample
   -subexpressions            ESC: Enables tracing with subexpressions
-  -jmldebug                  When on, the program emits lots of output (includes -progress)
   -roots                     Enables the Reflective Object-Oriented Testing System---w00t!
-  --                         Terminates option processing - all remaining arguments are files
   -crossRefAssociatedInfo    >...
-  -method                    The method name on which to run ESC
-  -prover                    The prover to use to check verification conditions

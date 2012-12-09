@@ -133,6 +133,13 @@ public class compiler {
         helper(new String[]{"-ZZZ"},2,0,failureMessage);
     }
     
+    /** Tests a bad command */
+    @Test
+    public void testBadCommand() throws Exception {
+        String failureMessage = "error: Invalid parameter to the -command option: zzz" + eol;
+        helper(new String[]{"-command=zzz"},2,0,failureMessage);
+    }
+    
     /** Tests setting the specs path through the command-line option, by using non-existent 
      * directories that then get complaints
      * @throws Exception

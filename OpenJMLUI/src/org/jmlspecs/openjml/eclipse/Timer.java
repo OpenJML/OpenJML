@@ -42,7 +42,7 @@ public class Timer {
 	 * as a String enclosed in [ ]
 	 */
 	public String getTimeString() {
-		return "[" + getTime() + "]";
+		return "[" + String.format("%.2f",getTime()) + "]";
 	}
 
 }

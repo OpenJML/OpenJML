@@ -11,6 +11,7 @@ import java.util.Properties;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
+import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
@@ -123,7 +124,10 @@ IWorkbenchPreferencePage {
 					String key = (String)keyobj;
 					if (!(entry.getValue() instanceof String)) continue;
 					String value = (String)entry.getValue();
-					if (key.startsWith(Strings.optionPropertyPrefix)) {
+					if (key.contains("openjml")) { // FIXME - no explicit string
+						if (Utils.verboseness >= Utils.DEBUG) {
+							Log.log("Reading property: " + key + " = " + value);
+						}
 						FieldEditor field = fieldMap.get(key);
 						if (field != null) {
 							if (field instanceof BooleanFieldEditor) {
@@ -132,21 +136,23 @@ IWorkbenchPreferencePage {
 								getPreferenceStore().setValue(key,value);
 							} else if (field instanceof ComboFieldEditor) {
 								getPreferenceStore().setValue(key,value); // FIXME - how do we know it is a valid value
+								if (field == verbosity) Utils.verboseness = Integer.parseInt(value);
 							} else {
 								Log.errorlog("Ignoring unknown field editor type " + field.getClass() + " for property " + key + "=" + value,null);
 							}
 						} else {
-							// FIXME - eventually hide this when we think we have everything implemented
-							Log.log("No field editor for property " + key + "=" + value);
+							// Assume anything else has a String value
+							getPreferenceStore().setValue(key,value);
 						}
 					} else {
-						// FIXME - eventually hide this when we think we have everything implemented
-						Log.log("Ignoring property " + key + "=" + value);
+						// There are lots of these - mostly Java or Eclipse related
+						//Log.log("Ignoring property " + key + "=" + value);
 					}
 				}
 				initialize();
 			}
 		};
+		
 		addField(new ButtonFieldEditor(Options.updateKey,"",
 				"Update from properties files",
 				listener,
@@ -170,7 +176,7 @@ IWorkbenchPreferencePage {
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.checkSpecsPathKey, "Check Specification Path",
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.noInternalSpecsKey, "Use external specs",
+        addField(new BooleanFieldEditor(Options.noInternalSpecsKey, "Use external system specs (add system specs to specspath on Paths Page)",
                 getFieldEditorParent()));
         addField(new StringFieldEditor(Options.optionalKeysKey, "Optional Annotation Keys",
                 getFieldEditorParent()));
@@ -183,7 +189,12 @@ IWorkbenchPreferencePage {
 		addField(new LabelFieldEditor("zzzzz.RAC","Options relating to RAC",SWT.SEPARATOR|SWT.HORIZONTAL,
 				getFieldEditorParent()));
 
-        addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, "Do not use the internal runtime library",
+        addField(new BooleanFieldEditor(Options.enableRacKey, "Enable Runtime Assertion Checking",
+                getFieldEditorParent()));
+        addField(new DirectoryFieldEditor(Options.racbinKey, "Directory for RAC output",
+                getFieldEditorParent()));
+
+        addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, "Use an external runtime library (add the library to the project classpath)",
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.checkSpecsPathKey, "Add runtime library to project automatically",
                 getFieldEditorParent()));
@@ -199,8 +210,12 @@ IWorkbenchPreferencePage {
                 getFieldEditorParent()));
         
         addField(verbosity=new ComboFieldEditor(Options.verbosityKey, "Verbosity Level",
-        		new String[][]{ { "quiet", "0" }, {"normal", "1"}, 
-        		    {"progress", "2"}, {"verbose", "3"}, {"debug", "4"}},
+        		new String[][]{ 
+        			{"quiet", Integer.toString(Utils.QUIET) }, 
+        			{"normal", Integer.toString(Utils.NORMAL)}, 
+        		    {"progress", Integer.toString(Utils.PROGRESS)}, 
+        		    {"verbose", Integer.toString(Utils.VERBOSE)}, 
+        		    {"debug", Integer.toString(Utils.DEBUG)}},
                 getFieldEditorParent()));
     }
     

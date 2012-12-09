@@ -186,8 +186,8 @@ public class BasicProgram extends BasicBlockProgram<BasicProgram.BasicBlock> {
                 b.write(w,this);
             }
         } catch (java.io.IOException e) {
-            System.out.println("EXCEPTION: " + e);
-            e.printStackTrace(System.out);
+            System.out.println("EXCEPTION: " + e); // FIXME
+            e.printStackTrace(System.out); // FIXME
         }
     }
 
@@ -305,7 +305,7 @@ public class BasicProgram extends BasicBlockProgram<BasicProgram.BasicBlock> {
                 w.write("\n");
                 w.flush();
             } catch (java.io.IOException e) {
-                System.out.println("EXCEPTION: " + e);
+                System.out.println("EXCEPTION: " + e); // FIXME
             }
         }
     }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the OpenJML plugin project. 
- * Copyright (c) 2006-2010 David R. Cok
+ * Copyright (c) 2006-2013 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -82,6 +81,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
+import org.jmlspecs.openjml.Main.Cmd;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.osgi.framework.Bundle;
 
@@ -120,7 +120,7 @@ public class Utils {
     final public static @NonNull String ESC_MARKER_ID = Activator.PLUGIN_ID + ".JMLESCProblem";
 
     /** A map relating java projects to the instance of OpenJMLInterface that
-     * handles openjml stuff for that project.  we have a separate instance for
+     * handles openjml stuff for that project.  We have a separate instance for
      * each project since options can be different by project.
      */
     final
@@ -140,8 +140,8 @@ public class Utils {
     }
 
     /** This routine initiates (as a Job) checking the JML of all the Java files
-     * in the selection; if any containers are selected, the operation applies
-     * the contents of the container (including working sets); if any Java 
+     * in the selection; if any containers (including working sets) are selected, 
+     * the operation applies to the contents of the container ; if any Java 
      * elements are selected (e.g. a method), the operation applies to the
      * containing file.
      * @param selection the current selection (ignored unless it is an IStructuredSelection)
@@ -157,13 +157,12 @@ public class Utils {
         deleteMarkers(res,shell);
         final Map<IJavaProject,List<IResource>> sorted = sortByProject(res);
         for (final IJavaProject jp : sorted.keySet()) {
-			if (Options.isOption(Options.autoAddRuntimeToProjectKey)) addRuntimeToProjectClasspath(jp);
             final List<IResource> ores = sorted.get(jp);
             Job j = new Job("JML Manual Check") {
                 public IStatus run(IProgressMonitor monitor) {
                     boolean c = false;
                     try {
-                        getInterface(jp).executeExternalCommand(OpenJMLInterface.Cmd.CHECK,ores,monitor);
+                        getInterface(jp).executeExternalCommand(Cmd.CHECK,ores,monitor);
                     } catch (Exception e) {
                         showExceptionInUI(shell,e);
                         c = true;
@@ -200,7 +199,7 @@ public class Utils {
                 public IStatus run(IProgressMonitor monitor) {
                     boolean c = false;
                     try {
-                        getInterface(jp).executeESCCommand(OpenJMLInterface.Cmd.ESC,
+                        getInterface(jp).executeESCCommand(Cmd.ESC,
                                         ores,monitor);
                     } catch (Exception e) {
                         showExceptionInUI(shell,e);
@@ -218,6 +217,10 @@ public class Utils {
 		return org.jmlspecs.openjml.Utils.findProperties(null);
     }
     
+    public void initializeProperties() {
+    	verboseness = Integer.parseInt(Options.value(Options.verbosityKey));
+    }
+    
     static public java.util.Properties readProperties() {
     	// FIXME - as different projects are processed, they continually overwrite each other's properties
     	//Log.log("About to read properties");
@@ -228,9 +231,13 @@ public class Utils {
         	// the workspace root returns null. So we find the file directly in
         	// the local file system.
         	IPath path = ResourcesPlugin.getWorkspace().getRoot().getLocation().append(org.jmlspecs.openjml.Strings.propertiesFileName);
-        	boolean found = org.jmlspecs.openjml.Utils.readProps(properties,path.toFile().getAbsolutePath());
-            if (found && Utils.verboseness >= Utils.VERBOSE) 
-            	Log.log("Properties read from the workspace: " + path.toOSString());
+        	try {
+        		boolean found = org.jmlspecs.openjml.Utils.readProps(properties,path.toFile().getAbsolutePath());
+                if (found && Utils.verboseness >= Utils.VERBOSE) 
+                	Log.log("Properties read from the workspace: " + path.toOSString());
+        	} catch (java.io.IOException e) {
+        		Log.errorlog("Failed to read a properties file" , e);
+        	}
         }
         return properties;
     }
@@ -244,8 +251,12 @@ public class Utils {
         	//Log.log("Project location: " + project.getLocation());
             IResource res = project.findMember(org.jmlspecs.openjml.Strings.propertiesFileName);
             if (res != null) {
-            	boolean found = org.jmlspecs.openjml.Utils.readProps(properties,res.getLocation().toOSString());
-                if (found && Utils.verboseness >= Utils.VERBOSE) Log.log("Properties read from the project directory: " + res.getLocation().toOSString());
+            	try {
+                	boolean found = org.jmlspecs.openjml.Utils.readProps(properties,res.getLocation().toOSString());
+                    if (found && Utils.verboseness >= Utils.VERBOSE) Log.log("Properties read from the project directory: " + res.getLocation().toOSString());
+            	} catch (java.io.IOException e) {
+            		Log.errorlog("Failed to read a properties file" , e);
+            	}
             }
         }
         return properties;
@@ -273,7 +284,7 @@ public class Utils {
                 public IStatus run(IProgressMonitor monitor) {
                     boolean c = false;
                     try {
-                        getInterface(jp).executeExternalCommand(OpenJMLInterface.Cmd.RAC,sorted.get(jp),monitor);
+                        getInterface(jp).executeExternalCommand(Cmd.RAC,sorted.get(jp),monitor);
                     } catch (Exception e) {
                         showExceptionInUI(shell,e);
                         c = true;
@@ -296,7 +307,7 @@ public class Utils {
         if (newlist.size() != 0) {
             try {
             	if (Utils.verboseness >= Utils.NORMAL) Log.log("Starting RAC " + newlist.size() + " files");
-                getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.RAC,newlist,monitor);
+                getInterface(jproject).executeExternalCommand(Cmd.RAC,newlist,monitor);
                 if (Utils.verboseness >= Utils.NORMAL) Log.log("Completed RAC");
             } catch (Exception e) {
                 showExceptionInUI(null,e);
@@ -1172,26 +1183,50 @@ public class Utils {
      * on the classpath. This will trigger a build, if auto-building is turned on.
      * @param jproject the project whose classpath is to be adjusted
      */
-    public void addRuntimeToProjectClasspath(IJavaProject jproject) {
+    public void addRuntimeToProjectClasspath(final IJavaProject jproject) {
     	if (changingClasspath) return;
     	try {
     		String runtime = findInternalRuntime();
-    		if (runtime == null) return;
+    		if (runtime == null) {
+    			if (Utils.verboseness >= Utils.DEBUG)
+    				Log.log("No internal runtime found");
+    			return;
+    		}
     		IPath path = new Path(runtime);
     		IClasspathEntry libentry = JavaCore.newLibraryEntry(path,null,null);
 
     		IClasspathEntry[] entries = jproject.getResolvedClasspath(true);
     		for (IClasspathEntry i: entries) {
     			if (i.getEntryKind() == IClasspathEntry.CPE_LIBRARY
-    					&& i.equals(libentry)) return;
+    					&& i.equals(libentry)) {
+        			if (Utils.verboseness >= Utils.DEBUG)
+        				Log.log("Internal runtime already on classpath: " + runtime);
+    				return;
+    			}
     		}
-    		IClasspathEntry[] newentries = new IClasspathEntry[entries.length+1];
+    		final IClasspathEntry[] newentries = new IClasspathEntry[entries.length+1];
     		System.arraycopy(entries,0,newentries,0,entries.length);
     		newentries[entries.length] = libentry;
     		try {
     			changingClasspath = true;
-    			// TODO - should this be in a computational thread
-    			jproject.setRawClasspath(newentries,null); // TODO _ no monitor? might recompile
+    			if (Utils.verboseness >= Utils.DEBUG)
+    				Log.log("Internal runtime being added to classpath: " + runtime);
+
+    			try {
+    				jproject.getProject().getWorkspace().run(new IWorkspaceRunnable() {
+    					public void run(IProgressMonitor monitor) {
+    						try {
+    							jproject.setRawClasspath(newentries,monitor);
+    						} catch (Exception e) {
+    							showMessageInUI(null,"Error Dialog",
+    								"Exception while changing classpath: " + e);
+    						}
+    					}
+    				}, null);
+    			} catch (CoreException e) {
+    	            Log.errorlog("Core Exception while highlighting",e);
+    	            // just continue
+    			}
     		} finally {
     			changingClasspath = false;
     		}
@@ -1542,7 +1577,7 @@ public class Utils {
                 public IStatus run(IProgressMonitor monitor) {
                     boolean c = false;
                     try {
-                        IFolder dir = jp.getProject().getFolder(Activator.options.racbin);
+                        IFolder dir = jp.getProject().getFolder(Options.value(Options.racbinKey));
                         for (IResource r: ores) clear(r,dir);
                     } catch (Exception e) {
                         showMessageInUI(shell,"OpenJML Exception",e.getClass() + " - " + e.getMessage());
@@ -1557,7 +1592,7 @@ public class Utils {
 
         for (final IJavaProject jp : sorted.keySet()) {
             final List<IResource> ores = sorted.get(jp);
-            IFolder dir = jp.getProject().getFolder(Activator.options.racbin);
+            IFolder dir = jp.getProject().getFolder(Options.value(Options.racbinKey));
             for (IResource r: ores) clear(r,dir);
         }
     }
@@ -1797,6 +1832,7 @@ public class Utils {
      */
     static public final int QUIET = 0;
     static public final int NORMAL = 1;
+    static public final int PROGRESS = 2;
     static public final int VERBOSE = 3;
     static public final int DEBUG = 4;
     /** A value used within the plugin to control printing - compare this value 

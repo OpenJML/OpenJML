@@ -24,6 +24,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.Main;
 
 // FIXME - we need to handle dependencies when doing incremental compilation
 // FIXME - needs review
@@ -142,7 +143,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */  // FIXME - should this be done in a computational thread, with a progress monitor?
 	public void cleanRacbin(IProject p) {
 		try {
-			IPath path = new Path(Activator.options.racbin);
+			IPath path = new Path(Options.value(Options.racbinKey));
 			IFolder f = (IFolder)p.findMember(path);
 			for (IResource r: f.members()) {
 				r.delete(IResource.FORCE,null);
@@ -185,7 +186,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// Also all the resources should be from this project, because the
 		// builders work project by project
 		if (Options.isOption(Options.autoAddRuntimeToProjectKey)) Activator.getDefault().utils.addRuntimeToProjectClasspath(jproject);
-		Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(OpenJMLInterface.Cmd.CHECK,resourcesToBuild, monitor);
+		Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,resourcesToBuild, monitor);
 	}
 
 
@@ -214,7 +215,9 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		project.accept(v);
 		// FIXME - doing double work here - checking and then rechecking while we build
 		doChecking(jproject,v.resourcesToBuild,monitor);
-		Activator.getDefault().utils.doBuildRac(jproject,v.resourcesToBuild,monitor);
+		if (Options.isOption(Options.enableRacKey)) {
+			Activator.getDefault().utils.doBuildRac(jproject,v.resourcesToBuild,monitor);
+		}
 		v.resourcesToBuild.clear();
 	}
 
@@ -262,7 +265,9 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files and deletes markers
 		doChecking(jproject,v.resourcesToBuild,monitor);
-		Activator.getDefault().utils.doBuildRac(jproject,v.resourcesToBuild,monitor);
+		if (Options.isOption(Options.enableRacKey)) {
+			Activator.getDefault().utils.doBuildRac(jproject,v.resourcesToBuild,monitor);
+		}
 		v.resourcesToBuild.clear(); // Empties the list
 	}
 
@@ -310,7 +315,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */
 	static public boolean checkJML(List<IResource> resources, IProgressMonitor monitor) {
 		if (resources.isEmpty()) return true;
-		Timer.timer.markTime(); // FIXME - where is this timer used?
+		Timer.timer.markTime();
 		deleteMarkers(resources,true); // FIXME - should this be done in another thread?  but it has to be completed before the checking starts
 		// FIXME - need to build one project at a time
 		try {

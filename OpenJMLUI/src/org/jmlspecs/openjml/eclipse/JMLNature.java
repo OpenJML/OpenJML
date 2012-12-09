@@ -9,6 +9,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.JavaCore;
 import org.jmlspecs.annotation.*;
 
 /** This class implements the JML Nature that can be associated with Java Projects.
@@ -36,6 +37,10 @@ public class JMLNature implements IProjectNature {
 	 * @see org.eclipse.core.resources.IProjectNature#configure()
 	 */
 	public void configure() throws CoreException {
+		if (Options.isOption(Options.autoAddRuntimeToProjectKey)) {
+			Activator.getDefault().utils.addRuntimeToProjectClasspath(JavaCore.create(project));
+		}
+
 		IProjectDescription desc = project.getDescription();
 		ICommand[] commands = desc.getBuildSpec();
 

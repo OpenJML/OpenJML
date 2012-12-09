@@ -2288,7 +2288,7 @@ public class BasicBlocker extends JmlTreeScanner {
             // The specs may be null because none were ever written (and there
             // was not even a declaration of the method to which an empty spec
             // was attached).
-            mspecs = JmlSpecs.defaultSpecs(null);
+            mspecs = JmlSpecs.defaultSpecs(0); // FIXME - review - argument was null and used to work
         }
         // Note: The mspecs.decl may be null if the original class is only
         // binary and no specs file was written (so there is no source code
@@ -3578,7 +3578,7 @@ public class BasicBlocker extends JmlTreeScanner {
 //                    checkTrue(that.pos,cond,that.label);
 //                    result = arg;
                 } else {
-                    System.out.println("NAME " + n);
+                    System.out.println("NAME " + n); // FIXME
                 }
             } else {
                 System.out.println("INTENRAL ERROR " );
