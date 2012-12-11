@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2006-2010 David R. Cok
+ * This file is part of the OpenJML project.
+ * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
@@ -27,7 +28,7 @@ import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.Main;
 
 // FIXME - we need to handle dependencies when doing incremental compilation
-// FIXME - needs review
+// FIXME - needs review - JMLBuilder
 
 /** This class implements a builder for JML tools.  The builder is 
  *  run as part of the compilation cycle and appears in the list of

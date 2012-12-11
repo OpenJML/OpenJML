@@ -1,12 +1,10 @@
 /**
- * Copyright (c) 2005-2011 David R. Cok
+ * This file is part of the OpenJML project.
+ * Copyright (c) 2005-2013 David R. Cok
  * @author David R. Cok
- * Created Jul 5, 2005
  */
 package org.jmlspecs.openjml.eclipse;
 
-// The ClassFileConstants import is an internal class - is the same
-// information available in a public API?  (TODO)
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
 /**
@@ -95,16 +93,5 @@ public class Env {
 	 * (particularly by the parser). 
 	 */
 	public static Level jlsLevel = Level.JLS1_7;
-
-	// Some hard-coded strings
-
-	/** The fixed name of the folder that holds all the source folders for the specs path items. */
-	final static public String specsContainerName = "specspath"; // FIXME - still used?
-
-	/** The root of the source folder names, each one of which is linked to the 
-	 * location of an item on the specs path; the names have numerical suffixes, in
-	 * order - that is, specs1, specs2, specs3, ...
-	 */
-	final static public String specsFolderRoot = "specs"; // FIXME - still used?
 
 }

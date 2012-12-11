@@ -1,7 +1,6 @@
 /*
- * This file is part of the Esc/Java plugin project.
- * Copyright 2004-2011 David R. Cok
- * 
+ * This file is part of the OpenJML plugin project.
+ * Copyright 2004-2013 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
@@ -46,7 +45,7 @@ IWorkbenchPreferencePage {
     
     final static public String execKey = Strings.proverPropertyPrefix;
 
-	String[] solvers;
+	protected String[] solvers;
 	
     @Override
     protected void createFieldEditors() {
@@ -54,6 +53,7 @@ IWorkbenchPreferencePage {
     	String[][] choices = new String[solvers.length][];
     	int i = 0;
     	for (String solver: solvers) {
+    		// The two strings are the label and the value
     		choices[i++] = new String[]{ solver, solver};
     	}
     	

@@ -1,46 +1,51 @@
 /**
- * Copyright (c) 2005-2011 David R. Cok.
- *
+ * This file is part of the OpenJML project.
+ * Copyright (c) 2005-2013 David R. Cok.
  * @author David R. Cok
- * Jun 18, 2005 
- * 
  */
 package org.jmlspecs.openjml.eclipse;
 
 import org.jmlspecs.openjml.Strings;
 
-// FIXME - needs review and cleanup
+// FIXME - needs review for all options we're interested in - Options.java
 
 /**
- * This class holds options that control the global behavior
- * of the application.  If you add a new option, then you should
- * also (a) add code in setDefaults() to provide a default value,
- * (b) add code in CommandLineOptions to provide a way to set 
- * the option from the command line, (c) add code in AbstractPreferences
- * to create a way to persist the value of the option, and (d) add code
- * in Preferences to provide a way to set the option value from the UI.
+ * This class manages user-settable options for OpenJML - at least those
+ * supported by the plug-in. Note that the plug-in uses the usual Eclipse 
+ * preference store to persist values of options. The key used for preferences
+ * is the same as the key used to specify the option in an openjml.properties
+ * file or in a -D command-line option. It consists of a prefix followed by the
+ * name of the option as it is specified on the command-line (without the - sign).
+ * <P>
+ * The OpenJML application itself reads openjml.properties files to read user-set
+ * preferences; a plug-in reads the values stored in the preferencesStore.
+ * Consequently, the Preferences page of the plug-in has a button to read in
+ * any openjml.properties files.
  *
- */ // TODO - this needs separation from the command-line and from Preferences
+ */
 public class Options {
 	
+	/** Returns the value of a Boolean-valued option. */
 	static boolean isOption(String key) {
 		//return System.getProperty(key) != null;
 		Boolean value = Activator.getDefault().getPreferenceStore().getBoolean(key);
 		return value != null && value;
 	}
 	
+	/** Returns the value of a String-valued option. */
 	static String value(String key) {
 		//return System.getProperty(key) != null;
 		return Activator.getDefault().getPreferenceStore().getString(key);
 	}
 	
-	/** The prefix to be put on each key. */
-	final static public String javaprefix = Strings.javaOptionPropertyPrefix;
-	/** The prefix to be put on each key. */
+	/** The prefix to be put on each key that is a command-line option for the application. */
 	final static public String prefix = Strings.optionPropertyPrefix;
 
 	/** A fake preference store key for the update button. */
 	final static public String updateKey = prefix + "update";
+
+	// Note: The values of the keys must correspond to the names of the 
+	// command-line options.
 
 	/** The preference store key for the checkSpecsPath option. */
 	final static public String checkSpecsPathKey = prefix + "checkSpecsPath";

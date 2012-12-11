@@ -1,12 +1,11 @@
 /*
- * This file is part of the Esc/Java plugin project.
- * Copyright 2004-2011 David R. Cok
- * 
- * Created on Aug 26, 2004
+ * This file is part of the OpenJML plugin project.
+ * Copyright 2004-2013 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 
 import org.eclipse.core.runtime.ILog;
@@ -70,6 +69,11 @@ public class ConsoleLogger implements Log.IListener {
 	private MessageConsoleStream stream = null;
 	//@ private constraint \old(stream) != null ==> \not_modified(stream);
 
+	/** Returns the output stream for the IListener interface. */
+	@Override
+	public OutputStream getStream() {
+		return getConsoleStream();
+	}
 
 
 	/** Creates, if necessary, and returns an instance of

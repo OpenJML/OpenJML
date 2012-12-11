@@ -11,6 +11,7 @@ import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
 // FIXME - needs to be changed to Eclipse 4.2
+// FIXME - Review for no longer used classes; also compare to MenuActions.java
 
 /** This class and its inner classes implement the various utilities
  * that are defined when a right-mouse click is performed on menu items

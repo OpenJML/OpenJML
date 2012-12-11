@@ -1,4 +1,5 @@
 /*
+ * This file is part of the OpenJML project.
  * Copyright (c) 2006-2011 David R. Cok
  * @author David R. Cok
  */
@@ -36,6 +37,7 @@ public class JMLNature implements IProjectNature {
 	 * Eclipse when a project becomes a JML project.
 	 * @see org.eclipse.core.resources.IProjectNature#configure()
 	 */
+	@Override
 	public void configure() throws CoreException {
 		if (Options.isOption(Options.autoAddRuntimeToProjectKey)) {
 			Activator.getDefault().utils.addRuntimeToProjectClasspath(JavaCore.create(project));
@@ -63,6 +65,7 @@ public class JMLNature implements IProjectNature {
 	 * automatically called by Eclipse when a project's JML Nature is removed.
 	 * @see org.eclipse.core.resources.IProjectNature#deconfigure()
 	 */
+	@Override
 	public void deconfigure() throws CoreException {
 		IProjectDescription description = getProject().getDescription();
 		ICommand[] commands = description.getBuildSpec();
@@ -82,7 +85,7 @@ public class JMLNature implements IProjectNature {
 	/* Returns the project associated with this instance of the JML Nature.
 	 * @see org.eclipse.core.resources.IProjectNature#getProject()
 	 */
-	@Query @NonNull
+	@Query @NonNull @Override
 	public IProject getProject() {
 		return project;
 	}
@@ -92,6 +95,7 @@ public class JMLNature implements IProjectNature {
 	 * @see org.eclipse.core.resources.IProjectNature#setProject(org.eclipse.core.resources.IProject)
 	 */
 	//@ ensures getProject() == project;
+	@Override
 	public void setProject(@NonNull IProject project) {
 		this.project = project;
 	}
@@ -161,7 +165,7 @@ public class JMLNature implements IProjectNature {
 			if (Utils.verboseness >= Utils.VERBOSE) Log.log("JML Nature not present in " + project.getName());
 
 		} catch (CoreException e) {
-			Log.errorlog("Failed to change JML nature for " + project.getProject(), e);
+			Log.errorlog("Failed to disable JML nature for " + project.getProject(), e);
 		}
 	}
 }

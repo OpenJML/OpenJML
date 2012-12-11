@@ -1,6 +1,6 @@
 /*
- * This file is part of the Esc/Java plugin project.
- * Copyright 2004-2011 David R. Cok
+ * This file is part of the OPpenJML plugin project.
+ * Copyright 2004-2013 David R. Cok
  * 
  */
 package org.jmlspecs.openjml.eclipse;
@@ -21,6 +21,7 @@ public class PathsPage extends FieldEditorPreferencePage implements
 IWorkbenchPreferencePage {
 
 	// FIXME - fix the prefix
+	// FIXME - the paths page is not yet connected up
 	
 	/** The prefix to be put on each key. */
 	final static public String prefix = Strings.optionPropertyPrefix;

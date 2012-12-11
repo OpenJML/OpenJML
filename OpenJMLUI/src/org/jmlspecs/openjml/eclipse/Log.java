@@ -1,14 +1,13 @@
 /*
- * Copyright (c) 2006-2011 David R. Cok
+ * This file is part of the OpenJML project.
+ * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-
-import javax.tools.Diagnostic;
-import javax.tools.DiagnosticListener;
 
 /** The logging mechanism for the OpenJML plugin - used for reporting progress or
  * errors within the plugin itself (i.e. not messages arising from the use of
@@ -20,8 +19,8 @@ import javax.tools.DiagnosticListener;
  */
 
 // FIXME - There is also an Eclipse plugin log mechanism - should we be using
-// that directly? Currently this Log sends material to the console log and 
-// some material to the plugin log. The alternative is to send everything to 
+// that directly? Currently this Log sends material to the console log.
+// The alternative is to send everything to 
 // the Eclipse provided log and have the ConsoleLog be a listener.
 public class Log {
 
@@ -58,7 +57,10 @@ public class Log {
 
 	/** The interface expected of listeners */ 
 	public static interface IListener {
+		/** Called by the application for any message logged (including errors) */
 		public void log(String msg);
+		/** The OutputStream corresponding to the listener. */
+		public OutputStream getStream();
 	}
 
 	/** The one (if any) registered listener */
@@ -74,17 +76,4 @@ public class Log {
 		listener = l;
 	}
 
-	/** A class that listens to diagnostic messages coming in from OpenJDK
-	 * and reports them into the OpenJML logging mechanism for Log listeners
-	 * to hear. 
-	 */ // FIXME - this appears not to be used?
-	final static public class UIListener<S> implements DiagnosticListener<S> {
-		public UIListener() {
-		}
-
-		@Override 
-		public void report(Diagnostic<? extends S> diagnostic) {
-			Log.log(diagnostic.toString());
-		}
-	}
 }

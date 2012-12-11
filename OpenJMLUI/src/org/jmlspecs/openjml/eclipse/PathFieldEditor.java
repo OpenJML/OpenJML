@@ -1,4 +1,12 @@
+/*
+ * This file is part of the OpenJML project.
+ * Copyright (c) 2013-2013 David R. Cok
+ * @author David R. Cok
+ */
 package org.jmlspecs.openjml.eclipse;
+
+// FIXME - this does not yet allow both directories and jar files
+// FIXME - this is not used correctly to fill in the properties
 
 // Modified from the Eclipse PathEditor to allow jar files also
 /*******************************************************************************
@@ -16,12 +24,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
+import org.eclipse.jface.preference.ListEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
-
-import org.eclipse.jface.preference.ListEditor;
 
 /**
  * A field editor to edit directory paths.

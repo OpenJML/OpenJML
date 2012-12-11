@@ -1,6 +1,6 @@
 /*
  * This file is part of the OpenJML plugin project. 
- * Copyright (c) 2006-2011 David R. Cok
+ * Copyright (c) 2006-2013 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
@@ -72,7 +72,7 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.util.Context;
 
-// FIXME - needs review
+// FIXME - needs review - OpenJMLInterface.java
 
 /**
  * This class is the interface between the Eclipse UI that serves as view and
@@ -129,8 +129,8 @@ public class OpenJMLInterface {
    public void initialize(/*@nullable*/ Main.Cmd cmd) {
        preq = new JmlProblemRequestor(jproject); 
        specsPath = utils.getSpecsPath(jproject);
-       // FIXME - presumes the listener is the ConsoleLogger
-       PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener()).getConsoleStream());
+       PrintWriter w = Log.log.listener() != null ? 
+    		   new PrintWriter(Log.log.listener().getStream()) : null;
        List<String> opts = getOptions(jproject,cmd);
        try { 
     	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), opts.toArray(new String[0])); //, new String[]{/*"-noInternalRuntime"*/}); 

@@ -1,9 +1,12 @@
 /*
- * Copyright (c) 2006-2011 David R. Cok
+ * This file is part of the OpenJML project.
+ * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
  * Created Nov 17, 2006
  */
 package org.jmlspecs.openjml.eclipse;
+
+// FIXME - needs review - MenuActions.java
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;

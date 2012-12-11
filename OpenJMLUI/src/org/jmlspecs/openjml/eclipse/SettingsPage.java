@@ -1,7 +1,6 @@
 /*
  * This file is part of the OpenJML plugin project.
  * Copyright 2004-2013 David R. Cok
- * 
  */
 package org.jmlspecs.openjml.eclipse;
 
@@ -15,14 +14,12 @@ import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.jmlspecs.openjml.Strings;
 
 // FIXME - all strings need to be internationalized
 // FIXME - review for other options
@@ -80,30 +77,16 @@ IWorkbenchPreferencePage {
      */
     protected FieldEditor verbosity;
 
-    /** Overriding the propertyChange callback in order to maintain copies
-     * of the option values appropriately. This is called immediately when the
-     * field is changed (not when 'Apply' or 'OK' is clicked.)
+    /** Overriding performOk() callback in order to maintain copies
+     * of the option values appropriately. This is called when
+     * 'Apply' or 'OK' is clicked.
      */
 	@Override
-	public void propertyChange(PropertyChangeEvent e) {
-		Object f = e.getSource();
-		if (e.getNewValue() == e.getOldValue()) return;
-		if (!(f instanceof FieldEditor)) {
-			return; // FIXME - error to report?
-		}
-		FieldEditor field = (FieldEditor)f;
-		String key = field.getPreferenceName();
-		Object value = e.getNewValue();
-		if (value instanceof String) {
-			System.setProperty(key,(String)value);
-			if (e.getSource() == verbosity) {
-        		Utils.verboseness = Integer.parseInt((String)value);
-			}
-		}
-		if (Utils.verboseness >= Utils.DEBUG) {
-			Log.log("Property changed: " + key + " = " + value);
-		}
-		super.propertyChange(e);
+	public boolean performOk() {
+		super.performOk();
+		String value = getPreferenceStore().getString(Options.verbosityKey);
+        Utils.verboseness = Integer.parseInt((String)value);
+        return true;
 	}
 
 	/** The method that constructs all the editors and arranges them on the
