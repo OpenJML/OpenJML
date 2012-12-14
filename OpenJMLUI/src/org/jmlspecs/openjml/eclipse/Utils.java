@@ -21,8 +21,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import javax.tools.JavaFileObject;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -81,6 +85,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
+import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main.Cmd;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.osgi.framework.Bundle;
@@ -138,6 +143,105 @@ public class Utils {
         }
         return i;
     }
+    
+	protected String getInternalSystemSpecs() {
+		String filesep = "/"; // Not File.separator I think
+		boolean verbose = Utils.verboseness >= Utils.VERBOSE;
+		StringBuilder ss = new StringBuilder();
+		try {
+		    boolean somethingPresent = false;
+		    String versionString = System.getProperty("java.version"); // FIXME - use eclipse version?
+		    int version = 6; // the current default
+		    if (versionString.startsWith("1.6")) version = 6;
+		    else if (versionString.startsWith("1.5")) version = 5;
+		    else if (versionString.startsWith("1.4")) version = 4;
+		    else if (versionString.startsWith("1.7")) version = 7;
+		    else if (versionString.startsWith("1.8")) version = 8;
+		    else if (versionString.startsWith("1.9")) version = 9;
+		    else {
+		        Log.log("Unrecognized version: " + versionString);
+		        version = 6; // default, if the version string is in an unexpected format
+		    }
+
+		    String[] defspecs = new String[8]; // null entries OK
+
+		    Bundle specsBundle = Platform.getBundle(Activator.SPECS_PLUGIN_ID);
+		    if (specsBundle == null) {
+		        if (verbose) Log.log("No specification plugin " + Activator.SPECS_PLUGIN_ID);
+		    } else {
+		        String loc = null;
+		        URL url = FileLocator.toFileURL(specsBundle.getResource(""));
+		        File root = new File(url.toURI());
+		        loc = root.getAbsolutePath();
+		        loc = loc.replace("\\","/");
+		        if (verbose) Log.log("JMLSpecs plugin found " + root + " " + root.exists());
+		        if (root.isFile()) {
+		            // Presume it is a jar or zip file
+		            JarFile j = new JarFile(root);
+		            int i = 0;
+		            for (int v = version; v >=4; --v) {
+		                JarEntry f = j.getJarEntry("java"+v);
+		                if (f != null) defspecs[i++] = loc + "!java" + v;
+		            }
+		            j.close();
+		        } else if (root.isDirectory()) {
+		            // Normal file system directory
+		            int i = 0;
+		            for (int v = version; v >=4; --v) {
+		                File f = new File(root,"java"+v);
+		                if (f.exists()) defspecs[i++] = root.getAbsolutePath().replace('\\','/') + filesep + "java" + v;
+		            }
+		        } else {
+		            if (verbose) Log.log("Expected contents (javaN subdirectories) not found in specs bundle at " + root);
+		        }
+		        for (String z: defspecs) {
+		            if (z != null) {
+		                somethingPresent = true;
+		                if (verbose) Log.log("Set library specspath defaults from the Specs plugin");
+		                break;
+		            }
+		        }
+		    }
+		    if (!somethingPresent) {
+		        Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
+		        if (selfBundle == null) {
+		            if (verbose) Log.log("No self plugin");
+		        } else {
+		            URL url = FileLocator.toFileURL(selfBundle.getResource(""));
+		            if (url != null) {
+		                File root = new File(url.toURI());
+		                if (verbose) Log.log("Self bundle found " + root + " " + root.exists());
+		                int i = 0;
+		                if (root.isDirectory()) {
+		                    for (int v = version; v >=4; --v) {
+		                        File f = new File(root,".." + filesep + "specs" + filesep + "java" + v);
+		                        if (f.exists()) defspecs[i++] = f.toString();
+		                    }
+		                } else {
+		                    JarFile j = new JarFile(root);
+		                    for (int v = version; v >=4; --v) {
+		                        JarEntry f = j.getJarEntry("specs" + filesep + "java" + v);
+		                        if (f != null) defspecs[i++] = root + "!specs" + filesep + "java" + v;
+		                    }
+		                    j.close();
+		                }
+		                if (i > 0) somethingPresent = true;
+		            }
+		        }
+		    }
+		    if (!somethingPresent) Log.errorlog("No internal library specs found",null);
+		    for (String z: defspecs) if (z != null) {
+		        ss.append(z);
+		        ss.append(File.pathSeparator);
+		    }
+		    if (ss.length() > 0) ss.setLength(ss.length() - File.pathSeparator.length());
+		} catch (Exception e) {
+		    Log.log("Failure finding internal specs: "  + e);
+		}
+		return ss.toString();
+	}
+
+
 
     /** This routine initiates (as a Job) checking the JML of all the Java files
      * in the selection; if any containers (including working sets) are selected, 
@@ -381,6 +485,16 @@ public class Utils {
                     s = getInterface(f.getJavaProject()).getSpecs(f);
                     if (s != null) s = s.replace('\r',' ');
                     sn = "field " + f.getDeclaringType().getFullyQualifiedName() + "." + f.getElementName();
+                } else if (o instanceof IFile) {
+                	IFile f = (IFile)o;
+                	ICompilationUnit cu = JavaCore.createCompilationUnitFrom(f);
+                	IType[] types = cu.getTypes();
+                	IType t = types[0]; // FIXME - find the one public type
+                	JavaFileObject jfo = JmlSpecs.instance(getInterface(JavaCore.create(f.getProject())).api.context()).findAnySpecFile(t.getFullyQualifiedName());
+                	Log.log("JFO = " + jfo.getName());
+                	Path p = new Path(jfo.getName());
+                	IFile ff = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(p);
+                	Log.log("File = " + ff);
                 }
                 if (s != null) {
                     if (s.length()==0) s = "<no specifications>";
@@ -1142,6 +1256,15 @@ public class Utils {
 //                Preferences.poptions.noInternalSpecs.setValue(Activator.options.noInternalSpecs);
 //            }
 //        }
+        Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
+        // FIXME - put these up simultanesously
+        for (IJavaProject jproject: projects) {
+        	Dialog dialog = new PathsEditor(shell, "OpenJML Paths Editor", jproject);
+        	dialog.create();
+        	if (dialog.open() == Dialog.OK) {
+
+        	}
+        }
     }
 
     /** Shows the classpath for selected projects.  
@@ -1162,13 +1285,22 @@ public class Utils {
             ss.append(Env.eol);
             for (String s: list) { ss.append(s); ss.append(Env.eol); }
             ss.append(Env.eol);
-            // FIXME - needs source path
+            // source path
+            ss.append("Source path:");
+            ss.append(Env.eol);
+            String sp = PathItem.getAbsolutePath(jp, PathItem.sourceKey);
+            sp = sp.replace(File.pathSeparator, Env.eol);
+            ss.append(sp);
+            ss.append(Env.eol);
+            ss.append(Env.eol);
+            // specs path
             ss.append("Specs path:");
             ss.append(Env.eol);
-            for (IResource r: getSpecsPath(jp)) {
-            	ss.append(r.getLocation().toString());
-            	ss.append(Env.eol);
-            }
+            sp = PathItem.getAbsolutePath(jp, PathItem.specsKey);
+            sp = sp.replace(File.pathSeparator, Env.eol);
+            ss.append(sp);
+            ss.append(Env.eol);
+            
             showMessage(shell,"JML paths for project " + jp.getElementName(), 
             		"Edit the paths in the JML preferences or use the" + Env.eol +
             		"Add to/Remove from JML Specs Path menu items" + Env.eol + Env.eol
@@ -1737,10 +1869,11 @@ public class Utils {
     }
     
     public final static QualifiedName SPECSPATH_ID = new QualifiedName(Activator.PLUGIN_ID,"specspath");
+    public final static QualifiedName SOURCEPATH_ID = new QualifiedName(Activator.PLUGIN_ID,"sourcepath");
     
-    public List<IResource> getSpecsPath(IJavaProject jp) {
+    public List<IResource> getDirectoryPath(IJavaProject jp, QualifiedName qname) {
         try {
-            String s = jp.getProject().getPersistentProperty(SPECSPATH_ID);
+            String s = jp.getProject().getPersistentProperty(qname);
             //Log.log("RETRIEVED SPECSPATH: " + s);
             if (s == null) s = "";
             String[] names = s.split(",");
@@ -1892,5 +2025,5 @@ public class Utils {
         }
         return file;
     }
-
+    
 }

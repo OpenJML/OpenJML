@@ -274,6 +274,7 @@
        </action>
     </objectContribution>
     <!-- These context menu items are enabled for any Resource -->
+<!-- FIXME _ probably delete
     <objectContribution
             adaptable="true"
             objectClass="org.eclipse.core.resources.IResource"
@@ -287,6 +288,7 @@
                id="JMLUI.specsEditor">
        </action>
     </objectContribution>
+    -->
     <objectContribution
             adaptable="true"
             objectClass="org.eclipse.core.resources.IResource"
@@ -512,25 +514,23 @@
                id="org.jmlspecs.openjml.eclipse.MenuActions.ShowPaths"
                commandId="org.jmlspecs.eclipse.commands.ShowPaths">
              </command>
-             <!--
              <command
-               label="Edit JML Specs Path"
-               tooltip="Edits the specifications directory path"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.SpecsPath"
-               commandId="org.jmlspecs.eclipse.commands.EditSpecsPath">
-             </command>
-             -->
-             <command
-               label="Remove from JML Specs Path"
-               tooltip="Removes folder from the specifications directory path"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.RemoveFromSpecsPath"
-               commandId="org.jmlspecs.eclipse.commands.RemoveFromSpecsPath">
+               label="Edit JML Source/Specs Patsh"
+               tooltip="Edits the source and specifications directory paths"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.EditPaths"
+               commandId="org.jmlspecs.eclipse.commands.EditPaths">
              </command>
              <command
                label="Add to JML Specs Path"
                tooltip="Adds folder to the specifications directory path"
                id="org.jmlspecs.openjml.eclipse.MenuActions.AddToSpecsPath"
                commandId="org.jmlspecs.eclipse.commands.AddToSpecsPath">
+             </command>
+             <command
+               label="Remove from JML Specs Path"
+               tooltip="Removes folder from the specifications directory path"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.RemoveFromSpecsPath"
+               commandId="org.jmlspecs.eclipse.commands.RemoveFromSpecsPath">
              </command>
              <command
                label="Show counterexample value"
@@ -981,16 +981,15 @@
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ShowCounterexampleValue"
             >
       </command>
-<!--
       <command
-            name="Edit JML specs path"
-            description="A wizard to edit the JML specifications directory path"
+            name="Edit JML Paths"
+            description="A wizard to edit the JML source and specs directory paths"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
-            id="org.jmlspecs.eclipse.commands.EditSpecsPath"
-            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$EditSpecsPath"
+            id="org.jmlspecs.eclipse.commands.EditPaths"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$EditPaths"
             >
       </command>
-      -->
+
       <command
             name="Add to JML specs path"
             description="Adds a folder to the JML specifications directory path"

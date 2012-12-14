@@ -85,6 +85,7 @@ import com.sun.tools.javac.util.Context;
  * currently does not do that.
  */
 public class OpenJMLInterface {
+	
     /** The API object corresponding to this Interface class. */
     @NonNull
     protected IAPI api;
@@ -128,7 +129,7 @@ public class OpenJMLInterface {
    
    public void initialize(/*@nullable*/ Main.Cmd cmd) {
        preq = new JmlProblemRequestor(jproject); 
-       specsPath = utils.getSpecsPath(jproject);
+       specsPath = utils.getDirectoryPath(jproject,Utils.SPECSPATH_ID);
        PrintWriter w = Log.log.listener() != null ? 
     		   new PrintWriter(Log.log.listener().getStream()) : null;
        List<String> opts = getOptions(jproject,cmd);
@@ -965,7 +966,6 @@ public class OpenJMLInterface {
         }
         if (cmd == Main.Cmd.ESC) {
             opts.add(JmlOption.ASSOCINFO.optionName());
-            //setYicesLocation();
         }
         
 //        for (String key: optionsToCopy) {
@@ -1017,123 +1017,47 @@ public class OpenJMLInterface {
             opts.add("-private");
         }
 
-        List<IResource> files = specsPath;
-        boolean first = true;
-        StringBuilder ss = new StringBuilder();
-        if (files != null) { 
-            for (IResource s: files) {
-                if (first) first = false; else ss.append(File.pathSeparator);
-                ss.append(s.getLocation().toString());
-            }
-        }
-        // Now determine the location of library specs and the internal 
-        // runtime library
+//        List<IResource> files = specsPath;
+//        boolean first = true;
+//        StringBuilder ss = new StringBuilder();
+//        if (files != null) { 
+//            for (IResource s: files) {
+//                if (first) first = false; else ss.append(File.pathSeparator);
+//                ss.append(s.getLocation().toString());
+//            }
+//        }
+//        // Now determine the location of library specs and the internal 
+//        // runtime library
+//        
+//        // The plug-in always supplies the specs - either with the code below
+//        // or because the user added it to the specspath. So we always tell
+//        // openjml itself not to add specs
+//        opts.add(JmlOption.NOINTERNALSPECS.optionName());
+//        if (!Options.isOption(Options.noInternalSpecsKey)) {
+//            String sysSpecs = getInternalSystemSpecs();
+//            if (sysSpecs != null && !sysSpecs.isEmpty()) {
+//            	if (first) first = false; else ss.append(File.pathSeparator);
+//                ss.append(sysSpecs);
+//            }
+//        }
+//
+//        if (ss.toString().length()!=0) {
+//            opts.add(JmlOption.SPECS.optionName());
+//            opts.add(ss.toString());
+//        }
         
-        // The plug-in always supplies the specs - either with the code below
-        // or because the user added it to the specspath. So we always tell
-        // openjml itself not to add specs
-        opts.add(JmlOption.NOINTERNALSPECS.optionName());
-        if (!Options.isOption(Options.noInternalSpecsKey)) {
-            try {
-                boolean somethingPresent = false;
-                String versionString = System.getProperty("java.version"); // FIXME - use eclipse version?
-                int version = 6; // the current default
-                if (versionString.startsWith("1.6")) version = 6;
-                else if (versionString.startsWith("1.5")) version = 5;
-                else if (versionString.startsWith("1.4")) version = 4;
-                else if (versionString.startsWith("1.7")) version = 7;
-                else if (versionString.startsWith("1.8")) version = 8;
-                else if (versionString.startsWith("1.9")) version = 9;
-                else {
-                    Log.log("Unrecognized version: " + versionString);
-                    version = 6; // default, if the version string is in an unexpected format
-                }
+        opts.add(JmlOption.SPECS.optionName());
+        opts.add(PathItem.getAbsolutePath(jproject,PathItem.specsKey));
 
-                String[] defspecs = new String[8]; // null entries OK
+        opts.add("-sourcepath"); // FIXME - no strings
+        opts.add(PathItem.getAbsolutePath(jproject,PathItem.sourceKey));
 
-                Bundle specsBundle = Platform.getBundle(Activator.SPECS_PLUGIN_ID);
-                if (specsBundle == null) {
-                    if (verbose) Log.log("No specification plugin " + Activator.SPECS_PLUGIN_ID);
-                } else {
-                    String loc = null;
-                    URL url = FileLocator.toFileURL(specsBundle.getResource(""));
-                    File root = new File(url.toURI());
-                    loc = root.toString();
-                    if (verbose) Log.log("JMLSpecs plugin found " + root + " " + root.exists());
-                    if (root.isFile()) {
-                        // Presume it is a jar or zip file
-                        JarFile j = new JarFile(root);
-                        int i = 0;
-                        for (int v = version; v >=4; --v) {
-                            JarEntry f = j.getJarEntry("java"+v);
-                            if (f != null) defspecs[i++] = loc + "!java" + v;
-                        }
-                        j.close();
-                    } else if (root.isDirectory()) {
-                        // Normal file system directory
-                        int i = 0;
-                        for (int v = version; v >=4; --v) {
-                            File f = new File(root,"java"+v);
-                            if (f.exists()) defspecs[i++] = root + File.separator + "java" + v;
-                        }
-                    } else {
-                        if (verbose) Log.log("Expected contents (javaN subdirectories) not found in specs bundle at " + root);
-                    }
-                    for (String z: defspecs) {
-                        if (z != null) {
-                            somethingPresent = true;
-                            if (verbose) Log.log("Set library specspath defaults from the Specs plugin");
-                            break;
-                        }
-                    }
-                }
-                if (!somethingPresent) {
-                    Bundle selfBundle = Platform.getBundle(Activator.PLUGIN_ID);
-                    if (selfBundle == null) {
-                        if (verbose) Log.log("No self plugin");
-                    } else {
-                        URL url = FileLocator.toFileURL(selfBundle.getResource(""));
-                        if (url != null) {
-                            File root = new File(url.toURI());
-                            if (verbose) Log.log("Self bundle found " + root + " " + root.exists());
-                            int i = 0;
-                            if (root.isDirectory()) {
-                                for (int v = version; v >=4; --v) {
-                                    File f = new File(root,".." + File.separator + "specs" + File.separator + "java" + v);
-                                    if (f.exists()) defspecs[i++] = f.toString();
-                                }
-                            } else {
-                                JarFile j = new JarFile(root);
-                                for (int v = version; v >=4; --v) {
-                                    JarEntry f = j.getJarEntry("specs" + File.separator + "java" + v);
-                                    if (f != null) defspecs[i++] = root + "!specs" + File.separator + "java" + v;
-                                }
-                                j.close();
-                            }
-                            if (i > 0) somethingPresent = true;
-                        }
-                    }
-                }
-                if (!somethingPresent) Log.errorlog("No internal library specs found",null);
-                for (String z: defspecs) if (z != null) {
-                    ss.append(File.pathSeparator);
-                    ss.append(z);
-                }
-            } catch (Exception e) {
-                Log.log("Failure finding internal specs: "  + e);
-            }
-        }
-
-        if (ss.toString().length()!=0) {
-            opts.add(JmlOption.SPECS.optionName());
-            opts.add(ss.toString());
-        }
         
         // Handle the classpath and internal runtime library if needed
        
         List<String> cpes = utils.getClasspath(jproject);
-        first = true;
-        ss = new StringBuilder();
+        boolean first = true;
+        StringBuilder ss = new StringBuilder();
         for (String s: cpes) {
             //Log.log("CPE " + s );
             if (first) first = false; else ss.append(File.pathSeparator);

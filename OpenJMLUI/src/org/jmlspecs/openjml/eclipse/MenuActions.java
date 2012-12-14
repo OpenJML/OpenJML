@@ -2,7 +2,6 @@
  * This file is part of the OpenJML project.
  * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
- * Created Nov 17, 2006
  */
 package org.jmlspecs.openjml.eclipse;
 
@@ -11,11 +10,31 @@ package org.jmlspecs.openjml.eclipse;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 
@@ -302,7 +321,7 @@ abstract public class MenuActions extends AbstractHandler {
     /**
      * This action puts up a dialog that allows manipulation of the specs path.
      */  // FIXME - is this still used?
-    static public class SpecsPath extends MenuActions {
+    static public class EditPaths extends MenuActions {
         // This is done in the UI thread. 
         @Override
     	public Object execute(ExecutionEvent event) {
@@ -690,7 +709,9 @@ abstract public class MenuActions extends AbstractHandler {
     	public Object execute(ExecutionEvent event) {
     		try {
         		getInfo(event);
-                utils.jmldocSelection(selection,window,shell);
+        		utils.showMessageInUI(shell, "OpenJML - Not Yet Implemented",
+        				"jmldoc is not yet implemented");
+                //utils.jmldocSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.JmlDoc",e);
     		}
