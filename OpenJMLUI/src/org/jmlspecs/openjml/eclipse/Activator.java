@@ -5,7 +5,11 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -53,6 +57,7 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
+		
 		Log.log.setListener(new ConsoleLogger("JML Console"));
 		//Log.log("JML UI plugin started");
 		
@@ -81,5 +86,7 @@ public class Activator extends AbstractUIPlugin {
 	public static Activator getDefault() {
 		return plugin;
 	}
+	
+	static ResourceBundle rb;
 
 }

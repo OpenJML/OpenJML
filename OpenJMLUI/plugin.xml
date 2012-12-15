@@ -75,7 +75,7 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            class="org.jmlspecs.openjml.eclipse.SettingsPage"
+            class="org.jmlspecs.openjml.eclipse.PreferencesPage"
             id="org.jmlspecs.openjml.eclipse.SettingsPage"
             name="%PreferencePage">
       </page>

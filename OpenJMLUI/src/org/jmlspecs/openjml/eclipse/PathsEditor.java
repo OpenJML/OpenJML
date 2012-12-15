@@ -1,6 +1,6 @@
 /*
  * This file is part of the OpenJML project.
- * Copyright (c) 2006-2013 David R. Cok
+ * Copyright (c) 2012-2013 David R. Cok
  * @author David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
@@ -9,7 +9,6 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -33,13 +32,24 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
 
-public class PathsEditor extends Dialog { //PopupDialog {
+/** Implements a dialog that allows editing of the source and specs path of a Java project */
+public class PathsEditor extends Utils.ModelessDialog { 
+	/** Window title */
 	protected String title;
+	/** Java project whose paths are being edited */
 	protected IJavaProject jproject;
+	/** The current shell */
 	protected Shell shell;
+	/** Reference to the internal control for editing the source path */
 	protected ListEditor sourceListEditor;
+	/** Reference to the internal control for editing the specs path */
 	protected ListEditor specsListEditor;
 	
+	/** Constructor for the dialog
+	 * @param parentShell parent shell for the dialog
+	 * @param title text on the title bar
+	 * @param jproject Java project whose paths are to be edited
+	 */
 	public PathsEditor(Shell parentShell, String title, IJavaProject jproject) {
 		super(parentShell);
 
@@ -51,15 +61,13 @@ public class PathsEditor extends Dialog { //PopupDialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText(title);
+		setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE);
+		setBlockOnOpen(false);
 		shell = newShell;
 	}
 
 	@Override
 	public Control createDialogArea(Composite parent) {
-		//    		Text t = new Text(composite,SWT.READ_ONLY|SWT.READ_ONLY);
-		//    		t.setText(content);
-		//    		t.setSize(500,500);
-		//    		return getListControl(composite);
 		
 		CTabFolder tabs = new CTabFolder(parent,SWT.NONE);
 		CTabItem classtab = new CTabItem(tabs,SWT.NONE);
@@ -69,20 +77,18 @@ public class PathsEditor extends Dialog { //PopupDialog {
 		Composite sourcecomp = new Composite(tabs,SWT.NONE);
 		Composite specscomp = new Composite(tabs,SWT.NONE);
 		tabs.setSelection(specstab);
-		specstab.setText("Specifications Path");
-		sourcetab.setText("Source Path");
-		classtab.setText("Class Path");
+		specstab.setText(Messages.OpenJMLUI_PathsEditor_SpecsPath);
+		sourcetab.setText(Messages.OpenJMLUI_PathsEditor_SourcePath);
+		classtab.setText(Messages.OpenJMLUI_PathsEditor_ClassPath);
 		specstab.setControl(specscomp);
 		sourcetab.setControl(sourcecomp);
 		classtab.setControl(classcomp);
 		
 		Utils utils = Activator.getDefault().utils;
 		
-//		Label label = new Label(classcomp,SWT.NONE);
 		StringBuilder text = new StringBuilder();
-		text.append("Folders and jar files in which to find class files:");
-		text.append(Env.eol);
-		text.append("(Edit the classpath using the Project Properties - Java Build Path dialog)");
+		text.append(Messages.OpenJMLUI_PathsEditor_ClassPathTitle + Env.eol
+			+ Messages.OpenJMLUI_PathsEditor_ClassPathTitle2);
 		text.append(Env.eol);
 		text.append(Env.eol);
 		for (String s: utils.getClasspath(jproject)) {
@@ -93,37 +99,25 @@ public class PathsEditor extends Dialog { //PopupDialog {
 		t.setText(text.toString());
 		t.setSize(500,200);
 		
-		Label label2 = new Label(sourcecomp,SWT.NONE);
-		label2.setText("Folders and jar files in which to find .java source files");
-		sourceListEditor = new ListEditor(shell,sourcecomp,jproject,PathItem.sourceKey);
+		String label = Messages.OpenJMLUI_PathsEditor_SourcePathTitle;
+		sourceListEditor = new ListEditor(shell,sourcecomp,jproject,PathItem.sourceKey,label);
 		
-		Label label3 = new Label(specscomp,SWT.NONE);
-		label3.setText("Folders and jar files in which to find specifications files (.jml and .java)");
-		specsListEditor = new ListEditor(shell,specscomp,jproject,PathItem.specsKey);
+		label = Messages.OpenJMLUI_PathsEditor_SpecsPathTitle;
+		specsListEditor = new ListEditor(shell,specscomp,jproject,PathItem.specsKey,label);
 		return tabs;
 	}
 	
-	
-	protected String concat(java.util.List<PathItem> items) {
-		StringBuilder sb = new StringBuilder();
-		for (PathItem i: items) {
-			sb.append(i.toEncodedString());
-			sb.append(PathItem.split);
-		}
-		if (!items.isEmpty()) sb.setLength(sb.length()-PathItem.split.length());
-		return sb.toString();
-	}
-
 	@Override
 	public void okPressed() {
 		try {
-			jproject.getProject().setPersistentProperty(PathItem.sourceKey, concat(sourceListEditor.pathItems));
-			jproject.getProject().setPersistentProperty(PathItem.specsKey, concat(specsListEditor.pathItems));
-			Log.log("Saved " + jproject.getProject().getPersistentProperty(PathItem.sourceKey));
-			Log.log("Saved " + jproject.getProject().getPersistentProperty(PathItem.specsKey));
-			
+			jproject.getProject().setPersistentProperty(PathItem.sourceKey, PathItem.concat(sourceListEditor.pathItems));
+			jproject.getProject().setPersistentProperty(PathItem.specsKey, PathItem.concat(specsListEditor.pathItems));
+			if (Utils.verboseness >= Utils.VERBOSE) {
+				Log.log("Saved " + jproject.getProject().getPersistentProperty(PathItem.sourceKey)); //$NON-NLS-1$
+				Log.log("Saved " + jproject.getProject().getPersistentProperty(PathItem.specsKey)); //$NON-NLS-1$
+			}
 		} catch (CoreException e) {
-			// FIXME - report ERROR
+			Activator.getDefault().utils.showExceptionInUI(shell,Messages.OpenJMLUI_PathsEditor_PersistentPropertyError,e);
 		} finally {
 			super.okPressed();
 		}
@@ -131,8 +125,8 @@ public class PathsEditor extends Dialog { //PopupDialog {
 
 }
 
+/** A SWT control for editing a list of PathItems */
 class ListEditor {
-	
 	
 	/**
 	 * The list widget; <code>null</code> if none
@@ -140,52 +134,94 @@ class ListEditor {
 	 */
 	protected List list;
 
+	/** The list of path items. This must be kept in synch with the Strings in
+	 * 'list'.
+	 */
 	protected java.util.List<PathItem> pathItems = new java.util.ArrayList<PathItem>();
 	
+	/** The project whose path is being edited. */
 	protected IJavaProject jproject;
 	
+	/** The key for the persistent copy of the path */
 	protected QualifiedName key;
 	
-	public ListEditor(Shell shell, Composite parent, IJavaProject jproject, QualifiedName key) {
+	/**
+	 * The button box containing the buttons;
+	 * <code>null</code> if none (before creation or after disposal).
+	 */
+	protected Composite buttonBox;
+
+	protected Button addJarButton;
+	protected Button addDirButton;
+	protected Button removeButton;
+	protected Button upButton;
+	protected Button downButton;
+	protected Button defaultButton;
+	protected Label label;
+	protected String labelText;
+
+
+	/**
+	 * The selection listener.
+	 */
+	protected SelectionListener selectionListener;
+
+	/** The cached dialog for selecting jar files */
+	protected FileDialog fileDialog;
+	
+	/** The cached dialog for selecting folders */
+	protected DirectoryDialog dirDialog;
+
+	/** Constructs a widget to edit the path corresponding to the given key and for
+	 * the given project.
+	 */
+	// The GridLayout code is copied from FieldEditor
+	public ListEditor(Shell shell, Composite parent, IJavaProject jproject, QualifiedName key, String labelText) {
 
 		this.jproject = jproject;
 		this.key = key;
+		this.labelText = labelText;
 		
+		fileDialog = new FileDialog(shell);
+		fileDialog.setFilterExtensions(new String[]{"*.jar"}); //$NON-NLS-1$
+		dirDialog = new DirectoryDialog(shell);
+		dirDialog.setMessage(Messages.OpenJMLUI_PathsEditor_DirectoryDialogMessage);
+		String path = jproject.getProject().getLocation().toString();
+		dirDialog.setFilterPath(path);
+
 		GridLayout layout = new GridLayout(2,false);
 		layout.marginWidth = 0;
 		layout.marginHeight = 0;
 		layout.horizontalSpacing = 8; //HORIZONTAL_GAP;
 		parent.setLayout(layout);
-		doFillIntoGrid(parent, layout.numColumns);
+		doFillIntoGrid(parent, layout.numColumns); // uses fileDialog
 		
-		fileDialog = new FileDialog(shell);
-		fileDialog.setFilterExtensions(new String[]{"*.jar"});
-		dirDialog = new DirectoryDialog(shell);
-		dirDialog.setMessage("Select a folder to add to the path");
-		String path = jproject.getProject().getLocation().toOSString();
-		dirDialog.setFilterPath(path);
-
 	}
 	
+	/** Initializes the widget from the persistent property. */
 	protected void init(QualifiedName key) {
-//		try{
-//		jproject.getProject().setPersistentProperty(PathItem.sourceKey, null);
-//		jproject.getProject().setPersistentProperty(PathItem.specsKey, null);
-//		} catch (CoreException e) {}
 		pathItems.clear();
 		String prop = PathItem.getEncodedPath(jproject,key);
+		if (Utils.verboseness >= Utils.VERBOSE) {
+			Log.log("Read path property: " + prop); //$NON-NLS-1$
+		}
+
 		String[] paths = prop.split(PathItem.split);
-		PathItem p;
 		for (String s : paths) {
-			p = PathItem.parse(s);
+			PathItem p = PathItem.parse(s);
 			if (p != null) {
 				pathItems.add(p);
 				list.add(p.display());
+			} else {
+				Activator.getDefault().utils.showMessageInUI(fileDialog.getParent(),Messages.OpenJMLUI_PathsEditor_ErrorDialogTitle,
+					Messages.OpenJMLUI_PathsEditor_UnparsableError + s);
 			}
 		}
 	}
 
-	protected Control doFillIntoGrid(Composite parent, int numColumns) {
+	/** Manages the layout of controls */
+	// The GridLayout code is copied from FieldEditor
+	protected void doFillIntoGrid(Composite parent, int numColumns) {
 		Control control = getLabelControl(parent);
 		GridData gd = new GridData();
 		gd.horizontalSpan = numColumns;
@@ -204,34 +240,12 @@ class ListEditor {
 		gd.verticalAlignment = GridData.BEGINNING;
 		buttonBox.setLayoutData(gd);
 
-		return control;
 	}
-
-	/**
-	 * The button box containing the buttons;
-	 * <code>null</code> if none (before creation or after disposal).
-	 */
-	protected Composite buttonBox;
-
-	protected Button addJarButton;
-	protected Button addDirButton;
-	protected Button removeButton;
-	protected Button upButton;
-	protected Button downButton;
-
-	/**
-	 * The selection listener.
-	 */
-	protected SelectionListener selectionListener;
-
-	protected FileDialog fileDialog;
-	protected DirectoryDialog dirDialog;
 
 	/**
 	 * Notifies that the Add button has been pressed.
 	 */
 	protected void addJarPressed() {
-		//setPresentsDefaultValue(false);
 		String input = fileDialog.open();
 		if (input != null) {
 			PathItem item = PathItem.create(input);
@@ -249,7 +263,6 @@ class ListEditor {
 	}
 
 	protected void addDirPressed() {
-		//setPresentsDefaultValue(false);
 		String input = dirDialog.open();
 		if (input != null) {
 			PathItem item = PathItem.create(input);
@@ -264,6 +277,17 @@ class ListEditor {
 			}
 			selectionChanged();
 		}
+	}
+
+	protected void defaultPressed() {
+		list.removeAll();
+		pathItems.clear();
+		java.util.List<PathItem> defaults = key == PathItem.specsKey ? PathItem.defaultSpecsPath : PathItem.defaultSourcePath;
+		for (PathItem item : defaults) {
+			list.add(item.display());
+			pathItems.add(item);
+		}
+		selectionChanged();
 	}
 
 	protected void removePressed() {
@@ -306,39 +330,20 @@ class ListEditor {
 		selectionChanged();
 	}
 
-//	/* (non-Javadoc)
-//	 * Method declared on FieldEditor.
-//	 */
-//	protected void adjustForNumColumns(int numColumns) {
-//		Control control = getLabelControl();
-//		((GridData) control.getLayoutData()).horizontalSpan = numColumns;
-//		((GridData) list.getLayoutData()).horizontalSpan = numColumns - 1;
-//	}
-
 	/**
-	 * Creates the Add, Remove, Up, and Down button in the given button box.
+	 * Creates the buttons in the given button box.
 	 *
 	 * @param box the box for the buttons
 	 */
 	private void createButtons(Composite box) {
-		// FIXME - use properties
-		addJarButton = createPushButton(box, "New Jar ...");//$NON-NLS-1$
-		addDirButton = createPushButton(box, "New Folder ...");//$NON-NLS-1$
-		removeButton = createPushButton(box, "Remove");//$NON-NLS-1$
-		upButton = createPushButton(box, "Up");//$NON-NLS-1$
-		downButton = createPushButton(box, "Down");//$NON-NLS-1$
+		addJarButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddJar);
+		addDirButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddFolder);
+		removeButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Remove);
+		upButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Up);
+		downButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Down);
+		defaultButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Default);
 	}
 
-	protected int convertHorizontalDLUsToPixels(Control control, int dlus) {
-		GC gc = new GC(control);
-		gc.setFont(control.getFont());
-		int averageWidth = gc.getFontMetrics().getAverageCharWidth();
-		gc.dispose();
-
-		double horizontalDialogUnitSize = averageWidth * 0.25;
-
-		return (int) Math.round(dlus * horizontalDialogUnitSize);
-	}
 	/**
 	 * Helper method to create a push button.
 	 * 
@@ -360,6 +365,17 @@ class ListEditor {
 		return button;
 	}
 
+	protected int convertHorizontalDLUsToPixels(Control control, int dlus) {
+		GC gc = new GC(control);
+		gc.setFont(control.getFont());
+		int averageWidth = gc.getFontMetrics().getAverageCharWidth();
+		gc.dispose();
+
+		double horizontalDialogUnitSize = averageWidth * 0.25;
+
+		return (int) Math.round(dlus * horizontalDialogUnitSize);
+	}
+
 	private SelectionListener getSelectionListener() {
 		if (selectionListener == null) {
 			createSelectionListener();
@@ -371,6 +387,9 @@ class ListEditor {
 	/**
 	 * Creates a selection listener.
 	 */
+	// Note - we could add a specific listener to each button, which would be
+	// much more object-oriented, but also means many more objects created.
+	// This code copies how the ListEditor did it.
 	public void createSelectionListener() {
 		selectionListener = new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
@@ -385,21 +404,13 @@ class ListEditor {
 					upPressed();
 				} else if (widget == downButton) {
 					downPressed();
+				} else if (widget == defaultButton) {
+					defaultPressed();
 				} else if (widget == list) {
 					selectionChanged();
 				}
 			}
 		};
-	}
-
-	/**
-	 * Returns the label control. 
-	 *
-	 * @return the label control, or <code>null</code>
-	 *  if no label control has been created
-	 */
-	protected Label getLabelControl() {
-		return label;
 	}
 
 	/**
@@ -430,9 +441,6 @@ class ListEditor {
 		return label;
 	}
 
-	Label label;
-	String labelText;
-
 	/**
 	 * Returns this field editor's label text.
 	 *
@@ -441,44 +449,6 @@ class ListEditor {
 	public String getLabelText() {
 		return labelText;
 	}
-
-//	/* (non-Javadoc)
-//	 * Method declared on FieldEditor.
-//	 */
-//	protected void doLoad() {
-//		//            if (list != null) {
-//		//                String s = getPreferenceStore().getString(getPreferenceName());
-//		//                String[] array = parseString(s);
-//		//                for (int i = 0; i < array.length; i++) {
-//		//                    list.add(array[i]);
-//		//                }
-//		//            }
-//	}
-//
-//	/* (non-Javadoc)
-//	 * Method declared on FieldEditor.
-//	 */
-//	protected void doLoadDefault() {
-//		//            if (list != null) {
-//		//                list.removeAll();
-//		//                String s = getPreferenceStore().getDefaultString(
-//		//                        getPreferenceName());
-//		//                String[] array = parseString(s);
-//		//                for (int i = 0; i < array.length; i++) {
-//		//                    list.add(array[i]);
-//		//                }
-//		//            }
-//	}
-//
-//	/* (non-Javadoc)
-//	 * Method declared on FieldEditor.
-//	 */
-//	protected void doStore() {
-//		//            String s = createList(list.getItems());
-//		//            if (s != null) {
-//		//    			getPreferenceStore().setValue(getPreferenceName(), s);
-//		//    		}
-//	}
 
 
 	protected void selectionChanged() {
@@ -491,25 +461,21 @@ class ListEditor {
 		downButton.setEnabled(size > 1 && index >= 0 && index < size - 1);
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on FieldEditor.
-	 */
 	public void setFocus() {
 		if (list != null) {
 			list.setFocus();
 		}
 	}
-	/*
-	 * @see FieldEditor.setEnabled(boolean,Composite).
-	 */
+
 	public void setEnabled(boolean enabled, Composite parent) {
-		//            super.setEnabled(enabled, parent);
 		getListControl(parent).setEnabled(enabled);
 		addJarButton.setEnabled(enabled);
 		addDirButton.setEnabled(enabled);
 		removeButton.setEnabled(enabled);
 		upButton.setEnabled(enabled);
 		downButton.setEnabled(enabled);
+		defaultButton.setEnabled(enabled);
+		selectionChanged();
 	}
 
 

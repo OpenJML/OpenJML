@@ -21,7 +21,6 @@ import org.eclipse.swt.events.MouseListener;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
-// FIXME - all strings need to be internationalized
 // FIXME - review for other options
 
 /**
@@ -49,10 +48,11 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  * such as the list of all fields or being able to force loads and stores.
  * </UL>
  */
-public class SettingsPage extends FieldEditorPreferencePage implements
+
+public class PreferencesPage extends FieldEditorPreferencePage implements
 IWorkbenchPreferencePage {
 
-	public SettingsPage() {
+	public PreferencesPage() {
 		super(FLAT);
 		// No descriptive text needed. setDescription("Options for OpenJML");
 	}
@@ -88,7 +88,7 @@ IWorkbenchPreferencePage {
         Utils.verboseness = Integer.parseInt((String)value);
         return true;
 	}
-
+	
 	/** The method that constructs all the editors and arranges them on the
 	 * settings page.
 	 */
@@ -107,9 +107,9 @@ IWorkbenchPreferencePage {
 					String key = (String)keyobj;
 					if (!(entry.getValue() instanceof String)) continue;
 					String value = (String)entry.getValue();
-					if (key.contains("openjml")) { // FIXME - no explicit string
+					if (key.contains(Utils.OPENJML)) {
 						if (Utils.verboseness >= Utils.DEBUG) {
-							Log.log("Reading property: " + key + " = " + value);
+							Log.log("Reading property: " + key + " = " + value); //$NON-NLS-1$ //$NON-NLS-2$
 						}
 						FieldEditor field = fieldMap.get(key);
 						if (field != null) {
@@ -121,7 +121,8 @@ IWorkbenchPreferencePage {
 								getPreferenceStore().setValue(key,value); // FIXME - how do we know it is a valid value
 								if (field == verbosity) Utils.verboseness = Integer.parseInt(value);
 							} else {
-								Log.errorlog("Ignoring unknown field editor type " + field.getClass() + " for property " + key + "=" + value,null);
+								// FIXME - use keys for all error messages?
+								Log.errorlog("Ignoring unknown field editor type " + field.getClass() + " for property " + key + "=" + value,null);  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
 							}
 						} else {
 							// Assume anything else has a String value
@@ -136,69 +137,67 @@ IWorkbenchPreferencePage {
 			}
 		};
 		
-		addField(new ButtonFieldEditor(Options.updateKey,"",
-				"Update from properties files",
+		addField(new ButtonFieldEditor(Options.updateKey,"", //$NON-NLS-1$
+				Messages.OpenJMLUI_PreferencesPage_UpdateFromPropertiesFiles,
 				listener,
 				getFieldEditorParent())
 		);
 
-		addField(new LabelFieldEditor("zzzzz.JML","",SWT.NONE,
+		addField(new LabelFieldEditor("zzzzz.JML","",SWT.NONE, //$NON-NLS-1$ //$NON-NLS-2$
 				getFieldEditorParent()));
-		addField(new LabelFieldEditor("zzzzz.JML","JML Options",SWT.SEPARATOR|SWT.HORIZONTAL,
+		addField(new LabelFieldEditor("zzzzz.JML",Messages.OpenJMLUI_PreferencesPage_JmlOptions,SWT.SEPARATOR|SWT.HORIZONTAL, //$NON-NLS-1$
 				getFieldEditorParent()));
 
-		// FIXME - i10n all the strings
-
-        addField(new BooleanFieldEditor(Options.nonnullByDefaultKey, "NonNull By Default",
+        addField(new BooleanFieldEditor(Options.nonnullByDefaultKey, Messages.OpenJMLUI_PreferencesPage_NonNullByDefault,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.checkPurityKey, "Skip Purity Check",
+        addField(new BooleanFieldEditor(Options.checkPurityKey, Messages.OpenJMLUI_PreferencesPage_SkipPurityCheck,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.showNotImplementedKey, "Warn about not-implemented constructs",
+        addField(new BooleanFieldEditor(Options.showNotImplementedKey, Messages.OpenJMLUI_PreferencesPage_WarnAboutNonImplementedConstructs,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.showNotExecutableKey, "Warn about not-executable constructs",
+        addField(new BooleanFieldEditor(Options.showNotExecutableKey, Messages.OpenJMLUI_PreferencesPage_WarnAboutNonExecutableConstructs,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.checkSpecsPathKey, "Check Specification Path",
+        addField(new BooleanFieldEditor(Options.checkSpecsPathKey, Messages.OpenJMLUI_PreferencesPage_CheckSpecificationPath,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.noInternalSpecsKey, "Use external system specs (add system specs to specspath on Paths Page)",
+        addField(new BooleanFieldEditor(Options.noInternalSpecsKey, Messages.OpenJMLUI_PreferencesPage_UseExternalSystemSpecs,
                 getFieldEditorParent()));
-        addField(new StringFieldEditor(Options.optionalKeysKey, "Optional Annotation Keys",
+        addField(new StringFieldEditor(Options.optionalKeysKey, Messages.OpenJMLUI_PreferencesPage_OptionalAnnotationKeys,
                 getFieldEditorParent()));
         
         
         // RAC
         
-		addField(new LabelFieldEditor("zzzzz.RAC","",SWT.NONE,
+		addField(new LabelFieldEditor("zzzzz.RAC","",SWT.NONE, //$NON-NLS-1$ //$NON-NLS-2$
 				getFieldEditorParent()));
-		addField(new LabelFieldEditor("zzzzz.RAC","Options relating to RAC",SWT.SEPARATOR|SWT.HORIZONTAL,
+		addField(new LabelFieldEditor("zzzzz.RAC",Messages.OpenJMLUI_PreferencesPage_OptionsRelatingToRAC,SWT.SEPARATOR|SWT.HORIZONTAL, //$NON-NLS-1$
 				getFieldEditorParent()));
 
-        addField(new BooleanFieldEditor(Options.enableRacKey, "Enable Runtime Assertion Checking",
+        addField(new BooleanFieldEditor(Options.enableRacKey, Messages.OpenJMLUI_PreferencesPage_EnableRuntimeAssertionChecking,
                 getFieldEditorParent()));
-        addField(new DirectoryFieldEditor(Options.racbinKey, "Directory for RAC output",
+        addField(new DirectoryFieldEditor(Options.racbinKey, Messages.OpenJMLUI_PreferencesPage_DirectoryForRACOutput,
                 getFieldEditorParent()));
 
-        addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, "Use an external runtime library (add the library to the project classpath)",
+        addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, Messages.OpenJMLUI_PreferencesPage_UseExternalRuntimeLibrary,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.checkSpecsPathKey, "Add runtime library to project automatically",
+        addField(new BooleanFieldEditor(Options.checkSpecsPathKey, Messages.OpenJMLUI_PreferencesPage_AddRuntimeLibraryAutomatically,
                 getFieldEditorParent()));
 
         // Debug and verbosity
 
-		addField(new LabelFieldEditor("zzzzz.VERBOSE","",SWT.NONE,
+		addField(new LabelFieldEditor("zzzzz.VERBOSE","",SWT.NONE, //$NON-NLS-1$ //$NON-NLS-2$
 				getFieldEditorParent()));
-		addField(new LabelFieldEditor("zzzzz.VERBOSE","Verboseness and Debugging",SWT.SEPARATOR|SWT.HORIZONTAL,
+		addField(new LabelFieldEditor("zzzzz.VERBOSE",Messages.OpenJMLUI_PreferencesPage_VerbosenessAndDebugging,SWT.SEPARATOR|SWT.HORIZONTAL, //$NON-NLS-1$
 				getFieldEditorParent()));
 
-        addField(new BooleanFieldEditor(Options.javaverboseKey, "Java verbose",
+        addField(new BooleanFieldEditor(Options.javaverboseKey, Messages.OpenJMLUI_PreferencesPage_JavaVerbose,
                 getFieldEditorParent()));
         
-        addField(verbosity=new ComboFieldEditor(Options.verbosityKey, "Verbosity Level",
+        addField(verbosity=new ComboFieldEditor(Options.verbosityKey, Messages.OpenJMLUI_PreferencesPage_VerbosityLevel,
         		new String[][]{ 
-        			{"quiet", Integer.toString(Utils.QUIET) }, 
-        			{"normal", Integer.toString(Utils.NORMAL)}, 
-        		    {"progress", Integer.toString(Utils.PROGRESS)}, 
-        		    {"verbose", Integer.toString(Utils.VERBOSE)}, 
-        		    {"debug", Integer.toString(Utils.DEBUG)}},
+        			{Messages.OpenJMLUI_PreferencesPage_quiet, Integer.toString(Utils.QUIET) }, 
+        			{Messages.OpenJMLUI_PreferencesPage_normal, Integer.toString(Utils.NORMAL)}, 
+        		    {Messages.OpenJMLUI_PreferencesPage_progress, Integer.toString(Utils.PROGRESS)}, 
+        		    {Messages.OpenJMLUI_PreferencesPage_verbose, Integer.toString(Utils.VERBOSE)}, 
+        		    {Messages.OpenJMLUI_PreferencesPage_debug, Integer.toString(Utils.DEBUG)}},
                 getFieldEditorParent()));
     }
     

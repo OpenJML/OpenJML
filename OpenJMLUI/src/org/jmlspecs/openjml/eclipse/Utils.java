@@ -114,6 +114,9 @@ public class Utils {
             super(error,e);
         }
     }
+    
+    /** String used in openjml-specific properties. */
+    final public static @NonNull String OPENJML = "openjml";
 
     /** The ID of the marker, which must match that in the plugin file. */
     final public static @NonNull String JML_MARKER_ID = Activator.PLUGIN_ID + ".JMLProblem";
@@ -268,7 +271,7 @@ public class Utils {
                     try {
                         getInterface(jp).executeExternalCommand(Cmd.CHECK,ores,monitor);
                     } catch (Exception e) {
-                        showExceptionInUI(shell,e);
+                        showExceptionInUI(shell,null,e);
                         c = true;
                     }
                     return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
@@ -306,7 +309,7 @@ public class Utils {
                         getInterface(jp).executeESCCommand(Cmd.ESC,
                                         ores,monitor);
                     } catch (Exception e) {
-                        showExceptionInUI(shell,e);
+                        showExceptionInUI(shell,null,e);
                         c = true;
                     }
                     return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
@@ -390,7 +393,7 @@ public class Utils {
                     try {
                         getInterface(jp).executeExternalCommand(Cmd.RAC,sorted.get(jp),monitor);
                     } catch (Exception e) {
-                        showExceptionInUI(shell,e);
+                        showExceptionInUI(shell,"Failure while compiling runtime assertions",e);
                         c = true;
                     }
                     return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
@@ -414,7 +417,7 @@ public class Utils {
                 getInterface(jproject).executeExternalCommand(Cmd.RAC,newlist,monitor);
                 if (Utils.verboseness >= Utils.NORMAL) Log.log("Completed RAC");
             } catch (Exception e) {
-                showExceptionInUI(null,e);
+                showExceptionInUI(null,null,e);
             }
         } else {
         	if (Utils.verboseness >= Utils.NORMAL) Log.log("Nothing to RAC");
@@ -447,7 +450,7 @@ public class Utils {
                         getInterface(p).generateJmldoc(p);
                     }
                 } catch (Exception e) {
-                    showExceptionInUI(shell,e);
+                    showExceptionInUI(shell,null,e);
                     c = true;
                 }
                 return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
@@ -1160,7 +1163,7 @@ public class Utils {
     public void addSelectionToSpecsPath(ISelection selection, IWorkbenchWindow window, @Nullable Shell shell) {
         Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
         if (projects.size() != 1) {
-            showMessage(shell,"JML - Add to Specs Path", "Select exactly one Java Project along with the desired folders");
+            showMessage(shell,"OpenJML - Add to Specs Path", "Select exactly one Java Project along with the desired folders");
             return;
         }
         IJavaProject jp = projects.iterator().next();
@@ -1181,17 +1184,25 @@ public class Utils {
             } else {
                 f = (IFolder)r;
             }
-            List<IResource> specsPath = getInterface(jp).specsPath;
-            if (specsPath.contains(f)) {
-                showMessage(shell,"JML - Add to Specs Path","The specs path for " + jp.getElementName() + " already contains " + f);
+            PathItem p;
+            if (f.getProject().equals(jp.getProject())) {
+            	// Same project - use a project relative path
+            	p = new PathItem.ProjectPath(f.getProjectRelativePath().toString());
             } else {
-                specsPath.add(0,f);
-                putSpecsPath(jp,specsPath);
-                added = true;
+            	p = new PathItem.WorkspacePath(f.getFullPath().toString());
+            }
+            try {
+            	if (PathItem.add(jp,PathItem.specsKey,p)) {
+            		added = true;
+            	} else {
+            		notadded = notadded + " " + f.getProject().getName() + "/" + f.getProjectRelativePath().toString();
+            	}
+            } catch (CoreException e) {
+            	showMessage(shell,"OpenJML - Remove from Specs Path","Exception on reading or writing persistent property: " + e);
             }
         }
         if (notadded.length()!=0) {
-            showMessage(shell,"JML - Add to Specs Path","These were not added: " + notadded);
+            showMessage(shell,"JML - Add to Specs Path","These were already present and not added:" + notadded);
         } else if (!added) {
             showMessage(shell,"JML - Add to Specs Path","Nothing was added");
         }
@@ -1227,43 +1238,58 @@ public class Utils {
                 f = (IFolder)r;
                 n = ((IFolder)r).getName();
             } else continue;
-            if (!specsPath.remove(f)) notremoved = notremoved + n + " ";
+            PathItem p;
+            if (f.getProject().equals(jp.getProject())) {
+            	// Same project - use a project relative path
+            	p = new PathItem.ProjectPath(f.getProjectRelativePath().toString());
+            } else {
+            	p = new PathItem.WorkspacePath(f.getFullPath().toString());
+            }
+            try {
+                if (!PathItem.remove(jp,PathItem.specsKey,p)) notremoved = notremoved + f.getProject().getName() + "/" + f.getProjectRelativePath().toString() + " ";
+            } catch (CoreException e) {
+                showMessage(shell,"OpenJML - Remove from Specs Path","Exception on reading or writing persistent property: " + e);
+            }
         }
         if (notremoved.length()!=0) {
-            showMessage(shell,"JML - Remove from Specs Path","These were not removed: " + notremoved);
+            showMessage(shell,"OpenJML - Remove from Specs Path","These were not found: " + notremoved);
         }
-        putSpecsPath(jp,specsPath);
     }
 
-    // TODO _ document; also clarify the content
+    /** Puts up dialogs to edit each the paths of each selected Java project. */
     public void manipulateSpecsPath(ISelection selection, IWorkbenchWindow window, Shell shell) {
-//        Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
-//        if (projects.size() == 0)  projects = getSelectedProjects(true,selection,window,shell);
-//        for (IJavaProject jp: projects) {
-//            List<IResource> list = getInterface(jp).specsPath;
-////            StringBuilder ss = new StringBuilder();
-////            for (IFile s: list) { ss.append(s.toString()); ss.append("\n"); }
-////            if (!Activator.options.noInternalSpecs) ss.append("<Using internal JML library specs>\n");
-////            ss.append("----------------\n");
-////            List<String> pdirs = getInterface(jp).getSpecsPath();
-////            for (String s: pdirs) { ss.append(s); ss.append("\n"); }
-//            //showMessage(shell,"JML Specs path for project " + jp.getElementName(), ss.toString());
-//            Dialog d = new SpecsPathEditor(shell,jp,list);
-//            d.open();
-//            if (d.getReturnCode() == Dialog.OK) {
-//                // Save the altered items to persistent storage
-//                putSpecsPath(jp,list);
-//                Preferences.poptions.noInternalSpecs.setValue(Activator.options.noInternalSpecs);
-//            }
-//        }
-        Collection<IJavaProject> projects = getSelectedProjects(false,selection,window,shell);
-        // FIXME - put these up simultanesously
+        Collection<IJavaProject> projects = getSelectedProjects(true,selection,window,shell);
+        final Shell finalShell = shell;
         for (IJavaProject jproject: projects) {
-        	Dialog dialog = new PathsEditor(shell, "OpenJML Paths Editor", jproject);
-        	dialog.create();
-        	if (dialog.open() == Dialog.OK) {
-
+        	final IJavaProject jp = jproject;
+        	// FIXME - none of these implementations lets the dialogs come up simultaneously 
+        	// Even if we inherit PathsEditor from ModelessDialog
+        	
+//            Display d = finalShell == null ? Display.getDefault() : finalShell.getDisplay();
+//            d.asyncExec(new Runnable() {
+//                public void run() {
+//    				Dialog dialog = new PathsEditor(finalShell, "OpenJML Paths Editor - " + jp.getElementName(), jp);
+//    				dialog.create();
+//    				dialog.open(); // OK actions are handled in the dialog
+//                }
+//            });
+        	
+        	try {
+        		jproject.getProject().getWorkspace().run(new IWorkspaceRunnable() {
+        			public void run(IProgressMonitor monitor) {
+        				Dialog dialog = new PathsEditor(finalShell, "OpenJML Paths Editor - " + jp.getElementName(), jp);
+        				dialog.create();
+        				dialog.open(); // OK actions are handled in the dialog
+        			}
+        		}, null);
+        	} catch (CoreException e) {
+        		showExceptionInUI(shell,"Failure while editing paths",e);
         	}
+        		
+//				Dialog dialog = new PathsEditor(finalShell, "OpenJML Paths Editor - " + jp.getElementName(), jp);
+//				dialog.create();
+//				dialog.open(); // OK actions are handled in the dialog
+
         }
     }
 
@@ -1545,7 +1571,7 @@ public class Utils {
             IWorkbenchPage page = window.getActivePage();
             page.openEditor(editorInput, "org.eclipse.ui.DefaultTextEditor");
         } catch (Exception e) {
-            showExceptionInUI(null,e);
+            showExceptionInUI(null,"Failure while launching an editor",e);
         }
     }
 
@@ -1560,7 +1586,7 @@ public class Utils {
             IWorkbenchPage page = window.getActivePage();
             page.openEditor(editorInput, org.eclipse.jdt.ui.JavaUI.ID_CU_EDITOR);
         } catch (Exception e) {
-            showExceptionInUI(null,e);
+            showExceptionInUI(null,"Failure while launching an editor",e);
         }
     }
 
@@ -1574,7 +1600,7 @@ public class Utils {
             IWorkbenchPage page = window.getActivePage();
             page.openEditor(editorInput, org.eclipse.jdt.ui.JavaUI.ID_CU_EDITOR );
         } catch (Exception e) {
-            showExceptionInUI(null,e);
+            showExceptionInUI(null,"Failure while launching an editor", e);
         }
     }
 
@@ -1828,8 +1854,8 @@ public class Utils {
     }
     
     // TODO _ document
-    public void showExceptionInUI(@Nullable Shell shell, Exception e) {
-        String s = e.getMessage();
+    public void showExceptionInUI(@Nullable Shell shell, String message, Exception e) {
+        String s = message != null ? message + Env.eol + e.getMessage() : e.getMessage();
         if (s == null || s.isEmpty()) s = e.getClass().toString();
         showMessageInUI(shell,"OpenJML Exception",s);
     }
@@ -2024,6 +2050,39 @@ public class Utils {
             Log.errorlog("Failure finding internal runtime",e);
         }
         return file;
+    }
+    
+    public static class ModelessDialog extends Dialog
+    {
+    	public ModelessDialog(Shell parentShell) {
+    		super(parentShell);
+    		setBlockOnOpen(false);
+    	}
+
+    	protected void setShellStyle(int newShellStyle)
+    	{
+    		int newstyle = newShellStyle & ~SWT.APPLICATION_MODAL; /* turn off APPLICATION_MODAL */
+    		newstyle |= SWT.MODELESS; /* turn on MODELESS */
+
+    		super.setShellStyle(newstyle);
+    	}
+
+    	public int open()
+    	{
+    		int retVal = super.open();
+    		pumpMessages(); /* this will let the caller wait till OK, Cancel is pressed, but will let the other GUI responsive */
+    		return retVal;
+    	}
+
+    	protected void pumpMessages()
+    	{
+    		Shell sh = getShell();
+    		Display disp = sh.getDisplay();
+    		while( !sh.isDisposed() ) {
+    			if( !disp.readAndDispatch() ) disp.sleep();
+    		}
+    		disp.update();
+    	}
     }
     
 }
