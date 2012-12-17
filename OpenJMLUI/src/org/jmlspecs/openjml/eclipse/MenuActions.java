@@ -10,31 +10,11 @@ package org.jmlspecs.openjml.eclipse;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 
@@ -69,6 +49,7 @@ abstract public class MenuActions extends AbstractHandler {
      */
     @Override
     public void dispose() {
+    	super.dispose();
     }
 
     /** Called by the system in response to a menu selection (or other command).
@@ -94,7 +75,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
     			utils.checkSelection(selection,window,shell);
     		} catch (Exception e) {
-    			utils.topLevelException(shell,"MenuActions.CheckJML",e);
+    			utils.topLevelException(shell,"MenuActions.CheckJML",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -111,12 +92,11 @@ abstract public class MenuActions extends AbstractHandler {
     public static class CheckESC extends MenuActions {
     	@Override
     	public Object execute(ExecutionEvent event) {
-    		// For now at least, only IResources are accepted for selection
     		try {
         		getInfo(event);
                 utils.checkESCSelection(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.CheckESC",e);
+                utils.topLevelException(shell,"MenuActions.CheckESC",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -136,7 +116,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.racSelection(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.RAC",e);
+                utils.topLevelException(shell,"MenuActions.RAC",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -156,7 +136,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
         		utils.deleteMarkersInSelection(selection,window,shell);
     		} catch (Exception e) {
-    			utils.topLevelException(shell,"MenuActions.DeleteJMLMarkers",e);
+    			utils.topLevelException(shell,"MenuActions.DeleteJMLMarkers",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -177,7 +157,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.changeJmlNatureSelection(true,selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.EnableJML",e);
+                utils.topLevelException(shell,"MenuActions.EnableJML",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -197,7 +177,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.changeJmlNatureSelection(false,selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.DisableJML",e);
+                utils.topLevelException(shell,"MenuActions.DisableJML",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -222,7 +202,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.showSpecsForSelection(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ShowSpecs",e);
+                utils.topLevelException(shell,"MenuActions.ShowSpecs",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -231,10 +211,7 @@ abstract public class MenuActions extends AbstractHandler {
     /**
      * This action opens an editor containing the specifications file
      * for the selected Java classes.
-     * 
-     * @author David Cok
-     *
-     */ // FIXME - no longer used I believe since now we edit specs in the Preferences page
+     */
     static public class SpecsEditor extends MenuActions {
         // This is done in the UI thread.
         @Override
@@ -243,7 +220,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.openSpecEditorForSelection(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.SpecsEditor",e);
+                utils.topLevelException(shell,"MenuActions.SpecsEditor",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -260,7 +237,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.showProofInfoForSelection(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ShowProofInformation",e);
+                utils.topLevelException(shell,"MenuActions.ShowProofInformation",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -271,14 +248,14 @@ abstract public class MenuActions extends AbstractHandler {
      * current counterexample.
      */
     static public class ShowCounterexampleValue extends MenuActions {
-        // This is not done in the UI thread.  
+        // This is not done in the UI thread. // FIXME - check all statements about UI thread 
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
         		getInfo(event);
                 utils.showCEValueForTextSelection(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ShowCounterexampleValue",e);
+                utils.topLevelException(shell,"MenuActions.ShowCounterexampleValue",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -295,7 +272,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.addSelectionToSpecsPath(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.AddToSpecsPath",e);
+                utils.topLevelException(shell,"MenuActions.AddToSpecsPath",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -312,7 +289,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.removeSelectionFromSpecsPath(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.RemoveFromSpecsPath",e);
+                utils.topLevelException(shell,"MenuActions.RemoveFromSpecsPath",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -320,7 +297,7 @@ abstract public class MenuActions extends AbstractHandler {
 
     /**
      * This action puts up a dialog that allows manipulation of the specs path.
-     */  // FIXME - is this still used?
+     */
     static public class EditPaths extends MenuActions {
         // This is done in the UI thread. 
         @Override
@@ -329,7 +306,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.manipulateSpecsPath(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.SpecsPath",e);
+                utils.topLevelException(shell,"MenuActions.SpecsPath",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -347,7 +324,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.showPaths(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ShowPaths",e);
+                utils.topLevelException(shell,"MenuActions.ShowPaths",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -365,7 +342,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.markForRac(true,selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.EnableForRac",e);
+                utils.topLevelException(shell,"MenuActions.EnableForRac",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -383,7 +360,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
                 utils.markForRac(false,selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.DisableForRac",e);
+                utils.topLevelException(shell,"MenuActions.DisableForRac",e); //$NON-NLS-1$
     		}
     		return null;
     	}
@@ -401,7 +378,7 @@ abstract public class MenuActions extends AbstractHandler {
             	getInfo(event);
                 utils.clearForRac(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ClearForRac",e);
+                utils.topLevelException(shell,"MenuActions.ClearForRac",e); //$NON-NLS-1$
             }
             return null;
         }
@@ -713,7 +690,7 @@ abstract public class MenuActions extends AbstractHandler {
         				"jmldoc is not yet implemented");
                 //utils.jmldocSelection(selection,window,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.JmlDoc",e);
+                utils.topLevelException(shell,"MenuActions.JmlDoc",e); //$NON-NLS-1$
     		}
     		return null;
     	}

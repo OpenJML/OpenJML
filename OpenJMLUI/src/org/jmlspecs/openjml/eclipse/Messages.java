@@ -4,6 +4,7 @@ import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "org.jmlspecs.openjml.eclipse.messages"; //$NON-NLS-1$
+	public static String OpenJMLUI_ExceptionTitle;
 	public static String OpenJMLUI_PathItem_AllSourceFolders;
 	public static String OpenJMLUI_PathItem_ClassPath;
 	public static String OpenJMLUI_PathItem_PROJECT;
@@ -49,6 +50,7 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_VerbosityLevel;
 	public static String OpenJMLUI_PreferencesPage_WarnAboutNonExecutableConstructs;
 	public static String OpenJMLUI_PreferencesPage_WarnAboutNonImplementedConstructs;
+	public static String OpenJMLUI_OpenSpecsEditor_DialogTitle;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

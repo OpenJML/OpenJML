@@ -77,19 +77,13 @@
       <page
             class="org.jmlspecs.openjml.eclipse.PreferencesPage"
             id="org.jmlspecs.openjml.eclipse.SettingsPage"
-            name="%PreferencePage">
-      </page>
-      <page
-            class="org.jmlspecs.openjml.eclipse.PathsPage"
-            id="org.jmlspecs.openjml.eclipse.PathsPage"
-            category="org.jmlspecs.openjml.eclipse.SettingsPage"
-            name="%PreferencePage.Paths">
+            name="%openjml.ui.PreferencePage">
       </page>
       <page
             class="org.jmlspecs.openjml.eclipse.SolversPage"
             id="org.jmlspecs.openjml.eclipse.SolversPage"
             category="org.jmlspecs.openjml.eclipse.SettingsPage"
-            name="%PreferencePage.Solvers">
+            name="%openjml.ui.PreferencePage.Solvers">
       </page>
    </extension>
    
@@ -130,7 +124,7 @@
             id="JMLUI.container">
             <!-- FIXME: The items in this first objectContribution need more specific enablements -->
        <action
-               label="Delete RAC files"
+               label="%openjml.ui.command.DeleteRACFiles"
                class="org.jmlspecs.openjml.eclipse.PopupActions$ClearForRAC"
                menubarPath="JML"
                enablesFor="+"
@@ -433,35 +427,35 @@
              allPopups="false"
              locationURI="menu:org.eclipse.ui.main.menu">
           <menu
-                label="%mainmenu.label">
+                label="%openjml.ui.mainmenu.label">
              <command
-               label="JML type-check"
-               tooltip="Type-checks JML in selected objects"
+               label="%openjml.ui.command.typecheck"
+               tooltip="%openjml.ui.tooltip.typecheck"
                icon="icons/jml-logo-16x16.png"
                id="org.jmlspecs.openjml.eclipse.MenuActions.CheckJML"
                commandId="org.jmlspecs.eclipse.commands.CheckJML">
              </command>
              <command
-               label="Static check (ESC)"
-               tooltip="Performs JML static checks for selected objects"
+               label="%openjml.ui.command.ESC"
+               tooltip="%openjml.ui.tooltip.ESC"
                id="org.jmlspecs.openjml.eclipse.MenuActions.CheckESC"
                commandId="org.jmlspecs.eclipse.commands.CheckESC">
              </command>
              <command
-               label="Enable Auto JML Checking"
-               tooltip="Enables selected objects for auto JML checking"
+               label="%openjml.ui.command.EnableAutoChecking"
+               tooltip="%openjml.ui.command.EnableAutoChecking.description"
                id="org.jmlspecs.openjml.eclipse.MenuActions.EnableJML"
                commandId="org.jmlspecs.eclipse.commands.EnableJML">
              </command>
              <command
-               label="Disable Auto JML Checking"
-               tooltip="Disables selected objects for auto JML checking"
+               label="%openjml.ui.command.DisableAutoChecking"
+               tooltip="%openjml.ui.command.DisableAutoChecking.description"
                id="org.jmlspecs.openjml.eclipse.MenuActions.DisableJML"
                commandId="org.jmlspecs.eclipse.commands.DisableJML">
              </command>
              <command
-               label="Delete JML Markers"
-               tooltip="Clears any JML markers in the selected object"
+               label="%openjml.ui.command.DeleteMarkers"
+               tooltip="%openjml.ui.command.DeleteMarkers.description"
                id="org.jmlspecs.openjml.eclipse.MenuActions.DeleteJMLMarkers"
                commandId="org.jmlspecs.eclipse.commands.DeleteJMLMarkers">
              </command>
@@ -509,26 +503,26 @@
              </command>
              
              <command
-               label="Show JML paths"
-               tooltip="Shows JML's paths"
+               label="%openjml.ui.command.ShowPaths"
+               tooltip="%openjml.ui.command.ShowPaths.description"
                id="org.jmlspecs.openjml.eclipse.MenuActions.ShowPaths"
                commandId="org.jmlspecs.eclipse.commands.ShowPaths">
              </command>
              <command
-               label="Edit JML Source/Specs Patsh"
-               tooltip="Edits the source and specifications directory paths"
+               label="%openjml.ui.command.EditPaths"
+               tooltip="%openjml.ui.command.EditPaths.description"
                id="org.jmlspecs.openjml.eclipse.MenuActions.EditPaths"
                commandId="org.jmlspecs.eclipse.commands.EditPaths">
              </command>
              <command
-               label="Add to JML Specs Path"
-               tooltip="Adds folder to the specifications directory path"
+               label="%openjml.ui.command.AddToPaths"
+               tooltip="%openjml.ui.command.AddToPaths.description"
                id="org.jmlspecs.openjml.eclipse.MenuActions.AddToSpecsPath"
                commandId="org.jmlspecs.eclipse.commands.AddToSpecsPath">
              </command>
              <command
-               label="Remove from JML Specs Path"
-               tooltip="Removes folder from the specifications directory path"
+               label="%openjml.ui.command.RemoveFromPaths"
+               tooltip="%openjml.ui.command.RemoveFromPaths.description"
                id="org.jmlspecs.openjml.eclipse.MenuActions.RemoveFromSpecsPath"
                commandId="org.jmlspecs.eclipse.commands.RemoveFromSpecsPath">
              </command>
@@ -880,38 +874,38 @@
   <extension
 	point="org.eclipse.ui.commands">
       <category
-            name="JML"
-            description="JML related commands"
+            name="%openjml.ui.command.category.name"
+            description="%openjml.ui.command.category.description"
             id="org.jmlspecs.eclipse.JMLCommandCategory"
             >
       </category>
       <command
-            name="Enable JML Auto Checking"
-            description="Enables JML automatic checking during compilation"
+            name="%openjml.ui.command.EnableAutoChecking"
+            description="%openjml.ui.command.EnableAutoChecking.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.EnableJML"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$EnableJML"
             >
       </command> 
       <command
-            name="Disable JML Auto Checking"
-            description="Disables JML automatic checking during compilation"
+            name="%openjml.ui.command.DisableAutoChecking"
+            description="%openjml.ui.command.DisableAutoChecking.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.DisableJML"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$DisableJML"
             >
       </command>
       <command
-            name="TypeCheck JML"
-            description="Manually type-checks JML constructs in selected resources"
+            name="%openjml.ui.command.typecheck"
+            description="%openjml.ui.command.typecheck.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.CheckJML"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$CheckJML"
             >
       </command>
       <command
-            name="Static Check (ESC)"
-            description="Runs static checks on selected resources"
+            name="%openjml.ui.command.ESC"
+            description="%openjml.ui.command.ESC.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.CheckESC"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$CheckESC"
@@ -950,8 +944,8 @@
             >
       </command>
       <command
-            name="Delete JML Markers"
-            description="Deletes the JML markers in selected resources"
+            name="%openjml.ui.command.DeleteMarkers"
+            description="%openjml.ui.command.DeleteMarkers.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.DeleteJMLMarkers"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$DeleteJMLMarkers"
@@ -982,8 +976,8 @@
             >
       </command>
       <command
-            name="Edit JML Paths"
-            description="A wizard to edit the JML source and specs directory paths"
+            name="%openjml.ui.command.EditPaths"
+            description="%openjml.ui.command.EditPaths.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.EditPaths"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$EditPaths"
@@ -991,24 +985,24 @@
       </command>
 
       <command
-            name="Add to JML specs path"
-            description="Adds a folder to the JML specifications directory path"
+            name="%openjml.ui.command.AddToPaths"
+            description="%openjml.ui.command.AddToPaths.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.AddToSpecsPath"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$AddToSpecsPath"
             >
       </command>
       <command
-            name="Remove from JML specs path"
-            description="Removes a folder from the JML specifications directory path"
+            name="%openjml.ui.command.RemoveFromPaths"
+            description="%openjml.ui.command.RemoveFromPaths.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.RemoveFromSpecsPath"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$RemoveFromSpecsPath"
             >
       </command>
       <command
-            name="Show JML paths"
-            description="Shows JML's paths"
+            name="%openjml.ui.command.ShowPaths"
+            description="%openjml.ui.command.ShowPaths.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.ShowPaths"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ShowPaths"

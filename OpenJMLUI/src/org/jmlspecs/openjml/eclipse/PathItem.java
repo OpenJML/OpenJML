@@ -223,8 +223,13 @@ abstract public class PathItem {
     	}
     	
     	public String toAbsolute(IJavaProject jproject) {
-    		return null;
+    		return jproject.getProject().findMember(projectRelativeLocation).getLocation().toString();
     	}
+
+    	public IResource toResource(IJavaProject jproject) {
+    		return jproject.getProject().findMember(projectRelativeLocation);
+    	}
+
 
     	public String display() {
     		return Messages.OpenJMLUI_PathItem_PROJECT + projectRelativeLocation;
@@ -248,6 +253,10 @@ abstract public class PathItem {
     	
     	public String toAbsolute(IJavaProject jproject) {
     		return ResourcesPlugin.getWorkspace().getRoot().findMember(workspaceRelativePath).getLocation().toString();
+    	}
+
+    	public IResource toResource(IJavaProject jproject) {
+    		return ResourcesPlugin.getWorkspace().getRoot().findMember(workspaceRelativePath);
     	}
 
     	public String display() {
