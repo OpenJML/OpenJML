@@ -314,15 +314,18 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         if (that.cases.isEmpty()) return;
         try {
             if (useJMLComments) { align(); print("/*@"); println(); }
-            try { 
-                indent();
-                for (JmlSpecificationCase c: that.cases) {
-                    align();
-                    c.accept(this);  // presumes already aligned; does not end with println
-                    println();
-                }
-            } finally { 
-                undent();
+            boolean first = true;
+            for (JmlSpecificationCase c: that.cases) {
+            	if (first) first = false;
+            	else {
+            		print("also"); //$NON-NLS-1$
+            		println();
+            	}
+            	indent();
+            	align();
+            	c.accept(this);  // presumes already aligned; does not end with println
+            	println();
+            	undent();
             }
             if (useJMLComments) { align(); print(" */"); println(); }
         } catch (Exception e) { 

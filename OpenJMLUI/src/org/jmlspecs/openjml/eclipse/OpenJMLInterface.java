@@ -71,6 +71,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.PropagatedException;
 
 // FIXME - needs review - OpenJMLInterface.java
 
@@ -109,9 +110,6 @@ public class OpenJMLInterface {
     @NonNull
     final protected IJavaProject jproject;
 
-    /** The specs path of the project */
-    protected List<IResource> specsPath;
-    
     /** The problem requestor that reports problems it is told about to the user
      * in some fashion (here via Eclipse problem markers).
      */
@@ -129,12 +127,11 @@ public class OpenJMLInterface {
    
    public void initialize(/*@nullable*/ Main.Cmd cmd) {
        preq = new JmlProblemRequestor(jproject); 
-       specsPath = utils.getDirectoryPath(jproject,Utils.SPECSPATH_ID);
        PrintWriter w = Log.log.listener() != null ? 
-    		   new PrintWriter(Log.log.listener().getStream()) : null;
+    		   new PrintWriter(Log.log.listener().getStream(),true) : null;
        List<String> opts = getOptions(jproject,cmd);
        try { 
-    	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), opts.toArray(new String[0])); //, new String[]{/*"-noInternalRuntime"*/}); 
+    	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), null, opts.toArray(new String[0])); //, new String[]{/*"-noInternalRuntime"*/}); 
        } catch (Exception e) {
     	   Log.errorlog("Failed to create an interface to OpenJML",e);
        }
@@ -147,8 +144,8 @@ public class OpenJMLInterface {
     * @param monitor the progress monitor the UI is using
     */
    public void executeExternalCommand(Main.Cmd command, List<IResource> files, @Nullable IProgressMonitor monitor) {
+	   boolean verboseProgress = Utils.verboseness >= Utils.NORMAL;
        try {
-    	   boolean verboseProgress = Utils.verboseness >= Utils.NORMAL;
            if (files.isEmpty()) {
                if (verboseProgress) Log.log("Nothing applicable to process");
                Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process");
@@ -175,21 +172,27 @@ public class OpenJMLInterface {
            	}
            }
            Timer.timer.markTime();
-           if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
+           if (verboseProgress) {
+        	   String s = files.size() == 1 ? files.get(0).getName() : (files.size() + " items");
+        	   Log.log(Timer.timer.getTimeString() + " Executing openjml on " + s);
+           }
            if (monitor != null) {
                monitor.setTaskName(command == Main.Cmd.RAC ? "JML RAC" : "JML Checking");
                monitor.subTask("Executing openjml");
            }
            try {
                setMonitor(monitor);
-               int ret = api.execute(args.toArray(new String[args.size()]));
-               if (ret == 0) {
+               int ret = api.execute(null,args.toArray(new String[args.size()]));
+               if (ret == Main.EXIT_OK) {
             	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed");
                }
-               else if (ret == 1) {
+               else if (ret == Main.EXIT_CANCELED) {
+            	   throw new Main.JmlCanceledException("");
+               }
+               else if (ret == Main.EXIT_ERROR) {
             	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed with errors");
                }
-               else if (ret >= 2) {
+               else if (ret >= Main.EXIT_CMDERR) {
                    StringBuilder ss = new StringBuilder();
                    for (String r: args) {
                        ss.append(r);
@@ -198,7 +201,7 @@ public class OpenJMLInterface {
                    Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
                    Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + eol + ss);
                }
-               else if (ret >= 3) {
+               else if (ret >= Main.EXIT_SYSERR) {
                    StringBuilder ss = new StringBuilder();
                    for (String r: args) {
                        ss.append(r);
@@ -209,6 +212,8 @@ public class OpenJMLInterface {
                }
            } catch (JmlCanceledException e) {
                throw e;
+           } catch (PropagatedException e) {
+               throw e.getCause();
            } catch (Throwable e) {
                StringBuilder ss = new StringBuilder();
                for (String c: args) {
@@ -221,6 +226,7 @@ public class OpenJMLInterface {
            if (monitor != null) monitor.subTask("Completed openjml");
        } catch (JmlCanceledException e) {
            if (monitor != null) monitor.subTask("OpenJML Canceled: " + e.getMessage());
+    	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Operation canceled");
        }
    }
    
@@ -350,15 +356,37 @@ public class OpenJMLInterface {
 //                api.setProgressReporter(new UIProgressReporter(api.context(),monitor,null));
 //            }
             setMonitor(monitor);
-            if (monitor != null) monitor.subTask("Starting ESC");
            
             List<String> args = getOptions(jproject,Main.Cmd.ESC);
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
             int n = args.size();
             
             IResource rr;
-            for (Object r: things) { // FIXME - an IType is adaptable to an IResource (the containing file), is not handled quite how we want
-                if (r instanceof IAdaptable && (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
+            int count = 0;
+            for (Object r: things) {
+            	try {
+            		if (r instanceof IPackageFragment) {
+            			count += utils.countMethods((IPackageFragment)r);
+            		} else if (r instanceof IJavaProject) {
+            			count += utils.countMethods((IJavaProject)r);
+            		} else if (r instanceof IProject) {
+            			count += utils.countMethods((IProject)r);
+            		} else if (r instanceof IPackageFragmentRoot) {
+            			count += utils.countMethods((IPackageFragmentRoot)r);
+            		} else if (r instanceof ICompilationUnit) {
+            			count += utils.countMethods((ICompilationUnit)r);
+            		} else if (r instanceof IType) {
+            			count += utils.countMethods((IType)r);
+            		} else if (r instanceof IMethod) {
+            			count += 1;
+            		} else {
+            			Log.log("Can't count methods in a " + r.getClass());
+            		}
+            	} catch (Exception e) {}
+            }
+            for (Object r: things) { // an IType is adaptable to an IResource (the containing file), but we want it left as an IType
+                if (!(r instanceof IType) && r instanceof IAdaptable 
+                		&& (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
                 	r = rr;
                 }
                 if (r instanceof IFolder) {
@@ -369,7 +397,9 @@ public class OpenJMLInterface {
                     args.add(((IResource)r).getLocation().toString());
                 } else if (r instanceof IResource) {
                     args.add(((IResource)r).getLocation().toString());
-                } else if (r instanceof IType || r instanceof IMethod) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
+                } else if (r instanceof IType) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
+                    elements.add((IJavaElement)r);
+                } else if (r instanceof IMethod) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
                     elements.add((IJavaElement)r);
                 } else if (r instanceof IJavaElement) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
                     elements.add((IJavaElement)r);
@@ -380,6 +410,13 @@ public class OpenJMLInterface {
                 Activator.getDefault().utils.showMessageInUI(null,"JML","No files or elements to process");
                 return;
             }
+            
+            Log.log("Counted " + count + " methods");
+            if (monitor != null) {
+            	monitor.beginTask("Static checks",  4*count); // 4 ticks per method being checked
+            	monitor.subTask("Starting ESC");
+            }
+
             if (args.size() > n) {
             	Timer.timer.markTime();
             	if (Utils.verboseness >= Utils.NORMAL) {
@@ -388,10 +425,10 @@ public class OpenJMLInterface {
                 if (monitor != null) monitor.subTask("Executing static checks");
                 try {
                     if (monitor != null) monitor.setTaskName("ESC");
-                    int ret = api.execute(args.toArray(new String[args.size()]));
-                    if (ret == 0) Log.log(Timer.timer.getTimeString() + " Completed");
-                    else if (ret == 1) Log.log(Timer.timer.getTimeString() + " Completed with errors");
-                    else if (ret >= 2) {
+                    int ret = api.execute(null,args.toArray(new String[args.size()]));
+                    if (ret == Main.EXIT_OK) Log.log(Timer.timer.getTimeString() + " Completed");
+                    else if (ret == Main.EXIT_ERROR) Log.log(Timer.timer.getTimeString() + " Completed with errors");
+                    else if (ret >= Main.EXIT_CMDERR) {
                         StringBuilder ss = new StringBuilder();
                         for (String c: args) {
                             ss.append(c);
@@ -399,6 +436,9 @@ public class OpenJMLInterface {
                         }
                         Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
                         Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
+                    } else if (ret == Main.EXIT_CANCELED) {
+                    	// Cancelled
+                    	throw new Main.JmlCanceledException("ESC Canceled");
                     }
                 } catch (Main.JmlCanceledException e) {
                     throw e;
@@ -415,51 +455,53 @@ public class OpenJMLInterface {
             // Now do individual methods
             // Delete all markers first, so that subsequent proofs do not delete
             // the markers from earlier proofs
-            for (IJavaElement je: elements) {
-            	utils.deleteMarkers(je.getResource(),null); // FIXME - would prefer to delete markers and highlighting on just the method.
-            }
-            for (IJavaElement je: elements) {
-                if (je instanceof IMethod) {
-                    MethodSymbol msym = convertMethod((IMethod)je);
-                    if (msym == null) {
-                    	IResource r = je.getResource();
-                    	String filename = null;
-                    	try {
-                    		filename = r.getLocation().toString();
-                        	api.typecheck(api.parseFiles(filename));
-                        	msym = convertMethod((IMethod)je);
-                    	} catch (java.io.IOException e) {
-                    		// ERROR
-                    	}
-                    }
-                    if (msym != null) {
-                    	if (Utils.verboseness >= Utils.NORMAL)
-                    		Log.log("Beginning ESC on " + msym);
-                    	if (monitor != null) monitor.subTask("Checking " + msym);
-                    	IProverResult res = api.doESC(msym);
-                    	IProverResult.ICounterexample ce = res.counterexample();
-                    	if (ce != null && ce.getPath() != null) {
-                    		for (IProverResult.Span span: ce.getPath()) {
-                              utils.highlight(je.getResource(), span.start, span.end, span.type);
-                    		}
-                    	}
-                    }
-                    else {} // ERROR - FIXME
-                } else if (je instanceof IType) {
-                    ClassSymbol csym = convertType((IType)je);
-                    if (csym != null) api.doESC(csym);
-                    else {} // ERROR - FIXME
-                }
+            if (!elements.isEmpty()) {
+            	for (IJavaElement je: elements) {
+            		utils.deleteMarkers(je.getResource(),null); // FIXME - would prefer to delete markers and highlighting on just the method.
+            	}
+            	for (IJavaElement je: elements) {
+            		if (je instanceof IMethod) {
+            			MethodSymbol msym = convertMethod((IMethod)je);
+            			if (msym == null) {
+            				IResource r = je.getResource();
+            				String filename = null;
+            				try {
+            					filename = r.getLocation().toString();
+            					api.typecheck(api.parseFiles(filename));
+            					msym = convertMethod((IMethod)je);
+            				} catch (java.io.IOException e) {
+            					// ERROR
+            				}
+            			}
+            			if (msym != null) {
+            				if (Utils.verboseness >= Utils.NORMAL)
+            					Log.log("Beginning ESC on " + msym);
+            				if (monitor != null) monitor.subTask("Checking " + msym);
+            				IProverResult res = api.doESC(msym);
+            				IProverResult.ICounterexample ce = res.counterexample();
+            				if (ce != null && ce.getPath() != null) {
+            					for (IProverResult.Span span: ce.getPath()) {
+            						utils.highlight(je.getResource(), span.start, span.end, span.type);
+            					}
+            				}
+            			}
+            			else {} // ERROR - FIXME
+            		} else if (je instanceof IType) {
+            			ClassSymbol csym = convertType((IType)je);
+            			if (csym != null) api.doESC(csym);
+            			else {} // ERROR - FIXME
+            		}
+            	}
+                if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Completed ESC operation on individual methods");
             }
             if (monitor != null) {
                 monitor.subTask("Completed ESC operation");
             }
-            if (Utils.verboseness >= Utils.NORMAL) Log.log("Completed ESC operation");
-        } catch (JmlCanceledException e) {
-            Log.log("Canceled ESC operation");
-            throw e;
-//        } catch (java.io.IOException e) {
-//            Log.errorlog("IOException during ESC",e); 
+        } catch (Main.JmlCanceledException e) {
+        	if (monitor != null) {
+                monitor.subTask("Canceled ESC operation");
+            }
+            if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Canceled ESC operation");
         }
     }
 
@@ -852,9 +894,15 @@ public class OpenJMLInterface {
             }
 
             if (resource == null) {
-                // FIXME - associate with project?
-                if (severity == ProblemSeverities.Error) Log.errorlog(diagnostic.toString(),null);
-                else Log.log(diagnostic.toString());
+            	// This can happen when the file to which the diagnostic points
+            	// is not an IResource. For example, the Associated Declaration
+            	// to an error may be in a system specifications file.
+            	// FIXME - we should load a read-only text file, with the markers
+            	// for this case.
+            	if (!diagnostic.toString().contains("Associated declaration")) {
+            		if (severity == ProblemSeverities.Error) Log.errorlog(diagnostic.toString(),null);
+            		else Log.log(diagnostic.toString());
+            	}
             } else {
                 JmlEclipseProblem problem = new JmlEclipseProblem(resource, message, id,  severity,
                         (int)startPosition, (int)endPosition, (int)line, null, // No source text avaialble? FIXME
@@ -910,14 +958,16 @@ public class OpenJMLInterface {
             Display d = shell == null ? Display.getDefault() : shell.getDisplay();
             d.asyncExec(new Runnable() {
                 public void run() {
-                    // FIXME - it seems that for a level==1, when both a Log message
-                    // and a monitor subTask message are desired, only the Log message
-                    // appears.
-                    if (monitor != null) monitor.subTask(message);
+                    if (monitor != null) {
+                    	monitor.subTask(message);
+                    	monitor.worked(ticks);
+                    }
                     if (level <= 1) Log.log(message);
                 }
             });
-            return monitor != null && monitor.isCanceled();
+            boolean cancel = monitor != null && monitor.isCanceled();
+            if (cancel) throw new PropagatedException(new Main.JmlCanceledException("Operation cancelled"));
+            return cancel;
         }
         
         /** Sets the OpenJML compilation context associated with this listener. */
@@ -1046,6 +1096,9 @@ public class OpenJMLInterface {
 //            opts.add(ss.toString());
 //        }
         
+        // The plug-in adds the internal specs (or asks the user for external specs)
+        // So, openjml itself never needs to
+        opts.add(JmlOption.NOINTERNALSPECS.optionName());
         opts.add(JmlOption.SPECS.optionName());
         opts.add(PathItem.getAbsolutePath(jproject,PathItem.specsKey));
 

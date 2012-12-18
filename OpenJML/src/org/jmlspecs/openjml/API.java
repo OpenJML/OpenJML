@@ -95,6 +95,67 @@ import com.sun.tools.javac.util.Position;
  */
 public class API implements IAPI {
     
+    /** The encapsulated org.jmlspecs.openjml.Main object */
+    public Main main = null; // FIXME - change this back to protected
+    //@ initially main != null;
+    
+    protected DiagnosticListener<? extends JavaFileObject> diagListener = null;
+    
+//    /** The encapsulated compilation context; this can change when various
+//     * actions are execu5ted, so do not cache it elsewhere */
+//    // protected invariant main != null ==> main.context == context;
+//    protected Context context = null;
+    
+    /** Creates a new compilation context, initialized with given command-line options.
+     * Output is sent to System.out; no diagnostic listener is used (so errors
+     * and warnings are sent to System.out). 
+     * @param args the command-line options and initial set of files with which
+     * to load the compilation environment
+     */
+    //@ ensures isOpen;
+    public API(@NonNull String ... args) throws IOException {
+        this(null,null,null,args);
+    }
+    
+    /** Creates an API that will send informational output to the
+     * given PrintWriter and diagnostic output to the given listener.
+     * @param writer destination of non-diagnostic output (null means System.out)
+     * @param listener
+     */
+    //@ ensures isOpen;
+    public API(@Nullable PrintWriter writer, 
+            @Nullable DiagnosticListener<? extends JavaFileObject> listener, 
+            @Nullable Options options,
+            @NonNull String... args) throws java.io.IOException {
+        if (writer == null) {
+            writer = new PrintWriter(System.out);
+        }
+        main = new Main(Strings.applicationName,writer,listener,options,args);
+        this.diagListener = listener;
+        Log.instance(main.context).multipleErrors = true;
+    }
+    
+    /* (non-Javadoc)
+     * @see org.jmlspecs.openjml.IAPI#context()
+     */
+    @Override
+    //@ ensures \result == context;
+    @Pure
+    public @Nullable Context context() {
+        return main == null ? null : main.context;
+    }
+    
+    /* (non-Javadoc)
+     * @see org.jmlspecs.openjml.IAPI#setProgressReporter(org.jmlspecs.openjml.Main.IProgressReporter)
+     */
+    @Override
+    public void setProgressListener(@Nullable Main.IProgressListener p) {
+        if (main.progressDelegate != null) {
+            p.setContext(main.context);
+            main.progressDelegate.setDelegate(p);
+        }
+    }
+    
     /** Returns the string describing the version of OpenJML that is this
      * set of classes.
      * @return the version of this instance of OpenJML
@@ -105,13 +166,12 @@ public class API implements IAPI {
     }
     
     /** Executes the command-line version of OpenJML, returning the exit code.
-     * All output and diagnostics are written to System.out.
      * @param args the command-line arguments
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
     @Override
-    public int execute(@NonNull String ... args) {
-        int ret = org.jmlspecs.openjml.Main.execute(main != null ? main.out : new PrintWriter(System.out, true), diagListener, null, args);
+    public int execute(@NonNull Options options, @NonNull String ... args) {
+        int ret = main.executeNS(main.out(), diagListener, options, args);
         return ret;
     }
     
@@ -122,98 +182,14 @@ public class API implements IAPI {
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
     @Override
-    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull String ... args) {
-        int ret = org.jmlspecs.openjml.Main.execute(writer,diagListener,null,args);
+    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @Nullable Options options, @NonNull String ... args) {
+        int ret = main.executeNS(writer,diagListener,options,args);
         return ret;
     }
-    
-    @Override
-    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull Options options, @NonNull String ... args) {
-        int ret = org.jmlspecs.openjml.Main.execute(writer,diagListener,options,args);
-        return ret;
-    }
-    
     
     /** Executes the jmldoc tool on the given command-line arguments. */
     public int jmldoc(@NonNull String... args) {
         return org.jmlspecs.openjml.jmldoc.Main.execute(args);
-    }
-    
-    //////////////// Non-static API ////////////////////////////////
-    
-    /** The encapsulated org.jmlspecs.openjml.Main object */
-    public Main main = null; // FIXME - change this back to protected
-    //@ initially main != null;
-    
-    protected DiagnosticListener<? extends JavaFileObject> diagListener = null;
-    
-    /** The encapsulated compilation context */
-    // protected invariant main != null ==> mail.context == context;
-    protected Context context = null;
-    
-    /** Creates a new compilation context, initialized with given command-line options.
-     * Output is sent to System.out; no diagnostic listener is used (so errors
-     * and warnings are sent to System.out). 
-     * @param args the command-line options and initial set of files with which
-     * to load the compilation environment
-     */
-    //@ ensures isOpen;
-    public API(@NonNull String ... args) throws IOException {
-        this(null,null,args);
-    }
-    
-    private final String[] noargs = new String[0];
-    
-    //@ ensures isOpen;
-    public API(@Nullable PrintWriter writer, 
-            @Nullable DiagnosticListener<? extends JavaFileObject> listener, 
-            @NonNull Options options) throws java.io.IOException {
-        if (writer == null) {
-            writer = new PrintWriter(System.out);
-        }
-        main = new Main(Strings.applicationName,writer,listener,options,noargs);
-        context = main.context;
-        this.diagListener = listener;
-        Log.instance(context).multipleErrors = true;
-    }
-        
-    /** Creates an API that will send informational output to the
-     * given PrintWriter and diagnostic output to the given listener.
-     * @param writer destination of non-diagnostic output (null means System.out)
-     * @param listener
-     */
-    //@ ensures isOpen;
-    public API(@Nullable PrintWriter writer, 
-            @Nullable DiagnosticListener<? extends JavaFileObject> listener, 
-            @NonNull String... args) throws java.io.IOException {
-        if (writer == null) {
-            writer = new PrintWriter(System.out);
-        }
-        main = new Main(Strings.applicationName,writer,listener,null,args);
-        context = main.context;
-        this.diagListener = listener;
-        Log.instance(context).multipleErrors = true;
-    }
-    
-    /* (non-Javadoc)
-     * @see org.jmlspecs.openjml.IAPI#context()
-     */
-    @Override
-    //@ ensures \result == context;
-    @Pure
-    public @Nullable Context context() {
-        return context;
-    }
-    
-    /* (non-Javadoc)
-     * @see org.jmlspecs.openjml.IAPI#setProgressReporter(org.jmlspecs.openjml.Main.IProgressReporter)
-     */
-    @Override
-    public void setProgressListener(@Nullable Main.IProgressListener p) {
-        if (main.progressDelegate != null) {
-            p.setContext(context);
-            main.progressDelegate.setDelegate(p);
-        }
     }
     
     /* (non-Javadoc)
@@ -221,9 +197,6 @@ public class API implements IAPI {
      */
     @Override
     public int typecheck(@NonNull JmlCompilationUnit... trees) throws IOException {
-        if (context == null) {
-            throw new NullPointerException("There is no valid compilation context");
-        }
         if (trees == null) {
             throw new IllegalArgumentException("Argument 'trees' of API.enterAndCheck is null");
         }
@@ -239,7 +212,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public int typecheck(@NonNull Collection<? extends JmlCompilationUnit> trees) throws java.io.IOException {
-        if (context == null) {
+        if (main.context == null) {
             throw new NullPointerException("There is no valid compilation context");
         }
         if (trees == null) {
@@ -258,14 +231,14 @@ public class API implements IAPI {
      */
     @Override
     public int typecheck(@NonNull List<JCCompilationUnit> list) throws IOException {
-        JmlCompiler jcomp = (JmlCompiler)JmlCompiler.instance(context);
-        JmlTree.Maker maker = JmlTree.Maker.instance(context);
+        JmlCompiler jcomp = (JmlCompiler)JmlCompiler.instance(main.context);
+        JmlTree.Maker maker = JmlTree.Maker.instance(main.context);
         for (JCCompilationUnit jcu: list) {
             for (JCTree t: jcu.defs) {
-                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).typeSpecs == null) JmlParser.filterTypeBodyDeclarations((JmlClassDecl)t,context,maker);
+                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).typeSpecs == null) JmlParser.filterTypeBodyDeclarations((JmlClassDecl)t,main.context,maker);
             }
             for (JmlClassDecl t: ((JmlCompilationUnit)jcu).parsedTopLevelModelTypes) {
-                if (t.typeSpecs == null) JmlParser.filterTypeBodyDeclarations(t,context, maker);
+                if (t.typeSpecs == null) JmlParser.filterTypeBodyDeclarations(t,main.context, maker);
             }
         }
 
@@ -274,8 +247,8 @@ public class API implements IAPI {
                     jcomp.enterTrees(jcomp.stopIfError(CompileState.PARSE, list)),
                 com.sun.tools.javac.util.List.<String>nil());
         dc.flow(dc.attribute(dc.todo));
-        int errs = Log.instance(context).nerrors;
-        Log.instance(context).nerrors = 0;
+        int errs = Log.instance(main.context).nerrors;
+        Log.instance(main.context).nerrors = 0;
         return errs;
     }
 
@@ -289,9 +262,9 @@ public class API implements IAPI {
     //@ ensures (* output elements are non-null *);
     @Override
     public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull File... files) {
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(main.context);
         c.inSequence = false;
-        Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(files);
+        Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)main.context.get(JavaFileManager.class)).getJavaFileObjects(files);
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
         for (JavaFileObject fileObject : fobjects)
             trees.add((JmlCompilationUnit)c.parse(fileObject));
@@ -325,7 +298,7 @@ public class API implements IAPI {
     //@ ensures (* output elements are non-null *);
     @Override
     public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs) {
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(main.context);
         c.inSequence = false;
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
         for (JavaFileObject fileObject : inputs)
@@ -343,7 +316,7 @@ public class API implements IAPI {
     //@ ensures (* output elements are non-null *);
     @Override
     public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull Collection<? extends JavaFileObject> inputs) {
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(main.context);
         c.inSequence = false;
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
         for (JavaFileObject fileObject : inputs)
@@ -369,7 +342,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @NonNull JmlCompilationUnit parseSingleFile(@NonNull JavaFileObject jfo) {
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(main.context);
         c.inSequence = true; // Don't look for specs
         JmlCompilationUnit specscu = (JmlCompilationUnit)c.parse(jfo);
         c.inSequence = false;
@@ -378,7 +351,7 @@ public class API implements IAPI {
 
     @Override public @Nullable
     JavaFileObject findSpecs(JmlCompilationUnit jmlcu) {
-        return ((JmlCompiler)JmlCompiler.instance(context)).findSpecs(jmlcu);
+        return ((JmlCompiler)JmlCompiler.instance(main.context)).findSpecs(jmlcu);
     }
 
 
@@ -399,7 +372,7 @@ public class API implements IAPI {
     @Override
     public @NonNull JmlCompilationUnit parseString(@NonNull String name, @NonNull String content) throws Exception {
         if (name == null || name.length() == 0) throw new IllegalArgumentException();
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(main.context);
         JavaFileObject file = makeJFOfromString(name,content);
         c.inSequence = true;  // true so that no searching for spec files happens
         Iterable<? extends JavaFileObject> fobjects = List.<JavaFileObject>of(file);
@@ -412,8 +385,8 @@ public class API implements IAPI {
      */
     @Override
     public JCExpression parseExpression(CharSequence text,boolean isJML) {
-        JmlCompiler.instance(context);
-        JmlParser p = ((com.sun.tools.javac.parser.JmlFactory)com.sun.tools.javac.parser.JmlFactory.instance(context)).newParser(text,true,true,true,isJML);
+        JmlCompiler.instance(main.context);
+        JmlParser p = ((com.sun.tools.javac.parser.JmlFactory)com.sun.tools.javac.parser.JmlFactory.instance(main.context)).newParser(text,true,true,true,isJML);
         return p.parseExpression();
     }
     
@@ -422,8 +395,8 @@ public class API implements IAPI {
      */
     @Override
     public JCStatement parseStatement(CharSequence text,boolean isJML) {
-        JmlCompiler.instance(context);
-        JmlParser p = ((com.sun.tools.javac.parser.JmlFactory)com.sun.tools.javac.parser.JmlFactory.instance(context)).newParser(text,true,true,true,isJML);
+        JmlCompiler.instance(main.context);
+        JmlParser p = ((com.sun.tools.javac.parser.JmlFactory)com.sun.tools.javac.parser.JmlFactory.instance(main.context)).newParser(text,true,true,true,isJML);
         return p.parseStatement();
     }
     
@@ -434,10 +407,10 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public void parseAndCheck(File... files) throws java.io.IOException {
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context);
+        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(main.context);
         if (!main.setupOptions()) throw new JmlCanceledException("");
         c.inSequence = false;
-        Iterable<? extends JavaFileObject> sourceFileObjects = ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObjects(files);
+        Iterable<? extends JavaFileObject> sourceFileObjects = ((JavacFileManager)main.context.get(JavaFileManager.class)).getJavaFileObjects(files);
         ListBuffer<JavaFileObject> list = ListBuffer.<JavaFileObject>lb();
         for (JavaFileObject jfo : sourceFileObjects) list.append(jfo);
         c.processAnnotations(c.enterTrees(c.stopIfError(CompileState.PARSE,c.parseFiles(list.toList()))),
@@ -455,8 +428,8 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @Nullable PackageSymbol getPackageSymbol(@NonNull String qualifiedName) {
-        Name n = Names.instance(context).fromString(qualifiedName);
-        return Symtab.instance(context).packages.get(n);
+        Name n = Names.instance(main.context).fromString(qualifiedName);
+        return Symtab.instance(main.context).packages.get(n);
     }
 
     /* (non-Javadoc)
@@ -466,8 +439,8 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @Nullable ClassSymbol getClassSymbol(@NonNull String qualifiedName) {
-        Name n = Names.instance(context).fromString(qualifiedName);
-        return Symtab.instance(context).classes.get(n);
+        Name n = Names.instance(main.context).fromString(qualifiedName);
+        return Symtab.instance(main.context).classes.get(n);
     }
     
     /* (non-Javadoc)
@@ -475,7 +448,7 @@ public class API implements IAPI {
      */
     @Override
     public @Nullable ClassSymbol getClassSymbol(@NonNull ClassSymbol csym, @NonNull String name) {
-        Scope.Entry e = csym.members().lookup(Names.instance(context).fromString(name));
+        Scope.Entry e = csym.members().lookup(Names.instance(main.context).fromString(name));
         if (e == null || e.sym == null) return null;
         while (e.sym != null && e.sym.owner == csym) {
             if (e.sym instanceof ClassSymbol) return (ClassSymbol)e.sym;
@@ -491,7 +464,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @Nullable MethodSymbol getMethodSymbol(@NonNull ClassSymbol csym, @NonNull String name) {
-        Scope.Entry e = csym.members().lookup(Names.instance(context).fromString(name));
+        Scope.Entry e = csym.members().lookup(Names.instance(main.context).fromString(name));
         if (e == null || e.sym == null) return null;
         while (e.sym != null && e.sym.owner == csym) {
             if (e.sym instanceof MethodSymbol) return (MethodSymbol)e.sym;
@@ -505,7 +478,7 @@ public class API implements IAPI {
      */
     @Override
     public @Nullable VarSymbol getVarSymbol(@NonNull ClassSymbol csym, @NonNull String name) {
-        Scope.Entry e = csym.members().lookup(Names.instance(context).fromString(name));
+        Scope.Entry e = csym.members().lookup(Names.instance(main.context).fromString(name));
         if (e == null || e.sym == null) return null;
         while (e.sym != null && e.sym.owner == csym) {
             if (e.sym instanceof VarSymbol) return (VarSymbol)e.sym;
@@ -555,7 +528,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public JmlClassDecl getJavaDecl(ClassSymbol csym) {
-        JCTree tree = JmlEnter.instance(context).getClassEnv(csym).tree;
+        JCTree tree = JmlEnter.instance(main.context).getClassEnv(csym).tree;
         return (JmlClassDecl)tree;
     }
     
@@ -598,7 +571,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public boolean setOption(String name, String value) {
-        Options.instance(context).put(name,value);
+        Options.instance(main.context).put(name,value);
         return main.setupOptions();
     }
 
@@ -609,7 +582,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public boolean setOption(String name) {
-        Options.instance(context).put(name,"");
+        Options.instance(main.context).put(name,"");
         return main.setupOptions();
     }
     
@@ -622,7 +595,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public void removeOption(String name) {
-        Options.instance(context).remove(name);
+        Options.instance(main.context).remove(name);
     }
     
     /* (non-Javadoc)
@@ -632,7 +605,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @Nullable String getOption(String name) {
-        return Options.instance(context).get(name);
+        return Options.instance(main.context).get(name);
     }
     
     
@@ -717,7 +690,7 @@ public class API implements IAPI {
         if (mostRecentProofMethod == null) {
             return "No proof in which to evaluate the selection";
         }
-        JmlCompilationUnit tree = (JmlCompilationUnit)Enter.instance(context).getEnv((TypeSymbol)mostRecentProofMethod.owner).toplevel;
+        JmlCompilationUnit tree = (JmlCompilationUnit)Enter.instance(main.context).getEnv((TypeSymbol)mostRecentProofMethod.owner).toplevel;
         if (!tree.sourcefile.getName().replace('\\','/').equals(fileLocation)) {
             //System.out.println("Did not match " + tree.sourcefile.toString());
             boolean found = false;
@@ -775,7 +748,7 @@ public class API implements IAPI {
     @Override
     public IProverResult doESC(MethodSymbol msym) {
         JmlMethodDecl decl = getJavaDecl(msym);
-        JmlEsc esc = JmlEsc.instance(context);
+        JmlEsc esc = JmlEsc.instance(main.context);
         esc.proveMethod(decl);
         mostRecentProofMethod = msym;
         mostRecentProgram = esc.mostRecentProgram;
@@ -793,7 +766,7 @@ public class API implements IAPI {
     public void doESC(ClassSymbol csym) {
         mostRecentProofMethod = null;
         JmlClassDecl decl = getJavaDecl(csym);
-        JmlEsc.instance(context).visitClassDef(decl);
+        JmlEsc.instance(main.context).visitClassDef(decl);
     }
     
     /* (non-Javadoc)
@@ -803,7 +776,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @Nullable IProverResult getProofResult(MethodSymbol msym) {
-        return JmlEsc.instance(context).proverResults.get(msym);
+        return JmlEsc.instance(main.context).proverResults.get(msym);
     }
     
     // TODO - is this really to be public?
@@ -816,7 +789,7 @@ public class API implements IAPI {
     public String getBasicBlockProgram(MethodSymbol msym) {
         JmlMethodDecl tree = getJavaDecl(msym);
         JmlClassDecl cdecl = getJavaDecl((ClassSymbol)msym.owner);
-        BasicProgram program = BasicBlocker.convertToBasicBlocks(context, tree, JmlSpecs.instance(context).getSpecs(msym).cases.deSugared, cdecl);
+        BasicProgram program = BasicBlocker.convertToBasicBlocks(main.context, tree, JmlSpecs.instance(main.context).getSpecs(msym).cases.deSugared, cdecl);
         return program.write("BASIC BLOCK PROGRAM FOR " + msym.owner.getQualifiedName() + "." + msym.toString() + "\n\n");
     }
     
@@ -861,7 +834,7 @@ public class API implements IAPI {
                 e = e.sibling;
                 if (!(sym instanceof MethodSymbol)) continue;
                 MethodSymbol mmsym = (MethodSymbol)sym;
-                if (!msym.overrides(mmsym,msym.enclClass(),Types.instance(context),false)) continue;
+                if (!msym.overrides(mmsym,msym.enclClass(),Types.instance(main.context),false)) continue;
                 list.add(mmsym);
                 break;
             }
@@ -875,7 +848,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @NonNull TypeSpecs getSpecs(@NonNull ClassSymbol sym) {
-        return JmlSpecs.instance(context).get(sym);
+        return JmlSpecs.instance(main.context).get(sym);
     }
     
     /* (non-Javadoc)
@@ -887,7 +860,7 @@ public class API implements IAPI {
     public java.util.List<TypeSpecs> getAllSpecs(@NonNull ClassSymbol sym) {
         java.util.List<ClassSymbol> list = new ArrayList<ClassSymbol>();
         collectSuperTypes(sym,list);
-        JmlSpecs specs = JmlSpecs.instance(context);
+        JmlSpecs specs = JmlSpecs.instance(main.context);
         java.util.List<TypeSpecs> tslist = new ArrayList<TypeSpecs>();
         for (ClassSymbol c: list) tslist.add(specs.get(c));
         return tslist;
@@ -900,7 +873,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @NonNull JmlSpecs.MethodSpecs getSpecs(@NonNull MethodSymbol sym) {
-        return JmlSpecs.instance(context).getSpecs(sym);
+        return JmlSpecs.instance(main.context).getSpecs(sym);
     }
     
     /* (non-Javadoc)
@@ -917,7 +890,7 @@ public class API implements IAPI {
         }
         java.util.List<MethodSymbol> list = new ArrayList<MethodSymbol>();
         collectSuperMethods(msym,list);
-        JmlSpecs specs = JmlSpecs.instance(context);
+        JmlSpecs specs = JmlSpecs.instance(main.context);
         for (MethodSymbol c: list) tslist.add(specs.getSpecs(c));
         return tslist;
     }
@@ -931,7 +904,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @NonNull JmlMethodSpecs getDenestedSpecs(@NonNull MethodSymbol sym) {
-        return JmlSpecs.instance(context).getDenestedSpecs(sym);
+        return JmlSpecs.instance(main.context).getDenestedSpecs(sym);
     }
     
     /* (non-Javadoc)
@@ -941,7 +914,7 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @NonNull FieldSpecs getSpecs(@NonNull VarSymbol sym) {
-        return JmlSpecs.instance(context).getSpecs(sym);
+        return JmlSpecs.instance(main.context).getSpecs(sym);
     }
     
     /* (non-Javadoc)
@@ -951,8 +924,8 @@ public class API implements IAPI {
     //@ ensures isOpen;
     @Override
     public @NonNull JmlTree.Maker nodeFactory() {
-        JmlAttr.instance(context);  // Avoids circular tool registration problems
-        return JmlTree.Maker.instance(context);
+        JmlAttr.instance(main.context);  // Avoids circular tool registration problems
+        return JmlTree.Maker.instance(main.context);
     }
     
     
@@ -1003,8 +976,7 @@ public class API implements IAPI {
     //@ ensures !isOpen;
     @Override
     public void close() {
-        JmlCompiler.instance(context).close();
-        context = null;
+        JmlCompiler.instance(main.context).close();
         main.context = null;
         main = null;
     }
@@ -1027,7 +999,7 @@ public class API implements IAPI {
      */
     @Override
     public JavaFileObject makeJFOfromFilename(String filepath) {
-        JavacFileManager dfm = (JavacFileManager)context.get(JavaFileManager.class);
+        JavacFileManager dfm = (JavacFileManager)main.context.get(JavaFileManager.class);
         return dfm.getFileForInput(filepath);
     }
     
@@ -1037,7 +1009,7 @@ public class API implements IAPI {
      */
     @Override
     public JavaFileObject makeJFOfromFile(File file) {
-        JavacFileManager dfm = (JavacFileManager)context.get(JavaFileManager.class);
+        JavacFileManager dfm = (JavacFileManager)main.context.get(JavaFileManager.class);
         return dfm.getRegularFile(file);
     }
     

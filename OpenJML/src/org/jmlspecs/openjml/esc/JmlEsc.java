@@ -45,6 +45,7 @@ import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICoreIds;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.jmlspecs.openjml.proverinterface.ProverException;
+import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.provers.AbstractProver;
 import org.jmlspecs.openjml.provers.CVC3Prover;
 import org.jmlspecs.openjml.provers.SimplifyProver;
@@ -322,10 +323,9 @@ public class JmlEsc extends JmlTreeScanner {
             // 16 = like 15, but with pushing and popping
             // 17 = like 15, but with retracting
             
-            boolean ok = true;
             for (int ttest : timingTests) {
                 timingTest = ttest;
-                if (!ok && ttest >= 9) continue;
+                if (ttest >= 9) continue;
                 YicesProver.assertPlus = true;
                 JmlEsc.usePush = true;
                 JmlEsc.useTree = false;
@@ -348,7 +348,7 @@ public class JmlEsc extends JmlTreeScanner {
                 
                 BasicBlocker.useCountedAssumeCheck = timingTest < 13;
                 
-                ok = proveMethod(node);
+                proveMethod(node);
             }
         }
     }
@@ -356,7 +356,9 @@ public class JmlEsc extends JmlTreeScanner {
     public void progress(int ticks, int level, String message) {
         org.jmlspecs.openjml.Main.IProgressListener pr = context.get(org.jmlspecs.openjml.Main.IProgressListener.class);
         boolean cancelled = pr == null ? false : pr.report(ticks,level,message);
-        if (cancelled) throw new PropagatedException(new Main.JmlCanceledException("ESC operation cancelled"));
+        if (cancelled) {
+            throw new PropagatedException(new Main.JmlCanceledException("ESC operation cancelled"));
+        }
     }
     
     public boolean proveWithBoogie(JCMethodDecl decl) {
@@ -366,7 +368,7 @@ public class JmlEsc extends JmlTreeScanner {
             return true;
         }
         proverToUse = "z3";
-        progress(1,2,"Starting proof of " + decl.sym.owner.name + "." + decl.name + " with prover " + proverToUse);
+        progress(1,2,"Starting proof of " + decl.sym.owner.flatName() + "." + decl.sym + " with prover " + proverToUse);
         
         if (print) {
             log.noticeWriter.println("");
@@ -479,11 +481,11 @@ public class JmlEsc extends JmlTreeScanner {
         return true;
     }
     
-    public boolean newProveMethod(JCMethodDecl decl) {
+    public IProverResult newProveMethod(JCMethodDecl decl) {
         boolean print = true; //true;
         if (print && decl.name.toString().equals("<init>")) {
             log.noticeWriter.println("SKIPPING PROOF OF " + decl.name);
-            return true;
+            return new ProverResult(proverToUse,IProverResult.SKIPPED);
         }
         proverToUse = "z3";
         progress(1,2,"Starting proof of " + decl.sym.owner.name + "." + decl.name + " with prover " + proverToUse);
@@ -510,7 +512,7 @@ public class JmlEsc extends JmlTreeScanner {
         
         if (newblock == null) {
             if (print) log.noticeWriter.println("BLOCK IS NULL");
-            return false;
+            return new ProverResult(proverToUse,IProverResult.ERROR);
         }
         
         if (print) log.noticeWriter.println(JmlPretty.write(newblock));
@@ -538,15 +540,18 @@ public class JmlEsc extends JmlTreeScanner {
         
         if (print) log.noticeWriter.println("EXECUTION");
         IResponse r = script.execute(solver);
+        IProverResult proofResult;
         if (r.isError()) {
             log.error("jml.esc.badscript", decl.getName(), smt.smtConfig.defaultPrinter.toString(r));
-            return false;
+            return new ProverResult(proverToUse,IProverResult.ERROR);
         }
         if (print) log.noticeWriter.println(smt.smtConfig.defaultPrinter.toString(r));
         if (r.toString().equals("unsat")) {// FIXME - should have a better means of checking this
             if (print) log.noticeWriter.println("Method checked OK");
-            
+            proofResult = new ProverResult(proverToUse,IProverResult.UNSAT);
         } else {
+            proofResult = new ProverResult(proverToUse,
+                    r.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT);
             if (print) log.noticeWriter.println("Some assertion not valid"); // FIXME - counterexample
             if (trace) log.noticeWriter.println("\nTRACE\n");
             reportInvalidAssertion(program,smt,solver,decl);
@@ -567,7 +572,7 @@ public class JmlEsc extends JmlTreeScanner {
 //                //log.noticeWriter.println(smt.smtConfig.defaultPrinter.toString(resp));
 //            }
         }
-        return true;
+        return proofResult;
     }
     
     public void reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl) {
@@ -805,9 +810,10 @@ public class JmlEsc extends JmlTreeScanner {
     /** This is the entry point to attempt a proof of the given method.  It 
      * presumes that the method (and any it relies on is entered and typechecked.
      * @param node the method to prove
-     * @return ???FIXME???
+     * @return // FIXME - not currently used
      */
-    public boolean proveMethod(@NonNull JCMethodDecl node) {
+    public IProverResult proveMethod(@NonNull JCMethodDecl node) {
+        IProverResult proofResult;
         
         if (Options.instance(context).get("-newesc") != null) {
             return newProveMethod(node);
@@ -816,7 +822,7 @@ public class JmlEsc extends JmlTreeScanner {
         boolean verboseProgress = Utils.instance(context).jmlverbose >= Utils.PROGRESS;
         
         if (verboseProgress) 
-        	progress(1,2,"Starting proof of " + node.sym.owner.name + "." + node.name + " with prover " + proverToUse);
+        	progress(1,2,"Starting proof of " + node.sym.owner.flatName() + "." + node.sym + " with prover " + proverToUse);
         Utils.Timer timer = new Utils.Timer();
         
         
@@ -863,7 +869,7 @@ public class JmlEsc extends JmlTreeScanner {
             program = BasicBlocker.convertToBasicBlocks(context, tree, denestedSpecs, currentClassDecl);
             
             if (doMetrics || timingTest == 1) metrics(node,program,name);
-            if (doMetrics) return true;
+            if (doMetrics) return new ProverResult(proverToUse,IProverResult.SKIPPED);
 
             try {
                 if (JmlOption.isOption(context,"-showbb") || escdebug) {
@@ -872,8 +878,8 @@ public class JmlEsc extends JmlTreeScanner {
                 //if (showTimes) log.noticeWriter.println("    ... prep           " +  t.elapsed()/1000.);
                 //log.noticeWriter.println("\t\t" + program.blocks().size() + " blocks, " + program.definitions().size() + " definitions, " + program.background().size() + " axioms, " + BasicBlocker.Counter.count(program) + " nodes");
                 if (verboseProgress) 
-                	progress(1,2,"Prover running on " + node.sym.owner.name + "." + node.name + " with prover " + proverToUse);
-                ok = prove(node,program);
+                	progress(1,2,"Prover running on " + node.sym.flatName() + "." + node.sym + " with prover " + proverToUse);
+                proofResult = prove(node,program);
                 if (showTimes) log.noticeWriter.println("    ... prep and prove " +  t.elapsed()/1000.);
                 if (showTimes) {
                     Runtime rt = Runtime.getRuntime();
@@ -884,25 +890,35 @@ public class JmlEsc extends JmlTreeScanner {
                 if (se.length() > 200) se = se.substring(0,200) + " .....";
                 log.warning(node.pos(),"esc.prover.failure",se);
                 // go on with next 
+                proofResult = new ProverResult(proverToUse,IProverResult.ERROR);
             } catch (Throwable e) {
                 String se = e.toString();
                 if (se.length() > 200) se = se.substring(0,200) + " .....";
                 log.warning(node.pos(),"esc.prover.failure",se);
                 System.gc();
+                proofResult = new ProverResult(proverToUse,IProverResult.ERROR);
             }
         } catch (RuntimeException e) {
             log.warning(node.pos(),"esc.vc.prep",e);
             // go on with next 
+            proofResult = new ProverResult(proverToUse,IProverResult.ERROR);
         } catch (Throwable e) {
             log.warning(node.pos(),"esc.vc.prep",e);
             System.gc();
+            proofResult = new ProverResult(proverToUse,IProverResult.ERROR);
         } finally {
             log.useSource(prev);
         }
         //progress(1,1,"Completed proof [" + (ok?"   ":"not") + " proved] of " + node.sym.getQualifiedName() + " [" + timer.elapsed()/1000. + "]");
-        if (verboseProgress) progress(1,1,"Completed proof attempt of " + node.sym.getQualifiedName() + " [" + timer.elapsed()/1000. + "] using " + proverToUse);
+        if (verboseProgress) {
+        	String s = proofResult.result().toString();
+        	if (s.equals("UNSAT")) s = "VALID";
+        	progress(1,1,"Completed proof attempt (" + s + ") of " 
+                    + node.sym.owner.flatName() + "." + node.sym // using just node.sym gives the signature 
+                    + " [" + timer.elapsed()/1000. + "] using " + proverToUse);
+        }
         mostRecentProgram = program;
-        return ok;
+        return proofResult;
     }
     
     public BasicProgram mostRecentProgram = null;
@@ -1161,13 +1177,15 @@ public class JmlEsc extends JmlTreeScanner {
      * @param methodDecl the method whose implementation is being proved
      * @param program the basic program corresponding to the method implementation
      */
-    public boolean prove(@NonNull JCMethodDecl methodDecl, @NonNull BasicProgram program) {
+    public IProverResult prove(@NonNull JCMethodDecl methodDecl, @NonNull BasicProgram program) {
         String name = methodDecl.sym.owner + "." + methodDecl.sym;
         
 //        log.noticeWriter.println(methodDecl.toString());
 //        log.noticeWriter.println(program.toString());
 
 
+        IProverResult proofResult;
+        IProverResult firstProofResult;
         boolean ok = false;
         IProver p = null;
         try {
@@ -1175,7 +1193,7 @@ public class JmlEsc extends JmlTreeScanner {
             if (p == null) {
                 // Error is already reported
                 //log.error("esc.no.prover",proverToUse);
-                return false;
+                return new ProverResult(proverToUse,IProverResult.SKIPPED);
             }
 
             boolean usingSMT = p instanceof org.jmlspecs.openjml.provers.SMTProver;
@@ -1183,14 +1201,17 @@ public class JmlEsc extends JmlTreeScanner {
             if (useRetract && !p.supports().retract) { 
                 log.error("esc.retract.not.supported",proverToUse);
                 p.kill(); 
-                return true; 
+                return new ProverResult(proverToUse,IProverResult.SKIPPED);
             }
             if (useCoreIds && !p.supports().unsatcore) {
                 log.error("esc.unsatcore.not.supported",proverToUse);
                 p.kill(); 
-                return true; 
+                return new ProverResult(proverToUse,IProverResult.SKIPPED);
             }
-            if (timingTest >= 15 && p instanceof CVC3Prover) { p.kill(); return true;}
+            if (timingTest >= 15 && p instanceof CVC3Prover) { 
+                p.kill(); 
+                return new ProverResult(proverToUse,IProverResult.SKIPPED);
+            }
             
             Map<Integer,JCExpression> defexpr = new HashMap<Integer,JCExpression>();
 
@@ -1301,9 +1322,11 @@ public class JmlEsc extends JmlTreeScanner {
 
             long time2=0,time3=0;
             
-            IProverResult r = p.check(YicesProver.evidence);
-            proverResults.put(methodDecl.sym,r);
-            progress(1,2,"Prover reported " + r.result() + " for " + methodDecl.sym + " with prover " + proverToUse);
+            firstProofResult = proofResult = p.check(true); // FIXME - are details supported by the prover?
+            proverResults.put(methodDecl.sym,proofResult);
+            String message = "Prover reported " + proofResult.result() + " for " + methodDecl.sym.owner.flatName() + "." + methodDecl.sym + " with prover " + proverToUse;
+            if (proofResult.result() != IProverResult.UNSAT) message = message + JmlTree.eol + "Checking for counterexample information";
+            progress(1,2,message);
             //log.noticeWriter.println("Recorded proof for " + methodDecl.sym); log.noticeWriter.flush();
 
             if (showTimes) {
@@ -1311,28 +1334,28 @@ public class JmlEsc extends JmlTreeScanner {
                 timer.reset();
             }
             
-            ok = !r.isSat();
+            ok = !proofResult.isSat();
             if (timingTest > 0 && timingTest < 9) {
-                if (showTimes) log.noticeWriter.println("TIMES-" + timingTest + " " + time2 + " " + (r.isSat()?"SAT":"UNSAT") + " :: " + name);
-                return ok;
+                if (showTimes) log.noticeWriter.println("TIMES-" + timingTest + " " + time2 + " " + (proofResult.isSat()?"SAT":"UNSAT") + " :: " + name);
+                return proofResult;
             }
             
             Utils.Timer timer2 = new Utils.Timer();
             Utils.Timer timer3 = new Utils.Timer();
-            if (r.isSat()) {
+            if (proofResult.isSat()) {
                 if (showTimes) log.noticeWriter.println("TIMES-" + timingTest + " " + time2 + " SAT :: " + name);
                 if (escdebug) log.noticeWriter.println("Method does NOT satisfy its specifications, it appears");
                 if (timingTest == 0) {
-                    r.setOtherInfo(BasicBlocker.TracerBB.trace(context,program,r.counterexample(),p));
-                    String cexample = displayCounterexampleInfo(methodDecl, program, p, r);
+                    proofResult.setOtherInfo(BasicBlocker.TracerBB.trace(context,program,proofResult.counterexample(),p));
+                    String cexample = displayCounterexampleInfo(methodDecl, program, p, proofResult);
                     if (showCounterexample || escdebug) log.noticeWriter.println(cexample);
                 }
                 if (mostRecentProver != null) mostRecentProver.kill();
                 mostRecentProver = p;
-            } else if (r.result() == IProverResult.UNSAT && (timingTest == 10 || timingTest==9)) {
+            } else if (proofResult.result() == IProverResult.UNSAT && (timingTest == 10 || timingTest==9)) {
                 if (escdebug) log.noticeWriter.println("Method satisfies its specifications (as far as I can tell)");
                 p.kill();
-                if (!checkAssumptions) return ok;
+                if (!checkAssumptions) return firstProofResult;
                 
                 int numbad = 0;
                 for (BasicBlock blk : program.blocks()) {
@@ -1439,16 +1462,16 @@ public class JmlEsc extends JmlTreeScanner {
                                 defexpr.put(assumptionCheck,e);
                             }
 
-                            r = p.check(true);
+                            proofResult = p.check(true);
                             if (escdebug) log.noticeWriter.println("CHECKING " + assumptionCheck + " " + assertionNumber);
-                            if (!r.isSat() && timingTest == 0) {
+                            if (!proofResult.isSat() && timingTest == 0) {
                                 reportAssumptionProblem(label,pos,methodDecl.sym.toString());
-                                if (escdebug) log.noticeWriter.println(label + " " + r.coreIds());
-                                r.result(IProverResult.INCONSISTENT);
+                                if (escdebug) log.noticeWriter.println(label + " " + proofResult.coreIds());
+                                proofResult.result(IProverResult.INCONSISTENT);
                             } else {
                                 
                             }
-                            if (!r.isSat()) {
+                            if (!proofResult.isSat()) {
                                 numbad++;
                             }
                             p.kill();
@@ -1464,9 +1487,9 @@ public class JmlEsc extends JmlTreeScanner {
                     log.noticeWriter.println("TIMES-" + timingTest + " " + time2 + " " + time3 + " UNSAT checks: " + program.assumptionsToCheck.size() + " " + numbad + " " + (-1) + " :: " + name);
                 }
 
-            } else if (r.result() == IProverResult.UNSAT && timingTest == 15 && !(p instanceof CVC3Prover)) {
+            } else if (proofResult.result() == IProverResult.UNSAT && timingTest == 15 && !(p instanceof CVC3Prover)) {
                 if (escdebug) log.noticeWriter.println("Method satisfies its specifications (as far as I can tell)");
-                if (!checkAssumptions) return ok;
+                if (!checkAssumptions) return firstProofResult;
                 int numcore = -1;
                 int numbad = 0;
                 if (usePush) { p.pop();  }
@@ -1481,14 +1504,14 @@ public class JmlEsc extends JmlTreeScanner {
                         p.push();
                         p.assume(exx);
                     }
-                    r = p.check(true);
-                    if (!r.isSat()) {
+                    proofResult = p.check(true);
+                    if (!proofResult.isSat()) {
 //                        log.noticeWriter.println("CHECKING " + "UNSAT" + " " + r.isSat() + " " + timer2.elapsed());
 //                        log.noticeWriter.println("EVERYTHING ELSE IS INFEASIBLE " + num);
                         numbad = num;
                         break;
                     }
-                    String result = r.counterexample().get(pcname);
+                    String result = proofResult.counterexample().get(pcname);
                     if (result == null) {
 //                        log.noticeWriter.println("NO RESULT");
                         break;
@@ -1519,19 +1542,19 @@ public class JmlEsc extends JmlTreeScanner {
                     if (list.contains(ps)) continue;
                     if (timingTest == 0) {
                         reportAssumptionProblem(nm.substring(kk+1),ps,methodDecl.sym.toString());
-                        log.noticeWriter.println(nm.substring(kk+1) + " " + r.coreIds());
-                        r.result(IProverResult.INCONSISTENT);
+                        log.noticeWriter.println(nm.substring(kk+1) + " " + proofResult.coreIds());
+                        proofResult.result(IProverResult.INCONSISTENT);
                     }
                 }
                 
-            } else if (r.result() == IProverResult.UNSAT) {  // 0, 11, 12, 13, 14, 16, 17
+            } else if (proofResult.result() == IProverResult.UNSAT) {  // 0, 11, 12, 13, 14, 16, 17
                 if (escdebug) log.noticeWriter.println("Method satisfies its specifications (as far as I can tell)");
-                if (!checkAssumptions) return ok;
+                if (!checkAssumptions) return firstProofResult;
                 
                 //boolean useCoreIds = true; // FIXME - use an option
                 //if (timingTest > 0) useCoreIds = timingTest == 11;
 
-                ICoreIds cid = r.coreIds();
+                ICoreIds cid = proofResult.coreIds();
                 if (useCoreIds && cid == null && verbose) log.noticeWriter.println("Warning: Core ids unexpectedly not returned");
                 Collection<Integer> cids = cid == null ? null : cid.coreIds();
                 Integer[] ids = new Integer[0];
@@ -1565,9 +1588,9 @@ public class JmlEsc extends JmlTreeScanner {
                             //                            if (escdebug || timingTest > 0) log.noticeWriter.println("ALREADY NOT IN MINIMAL CORE: " + pos + " " + label);
                             if (timingTest == 0) {
                                 reportAssumptionProblem(label,pos,methodDecl.sym.toString());
-                                if (escdebug) log.noticeWriter.println(label + " " + r.coreIds());
-                                r.result(IProverResult.INCONSISTENT);
-                                if (escdebug) minimize(p,defexpr, r.coreIds().coreIds(), assumptionCheck);
+                                if (escdebug) log.noticeWriter.println(label + " " + proofResult.coreIds());
+                                proofResult.result(IProverResult.INCONSISTENT);
+                                if (escdebug) minimize(p,defexpr, proofResult.coreIds().coreIds(), assumptionCheck);
                             }
                             continue;
                         }
@@ -1576,14 +1599,14 @@ public class JmlEsc extends JmlTreeScanner {
                         if (useRetract) {
                             p.retract(assumptionCheck);
                             assumptionCheck = ((YicesProver)p).assumePlus(exx);
-                            r = p.check(true);
+                            proofResult = p.check(true);
                         } else if (usePush) {
                             p.push();
                             assumptionCheck = p.assume(exx);
-                            r = p.check(true);
+                            proofResult = p.check(true);
                             p.pop();
                         }
-                        if (!r.isSat()) {
+                        if (!proofResult.isSat()) {
                             //                              log.noticeWriter.println("CHECKING " + "UNSAT" + " " + r.isSat() + " " + timer2.elapsed());
                             //                              log.noticeWriter.println("EVERYTHING ELSE IS INFEASIBLE " + num);
 //                            long t2 = timer2.elapsed();
@@ -1594,10 +1617,10 @@ public class JmlEsc extends JmlTreeScanner {
                         if (!BasicBlocker.useCountedAssumeCheck) {
                             JCExpression rres = null;
                             for (Map.Entry<JCExpression,String> nmm: program.assumptionsToCheck) {
-                                String res = r.counterexample().get(nmm.getValue());
+                                String res = proofResult.counterexample().get(nmm.getValue());
                                 if (res == null || res.equals("true")) continue;
                                 //log.noticeWriter.println(nmm.getValue() + " IS FALSE " + res);
-                                if (hasFeasibleChain(findContainingBlock(nmm.getKey(),program),r.counterexample())) {
+                                if (hasFeasibleChain(findContainingBlock(nmm.getKey(),program),proofResult.counterexample())) {
                                     //log.noticeWriter.println(nmm.getValue() + " IS FEASIBLE");
                                     rres = nmm.getKey();
                                     break;
@@ -1610,7 +1633,7 @@ public class JmlEsc extends JmlTreeScanner {
                             exx = factory.Binary(JCTree.AND,rres,exx);
                             exx.type = syms.booleanType;
                         } else {
-                            result = r.counterexample().get(pcname);
+                            result = proofResult.counterexample().get(pcname);
                             if (result == null) {
                                 //                              log.noticeWriter.println("NO RESULT");
                                 break;
@@ -1643,11 +1666,11 @@ public class JmlEsc extends JmlTreeScanner {
                         if (useRetract) {
                             p.retract(assumptionCheck);
                             assumptionCheck = ((YicesProver)p).assumePlus(ex);
-                            r = p.check(true);
+                            proofResult = p.check(true);
                         } else if (usePush) {
                             p.push();
                             assumptionCheck = p.assume(ex);
-                            r = p.check(true);
+                            proofResult = p.check(true);
                             p.pop();
                         }
                         //                      if (escdebug || timingTest > 0) {
@@ -1658,13 +1681,13 @@ public class JmlEsc extends JmlTreeScanner {
 //                                                  else log.noticeWriter.println("STILL UNSAT - ASSUMPTION WAS INFEASIBLE: " + pos + " " + label);
 //                                              }
                         //                  }
-                        if (!r.isSat() && timingTest == 0) {
+                        if (!proofResult.isSat() && timingTest == 0) {
                             reportAssumptionProblem(label,pos,methodDecl.sym.toString());
-                            if (escdebug) log.noticeWriter.println(label + " " + r.coreIds());
-                            r.result(IProverResult.INCONSISTENT);
-                            minimize(p, defexpr, r.coreIds().coreIds(), assumptionCheck);
+                            if (escdebug) log.noticeWriter.println(label + " " + proofResult.coreIds());
+                            proofResult.result(IProverResult.INCONSISTENT);
+                            minimize(p, defexpr, proofResult.coreIds().coreIds(), assumptionCheck);
                         }
-                        if (!r.isSat()) {
+                        if (!proofResult.isSat()) {
                             numbad++;
                         }
 //                        long t2 = timer2.elapsed();
@@ -1679,7 +1702,8 @@ public class JmlEsc extends JmlTreeScanner {
                 // Result is unknown
                 // FIXME - need some tests and more output information here
                 if (escdebug) log.noticeWriter.println("Status of method is UNKNOWN - prover failed");
-                log.error("esc.proof.failed", r.result(), methodDecl.sym);
+                log.error("esc.proof.failed", proofResult.result(), methodDecl.sym);
+                firstProofResult = new ProverResult(proverToUse,IProverResult.ERROR);
             }
 
         } catch (ProverException e) {
@@ -1697,22 +1721,24 @@ public class JmlEsc extends JmlTreeScanner {
                 log.warning(methodDecl.pos(),"esc.internal.error","Failed to kill process: " + ee);
                 // Report but ignore any problems in killing
             }
+            firstProofResult = new ProverResult(proverToUse,IProverResult.ERROR);
         } catch (Throwable e) {
             log.warning(methodDecl.pos(),"esc.prover.failure",methodDecl.sym.toString() + ": " + e.getLocalizedMessage());
             if (escdebug) log.noticeWriter.println("PROVER FAILURE: " + e.getClass() + " " + e);
             e.printStackTrace(log.noticeWriter);
+            firstProofResult = new ProverResult(proverToUse,IProverResult.ERROR);
         }
         // FIXME - dmz: I added this extra kill to fix Yices processes hanging around
         // on OS X and causing problems for unit tests ("resource not available"), but
         // there should be some other way to just make sure that the process is always
         // dead when we exit this method.
         try {
-        	if (p != null) p.kill();
+            if (p != null) p.kill();
         } catch (ProverException e) {
-        	log.warning(methodDecl.pos(),"esc.internal.error", "Failed to kill process: " + e);
-        	// ignore any problems in killing
+            log.warning(methodDecl.pos(),"esc.internal.error", "Failed to kill process: " + e);
+            // ignore any problems in killing
         }
-        return ok;
+        return firstProofResult;
     }
     
     public void minimize(IProver prover, Map<Integer,JCExpression> defexpr, Collection<Integer> coreIds, int assumeCount) {

@@ -68,14 +68,14 @@ public interface IAPI {
     public void setProgressListener(@Nullable Main.IProgressListener p);
 
     /** Executes the command-line version of OpenJML, returning the exit code.
-     * All output and diagnostics are written to System.out.
-     * @param args the command-line arguments
+     * @param options an instance of options to use
+     * @param args the command-line arguments, used to modify the options
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
     // FIXME - does compile retain options???
     //@ requires isOpen && args != null && \nonnullarguments(args);
     //@ ensures isOpen;
-    public int execute(@NonNull String ... args);
+    public int execute(@Nullable Options options, @NonNull String ... args);
     
     /** Executes the command-line version of OpenJML, returning the exit code.
      * @param writer the PrintWriter to receive general output
@@ -83,8 +83,7 @@ public interface IAPI {
      * @param args the command-line arguments
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
-    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull String ... args);
-    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @NonNull Options options, @NonNull String ... args);
+    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @Nullable Options options, @NonNull String ... args);
     
     /** Executes the jmldoc tool on the given command-line arguments. */
     public int jmldoc(@NonNull String... args);

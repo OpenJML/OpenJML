@@ -1,9 +1,9 @@
 /*
  * This file is part of the OpenJML project.
- * Copyright (c) 2013-2013 David R. Cok
+ * Copyright (c) 2012-2013 David R. Cok
  * @author David R. Cok
  */
-package org.jmlspecs.openjml.eclipse;
+package org.jmlspecs.openjml.eclipse.widgets;
 
 
 import org.eclipse.jface.preference.FieldEditor;

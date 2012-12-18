@@ -20,6 +20,8 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.jmlspecs.openjml.eclipse.widgets.ButtonFieldEditor;
+import org.jmlspecs.openjml.eclipse.widgets.LabelFieldEditor;
 
 // FIXME - review for other options
 

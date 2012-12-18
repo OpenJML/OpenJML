@@ -326,11 +326,11 @@ public class Utils {
 		}
 		deleteMarkers(res, shell);
 		final Map<IJavaProject, List<IResource>> sorted = sortByProject(res);
-		for (final IJavaProject jp : sorted.keySet()) {
-			final List<IResource> ores = sorted.get(jp);
-			Job j = new Job("JML Manual Check") {
-				public IStatus run(IProgressMonitor monitor) {
-					boolean c = false;
+		Job j = new Job("JML Manual Check") {
+			public IStatus run(IProgressMonitor monitor) {
+				boolean c = false;
+				for (final IJavaProject jp : sorted.keySet()) { // FIXME - should impose an order on the projects
+					final List<IResource> ores = sorted.get(jp);
 					try {
 						getInterface(jp).executeExternalCommand(Cmd.CHECK,
 								ores, monitor);
@@ -338,13 +338,12 @@ public class Utils {
 						showExceptionInUI(shell, null, e);
 						c = true;
 					}
-					return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
 				}
-			};
-			j.setUser(true); // true since the job has been initiated by an
-								// end-user
-			j.schedule();
-		}
+				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
+			}
+		};
+		j.setUser(true); // true since the job has been initiated by an end-user
+		j.schedule();
 	}
 
 	/**
@@ -373,27 +372,32 @@ public class Utils {
 		for (final IJavaProject jp : sorted.keySet()) {
 			if (Options.isOption(Options.autoAddRuntimeToProjectKey))
 				addRuntimeToProjectClasspath(jp);
-			final List<Object> ores = sorted.get(jp);
 			if (Utils.verboseness >= Utils.NORMAL)
 				Log.log("Checking ESC (" + res.size() + " items)");
 			deleteMarkers(res, shell);
-			Job j = new Job("Static Checks - Manual") {
-				public IStatus run(IProgressMonitor monitor) {
-					boolean c = false;
+		}
+		Job j = new Job("Static Checks - Manual") {
+			public IStatus run(IProgressMonitor monitor) {
+				// We are processing the projects sequentially.
+				// FIXME - they should be done in dependency order
+				boolean c = false;
+				for (final IJavaProject jp : sorted.keySet()) {
 					try {
+						final List<Object> ores = sorted.get(jp);
 						getInterface(jp).executeESCCommand(Cmd.ESC, ores,
 								monitor);
 					} catch (Exception e) {
+						// FIXME - this will block, preventing progress on the rest of the projects
 						showExceptionInUI(shell, null, e);
 						c = true;
 					}
-					return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
 				}
-			};
-			j.setUser(true); // true since the job has been initiated by an
-								// end-user
-			j.schedule();
-		}
+				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
+			}
+		};
+		j.setUser(true); // true since the job has been initiated by an
+		// end-user
+		j.schedule();
 	}
 
 	static public java.util.Properties getProperties() {
@@ -588,8 +592,12 @@ public class Utils {
 	public void showSpecsForSelection(ISelection selection,
 			@Nullable IWorkbenchWindow window, Shell shell) {
 		List<Object> list = getSelectedElements(selection, window, shell);
+		if (list.isEmpty()) {
+			showMessage(shell, "OpenJML - Show specifications for Java element",
+						"Choose a type, method or field whose specifications are to be shown");
+			return;
+		}
 		String sn = emptyString;
-		boolean something = false;
 		for (Object o : list) {
 			try {
 				String s = null;
@@ -621,19 +629,16 @@ public class Utils {
 					IType[] types = cu.getTypes();
 					IType t = types[0]; // FIXME - find the one public type
 					JavaFileObject jfo = JmlSpecs.instance(
-							getInterface(JavaCore.create(f.getProject())).api
-									.context()).findAnySpecFile(
+							getInterface(JavaCore.create(f.getProject())).api.context()).findAnySpecFile(
 							t.getFullyQualifiedName());
 					Log.log("JFO = " + jfo.getName());
 					Path p = new Path(jfo.getName());
-					IFile ff = ResourcesPlugin.getWorkspace().getRoot()
-							.getFileForLocation(p);
+					IFile ff = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(p);
 					Log.log("File = " + ff);
 				}
 				if (s != null) {
 					if (s.length() == 0)
 						s = "<no specifications>";
-					something = true;
 					showMessageInUINM(shell, "Specifications for " + sn, s);
 				} else if (sn != null) {
 					showMessageInUINM(shell, "Specifications",
@@ -641,12 +646,9 @@ public class Utils {
 					return;
 				}
 			} catch (Exception e) {
-				showMessage(shell, "JML", e.getMessage());
+				showMessage(shell, "OpenJML - Exception", e.getMessage());
 			}
 		}
-		if (!something)
-			showMessage(shell, "JML",
-					"Choose a type, method or field whose specifications are to be shown");
 	}
 	
 	public List<IType> findMatchingClassNames(IJavaProject jp, String text) throws JavaModelException {
@@ -1504,18 +1506,42 @@ public class Utils {
 		deleteMarkers(list, shell);
 		return;
 	}
+	
+	public @Nullable PathItem toPathItem(IJavaProject jp, Object r) {
+		IResource f;
+		if (r instanceof IPackageFragmentRoot) {
+			IPackageFragmentRoot pfr = (IPackageFragmentRoot) r;
+			f = pfr.getResource();
+		} else if (r instanceof IFile
+				&& "jar".equals(((IFile) r).getFileExtension())) {
+			f = (IFile) r;
+		} else if (!(r instanceof IFolder)) {
+			return null;
+		} else {
+			f = (IFolder) r;
+		}
+		PathItem p;
+		if (f.getProject().equals(jp.getProject())) {
+			// Same project - use a project relative path
+			p = new PathItem.ProjectPath(f.getProjectRelativePath()
+					.toString());
+		} else {
+			p = new PathItem.WorkspacePath(f.getFullPath().toString());
+		}
+		return p;
+	}
+	
+	// FIXME - add/remove - a source folder that is in the ALL_SOURCE_FOLDERs
+	// is not recognized as already present
 
 	/**
 	 * Expects the selection to hold exactly one Java project, plus one or more
 	 * folders or jar files; those folders and jar files are added to the
 	 * beginning of the specs path for the given project.
 	 * 
-	 * @param selection
-	 *            the current selection in the UI
-	 * @param window
-	 *            the currently active window
-	 * @param shell
-	 *            the current shell (for dialogs)
+	 * @param selection the current selection in the UI
+	 * @param window    the currently active window
+	 * @param shell     the current shell (for dialogs)
 	 */
 	public void addSelectionToSpecsPath(ISelection selection,
 			IWorkbenchWindow window, @Nullable Shell shell) {
@@ -1528,38 +1554,20 @@ public class Utils {
 		}
 		IJavaProject jp = projects.iterator().next();
 		List<Object> list = getSelectedElements(selection, window, shell);
-		String notadded = "";
+		String notadded = emptyString;
 		boolean added = false;
 		for (Object r : list) {
-			IResource f;
-			if (r instanceof IJavaProject || r instanceof IProject)
+			if (r instanceof IJavaProject || r instanceof IProject) continue;
+			PathItem p = toPathItem(jp,r);
+			if (p == null) {
+				if (r instanceof IResource) notadded = notadded + ((IResource) r).getName() + space;
 				continue;
-			if (r instanceof IPackageFragmentRoot) {
-				IPackageFragmentRoot pfr = (IPackageFragmentRoot) r;
-				f = pfr.getResource();
-			} else if (r instanceof IFile
-					&& "jar".equals(((IFile) r).getFileExtension())) {
-				f = (IFile) r;
-			} else if (!(r instanceof IFolder)) {
-				notadded = notadded + ((IResource) r).getName() + " ";
-				continue;
-			} else {
-				f = (IFolder) r;
-			}
-			PathItem p;
-			if (f.getProject().equals(jp.getProject())) {
-				// Same project - use a project relative path
-				p = new PathItem.ProjectPath(f.getProjectRelativePath()
-						.toString());
-			} else {
-				p = new PathItem.WorkspacePath(f.getFullPath().toString());
 			}
 			try {
 				if (PathItem.add(jp, PathItem.specsKey, p)) {
 					added = true;
 				} else {
-					notadded = notadded + " " + f.getProject().getName() + "/"
-							+ f.getProjectRelativePath().toString();
+					notadded = notadded + space + p.display();
 				}
 			} catch (CoreException e) {
 				showMessage(shell, "OpenJML - Remove from Specs Path",
@@ -1598,37 +1606,18 @@ public class Utils {
 		}
 		IJavaProject jp = projects.iterator().next();
 		List<Object> list = getSelectedElements(selection, window, shell);
-		List<IResource> specsPath = getInterface(jp).specsPath;
-		String notremoved = "";
+		String notremoved = emptyString;
 		for (Object r : list) {
 			IResource f;
 			String n;
-			if (r instanceof IProject || r instanceof IJavaProject)
-				continue;
-			if (r instanceof IPackageFragmentRoot) {
-				f = ((IPackageFragmentRoot) r).getResource();
-				n = ((IPackageFragmentRoot) r).getElementName();
-			} else if (r instanceof IFile
-					&& "jar".equals(((IFile) r).getFileExtension())) {
-				f = (IFile) r;
-				n = ((IFile) r).getName();
-			} else if (r instanceof IFolder) {
-				f = (IFolder) r;
-				n = ((IFolder) r).getName();
-			} else
-				continue;
-			PathItem p;
-			if (f.getProject().equals(jp.getProject())) {
-				// Same project - use a project relative path
-				p = new PathItem.ProjectPath(f.getProjectRelativePath()
-						.toString());
-			} else {
-				p = new PathItem.WorkspacePath(f.getFullPath().toString());
-			}
+			if (r instanceof IJavaProject || r instanceof IProject) continue;
+			PathItem p = toPathItem(jp,r);
 			try {
-				if (!PathItem.remove(jp, PathItem.specsKey, p))
-					notremoved = notremoved + f.getProject().getName() + "/"
-							+ f.getProjectRelativePath().toString() + " ";
+				if (p == null) {
+					notremoved = notremoved + r + space;
+				} else if (!PathItem.remove(jp, PathItem.specsKey, p)) {
+					notremoved = notremoved + p.display() + space;
+				}
 			} catch (CoreException e) {
 				showMessage(shell, "OpenJML - Remove from Specs Path",
 						"Exception on reading or writing persistent property: "
@@ -2460,72 +2449,6 @@ public class Utils {
 	public final static QualifiedName SOURCEPATH_ID = new QualifiedName(
 			Activator.PLUGIN_ID, "sourcepath");
 
-	public List<IResource> getDirectoryPath(IJavaProject jp, QualifiedName qname) {
-		try {
-			String s = jp.getProject().getPersistentProperty(qname);
-			String items[] = s.split(PathItem.split);
-			for (String item : items) {
-				PathItem p = PathItem.parse(item);
-
-			}
-			// Log.log("RETRIEVED SPECSPATH: " + s);
-			if (s == null)
-				s = "";
-			String[] names = s.split(",");
-			List<IResource> files = new ArrayList<IResource>(names.length);
-			for (String n : names) {
-				if (n.length() > 0) {
-					Path p = new Path(n);
-					// We try a bunch of things, in order to do our best to read
-					// the
-					// format of what is stored. Ideally it is the
-					// toPortableString form of an IPath
-					IWorkspaceRoot root = ResourcesPlugin.getWorkspace()
-							.getRoot();
-					IResource f = root.findMember(p);
-					if (f == null)
-						f = root.getFileForLocation(p);
-					if (f == null)
-						f = root.getContainerForLocation(p);
-					p = new Path("C:" + n);
-					if (f == null)
-						f = root.getFileForLocation(p);
-					if (f == null)
-						f = root.getContainerForLocation(p);
-					if (f != null) {
-						// Log.log("  IFILE " + f + " " + f.getFullPath() + " "
-						// + f.getFullPath().toPortableString());
-						files.add(f);
-					} else {
-						Log.log("No such (open) location in the workspace (ignoring): "
-								+ n);
-					}
-				}
-			}
-			return files;
-		} catch (CoreException e) {
-			Log.log("CoreException happened: " + e); // FIXME - error log?
-			return new ArrayList<IResource>();
-		}
-	}
-
-	static public void putSpecsPath(IJavaProject jp, List<IResource> files) {
-		StringBuilder s = new StringBuilder();
-		boolean isFirst = true;
-		for (IResource n : files) {
-			if (isFirst)
-				isFirst = false;
-			else
-				s.append(",");
-			s.append(n.getFullPath().toPortableString());
-		}
-		try {
-			// Log.log("SAVED SPECSPATH: " + s.toString());
-			jp.getProject().setPersistentProperty(SPECSPATH_ID, s.toString());
-		} catch (CoreException e) {
-			Log.log("CoreException happened: " + e); // FIXME - error log?
-		}
-	}
 
 	/**
 	 * Displays a message in a information dialog; must be called from the UI
@@ -2631,13 +2554,13 @@ public class Utils {
 						File f = new File(root, "jmlruntime.jar");
 						if (f.exists()) {
 							file = f.toString();
-							if (Utils.verboseness >= Utils.NORMAL)
+							if (Utils.verboseness >= Utils.VERBOSE)
 								Log.log("Internal runtime location: " + file);
 						} else {
 							f = new File(root, "../jmlruntime.jar");
 							if (f.exists()) {
 								file = f.toString();
-								if (Utils.verboseness >= Utils.NORMAL)
+								if (Utils.verboseness >= Utils.VERBOSE)
 									Log.log("Internal runtime location: "
 											+ file);
 							}
@@ -2650,7 +2573,85 @@ public class Utils {
 		}
 		return file;
 	}
+	
+	public int countMethods(IJavaProject jp) throws Exception {
+		int count = 0;
+		for (IPackageFragmentRoot pfr: jp.getPackageFragmentRoots()) {
+			count += countMethods(pfr);
+		}
+		return count;
+	}
+	
+	public int countMethods(IProject jp) throws Exception {
+		return countMethods(JavaCore.create(jp));
+	}
+	
+	public int countMethods(IPackageFragmentRoot pfr) throws Exception {
+		int count = 0;
+		for (IJavaElement pf: pfr.getChildren()) {
+			if (pf instanceof IPackageFragment) {
+				count += countMethods((IPackageFragment)pf);
+			}
+		}
+		return count;
+	}
+	
+	public int countMethods(IPackageFragment pf) throws Exception {
+		int count = 0;
+		for (ICompilationUnit cu: pf.getCompilationUnits()) {
+			count += countMethods(cu);
+		}
+		return count;
+	}
+	public int countMethods(ICompilationUnit cu) throws Exception {
+		int count = 0;
+		for (IType t: cu.getTypes()) {
+			count += countMethods(t);
+		}
+		return count;
+	}
 
+	public int countMethods(IResource f) throws Exception {
+		int count = 0;
+		if (f instanceof IFolder) {
+			for (IResource r: ((IFolder)f).members()) {
+				count += countMethods(r);
+			}
+		} else if (f instanceof IFile) {
+			ICompilationUnit cu = (ICompilationUnit) f.getAdapter(ICompilationUnit.class);
+			if (cu != null) count += countMethods(cu);
+		} else {
+			Log.log("Can't count a " + f.getClass());
+		}
+		return count;
+	}
+
+	public int countMethods(IType t) throws Exception {
+		// FIXME - this does not count methods in anonymous or local types
+		int count = 0;
+		IType[] types = t.getTypes();
+		for (IType tt: types) {
+			count += countMethods(tt);
+		}
+		IMethod[] methods = t.getMethods();
+		boolean hasDeclaredConstructor = false;
+		for (IMethod m : methods) {
+			if (m.isConstructor()) { hasDeclaredConstructor = true; break; }
+		}
+		if (!hasDeclaredConstructor) count++;
+		return methods.length + count;  
+	}
+
+	public int countMethods(IMethod m) throws Exception {
+		return 1;
+	}
+
+	public int countMethods(IJavaElement f) {
+		Log.log("Can't count a " + f.getClass());
+		return 0;
+	}
+
+	// FIXME - have not been able to get this to work as I would like
 	public static class ModelessDialog extends Dialog {
 		public ModelessDialog(Shell parentShell) {
 			super(parentShell);

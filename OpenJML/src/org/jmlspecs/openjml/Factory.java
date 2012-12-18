@@ -8,6 +8,8 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 
+import com.sun.tools.javac.util.Options;
+
 /** This class is a top-level factory for API objects. */
 public class Factory {
     
@@ -18,7 +20,7 @@ public class Factory {
          * @param listener destination of diagnostic output (null means use the writer)
          * @param args command-line options
     	 */
-    	@NonNull IAPI makeAPI(@Nullable PrintWriter w, @Nullable DiagnosticListener<JavaFileObject> listener, String... args) throws Exception;
+    	@NonNull IAPI makeAPI(@Nullable PrintWriter w, @Nullable DiagnosticListener<JavaFileObject> listener, @Nullable Options options, String... args) throws Exception;
     }
     
     /** The default concrete API factory class */
@@ -28,8 +30,8 @@ public class Factory {
          * @param listener destination of diagnostic output (null means use the writer)
          * @param args command-line options
     	 */
-        public @NonNull IAPI makeAPI(@Nullable PrintWriter w, @Nullable DiagnosticListener<JavaFileObject> listener, String... args) throws Exception {
-            return new API(w,listener,args);
+        public @NonNull IAPI makeAPI(@Nullable PrintWriter w, @Nullable DiagnosticListener<JavaFileObject> listener, @Nullable Options options, String... args) throws Exception {
+            return new API(w,listener,options,args);
         }
     }
     
@@ -40,7 +42,7 @@ public class Factory {
      * @param args command-line options
      */
     static public @NonNull IAPI makeAPI(String ... args) throws Exception {
-        return apiFactory.makeAPI(null,null,args);
+        return apiFactory.makeAPI(null,null,null,args);
     }
 
     /** Creates a new IAPI object using the registered factory.
@@ -48,8 +50,8 @@ public class Factory {
      * @param listener destination of diagnostic output (null means use the writer)
      * @param args command-line options
      */
-    static public @NonNull IAPI makeAPI(@Nullable PrintWriter w, @Nullable DiagnosticListener<JavaFileObject> listener, String... args) throws Exception {
-        return apiFactory.makeAPI(w,listener,args);
+    static public @NonNull IAPI makeAPI(@Nullable PrintWriter w, @Nullable DiagnosticListener<JavaFileObject> listener, @Nullable Options options, String... args) throws Exception {
+        return apiFactory.makeAPI(w,listener,options,args);
     }
 
 

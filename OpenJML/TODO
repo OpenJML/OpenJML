@@ -1,14 +1,22 @@
 Recent stuff
+
+Recent stuff - UI
+- typechecking a WorkingSet causes tasks to be run in parallel (in different contexts) - and it is not clear from the UI what is happening
+- each static check appears to redo all typechecking
 - progress when multiple items are selected in plugin
 - debug output from OpenJML goes to wrong log
-- options not passed through to OpenJML - have to use args
-- options and specs read multiple times
-- test using an external source of specs and runtime library
 - finish converting debug System.out to log
+- options not passed through to OpenJML - have to use args
 - options do not update on consecutive ESCs
-- editing of paths - both directories and jar files - figure out how to initialize and use the specs path
-- say number of errors in 'Completed proof attemp...'
+- editing of paths - a specific src folder is not recognized as in the 'all source folders'
 - get rac to work from plugin
+- verbosity needs more work (SEND)
+- preferences need a little more fixing up
+- how to handle .jml files
+- how to handle Eclipse reporting errors in .jml files
+- estimating work items for .jml files is wrong (may differ from .java and the .jml files are not processed)
+
+
 
 Product pieces
 - typechecker for JML and extensions

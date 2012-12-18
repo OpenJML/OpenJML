@@ -38,6 +38,12 @@ public interface IProverResult {
     /** The result could not be determined (prover died, timed out, ...) */
     static public final Kind UNKNOWN = new Kind("UNKNOWN");
 
+    /** The proof resulted in some internal error */
+    static public final Kind ERROR = new Kind("ERROR");
+
+    /** The proof was not attempted */
+    static public final Kind SKIPPED = new Kind("SKIPPED");
+
     /** Category of result produced by the prover */
     public Kind result();
 

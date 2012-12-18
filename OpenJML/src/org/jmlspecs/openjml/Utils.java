@@ -316,6 +316,10 @@ public class Utils {
         return false;
     }
     
+    public boolean hasJavaSuffix(String filename) {
+        return (filename.endsWith(".java"));
+    }
+    
     
     /** A little class to encapsulate elapsed wall-clock time */
     public static class Timer {
@@ -445,5 +449,18 @@ public class Utils {
       }
       return false;
   }
+  
+  /** Instances of this class are used to abort operations that are not
+   * implemented.
+   * @author David R. Cok
+   */
+  public static class JmlNotImplementedException extends RuntimeException {
+      private static final long serialVersionUID = 1L;
+      public JmlNotImplementedException(String message) {
+          super(message);
+      }
+  }
+  
+
 
 }

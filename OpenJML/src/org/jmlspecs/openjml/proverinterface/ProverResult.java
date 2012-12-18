@@ -40,6 +40,16 @@ public class ProverResult implements IProverResult {
     public ProverResult(String prover) {
         this.prover = prover;
     }
+    
+    /** Creates a mostly empty ProverResult object, with the prover
+     * description and basic result initialized.
+     * @param prover A description of the prover used
+     */
+    public ProverResult(String prover, Kind result) {
+        this.prover = prover;
+        this.result = result;
+    }
+
     /** Returns the category of result that the prover obtained
      * @return the category of result from the prover
      */

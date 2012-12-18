@@ -5,11 +5,14 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.util.EnumSet;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -31,6 +34,7 @@ import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
+import org.jmlspecs.openjml.eclipse.widgets.EnumDialog;
 
 /** Implements a dialog that allows editing of the source and specs path of a Java project */
 public class PathsEditor extends Utils.ModelessDialog { 
@@ -157,6 +161,7 @@ class ListEditor {
 	protected Button upButton;
 	protected Button downButton;
 	protected Button defaultButton;
+	protected Button addSpecialButton;
 	protected Label label;
 	protected String labelText;
 
@@ -241,6 +246,18 @@ class ListEditor {
 		buttonBox.setLayoutData(gd);
 
 	}
+	
+	protected void add(PathItem item) {
+		String rep = item.display();
+		int index = list.getSelectionIndex();
+		if (index >= 0) {
+			list.add(rep, index + 1);
+			pathItems.add(index + 1, item);
+		} else {
+			list.add(rep, 0);
+			pathItems.add(0, item);
+		}
+	}
 
 	/**
 	 * Notifies that the Add button has been pressed.
@@ -249,15 +266,7 @@ class ListEditor {
 		String input = fileDialog.open();
 		if (input != null) {
 			PathItem item = PathItem.create(input);
-			String rep = item.display();
-			int index = list.getSelectionIndex();
-			if (index >= 0) {
-				list.add(rep, index + 1);
-				pathItems.add(index + 1, item);
-			} else {
-				list.add(rep, 0);
-				pathItems.add(0, item);
-			}
+			add(item);
 			selectionChanged();
 		}
 	}
@@ -266,15 +275,7 @@ class ListEditor {
 		String input = dirDialog.open();
 		if (input != null) {
 			PathItem item = PathItem.create(input);
-			String rep = item.display();
-			int index = list.getSelectionIndex();
-			if (index >= 0) {
-				list.add(rep, index + 1);
-				pathItems.add(index + 1, item);
-			} else {
-				list.add(rep, 0);
-				pathItems.add(0, item);
-			}
+			add(item);
 			selectionChanged();
 		}
 	}
@@ -307,6 +308,27 @@ class ListEditor {
 	protected void downPressed() {
 		swap(false);
 	}
+	
+	protected void specialPressed() {
+		EnumSet<PathItem.SpecialPath.Kind> disable = EnumSet.noneOf(PathItem.SpecialPath.Kind.class);
+		if (key == PathItem.sourceKey) disable.add(PathItem.SpecialPath.Kind.SOURCEPATH);
+		for (PathItem k : pathItems) {
+			if (k instanceof PathItem.SpecialPath){
+				disable.add(((PathItem.SpecialPath)k).kind);
+			}
+		}
+		EnumDialog<PathItem.SpecialPath.Kind> d = 
+				new EnumDialog<PathItem.SpecialPath.Kind>(
+						fileDialog.getParent(),
+						PathItem.SpecialPath.Kind.values(),
+						disable);
+		d.create();
+		if (d.open() == Dialog.OK) {
+			PathItem item = new PathItem.SpecialPath(d.selection());
+			add(item);
+			selectionChanged();
+		}
+	}
 
 	/**
 	 * Moves the currently selected item up or down.
@@ -338,6 +360,7 @@ class ListEditor {
 	private void createButtons(Composite box) {
 		addJarButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddJar);
 		addDirButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddFolder);
+		addSpecialButton = createPushButton(box, "Add Special ...");
 		removeButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Remove);
 		upButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Up);
 		downButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Down);
@@ -406,6 +429,8 @@ class ListEditor {
 					downPressed();
 				} else if (widget == defaultButton) {
 					defaultPressed();
+				} else if (widget == addSpecialButton) {
+					specialPressed();
 				} else if (widget == list) {
 					selectionChanged();
 				}
@@ -475,6 +500,7 @@ class ListEditor {
 		upButton.setEnabled(enabled);
 		downButton.setEnabled(enabled);
 		defaultButton.setEnabled(enabled);
+		addSpecialButton.setEnabled(enabled);
 		selectionChanged();
 	}
 

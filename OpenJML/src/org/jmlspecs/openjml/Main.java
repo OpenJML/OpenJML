@@ -104,19 +104,13 @@ import com.sun.tools.javac.util.Options;
  * TODO - check and complete the documentation above
  */
 public class Main extends com.sun.tools.javac.main.Main {
+    
+    public static final int EXIT_CANCELED = -1;
 
     /** The compilation unit context associated with this instance of Main
      * (for the programmatic API); for the command-line API it is simply 
      * the most recent value of the context, and is used that way in testing. */
     protected Context context;
-    
-    /** This is a cached copy of the output writer, for use when
-     * direct writing is needed (such as printing out help information) before
-     * the Log facility is registered. This value is also present in the
-     * superclass, but it is private there.
-     */
-    @NonNull
-    protected PrintWriter out;
     
     /** The diagListener provided when an instance of Main is constructed.
      * The listener will be notified when any diagnostic is generated.
@@ -200,7 +194,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         @Override
         public boolean report(int ticks, int level, String message) {
-            if (level <= 1 || (context != null && JmlOption.isOption(context,JmlOption.JMLVERBOSE))) pw.println(message);
+            if (level <= 1 || (context != null && JmlOption.isOption(context,JmlOption.JMLVERBOSE))) {
+                pw.println(message);
+                pw.flush();
+            }
             return false;
         }
 
@@ -237,6 +234,14 @@ public class Main extends com.sun.tools.javac.main.Main {
                 String... args) 
         throws java.io.IOException {
         super(applicationName,out);
+        initialize(out,diagListener,options,args);
+    }
+    
+    protected void initialize( 
+                /*@ non_null */PrintWriter out, 
+                @Nullable DiagnosticListener<? extends JavaFileObject> diagListener,
+                @Nullable Options options,
+                String... args) {
         check(); // Aborts if the environment does not support OpenJML
         this.out = out;
         this.diagListener = diagListener;
@@ -244,7 +249,11 @@ public class Main extends com.sun.tools.javac.main.Main {
         JavacFileManager.preRegister(context); // can't create it until Log has been set up
         register(context);
         if (args == null) args = emptyArgs;
-        initializeOptions(options,args); // Creates a new context and initializes it per the command-line arguments
+        initializeOptions(options,args); // Creates a new Options instance and initializes it per the arguments
+    }
+    
+    public PrintWriter out() {
+        return out;
     }
     
     /** Checks that the tool is being run with an adequate JVM - and exits abruptly if not */
@@ -375,6 +384,52 @@ public class Main extends com.sun.tools.javac.main.Main {
         } catch (JmlCanceledException e) {
             // Error message already issued
             errorcode = EXIT_CMDERR;
+        } catch (Exception e) {
+            // Most exceptions are caught prior to this, so this will happen only for the
+            // most catastrophic kinds of failure such as failures to initialize
+            // properly.  (You can test this by programmatically throwing an exception in the try
+            // block above.)
+            uninitializedLog().error("jml.toplevel.exception",e);
+            e.printStackTrace(System.err);
+            errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
+        }
+        return errorcode;
+    }
+    
+    /** Executes the given command-line, but within the same instance of Main;
+     * the instance of Main is completely reinitialized, with a new context.
+     * @param writer
+     * @param diagListener
+     * @param options
+     * @param args
+     * @return
+     */
+    public int executeNS(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, @Nullable Options options, @NonNull String[] args) {
+        int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
+        try {
+            if (args == null) {
+                uninitializedLog().error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
+                errorcode = com.sun.tools.javac.main.Main.EXIT_CMDERR; // 2
+            } else {
+                // We create an instance of main through which to call the
+                // actual compile method. Note though that the compile method
+                // does its own initialization (in the super class). Thus the
+                // context and any option processing in the constructor call
+                // are thrown away. That is also why we do the hack of saving
+                // the options to a private variable, just to be able to
+                // apply them in the compile() call below.
+                initialize(writer, diagListener, options, emptyArgs);
+                savedOptions = Options.instance(context());
+                // The following line does an end-to-end compile, in a fresh context
+                errorcode = compile(args); // context and new options are created in here
+                if (errorcode != 0 && 
+                        Options.instance(this.context()).get(JmlOption.JMLTESTING.optionName()) != null) {
+                    writer.println("ENDING with exit code " + errorcode); // TODO - not sure we want this - but we'll need to change the tests
+                }
+            }
+        } catch (JmlCanceledException e) {
+            // Error message already issued
+            errorcode = EXIT_CANCELED; // Indicates being cancelled
         } catch (Exception e) {
             // Most exceptions are caught prior to this, so this will happen only for the
             // most catastrophic kinds of failure such as failures to initialize
@@ -553,7 +608,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                 } else if (!file.isFile()) {
                     Log.instance(context).warning("jml.command.line.arg.not.a.file",file);
-                } else if (utils.hasValidSuffix(file.getName())) {
+                } else if (utils.hasJavaSuffix(file.getName())) { // FIXME - for now just ignoring .jml files - should replace it with the corresponding .java file to be sure both are checked together
                     files.add(file.toString());
                 }
             }
@@ -561,7 +616,6 @@ public class Main extends com.sun.tools.javac.main.Main {
             // An empty string is the value of the option if it takes no arguments
             // That is, for boolean options, "" (or any non-null) is true, null is false
             options.put(s,res);
-            String newres = options.get(s);
         }
         return i;
     }

@@ -62,7 +62,7 @@ public class Main {
 
     /** The writer to use for diagnostic output.
      */
-    PrintWriter out;
+    protected PrintWriter out; // DRC - changed from default to protected
 
     /**
      * If true, certain errors will cause an exception, such as command line
