@@ -15,7 +15,10 @@ Recent stuff - UI
 - how to handle .jml files
 - how to handle Eclipse reporting errors in .jml files
 - estimating work items for .jml files is wrong (may differ from .java and the .jml files are not processed)
-
+- try other solvers
+- menu item to generate .jml files
+- preferences: roots; remove noInternalSpecs
+- incrementality
 
 
 Product pieces

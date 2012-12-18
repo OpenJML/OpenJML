@@ -1,5 +1,6 @@
 package tests;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /** These tests check the RAC functionality of outputting a stack trace along with
@@ -10,13 +11,10 @@ import org.junit.Test;
  */
 public class racsystem extends RacBase {
 
-    /** THe command-line to use to run RACed programs - note the inclusion of the
+    /** The command-line to use to run RACed programs - note the inclusion of the
      * RAC-compiled JDK library classes ahead of the regular Java libaray classes
      * in the boot class path. (This may not work on all platforms)
      */
-    // The bootclasspath here consists of the JDK library files (RAC-compiled) plus
-    // utilities that they depend on - the content of jmlruntime.jar.
-//    String[] sysrac = new String[]{jdk, "-Xbootclasspath/p:jdkbin"+z+"bin-runtime", "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
     String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
 
     @Override
@@ -26,74 +24,73 @@ public class racsystem extends RacBase {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-noPurityCheck",""); // To shut off complaints about misuse of purity in Java specifications
-        //options.put("-jmldebug",   "");
-        //options.put("-jmlverbose",   "");
-        //options.put("-noInternalSpecs",   "");
-        //options.put("-useExceptions",   "");
         //print = true;
     }
 
     // FIXME - not testing rac-compiled JDK files
-//    /** Testing with getting a stack trace */
-//    public void testFile2() {
-//        expectedRACExit = 1; 
-//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-//                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
-//                +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
-//                +"System.out.println(\"END\"); }"
-//                +"static void m() {\n"
-//                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-//                +"}"
-//                +"}"
-//                
-//                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
-//                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
-//                ,"\tat java.io.File.compareTo(File.java:1)"
-//                ,"\tat tt.TestJava.m(TestJava.java:5)"
-//                ,"\tat tt.TestJava.main(TestJava.java:3)"
-//                );
-//    }
-//
-//    /** Testing with getting a stack trace - Exception does not catch it */
-//    public void testFile2a() {
-//        expectedRACExit = 1;
-//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-//                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
-//                +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
-//                +"System.out.println(\"END\"); }"
-//                +"static void m() {\n"
-//                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-//                +"}"
-//                +"}"
-//                
-//                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
-//                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
-//                ,"\tat java.io.File.compareTo(File.java:1)"
-//                ,"\tat tt.TestJava.m(TestJava.java:5)"
-//                ,"\tat tt.TestJava.main(TestJava.java:3)"
-//                );
-//    }
-//
-//    /** Testing with getting a stack trace - Error does catch it */
-//    public void testFile2c() {
-//        expectedRACExit = 0;
-//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-//                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
-//                +"try { m(); } catch (Error e) { e.printStackTrace(System.out); } \n"
-//                +"System.out.println(\"END\"); }"
-//                +"static void m() {\n"
-//                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-//                +"}"
-//                +"}"
-//                
-//                ,"org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
-//                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
-//                ,"\tat java.io.File.compareTo(File.java:1)"
-//                ,"\tat tt.TestJava.m(TestJava.java:5)"
-//                ,"\tat tt.TestJava.main(TestJava.java:3)"
-//                ,"END"
-//                );
-//    }
+    /** Testing with getting a stack trace */
+    @Test @Ignore
+    public void testFile2() {
+        expectedRACExit = 1; 
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
+                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
+                +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
+                +"System.out.println(\"END\"); } \n"
+                +"static void m() {\n"
+                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
+                +"}"
+                +"}"
+                
+                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
+                ,"\tat java.io.File.compareTo(File.java:1)"
+                ,"\tat tt.TestJava.m(TestJava.java:5)"
+                ,"\tat tt.TestJava.main(TestJava.java:3)"
+                );
+    }
+
+    /** Testing with getting a stack trace - Exception does not catch it */
+    @Test @Ignore
+    public void testFile2a() {
+        expectedRACExit = 1;
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
+                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
+                +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
+                +"System.out.println(\"END\"); } \n"
+                +"static void m() {\n"
+                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
+                +"}"
+                +"}"
+                
+                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
+                ,"\tat java.io.File.compareTo(File.java:1)"
+                ,"\tat tt.TestJava.m(TestJava.java:5)"
+                ,"\tat tt.TestJava.main(TestJava.java:3)"
+                );
+    }
+
+    /** Testing with getting a stack trace - Error does catch it */
+    @Test @Ignore
+    public void testFile2c() {
+        expectedRACExit = 0;
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
+                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
+                +"try { m(); } catch (Error e) { e.printStackTrace(System.out); } \n"
+                +"System.out.println(\"END\"); }"
+                +"static void m() {\n"
+                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
+                +"}"
+                +"}"
+                
+                ,"org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:38)"
+                ,"\tat java.io.File.compareTo(File.java:1)"
+                ,"\tat tt.TestJava.m(TestJava.java:5)"
+                ,"\tat tt.TestJava.main(TestJava.java:3)"
+                ,"END"
+                );
+    }
     
 
     /** Testing with getting a stack trace using showStack */
