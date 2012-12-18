@@ -17,7 +17,7 @@ public class DemoExecute2 {
         try {
             IAPI m = Factory.makeAPI();
             MyDiagListener listener = new MyDiagListener();
-            int retcode = m.execute(new java.io.PrintWriter(System.out), listener,
+            int retcode = m.execute(new java.io.PrintWriter(System.out), listener, null,
                     "-check","-noPurityCheck","src/demo/Err.java");
             System.out.println("Errors: " + listener.count);
             System.out.println("Return code: " + retcode);

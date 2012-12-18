@@ -768,7 +768,7 @@ public class api {
       try {
           start(true);
           IAPI api = Factory.makeAPI(
-                  new PrintWriter(System.err),null,"-noPurityCheck");
+                  new PrintWriter(System.err),null,null,"-noPurityCheck");
           assertTrue(api.context() != null);
           JmlTree.Maker f = api.nodeFactory();
           f.at(0);
@@ -1059,7 +1059,7 @@ public class api {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
             java.io.File ff = new java.io.File("testfiles/testNoErrors2/A.java");
-            IAPI m = Factory.makeAPI(new PrintWriter(System.out),dcoll);
+            IAPI m = Factory.makeAPI(new PrintWriter(System.out),dcoll,null);
             m.setOption("-noPurityCheck");
             m.parseAndCheck(f,ff);  // FIXME - expect errors - check for them
             check("","");
@@ -1109,7 +1109,7 @@ public class api {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testSyntaxError/A.java");
             IAPI m = Factory.makeAPI(
-                    new PrintWriter(System.out),dcoll);
+                    new PrintWriter(System.out),dcoll,null);
             m.setOption("-noPurityCheck");
             m.parseAndCheck(f); 
             check("","");
@@ -1138,7 +1138,7 @@ public class api {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testJavaErrors/A.java");
             IAPI m = Factory.makeAPI(
-                    new PrintWriter(System.out),dcoll,
+                    new PrintWriter(System.out),dcoll,null,
                     "-specspath","testfiles/testJavaErrors");
             m.setOption("-noPurityCheck");
             m.parseAndCheck(f); 
@@ -1165,7 +1165,7 @@ public class api {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testJavaErrors/A.java");
             IAPI m = Factory.makeAPI(
-                    new PrintWriter(System.out),dcoll);
+                    new PrintWriter(System.out),dcoll,null);
             m.setOption("-noPurityCheck");
             m.parseAndCheck(f); 
             check("","");
@@ -1189,7 +1189,7 @@ public class api {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
-                    new PrintWriter(System.out),dcoll);
+                    new PrintWriter(System.out),dcoll,null);
             m.setOption("-noPurityCheck");
             //m.setOption("-specspath","testfiles/testSpecErrors");
             m.parseAndCheck(f); 
@@ -1212,7 +1212,7 @@ public class api {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
-                    new PrintWriter(System.out),dcoll,"-specspath","testfiles/testSpecErrors");
+                    new PrintWriter(System.out),dcoll,null,"-specspath","testfiles/testSpecErrors");
             m.setOption("-noPurityCheck");
             m.parseAndCheck(f); 
             check("","");
@@ -1234,7 +1234,7 @@ public class api {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
-                    new PrintWriter(System.out),dcoll);
+                    new PrintWriter(System.out),dcoll,null);
             m.setOption("-noPurityCheck");
             m.setOption("-specspath","testfiles/testSpecErrors");
             m.parseAndCheck(f); 
@@ -1282,6 +1282,7 @@ public class api {
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),
                     diags,
+                    null,
                     "-noPurityCheck");
             JmlCompilationUnit jcu = m.parseString("A.java",program);
             int n = m.typecheck(jcu);
