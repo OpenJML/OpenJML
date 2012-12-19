@@ -125,12 +125,10 @@ public class Utils {
 	}
 
 	/** String used in openjml-specific properties. */
-	final public static @NonNull
-	String OPENJML = "openjml"; //$NON-NLS-1$
+	final public static @NonNull String OPENJML = "openjml"; //$NON-NLS-1$
 
 	/** The ID of the marker, which must match that in the plugin file. */
-	final public static @NonNull
-	String JML_MARKER_ID = Activator.PLUGIN_ID + ".JMLProblem"; //$NON-NLS-1$
+	final public static @NonNull String JML_MARKER_ID = Activator.PLUGIN_ID + ".JMLProblem"; //$NON-NLS-1$
 
 	/** The ID of the marker, which must match that in the plugin file. */
 	final public static @NonNull
@@ -141,12 +139,13 @@ public class Utils {
 	String ESC_MARKER_ID = Activator.PLUGIN_ID + ".JMLESCProblem"; //$NON-NLS-1$
 
 	/** An empty string */
-	final public static @NonNull
-	String emptyString = ""; //$NON-NLS-1$
+	final public static @NonNull String emptyString = ""; //$NON-NLS-1$
 
 	/** An single space */
-	final public static @NonNull
-	String space = " "; //$NON-NLS-1$
+	final public static @NonNull String space = " "; //$NON-NLS-1$
+
+	/** The .java suffix */
+	final public static @NonNull String dotJava = ".java";  //$NON-NLS-1$
 
 	/**
 	 * A map relating java projects to the instance of OpenJMLInterface that

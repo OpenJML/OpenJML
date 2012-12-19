@@ -11,8 +11,8 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -259,9 +259,6 @@ class ListEditor {
 		}
 	}
 
-	/**
-	 * Notifies that the Add button has been pressed.
-	 */
 	protected void addJarPressed() {
 		String input = fileDialog.open();
 		if (input != null) {
@@ -360,7 +357,7 @@ class ListEditor {
 	private void createButtons(Composite box) {
 		addJarButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddJar);
 		addDirButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddFolder);
-		addSpecialButton = createPushButton(box, "Add Special ...");
+		addSpecialButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddSpecial);
 		removeButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Remove);
 		upButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Up);
 		downButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Down);

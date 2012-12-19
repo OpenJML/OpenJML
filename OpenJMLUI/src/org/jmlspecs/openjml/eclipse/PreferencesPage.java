@@ -10,7 +10,6 @@ import java.util.Properties;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
-import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
@@ -123,7 +122,6 @@ IWorkbenchPreferencePage {
 								getPreferenceStore().setValue(key,value); // FIXME - how do we know it is a valid value
 								if (field == verbosity) Utils.verboseness = Integer.parseInt(value);
 							} else {
-								// FIXME - use keys for all error messages?
 								Log.errorKey("openjml.ui.unknown.field.editor",null,field.getClass(),key,value);  //$NON-NLS-1$
 							}
 						} else {

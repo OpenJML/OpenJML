@@ -35,6 +35,7 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PathsEditor_Default;
 	public static String OpenJMLUI_PathsEditor_AddJar;
 	public static String OpenJMLUI_PathsEditor_AddFolder;
+	public static String OpenJMLUI_PathsEditor_AddSpecial;
 	public static String OpenJMLUI_PathsEditor_Remove;
 	public static String OpenJMLUI_PathsEditor_Up;
 	public static String OpenJMLUI_PathsEditor_Down;
@@ -68,6 +69,8 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_RACDialog_DirDialogTitle;
 	public static String OpenJMLUI_RACDialog_ErrorDialogMessage;
 	public static String OpenJMLUI_RACDialog_ErrorDialogTitle;
+	public static String OpenJMLUI_SolversPage_DefaultLabel;
+	public static String OpenJMLUI_SolversPage_Title;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

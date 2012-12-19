@@ -7,7 +7,7 @@ package org.jmlspecs.openjml.eclipse;
 
 import org.jmlspecs.openjml.Strings;
 
-// FIXME - needs review for all options we're interested in - Options.java
+// FIXME - needs review for all options we're interested in - Options.java; some options may no longer be used
 
 /**
  * This class manages user-settable options for OpenJML - at least those
@@ -42,21 +42,21 @@ public class Options {
 	final static public String prefix = Strings.optionPropertyPrefix;
 
 	/** A fake preference store key for the update button. */
-	final static public String updateKey = prefix + "update";
+	final static public String updateKey = prefix + "update"; //$NON-NLS-1$
 
 	// Note: The values of the keys must correspond to the names of the 
 	// command-line options.
 
 	/** The preference store key for the checkSpecsPath option. */
-	final static public String checkSpecsPathKey = prefix + "checkSpecsPath";
+	final static public String checkSpecsPathKey = prefix + "checkSpecsPath"; //$NON-NLS-1$
 	/** The preference store key for the nonnullByDefault option. */
-	final static public String nonnullByDefaultKey = prefix + "nonnullByDefault";
+	final static public String nonnullByDefaultKey = prefix + "nonnullByDefault"; //$NON-NLS-1$
 	/** The preference store key for the Java verbosity (boolean). */
-	final static public String javaverboseKey = prefix + "verbose";
+	final static public String javaverboseKey = prefix + "verbose"; //$NON-NLS-1$
 	/** The preference store key for the verbosity (quiet, nowarnings, verbose) option. */
-	final static public String verbosityKey = prefix + "verboseness";
+	final static public String verbosityKey = prefix + "verboseness"; //$NON-NLS-1$
 	/** The preference store key for the uiverbosity option. */
-	final static public String uiverbosityKey = prefix + "uiverbosity";
+	final static public String uiverbosityKey = prefix + "uiverbosity"; //$NON-NLS-1$
 	
 //	/** The preference store key for the source option. */
 //	final static public String sourceKey = prefix + "javaSourceVersion";
@@ -65,21 +65,21 @@ public class Options {
 //	/** The preference store key for the parsePlus option. */
 //	final static public String parsePlusKey = prefix + "parsePlus";
 	/** The preference store key for the check purity option. */
-	final static public String checkPurityKey = prefix + "noPurityCheck";
+	final static public String checkPurityKey = prefix + "noPurityCheck"; //$NON-NLS-1$
 	/** The preference store key for the keys option. */
-	final static public String optionalKeysKey = prefix + "optionalKeys";
+	final static public String optionalKeysKey = prefix + "optionalKeys"; //$NON-NLS-1$
 	/** The preference store key for the showNotImplemented option. */
-	final static public String showNotImplementedKey = prefix + "showNotImplemented";
+	final static public String showNotImplementedKey = prefix + "showNotImplemented"; //$NON-NLS-1$
 	/** The preference store key for the showNotExecutable option. */
-	final static public String showNotExecutableKey = prefix + "showNotExecutable";
+	final static public String showNotExecutableKey = prefix + "showNotExecutable"; //$NON-NLS-1$
 	/** The preference store key for the noInternalSpecs option. */
-	final static public String noInternalSpecsKey = prefix + "noInternalSpecs";
+	final static public String noInternalSpecsKey = prefix + "noInternalSpecs"; //$NON-NLS-1$
 	/** The preference store key for the noInternalRuntime option. */
-	final static public String noInternalRuntimeKey = prefix + "noInternalRuntime";
+	final static public String noInternalRuntimeKey = prefix + "noInternalRuntime"; //$NON-NLS-1$
 	/** The preference store key for the autoAddRuntimeToProject option */
-	final static public String autoAddRuntimeToProjectKey = prefix + "autoAddRuntimeToProject";
+	final static public String autoAddRuntimeToProjectKey = prefix + "autoAddRuntimeToProject"; //$NON-NLS-1$
 
-	final static public String enableRacKey = prefix + "enableRac";
+	final static public String enableRacKey = prefix + "enableRac"; //$NON-NLS-1$
 	
 	/** The preference store key for the racbin option */
 	final static public String racbinKey = prefix + "racbin";

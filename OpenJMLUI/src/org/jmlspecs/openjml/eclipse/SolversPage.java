@@ -13,7 +13,6 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.jmlspecs.openjml.Strings;
 
 // FIXME - adding/deleting solvers
-// FIXME - internationalize
 
 /**
  * This class creates a Preferences page in Eclipse
@@ -29,7 +28,7 @@ IWorkbenchPreferencePage {
     public void init(IWorkbench workbench) {
     	IPreferenceStore istore = Activator.getDefault().getPreferenceStore();
         setPreferenceStore(istore);
-        setDescription("File system paths to executables for individual provers");
+        setDescription(Messages.OpenJMLUI_SolversPage_Title);
         
 //        String[] prefs = ((ScopedPreferenceStore)Activator.getDefault().getPreferenceStore()).preferenceNames();
 //        List<String> solverList = new ArrayList<String>(10);
@@ -40,7 +39,13 @@ IWorkbenchPreferencePage {
 //        }
 //        solvers = solverList.toArray(new String[solverList.size()]);
 //        Arrays.sort(solvers);
-        solvers = new String[]{ "simplify", "boogie", "cvc3", "cvc4", "yices", "z3" };
+        solvers = new String[]{ 
+        		"simplify",  //$NON-NLS-1$
+        		"boogie",  //$NON-NLS-1$
+        		"cvc3",  //$NON-NLS-1$
+        		"cvc4",  //$NON-NLS-1$
+        		"yices",  //$NON-NLS-1$
+        		"z3" }; //$NON-NLS-1$
     }
     
     final static public String execKey = Strings.proverPropertyPrefix;
@@ -58,13 +63,12 @@ IWorkbenchPreferencePage {
     	}
     	
     	addField(new ComboFieldEditor(Strings.defaultProverProperty,
-    			"default: ",
+    			Messages.OpenJMLUI_SolversPage_DefaultLabel,
     			choices,
     			getFieldEditorParent()));
     	
     	for (String solver: solvers) {
-    	
-	        addField(new FileFieldEditor(execKey + solver, solver + ": ",
+	        addField(new FileFieldEditor(execKey + solver, solver + ": ", //$NON-NLS-1$
 	                getFieldEditorParent()));
     	}
 

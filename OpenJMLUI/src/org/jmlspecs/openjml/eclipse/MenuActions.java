@@ -5,14 +5,9 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
-// FIXME - needs review - MenuActions.java
-
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -36,6 +31,9 @@ abstract public class MenuActions extends AbstractHandler {
     /** Cached value of the utility object */
     protected Utils utils = Activator.getDefault().utils;
     
+    /** Populates the class fields with data about the event, for use in the
+     * derived classes.
+     */
     protected void getInfo(ExecutionEvent event) throws ExecutionException {
     	window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
     	shell = window.getShell();
@@ -402,294 +400,6 @@ abstract public class MenuActions extends AbstractHandler {
         }
     }
 
-    // FIXME - implement showSpecs
-    /** A static helper method that can be called for PopupActions
-     * as well - it puts up an informational dialog with specification
-     * information about the object o.  This may spawn a computational
-     * task.
-     * @param shell the shell responsible for the dialog window
-     * @param o the object whose specs are to be shown
-     * @return a Status value indicating whether a cancel occurred
-     */
-    public static IStatus showSpecs(Shell shell, /*@ non_null */ Object o) {
-        //      try {
-        //        ProjectInfo jproject = ProjectInfo.getProjectInfo(((IJavaElement)o).getJavaProject());
-        //        if (jproject == null) {
-        //          jproject = new ProjectInfo(Activator.options,JMLBuilder.preq);
-        //          jproject.setJavaProject(((IJavaElement)o).getJavaProject());
-        //        }
-        //        final ProjectInfo ppi = jproject;
-        //        final Shell sh = shell;
-        //        String title,content;
-        //        if (o instanceof IType) {
-        //          final IType tt = (IType)o;
-        //          IType t = tt;
-        //          title = "Specifications of type " + t.getFullyQualifiedName();
-        //          JmlSpecifications.TypeDeclSpecs s = JmlSpecifications.findTypeSpecs(t);
-        //          StringBuilder ss = new StringBuilder();
-        //          if (s == null) {
-        //            // spawning a computational thread here
-        //            Job j = new Job("JML - getting type specs") {
-        //              public IStatus run(IProgressMonitor monitor) {
-        //                try {
-        //                  (new OpenJMLInterface(ppi)).getSpecs(tt,TypeInfo.State.JML_SIGNATURE_ONLY,monitor);
-        //                } catch (Exception e) {
-        //                  String msg = "An exception occurred while computing the specs for type " +
-        //                  tt.getFullyQualifiedName() + ": " + e;
-        //                  showMessageInUI(sh,"JML Plugin Exception",msg);
-        //                  Log.errorlog(msg,e);
-        //                }
-        //                if (monitor.isCanceled()) return Status.CANCEL_STATUS;
-        //                return Status.OK_STATUS;
-        //              }
-        //            };
-        //            j.setUser(true);
-        //            j.schedule();
-        //            j.join();
-        //            IStatus result = j.getResult();
-        //            if (result != Status.OK_STATUS) return result;
-        //            s = JmlSpecifications.findTypeSpecs(t);
-        //          } 
-        //          if (s == null) {
-        //            ss.append("No specs cached or generated");
-        //          } else {
-        //            for (JmlTypeSpecification j: s.typeSpecs) {
-        //              ss.append(JmlASTCodeWriter.generateSnippets(j));
-        //            }
-        //            while (true) {
-        //              t = Types.getSuperClass(t,jproject);
-        //              if (t == null) break;
-        //              s = JmlSpecifications.findTypeSpecs(t);
-        //              ss.append("\nSpecifications of super type " + t.getFullyQualifiedName() + "\n");
-        //              for (JmlTypeSpecification j: s.typeSpecs) {
-        //                ss.append(JmlASTCodeWriter.generateSnippets(j));
-        //              }
-        //            }
-        //            // FIXME - need interface specs
-        //          }
-        //          content = ss.toString();
-        //        } else if (o instanceof ICompilationUnit) {
-        //          final ICompilationUnit t = (ICompilationUnit)o;
-        //          JmlSpecifications.CompUnitSpecs s = JmlSpecifications.findCUSpecs(t);
-        //          StringBuilder ss = new StringBuilder();
-        //          if (s == null) {
-        //            // spawning a computational thread here
-        //            Job j = new Job("JML - getting compilation unit specs") {
-        //              public IStatus run(IProgressMonitor monitor) {
-        //                try {
-        //                  OpenJMLInterface jmlc = new OpenJMLInterface(ppi);
-        //                  jmlc.getSpecs(t,TypeInfo.State.JML_SIGNATURE_ONLY,monitor);
-        //                } catch (Exception e) {
-        //                  String msg = "An exception occurred while computing the specs for compilation unit " +
-        //                  t.getElementName() + ": " + e;
-        //                  showMessageInUI(sh,"JML Plugin Exception",msg);
-        //                  Log.errorlog(msg,e);
-        //                }
-        //                if (monitor.isCanceled()) return Status.CANCEL_STATUS;
-        //                return Status.OK_STATUS;
-        //              }
-        //            };
-        //            j.setUser(true);
-        //            j.schedule();
-        //            j.join();
-        //            IStatus res = j.getResult();
-        //            if (res == Status.CANCEL_STATUS) return res;
-        //            s = JmlSpecifications.findCUSpecs(t);
-        //          } 
-        //          if (s == null) {
-        //            ss.append("No specs cached or generated");
-        //          } else {
-        //            for (JmlModelImportDeclaration j: s.modelImports) {
-        //              ss.append(JmlASTCodeWriter.generateSnippets(j));
-        //            }
-        //            ss.append(s.modelTypes.size() + " model types\n");
-        //            if (s.specssequence == null || s.specssequence.size() == 0) {
-        //              ss.append("No specification refinement sequence found\n" +
-        //                      "THIS IS A PROBLEM - check that your specs path is correct.\n" +
-        //                      "You may need to include your .java files on your specs path");
-        //            } else {
-        //              ss.append("The specification refinement sequence:\n");
-        //              for (IFile f: s.specssequence) {
-        //                ss.append(f.getLocation().toOSString() + "\n");
-        //              }
-        //            }
-        //          }
-        //          content = ss.toString();
-        //          title = "Specifications of compilation unit " + t.getResource().getLocation().toOSString();
-        //        } else if (o instanceof IMethod) {
-        //          final IMethod m = (IMethod)o;
-        //          title = "Specifications of method " + m.getElementName();
-        //          Log.log("Showing " + title);
-        //          JmlSpecifications.MethodDeclSpecs s = JmlSpecifications.findMethodSpecs(m);
-        //          StringBuilder ss = new StringBuilder();
-        //          if (s == null) {
-        //            // spawning a computational thread here
-        //            Job j = new Job("JML - getting method specs") {
-        //              public IStatus run(IProgressMonitor monitor) {
-        //                try {
-        //                  (new OpenJMLInterface(ppi)).getSpecs(m.getDeclaringType(),TypeInfo.State.JML_SIGNATURE_ONLY,monitor);
-        //                } catch (Exception e) {
-        //                  String msg = "An exception occurred while computing the specs for method " +
-        //                      m.getElementName() + ": " + e;
-        //                  showMessageInUI(sh,"JML Plugin Exception",msg);
-        //                  Log.errorlog(msg,e);
-        //                }
-        //                if (monitor.isCanceled()) return Status.CANCEL_STATUS;
-        //                return Status.OK_STATUS;
-        //              }
-        //            };
-        //            j.setUser(true);
-        //            j.schedule();
-        //            j.join();
-        //            IStatus res = j.getResult();
-        //            if (res == Status.CANCEL_STATUS) return res;
-        //            s = JmlSpecifications.findMethodSpecs(m);
-        //          } 
-        //          boolean showParsed = true;
-        //          if (s == null) {
-        //            ss.append("No specs cached");
-        //          } else {
-        //            if (!showParsed) {
-        //              //ss.append("Raw specs:\n");
-        //              for (JmlMethodSpecification ms: s.raw) {
-        //                ss.append(JmlASTCodeWriter.generateSnippets(ms));
-        //              }
-        //            }
-        //            if (showParsed) {
-        //              if (s.parsed != null) {
-        //                //ss.append("\nParsed specs:\n");
-        //                for (JmlMethodSpecificationCase ms: s.parsed) {
-        //                  ss.append(JmlASTCodeWriter.generateSnippets(ms));
-        //                }
-        //              }
-        //            }
-        //            IMethod mfirst = m;
-        //            IType st = m.getDeclaringType();
-        //            while (true) {
-        //              st = Types.getSuperClass(st,jproject);
-        //              if (st == null) break;
-        //              IMethod[] meths = st.findMethods(mfirst);
-        //              if (meths == null || meths.length == 0) continue;
-        //              if (meths.length > 1) {
-        //                Log.log("Ambiguous method " + mfirst + " in super type " + st.getElementName());
-        //                break;
-        //              }
-        //              s = JmlSpecifications.findMethodSpecs(meths[0]);
-        //              ss.append("\nSpecifications from super type " + st.getFullyQualifiedName() + "\n");
-        //              if (!showParsed) {
-        //                for (JmlMethodSpecification ms: s.raw) {
-        //                  ss.append(JmlASTCodeWriter.generateSnippets(ms));
-        //                }
-        //              }
-        //              if (showParsed && s.parsed != null) {
-        //                //ss.append("\nParsed specs:\n");
-        //                for (JmlMethodSpecificationCase ms: s.parsed) {
-        //                  ss.append(JmlASTCodeWriter.generateSnippets(ms));
-        //                }
-        //              }
-        //            }
-        //          }
-        //          // FIXME - get method specs from super interfaces as well
-        //          content = ss.toString();
-        //        } else if (o instanceof IField) {
-        //          IField t = (IField)o;
-        //          title = "Specifications of field " + t.getElementName();
-        //          content = "              ????\n  ?????";
-        //        } else if (o instanceof IPackageFragment) {
-        //          String packagename = ((IPackageFragment)o).getElementName();
-        //          List<IFolder> locations = jproject.getLocations(packagename);
-        //          title = "Locations for package " + packagename;
-        //          content = "Files for package " + packagename + " are located at\n";
-        //          for (IFolder f: locations) {
-        //            content += "    " + f.getLocation().toOSString() + "\n";
-        //          }
-        //          // FIXME - should we show the specs path for completeness
-        //          // We could show that for projects as well
-        //        } else if (o instanceof IJavaElement) {
-        //          IJavaElement t = (IJavaElement)o;
-        //          title = "Specifications of Java element " + t.getElementName();
-        //          content = "Sorry, presentation of the specfications of a " + t.getClass() + " is not implemented";
-        //        } else if (o instanceof IResource) {
-        //          IMethod t = (IMethod)o;
-        //          title = "Specifications of method " + t.getElementName();
-        //          content = "              ????\n  ?????";
-        ////        } else if (o == null) {
-        ////          title = "JML Specifications";
-        ////          content = "Cannot present specifications of a null object";
-        //        } else {
-        //          title = "JML Specifications";
-        //          content = "I did not expect to be called with an object of type " + o.getClass();
-        //        }
-        //        showSpecsDialog(shell,title,content);
-        //      } catch (Exception e) {
-        //        String msg = "Exception while showing specs "
-        //          + (o != null ? "for a " + o.getClass() : "") + e;
-        //        Log.errorlog(msg,e);
-        //        if (shell != null) {
-        //          showMessage(shell,"Show Specs exception ",
-        //                  e.toString());
-        //        }           
-        //      }
-        return Status.OK_STATUS;
-    }
-
-    /** A String array used to define the buttons in a show specs dialog */
-    final private static String[] okbutton = { "OK" };
-
-    /** Pops up a dialog showing the given content.
-     * @param shell the shell that should own the dialog window
-     * @param title the title of the dialog
-     * @param content the text content of the dialog
-     */
-    // FIXME - I broke out this function in the hope that we can eventually
-    // provide a better display - allow the use of bold font or labels, perhaps
-    // be non-modal, perhaps include the JML logo
-    public static void showSpecsDialog(Shell shell, String title, String content) {
-        //MessageDialog.openInformation(shell,title,content);
-        MessageDialog m = new MessageDialog(shell,title,null,content,MessageDialog.NONE,
-                okbutton,0);
-        m.open();
-        //(new ShowSpecsDialog(shell,title,content)).open();
-    }
-
-    // The following is a starting point for an alternate display.
-    // Not used at present.
-    //    public static class ShowSpecsDialog extends Dialog { //PopupDialog {
-    //      protected String  content;
-    //      protected String title;
-    //
-    //      /**
-    //       * Creates a new ShowSpecsDialog.
-    //       */
-    ////      public ShowSpecsDialog(Shell parentShell, IJavaElement input) {
-    ////        super(parentShell, SWT.DEFAULT, false, // do not take focus when opened
-    ////                false, // do not persist the bounds
-    ////                false, // do not show a resize menu
-    ////                false, // do not show a menu item for persisting bounds
-    ////                "Specs for " + input.getElementName(),
-    ////                null); // no info text - FIXME
-    ////        this.input = input;
-    ////      }
-    //      public ShowSpecsDialog(Shell parentShell, String title, String content) {
-    //        super(parentShell);
-    //        
-    //        this.title = title;
-    //        this.content = content;
-    //      }
-    //      
-    //      protected void configureShell(Shell newShell) {
-    //        super.configureShell(newShell);
-    //        newShell.setText(title);
-    //     }
-    //      
-    //      public Control createDialogArea(Composite composite) {
-    //        Text t = new Text(composite,SWT.READ_ONLY|SWT.READ_ONLY);
-    //        t.setText(content);
-    //        t.setSize(500,500);
-    //        return t;
-    //      }
-    //    }
-
 
     /**
      * This action generates jmldoc html pages for any selected project
@@ -698,14 +408,14 @@ abstract public class MenuActions extends AbstractHandler {
      */
     static public class JmlDoc extends MenuActions {
         // This is all done in the UI thread with no progress,
-        // except for the actual creating of the specs path folders, // FIXME - this comment is not correct
+        // except for the actual creating of the specs path folders, // FIXME - this comment is not correct; function not yet implemented
         // since for some reason that can take a long time
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
         		getInfo(event);
-        		utils.showMessageInUI(shell, "OpenJML - Not Yet Implemented",
-        				"jmldoc is not yet implemented");
+        		utils.showMessageInUI(shell, "OpenJML - Not Yet Implemented", //$NON-NLS-1$
+        				"jmldoc is not yet implemented"); //$NON-NLS-1$
                 //utils.jmldocSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.JmlDoc",e); //$NON-NLS-1$

@@ -89,7 +89,7 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			int id = p.getID();
 			if (!(id == IProblem.MethodRequiresBody || id == IProblem.UninitializedBlankFinalField)) return;
 			String s = new String(p.getOriginatingFileName());
-			if (s.endsWith(".java")) return;
+			if (s.endsWith(Utils.dotJava)) return;
 			// FIXME - we are not actually doing anything.  SHould we?
 			//          Log.log("JAVA Problem: " + id + " " + new String(p.getOriginatingFileName()) + " " + p.getMessage());
 			//          p.delete();
@@ -163,7 +163,7 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			};
 			r.getWorkspace().run(runnable, null);
 		} catch (Exception e) {
-			Log.errorlog("Failed to make a marker " + e,e);
+			Log.errorKey("openjml.ui.failed.to.create.marker",e); //$NON-NLS-1$
 		}
 	}
 
