@@ -91,7 +91,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	}
 
 	/** The ID of the Builder, which must match that in the plugin file */
-	public static final String JML_BUILDER_ID = Activator.PLUGIN_ID + ".JMLBuilder";
+	public static final String JML_BUILDER_ID = Activator.PLUGIN_ID + ".JMLBuilder"; //$NON-NLS-1$
 
 	/*
 	 * (non-Javadoc)
@@ -132,7 +132,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		if (Utils.verboseness >= Utils.NORMAL) Log.log("Cleaning: " + getProject().getName());
+		if (Utils.verboseness >= Utils.NORMAL) Log.log("Cleaning: " + getProject().getName()); //$NON-NLS-1$
 		deleteMarkers(getProject(),true);
 		cleanRacbin(getProject());
 	}
@@ -151,7 +151,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			}
 			f.refreshLocal(IResource.DEPTH_INFINITE,null);
 		} catch (CoreException e) {
-			Log.errorlog("Exception while cleaning RAC directory",e);
+			Log.errorKey("openjml.ui.cleaning.rac",e); //$NON-NLS-1$
 		}
 	}
 
@@ -169,7 +169,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 				IFile file = (IFile) resource;
 				resourcesToBuild.add(file);
 				if (delete) deleteMarkers(file,false);
-			} else if (".classpath".equals(name)) {
+			} else if (".classpath".equals(name)) { //$NON-NLS-1$
 				resourcesToBuild.add(resource.getProject());
 			}
 		}
@@ -200,21 +200,22 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		IJavaProject jproject = JavaCore.create(project);
 		if (jproject == null || !jproject.exists()) {
 			// It should not be possible to call the builder on a non-Java project.
-			Log.errorlog("JMLBuilder has been invoked on a non-Java Project - " + project.getName(), null);
+			Log.errorKey("openjml.ui.building.non.java.project",null,project.getName()); //$NON-NLS-1$
 			return;
 		}
 
-		if (Utils.verboseness >= Utils.NORMAL) Log.log("Full build " + project.getName());
+		if (Utils.verboseness >= Utils.NORMAL) Log.log("Full build " + project.getName()); //$NON-NLS-1$
 		
 		Timer.timer.markTime(); // FIXME - where is this timer used
 		deleteMarkers(project,true);
 		if (monitor.isCanceled() || isInterrupted()) {
-			if (Utils.verboseness >= Utils.NORMAL) Log.log("Build interrupted");
+			if (Utils.verboseness >= Utils.NORMAL) Log.log("Build interrupted"); //$NON-NLS-1$
 			return;
 		}
 		ResourceVisitor v = new ResourceVisitor();
 		project.accept(v);
 		// FIXME - doing double work here - checking and then rechecking while we build
+		Activator.getDefault().utils.racClear(jproject,null,monitor);
 		doChecking(jproject,v.resourcesToBuild,monitor);
 		if (Options.isOption(Options.enableRacKey)) {
 			Activator.getDefault().utils.doBuildRac(jproject,v.resourcesToBuild,monitor);
@@ -236,7 +237,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		for (IResource r: resources) {
 			r.accept(v);
 		}
-		monitor.beginTask("JML Manual Build", 
+		monitor.beginTask(Messages.OpenJMLUI_JMLBuilder_Title, 
 				5*v.resourcesToBuild.size());
 		doChecking(jp,v.resourcesToBuild,monitor);
 		boolean cancelled = monitor.isCanceled();
@@ -257,11 +258,11 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		IJavaProject jproject = JavaCore.create(project);
 		if (jproject == null || !jproject.exists()) {
 			// It should not be possible to call the builder on a non-Java project.
-			Log.errorlog("JMLBuilder has been invoked on a non-Java Project - " + project.getName(), null);
+			Log.errorKey("openjml.ui.building.non.java.project",null,project.getName()); //$NON-NLS-1$
 			return;
 		}
 
-		if (Utils.verboseness >= Utils.NORMAL) Log.log("Incremental build " + project.getName());
+		if (Utils.verboseness >= Utils.NORMAL) Log.log("Incremental build " + project.getName()); //$NON-NLS-1$
 		Timer.timer.markTime(); // FIXME - where is this timer used
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files and deletes markers
@@ -288,7 +289,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			resource.deleteMarkers(Utils.ESC_MARKER_ID, false, 
 					recursive? IResource.DEPTH_INFINITE :IResource.DEPTH_ZERO);
 		} catch (CoreException e) {
-			Log.errorlog("Failed to delete markers on " + resource.getName(), e);
+			Log.errorKey("openjml.ui.failed.to.delete.markers", e, resource.getName()); //$NON-NLS-1$
 		}
 	}
 
@@ -321,9 +322,9 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// FIXME - need to build one project at a time
 		try {
 			boolean cancelled = doBuild(JavaCore.create(resources.get(0).getProject()),resources, monitor);  // FIXME - build everything or update?
-			if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended"));
+			if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended")); //$NON-NLS-3$
 		} catch (Exception e) {
-			Log.errorlog("Exception occurred during JML check ",e);
+			Log.errorKey("openjml.ui.exception.during.check",e); //$NON-NLS-1$
 		}
 		return false;
 	}

@@ -460,6 +460,7 @@
                commandId="org.jmlspecs.eclipse.commands.DeleteJMLMarkers">
              </command>
 
+             <separator name="org.jmlspecs.openjml.rac" visible="true"/>
              <command
                label="Compile RAC"
                tooltip="Compiles JML runtime checks for selected objects"
@@ -467,12 +468,25 @@
                commandId="org.jmlspecs.eclipse.commands.RAC">
              </command>
              <command
+               label="Choose RAC files"
+               tooltip="Selects java files and folders for RAC"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ChooseForRAC"
+               commandId="org.jmlspecs.eclipse.commands.ChooseForRAC"
+               style="push">
+             </command>
+             <command
                label="Mark for RAC"
                tooltip="Marks selected resources to be compiled with runtime checks"
                id="org.jmlspecs.openjml.eclipse.MenuActions.EnableForRAC"
                commandId="org.jmlspecs.eclipse.commands.EnableForRAC">
              </command>
-
+             <command
+               label="Unmark for RAC"
+               tooltip="Disables selected resources from being compiled with runtime checks"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.DisableForRAC"
+               commandId="org.jmlspecs.eclipse.commands.DisableForRAC"
+               style="push">
+             </command>
              <command
                label="Delete RAC files"
                tooltip="Deletes RAC-compiled class files for selected resources"
@@ -480,21 +494,8 @@
                commandId="org.jmlspecs.eclipse.commands.ClearForRAC"
                style="push">
              </command>
-             <command
-               label="Enable for RAC"
-               tooltip="Enables selected resources to be compiled with runtime checks"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.EnableForRAC"
-               commandId="org.jmlspecs.eclipse.commands.EnableForRAC"
-               style="push">
-             </command>
-             <command
-               label="Disable for RAC"
-               tooltip="Disables selected resources from being compiled with runtime checks"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.DisableForRAC"
-               commandId="org.jmlspecs.eclipse.commands.DisableForRAC"
-               style="push">
-             </command>
              
+             <separator name="org.jmlspecs.openjml.jmldoc" visible="true"/>
              <command
                label="Generate JML docs"
                tooltip="Generates javadoc pages containing JML specifications"
@@ -502,6 +503,7 @@
                commandId="org.jmlspecs.eclipse.commands.JmlDoc">
              </command>
              
+             <separator name="org.jmlspecs.openjml.paths" visible="true"/>
              <command
                label="%openjml.ui.command.ShowPaths"
                tooltip="%openjml.ui.command.ShowPaths.description"
@@ -526,6 +528,7 @@
                id="org.jmlspecs.openjml.eclipse.MenuActions.RemoveFromSpecsPath"
                commandId="org.jmlspecs.eclipse.commands.RemoveFromSpecsPath">
              </command>
+             <separator name="org.jmlspecs.openjml.traces" visible="true"/>
              <command
                label="Show counterexample value"
                tooltip="Shows the value of an expression in the counterexample"
@@ -538,6 +541,7 @@
                id="org.jmlspecs.openjml.eclipse.MenuActions.ProofInformation"
                commandId="org.jmlspecs.eclipse.commands.ProofInformation">
              </command>
+             <separator name="org.jmlspecs.openjml.specs" visible="true"/>
              <command
                label="Show Specifications"
                tooltip="Shows the specifications of the selected object"
@@ -941,6 +945,14 @@
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.ClearForRAC"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ClearForRAC"
+            >
+      </command>
+      <command
+            name="RAC - choose files"
+            description="Select java files and folders for Runtime Assertion Checking"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.ChooseForRAC"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ChooseForRAC"
             >
       </command>
       <command

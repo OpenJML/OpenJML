@@ -25,7 +25,7 @@ public class Env {
 	 * A convenience field holding the local system definition of the 
 	 * end of line character sequence
 	 */
-	public static final String eol = System.getProperty("line.separator");
+	public static final String eol = System.getProperty("line.separator"); //$NON-NLS-1$
 
 	/** An enum used to indicate the level of compiler compliance level.  It
 	 *  is translated into the appropriate value from the internal class.
@@ -34,25 +34,25 @@ public class Env {
 		/**
 		 * An enum value corresponding to the 1.3 version of Java
 		 */
-		JLS1_3(ClassFileConstants.JDK1_3,"1.3"), 
+		JLS1_3(ClassFileConstants.JDK1_3,"1.3"),  //$NON-NLS-1$
 		/**
 		 * An enum value corresponding to the 1.4 version of Java
 		 */
-		JLS1_4(ClassFileConstants.JDK1_4,"1.4"), 
+		JLS1_4(ClassFileConstants.JDK1_4,"1.4"),  //$NON-NLS-1$
 		/**
 		 * An enum value corresponding to the 1.5(5.0) version of Java
 		 */
-		JLS1_5(ClassFileConstants.JDK1_5,"1.5"),
+		JLS1_5(ClassFileConstants.JDK1_5,"1.5"), //$NON-NLS-1$
 
 		/**
 		 * An enum value corresponding to the 1.6 version of Java
 		 */
-		JLS1_6(ClassFileConstants.JDK1_6,"1.6"),
+		JLS1_6(ClassFileConstants.JDK1_6,"1.6"), //$NON-NLS-1$
 
 		/**
 		 * An enum value corresponding to the 1.7 version of Java
 		 */
-		JLS1_7(ClassFileConstants.JDK1_7,"1.7");
+		JLS1_7(ClassFileConstants.JDK1_7,"1.7"); //$NON-NLS-1$
 
 		/**
 		 * The ClassFileConstants value corresponding to this enum instance.

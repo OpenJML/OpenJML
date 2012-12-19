@@ -177,6 +177,7 @@ public class ConsoleLogger implements Log.IListener {
 	 * 
 	 * @return a PrintStream connected to the Eclipse Console
 	 */
+	// TODO: should this be cached?
 	private PrintStream stream() {
 		return new PrintStream(getConsoleStream());
 	}

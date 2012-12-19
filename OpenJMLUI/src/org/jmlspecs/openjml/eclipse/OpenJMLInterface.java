@@ -160,6 +160,8 @@ public class OpenJMLInterface {
         	   args = getOptions(jp,command); // FIXME - somehow the options are not propagating through
            } else {
         	   args = getOptions(jp,command);
+        	   args.add("-d");
+        	   args.add("C:/cygwin/home/dcok/runtime-New_configuration/RacProject/racbin"); // FIXME - what is the current directory?
            }
 
            for (IResource r: files) {

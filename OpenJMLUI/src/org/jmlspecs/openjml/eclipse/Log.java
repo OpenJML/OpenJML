@@ -8,6 +8,9 @@ package org.jmlspecs.openjml.eclipse;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ResourceBundle;
+
+import org.eclipse.osgi.util.NLS;
 
 /** The logging mechanism for the OpenJML plugin - used for reporting progress or
  * errors within the plugin itself (i.e. not messages arising from the use of
@@ -23,6 +26,12 @@ import java.io.StringWriter;
 // The alternative is to send everything to 
 // the Eclipse provided log and have the ConsoleLog be a listener.
 public class Log {
+	
+	/** This reads the property file containing the error message format 
+	 * strings for the OpenJML UI.
+	 */
+	public static final ResourceBundle errorBundle = ResourceBundle.getBundle("org.jmlspecs.openjml.eclipse.errors"); //$NON-NLS-1$
+
 
 	/** The singleton Log object that does the actual logging */
 	public static final /*@ non_null*/ Log log = new Log();
@@ -36,14 +45,14 @@ public class Log {
 		else System.out.println(message); 
 	}
 
-	/** Call this method for any error output that happens because of an
-	 * exception - it sends a message to the 
-	 * current listeners, or to System.out if there are no listeners
+	/** Call this method for any error output - it sends a message to the 
+	 * current listeners, or to System.out if there are no listeners;
+	 * if an exception is given, the stack trace is output as well.
 	 * @param message the message to write; a new line will be added
 	 */
 	static public void errorlog(/*@ non_null*/String message, /*@ nullable */Throwable e) {
 		String emsg = e == null ? null : e.getMessage();
-		if (emsg != null && !emsg.isEmpty()) message = message + " (" + emsg + ")";
+		if (emsg != null && !emsg.isEmpty()) message = message + " (" + emsg + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 		if (e != null) {
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
@@ -53,6 +62,23 @@ public class Log {
 		}
 		if (log.listener != null) log.listener.log(message);
 		else System.out.println(message); 
+	}
+	
+	/** Equivalent to errorlog except that the first argument is a localization
+	 * format string with placeholders ({0}, {1}, etc.) for the arguments;
+	 * the optional exception is handled as in errorlog.
+	 */
+	static public void errorFormat(String format, /*@ nullable */Throwable e, Object...  args) {
+		errorlog(NLS.bind(format, args), e);
+	}
+
+	/** Equivalent to errorlog except that the first argument is a localization
+	 * key string whose value is looked up in the .properties file;
+	 * the optional exception is handled as in errorlog.
+	 */
+	static public void errorKey(String key, /*@ nullable */Throwable e, Object...  args) {
+		String format = errorBundle.getString(key);
+		errorlog(NLS.bind(format, args), e);
 	}
 
 	/** The interface expected of listeners */ 

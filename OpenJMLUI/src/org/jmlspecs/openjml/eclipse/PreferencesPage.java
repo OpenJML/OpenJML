@@ -98,7 +98,7 @@ IWorkbenchPreferencePage {
     protected void createFieldEditors() {
     	
     	// JML
-
+    	
     	MouseListener listener = new MouseAdapter() {
     		@Override
 			public void mouseUp(MouseEvent e) {
@@ -124,7 +124,7 @@ IWorkbenchPreferencePage {
 								if (field == verbosity) Utils.verboseness = Integer.parseInt(value);
 							} else {
 								// FIXME - use keys for all error messages?
-								Log.errorlog("Ignoring unknown field editor type " + field.getClass() + " for property " + key + "=" + value,null);  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+								Log.errorKey("openjml.ui.unknown.field.editor",null,field.getClass(),key,value);  //$NON-NLS-1$
 							}
 						} else {
 							// Assume anything else has a String value
@@ -175,13 +175,13 @@ IWorkbenchPreferencePage {
 
         addField(new BooleanFieldEditor(Options.enableRacKey, Messages.OpenJMLUI_PreferencesPage_EnableRuntimeAssertionChecking,
                 getFieldEditorParent()));
-        addField(new DirectoryFieldEditor(Options.racbinKey, Messages.OpenJMLUI_PreferencesPage_DirectoryForRACOutput,
+        addField(new StringFieldEditor(Options.racbinKey, Messages.OpenJMLUI_PreferencesPage_DirectoryForRACOutput,
                 getFieldEditorParent()));
 
         addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, Messages.OpenJMLUI_PreferencesPage_UseExternalRuntimeLibrary,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.checkSpecsPathKey, Messages.OpenJMLUI_PreferencesPage_AddRuntimeLibraryAutomatically,
-                getFieldEditorParent()));
+//        addField(new BooleanFieldEditor(Options.checkSpecsPathKey, Messages.OpenJMLUI_PreferencesPage_AddRuntimeLibraryAutomatically,
+//                getFieldEditorParent()));
 
         // Debug and verbosity
 

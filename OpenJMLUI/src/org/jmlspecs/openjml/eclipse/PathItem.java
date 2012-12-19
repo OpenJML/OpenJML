@@ -5,7 +5,9 @@
 package org.jmlspecs.openjml.eclipse;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -46,15 +48,23 @@ abstract public class PathItem {
 	/** The key used to store the specspath as a persistent property. */
 	public final static QualifiedName specsKey = new QualifiedName(Activator.PLUGIN_ID,"specspath"); //$NON-NLS-1$
 
+	/** The key used to store the files to rac as a persistent property. */
+	public static final QualifiedName racKey = new QualifiedName(Activator.PLUGIN_ID,".racfiles"); //$NON-NLS-1$
+	
 	/** Creates an appropriate PathItem from a raw file path. */
-	public static PathItem create(String pureString) {
+	public static PathItem create(IJavaProject jp, String pureString) {
 		IFile f = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(new Path(pureString));
 		if (f != null) {
-			return new WorkspacePath(f.getFullPath().toString());
+			if (!f.getProject().equals(jp.getProject())) {
+				return new WorkspacePath(f.getFullPath().toString());
+			}
+			return new ProjectPath(f.getProjectRelativePath().toString());
 		}
 		return new AbsolutePath(pureString);
 	}
 	
+	/** Adds a PathItem to the path for the given key and project; returns
+	 * false if the item was already present, true if it was added successfully. */
 	public static boolean add(IJavaProject jproject, QualifiedName key, PathItem p) throws CoreException {
 		String s = getEncodedPath(jproject,key);
 		String sp = p.toEncodedString();
@@ -77,6 +87,8 @@ abstract public class PathItem {
 		return true;
 	}
 	
+	/** Removes a PathItem from the path for the given key and project; returns
+	 * false if the item was not present, true if it was removed successfully. */
 	public static boolean remove(IJavaProject jproject, QualifiedName key, PathItem p) throws CoreException {
 		String s = getEncodedPath(jproject,key);
 		String sp = p.toEncodedString();
@@ -113,6 +125,16 @@ abstract public class PathItem {
 		}
 	}
 	
+	// FIXME - document
+	public static List<PathItem> parseAll(String encodedString) {
+		if (encodedString == null) encodedString = Utils.emptyString;
+		List<PathItem> list = new LinkedList<PathItem>();
+		for (String s: encodedString.split(split)) {
+			list.add(parse(s));
+		}
+		return list;
+	}
+	
 	/** Concatenates the path items into an encoded String */
 	public static String concat(java.util.List<PathItem> items) {
 		StringBuilder sb = new StringBuilder();
@@ -124,13 +146,18 @@ abstract public class PathItem {
 		return sb.toString();
 	}
 	
-	static List<PathItem> defaultSourcePath = Arrays.asList(new PathItem[] { 
-			new SpecialPath(SpecialPath.Kind.ALL_SOURCE_FOLDERS)
-			});
-	static List<PathItem> defaultSpecsPath = Arrays.asList(new PathItem[] { 
-			new SpecialPath(SpecialPath.Kind.SOURCEPATH), 
-			new SpecialPath(SpecialPath.Kind.SYSTEM_SPECS) 
-			});
+	/** The items in the default sourcepath */
+	static List<PathItem> defaultSourcePath = new ArrayList<PathItem>();
+	static {
+		defaultSourcePath.add(new SpecialPath(SpecialPath.Kind.ALL_SOURCE_FOLDERS));
+	}
+
+	/** The items in the default specspath */
+    static List<PathItem> defaultSpecsPath = new ArrayList<PathItem>();
+    static {
+    	defaultSpecsPath.add(new SpecialPath(SpecialPath.Kind.SOURCEPATH));
+    	defaultSpecsPath.add(new SpecialPath(SpecialPath.Kind.SYSTEM_SPECS));
+    }
 
 	
 	/** Writes out the PathItem as it should be shown to the user. */
@@ -148,13 +175,24 @@ abstract public class PathItem {
 		try {
 			String prop = jproject.getProject().getPersistentProperty(key);
 			if (prop == null) {
-				List<PathItem> defaults = key == PathItem.specsKey ? PathItem.defaultSpecsPath : PathItem.defaultSourcePath;
+				List<PathItem> defaults = key == PathItem.specsKey ? PathItem.defaultSpecsPath : 
+					key == PathItem.sourceKey ? PathItem.defaultSourcePath :
+						new ArrayList<PathItem>();
 				prop = concat(defaults);
 			}
 			return prop;
 		} catch (CoreException e) {
 			// FIXME - report Error
-			return ""; //$NON-NLS-1$
+			return Utils.emptyString;
+		}
+	}
+	
+	// FIXME - document
+	static public void setEncodedPath(IJavaProject jproject, QualifiedName key, String encoded) {
+		try {
+			jproject.getProject().setPersistentProperty(key,encoded);
+		} catch (CoreException e) {
+			// FIXME - report Error
 		}
 	}
 	
@@ -325,7 +363,7 @@ abstract public class PathItem {
     				out = sb.toString();
     			} catch (JavaModelException e) {
     				// FIXME - error
-    				out = ""; //$NON-NLS-1$
+    				out = Utils.emptyString;
     			}
     			break;
     			
@@ -351,7 +389,7 @@ abstract public class PathItem {
     			
     		default:
     			// FIXME - report error
-    			out = ""; //$NON-NLS-1$
+    			out = Utils.emptyString;
     		}
     		return out;
     	}

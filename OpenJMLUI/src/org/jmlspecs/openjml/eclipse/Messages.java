@@ -1,10 +1,20 @@
+/*
+ * This file is part of the OpenJML plugin project.
+ * Copyright 2004-2013 David R. Cok
+ */
 package org.jmlspecs.openjml.eclipse;
 
 import org.eclipse.osgi.util.NLS;
 
+/** The strings defined here are initialized from the messages.properties file;
+ * they are used as labels, titles, etc. in the UI. Error messages needing
+ * formatting are mostly in the errors.properties file.
+ */
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "org.jmlspecs.openjml.eclipse.messages"; //$NON-NLS-1$
+	public static String OpenJMLUI_Activator_JmlConsoleTitle;
 	public static String OpenJMLUI_ExceptionTitle;
+	public static String OpenJMLUI_JMLBuilder_Title;
 	public static String OpenJMLUI_PathItem_AllSourceFolders;
 	public static String OpenJMLUI_PathItem_ClassPath;
 	public static String OpenJMLUI_PathItem_PROJECT;
@@ -51,6 +61,13 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_WarnAboutNonExecutableConstructs;
 	public static String OpenJMLUI_PreferencesPage_WarnAboutNonImplementedConstructs;
 	public static String OpenJMLUI_OpenSpecsEditor_DialogTitle;
+	public static String OpenJMLUI_RACDialog_AddFile;
+	public static String OpenJMLUI_RACDialog_AddFolder;
+	public static String OpenJMLUI_RACDialog_Clear;
+	public static String OpenJMLUI_RACDialog_DialogTitle;
+	public static String OpenJMLUI_RACDialog_DirDialogTitle;
+	public static String OpenJMLUI_RACDialog_ErrorDialogMessage;
+	public static String OpenJMLUI_RACDialog_ErrorDialogTitle;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

@@ -290,7 +290,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
-                utils.markForRac(true,selection,null,shell);
+                utils.racMark(true,selection,null,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"PopupActions.EnableForRac",e);
             }
@@ -306,7 +306,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
-                utils.markForRac(false,selection,null,shell);
+                utils.racMark(false,selection,null,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"PopupActions.DisableForRac",e);
             }
@@ -322,7 +322,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
-                utils.clearForRac(selection,null,shell);
+                utils.racClear(selection,null,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"PopupActions.ClearForRac",e);
             }

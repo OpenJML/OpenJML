@@ -5,11 +5,7 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
-
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -19,29 +15,20 @@ import org.osgi.framework.BundleContext;
 public class Activator extends AbstractUIPlugin {
 
 	/** The plug-in ID, which must match the content of plugin.xml in several places */
-	public static final String PLUGIN_ID = "org.jmlspecs.OpenJMLUI";
+	public static final String PLUGIN_ID = "org.jmlspecs.OpenJMLUI"; //$NON-NLS-1$
 
 	/** The plug-in ID of the Specs project plugin (containing specifications
 	 * of Java library classes).  This must match the ID specified in the 
 	 * plugin.xml file of the Specs plugin.  The Specs plugin is the
 	 * source of all the Java library specifications.
 	 */
-	public static final String SPECS_PLUGIN_ID = "org.jmlspecs.Specs";
+	public static final String SPECS_PLUGIN_ID = "org.jmlspecs.Specs"; //$NON-NLS-1$
 
 	/** The single shared instance */
 	private static Activator plugin;
 
 	/** A general utility instance used by the plugin */
 	protected Utils utils;
-
-	/** The instance of the tool's options for the one plugin instance in the UI 
-	 * version of the OpenJML tool. 
-	 * This is THE, COMMON, GLOBAL instance of the options structure shared
-	 * by all projects using this instance of the plug-in. Don't instantiate
-	 * another one, since this one gets shared by reference in places.  This is
-	 * initialized by Activator.start().
-     */
-	public static Options options;
 
 	/**
 	 * The constructor, called by Eclipse, not by user code
@@ -58,11 +45,10 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		
-		Log.log.setListener(new ConsoleLogger("JML Console"));
+		Log.log.setListener(new ConsoleLogger(Messages.OpenJMLUI_Activator_JmlConsoleTitle));
 		//Log.log("JML UI plugin started");
 		
-		// Various initialization: instances of options and utils; 
-		// read all preferences
+		// Various initialization: instances of options and utils, cached fields
 		utils = new Utils();
 		utils.initializeProperties();
 	}
@@ -73,7 +59,6 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public void stop(BundleContext context) throws Exception {
 		utils = null;
-		options = null;
 		plugin = null;
 		super.stop(context);
 	}
@@ -87,6 +72,4 @@ public class Activator extends AbstractUIPlugin {
 		return plugin;
 	}
 	
-	static ResourceBundle rb;
-
 }

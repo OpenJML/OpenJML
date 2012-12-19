@@ -87,6 +87,7 @@ import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main.Cmd;
+import org.jmlspecs.openjml.eclipse.PathItem.ProjectPath;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.osgi.framework.Bundle;
 
@@ -476,24 +477,22 @@ public class Utils {
 	public void racSelection(final @NonNull ISelection selection,
 			@Nullable final IWorkbenchWindow window, final Shell shell) {
 		// For now at least, only IResources are accepted for selection
-		final @NonNull
-		List<IResource> res = getSelectedResources(selection, window, shell);
+		final @NonNull List<IResource> res = getSelectedResources(selection, window, shell);
 		if (res.size() == 0) {
 			showMessage(shell, "JML RAC", "Nothing appropriate to check");
 			return;
 		}
-		final @NonNull
-		Map<IJavaProject, List<IResource>> sorted = sortByProject(res);
+		final @NonNull Map<IJavaProject, List<IResource>> sorted = sortByProject(res);
 		for (final IJavaProject jp : sorted.keySet()) {
 			Job j = new Job("Compiling Runtime Assertions") {
 				public IStatus run(IProgressMonitor monitor) {
 					boolean c = false;
 					try {
 						getInterface(jp).executeExternalCommand(Cmd.RAC,
-								sorted.get(jp), monitor);
+						    sorted.get(jp), monitor);
 					} catch (Exception e) {
 						showExceptionInUI(shell,
-								"Failure while compiling runtime assertions", e);
+							"Failure while compiling runtime assertions", e);
 						c = true;
 					}
 					return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
@@ -509,7 +508,7 @@ public class Utils {
 	// a computation thread anyway
 	protected void doBuildRac(IJavaProject jproject,
 			List<IResource> resourcesToBuild, IProgressMonitor monitor) {
-		Set<IResource> enabledForRac = getSet(jproject);
+		Set<IResource> enabledForRac = getRacFiles(jproject);
 		List<IResource> newlist = new ArrayList<IResource>(enabledForRac.size());
 		for (IResource r : resourcesToBuild) {
 			if (enabledForRac.contains(r))
@@ -2168,24 +2167,47 @@ public class Utils {
 
 	// TODO _ needs more documentation
 
-	public Map<IJavaProject, Set<IResource>> enabledMaps = new HashMap<IJavaProject, Set<IResource>>();
-
-	public Set<IResource> getSet(IJavaProject jp) {
-		Set<IResource> set = enabledMaps.get(jp);
-		if (set == null) {
-			enabledMaps.put(jp, set = new HashSet<IResource>());
+//	public Map<IJavaProject, Set<IResource>> enabledMaps = new HashMap<IJavaProject, Set<IResource>>();
+//
+//	public Set<IResource> getSet(IJavaProject jp) {
+//		Set<IResource> set = enabledMaps.get(jp);
+//		if (set == null) {
+//			enabledMaps.put(jp, set = new HashSet<IResource>());
+//		}
+//		return set;
+//	}
+	
+	Set<IResource> getRacFiles(IJavaProject jp) {
+		String encoded = PathItem.getEncodedPath(jp,PathItem.racKey);
+		Set<IResource> items = new HashSet<IResource>();
+		for (PathItem item: PathItem.parseAll(encoded)) {
+			if (item instanceof ProjectPath) {
+				IResource r = jp.getProject().findMember(((ProjectPath)item).projectRelativeLocation);
+				items.add(r);
+			}
 		}
-		return set;
+		return items;
 	}
 
-	public void markForRac(boolean enable, ISelection selection,
+	void setRacFiles(IJavaProject jp, Set<IResource> items) {
+		List<PathItem> paths = new LinkedList<PathItem>();
+		for (IResource r: items) {
+			paths.add(new ProjectPath(r.getProjectRelativePath().toString()));
+		}
+		String encoded = PathItem.concat(paths);
+		PathItem.setEncodedPath(jp,PathItem.racKey,encoded);
+	}
+
+	public void racMark(boolean enable, ISelection selection,
 			IWorkbenchWindow window, @Nullable Shell shell) {
 		List<IResource> res = getSelectedResources(selection, window, shell);
 		final Map<IJavaProject, List<IResource>> sorted = sortByProject(res);
 		for (final IJavaProject jp : sorted.keySet()) {
-			final List<IResource> ores = sorted.get(jp);
-			for (IResource r : ores)
-				mark(enable, r, getSet(jp));
+			Set<IResource> items = getRacFiles(jp);
+			for (IResource r : sorted.get(jp)) {
+				mark(enable, r, items);
+			}
+			setRacFiles(jp,items);
 		}
 	}
 
@@ -2251,74 +2273,93 @@ public class Utils {
 
 	}
 
-	public void clearForRac(ISelection selection, IWorkbenchWindow window,
+	public void racClear(ISelection selection, IWorkbenchWindow window,
 			final @Nullable Shell shell) {
-		List<IResource> res = getSelectedResources(selection, window, shell);
-		final Map<IJavaProject, List<IResource>> sorted = sortByProject(res);
+		Collection<IJavaProject> res = getSelectedProjects(true,selection, window, shell);
 
-		for (final IJavaProject jp : sorted.keySet()) {
-			final List<IResource> ores = sorted.get(jp);
+		for (final IJavaProject jp : res) {
 			Job j = new Job("JML Clear RAC") {
 				public IStatus run(IProgressMonitor monitor) {
-					boolean c = false;
-					try {
-						IFolder dir = jp.getProject().getFolder(
-								Options.value(Options.racbinKey));
-						for (IResource r : ores)
-							clear(r, dir);
-					} catch (Exception e) {
-						showMessageInUI(shell, "OpenJML Exception",
-								e.getClass() + " - " + e.getMessage());
-						c = true;
-					}
-					return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
+					return racClear(jp,shell,monitor);
 				}
 			};
-			j.setUser(true); // FIXME - document this and elsewhere
+			j.setUser(true);
 			j.schedule();
 		}
-
-		for (final IJavaProject jp : sorted.keySet()) {
-			final List<IResource> ores = sorted.get(jp);
-			IFolder dir = jp.getProject().getFolder(
-					Options.value(Options.racbinKey));
-			for (IResource r : ores)
-				clear(r, dir);
-		}
 	}
 
-	protected void clear(IResource r, IFolder dir) {
+	public IStatus racClear(IJavaProject jp,
+			final @Nullable Shell shell, IProgressMonitor monitor) {
+		boolean c = false;
+		String racFolder = Options.value(Options.racbinKey);
+		if (racFolder == null || racFolder.isEmpty()) return Status.OK_STATUS;
+		IFolder dir = jp.getProject().getFolder(racFolder);
+		StringBuilder sb = new StringBuilder();
 		try {
-			if (r instanceof IFolder) {
-				for (IResource rr : ((IFolder) r).members()) {
-					clear(rr, dir);
+			for (IResource r : dir.members()) {
+				try {
+					r.delete(IResource.FORCE,monitor);
+				} catch (Exception e) {
+					sb.append(r.getName());
+					sb.append(" - ");
+					sb.append(e.getMessage());
+					sb.append(Env.eol);
 				}
-			} else if (r instanceof IFile) {
-				if (r.getName().endsWith(".java")) {
-					ICompilationUnit cu = (ICompilationUnit) r
-							.getAdapter(ICompilationUnit.class);
-					if (cu != null) {
-						for (IType t : cu.getTypes()) {
-							String s = t.getFullyQualifiedName();
-							s = s.replace('.', '/');
-							s = s.substring(0, s.length() - (".java").length());
-							s = s + ".class";
-							IFile f = dir.getFile(s);
-							f.delete(IResource.FORCE, null);
-						}
-					}
-				}
-			} else {
-				if (Utils.verboseness >= Utils.VERBOSE)
-					Log.log("Not handling " + r.getClass());
+				if (monitor != null && monitor.isCanceled()) { c = true; break; }
+			}
+			if (sb.length() != 0) {
+				showMessageInUI(shell, "OpenJML Exception",
+						sb.toString());
 			}
 		} catch (CoreException e) {
-			Log.errorlog(
-					"Core Exception while traversing Resource tree (mark for RAC)",
-					e);
-			// just continue
+			showMessageInUI(shell, "OpenJML Exception",
+					e.getMessage());
+		}
+		return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
+	}
+	
+	public void racChoose(ISelection selection, IWorkbenchWindow window,
+			final @Nullable Shell shell) {
+		Collection<IJavaProject> res = getSelectedProjects(true,selection, window, shell);
+		for (IJavaProject jp : res) {
+			Dialog d = new RACDialog(shell,"Select files in " + jp.getElementName() + " for Runtime Assertion Checking",jp);
+			d.create();
+			d.open();
 		}
 	}
+
+//	protected void clear(IResource r, IFolder dir) {
+//		try {
+//			if (r instanceof IFolder) {
+//				for (IResource rr : ((IFolder) r).members()) {
+//					clear(rr, dir);
+//				}
+//			} else if (r instanceof IFile) {
+//				if (r.getName().endsWith(".java")) {
+//					ICompilationUnit cu = (ICompilationUnit) r
+//							.getAdapter(ICompilationUnit.class);
+//					if (cu != null) {
+//						for (IType t : cu.getTypes()) {
+//							String s = t.getFullyQualifiedName();
+//							s = s.replace('.', '/');
+//							s = s.substring(0, s.length() - (".java").length());
+//							s = s + ".class";
+//							IFile f = dir.getFile(s);
+//							f.delete(IResource.FORCE, null);
+//						}
+//					}
+//				}
+//			} else {
+//				if (Utils.verboseness >= Utils.VERBOSE)
+//					Log.log("Not handling " + r.getClass());
+//			}
+//		} catch (CoreException e) {
+//			Log.errorlog(
+//					"Core Exception while traversing Resource tree (clear for RAC)",
+//					e);
+//			// just continue
+//		}
+//	}
 
 	/**
 	 * Creates a map indexed by IJavaProject, with the value for each

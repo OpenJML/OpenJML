@@ -5,17 +5,12 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
-import java.util.EnumSet;
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -32,29 +27,27 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
-import org.jmlspecs.openjml.eclipse.widgets.EnumDialog;
+import org.jmlspecs.openjml.eclipse.PathItem.ProjectPath;
 
 /** Implements a dialog that allows editing of the source and specs path of a Java project */
-public class PathsEditor extends Utils.ModelessDialog { 
+public class RACDialog extends Utils.ModelessDialog { 
+	
 	/** Window title */
 	protected String title;
 	/** Java project whose paths are being edited */
 	protected IJavaProject jproject;
 	/** The current shell */
 	protected Shell shell;
-	/** Reference to the internal control for editing the source path */
-	protected ListEditor sourceListEditor;
-	/** Reference to the internal control for editing the specs path */
-	protected ListEditor specsListEditor;
+	/** Reference to the internal control for editing the set of files to RAC */
+	protected RACListEditor racListEditor;
 	
 	/** Constructor for the dialog
 	 * @param parentShell parent shell for the dialog
 	 * @param title text on the title bar
 	 * @param jproject Java project whose paths are to be edited
 	 */
-	public PathsEditor(Shell parentShell, String title, IJavaProject jproject) {
+	public RACDialog(Shell parentShell, String title, IJavaProject jproject) {
 		super(parentShell);
 
 		this.title = title;
@@ -73,52 +66,18 @@ public class PathsEditor extends Utils.ModelessDialog {
 	@Override
 	public Control createDialogArea(Composite parent) {
 		
-		CTabFolder tabs = new CTabFolder(parent,SWT.NONE);
-		CTabItem classtab = new CTabItem(tabs,SWT.NONE);
-		CTabItem sourcetab = new CTabItem(tabs,SWT.NONE);
-		CTabItem specstab = new CTabItem(tabs,SWT.NONE);
-		Composite classcomp = new Composite(tabs,SWT.NONE);
-		Composite sourcecomp = new Composite(tabs,SWT.NONE);
-		Composite specscomp = new Composite(tabs,SWT.NONE);
-		tabs.setSelection(specstab);
-		specstab.setText(Messages.OpenJMLUI_PathsEditor_SpecsPath);
-		sourcetab.setText(Messages.OpenJMLUI_PathsEditor_SourcePath);
-		classtab.setText(Messages.OpenJMLUI_PathsEditor_ClassPath);
-		specstab.setControl(specscomp);
-		sourcetab.setControl(sourcecomp);
-		classtab.setControl(classcomp);
+		String label = Messages.OpenJMLUI_RACDialog_DialogTitle;
+		racListEditor = new RACListEditor(shell,parent,jproject,PathItem.racKey,label);
 		
-		Utils utils = Activator.getDefault().utils;
-		
-		StringBuilder text = new StringBuilder();
-		text.append(Messages.OpenJMLUI_PathsEditor_ClassPathTitle + Env.eol
-			+ Messages.OpenJMLUI_PathsEditor_ClassPathTitle2);
-		text.append(Env.eol);
-		text.append(Env.eol);
-		for (String s: utils.getClasspath(jproject)) {
-			text.append(s);
-			text.append(Env.eol);
-		}
-		Text t = new Text(classcomp,SWT.READ_ONLY|SWT.MULTI);
-		t.setText(text.toString());
-		t.setSize(500,200);
-		
-		String label = Messages.OpenJMLUI_PathsEditor_SourcePathTitle;
-		sourceListEditor = new ListEditor(shell,sourcecomp,jproject,PathItem.sourceKey,label);
-		
-		label = Messages.OpenJMLUI_PathsEditor_SpecsPathTitle;
-		specsListEditor = new ListEditor(shell,specscomp,jproject,PathItem.specsKey,label);
-		return tabs;
+		return null;
 	}
 	
 	@Override
 	public void okPressed() {
 		try {
-			jproject.getProject().setPersistentProperty(PathItem.sourceKey, PathItem.concat(sourceListEditor.pathItems));
-			jproject.getProject().setPersistentProperty(PathItem.specsKey, PathItem.concat(specsListEditor.pathItems));
+			jproject.getProject().setPersistentProperty(PathItem.racKey, PathItem.concat(racListEditor.pathItems));
 			if (Utils.verboseness >= Utils.VERBOSE) {
-				Log.log("Saved " + jproject.getProject().getPersistentProperty(PathItem.sourceKey)); //$NON-NLS-1$
-				Log.log("Saved " + jproject.getProject().getPersistentProperty(PathItem.specsKey)); //$NON-NLS-1$
+				Log.log("Saved " + jproject.getProject().getPersistentProperty(PathItem.racKey)); //$NON-NLS-1$
 			}
 		} catch (CoreException e) {
 			Activator.getDefault().utils.showExceptionInUI(shell,Messages.OpenJMLUI_PathsEditor_PersistentPropertyError,e);
@@ -129,8 +88,10 @@ public class PathsEditor extends Utils.ModelessDialog {
 
 }
 
+// TODO: Unify this with the PathEditor ListEditor and perhaps with the ListFieldEditor
+
 /** A SWT control for editing a list of PathItems */
-class ListEditor {
+class RACListEditor {
 	
 	/**
 	 * The list widget; <code>null</code> if none
@@ -155,13 +116,12 @@ class ListEditor {
 	 */
 	protected Composite buttonBox;
 
-	protected Button addJarButton;
+	protected Button addFileButton;
 	protected Button addDirButton;
 	protected Button removeButton;
 	protected Button upButton;
 	protected Button downButton;
-	protected Button defaultButton;
-	protected Button addSpecialButton;
+	protected Button clearButton;
 	protected Label label;
 	protected String labelText;
 
@@ -176,21 +136,24 @@ class ListEditor {
 	
 	/** The cached dialog for selecting folders */
 	protected DirectoryDialog dirDialog;
+	
+	protected Shell shell;
 
 	/** Constructs a widget to edit the path corresponding to the given key and for
 	 * the given project.
 	 */
 	// The GridLayout code is copied from FieldEditor
-	public ListEditor(Shell shell, Composite parent, IJavaProject jproject, QualifiedName key, String labelText) {
+	public RACListEditor(Shell shell, Composite parent, IJavaProject jproject, QualifiedName key, String labelText) {
 
+		this.shell = shell;
 		this.jproject = jproject;
 		this.key = key;
 		this.labelText = labelText;
 		
 		fileDialog = new FileDialog(shell);
-		fileDialog.setFilterExtensions(new String[]{"*.jar"}); //$NON-NLS-1$
+		fileDialog.setFilterExtensions(new String[]{"*.java"}); //$NON-NLS-1$
 		dirDialog = new DirectoryDialog(shell);
-		dirDialog.setMessage(Messages.OpenJMLUI_PathsEditor_DirectoryDialogMessage);
+		dirDialog.setMessage(Messages.OpenJMLUI_RACDialog_DirDialogTitle);
 		String path = jproject.getProject().getLocation().toString();
 		dirDialog.setFilterPath(path);
 
@@ -218,7 +181,8 @@ class ListEditor {
 				pathItems.add(p);
 				list.add(p.display());
 			} else {
-				Activator.getDefault().utils.showMessageInUI(fileDialog.getParent(),Messages.OpenJMLUI_PathsEditor_ErrorDialogTitle,
+				Activator.getDefault().utils.showMessageInUI(fileDialog.getParent(),
+					Messages.OpenJMLUI_PathsEditor_ErrorDialogTitle,
 					Messages.OpenJMLUI_PathsEditor_UnparsableError + s);
 			}
 		}
@@ -262,10 +226,15 @@ class ListEditor {
 	/**
 	 * Notifies that the Add button has been pressed.
 	 */
-	protected void addJarPressed() {
+	protected void addFilePressed() {
 		String input = fileDialog.open();
 		if (input != null) {
 			PathItem item = PathItem.create(jproject,input);
+			if (!(item instanceof ProjectPath)) {
+				Activator.getDefault().utils.showMessageInUI(shell,Messages.OpenJMLUI_RACDialog_ErrorDialogTitle,
+						Messages.OpenJMLUI_RACDialog_ErrorDialogMessage);
+				return;
+			}
 			add(item);
 			selectionChanged();
 		}
@@ -275,19 +244,19 @@ class ListEditor {
 		String input = dirDialog.open();
 		if (input != null) {
 			PathItem item = PathItem.create(jproject,input);
+			if (!(item instanceof ProjectPath)) {
+				Activator.getDefault().utils.showMessageInUI(shell,Messages.OpenJMLUI_RACDialog_ErrorDialogTitle,
+						Messages.OpenJMLUI_RACDialog_ErrorDialogMessage);
+				return;
+			}
 			add(item);
 			selectionChanged();
 		}
 	}
 
-	protected void defaultPressed() {
+	protected void clearPressed() {
 		list.removeAll();
 		pathItems.clear();
-		java.util.List<PathItem> defaults = key == PathItem.specsKey ? PathItem.defaultSpecsPath : PathItem.defaultSourcePath;
-		for (PathItem item : defaults) {
-			list.add(item.display());
-			pathItems.add(item);
-		}
 		selectionChanged();
 	}
 
@@ -309,27 +278,6 @@ class ListEditor {
 		swap(false);
 	}
 	
-	protected void specialPressed() {
-		EnumSet<PathItem.SpecialPath.Kind> disable = EnumSet.noneOf(PathItem.SpecialPath.Kind.class);
-		if (key == PathItem.sourceKey) disable.add(PathItem.SpecialPath.Kind.SOURCEPATH);
-		for (PathItem k : pathItems) {
-			if (k instanceof PathItem.SpecialPath){
-				disable.add(((PathItem.SpecialPath)k).kind);
-			}
-		}
-		EnumDialog<PathItem.SpecialPath.Kind> d = 
-				new EnumDialog<PathItem.SpecialPath.Kind>(
-						fileDialog.getParent(),
-						PathItem.SpecialPath.Kind.values(),
-						disable);
-		d.create();
-		if (d.open() == Dialog.OK) {
-			PathItem item = new PathItem.SpecialPath(d.selection());
-			add(item);
-			selectionChanged();
-		}
-	}
-
 	/**
 	 * Moves the currently selected item up or down.
 	 *
@@ -358,13 +306,12 @@ class ListEditor {
 	 * @param box the box for the buttons
 	 */
 	private void createButtons(Composite box) {
-		addJarButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddJar);
-		addDirButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddFolder);
-		addSpecialButton = createPushButton(box, "Add Special ...");
+		addFileButton = createPushButton(box, Messages.OpenJMLUI_RACDialog_AddFile);
+		addDirButton = createPushButton(box, Messages.OpenJMLUI_RACDialog_AddFolder);
 		removeButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Remove);
 		upButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Up);
 		downButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Down);
-		defaultButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Default);
+		clearButton = createPushButton(box, Messages.OpenJMLUI_RACDialog_Clear);
 	}
 
 	/**
@@ -376,7 +323,7 @@ class ListEditor {
 	 */
 	private Button createPushButton(Composite parent, String label) {
 		Button button = new Button(parent, SWT.PUSH);
-		button.setText(label); // JFaceResources.getString(key));
+		button.setText(label);
 		button.setFont(parent.getFont());
 		GridData data = new GridData(GridData.FILL_HORIZONTAL);
 		int widthHint = convertHorizontalDLUsToPixels(button,
@@ -393,9 +340,7 @@ class ListEditor {
 		gc.setFont(control.getFont());
 		int averageWidth = gc.getFontMetrics().getAverageCharWidth();
 		gc.dispose();
-
 		double horizontalDialogUnitSize = averageWidth * 0.25;
-
 		return (int) Math.round(dlus * horizontalDialogUnitSize);
 	}
 
@@ -417,8 +362,8 @@ class ListEditor {
 		selectionListener = new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				Widget widget = event.widget;
-				if (widget == addJarButton) {
-					addJarPressed();
+				if (widget == addFileButton) {
+					addFilePressed();
 				} else if (widget == addDirButton) {
 					addDirPressed();
 				} else if (widget == removeButton) {
@@ -427,10 +372,8 @@ class ListEditor {
 					upPressed();
 				} else if (widget == downButton) {
 					downPressed();
-				} else if (widget == defaultButton) {
-					defaultPressed();
-				} else if (widget == addSpecialButton) {
-					specialPressed();
+				} else if (widget == clearButton) {
+					clearPressed();
 				} else if (widget == list) {
 					selectionChanged();
 				}
@@ -477,10 +420,8 @@ class ListEditor {
 
 
 	protected void selectionChanged() {
-
 		int index = list.getSelectionIndex();
 		int size = list.getItemCount();
-
 		removeButton.setEnabled(index >= 0);
 		upButton.setEnabled(size > 1 && index > 0);
 		downButton.setEnabled(size > 1 && index >= 0 && index < size - 1);
@@ -494,13 +435,12 @@ class ListEditor {
 
 	public void setEnabled(boolean enabled, Composite parent) {
 		getListControl(parent).setEnabled(enabled);
-		addJarButton.setEnabled(enabled);
+		addFileButton.setEnabled(enabled);
 		addDirButton.setEnabled(enabled);
 		removeButton.setEnabled(enabled);
 		upButton.setEnabled(enabled);
 		downButton.setEnabled(enabled);
-		defaultButton.setEnabled(enabled);
-		addSpecialButton.setEnabled(enabled);
+		clearButton.setEnabled(enabled);
 		selectionChanged();
 	}
 
@@ -532,12 +472,12 @@ class ListEditor {
 			createButtons(buttonBox);
 			buttonBox.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent event) {
-					addJarButton = null;
+					addFileButton = null;
 					addDirButton = null;
-					addSpecialButton = null;
 					removeButton = null;
 					upButton = null;
 					downButton = null;
+					clearButton = null;
 					buttonBox = null;
 				}
 			});

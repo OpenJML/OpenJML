@@ -340,7 +340,7 @@ abstract public class MenuActions extends AbstractHandler {
     	public Object execute(ExecutionEvent event) {
     		try {
         		getInfo(event);
-                utils.markForRac(true,selection,window,shell);
+                utils.racMark(true,selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.EnableForRac",e); //$NON-NLS-1$
     		}
@@ -358,7 +358,7 @@ abstract public class MenuActions extends AbstractHandler {
     	public Object execute(ExecutionEvent event) {
     		try {
         		getInfo(event);
-                utils.markForRac(false,selection,window,shell);
+                utils.racMark(false,selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.DisableForRac",e); //$NON-NLS-1$
     		}
@@ -376,9 +376,27 @@ abstract public class MenuActions extends AbstractHandler {
         public Object execute(ExecutionEvent event) {
             try {
             	getInfo(event);
-                utils.clearForRac(selection,window,shell);
+                utils.racClear(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ClearForRac",e); //$NON-NLS-1$
+            }
+            return null;
+        }
+    }
+
+    /**
+     * This action opens a dialog enabling choosing the files for RAC.
+     * @author David Cok
+     */
+    static public class ChooseForRAC extends MenuActions {
+        // This is done in the UI thread. 
+        @Override
+        public Object execute(ExecutionEvent event) {
+            try {
+            	getInfo(event);
+                utils.racChoose(selection,window,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.ChooseForRac",e); //$NON-NLS-1$
             }
             return null;
         }
