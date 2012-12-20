@@ -182,6 +182,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Returns a new JCBlock representing the rewritten body of the given method declaration */
     public JCBlock convertMethodBody(JCMethodDecl decl, JmlClassDecl cd) {
         JCMethodDecl prev = methodDecl;
+        this.classDecl = cd;
         try {
             this.methodDecl = decl;
             return convert();

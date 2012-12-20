@@ -130,10 +130,10 @@ public abstract class RacBase extends JmlTestCase {
      */
     public void helpTCX(String classname, String s, Object... list) {
 
-//        if (this.getClass() == racnew.class ) {
-//            System.out.println("rac tests disabled");
-//            return;  // FIXME - turning off these tests for now
-//        }
+        if (this.getClass() == racnew.class ) {
+            System.out.println("rac tests disabled");
+            return;  // FIXME - turning off these tests for now
+        }
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
         StreamGobbler out=null,err=null;
         try {
