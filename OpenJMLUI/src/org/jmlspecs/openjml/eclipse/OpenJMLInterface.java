@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,7 @@ import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Main.JmlCanceledException;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.Utils.OpenJMLException;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.osgi.framework.Bundle;
@@ -143,7 +145,7 @@ public class OpenJMLInterface {
     * @param files the set of files (or containers) to check
     * @param monitor the progress monitor the UI is using
     */
-   public void executeExternalCommand(Main.Cmd command, List<IResource> files, @Nullable IProgressMonitor monitor) {
+   public void executeExternalCommand(Main.Cmd command, Collection<IResource> files, @Nullable IProgressMonitor monitor) {
 	   boolean verboseProgress = Utils.verboseness >= Utils.NORMAL;
        try {
            if (files.isEmpty()) {
@@ -151,7 +153,7 @@ public class OpenJMLInterface {
                Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process");
                return;
            }
-           IJavaProject jp = JavaCore.create(files.get(0).getProject());
+           IJavaProject jp = JavaCore.create(files.iterator().next().getProject());
            List<String> args;
            if (command == Main.Cmd.CHECK) {
         	   api.close();
@@ -160,8 +162,10 @@ public class OpenJMLInterface {
         	   args = getOptions(jp,command); // FIXME - somehow the options are not propagating through
            } else {
         	   args = getOptions(jp,command);
+        	   String racdir = Options.value(Options.racbinKey);
+        	   if (racdir == null || racdir.isEmpty()) racdir = "racbin";
         	   args.add("-d");
-        	   args.add("C:/cygwin/home/dcok/runtime-New_configuration/RacProject/racbin"); // FIXME - what is the current directory?
+        	   args.add(jp.getProject().getLocation().append(racdir).toString());
            }
 
            for (IResource r: files) {
@@ -175,7 +179,7 @@ public class OpenJMLInterface {
            }
            Timer.timer.markTime();
            if (verboseProgress) {
-        	   String s = files.size() == 1 ? files.get(0).getName() : (files.size() + " items");
+        	   String s = files.size() == 1 ? files.iterator().next().getName() : (files.size() + " items");
         	   Log.log(Timer.timer.getTimeString() + " Executing openjml on " + s);
            }
            if (monitor != null) {
@@ -189,7 +193,7 @@ public class OpenJMLInterface {
             	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed");
                }
                else if (ret == Main.EXIT_CANCELED) {
-            	   throw new Main.JmlCanceledException("");
+            	   throw new Main.JmlCanceledException(Utils.emptyString);
                }
                else if (ret == Main.EXIT_ERROR) {
             	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed with errors");
@@ -198,7 +202,7 @@ public class OpenJMLInterface {
                    StringBuilder ss = new StringBuilder();
                    for (String r: args) {
                        ss.append(r);
-                       ss.append(" ");
+                       ss.append(Utils.space);
                    }
                    Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
                    Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + eol + ss);
@@ -207,7 +211,7 @@ public class OpenJMLInterface {
                    StringBuilder ss = new StringBuilder();
                    for (String r: args) {
                        ss.append(r);
-                       ss.append(" ");
+                       ss.append(Utils.space);
                    }
                    Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
                    Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
@@ -220,7 +224,7 @@ public class OpenJMLInterface {
                StringBuilder ss = new StringBuilder();
                for (String c: args) {
                    ss.append(c);
-                   ss.append(" ");
+                   ss.append(Utils.space);
                }
                Log.errorlog("Failure to execute openjml: "+ss,e); 
                Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Failure to execute openjml: " + e + " " + ss);
@@ -1104,7 +1108,7 @@ public class OpenJMLInterface {
         opts.add(JmlOption.SPECS.optionName());
         opts.add(PathItem.getAbsolutePath(jproject,PathItem.specsKey));
 
-        opts.add("-sourcepath"); // FIXME - no strings
+        opts.add(Strings.sourcepathOptionName); 
         opts.add(PathItem.getAbsolutePath(jproject,PathItem.sourceKey));
 
         
@@ -1130,7 +1134,7 @@ public class OpenJMLInterface {
         	}
         }
 
-        opts.add("-classpath");
+        opts.add(Strings.classpathOptionName);
         opts.add(ss.toString());
 
         // FIXME - what about these options

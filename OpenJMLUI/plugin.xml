@@ -462,10 +462,16 @@
 
              <separator name="org.jmlspecs.openjml.rac" visible="true"/>
              <command
-               label="Compile RAC"
+               label="Compile RAC for selected files"
                tooltip="Compiles JML runtime checks for selected objects"
                id="org.jmlspecs.openjml.eclipse.MenuActions.RAC"
                commandId="org.jmlspecs.eclipse.commands.RAC">
+             </command>
+             <command
+               label="Compile RAC for marked files"
+               tooltip="Compiles JML runtime checks for marked objects"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.CompileMarked"
+               commandId="org.jmlspecs.eclipse.commands.RACMarked">
              </command>
              <command
                label="Choose RAC files"
@@ -916,11 +922,19 @@
             >
       </command>
       <command
-            name="RAC - compile"
+            name="RAC - compile selected"
             description="Compiles runtime checks on selected resources"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.RAC"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$RAC"
+            >
+      </command>
+      <command
+            name="RAC - compile marked"
+            description="Compiles runtime checks on marked resources"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.CompileMarked"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$RACMarked"
             >
       </command>
       <command

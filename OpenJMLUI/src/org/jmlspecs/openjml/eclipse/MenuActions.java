@@ -120,6 +120,26 @@ abstract public class MenuActions extends AbstractHandler {
     	}
     }
 
+    /** This class implements the action for compiling RAC on the marked objects.
+     * Applying the operation
+     * to a container applies it to all its contents recursively.
+     * The processing is done in a non-UI thread.
+     * @author David R. Cok
+     *
+     */
+    public static class RACMarked extends MenuActions {
+        @Override
+    	public Object execute(ExecutionEvent event) {
+    		try {
+        		getInfo(event);
+                utils.racMarked(selection,window,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.RACMarked",e); //$NON-NLS-1$
+    		}
+    		return null;
+    	}
+    }
+
     /**
      * This class implements the action that clears
      * JML markers.  It is performed entirely in the UI thread, with no

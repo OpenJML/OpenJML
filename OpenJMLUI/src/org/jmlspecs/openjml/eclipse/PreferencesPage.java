@@ -171,15 +171,12 @@ IWorkbenchPreferencePage {
 		addField(new LabelFieldEditor("zzzzz.RAC",Messages.OpenJMLUI_PreferencesPage_OptionsRelatingToRAC,SWT.SEPARATOR|SWT.HORIZONTAL, //$NON-NLS-1$
 				getFieldEditorParent()));
 
-        addField(new BooleanFieldEditor(Options.enableRacKey, Messages.OpenJMLUI_PreferencesPage_EnableRuntimeAssertionChecking,
+        addField(new BooleanFieldEditor(Options.enableRacKey, Messages.OpenJMLUI_PreferencesPage_EnableAutoRuntimeAssertionChecking,
                 getFieldEditorParent()));
         addField(new StringFieldEditor(Options.racbinKey, Messages.OpenJMLUI_PreferencesPage_DirectoryForRACOutput,
                 getFieldEditorParent()));
-
         addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, Messages.OpenJMLUI_PreferencesPage_UseExternalRuntimeLibrary,
                 getFieldEditorParent()));
-//        addField(new BooleanFieldEditor(Options.checkSpecsPathKey, Messages.OpenJMLUI_PreferencesPage_AddRuntimeLibraryAutomatically,
-//                getFieldEditorParent()));
 
         // Debug and verbosity
 

@@ -39,11 +39,11 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PathsEditor_Remove;
 	public static String OpenJMLUI_PathsEditor_Up;
 	public static String OpenJMLUI_PathsEditor_Down;
-	public static String OpenJMLUI_PreferencesPage_AddRuntimeLibraryAutomatically;
+	//public static String OpenJMLUI_PreferencesPage_AddRuntimeLibraryAutomatically;
 	public static String OpenJMLUI_PreferencesPage_CheckSpecificationPath;
 	public static String OpenJMLUI_PreferencesPage_debug;
 	public static String OpenJMLUI_PreferencesPage_DirectoryForRACOutput;
-	public static String OpenJMLUI_PreferencesPage_EnableRuntimeAssertionChecking;
+	public static String OpenJMLUI_PreferencesPage_EnableAutoRuntimeAssertionChecking;
 	public static String OpenJMLUI_PreferencesPage_JavaVerbose;
 	public static String OpenJMLUI_PreferencesPage_JmlOptions;
 	public static String OpenJMLUI_PreferencesPage_NonNullByDefault;

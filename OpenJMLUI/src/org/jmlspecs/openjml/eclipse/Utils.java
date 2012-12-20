@@ -478,17 +478,62 @@ public class Utils {
 		// For now at least, only IResources are accepted for selection
 		final @NonNull List<IResource> res = getSelectedResources(selection, window, shell);
 		if (res.size() == 0) {
-			showMessage(shell, "JML RAC", "Nothing appropriate to check");
+			showMessage(shell, "JML RAC Selected", "Nothing appropriate to check");
 			return;
 		}
 		final @NonNull Map<IJavaProject, List<IResource>> sorted = sortByProject(res);
 		for (final IJavaProject jp : sorted.keySet()) {
-			Job j = new Job("Compiling Runtime Assertions") {
+			Job j = new Job("Compiling Runtime Assertions on selected resources") {
 				public IStatus run(IProgressMonitor monitor) {
 					boolean c = false;
 					try {
 						getInterface(jp).executeExternalCommand(Cmd.RAC,
 						    sorted.get(jp), monitor);
+					} catch (Exception e) {
+						showExceptionInUI(shell,
+							"Failure while compiling runtime assertions", e);
+						c = true;
+					}
+					return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
+				}
+			};
+			j.setUser(true); // true since the job has been initiated by an
+								// end-user
+			j.schedule();
+		}
+	}
+
+	/**
+	 * This routine initiates (as a Job) compiling RAC for all the Java files in
+	 * the selection; if any containers are selected, the operation applies the
+	 * contents of the container (including working sets); if any Java elements
+	 * are selected (e.g. a method), the operation applies to the containing
+	 * file.
+	 * 
+	 * @param selection
+	 *            the current selection (ignored unless it is an
+	 *            IStructuredSelection)
+	 * @param window
+	 *            null or the currently active IWorkbenchWindow
+	 * @param shell
+	 *            the current shell
+	 */
+	public void racMarked(final @NonNull ISelection selection,
+			@Nullable final IWorkbenchWindow window, final Shell shell) {
+		// For now at least, only IResources are accepted for selection
+		final @NonNull Collection<IJavaProject> projects = getSelectedProjects(true,selection, window, shell);
+		if (projects.size() == 0) {
+			showMessage(shell, "JML RAC Marked", "No projects selected");
+			return;
+		}
+		for (final IJavaProject jp : projects) {
+			Job j = new Job("Compiling Runtime Assertions on marked resources") {
+				public IStatus run(IProgressMonitor monitor) {
+					boolean c = false;
+					try {
+						Set<IResource> resources = getRacFiles(jp);
+						getInterface(jp).executeExternalCommand(Cmd.RAC,
+						    resources, monitor);
 					} catch (Exception e) {
 						showExceptionInUI(shell,
 							"Failure while compiling runtime assertions", e);

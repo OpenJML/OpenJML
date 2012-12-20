@@ -137,6 +137,8 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		cleanRacbin(getProject());
 	}
 
+	// FIXME - move to Utils?
+	
 	/** Deletes the contents of the RAC binary directory (at the location defined in the
 	 * options) of the given project and refreshing it
 	 * in the workspace.  All done in the UI thread.
@@ -182,12 +184,18 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 * @param resourcesToBuild the resources to build
 	 * @param monitor the monitor to record progress and cancellation
 	 */
-	protected static void doChecking(IJavaProject jproject, List<IResource> resourcesToBuild, IProgressMonitor monitor) {
+	protected static void doAction(IJavaProject jproject, List<IResource> resourcesToBuild, IProgressMonitor monitor) {
 		// We've already checked that this is a Java and a JML project
 		// Also all the resources should be from this project, because the
 		// builders work project by project
-		if (Options.isOption(Options.autoAddRuntimeToProjectKey)) Activator.getDefault().utils.addRuntimeToProjectClasspath(jproject);
-		Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,resourcesToBuild, monitor);
+
+		if (Options.isOption(Options.enableRacKey)) {
+			Activator.getDefault().utils.doBuildRac(jproject,resourcesToBuild,monitor);
+		} else {
+			//doChecking(jproject,v.resourcesToBuild,monitor);
+			if (Options.isOption(Options.autoAddRuntimeToProjectKey)) Activator.getDefault().utils.addRuntimeToProjectClasspath(jproject);
+			Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,resourcesToBuild, monitor);
+		}
 	}
 
 
@@ -214,24 +222,23 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		}
 		ResourceVisitor v = new ResourceVisitor();
 		project.accept(v);
-		// FIXME - doing double work here - checking and then rechecking while we build
 		Activator.getDefault().utils.racClear(jproject,null,monitor);
-		doChecking(jproject,v.resourcesToBuild,monitor);
-		if (Options.isOption(Options.enableRacKey)) {
-			Activator.getDefault().utils.doBuildRac(jproject,v.resourcesToBuild,monitor);
-		}
+		doAction(jproject,v.resourcesToBuild,monitor);
 		v.resourcesToBuild.clear();
+		if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$
 	}
+	
+	// FIXME - move this to Utils? Combine into the one caller?
 
-	/** Called to do a build on a list of resources, recursively; this is a utility
+	/** Called to do a build on a list of resources; this is a utility
 	 * to be called by client code elsewhere in the program.
-	 * @param jp the java project to which the resources belong 
+	 * @param jproject the java project to which the resources belong 
 	 * @param resources the resources to JML check, each one recursively
 	 * @param monitor the progress monitor on which to report progress
 	 * @return true if the build was cancelled
 	 * @throws CoreException when the JML model is out of whack
 	 */
-	static public boolean doBuild(IJavaProject jp, List<IResource> resources, 
+	static public boolean doBuild(IJavaProject jproject, List<IResource> resources, 
 			IProgressMonitor monitor) throws CoreException {
 		ResourceVisitor v = new ResourceVisitor();
 		for (IResource r: resources) {
@@ -239,7 +246,8 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		}
 		monitor.beginTask(Messages.OpenJMLUI_JMLBuilder_Title, 
 				5*v.resourcesToBuild.size());
-		doChecking(jp,v.resourcesToBuild,monitor);
+		if (Options.isOption(Options.autoAddRuntimeToProjectKey)) Activator.getDefault().utils.addRuntimeToProjectClasspath(jproject);
+		Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,v.resourcesToBuild, monitor);
 		boolean cancelled = monitor.isCanceled();
 		monitor.done();
 		v.resourcesToBuild.clear();
@@ -266,11 +274,9 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		Timer.timer.markTime(); // FIXME - where is this timer used
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files and deletes markers
-		doChecking(jproject,v.resourcesToBuild,monitor);
-		if (Options.isOption(Options.enableRacKey)) {
-			Activator.getDefault().utils.doBuildRac(jproject,v.resourcesToBuild,monitor);
-		}
+		doAction(jproject,v.resourcesToBuild,monitor);
 		v.resourcesToBuild.clear(); // Empties the list
+		if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$
 	}
 
 	// FIXME - duplicated in Utils?
