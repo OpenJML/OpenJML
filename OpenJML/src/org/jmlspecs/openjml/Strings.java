@@ -17,143 +17,145 @@ public class Strings {
     // final for now - which could be changed if necessary.
  
     // Names of Java options
-    static public final String classpathOptionName = "-classpath";
-    static public final String sourcepathOptionName = "-sourcepath";
+    static public final String classpathOptionName = "-classpath"; //$NON-NLS-1$
+    static public final String sourcepathOptionName = "-sourcepath"; //$NON-NLS-1$
+    static public final String outputOptionName = "-d"; //$NON-NLS-1$
 
+    static public final String javaSuffix = ".java"; //$NON-NLS-1$
+    static public final String specsSuffix = ".jml"; //$NON-NLS-1$
 
     /** The default application name */
-    static public final String applicationName = "openjml";
+    static public final String applicationName = "openjml"; //$NON-NLS-1$
     
     /** A string giving the name of the package that JML annotations are in.
      */
-    static public final String jmlAnnotationPackage = "org.jmlspecs.annotation";
+    static public final String jmlAnnotationPackage = "org.jmlspecs.annotation"; //$NON-NLS-1$
 
     /** The fully-qualified name of the NonNull annotation */
-    static public final String nonnullAnnotation = jmlAnnotationPackage + ".NonNull";
+    static public final String nonnullAnnotation = jmlAnnotationPackage + ".NonNull"; //$NON-NLS-1$
     
     /** The fully-qualified name of the Nullable annotation */
-    static public final String nullableAnnotation = jmlAnnotationPackage + ".Nullable";
+    static public final String nullableAnnotation = jmlAnnotationPackage + ".Nullable"; //$NON-NLS-1$
     
     /** The fully-qualified name of the Helper annotation */
-    static public final String helperAnnotation = jmlAnnotationPackage + ".Helper";
+    static public final String helperAnnotation = jmlAnnotationPackage + ".Helper"; //$NON-NLS-1$
     
     /** The fully-qualified name of the Pure annotation */
-    static public final String pureAnnotation = jmlAnnotationPackage + ".Pure";
+    static public final String pureAnnotation = jmlAnnotationPackage + ".Pure"; //$NON-NLS-1$
     
     /** The fully-qualified name of the Model annotation */
-    static public final String modelAnnotation = jmlAnnotationPackage + ".Model";
+    static public final String modelAnnotation = jmlAnnotationPackage + ".Model"; //$NON-NLS-1$
     
     /** The name of the jar file that constitutes an openjml release. */
-    static public final String releaseJar = "openjml.jar";
+    static public final String releaseJar = "openjml.jar"; //$NON-NLS-1$
     
     /** The name of the jar file that contains a copy of the specs to use, as part of
      * a release.  This is expected to be the specs for the version of Java 
      * being used.  
      */
-    static public final String specsJar = "jmlspecs.jar";
+    static public final String specsJar = "jmlspecs.jar"; //$NON-NLS-1$
     
     /** The name of the OpenJML runtime library. */
-    static public final String runtimeJarName = "jmlruntime.jar";
+    static public final String runtimeJarName = "jmlruntime.jar"; //$NON-NLS-1$
 
-    static public final String SIMPLIFY = "simplify";
+    static public final String SIMPLIFY = "simplify"; //$NON-NLS-1$
     
     /** The expected name of the OpenJML properties file. */
-    static public final String propertiesFileName = "openjml.properties";
+    static public final String propertiesFileName = "openjml.properties"; //$NON-NLS-1$
     
     
     /** This string is the fully-qualified name of the JML compiler messages file 
      * (without the .properties suffix). */
-    static public final String messagesJML = "org.jmlspecs.openjml.messages";
+    static public final String messagesJML = "org.jmlspecs.openjml.messages"; //$NON-NLS-1$
     
     /** This array gives the suffixes recognized as JML specification files, in order of priority */
     /*@ non_null*/
-    static public final String[] suffixes = { ".jml", ".java" };
+    static public final String[] suffixes = { specsSuffix, javaSuffix };
     
     /** This gives the character that marks a mock directory (cf. JmlSpecs), mostly for use in testing */
     // FIXME - not yet used everywhere it should be
     static public final char mockDirChar = '$';
     
     /** A property name prefix for adding new options or specifying values */
-    static public final String optionPropertyPrefix = "org.openjml.option.";
+    static public final String optionPropertyPrefix = "org.openjml.option."; //$NON-NLS-1$
     
     /** A property name prefix for adding new options or specifying values */
-    static public final String javaOptionPropertyPrefix = "org.openjml.java.option.";
+    static public final String javaOptionPropertyPrefix = "org.openjml.java.option."; //$NON-NLS-1$
     
     /** A property name prefix for specifying information about provers */
-    static public final String proverPropertyPrefix = "openjml.prover.";
+    static public final String proverPropertyPrefix = "openjml.prover."; //$NON-NLS-1$
     
     /** The property name to specify a default prover */
-    static public final String defaultProverProperty = "openjml.defaultProver";
+    static public final String defaultProverProperty = "openjml.defaultProver"; //$NON-NLS-1$
     
     /** A Java property name used to indicate the directory path on which to find specification files */
-    public static final String specsPathEnvironmentPropertyName = "org.jmlspecs.specspath";
+    public static final String specsPathEnvironmentPropertyName = "org.jmlspecs.specspath"; //$NON-NLS-1$
 
     /** A Java property name giving the directory in which specifications for the Java system libraries are found */
-    public static final String systemSpecsLocationEnvironmentPropertyName = "org.jmlspecs.system.specs";
+    public static final String systemSpecsLocationEnvironmentPropertyName = "org.jmlspecs.system.specs"; //$NON-NLS-1$
     
     /** Set this to the name of a Java property that contains the default
      * runtime classpath. 
      */
-    // FIXME - clarify the use of this
-    public static final String defaultRuntimeClassPath = "openjml.defaultRuntimeClassPath";
+    public static final String defaultRuntimeClassPath = "openjml.defaultRuntimeClassPath"; //$NON-NLS-1$
 
     /** Set this to the name of a Java property that contains the location of 
      * the project files in Eclipse, so that testing proceeds OK. 
      * If this directory is null or does not exist, it is ignored and tests will fail.
      * Only used in testing within Eclipse.
      */
-    public static final String eclipseProjectLocation = "openjml.eclipseProjectLocation";
+    public static final String eclipseProjectLocation = "openjml.eclipseProjectLocation"; //$NON-NLS-1$
 
     /** Set this to the name of a Java property that contains the location of 
      * the project files in Eclipse, so that testing proceeds OK. 
      * If this directory is null or does not exist, it is ignored and tests will fail.
      * Only used in testing within Eclipse.
      */
-    public static final String eclipseSpecsProjectLocation = "openjml.eclipseSpecsProjectLocation";
+    public static final String eclipseSpecsProjectLocation = "openjml.eclipseSpecsProjectLocation"; //$NON-NLS-1$
     
     /** A String used as the root of a variable name that is a temporary
      * intermediate result in an expression evaluation.
      */
-    final static public String tmpVarString = "_JML__tmp";
+    final static public String tmpVarString = "_JML__tmp"; //$NON-NLS-1$
     
     /** A String used as the Java variable for \result, hopefully obfuscated
      * enough that no one will ever actually use a Java variable with this name.
      */
-    final static public String resultVarString = "_JML___result";
+    final static public String resultVarString = "_JML___result"; //$NON-NLS-1$
     
     /** A String used as the root of a temporary variable to hold the
      * value of the result of a 'new' constructor call .
      */
-    final static public String newObjectVarString = "_JML___NEWOBJECT_";
+    final static public String newObjectVarString = "_JML___NEWOBJECT_"; //$NON-NLS-1$
     
     /** A String used as the root of a temporary variable to hold the value of
      * the result of a new array call.
      */
-    final static public String newArrayVarString = "_JML___NEWARRAY_";
+    final static public String newArrayVarString = "_JML___NEWARRAY_"; //$NON-NLS-1$
     
     /** A String used as the root of a temporary variable to represent a 
      * JML label expression.
      */
-    final static public String labelVarString = "LABEL_";
+    final static public String labelVarString = "LABEL_"; //$NON-NLS-1$
 
-    final static public String assertPrefix =  "ASSERT_";
+    final static public String assertPrefix =  "ASSERT_"; //$NON-NLS-1$
 
-    final static public String prePrefix = "Pre_";
+    final static public String prePrefix = "Pre_"; //$NON-NLS-1$
     
     /** A String used as variable that records the location of the return or
      * throw statement marking the exit from a method.
      */
-    final static public String terminationVarString = "_JML___termination";
+    final static public String terminationVarString = "_JML___termination"; //$NON-NLS-1$
     
     /** A String used as the Java variable for \exception, hopefully obfuscated
      * enough that no one will ever actually use a Java variable with this name.
      */
-    final static public String exceptionVarString = "_JML___exception";
+    final static public String exceptionVarString = "_JML___exception"; //$NON-NLS-1$
     
     /** A string used as the ID of the Exception in a a signals clause that
      * does not actually have an ID present: signals (Exception) ...
      */ // FIXME - can we use the one above just as well?
-    public final static String syntheticExceptionID = "_JML___syntheticExceptionID";
+    public final static String syntheticExceptionID = "_JML___syntheticExceptionID"; //$NON-NLS-1$
     
 
 }
