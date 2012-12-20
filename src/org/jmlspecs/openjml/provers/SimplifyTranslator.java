@@ -28,8 +28,8 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
 /** This class converts OpenJDK ASTs (i.e., JCTree) into Strings appropriate
- * to send to Yices; in the process, requests to define various variables may
- * be sent back to the invoking YicesProver.  It is implemented as a tree 
+ * to send to Simplify; in the process, requests to define various variables may
+ * be sent back to the invoking SimplifyProver.  It is implemented as a tree 
  * walker.
  * @author David Cok
  */
@@ -90,7 +90,7 @@ public class SimplifyTranslator extends JmlTreeScanner {
     int distinctCount = 100;
     protected boolean define(String name, String type) {
         try {
-            if (YicesProver.JAVATYPE.equals(type)) {
+            if (YicesProver.JAVATYPE.equals(type)) { // FIXME - change to simplify from Yices
                 boolean n = ((SimplifyProver)p).rawdefine(name,type);
                 if (n) return n;
                 String s = "(EQ ("+"distinct$"+" "+name+") " + (++distinctCount) +")";
@@ -132,7 +132,7 @@ public class SimplifyTranslator extends JmlTreeScanner {
         }
         if (that.sym != null && that.sym.owner instanceof Symbol.ClassSymbol && !that.sym.isStatic() ) { // FIXME - isStatis is not correct for JML fields in interfaces
             // If at this point s is a new type, it won't get defined  FIXME
-            // FIXME - the translating of types is a MESS - some here some in YicesProver some in BasicBlocker
+            // FIXME - the translating of types is a MESS - some here some in SImplifyProver some in BasicBlocker
             s = "(-> REF " + s + ")";
         }
         return s;
@@ -164,7 +164,7 @@ public class SimplifyTranslator extends JmlTreeScanner {
         
     @Override
     public void visitParens(JCParens that) {
-        // Ignore parenthesized expression - all the output for Yices
+        // Ignore parenthesized expression - all the output for Simplify
         // is parenthesized in prefix form anyway
         that.expr.accept(this);
     }
@@ -409,7 +409,7 @@ public class SimplifyTranslator extends JmlTreeScanner {
                 return;
             case JCTree.COMPL:
             default:
-                throw new RuntimeException(new ProverException("Unary operator not implemented for Yices: " + that.getTag()));
+                throw new RuntimeException(new ProverException("Unary operator not implemented for Simplify: " + that.operator + " tag = " + that.getTag()));
         }
         that.arg.accept(this);
         result.append(")");
@@ -503,7 +503,7 @@ public class SimplifyTranslator extends JmlTreeScanner {
             case JCTree.SR:
             case JCTree.USR:
             default:  // FIXME - others: shift, mod, bit operations
-                throw new RuntimeException(new ProverException("Binary operator not implemented for Yices: " + that.getTag()));
+                throw new RuntimeException(new ProverException("Binary operator not implemented for simplify: " + that.operator + "  tag = " + that.getTag()));
         }
         that.lhs.accept(this);
         result.append(" ");
@@ -533,11 +533,14 @@ public class SimplifyTranslator extends JmlTreeScanner {
             that.lhs.accept(this);
             result.append(")");
             return;
-        } else if (that.op == JmlToken.SUBTYPE_OF) { // FIXME - needs JSUBTYPE_OF
+        } else if (that.op == JmlToken.SUBTYPE_OF) { 
+            result.append(SimplifyProver.SUBTYPE);
+            result.append(" ");
+        } else if (that.op == JmlToken.JSUBTYPE_OF) { // FIXME - needs proper implementation
             result.append(SimplifyProver.SUBTYPE);
             result.append(" ");
         } else {
-           throw new RuntimeException(new ProverException("Binary operator not implemented for Yices: " + that.getTag()));
+           throw new RuntimeException(new ProverException("Binary operator not implemented for simplify: tag = " + that.getTag()));
         }
         that.lhs.accept(this);
         result.append(" ");
@@ -683,7 +686,7 @@ public class SimplifyTranslator extends JmlTreeScanner {
     @Override
     public void visitTypeCast(JCTypeCast that) {
         result.append("(");
-        result.append(YicesProver.CAST);
+        result.append(SimplifyProver.CAST);
         result.append(" ");
         that.expr.accept(this);
         result.append(" ");
@@ -693,7 +696,7 @@ public class SimplifyTranslator extends JmlTreeScanner {
     
     @Override
     public void visitTree(JCTree tree) {
-        Exception e = new ProverException("Did not expect to call a visit method in YicesJCExpr: " + tree.getClass());
+        Exception e = new ProverException("Did not expect to call a visit method in SimplifyTranslator: " + tree.getClass());
         throw new RuntimeException(e);
     }
     

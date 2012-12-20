@@ -37,7 +37,7 @@ import com.sun.tools.javac.util.Context;
 
 
 public class YicesProver extends AbstractProver implements IProver {
-    static public final String YICES = "yices";
+    static public final String NAME = "yices";
     
     public final static String NULL = "NULL";
     public final static String REF = "REF";
@@ -52,7 +52,7 @@ public class YicesProver extends AbstractProver implements IProver {
     public static final String CAST = "cast$";
 
     @Override
-    public String name() { return YICES; }
+    public String name() { return NAME; }
 
     /** A handy StringBuilder to build strings internally */
     /*@ non_null */
@@ -64,7 +64,7 @@ public class YicesProver extends AbstractProver implements IProver {
 
     /** The String by which to invoke the prover */
     /*@ nullable */
-    protected String app = getProverPath(YICES);
+    protected String app = getProverPath(name());
 
     /** The one instance of the associated translator */
     /*@ non_null */
@@ -193,7 +193,7 @@ public class YicesProver extends AbstractProver implements IProver {
     /** Does the startup work */
     public void start() throws ProverException {
         if (app == null) {
-            throw new ProverException("No registered executable found; specify it using -D" + getProverPathKey(YICES));
+            throw new ProverException("No registered executable found; specify it using -D" + getProverPathKey(name()));
         } else if (!new java.io.File(app).exists()) {
             throw new ProverException("The specified executable does not appear to exist: " + app);
         }

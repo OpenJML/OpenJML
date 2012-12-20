@@ -32,7 +32,9 @@ import com.sun.tools.javac.util.Options;
  * @author reviewed by TODO
  */
 public class SimplifyProver extends AbstractProver implements IProver {
-  
+    /** The name of the prover */
+    public final static String NAME = "simplify";
+    
         public final static String NULL = "NULL";
         public final static String REF = "REF";
         public final static String ARRAY = "ARRAY";
@@ -61,7 +63,7 @@ public class SimplifyProver extends AbstractProver implements IProver {
         protected boolean interactive = true;
 
         @Override
-        public String name() { return "simplify"; }
+        public String name() { return NAME; }
 
         protected String prompt() {
             return ">\t";
@@ -70,7 +72,7 @@ public class SimplifyProver extends AbstractProver implements IProver {
         /** Creates and starts the prover process, sending any startup information */
         public SimplifyProver(Context context) throws ProverException {
             super(context);
-            app = Options.instance(context).get("openjml.prover.cvc3");
+            app = getProverPath(name());
             translator = new SimplifyTranslator(this);
             if (org.jmlspecs.openjml.esc.JmlEsc.escdebug && showCommunication <= 1) showCommunication = 2;
             start();

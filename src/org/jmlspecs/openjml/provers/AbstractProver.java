@@ -45,15 +45,17 @@ public abstract class AbstractProver implements IProver {
 
     static public Map<String,Class<? extends IProver>> map = new HashMap<String,Class<? extends IProver>>();
     static {
-        map.put("yices",org.jmlspecs.openjml.provers.YicesProver.class);
-        map.put("cvc",org.jmlspecs.openjml.provers.CVC3Prover.class);
-        map.put("simplify",org.jmlspecs.openjml.provers.SimplifyProver.class);
+        map.put(YicesProver.NAME,org.jmlspecs.openjml.provers.YicesProver.class);
+        map.put(CVC3Prover.NAME,org.jmlspecs.openjml.provers.CVC3Prover.class);
+        map.put(SimplifyProver.NAME,org.jmlspecs.openjml.provers.SimplifyProver.class);
         map.put("smt",org.jmlspecs.openjml.provers.SMTProver.class);
     }
     
     @Nullable
     public String getProverPath(String proverKey) {
-        return Options.instance(context).get(getProverPathKey(proverKey));
+        String app = Options.instance(context).get("-exec");
+        if (app == null) app = Options.instance(context).get(getProverPathKey(proverKey));
+        return app;
     }
     
     @NonNull
@@ -61,22 +63,26 @@ public abstract class AbstractProver implements IProver {
         return Strings.proverPropertyPrefix + proverKey;
     }
     
-    static public IProver getProver(Context context, String prover) {
+    static public IProver getProver(Context context, String prover) throws ProverException {
         try {
             Class<? extends IProver> c;
             c = map.get(prover);
             if (c == null) {
                 Log.instance(context).error("esc.no.prover",prover);
-                return null;
+        		throw new ProverException("Failed to find a prover named " + prover);
             }
             Constructor<? extends IProver> cn = c.getConstructor(Context.class);
             return cn.newInstance(context);
         } catch (java.lang.reflect.InvocationTargetException e) {
-            Log.instance(context).error("esc.create.prover.exception",prover,e.getCause().toString());
-            return null;
+        	if (e.getCause() instanceof ProverException) {
+        		throw (ProverException)e.getCause();
+        	} else {
+        		Log.instance(context).error("esc.create.prover.exception",prover,e.getCause().toString());
+        		throw new ProverException(e.getCause().toString());
+        	}
         } catch (Exception e) {
             Log.instance(context).error("esc.create.prover.exception",prover,e.toString());
-            return null;
+    		throw new ProverException(e.toString());
         }
     }
     // Override if the prover can support weights
@@ -141,8 +147,8 @@ public abstract class AbstractProver implements IProver {
     /** Does the startup work */
     protected void start() throws ProverException {
         String[] app = app();
-        if (app == null) {
-            throw new ProverException("No path to the executable found; specify it using -Dopenjml.prover.cvc3");
+        if (app == null || app[0] == null) {
+            throw new ProverException("No path to the executable found; specify it using -exec or the property openjml.prover." + name());
         } else {
             java.io.File f = new java.io.File(app[0]);
             if (!f.exists()) log.noticeWriter.println("Does not appear to exist: " + app[0]);
