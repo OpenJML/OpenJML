@@ -226,7 +226,7 @@ public class Utils {
         return (env.tree instanceof JCCompilationUnit ? 
                 ((JCCompilationUnit)env.tree).sourcefile : 
                env.tree instanceof JCClassDecl ? 
-                       ((JCClassDecl)env.tree).name : 
+                       ((JCClassDecl)env.tree).sym.flatName() : 
                            env.tree.getClass());
     }
 

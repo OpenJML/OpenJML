@@ -116,7 +116,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * The listener will be notified when any diagnostic is generated.
      */
     @Nullable
-    protected DiagnosticListener<?> diagListener;
+    protected DiagnosticListener<? extends JavaFileObject> diagListener;
     
     /** Instances of this class are used to abruptly terminate long-running
      * JML operations.
@@ -441,7 +441,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         return errorcode;
     }
-    
+
     /** This is a convenience method to initialize just enough that we can log
      * an error or warning message for issues that arise before the compiler
      * is properly initialized.

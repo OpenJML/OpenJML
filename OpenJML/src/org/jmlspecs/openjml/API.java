@@ -165,6 +165,14 @@ public class API implements IAPI {
         return JavaCompiler.version();
     }
     
+    /** Adds options to the current context
+     */
+    // FIXME _ get error return? 
+    @Override
+    public void addOptions(@NonNull Options options, @NonNull String ... args) {
+        main.initializeOptions(options == null && context() != null ? Options.instance(context()) : options, args);
+    }
+    
     /** Executes the command-line version of OpenJML, returning the exit code.
      * @param args the command-line arguments
      * @return the exit code (0 is success; other values are various kinds of errors)

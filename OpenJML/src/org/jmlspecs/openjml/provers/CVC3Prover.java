@@ -24,6 +24,8 @@ import com.sun.tools.javac.util.Options;
 
 
 public class CVC3Prover extends AbstractProver implements IProver {
+	public final static String NAME = "cvc3";
+	
     public final static String NULL = "NULL";
     public final static String REF = "REF";
     public final static String ARRAY = "ARRAY";
@@ -52,7 +54,7 @@ public class CVC3Prover extends AbstractProver implements IProver {
     protected boolean interactive = true;
  
     @Override
-    public String name() { return "cvc"; }
+    public String name() { return NAME; }
 
     protected String prompt() {
         return "CVC> ";
@@ -61,7 +63,7 @@ public class CVC3Prover extends AbstractProver implements IProver {
     /** Creates and starts the prover process, sending any startup information */
     public CVC3Prover(Context context) throws ProverException {
         super(context);
-        app = Options.instance(context).get("openjml.prover.cvc3");
+        app = getProverPath(name());
         translator = new CVC3Expr(this);
         if (org.jmlspecs.openjml.esc.JmlEsc.escdebug && showCommunication <= 1) showCommunication = 2;
         start();

@@ -184,7 +184,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCMethodDecl prev = methodDecl;
         try {
             this.methodDecl = decl;
-            this.classDecl = cd;  // FIXME - do we need to stack these?
             return convert();
         } catch (RuntimeException e) {
             Log.instance(context).error("jml.internal.notsobad",e.getMessage());
@@ -2648,7 +2647,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
         // esc does not get here, but rac does
+        if (this.classDecl != null) System.out.println("SHOULD STACK CLASS DECLS?");
+        this.classDecl = that;  // FIXME - do we need to stack these?
         List<JCTree> defs = scanret(that.defs);
+        this.classDecl = null;
         // FIXME - replicate all the other AST nodes
         JmlClassDecl n = M.at(that.pos).ClassDef(that.mods,that.name,that.typarams,that.extending,that.implementing,defs);
         n.sym = that.sym;

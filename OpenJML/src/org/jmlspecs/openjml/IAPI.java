@@ -67,6 +67,9 @@ public interface IAPI {
      */
     public void setProgressListener(@Nullable Main.IProgressListener p);
 
+    /** Adds options to the current context */
+    public void addOptions(@Nullable Options options, @NonNull String ... args);
+    
     /** Executes the command-line version of OpenJML, returning the exit code.
      * @param options an instance of options to use
      * @param args the command-line arguments, used to modify the options

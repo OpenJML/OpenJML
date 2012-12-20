@@ -177,15 +177,13 @@ public class JmlEsc extends JmlTreeScanner {
         this.checkAssumptions = !JmlOption.isOption(context,"-noCheckAssumptions");
         escdebug = escdebug || Utils.instance(context).jmlverbose >= Utils.JMLDEBUG;
         this.cfInfo = JmlOption.isOption(context,"-crossRefAssociatedInfo");
-        pickProver();
-
     }
     
     public void pickProver() {
         // Pick a prover to use
         proverToUse = JmlOption.value(context,JmlOption.PROVER);
         if (proverToUse == null) proverToUse = Options.instance(context).get(Strings.defaultProverProperty);
-        if (proverToUse == null) proverToUse = YicesProver.YICES;
+        if (proverToUse == null) proverToUse = YicesProver.NAME;
         
         //proverToUse = "cvc";
         //proverToUse = "simplify";
@@ -887,25 +885,39 @@ public class JmlEsc extends JmlTreeScanner {
                 }
             } catch (RuntimeException e) {
                 String se = e.toString();
+                if (e.getCause() != null) se = e.getCause().toString();
                 if (se.length() > 200) se = se.substring(0,200) + " .....";
                 log.warning(node.pos(),"esc.prover.failure",se);
                 // go on with next 
                 proofResult = new ProverResult(proverToUse,IProverResult.ERROR);
+                String message = e.getMessage();
+                if (e.getCause() != null) message = e.getCause().getMessage();
+                if (message != null) proofResult.setOtherInfo(message);
             } catch (Throwable e) {
                 String se = e.toString();
+                if (e.getCause() != null) se = e.getCause().toString();
                 if (se.length() > 200) se = se.substring(0,200) + " .....";
                 log.warning(node.pos(),"esc.prover.failure",se);
                 System.gc();
                 proofResult = new ProverResult(proverToUse,IProverResult.ERROR);
+                String message = e.getMessage();
+                if (e.getCause() != null) message = e.getCause().getMessage();
+                if (message != null) proofResult.setOtherInfo(message);
             }
         } catch (RuntimeException e) {
             log.warning(node.pos(),"esc.vc.prep",e);
             // go on with next 
             proofResult = new ProverResult(proverToUse,IProverResult.ERROR);
+            String message = e.getMessage();
+            if (e.getCause() != null) message = e.getCause().getMessage();
+            if (message != null) proofResult.setOtherInfo(message);
         } catch (Throwable e) {
             log.warning(node.pos(),"esc.vc.prep",e);
             System.gc();
             proofResult = new ProverResult(proverToUse,IProverResult.ERROR);
+            String message = e.getMessage();
+            if (e.getCause() != null) message = e.getCause().getMessage();
+            if (message != null) proofResult.setOtherInfo(message);
         } finally {
             log.useSource(prev);
         }
@@ -913,9 +925,13 @@ public class JmlEsc extends JmlTreeScanner {
         if (verboseProgress) {
         	String s = proofResult.result().toString();
         	if (s.equals("UNSAT")) s = "VALID";
-        	progress(1,1,"Completed proof attempt (" + s + ") of " 
+        	String message = "Completed proof attempt (" + s + ") of " 
                     + node.sym.owner.flatName() + "." + node.sym // using just node.sym gives the signature 
-                    + " [" + timer.elapsed()/1000. + "] using " + proverToUse);
+                    + " [" + timer.elapsed()/1000. + "] using " + proverToUse;
+        	if (proofResult.otherInfo() != null) {
+        		message = message + JmlTree.eol + "  (" + proofResult.otherInfo() + ")";
+        	}
+        	progress(1,1,message);
         }
         mostRecentProgram = program;
         return proofResult;
@@ -1188,13 +1204,23 @@ public class JmlEsc extends JmlTreeScanner {
         IProverResult firstProofResult;
         boolean ok = false;
         IProver p = null;
+    	pickProver();
+    	try {
+    		p = AbstractProver.getProver(context,proverToUse);
+    		if (p == null) {
+    			// Error is already reported
+    			//log.error("esc.no.prover",proverToUse);
+    			IProverResult r = new ProverResult(proverToUse,IProverResult.ERROR);
+    			r.setOtherInfo("Failed to create prover");
+    			return r;
+    		}
+    	} catch (ProverException e) {
+    		throw new RuntimeException(e);
+//            IProverResult r = new ProverResult(proverToUse,IProverResult.ERROR);
+//            r.setOtherInfo(e.getMessage());
+//            return r;
+    	}
         try {
-            p = AbstractProver.getProver(context,proverToUse);
-            if (p == null) {
-                // Error is already reported
-                //log.error("esc.no.prover",proverToUse);
-                return new ProverResult(proverToUse,IProverResult.SKIPPED);
-            }
 
             boolean usingSMT = p instanceof org.jmlspecs.openjml.provers.SMTProver;
             
@@ -1709,7 +1735,7 @@ public class JmlEsc extends JmlTreeScanner {
         } catch (ProverException e) {
             String se = e.mostRecentInput == null ? "" :e.mostRecentInput;
             if (se.length() > 200) se = se.substring(0,200) + " .......";
-            log.warning(methodDecl.pos(),"esc.prover.failure",methodDecl.sym.toString() + ": " + e.getLocalizedMessage() + ":" + se);
+            log.warning(methodDecl.pos(),"esc.prover.failure",methodDecl.sym.toString() + ": " + e.getLocalizedMessage() + ":" + se); // FIXME - change to error
             if (escdebug) {
                 log.noticeWriter.println("PROVER FAILURE: " + e);
                 if (e.mostRecentInput != null) log.noticeWriter.println("INPUT: " + se);
@@ -1722,11 +1748,13 @@ public class JmlEsc extends JmlTreeScanner {
                 // Report but ignore any problems in killing
             }
             firstProofResult = new ProverResult(proverToUse,IProverResult.ERROR);
+            firstProofResult.setOtherInfo(e.getMessage());
         } catch (Throwable e) {
             log.warning(methodDecl.pos(),"esc.prover.failure",methodDecl.sym.toString() + ": " + e.getLocalizedMessage());
             if (escdebug) log.noticeWriter.println("PROVER FAILURE: " + e.getClass() + " " + e);
             e.printStackTrace(log.noticeWriter);
             firstProofResult = new ProverResult(proverToUse,IProverResult.ERROR);
+            // FIXME - set other info?
         }
         // FIXME - dmz: I added this extra kill to fix Yices processes hanging around
         // on OS X and causing problems for unit tests ("resource not available"), but
