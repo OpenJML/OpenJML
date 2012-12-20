@@ -933,7 +933,7 @@
             name="RAC - compile marked"
             description="Compiles runtime checks on marked resources"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
-            id="org.jmlspecs.eclipse.commands.CompileMarked"
+            id="org.jmlspecs.eclipse.commands.RACMarked"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$RACMarked"
             >
       </command>

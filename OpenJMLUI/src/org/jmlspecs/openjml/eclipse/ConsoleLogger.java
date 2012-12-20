@@ -9,14 +9,20 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 
 import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+import org.eclipse.ui.progress.UIJob;
 
 /** This class provides a Log.IListener implementation that sends
  * text written through methods in Log to the Eclipse console.
@@ -105,6 +111,14 @@ public class ConsoleLogger implements Log.IListener {
 	// FIXME - should get this color from the system preferences
 	static final private Color errorColor = new Color(null,255,0,0);
 
+	// In the implementations below we write to the console in the UI thread.
+	// This ensures that messages to the user appear in an understandable 
+	// order. If we are already in the UI thread we definitely do not want
+	// to write a message in a new job, because that would not execute until
+	// the current job is complete.
+	// FIXME - Whhoops - there seems to be some interaction with the progress monitor - figure this out
+	boolean test = false;
+	
 	/**
 	 * Records an informational message adding a newline
 	 * @param msg The message to log
@@ -112,14 +126,34 @@ public class ConsoleLogger implements Log.IListener {
 	//@ requires msg != null;
 	//@ modifies content;
 	@Override 
-	public void log(String msg) {
-		getConsoleStream().println(msg);
-		// Also write it to the log file, if requested.
-		if (alsoLogInfo) {
-			pluginLog.log(
-					new Status(Status.INFO, 
-							pluginID,
-							Status.OK, msg, null));
+	public void log(final String msg) {
+
+		if(test &&  Display.getDefault().getThread() != Thread.currentThread() ) {
+			UIJob j = new UIJob(Display.getDefault(),"Console Logger") {
+				public IStatus runInUIThread(IProgressMonitor monitor) {
+					getConsoleStream().println(msg);
+					// Also write it to the log file, if requested.
+					if (alsoLogInfo) {
+						pluginLog.log(
+								new Status(Status.INFO, 
+										pluginID,
+										Status.OK, msg, null));
+					}
+					return Status.OK_STATUS;
+				}
+			};
+			j.setUser(true);
+			j.schedule();
+
+		} else {
+			getConsoleStream().println(msg);
+			// Also write it to the log file, if requested.
+			if (alsoLogInfo) {
+				pluginLog.log(
+						new Status(Status.INFO, 
+								pluginID,
+								Status.OK, msg, null));
+			}
 		}
 	}
 
@@ -131,14 +165,33 @@ public class ConsoleLogger implements Log.IListener {
 	 */
 	//@ requires msg != null;
 	//@ modifies content;
-	public void log_noln(String msg) {
-		getConsoleStream().print(msg);
-		// Also write it to the log file, if requested.
-		if (alsoLogInfo) {
-			pluginLog.log(
-					new Status(Status.INFO, 
-							pluginID,
-							Status.OK, msg, null));
+	public void log_noln(final String msg) {
+		if (test && Display.getDefault().getThread() != Thread.currentThread() ) {
+			UIJob j = new UIJob(Display.getDefault(),"Console Logger") {
+				public IStatus runInUIThread(IProgressMonitor monitor) {
+					getConsoleStream().print(msg);
+					// Also write it to the log file, if requested.
+					if (alsoLogInfo) {
+						pluginLog.log(
+								new Status(Status.INFO, 
+										pluginID,
+										Status.OK, msg, null));
+					}
+					return Status.OK_STATUS;
+				}
+			};
+			j.setUser(true);
+			j.schedule();
+
+		} else {
+			getConsoleStream().println(msg);
+			// Also write it to the log file, if requested.
+			if (alsoLogInfo) {
+				pluginLog.log(
+						new Status(Status.INFO, 
+								pluginID,
+								Status.OK, msg, null));
+			}
 		}
 	}
 
@@ -150,18 +203,50 @@ public class ConsoleLogger implements Log.IListener {
 	 * @param e An associated exception (may be null)
 	 */
 	//@ modifies content;
-	public void errorlog(/*@ non_null */String msg, /*@ nullable */ Throwable e) {
-		// Always put errors in the log
-		pluginLog.log(
-				new Status(Status.ERROR, 
-						pluginID,
-						Status.OK, msg, e));
-		MessageConsoleStream cs = getConsoleStream();
-		Color c = cs.getColor();
-		cs.setColor(errorColor);
-		cs.println(msg);
-		if (e != null) e.printStackTrace(this.stream());
-		cs.setColor(c);
+	public void errorlog(final /*@ non_null */String msg, final /*@ nullable */ Throwable e) {
+		if (test && Display.getDefault().getThread() != Thread.currentThread() ) {
+			UIJob j = new UIJob(Display.getDefault(),"Console Logger") {
+				public IStatus runInUIThread(IProgressMonitor monitor) {
+					// Always put errors in the log
+					pluginLog.log(
+							new Status(Status.ERROR, 
+									pluginID,
+									Status.OK, msg, e));
+					MessageConsoleStream cs = getConsoleStream();
+					Color c = cs.getColor();
+					cs.setColor(errorColor);
+					cs.println(msg);
+					if (e != null) {
+						PrintStream p = new PrintStream(cs);
+						e.printStackTrace(p);
+						p.flush();
+					}
+					try { cs.flush(); } catch (Exception ee) {} // ignore
+					cs.setColor(c);
+					return Status.OK_STATUS;
+				}
+			};
+			j.setUser(true);
+			j.schedule();
+
+		} else {
+			// Always put errors in the log
+			pluginLog.log(
+					new Status(Status.ERROR, 
+							pluginID,
+							Status.OK, msg, e));
+			MessageConsoleStream cs = getConsoleStream();
+			Color c = cs.getColor();
+			cs.setColor(errorColor);
+			cs.println(msg);
+			if (e != null) {
+				PrintStream p = new PrintStream(cs);
+				e.printStackTrace(p);
+				p.flush();
+			}
+			try { cs.flush(); } catch (Exception ee) {} // ignore
+			cs.setColor(c);
+		}
 	}
 
 	/** Flushes the console stream */
@@ -169,17 +254,5 @@ public class ConsoleLogger implements Log.IListener {
 		getConsoleStream().flush();
 	}
 
-
-	/**
-	 * Creates a PrintStream that, when written to, writes 
-	 * directly to (and only to) the Eclipse Console
-	 * of the current log object.
-	 * 
-	 * @return a PrintStream connected to the Eclipse Console
-	 */
-	// TODO: should this be cached?
-	private PrintStream stream() {
-		return new PrintStream(getConsoleStream());
-	}
 }
 

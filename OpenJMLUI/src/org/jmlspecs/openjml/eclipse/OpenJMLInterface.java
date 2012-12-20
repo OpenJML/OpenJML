@@ -28,6 +28,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
@@ -164,6 +165,14 @@ public class OpenJMLInterface {
         	   args = getOptions(jp,command);
         	   String racdir = Options.value(Options.racbinKey);
         	   if (racdir == null || racdir.isEmpty()) racdir = "racbin";
+        	   if (jp.getProject().findMember(racdir) == null) {
+        		   try {
+        			   // FIXME - is it a problem that this is done in the UI thread; is local=true correct?
+        		       jp.getProject().getFolder(racdir).create(IResource.FORCE,true,null);
+        		   } catch (CoreException e) {
+        			   // FIXME - error
+        		   }
+        	   }
         	   args.add("-d");
         	   args.add(jp.getProject().getLocation().append(racdir).toString());
            }
@@ -198,13 +207,13 @@ public class OpenJMLInterface {
                else if (ret == Main.EXIT_ERROR) {
             	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed with errors");
                }
-               else if (ret >= Main.EXIT_CMDERR) {
+               else if (ret == Main.EXIT_CMDERR) {
                    StringBuilder ss = new StringBuilder();
                    for (String r: args) {
                        ss.append(r);
                        ss.append(Utils.space);
                    }
-                   Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
+                   Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME - the reason for the bad command line is lost (it would be an internal error)
                    Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + eol + ss);
                }
                else if (ret >= Main.EXIT_SYSERR) {
@@ -213,8 +222,8 @@ public class OpenJMLInterface {
                        ss.append(r);
                        ss.append(Utils.space);
                    }
-                   Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
-                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
+                   Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME - when the error is the result of an exception, we don't see the result
+                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); 
                }
            } catch (JmlCanceledException e) {
                throw e;
@@ -364,8 +373,10 @@ public class OpenJMLInterface {
             setMonitor(monitor);
            
             List<String> args = getOptions(jproject,Main.Cmd.ESC);
+            api.addOptions(null,  args.toArray(new String[args.size()]));
+            args.clear();
+            
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
-            int n = args.size();
             
             IResource rr;
             int count = 0;
@@ -411,26 +422,23 @@ public class OpenJMLInterface {
                     elements.add((IJavaElement)r);
                 } else Log.log("Ignoring " + r.getClass() + " " + r.toString());
             }
-            if (args.size() == n && elements.size() == 0) {
+            if (args.isEmpty() && elements.isEmpty()) {
                 Log.log("No files or elements to process");
                 Activator.getDefault().utils.showMessageInUI(null,"JML","No files or elements to process");
                 return;
             }
             
-            Log.log("Counted " + count + " methods");
             if (monitor != null) {
-            	monitor.beginTask("Static checks",  4*count); // 4 ticks per method being checked
-            	monitor.subTask("Starting ESC");
+            	monitor.beginTask("Static checks in project " + jproject.getElementName(),  4*count); // 4 ticks per method being checked
+            	monitor.subTask("Starting ESC on " + jproject.getElementName());
             }
 
-            if (args.size() > n) {
-            	Timer.timer.markTime();
+        	Timer.timer.markTime();
+            if (!args.isEmpty()) {
             	if (Utils.verboseness >= Utils.NORMAL) {
             		Log.log(Timer.timer.getTimeString() + " Executing static checks");
             	}
-                if (monitor != null) monitor.subTask("Executing static checks");
                 try {
-                    if (monitor != null) monitor.setTaskName("ESC");
                     int ret = api.execute(null,args.toArray(new String[args.size()]));
                     if (ret == Main.EXIT_OK) Log.log(Timer.timer.getTimeString() + " Completed");
                     else if (ret == Main.EXIT_ERROR) Log.log(Timer.timer.getTimeString() + " Completed with errors");
@@ -480,14 +488,17 @@ public class OpenJMLInterface {
             				}
             			}
             			if (msym != null) {
-            				if (Utils.verboseness >= Utils.NORMAL)
+            				Timer t = new Timer();
+            				if (Utils.verboseness >= Utils.VERBOSE)
             					Log.log("Beginning ESC on " + msym);
             				if (monitor != null) monitor.subTask("Checking " + msym);
             				IProverResult res = api.doESC(msym);
-            				IProverResult.ICounterexample ce = res.counterexample();
-            				if (ce != null && ce.getPath() != null) {
-            					for (IProverResult.Span span: ce.getPath()) {
-            						utils.highlight(je.getResource(), span.start, span.end, span.type);
+            				if (res != null) {
+            					IProverResult.ICounterexample ce = res.counterexample();
+            					if (ce != null && ce.getPath() != null) {
+            						for (IProverResult.Span span: ce.getPath()) {
+            							utils.highlight(je.getResource(), span.start, span.end, span.type);
+            						}
             					}
             				}
             			}
@@ -1022,6 +1033,10 @@ public class OpenJMLInterface {
         }
         if (cmd == Main.Cmd.ESC) {
             opts.add(JmlOption.ASSOCINFO.optionName());
+            String prover = Options.value(Options.defaultProverKey);
+            opts.add(JmlOption.PROVER.optionName() +"="+ prover);
+            opts.add(JmlOption.PROVEREXEC.optionName() +"="+ Options.value(Options.proverPrefix + prover));
+            if (Options.isOption(Options.checkPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
         }
         
 //        for (String key: optionsToCopy) {
@@ -1060,13 +1075,9 @@ public class OpenJMLInterface {
         
         if (Options.isOption(Options.showNotImplementedKey)) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
         //if (Options.isOption(Options.showNotExecutableKey)) opts.add(JmlOption.SHOW_NOT_EXECUTABLE.optionName());
-        if (Options.isOption(Options.checkPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
         if (!Options.isOption(Options.checkSpecsPathKey)) opts.add(JmlOption.NOCHECKSPECSPATH.optionName());
         opts.add(JmlOption.NONNULLBYDEFAULT.optionName()+"="+Options.isOption(Options.nonnullByDefaultKey));
             
-        String prover = Options.value(Options.defaultProverKey);
-        opts.add(JmlOption.PROVER.optionName() +"="+ prover);
-        opts.add(JmlOption.PROVEREXEC.optionName() +"="+ Options.value(Options.proverPrefix + prover));
         
         if (cmd == Main.Cmd.JMLDOC) {
             // jmldoc specific options

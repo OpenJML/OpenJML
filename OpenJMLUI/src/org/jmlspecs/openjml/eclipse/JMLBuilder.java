@@ -146,12 +146,18 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */  // FIXME - should this be done in a computational thread, with a progress monitor?
 	public void cleanRacbin(IProject p) {
 		try {
-			IPath path = new Path(Options.value(Options.racbinKey));
-			IFolder f = (IFolder)p.findMember(path);
-			for (IResource r: f.members()) {
-				r.delete(IResource.FORCE,null);
+			String racbin = Options.value(Options.racbinKey);
+			if (racbin == null || racbin.isEmpty()) racbin = "racbin";
+			IResource rf = p.findMember(Options.value(Options.racbinKey));
+			if (rf instanceof IFolder) {
+				IFolder f = (IFolder)rf;
+				for (IResource r: f.members()) {
+					r.delete(IResource.FORCE,null);
+				}
+				f.refreshLocal(IResource.DEPTH_INFINITE,null);
+			} else {
+				// FIXME - error - show message
 			}
-			f.refreshLocal(IResource.DEPTH_INFINITE,null);
 		} catch (CoreException e) {
 			Log.errorKey("openjml.ui.cleaning.rac",e); //$NON-NLS-1$
 		}
@@ -247,7 +253,8 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		monitor.beginTask(Messages.OpenJMLUI_JMLBuilder_Title, 
 				5*v.resourcesToBuild.size());
 		if (Options.isOption(Options.autoAddRuntimeToProjectKey)) Activator.getDefault().utils.addRuntimeToProjectClasspath(jproject);
-		Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,v.resourcesToBuild, monitor);
+		Main.Cmd cmd = Options.isOption(Options.enableRacKey) ? Main.Cmd.RAC : Main.Cmd.CHECK; 
+		Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(cmd,v.resourcesToBuild, monitor);
 		boolean cancelled = monitor.isCanceled();
 		monitor.done();
 		v.resourcesToBuild.clear();

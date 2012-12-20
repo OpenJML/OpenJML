@@ -87,6 +87,7 @@ import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main.Cmd;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.PathItem.ProjectPath;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.osgi.framework.Bundle;
@@ -372,8 +373,6 @@ public class Utils {
 		for (final IJavaProject jp : sorted.keySet()) {
 			if (Options.isOption(Options.autoAddRuntimeToProjectKey))
 				addRuntimeToProjectClasspath(jp);
-			if (Utils.verboseness >= Utils.NORMAL)
-				Log.log("Checking ESC (" + res.size() + " items)");
 			deleteMarkers(res, shell);
 		}
 		Job j = new Job("Static Checks - Manual") {
@@ -388,7 +387,8 @@ public class Utils {
 								monitor);
 					} catch (Exception e) {
 						// FIXME - this will block, preventing progress on the rest of the projects
-						showExceptionInUI(shell, null, e);
+						Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);
+						showExceptionInUI(shell, "Exception during Static Checking - " + jp.getElementName(), e);
 						c = true;
 					}
 				}
@@ -2256,28 +2256,32 @@ public class Utils {
 	}
 
 	protected void mark(boolean enable, IResource r, Set<IResource> set) {
-		try {
+//		try {
 			if (r instanceof IFolder) {
-				for (IResource rr : ((IFolder) r).members()) {
-					mark(enable, rr, set);
-				}
+				if (enable)
+					set.add(r);
+				else
+					set.remove(r);
+//				for (IResource rr : ((IFolder) r).members()) {
+//					mark(enable, rr, set);
+//				}
 			} else if (r instanceof IFile) {
-				if (r.getName().endsWith(".java")) {
+				if (r.getName().endsWith(Strings.javaSuffix)) {
 					if (enable)
 						set.add(r);
 					else
 						set.remove(r);
 				}
 			} else {
-				if (Utils.verboseness >= Utils.VERBOSE)
-					Log.log("Not handling " + r.getClass());
+				// FIXME - needs an error message
+				Log.log("Not handling " + r.getClass());
 			}
-		} catch (CoreException e) {
-			Log.errorlog(
-					"Core Exception while traversing Resource tree (mark for RAC)",
-					e);
-			// just continue
-		}
+//		} catch (CoreException e) {
+//			Log.errorlog(
+//					"Core Exception while traversing Resource tree (mark for RAC)",
+//					e);
+//			// just continue
+//		}
 	}
 
 	public void highlight(final IResource r, final int finalOffset,
@@ -2486,11 +2490,22 @@ public class Utils {
 	// TODO _ document
 	public void showExceptionInUI(@Nullable Shell shell, String message,
 			Exception e) {
-		String s = message != null ? message + Env.eol + e.getMessage() : e
-				.getMessage();
-		if (s == null || s.isEmpty())
-			s = e.getClass().toString();
-		showMessageInUI(shell, "OpenJML Exception", s);
+//		String s = message != null ? message + Env.eol + e.getMessage() : e
+//				.getMessage();
+//		if (s == null || s.isEmpty())
+//			s = e.getClass().toString();
+		
+		String emsg = e == null ? null : e.getMessage();
+		if (emsg != null && !emsg.isEmpty()) message = message + " (" + emsg + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+		if (e != null) {
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			pw.println();
+			e.printStackTrace(pw);
+			message = message + Env.eol + sw.toString(); 
+		}
+
+		showMessageInUI(shell, "OpenJML Exception", message);
 	}
 
 	// FIXME - fix non-modal dialog
