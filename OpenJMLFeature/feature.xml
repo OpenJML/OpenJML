@@ -2,20 +2,24 @@
 <feature
       id="org.jmlspecs.openjml.OpenJMLFeature"
       label="OpenJMLFeature"
-      version="0.2.21"
+      version="0.3.1"
       provider-name="David R. Cok">
 
    <description url="http://jmlspecs.sourceforge.net">
-      This plug-in encapsulates the OpenJML tool, which provides type-checking and static verification of JML constructs.
+      This plug-in encapsulates the OpenJML tool, which provides type-checking,
+static verification, and runtime-assertion checking of Java and 
+Java Modeling Language (JML) annotations.
    </description>
 
    <copyright>
-      The software is Copyright (c) 2007-2011 by David R. Cok
+      The software is Copyright (c) 2007-2013 by David R. Cok
    </copyright>
 
    <license url="http://openjdk.java.net/legal/">
-      The software is licensed under the same license as OpenJDK,
+      The OpenJML software is licensed under the same license as OpenJDK,
 namely the GPL v.2.
+
+The Eclipse plug-in interface is licensed under the EPL (Eclipse Public License)
 
 The source code is available under sourceforge:
 https://sourceforge.net/projects/jmlspecs/
@@ -25,20 +29,20 @@ https://sourceforge.net/projects/jmlspecs/
          id="org.jmlspecs.annotation"
          download-size="0"
          install-size="0"
-         version="0.2.21"
+         version="0.3.1"
          unpack="false"/>
 
    <plugin
          id="org.jmlspecs.OpenJMLUI"
          download-size="0"
          install-size="0"
-         version="0.2.21"/>
+         version="0.3.1"/>
 
    <plugin
          id="org.jmlspecs.Specs"
          download-size="0"
          install-size="0"
-         version="0.2.21"
+         version="0.3.1"
          unpack="false"/>
 
 </feature>
