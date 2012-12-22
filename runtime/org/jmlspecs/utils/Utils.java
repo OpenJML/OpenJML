@@ -40,7 +40,8 @@ public class Utils {
      */
     public static void assertionFailure(String message) {
         if (useExceptions) throw new JmlAssertionError(message);
-        System.out.println(message);
+        //if (useJavaAssert) assert false: message;
+        System.out.println(message); System.out.flush();
         if (showStack) (new JmlAssertionError(message)).printStackTrace(System.out);
     }
     

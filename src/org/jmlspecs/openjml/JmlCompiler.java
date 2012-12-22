@@ -444,66 +444,18 @@ public class JmlCompiler extends JavaCompiler {
         if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,1,"RAC-Compiling " + utils.envString(env));
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("rac " + utils.envString(env));
         
-        if (Options.instance(context).get("-newesc") != null) {
-            if (env.tree instanceof JCClassDecl) {
-                JCTree newtree = new JmlAssertionAdder(context,false).convert(env.tree);
-                // When we do the RAC translation, we create a new instance
-                // of the JCClassDecl for the class.  So we have to find where
-                // it is kept in the JCCompilationUnit and replace it there.
-                // If there is more than one class in the compilation unit, we are
-                // presuming that each one that is to be translated will be 
-                // separately called - so we just translate each one when it comes.
-                List<JCTree> t = env.toplevel.defs;
-                while (t.head != null) {
-                    if (t.head == env.tree) {
-//                        System.out.println("RAC TRANSLATION");
-//                        System.out.println(JmlPretty.writeJava((JCClassDecl)newtree,true));
-                        env.tree = newtree;
-                        t.head = newtree;
-                        break;
-                    }
-                    t = t.tail;
-                }
-            } else {
-                // FIXME - does this happen?
-                JCCompilationUnit newtree = new JmlAssertionAdder(context,false).convert(env.toplevel);
-                env.toplevel = newtree;
-            }
-            JmlRacNew rac = new JmlRacNew(context,env);  // FIXME - use a factory
-            if (env.tree instanceof JCClassDecl) {
-                // When we do the RAC translation, we create a new instance
-                // of the JCClassDecl for the class.  So we have to find where
-                // it is kept in the JCCompilationUnit and replace it there.
-                // If there is more than one class in the compilation unit, we are
-                // presuming that each one that is to be translated will be 
-                // separately called - so we just translate each one when it comes.
-                List<JCTree> t = env.toplevel.defs;
-                while (t.head != null) {
-                    if (t.head == env.tree) {
-                        JCTree newtree = rac.translate(env.tree);
-//                        System.out.println("RAC TRANSLATION");
-//                        System.out.println(JmlPretty.writeJava((JCClassDecl)newtree,true));
-                        env.tree = newtree;
-                        t.head = newtree;
-                        break;
-                    }
-                    t = t.tail;
-                }
-            } else {
-                // FIXME - does this happen?
-                env.toplevel = rac.translate(env.toplevel);
-            }
-            if (JmlOption.isOption(context,"-showrac")) {
-                log.noticeWriter.println("TRANSLATED RAC");
-                log.noticeWriter.println(JmlPretty.writeJava(env.tree,true));
-            }
-     //       flow(env);  // FIXME - give a better explanation if this produces errors.
-                    // IF it does, it is because we have done the RAC translation wrong.
-            return env;
-        }
-
-        JmlRac rac = new JmlRac(context,env);  // FIXME - use a factory
         if (env.tree instanceof JCClassDecl) {
+            JCTree newtree;
+            if (Options.instance(context).get("-newesc") != null) {
+
+                newtree = new JmlAssertionAdder(context,false,true).convert(env.tree);
+            
+            } else {
+                
+                newtree = new JmlRac(context,env).translate(env.tree);
+                
+            }
+                
             // When we do the RAC translation, we create a new instance
             // of the JCClassDecl for the class.  So we have to find where
             // it is kept in the JCCompilationUnit and replace it there.
@@ -513,9 +465,6 @@ public class JmlCompiler extends JavaCompiler {
             List<JCTree> t = env.toplevel.defs;
             while (t.head != null) {
                 if (t.head == env.tree) {
-                    JCTree newtree = rac.translate(env.tree);
-//                    System.out.println("RAC TRANSLATION");
-//                    System.out.println(JmlPretty.writeJava((JCClassDecl)newtree,true));
                     env.tree = newtree;
                     t.head = newtree;
                     break;
@@ -524,14 +473,15 @@ public class JmlCompiler extends JavaCompiler {
             }
         } else {
             // FIXME - does this happen?
-            env.toplevel = rac.translate(env.toplevel);
+            JCCompilationUnit newtree = new JmlAssertionAdder(context,false,true).convert(env.toplevel);
+            env.toplevel = newtree;
         }
         if (JmlOption.isOption(context,"-showrac")) {
             log.noticeWriter.println("TRANSLATED RAC");
-            log.noticeWriter.println(JmlPretty.writeJava(env.tree,true));
+            log.noticeWriter.println(JmlPretty.write(env.tree,true));
         }
- //       flow(env);  // FIXME - give a better explanation if this produces errors.
-                // IF it does, it is because we have done the RAC translation wrong.
+        //       flow(env);  // FIXME - give a better explanation if this produces errors.
+        // IF it does, it is because we have done the RAC translation wrong.
         return env;
     }
     

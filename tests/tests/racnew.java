@@ -1,5 +1,6 @@
 package tests;
 
+import org.jmlspecs.openjml.Utils;
 import org.junit.Test;
 
 /** These tests exercise the RAC checking.  They compile a test class 
@@ -27,7 +28,8 @@ public class racnew extends RacBase {
         options.put("-showNotImplemented", "");
         options.put("-noPurityCheck",""); // System specs have a lot of purity errors, so turn this off for now
         options.put("-noInternalSpecs",   ""); // Faster with this option; should work either way
-//        options.put("-jmldebug",   "");
+        options.put("-showrac", "");
+        //options.put("-verboseness",   "4");
         expectedNotes = 0;
     }
 
@@ -61,16 +63,16 @@ public class racnew extends RacBase {
 
     /** JML assert statement failure */
     @Test public void testAssertion() {
-        helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { //@ assert false; \n System.out.println(\"END\"); }}"
-                ,"/tt/TestAssert.java:1: JML assertion is false"
+        helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { \n//@ assert false; \n System.out.println(\"END\"); }}"
+                ,"/tt/TestAssert.java:2: JML assertion is false"
                 ,"END"
                 );
     }
 
     /** JML labeled assert statement failure */
     @Test public void testAssertion2() {
-        helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { //@ assert false: \"ABC\"; \n System.out.println(\"END\"); }}"
-                ,"/tt/TestAssert.java:1: JML assertion is false (ABC)"
+        helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { \n//@ assert false: \"ABC\"; \n System.out.println(\"END\"); }}"
+                ,"ABC"
                 ,"END"
                 );
     }
@@ -355,7 +357,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testResult() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) {  m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures \\result == 4; */ static int m(int i) { return 4; } " +
                 "}"
                 ,"END"
@@ -1843,10 +1845,10 @@ public class racnew extends RacBase {
 //        print = true;
         helpTCX("tt.A","package tt; /*@nullable_by_default*/ public class A  { \n"
                 +"/*@non_null*/ static Object o,oo = null; \n"
-                +"static Object ooo = null;\n"
+                +"static String ooo = null;\n"
                 +"//@ non_null ghost static Object oooo = null;\n"
                 +"public static void main(String[] args) { \n"
-                +"   /*@ non_null*/ String local = (String)ooo;\n"
+                +"   /*@ non_null*/ String local = ooo;\n"
                 +"   //@ ghost non_null String loc = null; \n"
                 +"System.out.println(\"END\"); "
                 +"}} class B { //@ model  int i; \n}"
@@ -2115,6 +2117,22 @@ public class racnew extends RacBase {
     
     @Test public void testSynchronized() {
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i; \n synchronized (this) { i = 0; } \n}}"
+                );
+    }
+
+    @Test public void testSynchronized2() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { Object o = null; int i; \n synchronized (o) { i = 0; } \n}}"
+                );
+    }
+
+    @Test public void testLabelledStatement() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i=5; \n outer: while (i > 0)  { --i; } \n /*@ assert i == 0; */ \n System.out.println(\"END\"); }}"
+                ,"END");
+    }
+
+    @Test public void testLabelledStatement2() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i=5; \n outer: while (i > 0)  { --i; } \n /*@ assert i == -1; */ }}"
+                ,"/tt/A.java:4: JML assertion is false"
                 );
     }
 
