@@ -1126,9 +1126,9 @@ public class racnew extends RacBase {
                 +"new A().m(); "
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/$A/tt/A.jml:2: JML invariant is false"
+                ,"/tt/A.jml:3: JML invariant is false"
                 ,"MID"
-                ,"/$A/tt/A.jml:2: JML invariant is false"
+                ,"/$A/tt/A.jml:3: JML invariant is false"
                 ,"END"
                 );
     }

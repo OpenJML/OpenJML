@@ -2797,12 +2797,14 @@ public class BasicBlocker2 extends JmlTreeScanner {
         
         // Now make the then block
         BasicBlock thenBlock = newBlock(thenName,pos);
+        addAssume(that.cond.pos, Label.BRANCHT, that.cond, thenBlock.statements);
         thenBlock.statements.add(that.thenpart);
         follows(thenBlock,brest);
         follows(currentBlock,thenBlock);
         
         // Now make the else block
         BasicBlock elseBlock = newBlock(elseName,pos);
+        addAssume(that.cond.pos, Label.BRANCHE, treeutils.makeNot(that.cond.pos,that.cond), elseBlock.statements);
         if (that.elsepart != null) elseBlock.statements.add(that.elsepart);
         follows(elseBlock,brest);
         follows(currentBlock,elseBlock);
