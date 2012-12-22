@@ -52,6 +52,7 @@ import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -405,10 +406,10 @@ public class JmlTreeUtils {
      * @return the AST
      */ 
     public JCIdent makeIdent(int pos, Symbol sym) {
-        JCIdent id = factory.Ident(sym.name);
+        JCIdent id = factory.Ident(sym);
         id.pos = pos;
-        id.sym = sym;
-        id.type = sym.type;
+//        id.sym = sym;
+//        id.type = sym.type;
         return id;
     }
     
@@ -550,22 +551,22 @@ public class JmlTreeUtils {
     }
     
     /** Makes a JML assume statement */
-    public JmlStatementExpr makeAssume(int pos, Label label, JCExpression expr) {
+    public JmlStatementExpr makeAssume(DiagnosticPosition pos, Label label, JCExpression expr) {
         JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME, label, expr);
         return e;
     }
 
     /** Makes a JML assert statement */
-    public JmlStatementExpr makeAssert(int pos, Label label, JCExpression expr) {
+    public JmlStatementExpr makeAssert(DiagnosticPosition pos, Label label, JCExpression expr) {
         JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlToken.ASSERT, label, expr);
         e.declPos = Position.NOPOS;
         return e;
     }
 
     /** Makes a JML assert statement */
-    public JmlStatementExpr makeAssert(int pos, Label label, JCExpression expr, int relatedPos) {
+    public JmlStatementExpr makeAssert(DiagnosticPosition pos, Label label, JCExpression expr, DiagnosticPosition relatedPos) {
         JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlToken.ASSERT, label, expr);
-        e.declPos = relatedPos;
+        e.declPos = relatedPos == null ? Position.NOPOS : relatedPos.getPreferredPosition();
         return e;
     }
 

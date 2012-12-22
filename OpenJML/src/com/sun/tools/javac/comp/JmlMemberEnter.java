@@ -1015,6 +1015,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            ex = jmlF.Apply(List.<JCExpression>nil(),ex,List.<JCExpression>nil());
 //            JCStatement st = jmlF.Exec(ex);
         //JCVariableDecl tp = jmlF.VarDef(jmlF.Modifiers(0),names.fromString("_JML$$this"),jmlF.Type(sym.type),null);
+        if (!JmlOption.isOption(context,"-newesc")) {
+            
         JmlTree.JmlMethodDecl m = jmlF.MethodDef(
                 jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),
                 names.fromString(JmlRac.invariantMethodString + "$$" + sym.flatName().toString().replace(".","$")),
@@ -1051,6 +1053,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         memberEnter(ms,env);
         setDefaultCombinedMethodSpecs(m);
         setDefaultCombinedMethodSpecs(ms);
+        }
         
         HashSet<Name> modelMethodNames = new HashSet<Name>();
         for (JmlTypeClause t : tsp.clauses) {

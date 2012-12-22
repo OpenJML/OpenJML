@@ -46,6 +46,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -173,6 +174,13 @@ public class JmlTree implements IJmlTree {
         @Override
         public Maker at(int pos) {
             super.at(pos);
+            return this;
+        }
+        
+        @Override
+        public Maker at(DiagnosticPosition pos) {
+            this.pos = (pos == null ? Position.NOPOS : pos.getPreferredPosition()); // FIXME - decide on preferred or start position
+            //super.at(pos);
             return this;
         }
         
@@ -320,7 +328,7 @@ public class JmlTree implements IJmlTree {
         }
 
         /** Creates a variable declaration with symbol and type filled in from its components;
-         * does not fill in the sourcefile */
+         * does not fill in the sourcefile */  // FIXME - it does fill in the sourcefile - is that what we want?
         @Override
         public JmlVariableDecl VarDef(VarSymbol v, /*@Nullable*/ JCExpression init) {
             JmlVariableDecl tree = new JmlVariableDecl(

@@ -385,7 +385,7 @@ public class JmlEsc extends JmlTreeScanner {
         }
         JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
 
-        JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true);
+        JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true,false);
         JCBlock newblock = assertionAdder.convertMethodBody(decl,currentClassDecl);
         log.noticeWriter.println(JmlPretty.write(newblock));
         
@@ -505,12 +505,13 @@ public class JmlEsc extends JmlTreeScanner {
         }
         JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
 
-        JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true);
+        JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true,false);
         JCBlock newblock = assertionAdder.convertMethodBody(decl,currentClassDecl);
         
         if (newblock == null) {
-            if (print) log.noticeWriter.println("BLOCK IS NULL");
-            return new ProverResult(proverToUse,IProverResult.ERROR);
+            IProverResult pr =  new ProverResult(proverToUse,IProverResult.ERROR);
+            pr.setOtherInfo("Aborting proof attempt because of internal error");
+            return pr;
         }
         
         if (print) log.noticeWriter.println(JmlPretty.write(newblock));
