@@ -684,8 +684,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         DiagnosticPosition p = methodDecl.pos();
         JCExpression cond = treeutils.makeEqObject(p.getPreferredPosition(),
                 treeutils.makeIdent(p.getPreferredPosition(), exceptionSym),treeutils.nulllit);
-        addAssume(p,Label.BRANCHT,cond,ensureStats);
-        addAssume(p,Label.BRANCHE,treeutils.makeNot(cond.pos,cond),exsureStats);
+        //addAssume(p,Label.BRANCHT,cond,ensureStats);
+        //addAssume(p,Label.BRANCHE,treeutils.makeNot(cond.pos,cond),exsureStats);
         
         boolean methodIsStatic = methodDecl.sym.isStatic();
         JmlSpecs.TypeSpecs tspecs = specs.get(classDecl.sym);
@@ -1252,13 +1252,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCVariableDecl vdecl = treeutils.makeVarDef(that.type, ifname, null, that.pos);
         addStat(vdecl);
         pushBlock();
-        addAssume(that.truepart.pos(),Label.BRANCHT,cond,currentStatements); // FIXME - move these to the BasicBlocker
+        //addAssume(that.truepart.pos(),Label.BRANCHT,cond,currentStatements); // FIXME - move these to the BasicBlocker
         scan(that.truepart);
         addAssumeEqual(that.truepart.pos(), Label.ASSIGNMENT, 
                 treeutils.makeIdent(that.truepart.pos, vdecl.sym), eresult, currentStatements);
         JCBlock trueblock = popBlock(0,that.truepart.pos);
         pushBlock();
-        addAssume(that.truepart.pos(),Label.BRANCHE,treeutils.makeNot(that.cond.pos, cond),currentStatements);
+        //addAssume(that.truepart.pos(),Label.BRANCHE,treeutils.makeNot(that.cond.pos, cond),currentStatements);
         scan(that.falsepart);
         addAssumeEqual(that.falsepart.pos(), Label.ASSIGNMENT, 
                 treeutils.makeIdent(that.falsepart.pos, vdecl.sym), eresult, currentStatements);
@@ -1274,13 +1274,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression cond = scanret(that.cond);
 
         pushBlock();
-        addAssume(that.cond.pos(),Label.BRANCHT,cond,currentStatements); // FIXME - move to the basic blocker
+        //addAssume(that.cond.pos(),Label.BRANCHT,cond,currentStatements); // FIXME - move to the basic blocker
         scan(that.thenpart);
         JCBlock thenpart = popBlock(0,that.thenpart.pos);
         
         pushBlock();
-        JCExpression ne = treeutils.makeNot(that.cond.pos,cond);
-        addAssume(that.cond.pos(),Label.BRANCHE,ne,currentStatements);
+        //JCExpression ne = treeutils.makeNot(that.cond.pos,cond);
+        //addAssume(that.cond.pos(),Label.BRANCHE,ne,currentStatements);
         if (that.elsepart != null) scan(that.elsepart);
         JCBlock elsepart = popBlock(0,that.elsepart != null ? that.elsepart.pos : that.cond.pos);
 
@@ -3133,14 +3133,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression test = scanret(that.cond);
             JCExpression ne = treeutils.makeNot(that.cond.pos, test);
 
-            JmlStatementExpr as = addAssume(that.cond.pos(),Label.BRANCHT,ne,null);
+            //JmlStatementExpr as = addAssume(that.cond.pos(),Label.BRANCHT,ne,null);
             JCStatement br = M.at(that.cond.pos).Break(null);
-            JCBlock bl = M.at(that.cond.pos).Block(0,List.<JCStatement>of(as,br));
+            JCBlock bl = M.at(that.cond.pos).Block(0,List.<JCStatement>of(br));
             JCStatement ifs = M.at(that.cond.pos).If(ne,bl,null);
             ifs.type = Type.noType;
             addStat(ifs);
 
-            addAssume(that.cond.pos(),Label.BRANCHE,test,currentStatements);
+            //addAssume(that.cond.pos(),Label.BRANCHE,test,currentStatements);
 
             bl = popBlock(0,that.cond.pos);
             addStat(bl);
@@ -3202,11 +3202,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCExpression e = scanret(that.cond);
                 JCExpression notcond = treeutils.makeNot(e.pos,e);
                 pushBlock();
-                addAssume(e.pos(),Label.BRANCHT,notcond,currentStatements);
+                ///addAssume(e.pos(),Label.BRANCHT,notcond,currentStatements);
                 addStat(M.Break(null));
                 JCBlock thenBlock = popBlock(0,e.pos);
                 pushBlock();
-                addAssume(e.pos(),Label.BRANCHE,e,currentStatements);
+                //addAssume(e.pos(),Label.BRANCHE,e,currentStatements);
                 JCBlock elseBlock = popBlock(0,e.pos);
                 JCStatement ifstat = M.at(that.cond.pos).If(notcond,thenBlock,elseBlock);
                 addStat(ifstat);
@@ -3580,11 +3580,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
 
             if (statementStack.get(0) == null) {
-                addStat(treeutils.makeAssignStat(that.pos, treeutils.makeIdent(that.pos, stat.sym), init));
-                // Check about static
-                JCBlock bl = popBlock(that.mods.flags & Flags.STATIC,that.pos);
-                this.classDefs.add(stat);
-                result = bl;
+                if (currentStatements.isEmpty()) {
+                    stat.init = init;
+                    result = stat;
+                } else {
+                    addStat(treeutils.makeAssignStat(that.pos, treeutils.makeIdent(that.pos, stat.sym), init));
+                    JCBlock bl = popBlock(that.mods.flags & Flags.STATIC,that.pos);
+                    this.classDefs.add(stat);
+                    result = bl;
+                }
             } else {
                 JCBlock bl = popBlock(0,that.pos);
                 currentStatements.addAll(bl.stats);
@@ -3592,8 +3596,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(stat);
                 result = stat;
             }
-            // FIXME - are we at the top-level or not?
-            // FIXME - where to add this block?
         }
     }
 
@@ -3638,14 +3640,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             //        }
 
             DiagnosticPosition pos = that.cond.pos();
-            JmlStatementExpr as = addAssume(pos,Label.BRANCHT,ne,null);
+            //JmlStatementExpr as = addAssume(pos,Label.BRANCHT,ne,null);
             JCStatement br = M.at(pos).Break(null);
-            JCBlock bl = M.at(pos).Block(0,List.<JCStatement>of(as,br));
+            JCBlock bl = M.at(pos).Block(0,List.<JCStatement>of(br));
             JCStatement ifs = M.at(pos).If(ne,bl,null);
             ifs.type = Type.noType;
             addStat(ifs);
 
-            addAssume(that.cond.pos(),Label.BRANCHE,test,currentStatements);
+            //addAssume(that.cond.pos(),Label.BRANCHE,test,currentStatements);
 
             scan(that.body);
 
