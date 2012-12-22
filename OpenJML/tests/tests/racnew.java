@@ -1,6 +1,7 @@
 package tests;
 
 import org.jmlspecs.openjml.Utils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /** These tests exercise the RAC checking.  They compile a test class 
@@ -649,10 +650,17 @@ public class racnew extends RacBase {
                 "++i; //@ assert (\\lbl INT (int)(i)) != 0; \n" +
                 "++i; //@ assert (\\lbl FLOAT (float)(i)) != 0; \n" +
                 "++i; //@ assert (\\lbl DOUBLE (double)(i)) != 0; \n" +
-                "//@ assert (\\lbl CHAR n.charAt(0)) != 0; \n" +
+                "//@ assert (\\lbl CHAR (char)(i+60)) != 0; \n" +
                 "//@ assert (\\lbl BOOLEAN (i == 0)) ; \n" +
                 "//@ assert (\\lbl OBJECT o) == null; \n" +
+                "//@ assert (\\lbl NULL null) == null; \n" +
                 "//@ assert (\\lbl STRING \"abc\") != null; \n" +
+                "//@ assert (\\lblpos POST (i!=0)); \n" +
+                "//@ assert !(\\lblpos POSF (i==0)); \n" +
+                "//@ assert (\\lblneg NEGT (i!=0)); \n" +
+                "//@ assert !(\\lblneg NEGF (i==0)); \n" +
+                "//@ assert !(\\lblpos POST (i!=0)); \n" +
+                "//@ assert (\\lblneg NEGF (i==0)); \n" +
                 "} " +
                 "}"
                 ,"LABEL STRING = def"
@@ -662,11 +670,18 @@ public class racnew extends RacBase {
                 ,"LABEL INT = 4"
                 ,"LABEL FLOAT = 5.0"
                 ,"LABEL DOUBLE = 6.0"
-                ,"LABEL CHAR = a"
+                ,"LABEL CHAR = B"
                 ,"LABEL BOOLEAN = false"
                 ,"/tt/TestJava.java:14: JML assertion is false"
                 ,"LABEL OBJECT = null"
+                ,"LABEL NULL = null"
                 ,"LABEL STRING = abc"
+                ,"LABEL POST = true"
+                ,"LABEL NEGF = false"
+                ,"LABEL POST = true"
+                ,"/tt/TestJava.java:22: JML assertion is false"
+                ,"LABEL NEGF = false"
+                ,"/tt/TestJava.java:23: JML assertion is false"
                 ,"END"
                 );
         
@@ -703,7 +718,8 @@ public class racnew extends RacBase {
         
     }
     
-    public void _testTypelc() { // FIXME - problem with \type of primitive types
+    @Test @Ignore
+    public void testTypelc() { // FIXME - problem with \type of primitive types
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(); mm(); ma(); mg(); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -761,7 +777,8 @@ public class racnew extends RacBase {
         
     }
     
-    public void _testSubtype() {  // FIXME - \type(int) does not work
+    @Test @Ignore
+    public void testSubtype() {  // FIXME - \type(int) does not work
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(); mm(); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -1024,7 +1041,8 @@ public class racnew extends RacBase {
         
     }
 
-    public void _testSpecModelClass() { // FIXME - nested class problems?
+    @Test @Ignore
+    public void testSpecModelClass() { // FIXME - nested class problems?
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"/*@ model static class AA { static int mm() { return 5; }} */ \n"
                 +"//@ ghost static int i = 0;\n  "
@@ -2134,6 +2152,31 @@ public class racnew extends RacBase {
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i=5; \n outer: while (i > 0)  { --i; } \n /*@ assert i == -1; */ }}"
                 ,"/tt/A.java:4: JML assertion is false"
                 );
+    }
+
+    @Test public void testInitializer() {
+        helpTCX("tt.A","package tt; public class A { public static void main(String[] args) {  }\n { //@ assert false; \n } " +
+                "}"
+                ); // The assert is not executed
+    }
+
+    @Test public void testInitializer2() {
+        helpTCX("tt.A","package tt; public class A { public static void main(String[] args) { A a = new A(); System.out.println(\"END\"); }\n {  //@ assert false; \n  \n } " +
+                "}"
+                ,"/tt/A.java:2: JML assertion is false"
+                ,"END");
+    }
+
+    @Test public void testInitializer2a() {
+        helpTCX("tt.A","package tt; public class A { public static void main(String[] args) { A a = new A(); System.out.println(\"END\"); }\n  " +
+                "}"
+                ,"END");
+    }
+
+    @Test public void testInitializer3() {
+        helpTCX("tt.A","package tt; public class A { public static void main(String[] args) {  }\n static { //@ assert false; \n } " +
+                "}"
+                ,"/tt/A.java:2: JML assertion is false");
     }
 
     @Test public void testForEach3() {

@@ -1054,7 +1054,7 @@ public class JmlTree implements IJmlTree {
                                         // valid after attribution
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlMethodDecl(JCModifiers mods, Name name, JCExpression restype,
+        public JmlMethodDecl(JCModifiers mods, Name name, JCExpression restype,  // FIXME - backdoor use - should not be public
                 List<JCTypeParameter> typarams, List<JCVariableDecl> params,
                 List<JCExpression> thrown, JCBlock body,
                 JCExpression defaultValue, MethodSymbol sym) {
