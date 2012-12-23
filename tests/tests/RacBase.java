@@ -75,7 +75,6 @@ public abstract class RacBase extends JmlTestCase {
         options.put("-specspath",   testspecpath);
         options.put("-d", "testdata"); // This is where the output program goes
         options.put("-command",   "rac");
-        options.put("-target","1.5");
         if (jdkrac) {
             String sy = Options.instance(context).get(Strings.eclipseProjectLocation);
             if (sy == null) {
@@ -146,7 +145,7 @@ public abstract class RacBase extends JmlTestCase {
             }
 
             Log.instance(context).useSource(files.first());
-            int ex = main.compile(new String[]{"-target","1.7"}, context, files.toList(), null);
+            int ex = main.compile(new String[]{}, context, files.toList(), null);
             
             if (print || collector.getDiagnostics().size()!=(expectedErrors+expectedNotes)) printErrors();
             assertEquals("Errors seen",expectedErrors+expectedNotes,collector.getDiagnostics().size());

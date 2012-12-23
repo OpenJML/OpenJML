@@ -66,7 +66,10 @@ public enum JmlOption implements IOption {
     COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample",null),
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions",null),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
-    ASSOCINFO("-crossRefAssociatedInfo",false,">...",null)
+    ASSOCINFO("-crossRefAssociatedInfo",false,">...",null),
+    
+    SHOW_RAC_SOURCE("-showRacSource",false,"RAC: Enables error messages with source information","-noRacSource=false"),
+    NO_RAC_SOURCE("-noRacSource",false,"RAC: Enables error messages with source information",null)
     //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove
     ;
     

@@ -26,6 +26,12 @@ public class Utils {
      */
     public static boolean useExceptions = System.getProperty("org.jmlspecs.openjml.racexceptions") != null;
     
+//    public static boolean showRacSource;
+//    static {
+//        String s = System.getProperty("org.openjml.rac.showRacSource");
+//        showRacSource = s != null && !s.equals("false");
+//    }
+    
     /** If true, then error messages reporting assertion failures are 
      * accompanied with a stack trace to log.errorWriter.
      */
@@ -34,7 +40,7 @@ public class Utils {
     static final public String invariantMethodString = "_JML$$$checkInvariant";
     static final public String staticinvariantMethodString = "_JML$$$checkStaticInvariant";
 
-    /** Reports aJML assertion (any JML precondition, postcondition, etc.)
+    /** Reports a JML assertion (any JML precondition, postcondition, etc.)
      * failure with the given message.
      * @param message The message to report
      */

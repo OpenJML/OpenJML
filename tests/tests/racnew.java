@@ -97,7 +97,7 @@ public class racnew extends RacBase {
     /** Labeled assumption failure */
     @Test public void testAssumption2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { //@ assume false: \"DEF\"; \n System.out.println(\"END\"); }}"
-                ,"/tt/TestJava.java:1: JML assumption is false (DEF)"
+                ,"DEF"
                 ,"END"
                 );
     }
@@ -374,30 +374,6 @@ public class racnew extends RacBase {
         );
     }
     
-    @Test public void testLabel() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ ensures (\\lblneg ENS \\result == 1); */ static int m(int i) { return i; } " +
-                "}"
-                ,"LABEL ENS = true"
-                ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:2: JML postcondition is false"
-                ,"END"
-        );        
-    }
-    
-    @Test public void testLabel2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ ensures (\\lblneg ENS (\\lbl RES \\result) == 1); */ static int m(int i) { return i; } " +
-                "}"
-                ,"LABEL RES = 1"
-                ,"LABEL ENS = true"
-                ,"LABEL RES = 0"
-                ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:2: JML postcondition is false"
-                ,"END"
-        );        
-    }
-    
     @Test public void testOld() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures (\\lbl ENS \\old(k)) == k; */ static int m(int i) { k=i; return i; } " +
@@ -632,87 +608,6 @@ public class racnew extends RacBase {
                 ,"LABEL O = null"
                 ,"LABEL ELEM = false"
                 ,"/tt/TestJava.java:5: JML assertion is false"
-                ,"END"
-                );
-        
-    }
-    
-    @Test public void testLbl() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(null); \n" +
-                "System.out.println(\"END\"); } \n" +
-                "static int i = 0; static String n = \"asd\";\n" +
-                " static void m(/*@nullable*/ Object o) { \n" +
-                "//@ assert (\\lbl STRING \"def\") != null; \n" +
-                "++i; //@ assert (\\lbl SHORT (short)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl LONG (long)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl BYTE (byte)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl INT (int)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl FLOAT (float)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl DOUBLE (double)(i)) != 0; \n" +
-                "//@ assert (\\lbl CHAR (char)(i+60)) != 0; \n" +
-                "//@ assert (\\lbl BOOLEAN (i == 0)) ; \n" +
-                "//@ assert (\\lbl OBJECT o) == null; \n" +
-                "//@ assert (\\lbl NULL null) == null; \n" +
-                "//@ assert (\\lbl STRING \"abc\") != null; \n" +
-                "//@ assert (\\lblpos POST (i!=0)); \n" +
-                "//@ assert !(\\lblpos POSF (i==0)); \n" +
-                "//@ assert (\\lblneg NEGT (i!=0)); \n" +
-                "//@ assert !(\\lblneg NEGF (i==0)); \n" +
-                "//@ assert !(\\lblpos POST (i!=0)); \n" +
-                "//@ assert (\\lblneg NEGF (i==0)); \n" +
-                "} " +
-                "}"
-                ,"LABEL STRING = def"
-                ,"LABEL SHORT = 1"
-                ,"LABEL LONG = 2"
-                ,"LABEL BYTE = 3"
-                ,"LABEL INT = 4"
-                ,"LABEL FLOAT = 5.0"
-                ,"LABEL DOUBLE = 6.0"
-                ,"LABEL CHAR = B"
-                ,"LABEL BOOLEAN = false"
-                ,"/tt/TestJava.java:14: JML assertion is false"
-                ,"LABEL OBJECT = null"
-                ,"LABEL NULL = null"
-                ,"LABEL STRING = abc"
-                ,"LABEL POST = true"
-                ,"LABEL NEGF = false"
-                ,"LABEL POST = true"
-                ,"/tt/TestJava.java:22: JML assertion is false"
-                ,"LABEL NEGF = false"
-                ,"/tt/TestJava.java:23: JML assertion is false"
-                ,"END"
-                );
-        
-    }
-    
-    @Test public void testLblConst() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(null); \n" +
-                "System.out.println(\"END\"); } static int i = 0; \n" +
-                " static void m(/*@nullable*/ Object o) { \n" +
-                "//@ assert (\\lbl OBJECT null) == null; \n" + // const null arguments get optimized away
-                "//@ assert (\\lbl INT (int)(4)) != 0; \n" +
-                "//@ assert (\\lbl SHORT (short)(1)) != 0; \n" +
-                "//@ assert (\\lbl LONG (long)(2)) != 0; \n" +
-                "//@ assert (\\lbl BYTE (byte)(3)) != 0; \n" +
-                "//@ assert (\\lbl FLOAT (float)(5)) != 0; \n" +
-                "//@ assert (\\lbl DOUBLE (double)(6)) != 0; \n" +
-                "//@ assert (\\lbl CHAR 'a') != 0; \n" +
-                "//@ assert (\\lbl BOOLEAN true) ; \n" +
-                "//@ assert (\\lbl STRING \"abc\") != null; \n" +
-                "} " +
-                "}"
-                ,"LABEL INT = 4"
-                ,"LABEL SHORT = 1"
-                ,"LABEL LONG = 2"
-                ,"LABEL BYTE = 3"
-                ,"LABEL FLOAT = 5.0"
-                ,"LABEL DOUBLE = 6.0"
-                ,"LABEL CHAR = a"
-                ,"LABEL BOOLEAN = true"
-                ,"LABEL STRING = abc"
                 ,"END"
                 );
         
@@ -2139,7 +2034,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSynchronized2() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { Object o = null; int i; \n synchronized (o) { i = 0; } \n}}"
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { /*@ nullable*/ Object o = null; int i; \n synchronized (o) { i = 0; } \n}}"
                 );
     }
 
