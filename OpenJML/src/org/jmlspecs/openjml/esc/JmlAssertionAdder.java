@@ -46,14 +46,18 @@ import com.sun.tools.javac.util.Position;
 
 /** This class translates an attributed Java+JML AST, creating a new Java-compatible AST
  * that includes assertions to check for all the various JML conditions that need checking.
- * The resulting AST is a complete copy - it does not share any mutable structure with the original
+ * <P>
+ * The resulting AST is an (almost) complete copy - it does not share any mutable structure with the original
  * AST, so the original AST can be reused; it represents each identifier in a separate
  * JCIdent, so that a succeeding Single-assignment step can change identifier names in place.
+ * If the field 'fullTranslation' is true, then even non-mutable nodes, such as 
+ * JCLiteral, are duplicated. The copied AST may still share non-AST objects such
+ * as Name and Symbol objects.
  * <P>
  * There are three modes of translation:
  * <UL>
- * <LI>esc=true,rac=false: This inserts all required assertions as JML assert
- * and assume statements, Java assignments and variable declarations,
+ * <LI>esc=true,rac=false: This inserts all JML semantics as new Java
+ * constructs and JML assert and assume statements,
  * retaining the Java control flow statements.
  * <LI>rac=true,esc=false: This inserts all executable JML checks as Java assert statements.
  * The translated AST is a transformation of the original program, but is
@@ -64,7 +68,7 @@ import com.sun.tools.javac.util.Position;
  * </UL>
  * <P>
  * With either rac or esc on, the translated AST uses only a subset of Java
- * functionality. All JML features are translated into assertions.
+ * functionality. All JML features are translated into assertions and Java statements.
  * <UL>
  * <LI>Java expressions:
  * </UL>
@@ -107,6 +111,16 @@ import com.sun.tools.javac.util.Position;
  * 
  *
  */
+
+// DESIGN NOTE: This AST scanner operates in two modes - when translating Java
+// and when translating JML. These are both implemented in the one scanner,
+// controlled by the class field 'translatingJML'. I considered having two
+// scanners, one for each mode. However, there was then a lot of code 
+// duplication or similarity, with the similar code being separated into two
+// classes. Also, calling the correct translation function proved to be more
+// error prone than in the design with just one scanner class. For better or
+// worse, the one-class design is what is implemented here.
+
 // FIXME - should we use the copier instead??
 public class JmlAssertionAdder extends JmlTreeScanner {
 
@@ -129,6 +143,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** True if we are translating for RAC */
     public boolean rac ;
     
+    /** If true, then error messages in generated RAC code include source
+     * code snippets with the customary textual ^ pointers to error locations.
+     */
+    protected boolean showRacSource;
 
     // Constant items set in the constructor
     
@@ -156,12 +174,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** The JmlTreeUtils object, holding a bunch of tree-making utilities */
     final protected JmlTreeUtils treeutils;
 
-    /** An AST visitor for translating JML expressions; since JML expressions
-     * do not have side effects, this visitor can be simpler than 
-     * JmlAssertionAdder itself.
-     */
-    final protected JmlExpressionRewriter jmlrewriter = new JmlExpressionRewriter();
-    
     // TODO = document
     final protected Name resultName;
     protected Symbol resultSym = null;
@@ -176,17 +188,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected Symbol terminationSym = null;
 
     // Fields used and modified during translation
+    // These should only be modified by visit methods
     
     /** The AST being processed - set in convertMethodBody */
     protected JCMethodDecl methodDecl = null;
     
     /** The parent class of the method being converted, for use while the
-     * method's SAT is being walked.
+     * declarations of the class are being walked, and while a method is
+     * being translated stand-alone (without having been reached by walking
+     * the tree from above).
      */
     protected JmlClassDecl classDecl = null;
-    
-    // FIXME
-    protected ListBuffer<JCTree> classDefs;
     
     // TODO - document - is this needed?
     public Map<String,DiagnosticPositionSES> positionMap = new HashMap<String,DiagnosticPositionSES>();
@@ -208,13 +220,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected int count = 0;
     
     // TODO = docuemnt
-    protected boolean showRacSource;
     protected Map<Symbol,JCVariableDecl> preparams = new HashMap<Symbol,JCVariableDecl>();
     protected Map<JmlSpecificationCase,JCIdent> preconditions = new HashMap<JmlSpecificationCase,JCIdent>();
     
     
     // TODO = document
     final protected java.util.List<String> labels = new LinkedList<String>();
+    
+    /** A List used to accumulate translated definitions of a class, for cases
+     * where new declarations are needed.
+     */
+    protected ListBuffer<JCTree> classDefs;
     
     /** A list to collect statements as they are being generated. */
     protected ListBuffer<JCStatement> currentStatements;
@@ -223,13 +239,37 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * is NOT on this stack. */
     protected LinkedList<ListBuffer<JCStatement>> statementStack = new LinkedList<ListBuffer<JCStatement>>();
     
+    /** true when translating JML constructs, false when translating Java constructs.
+     * This is set and manipulated by the visitor methods 
+     */
+    protected boolean translatingJML;
+    
+    /** Contains an expression that is used as a guard in determining whether expressions
+     * are well-defined. For example, suppose we are translating the expression 
+     * a != null && a[i] == 0. Then condition is 'true' when a!=null is translated.
+     * But when a[i] is translated, 'condition' will be a != null. The well-definedness
+     * check for a[i] will then be (a != null) ==> (a != null && i >= 0 && i < a.length).
+     * So the full expression is well-defined only if that implication can be proved given 
+     * other pre-conditions.
+     */
+    protected JCExpression condition;
+    
+    /** Set to true when we are translating a normal or exceptional postcondition. It is used
+     * to be sure the correct scope is used when method parameters are used in the postcondition.
+     * If a method parameter is used in a postcondition it is evaluated in the pre-state since
+     * any changes to the parameter within the body of the method are discarded upon exit and
+     * are invisible outside the method (i.e. in the postcondition).
+     */
+    protected boolean isPostcondition;
+    
     /** Used to hold the result of non-expression AST nodes */
     protected JCTree result;
     
     /** Used to hold the result of expression AST nodes */
     protected JCExpression eresult;
     
-    /** Returns a new JCBlock representing the rewritten body of the given method declaration */
+    /** (Public API) Returns a new JCBlock representing the rewritten body of the given method declaration.
+     */
     public JCBlock convertMethodBody(JCMethodDecl decl, JmlClassDecl cd) {
         JCMethodDecl prev = methodDecl;
         // We have the classDecl as an argument and save it here because
@@ -253,7 +293,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    /** Creates an object to do the rewriting and assertion insertion. This object
+    /** (Public API) Creates an object to do the rewriting and assertion insertion. This object
      * can be reused to translate different method bodies, so long as the arguments
      * to this constructor remain appropriate.
      * @param context the compilation context to be used
@@ -276,7 +316,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         initialize();
     }
     
-    /** Reinitializes the object to start a new class or compilation unit or method */
+    /** (Public API) Reinitializes the object to start a new class or compilation unit or method */
     public void initialize() {
         this.showRacSource = !JmlOption.isOption(context,JmlOption.NO_RAC_SOURCE.optionName());
         this.count = 0;
@@ -285,6 +325,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.preparams.clear();
         this.preconditions.clear();
         this.labels.clear();
+        this.translatingJML = false;
     }
     
     /** Creates the overall framework for the block:
@@ -389,7 +430,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return M.at(decl.pos()).Block(0,initialStatements.toList());
     }
     
-    /** Converts a non-expression AST, returning the converted tree;
+    /** (PUblic API) Converts a non-expression AST, returning the converted tree;
      * this may be called externally on ClassDecl and CompilationUnit
      * trees, but should not be called outside of JmlAssertionAdder
      * on trees lower in the AST. */
@@ -397,12 +438,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         scan(tree);
         return (T)result;
     }
-    
-//    /** Converts an expression AST, returning the converted tree. */
-//    protected <T extends JCExpression> JCExpression convert(T tree) {
-//        scan(tree);
-//        return eresult;
-//    }
     
     /** Start collecting statements for a new block; push currentStatements onto a stack for later use */
     protected void pushBlock() {
@@ -718,14 +753,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!methodIsStatic || Utils.instance(context).hasAny(clause.modifiers,Flags.STATIC)) {
                         t = (JmlTypeClauseExpr)clause;
                         addAssume(methodDecl.pos(),Label.INVARIANT,
-                                jmlrewriter.translate(t.expression),initialStats,
+                                scanJML(t.expression),initialStats,
                                 clause.pos(),clause.source);
                     }
                     break;
                 case AXIOM:
                     t = (JmlTypeClauseExpr)clause;
                     addAssume(methodDecl.pos(),Label.AXIOM,
-                               jmlrewriter.translate(t.expression),initialStats,
+                                scanJML(t.expression),initialStats,
                                clause.pos(),clause.source);
                     break;
                 default:
@@ -752,7 +787,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (preexpr == null) {
                 preexpr = treeutils.trueLit;
             } else {
-                preexpr = jmlrewriter.translate(preexpr);
+                preexpr = scanJML(preexpr);
             }
             precount++;
             Name prename = names.fromString(Strings.prePrefix + precount);
@@ -772,7 +807,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     {
                         currentStatements = ensureStats;
                         JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
-                        ex = jmlrewriter.translate(ex,preident,true);
+                        ex = scanJML(ex,preident,true);
                         ex = treeutils.makeImplies(clause.pos, preident, ex);
                         // FIXME - if the clause is synthetic, the source file may be null, and for signals clause
                         addAssert(null,Label.POSTCONDITION,ex,ensureStats,clause.pos(),clause.sourcefile);
@@ -787,7 +822,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCVariableDecl evar = treeutils.makeVarDef(vd.type, vd.name, decl.sym, exceptionId); // FIXME - needs a unique name
                         addStat(evar);
                         JCExpression ex = ((JmlMethodClauseSignals)clause).expression;
-                        ex = jmlrewriter.translate(ex,preident,true);
+                        ex = scanJML(ex,preident,true);
                         ex = treeutils.makeImplies(clause.pos, preident, ex);
                         addAssert(null,Label.SIGNALS,ex,exsureStats,clause.pos(),clause.sourcefile);
                         break;
@@ -817,7 +852,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!methodIsStatic || Utils.instance(context).hasAny(clause.modifiers,Flags.STATIC)) {
                         t = (JmlTypeClauseExpr)clause;
                         addAssert(methodDecl.pos(),Label.INVARIANT,
-                                jmlrewriter.translate(t.expression),ensureStats,
+                                scanJML(t.expression),ensureStats,
                                 clause.pos(),clause.source);
                     }
                     break;
@@ -826,7 +861,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!methodIsStatic || Utils.instance(context).hasAny(clause.modifiers,Flags.STATIC)) {
                         JmlTypeClauseConstraint tt = (JmlTypeClauseConstraint)clause;
                         addAssert(methodDecl.pos(),Label.CONSTRAINT,
-                                jmlrewriter.translate(tt.expression),ensureStats,
+                                scanJML(tt.expression),ensureStats,
                                 clause.pos(),clause.source);
                     }
                     break;
@@ -947,7 +982,64 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         return newlist.toList();
     }
+
+//    /** Just like scanret, but switches into translatingJML mode while 
+//     * scanning the node (and then restoring the original translatingJML state
+//     * afterwards)
+//     */
+//    protected JCExpression scanJML(JCTree tree) {
+//        if (tree==null) eresult = null;
+//        else {
+//            boolean saved = translatingJML;
+//            translatingJML = true;
+//            try {
+//                super.scan(tree);
+//            } finally {
+//                translatingJML = saved;
+//            }
+//        }
+//        return eresult;
+//    }
     
+    /** Does a scanJML, but first sets condition and isPostcondition to the given values,
+     * restoring isPostcondition upon return.
+     */
+    protected JCExpression scanJML(JCExpression that, JCExpression condition, boolean isPostcondition) {
+        if (that == null) return null;
+        boolean savedp = this.isPostcondition;
+        boolean savedt = this.translatingJML;
+        try {
+            this.isPostcondition = isPostcondition;
+            this.condition = condition;
+            this.eresult = null; // Just so it is initialized in case assignment is forgotten
+            this.translatingJML = true;
+            return scanret(that);
+        } finally {
+            this.isPostcondition = savedp;
+            this.translatingJML = savedt;
+        }
+    }
+
+    
+    protected JCExpression scanJML(JCExpression that) {
+        return scanJML(that, treeutils.trueLit, false);
+    }
+
+    
+    /** Applies scanJML to a list of expressions, returning the new list. */
+    protected List<JCExpression> scanJML(List<JCExpression> trees) {
+        if (trees==null) return null;
+        else {
+            ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
+            for (JCExpression tree: trees) {
+                scanJML(tree, treeutils.trueLit, false);
+                newlist.add(eresult);
+            }
+            return newlist.toList();
+        }
+    }
+    
+
     /** Translates the block, returning a block */
     protected JCBlock translateIntoBlock(JCBlock block) {
         if (block == null) return null;
@@ -978,10 +1070,56 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         scan(stat.stats);
         return popBlock(0,pos);
     }
+    
+    /** Creates a declaration for a unique temporary name with the given type and position. */
+    protected JCIdent newTemp(int pos, Type t) {
+        Name n = M.Name(Strings.tmpVarString + (++count));
+        JCVariableDecl d = treeutils.makeVarDef(t, n, esc ? null : methodDecl.sym , pos); // FIXME - see note below
+        currentStatements.add(d);
+        JCIdent id = M.at(pos).Ident(d.sym);
+        return id;
+    }
+    
+    /** Creates a declaration for a unique temporary initialized to the given expression. */
+    protected JCIdent newTemp(JCExpression expr) {
+        return newTemp(Strings.tmpVarString + (++count),expr);
+    }
+    
+    /** Creates a declaration for the given name initialized to the given expression. */
+    protected JCIdent newTemp(String name, JCExpression expr) {
+        Name n = M.Name(name);
+        // By having the owner be null, the BasicBlocker2 does not append any unique-ifying suffix - FIXME - does this affect RAC?
+        JCVariableDecl d = treeutils.makeVarDef(
+                expr.type.tag == TypeTags.BOT ? syms.objectType : expr.type, 
+                n, 
+                esc ? null : methodDecl.sym, 
+                expr); // FIXME - here and above is the owner the new methodDecl or the old one, or doesn't it matter
+        currentStatements.add(d);
+        JCIdent id = treeutils.makeIdent(expr.pos,d.sym);
+        return id;
+    }
+
+    // FIXME _ document; does this work correctly for this and super?
+    protected boolean isATypeTree(JCExpression tree) {
+        if (tree instanceof JCIdent) {
+            return !(((JCIdent)tree).sym instanceof VarSymbol);
+        }
+        if (tree instanceof JCFieldAccess) {
+            return !(((JCFieldAccess)tree).sym instanceof VarSymbol);
+        }
+        return false;
+    }
+
+
+    // VISITOR METHODS
 
     // FIXME - should we implement?
     @Override
     public void visitTopLevel(JCCompilationUnit that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitTopLevel while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected call of JmlAssertionAdder.visitTopLevel: " + that.getClass());
 //        // esc does not get here, but rac does
 //        if (!rac) error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitCompilationUnit: " + that.getClass());
@@ -1005,6 +1143,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitImport(JCImport that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitImport while translating JML: " + that.getClass());
+            return;
+        }
         // FIXME - rewrite the qualid; this produces a JmlImport instead of an Import
         JCTree qualid = that.qualid;
         //if (fullTranslation) qualid = treeutils.makeQualid(qualid);
@@ -1013,6 +1155,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitClassDef(JCClassDecl that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.viksitClassDef while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos, "Unexpectedly calling JmlAssertionAdder.visitClassDef: " + that.getClass());
         // Normally will be overridden by JmlClassDecl
         // TODO - can these happen in an anonymous class expression or local class definition; also top-level calls from RAC?
@@ -1037,12 +1183,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitMethodDef(JCMethodDecl that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitMethodDef while translating JML: " + that.getClass());
+            return;
+        }
         // TODO - can these happen in an anonymous class expression or local class definition
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitMethodDef: " + that.getClass());
     }
 
     @Override
     public void visitVarDef(JCVariableDecl that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitVarDef while translating JML: " + that.getClass());
+            return;
+        }
         
         // FIXME - is this ever called? duplicates code from JmlVariableDecl
         JCExpression init = scanret(that.init);
@@ -1069,6 +1223,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     //OK
     @Override
     public void visitSkip(JCSkip that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitSkip while translating JML: " + that.getClass());
+            return;
+        }
         addStat(M.at(that.pos()).Skip());
         // Caution - JML statements are subclasses of JCSkip
     }
@@ -1076,6 +1234,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     //OK
     @Override
     public void visitBlock(JCBlock that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitBlock while translating JML: " + that.getClass());
+            return;
+        }
         if (currentStatements == null) {
             // We are in an initializer block
             // We need a method symbol to be the owner of declarations 
@@ -1136,6 +1298,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     //OK
     @Override
     public void visitLabelled(JCLabeledStatement that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitLabelled while translating JML: " + that.getClass());
+            return;
+        }
         addStat(comment(that.pos,"label:: " + that.label + ": ..."));
         // FIXME - need to check labelled statements when the associated loop gets extra statements in front of it
         // Note that the labeled statement will turn into a block
@@ -1147,6 +1313,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     //OK
     @Override
     public void visitSwitch(JCSwitch that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitSwitch while translating JML: " + that.getClass());
+            return;
+        }
         JCExpression selector = scanret(that.selector);
         ListBuffer<JCCase> cases = new ListBuffer<JCCase>();
         for (JCCase c: that.cases) {
@@ -1168,6 +1338,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK except concurrency checks
     @Override
     public void visitSynchronized(JCSynchronized that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitSynchronized while translating JML: " + that.getClass());
+            return;
+        }
         JCExpression lock = scanret(that.lock);
         if (that.lock instanceof JCParens && ((JCParens)that.lock).expr instanceof JCIdent && ((JCIdent)((JCParens)that.lock).expr).name.toString().equals("this")) {
             // Don't need to check that 'this' is not null
@@ -1185,6 +1359,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - review for both esc and rac
     @Override
     public void visitTry(JCTry that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitTry while translating JML: " + that.getClass());
+            return;
+        }
         JCBlock body = translateIntoBlock(that.body);
         
         ListBuffer<JCStatement> finalizerstats = new ListBuffer<JCStatement>();
@@ -1273,6 +1451,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitConditional(JCConditional that) {
+        if (translatingJML) {
+            JCExpression cond = scanret(that.cond);
+            JCExpression prev = condition;
+            try {
+                condition = treeutils.makeAnd(that.pos, prev, cond);
+                JCExpression truepart = scanret(that.truepart);
+                condition = treeutils.makeAnd(that.pos, prev, treeutils.makeNot(that.falsepart.pos, cond));
+                JCExpression falsepart = scanret(that.falsepart);
+                eresult = M.at(that.pos()).Conditional(cond,truepart,falsepart);
+                eresult.type = that.type;
+            } finally {
+                condition = prev;
+            }
+            return;
+        }
         addStat(comment(that.pos," ... conditional ..."));
         JCExpression cond = scanret(that.cond);
         Name ifname = names.fromString("conditionalResult" + (++count));
@@ -1297,6 +1490,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitIf(JCIf that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitIf while translating JML: " + that.getClass());
+            return;
+        }
         addStat(comment(that.pos," ... if ..."));
         JCExpression cond = scanret(that.cond);
 
@@ -1316,6 +1513,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitExec(JCExpressionStatement that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitExec while translating JML: " + that.getClass());
+            return;
+        }
         addStat(comment(that));
         JCExpression arg = scanret(that.getExpression());
         
@@ -1330,12 +1531,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitBreak(JCBreak that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitBreak while translating JML: " + that.getClass());
+            return;
+        }
         addStat(M.at(that.pos()).Break(that.label));
     }
 
     // OK
     @Override
     public void visitContinue(JCContinue that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitContinue while translating JML: " + that.getClass());
+            return;
+        }
         addStat(M.at(that.pos()).Continue(that.label));
     }
     
@@ -1343,6 +1552,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitReturn(JCReturn that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitReturn while translating JML: " + that.getClass());
+            return;
+        }
         addStat(comment(that));
         JCExpression arg = null;
         JCExpression retValue = that.getExpression();
@@ -1372,6 +1585,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - review
     @Override
     public void visitThrow(JCThrow that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitThrow while translating JML: " + that.getClass());
+            return;
+        }
         addStat(comment(that));
         // assert expr != null;
         pushBlock();
@@ -1404,6 +1621,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK - this is a Java assert statement
     @Override
     public void visitAssert(JCAssert that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitAssert while translating JML: " + that.getClass());
+            return;
+        }
         // FIXME - in esc we may want to treat this as an exceptino throwing Java statement
         
         // ESC will eventually convert this to a Jml assertion, but RAC wants
@@ -1487,7 +1708,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     JCIdent idthis = treeutils.makeIdent(pos, classDecl.thisSymbol);
                     JCExpression result = treeutils.makeEqObject(pos, idthis, 
-                            jmlrewriter.translate(pfa.selected));
+                            scanJML(pfa.selected));
                     // FIXME - handle case where storeref has a different implicit this
                     return result; 
 
@@ -1529,7 +1750,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             if (pfa.sym != null && fa.sym == pfa.sym && !pfa.sym.isStatic()) {
                 // a.x vs. b.x  with b (and a) not static, so result is (a == b)
-                JCExpression result = treeutils.makeEqObject(pos, fa.selected, jmlrewriter.translate(pfa.selected));
+                JCExpression result = treeutils.makeEqObject(pos, fa.selected, scanJML(pfa.selected));
                 return result;
             }
             if (pfa.sym != null && fa.sym == pfa.sym && pfa.sym.isStatic()) {
@@ -1567,7 +1788,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression result = same ? treeutils.trueLit : treeutils.falseLit;
                     return result;
                 } else {
-                    JCExpression result = treeutils.makeEqObject(pos, fa.selected, jmlrewriter.translate(pfa.selected));
+                    JCExpression result = treeutils.makeEqObject(pos, fa.selected, scanJML(pfa.selected));
                     return result;
                 }
             }
@@ -1612,21 +1833,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (pstoreref instanceof JmlStoreRefArrayRange) {
             JmlStoreRefArrayRange paa = (JmlStoreRefArrayRange)pstoreref;
             JCExpression a1 = isjml ? (aa.indexed) : (aa.indexed);
-            JCExpression result = treeutils.makeEqObject(pos, a1, jmlrewriter.translate(paa.expression));
+            JCExpression result = treeutils.makeEqObject(pos, a1, scanJML(paa.expression));
             if (aa.index == null) {
                 if (paa.lo == null && paa.hi == null) return result;
-                if (paa.hi == null) return treeutils.makeAnd(pos, result, treeutils.makeBinary(pos, JCTree.EQ, treeutils.inteqSymbol, jmlrewriter.translate(paa.lo),treeutils.zero));
+                if (paa.hi == null) return treeutils.makeAnd(pos, result, treeutils.makeBinary(pos, JCTree.EQ, treeutils.inteqSymbol, scanJML(paa.lo),treeutils.zero));
                 
                 // FIXME - compare paa.hi to array.length, paa.lo to zero if not null
                 return treeutils.falseLit;
             } else {
-                JCExpression aat = isjml ? jmlrewriter.translate(aa.index) : (aa.index);
+                JCExpression aat = isjml ? scanJML(aa.index) : (aa.index);
                 result = treeutils.makeAnd(pos,result,
                         treeutils.makeAnd(pos,
                                 treeutils.makeBinary(pos,JCTree.LE,treeutils.intleSymbol,
-                                        paa.lo == null ? treeutils.zero : jmlrewriter.translate(paa.lo),aat),
+                                        paa.lo == null ? treeutils.zero : scanJML(paa.lo),aat),
                                 treeutils.makeBinary(pos,JCTree.LE,treeutils.intleSymbol,
-                                                aat, paa.hi == null ? null /* FIXME - need length of array */ : jmlrewriter.translate(paa.hi))
+                                                aat, paa.hi == null ? null /* FIXME - need length of array */ : scanJML(paa.hi))
                                ));
                 return result;
             }
@@ -1652,25 +1873,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
         } else if (pstoreref instanceof JCArrayAccess) {
             JCArrayAccess paa = (JCArrayAccess)pstoreref;
-            JCExpression result = treeutils.makeEqObject(pos, jmlrewriter.translate(aa.expression), jmlrewriter.translate(paa.indexed));
+            JCExpression result = treeutils.makeEqObject(pos, scanJML(aa.expression), scanJML(paa.indexed));
             if (paa.index == null) return result;
-            JCExpression paat = jmlrewriter.translate(paa.index);
+            JCExpression paat = scanJML(paa.index);
             result = treeutils.makeAnd(pos, result, treeutils.makeBinary(pos,JCTree.EQ,treeutils.inteqSymbol, 
-                    aa.lo == null ? treeutils.zero : jmlrewriter.translate(aa.lo), paat));
+                    aa.lo == null ? treeutils.zero : scanJML(aa.lo), paat));
 //            result = treeutils.makeAnd(pos, result, treeutils.makeBinary(pos,JCTree.EQ,treeutils.inteqSymbol, 
 //                    aa.hi == null ? /* FIXME - array length -1 */ : jmlrewriter.translate(aa.hi), paat));
             return result;
         } else if (pstoreref instanceof JmlStoreRefArrayRange) {
             JmlStoreRefArrayRange paa = (JmlStoreRefArrayRange)pstoreref;
-            JCExpression result = treeutils.makeEqObject(pos, jmlrewriter.translate(aa.expression), jmlrewriter.translate(paa.expression));
-            JCExpression a1 = aa.lo == null ? treeutils.zero : jmlrewriter.translate(aa.lo);
-            JCExpression a2 = paa.lo == null ? treeutils.zero : jmlrewriter.translate(paa.lo);
+            JCExpression result = treeutils.makeEqObject(pos, scanJML(aa.expression), scanJML(paa.expression));
+            JCExpression a1 = aa.lo == null ? treeutils.zero : scanJML(aa.lo);
+            JCExpression a2 = paa.lo == null ? treeutils.zero : scanJML(paa.lo);
             result = treeutils.makeAnd(pos, result, treeutils.makeBinary(pos,JCTree.LE,treeutils.intleSymbol, 
                     a2, a1));
 
             // FIXME - in the null case we want array length - 1
-            a1 = aa.hi == null ? treeutils.zero : jmlrewriter.translate(aa.hi);
-            a2 = paa.hi == null ? treeutils.zero : jmlrewriter.translate(paa.hi);
+            a1 = aa.hi == null ? treeutils.zero : scanJML(aa.hi);
+            a2 = paa.hi == null ? treeutils.zero : scanJML(paa.hi);
             result = treeutils.makeAnd(pos, result, treeutils.makeBinary(pos,JCTree.LE,treeutils.intleSymbol, 
                     a1, a2));
 
@@ -1756,6 +1977,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - needs work
     @Override
     public void visitApply(JCMethodInvocation that) {
+        if (translatingJML) {
+            // FIXME - need to check definedness by testing preconditions
+            JCExpression meth = scanret(that.meth);
+            List<JCExpression> args = scanexprlist(that.args);
+            // FIXME - trnslate typeargs
+            eresult = M.at(that.pos()).Apply(that.typeargs, meth, args);
+            return;
+        }
         JCExpression now;
         JCExpression obj;
         MethodSymbol msym = null;
@@ -1868,7 +2097,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         switch (clause.token) {
                             case REQUIRES:
                                 if (mc == null) mc = clause;
-                                JCExpression e = scanret(((JmlMethodClauseExpr)clause).expression);
+                                JCExpression e = scanJML(((JmlMethodClauseExpr)clause).expression);
                                 pre = pre == treeutils.trueLit ? e : treeutils.makeAnd(pre.pos, pre, e);
                                 break;
                             case ASSIGNABLE:
@@ -1878,7 +2107,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     List<JmlSpecificationCase> cases = specs.getDenestedSpecs(methodDecl.sym).cases;
                                     for (JmlSpecificationCase c : cases) {
 
-                                        JCExpression condition = checkAssignable(false,jmlrewriter.translate(item),c);
+                                        JCExpression condition = checkAssignable(false,scanJML(item),c);
                                         if (condition != treeutils.trueLit) {
                                             condition = treeutils.makeImplies(item.pos, pre, condition);
                                             addAssert(item.pos(),Label.ASSIGNABLE,condition,assignStats,c.pos(),c.sourcefile);
@@ -1921,12 +2150,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         switch (clause.token) {
                             case REQUIRES: break;
                             case ENSURES:
-                                JCExpression e = jmlrewriter.translate(((JmlMethodClauseExpr)clause).expression);
+                                JCExpression e = scanJML(((JmlMethodClauseExpr)clause).expression, treeutils.trueLit, true);
                                 addAssert(that.pos(),Label.POSTCONDITION,e,currentStatements,clause.pos(),clause.sourcefile);
                                 break;
                             case ASSIGNABLE:
                                 JCStatement havoc = M.at(clause.pos).JmlHavocStatement(
-                                        jmlrewriter.translate(((JmlMethodClauseStoreRef)clause).list));
+                                        scanJML(((JmlMethodClauseStoreRef)clause).list));
                                 addStat(havoc);
                                 break;
                             default:
@@ -2401,6 +2630,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitNewClass(JCNewClass that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitNewClass while translating JML: " + that.getClass());
+            return;
+        }
         ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
         for (JCExpression arg: that.args) {
             args.add(scanret(arg));
@@ -2426,6 +2659,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitNewArray(JCNewArray that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitNewArray while translating JML: " + that.getClass());
+            return;
+        }
         ListBuffer<JCExpression> dims = new ListBuffer<JCExpression>();
         for (JCExpression dim: that.dims) {
             dims.add(scanret(dim));
@@ -2500,6 +2737,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - review
     @Override
     public void visitAssign(JCAssign that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitAssign while translating JML: " + that.getClass());
+            return;
+        }
         if (that.lhs instanceof JCIdent) {
             JCIdent id = (JCIdent)that.lhs;
             JCExpression lhs = scanret(that.lhs);
@@ -2587,20 +2828,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    // FIXME _ document; does this work correctly for this and super?
-    protected boolean isATypeTree(JCExpression tree) {
-        if (tree instanceof JCIdent) {
-            return !(((JCIdent)tree).sym instanceof VarSymbol);
-        }
-        if (tree instanceof JCFieldAccess) {
-            return !(((JCFieldAccess)tree).sym instanceof VarSymbol);
-        }
-        return false;
-    }
-
     // OK
     @Override
     public void visitAssignop(JCAssignOp that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitAssignop while translating JML: " + that.getClass());
+            return;
+        }
         visitAssignopHelper(that,false);
     }
 
@@ -2709,6 +2943,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitUnary(JCUnary that) {
+        if (translatingJML) {
+            JCExpression arg = scanret(that.getExpression());
+            JCExpression expr = treeutils.makeUnary(that.pos,that.getTag(),arg);
+            eresult = expr;
+            return;
+        }
         int tag = that.getTag();
         if (tag == JCTree.PREDEC) {
             JCAssignOp b = M.at(that.pos()).Assignop(JCTree.MINUS_ASG,that.getExpression(),treeutils.one);
@@ -2742,34 +2982,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    /** Creates a declaration for a unique temporary name with the given type and position. */
-    protected JCIdent newTemp(int pos, Type t) {
-        Name n = M.Name(Strings.tmpVarString + (++count));
-        JCVariableDecl d = treeutils.makeVarDef(t, n, esc ? null : methodDecl.sym , pos); // FIXME - see note below
-        currentStatements.add(d);
-        JCIdent id = M.at(pos).Ident(d.sym);
-        return id;
-    }
-    
-    /** Creates a declaration for a unique temporary initialized to the given expression. */
-    protected JCIdent newTemp(JCExpression expr) {
-        return newTemp(Strings.tmpVarString + (++count),expr);
-    }
-    
-    /** Creates a declaration for the given name initialized to the given expression. */
-    protected JCIdent newTemp(String name, JCExpression expr) {
-        Name n = M.Name(name);
-        // By having the owner be null, the BasicBlocker2 does not append any unique-ifying suffix - FIXME - does this affect RAC?
-        JCVariableDecl d = treeutils.makeVarDef(
-                expr.type.tag == TypeTags.BOT ? syms.objectType : expr.type, 
-                n, 
-                esc ? null : methodDecl.sym, 
-                expr); // FIXME - here and above is the owner the new methodDecl or the old one, or doesn't it matter
-        currentStatements.add(d);
-        JCIdent id = treeutils.makeIdent(expr.pos,d.sym);
-        return id;
-    }
-    
     /** Add any assertions to check for problems with binary operations. */
     protected void addBinaryChecks(JCExpression that, int op, JCExpression lhs, JCExpression rhs) {
 
@@ -2791,6 +3003,40 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitBinary(JCBinary that) {
+        if (translatingJML) {
+            JCExpression lhs = scanret(that.lhs);
+            JCExpression rhs;
+            int tag = that.getTag();
+            if (tag == JCTree.AND) {
+                JCExpression prev = condition;
+                try {
+                    condition = treeutils.makeAnd(that.lhs.pos, condition, lhs);
+                    rhs = scanret(that.rhs);
+                } finally {
+                    condition = prev;
+                }
+            } else if (tag == JCTree.OR) { 
+                JCExpression prev = condition;
+                try {
+                    condition = treeutils.makeAnd(that.lhs.pos, condition, treeutils.makeNot(that.lhs.pos,lhs));
+                    rhs = scanret(that.rhs);
+                } finally {
+                    condition = prev;
+                }
+            } else if (tag == JCTree.DIV || tag == JCTree.MOD) {
+                rhs = scanret(that.rhs);
+                JCExpression nonzero = treeutils.makeBinary(that.pos, JCTree.NE, rhs, treeutils.makeIntLiteral(that.rhs.pos, 0));
+                addAssert(that.pos(),Label.UNDEFINED_DIV0,treeutils.makeImplies(that.pos, condition, nonzero),currentStatements);
+            } else {
+                rhs = scanret(that.rhs);
+//                JCExpression bin = treeutils.makeBinary(that.pos,that.getTag(),lhs,rhs);
+//                ejmlresult = bin;
+//                return;
+            }
+            // FIXME - add checks for numeric overflow - PLUS MINUS MUL - what about SL SR USR
+            eresult = treeutils.makeBinary(that.pos,that.getTag(),lhs,rhs);
+            return;
+        }
         if (that.getTag() == JCTree.OR){
             JCConditional cond = M.at(that.pos()).Conditional(that.lhs,treeutils.trueLit,that.rhs);
             cond.type = that.type;
@@ -2812,6 +3058,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitTypeCast(JCTypeCast that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitTypeCast while translating JML: " + that.getClass());
+            return;
+        }
         JCExpression lhs = scanret(that.getExpression());
         JCTree clazz = scanret(that.getType()); // FIXME - change to treeutils.makeType?
         
@@ -2886,6 +3136,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** This translates the instanceof operation */
     @Override
     public void visitTypeTest(JCInstanceOf that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitTypeTest while translating JML: " + that.getClass());
+            return;
+        }
         JCExpression lhs = scanret(that.getExpression());
         JCTree clazz = scanret(that.getType());
         // No checks needed - Java allows (null instanceof type)
@@ -2907,6 +3161,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression indexed = scanret(that.indexed);
         JCExpression nonnull = treeutils.makeNeqObject(that.indexed.pos, indexed, 
                 treeutils.nulllit);
+        if (translatingJML) {
+            nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
+            addAssert(that.pos(),Label.UNDEFINED_NULL,nonnull,currentStatements);
+
+            JCExpression index = scanret(that.index);
+            JCExpression compare = treeutils.makeBinary(that.index.pos, JCTree.LE, treeutils.zero, 
+                    index);
+            compare = treeutils.makeImplies(that.pos, condition, compare);
+            addAssert(that.pos(),Label.UNDEFINED_NEGATIVEINDEX,compare,currentStatements);
+            
+            JCExpression length = treeutils.makeLength(that.indexed.pos,indexed);
+            compare = treeutils.makeBinary(that.pos, JCTree.LT, index, 
+                    length);
+            compare = treeutils.makeImplies(that.pos, condition, compare);
+            addAssert(that.pos(),Label.UNDEFINED_TOOLARGEINDEX,compare,currentStatements);
+
+            //JCArrayAccess aa = M.at(that.pos()).Indexed(indexed,index);
+            JmlBBArrayAccess aa = new JmlBBArrayAccess(null,indexed,index); // FIXME - switch to factory
+            aa.pos = that.pos;
+            aa.setType(that.type);
+            eresult = aa;
+            return;
+        }
         addAssert(that.pos(),Label.POSSIBLY_NULL,nonnull,currentStatements);
 
         JCExpression index = scanret(that.index);
@@ -2928,6 +3205,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitSelect(JCFieldAccess that) {
+        if (translatingJML) {
+            JCExpression selected = scanret(that.selected);
+            // Check that the selected expression is not null
+            JCExpression nonnull = treeutils.makeNeqObject(that.pos, selected, 
+                    treeutils.nulllit);
+            nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
+            addAssert(that.pos(),Label.UNDEFINED_NULL,nonnull,currentStatements);
+            
+            JCFieldAccess fa = M.at(that.pos()).Select(selected,that.name);
+            fa.sym = that.sym;
+            fa.setType(that.type);
+            
+            eresult = fa;
+            return;
+        }
         if (that.sym.isStatic()) {
             // This is the type name, so the tree should be copied, but without inserting temporary assignments
             // FIXME - check whether this is fully-qualifying the result
@@ -2952,6 +3244,33 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - need to test this, document this
     @Override
     public void visitIdent(JCIdent that) {
+        if (translatingJML) {
+            // FIXME - do we need formal parameter lookup?
+            JCVariableDecl decl;
+            Symbol symToUse;
+            if (isPostcondition && (decl=preparams.get(that.sym)) != null) {
+                symToUse = decl.sym;
+            } else {
+                symToUse = that.sym;
+            }
+            JCIdent id;
+            if (that.sym.owner instanceof Symbol.ClassSymbol 
+                    && !that.sym.isStatic()
+                    && !that.sym.name.toString().equals("this")) {
+                // It is a non-static class field, so we prepend 'this'
+                id = treeutils.makeIdent(that.pos,classDecl.thisSymbol);
+                JCFieldAccess fa = M.at(that.pos()).Select(id,symToUse.name); // FIXME - or that.name?
+                fa.sym = symToUse;
+                fa.type = that.type;
+                eresult = fa;
+            } else {
+                // local variable or a static class field - just leave it as 
+                // an ident
+                id = treeutils.makeIdent(that.pos, symToUse);
+                eresult = id;
+            }
+            return;
+        }
         JCIdent id = currentArgsMap.get(that.sym);
         if (id != null) {
             // If the symbol is in the currentArgsMap it is an argument and
@@ -2992,11 +3311,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitLiteral(JCLiteral that) {
-        eresult = treeutils.makeDuplicateLiteral(that.pos, that);
+        eresult = fullTranslation ? treeutils.makeDuplicateLiteral(that.pos, that) : that;
     }
 
     @Override
     public void visitTypeIdent(JCPrimitiveTypeTree that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitTypeIdent while translating JML: " + that.getClass());
+            return;
+        }
         eresult = that;
         if (fullTranslation) {} // FIXME - fully translate
         //error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitTypeIdent: " + that.getClass());
@@ -3004,31 +3327,55 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitTypeArray(JCArrayTypeTree that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitTypeArray while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitTypeArray: " + that.getClass());
     }
 
     @Override
     public void visitTypeApply(JCTypeApply that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitTypeApply while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitTypeApply: " + that.getClass());
     }
 
     @Override
     public void visitTypeParameter(JCTypeParameter that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitTypeParameter while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitTypeParameter: " + that.getClass());
     }
 
     @Override
     public void visitWildcard(JCWildcard that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitWildcard while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitWildcard: " + that.getClass());
     }
 
     @Override
     public void visitTypeBoundKind(TypeBoundKind that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitTypeBoundKind while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitTypeBoundKind: " + that.getClass());
     }
 
     @Override
     public void visitAnnotation(JCAnnotation that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitAnnotation while translating JML: " + that.getClass());
+            return;
+        }
         // A JCAnnotation is a kind of JCExpression
         if (fullTranslation) {
             // FIXME - is there a currentStatements to put the result of scanning into?
@@ -3045,6 +3392,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitModifiers(JCModifiers that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitModifiers while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitModifiers: " + that.getClass());
     }
@@ -3061,6 +3412,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitLetExpr(LetExpr that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitLetExpr while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitLetExpr: " + that.getClass());
     }
@@ -3068,12 +3423,56 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlBinary(JmlBinary that) {
-        // Should be using jmlrewriter
-        error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlBinary: " + that.getClass());
+        if (!translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlBinary: " + that.getClass());
+            return;
+        }
+        JCExpression lhs = scanret(that.lhs);
+        JCExpression rhs,t;
+        switch (that.op) {
+            case IMPLIES:
+                condition = treeutils.makeAnd(that.pos, condition, lhs);
+                rhs = scanret(that.rhs);
+                t = treeutils.makeNot(lhs.pos, lhs);
+                t = treeutils.makeOr(that.pos, t, rhs);
+                eresult = t;
+                break;
+                
+            case EQUIVALENCE:
+                rhs = scanret(that.rhs);
+                t = treeutils.makeBinary(that.pos, JCTree.EQ, lhs, rhs);
+                eresult = t;
+                break;
+                
+            case INEQUIVALENCE:
+                rhs = scanret(that.rhs);
+                t = treeutils.makeBinary(that.pos, JCTree.NE, lhs, rhs);
+                eresult = t;
+                break;
+                
+            case REVERSE_IMPLIES:
+                t = treeutils.makeNot(lhs.pos, lhs);
+                condition = treeutils.makeAnd(that.pos, condition, t);
+                rhs = scanret(that.rhs);
+                rhs = treeutils.makeNot(that.rhs.pos, rhs);
+                t = treeutils.makeOr(that.pos, lhs, rhs);
+                eresult = t;
+                break;
+                
+             // FIXME - need <: operator
+             case SUBTYPE_OF:   
+             default:
+                 error(that.pos,"Unexpected token in JmlAssertionAdder.visitJmlBinary: " + that.op);
+                
+        }
     }
 
     @Override
     public void visitJmlChoose(JmlChoose that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlChoose while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlChoose: " + that.getClass());
     }
@@ -3081,6 +3480,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlClassDecl while translating JML: " + that.getClass());
+            return;
+        }
         JmlClassDecl prev = this.classDecl;
         try {
             this.classDecl = that;
@@ -3114,6 +3517,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlCompilationUnit while translating JML: " + that.getClass());
+            return;
+        }
         // esc does not get here, but rac does
         if (esc) error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitCompilationUnit: " + that.getClass());
         List<JCTree> defs = scanret(that.defs);
@@ -3137,12 +3544,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlConstraintMethodSig while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlDoWhileLoop while translating JML: " + that.getClass());
+            return;
+        }
       
         pushBlock();
         
@@ -3198,6 +3613,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - need to do for rac
     @Override
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlEnhancedForLoop while translating JML: " + that.getClass());
+            return;
+        }
         // FIXME Need to add specifications; also index and values variables
         JCVariableDecl v = M.at(that.var.pos).VarDef(that.var.sym,null);
         v.setType(that.var.type);
@@ -3218,6 +3637,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitJmlForLoop(JmlForLoop that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlForLoop while translating JML: " + that.getClass());
+            return;
+        }
         scan(that.init);
         if (esc) {
             // FIXME - need to scan the init, cond, step ; need to add specs
@@ -3274,6 +3697,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitJmlGroupName(JmlGroupName that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlGroupName while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
@@ -3281,6 +3708,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK - should never encounter this when processing method bodies
     @Override
     public void visitJmlImport(JmlImport that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlImport while translating JML: " + that.getClass());
+            return;
+        }
         // FIXME - need to rewrite qualid
         result = M.at(that.pos()).Import(that.qualid, that.staticImport);
     }
@@ -3288,54 +3719,143 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlLblExpression(JmlLblExpression that) {
-        // should be using jmlrewriter
-        error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlLblExpression: " + that.getClass());
+        if (!translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlLblExpression: " + that.getClass());
+            return;
+        }
+        // The format of this string is important in interpreting it in JmlEsc
+        String nm = Strings.labelVarString + that.token.internedName().substring(1) + "_" + that.label;
+        JCIdent id = newTemp(nm,scanret(that.expression));
+        labels.add(nm);
+        eresult = id;
+        JCExpression lit = treeutils.makeLit(that.getPreferredPosition(),syms.stringType,that.label.toString());
+        if (rac) {
+            String name = null;
+            Type t = that.type;
+            if (!t.isPrimitive()) {
+                name = "reportObject";
+            } else if (t.tag == TypeTags.INT) {
+                name = "reportInt";
+            } else if (t.tag == TypeTags.BOOLEAN) {
+                name = "reportBoolean";
+            } else if (t.tag == TypeTags.LONG) {
+                name = "reportLong";
+            } else if (t.tag == TypeTags.CHAR) {
+                name = "reportChar";
+            } else if (t.tag == TypeTags.SHORT) {
+                name = "reportShort";
+            } else if (t.tag == TypeTags.FLOAT) {
+                name = "reportFloat";
+            } else if (t.tag == TypeTags.DOUBLE) {
+                name = "reportDouble";
+            } else if (t.tag == TypeTags.BYTE) {
+                name = "reportByte";
+            } else if (t.tag == TypeTags.BOT) {
+                name = "reportObject";
+            } else  {
+                // this is a type error - should never get here
+                error(that.pos,"Unknown type in a \\lbl expression: " + t);
+            }
+            if (name != null) {
+                JCFieldAccess m = findUtilsMethod(name);
+                if (m == null) {
+                    error(that.pos,"Method is not found in the runtime library: " + name);
+                } else {
+                    JCMethodInvocation c = M.at(that.pos()).Apply(null,m,List.<JCExpression>of(lit,treeutils.makeIdent(id.pos,id.sym))); 
+                    c.type = id.type;
+                    JCStatement st = M.at(that.pos()).Exec(c);
+                    if (that.token == JmlToken.BSLBLPOS) {
+                        // Only report if the expression is true
+                        // It is a type error if it is not boolean
+                        st = M.at(that.pos()).If(treeutils.makeIdent(id.pos,id.sym), st, null);
+                    } else if (that.token == JmlToken.BSLBLNEG) {
+                        // Only report if the expression is true
+                        // It is a type error if it is not boolean
+                        st = M.at(that.pos()).If(treeutils.makeNot(that.pos, treeutils.makeIdent(id.pos,id.sym)), st, null);
+
+                    }
+                    addStat(st);
+                }
+            }
+        }
     }
 
     @Override
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlMethodClauseCallable while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlMethodClauseConditional while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlMethodClauseDecl while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlMethodClauseExpr while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlMethodClauseGroup while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlMethodClauseSignals while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlMethodClauseSigOnly while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
 
     @Override
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlMethodClauseStoreRef while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder: " + that.getClass());
     }
@@ -3343,6 +3863,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlMethodDecl while translating JML: " + that.getClass());
+            return;
+        }
         // FIXME - implemente constructors - need super calls.
         if (that.restype == null) { result = that; return; } // FIXME - implement constructors
         JCBlock body = convertMethodBody(that,classDecl);
@@ -3363,24 +3887,87 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-        // should be using jmlrewriter
-        error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlMethodInvocation: " + that.getClass());
+        if (!translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlMethodInvocation: " + that.getClass());
+            return;
+        }
+        switch (that.token) {
+            case BSOLD:
+            case BSPRE:
+                JCExpression m = scanret(that.meth);
+                JCExpression arg = scanret(that.args.get(0));
+                JmlMethodInvocation meth;
+                if (that.args.size() == 1) {
+                    meth = M.JmlMethodInvocation(that.token,arg);
+                } else {
+                    // The second argument is a label, not an expression
+                    meth = M.JmlMethodInvocation(that.token,arg,that.args.get(1));
+                }
+                meth.type = that.type;
+                meth.pos = that.pos;
+                meth.startpos = that.startpos;
+                meth.varargsElement = that.varargsElement;
+                meth.meth = m;
+                meth.label = that.label;
+                meth.typeargs = that.typeargs; // FIXME - do these need translating?
+                eresult = meth;
+                break;
+            case BSTYPEOF :
+            case BSELEMTYPE :
+            case BSNONNULLELEMENTS :
+            case BSMAX :
+            case BSFRESH :
+            case BSREACH :
+            case BSSPACE :
+            case BSWORKINGSPACE :
+            case BSDURATION :
+            case BSISINITIALIZED :
+            case BSINVARIANTFOR :
+            case BSNOWARN:
+            case BSNOWARNOP:
+            case BSWARN:
+            case BSWARNOP:
+            case BSBIGINT_MATH:
+            case BSSAFEMATH:
+            case BSJAVAMATH:
+            case BSNOTMODIFIED:
+            case BSTYPELC:
+                // FIXME - implement these
+                Log.instance(context).error("esc.not.implemented","Not yet implemented token in JmlAssertionAdder: " + that.token.internedName());
+                eresult = treeutils.trueLit; // FIXME - may not even be a boolean typed result
+                break;
+            default:
+                Log.instance(context).error("esc.internal.error","Unknown token in JmlAssertionAdder: " + that.token.internedName());
+                eresult = treeutils.trueLit; // FIXME - may not even be a boolean typed result
+        }
     }
 
     @Override
     public void visitJmlMethodSpecs(JmlMethodSpecs that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlMethodSpecs while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitJmlMethodSpecs: " + that.getClass());
     }
 
     @Override
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlModelProgramStatement while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitJmlModelProgramStatement: " + that.getClass());
     }
 
     @Override
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlPrimitiveTypeTree while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos, "Unexpected visit call in JmlAssertionAdder.visitJmlPrimitiveTypeTree: " + that.getClass());
     }
@@ -3388,6 +3975,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlQuantifiedExpr while translating JML: " + that.getClass());
+            return;
+        }
         // should be using jmlrewriter
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlQuantifiedExpr: " + that.getClass());
     }
@@ -3395,6 +3986,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlSetComprehension while translating JML: " + that.getClass());
+            return;
+        }
         // should be using jmlrewriter
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlSetComprehension: " + that.getClass());
     }
@@ -3402,19 +3997,75 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlSingleton(JmlSingleton that) {
-        // should be using jmlrewriter
-        error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlSingleton: " + that.getClass());
+        if (!translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlSingleton: " + that.getClass());
+            return;
+        }
+        switch (that.token) {
+            case BSRESULT:
+                if (resultSym == null) {
+                    error(that.pos, "It appears that \\result is used where no return value is defined"); // FIXME - not an internal error
+                } else {
+                    eresult = treeutils.makeIdent(that.pos, resultSym);
+                }
+                break;
+
+            case INFORMAL_COMMENT:
+                eresult = treeutils.makeBooleanLiteral(that.pos,true);
+                break;
+                
+            case BSEXCEPTION:
+                if (exceptionSym == null) {
+                    error(that.pos,"It appears that \\exception is used where no exception value is defined" ); // FIXME - not an internal error
+                } else {
+                    eresult = treeutils.makeIdent(that.pos,exceptionSym);
+                }
+                break;
+//
+//            case BSINDEX:
+//            case BSVALUES:
+//                if (that.info == null) {
+//                    log.error(that.pos,"esc.internal.error","No loop index found for this use of " + that.token.internedName());
+//                    result = null;
+//                } else {
+//                    result = newIdentUse((VarSymbol)that.info,that.pos);
+//                }
+//                break;
+//            
+//            case BSLOCKSET:
+//            case BSSAME:
+               
+
+            case BSNOTSPECIFIED:
+            case BSNOTHING:
+            case BSEVERYTHING:
+                error(that.pos, "Should not be attempting to translate this construct in JmlAssertion Adder's JML rewriter: " + that.token.internedName()); // FIXME - ???
+                break;
+
+            default:
+                Log.instance(context).error(that.pos, "jml.unknown.construct",that.token.internedName(),"BasicBlocker.visitJmlSingleton");
+            // FIXME - recovery possible?
+                break;
+        }
     }
     
 
     @Override
     public void visitJmlSpecificationCase(JmlSpecificationCase that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlSpecificationCase while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlSpecificationCase: " + that.getClass());
     }
 
     @Override
     public void visitJmlStatement(JmlStatement that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlStatement while translating JML: " + that.getClass());
+            return;
+        }
         switch (that.token) {
             // FIXME - should be using jmlrewriter to handle JML constructs in set, debug statements
             case SET:
@@ -3437,6 +4088,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // jmlrewriter? FIXME; also explain what this is
     @Override
     public void visitJmlStatementDecls(JmlStatementDecls that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlStatementDecls while translating JML: " + that.getClass());
+            return;
+        }
         for (JCStatement stat: that.list) {
             stat.accept(this);
         }
@@ -3445,15 +4100,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlStatementExpr while translating JML: " + that.getClass());
+            return;
+        }
         switch (that.token) {
             case ASSERT:
                 addStat(comment(that));
-                JCExpression e = jmlrewriter.translate(that.expression);
+                JCExpression e = scanJML(that.expression);
                 addAssert(that.pos(),Label.EXPLICIT_ASSERT,e,currentStatements,null,null,that.optionalExpression);
                 break;
             case ASSUME:
                 addStat(comment(that));
-                JCExpression ee = jmlrewriter.translate(that.expression);
+                JCExpression ee = scanJML(that.expression);
                 addAssume(that.pos(),Label.EXPLICIT_ASSUME,ee,currentStatements,null,null,that.optionalExpression);
                 break;
             case COMMENT:
@@ -3474,7 +4133,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlStatementHavoc(JmlStatementHavoc that) {
-        JmlStatementHavoc st = M.at(that.pos()).JmlHavocStatement(jmlrewriter.translate(that.storerefs));
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlStatementHavoc while translating JML: " + that.getClass());
+            return;
+        }
+        JmlStatementHavoc st = M.at(that.pos()).JmlHavocStatement(scanJML(that.storerefs));
         st.type = Type.noType;
         addStat(st);
         result = st;
@@ -3482,12 +4145,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitJmlStatementLoop(JmlStatementLoop that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlStatementLoop while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlStatementLoop: " + that.getClass());
     }
 
     @Override
     public void visitJmlStatementSpec(JmlStatementSpec that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlStatementSpec while translating JML: " + that.getClass());
+            return;
+        }
         // TODO Auto-generated method stub
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlStatementSpec: " + that.getClass());
     }
@@ -3495,79 +4166,132 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlStoreRefArrayRange while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlStoreRefArrayRange: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-        error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlStoreRefKeyword: " + that.getClass());
+        if (!translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlStoreRefKeyword: " + that.getClass());
+            return;
+        }
+        eresult = that;
+        if (fullTranslation) eresult = M.at(that.pos()).JmlStoreRefKeyword(that.token);
     }
 
     // OK
     @Override
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlStoreRefListExpression while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlStoreRefListExpression: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlTypeClauseConditional while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlTypeClauseConditional: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlTypeClauseConstraint while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlTypeClauseConstraint: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlTypeClauseDecl while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlTypeClauseDecl: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlTypeClauseExpr while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlTypeClauseExpr: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlTypeClauseIn while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlTypeClauseIn: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlTypeClauseInitializer while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlTypeClauseInitializer: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlTypeClauseMaps while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlTypeClauseMaps: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlTypeClauseMonitorsFor while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlTypeClauseMonitorsFor: " + that.getClass());
     }
 
     // OK
     @Override
     public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlTypeClauseRepresents while translating JML: " + that.getClass());
+            return;
+        }
         error(that.pos,"Unexpected visit call in JmlAssertionAdder.visitJmlTypeClauseRepresents: " + that.getClass());
     }
 
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlVariableDecl while translating JML: " + that.getClass());
+            return;
+        }
         if (JmlAttr.instance(context).isGhost(that.mods)) {
-            JCExpression init = jmlrewriter.translate(that.init);
+            JCExpression init = scanJML(that.init);
             // FIXME - implicit conversion?
             JmlVariableDecl stat = M.at(that.pos()).VarDef(that.sym,init);
             addStat(stat);
@@ -3637,6 +4361,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     @Override
     public void visitJmlWhileLoop(JmlWhileLoop that) {
+        if (translatingJML) {
+            error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlWhileLoop while translating JML: " + that.getClass());
+            return;
+        }
         // FIXME - need to add specs; 
         if (esc) {
             pushBlock();
@@ -3710,931 +4438,5 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            addStat(M.at(that.pos()).WhileLoop(e, b));
 //        }
     }
-    
-    /** This class rewrites (making a full copy) JML expressions (but not Java statements or the
-     * Java expressions in Java statements).
-     * Since JML expressions are pure (at least have no visible side-effects), we do not dismember expressions
-     * into individual subexpressions as we do for expressions in Java statements. However, we do issue 
-     * JML assert statements that check whether the JML expression being translated is well-defined; also
-     * identifiers are changed in the same way as they are changed for Java expressions.
-     * <P>
-     * This class is purposely not static, so it can use the context of the enclosing Java rewriter.
-     * <P>
-     * It would be possible to combine this rewriter with the visitor in JmlAssertionAdder; we would
-     * then need a field that serves as a flag to distinguish the one mode from the other. I chose not
-     * to do that, so that the two kinds of rewriting can be separated, at the cost of some similar code.
-     */
-    // TODO - this expression rewriter would be better off with a visitor that returned a value from the visit/scan/accept methods, or as a copier
-    public class JmlExpressionRewriter extends JmlTreeScanner {
-        
-        /** Contains an expression that is used as a guard in determining whether expressions
-         * are well-defined. For example, suppose we are translating the expression 
-         * a != null && a[i] == 0. Then condition is 'true' when a!=null is translated.
-         * But when a[i] is translated, 'condition' will be a != null. The well-definedness
-         * check for a[i] will then be (a != null) ==> (a != null && i >= 0 && i < a.length).
-         * So the full expression is well-defined only if that implication can be proved given 
-         * other pre-conditions.
-         */
-        protected JCExpression condition;
-        
-        /** Set to true when we are translating a normal or exceptional postcondition. It is used
-         * to be sure the correct scope is used when method parameters are used in the postcondition.
-         * If a method parameter is used in a postcondition it is evaluated in the pre-state since
-         * any changes to the parameter within the body of the method are discarded upon exit and
-         * are invisible outside the method (i.e. in the postcondition).
-         */
-        protected boolean isPostcondition;
-        
-        /** Every visit method that translates an expression must put its result in this
-         * variable.
-         */
-        protected JCExpression ejmlresult;
-        
-        /** The translate methods are the entry point into the rewriter; they make a rewritten
-         * copy of the given expression, not changing the original. */
-        protected JCExpression translate(JCExpression that, boolean isPostcondition) {
-            return translate(that,treeutils.trueLit,isPostcondition);
-        }
-        
-        /** The translate methods are the entry point into the rewriter; they make a rewritten
-         * copy of the given expression, not changing the original. */
-        protected JCExpression translate(JCExpression that) {
-            return translate(that,treeutils.trueLit,false);
-        }
-        
-        /** The translate methods are the entry point into the rewriter; this one
-         * makes a copy of the input list, making copies of each list element, 
-         * not changing the original list or its elements. */
-        protected List<JCExpression> translate(List<JCExpression> list) {
-            ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
-            for (JCExpression item : list) {
-                newlist.add(translate(item));
-            }
-            return newlist.toList();
-        }
-
-        /** The translate methods are the entry point into the rewriter; they make a rewritten
-         * copy of the given expression, not changing the original. */
-        protected JCExpression translate(JCExpression that, JCExpression condition, boolean isPostcondition) {
-            if (that == null) return null;
-            this.isPostcondition = isPostcondition;
-            this.condition = condition;
-            this.ejmlresult = null; // Just so it is initialized in case assignment is forgotten
-            that.accept(this);
-            return ejmlresult;
-        }
-
-        // VISITOR METHODS
-
-        // OK
-        @Override
-        public void visitTopLevel(JCCompilationUnit that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        // OK
-        @Override
-        public void visitImport(JCImport that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-        
-        // FIXME - can any of these statements happen in anonymous class expressions or in mdoel programs?
-
-        @Override
-        public void visitClassDef(JCClassDecl that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-
-        }
-
-        @Override
-        public void visitMethodDef(JCMethodDecl that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-
-        }
-
-        @Override
-        public void visitVarDef(JCVariableDecl that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-//            scan(that.init);
-//            JCExpression init = that.init == null ? null : eresult;
-//            // FIXME - need to make a unique symbol
-//            JCVariableDecl stat = M.at(that.pos()).VarDef(that.sym,init);
-//            addStat(stat);
-        }
-
-        @Override
-        public void visitSkip(JCSkip that) {
-            //addStat(that); // using the same statement - no copying
-                            // Caution - JML statements are subclasses of JCSkip
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitBlock(JCBlock that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-//            push();
-//            scan(that.stats);
-//            JCBlock block = popBlock(that.flags,that.pos);
-//            addStat(block);
-        }
-
-        @Override
-        public void visitDoLoop(JCDoWhileLoop that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitWhileLoop(JCWhileLoop that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitForLoop(JCForLoop that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitForeachLoop(JCEnhancedForLoop that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitLabelled(JCLabeledStatement that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitSwitch(JCSwitch that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitCase(JCCase that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitSynchronized(JCSynchronized that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitTry(JCTry that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitCatch(JCCatch that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        // OK
-        @Override
-        public void visitConditional(JCConditional that) {
-            that.cond.accept(this);
-            JCExpression cond = ejmlresult;
-            JCExpression prev = condition;
-            try {
-                condition = treeutils.makeAnd(that.pos, prev, cond);
-                that.truepart.accept(this);
-                JCExpression truepart = ejmlresult;
-                condition = treeutils.makeAnd(that.pos, prev, treeutils.makeNot(that.falsepart.pos, cond));
-                that.falsepart.accept(this);
-                JCExpression falsepart = ejmlresult;
-                ejmlresult = M.at(that.pos()).Conditional(cond,truepart,falsepart);
-                ejmlresult.type = that.type;
-            } finally {
-                condition = prev;
-            }
-        }
-
-        @Override
-        public void visitIf(JCIf that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-//            scan(that.cond);
-//            JCExpression cond = ejmlresult;
-//            push();
-//            scan(that.thenpart);
-//            JCBlock thenpart = popBlock(0,that.thenpart.pos);
-//            push();
-//            scan(that.elsepart);
-//            JCBlock elsepart = popBlock(0,that.elsepart.pos);
-//            addStat(M.at(that.pos()).If(cond,thenpart,elsepart));
-        }
-
-        @Override
-        public void visitExec(JCExpressionStatement that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-//           addStat(comment(that));
-//            scan(that.getExpression());
-//            JCExpression arg = ejmlresult;
-//            JCStatement stat = M.at(that.pos()).Exec(arg);
-//            addStat(stat);
-        }
-
-        @Override
-        public void visitBreak(JCBreak that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitContinue(JCContinue that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitReturn(JCReturn that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitThrow(JCThrow that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitAssert(JCAssert that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitApply(JCMethodInvocation that) {
-            // FIXME - need to check definedness by testing preconditions
-            JCExpression meth = translate(that.meth);
-            List<JCExpression> args = translate(that.args);
-            // FIXME - trnslate typeargs
-            ejmlresult = M.at(that.pos()).Apply(that.typeargs, meth, args);
-        }
-
-        @Override
-        public void visitNewClass(JCNewClass that) {
-            // FIXME - definitely need this
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitNewArray(JCNewArray that) {
-            // FIXME - definitely need this
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        // OK
-        @Override
-        public void visitParens(JCParens that) {
-            scan(that.getExpression());
-            ejmlresult = M.at(that.pos()).Parens(ejmlresult);
-            ejmlresult.setType(that.type);
-        }
-
-        @Override
-        public void visitAssign(JCAssign that) {
-            // FIXME
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitAssignop(JCAssignOp that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitUnary(JCUnary that) {
-            scan(that.getExpression());
-            JCExpression arg = ejmlresult;
-            JCExpression expr = treeutils.makeUnary(that.pos,that.getTag(),arg);
-            ejmlresult = expr;
-            // FIXME - check arithmetic error
-        }
-
-        @Override
-        public void visitBinary(JCBinary that) {
-            scan(that.lhs);
-            JCExpression lhs = ejmlresult;
-            JCExpression rhs;
-            int tag = that.getTag();
-            if (tag == JCTree.AND) {
-                JCExpression prev = condition;
-                try {
-                    condition = treeutils.makeAnd(that.lhs.pos, condition, lhs);
-                    scan(that.rhs);
-                    rhs = ejmlresult;
-                } finally {
-                    condition = prev;
-                }
-            } else if (tag == JCTree.OR) { 
-                JCExpression prev = condition;
-                try {
-                    condition = treeutils.makeAnd(that.lhs.pos, condition, treeutils.makeNot(that.lhs.pos,lhs));
-                    scan(that.rhs);
-                    rhs = ejmlresult;
-                } finally {
-                    condition = prev;
-                }
-            } else if (tag == JCTree.DIV || tag == JCTree.MOD) {
-                scan(that.rhs);
-                rhs = ejmlresult;
-                JCExpression nonzero = treeutils.makeBinary(that.pos, JCTree.NE, rhs, treeutils.makeIntLiteral(that.rhs.pos, 0));
-                addAssert(that.pos(),Label.UNDEFINED_DIV0,treeutils.makeImplies(that.pos, condition, nonzero),currentStatements);
-            } else {
-                scan(that.rhs);
-                rhs = ejmlresult;
-//                JCExpression bin = treeutils.makeBinary(that.pos,that.getTag(),lhs,rhs);
-//                ejmlresult = bin;
-//                return;
-            }
-            // FIXME - add checks for numeric overflow - PLUS MINUS MUL - what about SL SR USR
-            JCExpression bin = treeutils.makeBinary(that.pos,that.getTag(),lhs,rhs);
-            ejmlresult = bin;
-            
-        }
-
-        @Override
-        public void visitTypeCast(JCTypeCast that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitTypeTest(JCInstanceOf that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        // OK
-        @Override
-        public void visitIndexed(JCArrayAccess that) {
-            scan(that.indexed);
-            JCExpression indexed = ejmlresult;
-            JCExpression nonnull = treeutils.makeNeqObject(that.indexed.pos, indexed, 
-                    treeutils.nulllit);
-            nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
-            addAssert(that.pos(),Label.UNDEFINED_NULL,nonnull,currentStatements);
-
-            scan(that.index);
-            JCExpression index = ejmlresult;
-            JCExpression compare = treeutils.makeBinary(that.index.pos, JCTree.LE, treeutils.zero, 
-                    index);
-            compare = treeutils.makeImplies(that.pos, condition, compare);
-            addAssert(that.pos(),Label.UNDEFINED_NEGATIVEINDEX,compare,currentStatements);
-            
-            JCExpression length = treeutils.makeLength(that.indexed.pos,indexed);
-            compare = treeutils.makeBinary(that.pos, JCTree.LT, index, 
-                    length);
-            compare = treeutils.makeImplies(that.pos, condition, compare);
-            addAssert(that.pos(),Label.UNDEFINED_TOOLARGEINDEX,compare,currentStatements);
-
-            //JCArrayAccess aa = M.at(that.pos()).Indexed(indexed,index);
-            JmlBBArrayAccess aa = new JmlBBArrayAccess(null,indexed,index); // FIXME - switch to factory
-            aa.pos = that.pos;
-            aa.setType(that.type);
-            ejmlresult = aa;
-        }
-
-        @Override
-        public void visitSelect(JCFieldAccess that) {
-            scan(that.selected);
-            JCExpression selected = ejmlresult;
-            // Check that the selected expression is not null
-            JCExpression nonnull = treeutils.makeNeqObject(that.pos, selected, 
-                    treeutils.nulllit);
-            nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
-            addAssert(that.pos(),Label.UNDEFINED_NULL,nonnull,currentStatements);
-            
-            JCFieldAccess fa = M.at(that.pos()).Select(selected,that.name);
-            fa.sym = that.sym;
-            fa.setType(that.type);
-            
-            ejmlresult = fa;
-        }
-        
-        @Override
-        public void visitIdent(JCIdent that) {
-            // FIXME - do we need formal parameter lookup?
-            JCVariableDecl decl;
-            Symbol symToUse;
-            if (isPostcondition && (decl=preparams.get(that.sym)) != null) {
-                symToUse = decl.sym;
-            } else {
-                symToUse = that.sym;
-            }
-            JCIdent id;
-            if (that.sym.owner instanceof Symbol.ClassSymbol 
-                    && !that.sym.isStatic()
-                    && !that.sym.name.toString().equals("this")) {
-                // It is a non-static class field, so we prepend 'this'
-                id = treeutils.makeIdent(that.pos,classDecl.thisSymbol);
-                JCFieldAccess fa = M.at(that.pos()).Select(id,symToUse.name); // FIXME - or that.name?
-                fa.sym = symToUse;
-                fa.type = that.type;
-                ejmlresult = fa;
-            } else {
-                // local variable or a static class field - just leave it as 
-                // an ident
-                id = treeutils.makeIdent(that.pos, symToUse);
-                ejmlresult = id;
-            }
-        }
-
-        @Override
-        public void visitLiteral(JCLiteral that) {
-            // Note that that.typetag can be different from that.type.tag - e.g for null values
-            ejmlresult = treeutils.makeDuplicateLiteral(that.pos, that);
-        }
-
-        @Override
-        public void visitTypeIdent(JCPrimitiveTypeTree that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitTypeArray(JCArrayTypeTree that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitTypeApply(JCTypeApply that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitTypeParameter(JCTypeParameter that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitWildcard(JCWildcard that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitTypeBoundKind(TypeBoundKind that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitAnnotation(JCAnnotation that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitModifiers(JCModifiers that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitErroneous(JCErroneous that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitLetExpr(LetExpr that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlBinary(JmlBinary that) {
-            scan(that.lhs);
-            JCExpression lhs = ejmlresult;
-            JCExpression rhs,t;
-            switch (that.op) {
-                case IMPLIES:
-                    condition = treeutils.makeAnd(that.pos, condition, lhs);
-                    scan(that.rhs);
-                    rhs = ejmlresult;
-                    t = treeutils.makeNot(lhs.pos, lhs);
-                    t = treeutils.makeOr(that.pos, t, rhs);
-                    ejmlresult = t;
-                    break;
-                    
-                case EQUIVALENCE:
-                    scan(that.rhs);
-                    rhs = ejmlresult;
-                    t = treeutils.makeBinary(that.pos, JCTree.EQ, lhs, rhs);
-                    ejmlresult = t;
-                    break;
-                    
-                case INEQUIVALENCE:
-                    scan(that.rhs);
-                    rhs = ejmlresult;
-                    t = treeutils.makeBinary(that.pos, JCTree.NE, lhs, rhs);
-                    ejmlresult = t;
-                    break;
-                    
-                case REVERSE_IMPLIES:
-                    t = treeutils.makeNot(lhs.pos, lhs);
-                    condition = treeutils.makeAnd(that.pos, condition, t);
-                    scan(that.rhs);
-                    rhs = treeutils.makeNot(that.rhs.pos, ejmlresult);
-                    t = treeutils.makeOr(that.pos, lhs, rhs);
-                    ejmlresult = t;
-                    break;
-                    
-                 // FIXME - need <: operator
-                 case SUBTYPE_OF:   
-                 default:
-                     error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-                    
-            }
-        }
-
-        @Override
-        public void visitJmlChoose(JmlChoose that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlClassDecl(JmlClassDecl that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlForLoop(JmlForLoop that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlGroupName(JmlGroupName that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlImport(JmlImport that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        // OK
-        @Override
-        public void visitJmlLblExpression(JmlLblExpression that) {
-            // The format of this string is important in interpreting it in JmlEsc
-            String nm = Strings.labelVarString + that.token.internedName().substring(1) + "_" + that.label;
-            JCIdent id = newTemp(nm,translate(that.expression));
-            labels.add(nm);
-            ejmlresult = id;
-            JCExpression lit = treeutils.makeLit(that.getPreferredPosition(),syms.stringType,that.label.toString());
-            if (rac) {
-                String name = null;
-                Type t = that.type;
-                if (!t.isPrimitive()) {
-                    name = "reportObject";
-                } else if (t.tag == TypeTags.INT) {
-                    name = "reportInt";
-                } else if (t.tag == TypeTags.BOOLEAN) {
-                    name = "reportBoolean";
-                } else if (t.tag == TypeTags.LONG) {
-                    name = "reportLong";
-                } else if (t.tag == TypeTags.CHAR) {
-                    name = "reportChar";
-                } else if (t.tag == TypeTags.SHORT) {
-                    name = "reportShort";
-                } else if (t.tag == TypeTags.FLOAT) {
-                    name = "reportFloat";
-                } else if (t.tag == TypeTags.DOUBLE) {
-                    name = "reportDouble";
-                } else if (t.tag == TypeTags.BYTE) {
-                    name = "reportByte";
-                } else if (t.tag == TypeTags.BOT) {
-                    name = "reportObject";
-                } else  {
-                    // this is a type error - should never get here
-                    error(that.pos,"Unknown type in a \\lbl expression: " + t);
-                }
-                if (name != null) {
-                    JCFieldAccess m = findUtilsMethod(name);
-                    if (m == null) {
-                        error(that.pos,"Method is not found in the runtime library: " + name);
-                    } else {
-                        JCMethodInvocation c = M.at(that.pos()).Apply(null,m,List.<JCExpression>of(lit,treeutils.makeIdent(id.pos,id.sym))); 
-                        c.type = id.type;
-                        JCStatement st = M.at(that.pos()).Exec(c);
-                        if (that.token == JmlToken.BSLBLPOS) {
-                            // Only report if the expression is true
-                            // It is a type error if it is not boolean
-                            st = M.at(that.pos()).If(treeutils.makeIdent(id.pos,id.sym), st, null);
-                        } else if (that.token == JmlToken.BSLBLNEG) {
-                            // Only report if the expression is true
-                            // It is a type error if it is not boolean
-                            st = M.at(that.pos()).If(treeutils.makeNot(that.pos, treeutils.makeIdent(id.pos,id.sym)), st, null);
-
-                        }
-                        addStat(st);
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlMethodDecl(JmlMethodDecl that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-            switch (that.token) {
-                case BSOLD:
-                case BSPRE:
-                    JCExpression m = jmlrewriter.translate(that.meth);
-                    JCExpression arg = jmlrewriter.translate(that.args.get(0));
-                    JmlMethodInvocation meth;
-                    if (that.args.size() == 1) {
-                        meth = M.JmlMethodInvocation(that.token,arg);
-                    } else {
-                        // The second argument is a label, not an expression
-                        meth = M.JmlMethodInvocation(that.token,arg,that.args.get(1));
-                    }
-                    meth.type = that.type;
-                    meth.pos = that.pos;
-                    meth.startpos = that.startpos;
-                    meth.varargsElement = that.varargsElement;
-                    meth.meth = m;
-                    meth.label = that.label;
-                    meth.typeargs = that.typeargs; // FIXME - do these need translating?
-                    ejmlresult = meth;
-                    break;
-                case BSTYPEOF :
-                case BSELEMTYPE :
-                case BSNONNULLELEMENTS :
-                case BSMAX :
-                case BSFRESH :
-                case BSREACH :
-                case BSSPACE :
-                case BSWORKINGSPACE :
-                case BSDURATION :
-                case BSISINITIALIZED :
-                case BSINVARIANTFOR :
-                case BSNOWARN:
-                case BSNOWARNOP:
-                case BSWARN:
-                case BSWARNOP:
-                case BSBIGINT_MATH:
-                case BSSAFEMATH:
-                case BSJAVAMATH:
-                case BSNOTMODIFIED:
-                case BSTYPELC:
-                    // FIXME - implement these
-                    Log.instance(context).error("esc.not.implemented","Not yet implemented token in JmlAssertionAdder: " + that.token.internedName());
-                    ejmlresult = treeutils.trueLit; // FIXME - may not even be a boolean typed result
-                    break;
-                default:
-                    Log.instance(context).error("esc.internal.error","Unknown token in JmlAssertionAdder: " + that.token.internedName());
-                    ejmlresult = treeutils.trueLit; // FIXME - may not even be a boolean typed result
-            }
-        }
-
-        @Override
-        public void visitJmlMethodSpecs(JmlMethodSpecs that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlSetComprehension(JmlSetComprehension that) {
-            // TODO Auto-generated method stub
-            error(that.pos, "Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlSingleton(JmlSingleton that) {
-            switch (that.token) {
-                case BSRESULT:
-                    if (resultSym == null) {
-                        error(that.pos, "It appears that \\result is used where no return value is defined");
-                    } else {
-                        ejmlresult = treeutils.makeIdent(that.pos, resultSym);
-                        if (methodDecl.name.toString().equals("m")) {
-                            ejmlresult = ejmlresult;
-                        }
-                    }
-                    break;
-
-                case INFORMAL_COMMENT:
-                    ejmlresult = treeutils.makeBooleanLiteral(that.pos,true);
-                    break;
-                    
-                case BSEXCEPTION:
-                    if (exceptionSym == null) {
-                        error(that.pos,"It appears that \\exception is used where no exception value is defined" );
-                    } else {
-                        ejmlresult = treeutils.makeIdent(that.pos,exceptionSym);
-                    }
-                    break;
-    //
-//                case BSINDEX:
-//                case BSVALUES:
-//                    if (that.info == null) {
-//                        log.error(that.pos,"esc.internal.error","No loop index found for this use of " + that.token.internedName());
-//                        result = null;
-//                    } else {
-//                        result = newIdentUse((VarSymbol)that.info,that.pos);
-//                    }
-//                    break;
-//                
-//                case BSLOCKSET:
-//                case BSSAME:
-                   
-
-                case BSNOTSPECIFIED:
-                case BSNOTHING:
-                case BSEVERYTHING:
-                    error(that.pos, "Should not be attempting to translate this construct in JmlAssertion Adder's JML rewriter: " + that.token.internedName());
-                    break;
-
-                default:
-                    Log.instance(context).error(that.pos, "jml.unknown.construct",that.token.internedName(),"BasicBlocker.visitJmlSingleton");
-                // FIXME - recovery possible?
-                    break;
-            }
-        }
-        
-
-        @Override
-        public void visitJmlSpecificationCase(JmlSpecificationCase that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlStatement(JmlStatement that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlStatementDecls(JmlStatementDecls that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlStatementExpr(JmlStatementExpr that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlStatementLoop(JmlStatementLoop that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlStatementSpec(JmlStatementSpec that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        // OK
-        @Override
-        public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-            ejmlresult = that;
-            if (fullTranslation) ejmlresult = M.at(that.pos()).JmlStoreRefKeyword(that.token);
-        }
-
-        @Override
-        public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlVariableDecl(JmlVariableDecl that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-        @Override
-        public void visitJmlWhileLoop(JmlWhileLoop that) {
-            error(that.pos,"Unexpected visit call in JmlExpressionRewriter: " + that.getClass());
-        }
-
-    }
 }
+
