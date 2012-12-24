@@ -30,8 +30,172 @@ public class racnew2 extends RacBase {
         options.put("-noPurityCheck",""); // System specs have a lot of purity errors, so turn this off for now
         options.put("-noInternalSpecs",   ""); // Faster with this option; should work either way
         options.put("-showrac", "");
+        options.put("-noRacSource", "");
         //options.put("-verboseness",   "4");
         expectedNotes = 0;
+    }
+
+    /** Tests a simple try-finally block */
+    @Test public void testTry() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  int i; try { i = 0; } finally { i = 1; } //@ assert i == 1; \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"END"
+        );        
+    }
+
+
+    /** Test skip statement */
+    @Test public void testSkip() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { int i ;;; i = 9;;;; //@ assert i == 9; \n }\n  \n}"
+                );
+    }
+
+    /** Test synchronized statement with this */
+    @Test public void testSynchronized() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i; \n synchronized (this) { i = 0; } \n}}"
+                );
+    }
+
+    /** Test synchronized statement with null lock */
+    @Test public void testSynchronized2() {
+        expectedRACExit = 1;
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { \n" +
+                "new A().m(); }\n " +
+                "public void m() { /*@ nullable*/ Object o = null; int i; \n " +
+                "synchronized (o) { i = 0; } \n}}"
+                ,"/tt/A.java:4: JML A null object is dereferenced"
+                ,"Exception in thread \"main\" java.lang.NullPointerException"
+                ,"\tat tt.A.m(A.java:4)"
+                ,"\tat tt.A.main(A.java:2)"
+                );
+    }
+
+
+    /** Tests a simple try-throw-catch block */
+    @Test public void testThrow() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  int i; try { i = 0; throw new RuntimeException(); } catch (RuntimeException e) { i = 1; } //@ assert i == 1; \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"END"
+        );        
+    }
+
+
+    /** Tests binary operators */
+    @Test public void testBinary() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  int a=5,b=6,c; boolean f, e= true,d=false; \n" +
+                "  c = a + b; \n" +
+                "  //@ assert c == a + 6; \n" +
+                "  c = a - b; \n" +
+                "  //@ assert a - c == 6; \n" +
+                "  c = a * b; \n" +
+                "  //@ assert b == c / 5; \n" +
+                "  c = b / (a - 3); \n" +
+                "  //@ assert b == c * 2; \n" +
+                "  c = b % a; \n" +
+                "  //@ assert a % b == a && c == 1; \n" +
+                "  f = a < b ; \n" +                    // FIXME - this line causes a problem
+                "  //@ assert  f && a <= b; \n" +
+                "  f = a <= b ; \n" +  
+                "  //@ assert  f && a < b; \n" +
+                "  f = a > b ; \n" +  
+                "  //@ assert  !f && a >= b; \n" +
+                "  f = a >= b ; \n" +  
+                "  //@ assert  !f && a > b; \n" +
+                // FIXME - add equalities among various types, && || & ^ | logical and bit
+                // FIXME - test JML binary
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"/tt/TestJava.java:18: JML assertion is false"
+                ,"/tt/TestJava.java:20: JML assertion is false"
+                ,"END"
+        );        
+    }
+
+    /** Tests unary operators */ // FIXME - test unary with expressions in ++ -- 
+    @Test public void testUnary() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  int a=5,b=0,c=0; boolean e=true,d=false; \n" +
+                "  b = a++; \n" +
+                "  //@ assert b+1 == a; \n" +
+                "  b = a--; \n" +
+                "  //@ assert b-1 == a; \n" +
+                "  c = a; b = ++a; \n" +
+                "  //@ assert b == a && c+1 == b; \n" +
+                "  b = --a; \n" +
+                "  //@ assert b == a && c == b; \n" +
+                "  b = -a; \n" +
+                "  //@ assert b == -5; \n" +
+                "  e = d ; \n" + 
+                "  //@ assert  !d; \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"END"
+        );        
+    }
+
+    /** Tests parens operators */ 
+    @Test public void testParens() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  int a=5,b=6,c=0; boolean e=true,d=false; \n" +
+                "  c = (a*b)+3*b-2*(a-(((b)))); \n" +
+                "  //@ assert ((((c) == 50))); \n" +
+                "  c = b / (((a))); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"END"
+        );        
+    }
+
+
+
+    /** Tests switch statement */
+    @Test public void testSwitch() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  m(0); m(1); m(2); m(3); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(int i) { \n" +
+                "  switch (i) { \n" +
+                "  case 0: //@ assert i == 0; \n break; \n" +
+                "  case 1: //@ assert i == 0; \n break; \n" +
+                "  case 2: //@ assert i == 2; \n break; \n" +
+                "  default: //@ assert i == 0; \n break; \n" +
+                "  }}\n" +
+                "}"
+                ,"/tt/TestJava.java:9: JML assertion is false"
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"END"
+        );        
+    }
+
+    /** Tests switch statement with declaration in a case*/
+    @Test public void testSwitch2() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  m(0); m(1); m(2); m(3); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(int i) { \n" +
+                "  switch (i) { \n" +
+                "  case 0: int k = 0; //@ assert i == k; \n  \n" +
+                "  case 1: k=1;       //@ assert i == k; \n break; \n" +
+                "  case 2: k=2;       //@ assert i == k; \n break; \n" +
+                "  default: //@ assert i == 0; \n break; \n" +
+                "  }}\n" +
+                "}"
+                ,"/tt/TestJava.java:9: JML assertion is false" // case 0 falls through
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"END"
+        );        
     }
 
     /** Tests type test and type cast expressions */
@@ -52,6 +216,7 @@ public class racnew2 extends RacBase {
     /** Tests a bad cast */
     @Test public void testTypeCast2() {
         expectedRACExit = 1;
+        options.put("-noRacSource", null);
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean i = Boolean.TRUE; \n" +
                 "  Object o = i; \n" +
@@ -86,10 +251,45 @@ public class racnew2 extends RacBase {
         );        
     }
 
+    /** Test a type tests and casts in JML */
+    @Test public void testTypeTest4() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  Boolean b = Boolean.TRUE; \n" +
+                "  Integer i = new Integer(10); /*@ nullable */Integer ii = null; \n" +
+                "  Object o = i; \n" +
+                "  //@ assert o instanceof Integer; \n" +
+                "  o = b; \n" +
+                "  //@ assert o instanceof Integer; \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"/tt/TestJava.java:7: JML assertion is false"
+                ,"END"
+        );        
+    }
+
+    /** Test a type tests and casts in JML */
+    @Test public void testTypeCast5() {
+        expectedRACExit = 1;
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  Boolean b = Boolean.TRUE; \n" +
+                "  Integer i = new Integer(10); /*@ nullable */Integer ii = null; \n" +
+                "  Object o = i; \n" +
+                "  //@ assert (Integer)o != null; \n" +
+                "  o = b; \n" +
+                "  //@ assert (Integer)o != null; \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"/tt/TestJava.java:7: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
+                ,"Exception in thread \"main\" java.lang.ClassCastException: java.lang.Boolean cannot be cast to java.lang.Integer"
+                ,"\tat tt.TestJava.main(TestJava.java:7)"
+        );        
+    }
+
 
     /** Tests the JML lbl lblpos and lblneg expressions */
     @Test public void testLbl() {
-        options.put("-noRacSource", "");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -146,13 +346,13 @@ public class racnew2 extends RacBase {
                 "m(null); \n" +
                 "System.out.println(\"END\"); } static int i = 0; \n" +
                 " static void m(/*@nullable*/ Object o) { \n" +
-                "//@ assert (\\lbl OBJECT null) == null; \n" + // const null arguments get optimized away
-                "//@ assert (\\lbl INT (int)(4)) != 0; \n" +
+                "//@ assert (\\lbl OBJECT null) == null; \n" +
+                "//@ assert (\\lbl INT 4) != 0; \n" +
                 "//@ assert (\\lbl SHORT (short)(1)) != 0; \n" +
-                "//@ assert (\\lbl LONG (long)(2)) != 0; \n" +
+                "//@ assert (\\lbl LONG 2L) != 0; \n" +
                 "//@ assert (\\lbl BYTE (byte)(3)) != 0; \n" +
-                "//@ assert (\\lbl FLOAT (float)(5)) != 0; \n" +
-                "//@ assert (\\lbl DOUBLE (double)(6)) != 0; \n" +
+                "//@ assert (\\lbl FLOAT 5.0f) != 0; \n" +
+                "//@ assert (\\lbl DOUBLE 6.0) != 0; \n" +
                 "//@ assert (\\lbl CHAR 'a') != 0; \n" +
                 "//@ assert (\\lbl BOOLEAN true) ; \n" +
                 "//@ assert (\\lbl STRING \"abc\") != null; \n" +
@@ -174,6 +374,7 @@ public class racnew2 extends RacBase {
     
     /** A misc early test case for lbl expressions */
     @Test public void testLabel() {
+        options.put("-noRacSource", null);
         helpTCX("tt.TestJava","package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
                 " m(1); m(0); \n" +
                 " System.out.println(\"END\"); } static int k = 0; \n" +
@@ -181,19 +382,29 @@ public class racnew2 extends RacBase {
                 " static void m(int i) { System.out.println(\"i = \" + i ); k = i; } " +
                 "}"
                 ,"i = 1"
-                ,"i = 0"
                 ,"LABEL ENS = true"
+                ,"LABEL ENS = true"
+                ,"i = 0"
+                ,"LABEL ENS = false"
+                ,"/tt/TestJava.java:5: JML postcondition is false"
+                ," static void m(int i) { System.out.println(\"i = \" + i ); k = i; } }"
+                ,"             ^"
+                ,"/tt/TestJava.java:4: Associated declaration"
+                ," /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ "
+                ,"                             ^"
                 ,"LABEL ENS = false"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
-                ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:1: JML postcondition is false"
+                ," m(1); m(0); "
+                ,"        ^"
+                ,"/tt/TestJava.java:4: Associated declaration"
+                ," /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ "
+                ,"                             ^"
                 ,"END"
         );        
     }
     
     /** A misc early test case for lbl expressions */
     @Test public void testLabel2() {
-        //options.put("-noRacSource", "");
         helpTCX("tt.TestJava","package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
                 " m(1); m(0); \n" +
                 " System.out.println(\"END\"); } static int k = 0; \n" +
@@ -204,7 +415,7 @@ public class racnew2 extends RacBase {
                 ,"LABEL RES = 1"
                 ,"LABEL RES = 0"
                 ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:5: JML postcondition is false"  // FIXME - no source
+                ,"/tt/TestJava.java:5: JML postcondition is false"
                 ,"/tt/TestJava.java:4: Associated declaration"
                 ,"LABEL RES = 0"
                 ,"LABEL ENS = false"
