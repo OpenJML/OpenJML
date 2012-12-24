@@ -27,6 +27,9 @@ public class Strings {
     /** The default application name */
     static public final String applicationName = "openjml"; //$NON-NLS-1$
     
+    /** The fully-qualified name of the runtime utilities class. */
+    static public final String runtimeUtilsFQName = "org.jmlspecs.utils.Utils";
+    
     /** A string giving the name of the package that JML annotations are in.
      */
     static public final String jmlAnnotationPackage = "org.jmlspecs.annotation"; //$NON-NLS-1$
