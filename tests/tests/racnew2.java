@@ -34,6 +34,109 @@ public class racnew2 extends RacBase {
         //options.put("-verboseness",   "4");
         expectedNotes = 0;
     }
+    
+    /** Tests a copying modifiers and annotations */
+    // We really need to inspect the output to see that the result is OK. But at least this tests that it does not crash
+    @Test public void testMods() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*; \n" +
+                " @Retention(RetentionPolicy.RUNTIME)  \n" +
+                "  @interface A { }\n" +
+                " public class TestJava { public static void main(String... args) {}" +
+                "}"
+        );        
+    }
+
+    @Test public void testMods2() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*; \n" +
+                " public class TestJava { \n" +
+                "   @NonNull  protected void m() {} \n" +
+                "   public static void main(String... args) {}" +
+                "}"
+        );        
+    }
+    
+    /** Tests new array */
+    @Test public void testNewArray() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  String[] a = new String[]{\"abc\",\"def\"};\n" +
+                "  int i = a.length; \n" +
+                "  //@ assert i == 2; \n" +
+                "  String[][] aa = new String[][]{{\"abc\",\"defz\"},{\"g\",\"h\",\"i\"}};\n" +
+                "  i = aa.length; \n" +
+                "  boolean b = aa[1][0].equals(\"g\"); \n" +
+                "  //@ assert i == 2; \n" +
+                "  //@ assert aa[1].length == 3; \n" +
+                "  //@ assert (new int[]{1,2,3}).length == 3; \n" +
+                "  //@ assert (new int[]{1,2,3})[1] == 2; \n" +
+                "  String[][] aaa = new String[1][2]; \n" +
+                "  //@ assert aaa.length == 1; \n" +
+                "  //@ assert aaa[0].length == 2; \n" +
+                "  //@ assert aaa[0][0] == null; \n" +
+                
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"END"
+        );        
+    }
+
+    /** Tests new array */
+    @Test public void testNewArray2() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  int[] x = new int[3]; \n" +
+                "  //@ assert x.length == 3; \n" +
+                "  //@ assert x[0] == 0; \n" +
+                "  String[] a = {\"abc\",\"def\"};\n" +
+                "  int i = a.length; \n" +
+                "  //@ assert i == 2; \n" +
+                "  String[][] aa = {{\"abc\",\"defz\"},{\"g\",\"h\",\"i\"}};\n" +
+                "  i = aa.length; \n" +
+                "  boolean b = aa[1][0].equals(\"g\"); \n" +
+                "  //@ assert i == 2; \n" +
+                "  //@ assert aa[1].length == 3; \n" +
+                "  String[][] aaa = new String[1][2]; \n" +
+                "  //@ assert aaa.length == 1; \n" +
+                "  //@ assert aaa[0].length == 2; \n" +
+                "  //@ assert aaa[0][0] == null; \n" +
+                
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"END"
+        );        
+    }
+
+    /** Tests new object */
+    @Test public void testNewObject() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  TestJava a = new TestJava();\n" +
+                "  int i = a.m(10); \n" +
+                "  //@ assert i == 11; \n" +
+                "  TestJava aa = new TestJava() { public int m(int i) { return i + 2; } };\n" +
+                "  i = aa.m(10); \n" +
+                "  //@ assert i == 12; \n" +
+                
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  public int m(int i) { return i + 1; } \n" +
+                "}"
+                ,"END"
+        );        
+    }
+
+    /** Tests new object in JML */
+    @Test public void testNewObject2() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  // @ assert (new TestJava()).m(15) == 16;\n" +
+                "  //@ assert (new TestJava() { public int m(int i) { return i + 2; } }).m(15) == 17;\n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  public int m(int i) { return i + 1; } \n" +
+                "}"
+                ,"END"
+        );        
+    }
+
 
     /** Tests a simple try-finally block */
     @Test public void testTry() {
