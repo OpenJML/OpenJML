@@ -30,6 +30,7 @@ public class racnew extends RacBase {
         options.put("-noPurityCheck",""); // System specs have a lot of purity errors, so turn this off for now
         options.put("-noInternalSpecs",   ""); // Faster with this option; should work either way
         options.put("-showrac", "");
+        options.put("-noRacSource", "");
         //options.put("-verboseness",   "4");
         expectedNotes = 0;
     }
@@ -1007,6 +1008,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testInvariant() { 
+        options.put("-noRacSource", null);
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"void m(); \n"
@@ -1021,9 +1023,19 @@ public class racnew extends RacBase {
                 +"new A().m(); "
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/tt/A.jml:3: JML invariant is false"
+                ,"/tt/A.java:3: JML invariant is false"
+                ," void m() { i = 1-i; }  "
+                ,"      ^"
+                ,"/$A/tt/A.jml:2: Associated declaration"
+                ,"//@ invariant i == 0; "
+                ,"    ^"
                 ,"MID"
-                ,"/$A/tt/A.jml:3: JML invariant is false"
+                ,"/tt/A.java:3: JML invariant is false"
+                ," void m() { i = 1-i; }  "
+                ,"      ^"
+                ,"/$A/tt/A.jml:2: Associated declaration"
+                ,"//@ invariant i == 0; "
+                ,"    ^"
                 ,"END"
                 );
     }
@@ -2028,16 +2040,6 @@ public class racnew extends RacBase {
 
     }
     
-    @Test public void testSynchronized() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i; \n synchronized (this) { i = 0; } \n}}"
-                );
-    }
-
-    @Test public void testSynchronized2() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { /*@ nullable*/ Object o = null; int i; \n synchronized (o) { i = 0; } \n}}"
-                );
-    }
-
     @Test public void testLabelledStatement() {
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i=5; \n outer: while (i > 0)  { --i; } \n /*@ assert i == 0; */ \n System.out.println(\"END\"); }}"
                 ,"END");
