@@ -840,6 +840,15 @@ public class Main extends com.sun.tools.javac.main.Main {
         return null;
     }
     
+    /** Adjusts the options on the current instance of main per the arguments. */
+    public void addOptions(String... args) {
+        processArgs(args);
+    }
+    
+    /** Adds a custom option (not checked as a legitimate command-line option) */
+    public void addUndocOption(String arg) {
+        Options.instance(context).put(arg,"");
+    }
     
     /** Appends the internal runtime directory to the -classpath option.
      */

@@ -1068,6 +1068,7 @@ public class JmlSpecs {
     //@ ensures \result != null;
     public /*@non_null*/ JmlToken defaultNullity(/*@ nullable*/ ClassSymbol csymbol) {
         if (csymbol == null) {
+            // FIXME - this is no longer true
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
             // If neither one is present, then the logic here will give the
             // default as NONNULL.

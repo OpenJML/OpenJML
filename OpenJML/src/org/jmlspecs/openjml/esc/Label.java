@@ -85,6 +85,12 @@ public class Label {
     /*@ non_null*/ public final static Label INVARIANT = new Label("Invariant");
     
     /** Used for assume or assert statements generated from invariants */
+    /*@ non_null*/ public final static Label INVARIANT_ENTRANCE = new Label("InvariantEntrance");
+    
+    /** Used for assume or assert statements generated from invariants */
+    /*@ non_null*/ public final static Label INVARIANT_EXIT = new Label("InvariantExit");
+    
+    /** Used for assume or assert statements generated from invariants */
     /*@ non_null*/ public final static Label AXIOM = new Label("Axiom");
     
     /** Used for assume statements generated to guard a catch block */

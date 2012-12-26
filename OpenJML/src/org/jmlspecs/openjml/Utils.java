@@ -21,6 +21,7 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.jvm.ClassReader;
+import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -456,11 +457,12 @@ public class Utils {
    */
   public static class JmlNotImplementedException extends RuntimeException {
       private static final long serialVersionUID = 1L;
-      public JmlNotImplementedException(String message) {
-          super(message);
+      public DiagnosticPosition pos;
+      public JmlNotImplementedException(DiagnosticPosition pos, String location) {
+          super(location);
+          this.pos = pos;
       }
   }
   
-
 
 }

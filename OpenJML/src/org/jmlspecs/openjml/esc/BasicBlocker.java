@@ -2641,7 +2641,7 @@ public class BasicBlocker extends JmlTreeScanner {
                     // FIXME - havoc in loops
                     log.noticeWriter.println("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
                     //log.noticeWriter.flush();
-                    throw new Utils.JmlNotImplementedException("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
+                    throw new Utils.JmlNotImplementedException(null,"UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
                 }
             }
         }

@@ -408,8 +408,6 @@ public class JmlTreeUtils {
     public JCIdent makeIdent(int pos, Symbol sym) {
         JCIdent id = factory.Ident(sym);
         id.pos = pos;
-//        id.sym = sym;
-//        id.type = sym.type;
         return id;
     }
     

@@ -1,6 +1,5 @@
 package tests;
 
-import org.jmlspecs.openjml.Utils;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -25,13 +24,13 @@ public class racnew extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        options.put("-newesc", "");
-        options.put("-showNotImplemented", "");
-        options.put("-noPurityCheck",""); // System specs have a lot of purity errors, so turn this off for now
-        options.put("-noInternalSpecs",   ""); // Faster with this option; should work either way
-        options.put("-showrac", "");
-        options.put("-noRacSource", "");
-        //options.put("-verboseness",   "4");
+        main.addUndocOption("-newesc");
+        main.addUndocOption("-showrac");
+        main.addOptions("-showNotImplemented");
+        main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
+        main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way
+        main.addOptions("-noRacSource");
+        //main.addOptions("-verboseness=4");
         expectedNotes = 0;
     }
 
@@ -126,6 +125,8 @@ public class racnew extends RacBase {
                 " /*@ requires i != 0; */ \n" +
                 " static void m(int i) {} " +
                 "}"
+                ,"/tt/TestJava.java:1: JML precondition is false"
+                ,"/tt/TestJava.java:2: Associated declaration"
                 ,"/tt/TestJava.java:2: JML precondition is false"
                 ,"END"
                 );
@@ -133,14 +134,24 @@ public class racnew extends RacBase {
     
     /** Failed precondition */
     @Test public void testPrecondition3() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(-1); m(0); System.out.println(\"END\"); }\n" +
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                " m(1); \n" +
+                " m(-1); \n" +
+                " m(0); \n" +
+                " System.out.println(\"END\"); }\n" +
                 " /*@ requires i > 0; */ \n" +
                 " /*@ requires i < 0; */ \n" +
                 " static void m(int i) {} " +
                 "}"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:6: Associated declaration"
+                ,"/tt/TestJava.java:6: JML precondition is false"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"/tt/TestJava.java:6: Associated declaration"
+                ,"/tt/TestJava.java:6: JML precondition is false"
                 ,"/tt/TestJava.java:4: JML precondition is false"
-                ,"/tt/TestJava.java:4: JML precondition is false"
-                ,"/tt/TestJava.java:4: JML precondition is false"
+                ,"/tt/TestJava.java:6: Associated declaration"
+                ,"/tt/TestJava.java:6: JML precondition is false"
                 ,"END"
                 );
     }
@@ -158,10 +169,24 @@ public class racnew extends RacBase {
     }
     
     @Test public void testNonnullPrecondition() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(null,1); System.out.println(\"END\"); }\n" +
-                " /*@ requires true; */ \nstatic void m(/*@non_null*/ Object o, int i) {} " +
+        main.addOptions("-noRacSource=false");
+        helpTCX("tt.TestJava","package tt; public class TestJava { \n" + 
+                "public static void main(String[] args) { \n" +
+                " m(null,1); \n" +
+                " System.out.println(\"END\"); }\n" +
+                " /*@ requires true; */ \n" +
+                " static void m(/*@non_null*/ Object o, int i) {\n" +
+                " }\n" +
                 "}"
                 ,"/tt/TestJava.java:3: JML precondition is false"
+                ," m(null,1); "
+                ,"  ^"
+                ,"/tt/TestJava.java:6: Associated declaration"
+                ," static void m(/*@non_null*/ Object o, int i) {"
+                ,"                  ^"
+                ,"/tt/TestJava.java:5: JML precondition is false"
+                ," /*@ requires true; */ "
+                ,"     ^"
                 ,"END"
                 );
     }
@@ -170,16 +195,24 @@ public class racnew extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(null,1); System.out.println(\"END\"); }\n" +
                 " static void m(/*@non_null*/ Object o, int i) {} " +
                 "}"
+                ,"/tt/TestJava.java:1: JML precondition is false"
+                ,"/tt/TestJava.java:2: Associated declaration"
                 ,"/tt/TestJava.java:2: JML precondition is false"
                 ,"END"
                 );
     }
     
     @Test public void testNonnullPostcondition() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(null,1); System.out.println(\"END\"); }\n" +
-                " static /*@non_null*/Object m( /*@nullable*/Object o, int i) { return null; } " +
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "m(null,1); \n" +
+                "System.out.println(\"END\"); }\n" +
+                " static /*@non_null*/Object m( /*@nullable*/Object o, int i)\n" +
+                "{ return null; } " +
                 "}"
+                ,"/tt/TestJava.java:4: JML postcondition is false"
+                ,"/tt/TestJava.java:4: Associated declaration"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"/tt/TestJava.java:4: Associated declaration"
                 ,"END"
                 );
     }
@@ -195,10 +228,16 @@ public class racnew extends RacBase {
     }
 
     @Test public void testPostcondition1() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ ensures k == 0; */ \nstatic int m(int i) { k = i; return 13; } " +
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                " m(1); System.out.println(\"END\"); } \n" +
+                " static int k = 0; \n" +
+                " /*@ ensures k == 0; */ \n" +
+                " static int m(int i) { k = i; return 13; } " +
                 "}"
+                ,"/tt/TestJava.java:5: JML postcondition is false"
+                ,"/tt/TestJava.java:4: Associated declaration"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"/tt/TestJava.java:4: Associated declaration"
                 ,"END"
                 );
     }
@@ -229,11 +268,24 @@ public class racnew extends RacBase {
     }
 
     @Test public void testPostcondition4() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ requires true; \nensures k != i; \nalso \nrequires true; \nensures k == 0; */ static void m(int i) { k = i; } " +
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                " m(1); System.out.println(\"END\"); } \n" +
+                " static int k = 0; \n" +
+                " /*@ requires true; \n" +
+                "     ensures k != i; \n" +
+                "     also \n" +
+                "     requires true; \n" +
+                "     ensures k == 0; */ \n" +
+                " static void m(int i) { k = i; } " +
                 "}"
-                ,"/tt/TestJava.java:3: JML postcondition is false"
-                ,"/tt/TestJava.java:6: JML postcondition is false"
+                ,"/tt/TestJava.java:9: JML postcondition is false"
+                ,"/tt/TestJava.java:5: Associated declaration"
+                ,"/tt/TestJava.java:9: JML postcondition is false"
+                ,"/tt/TestJava.java:8: Associated declaration"
+                ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"/tt/TestJava.java:5: Associated declaration"
+                ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"/tt/TestJava.java:8: Associated declaration"
                 ,"END"
                 );
     }
@@ -268,10 +320,12 @@ public class racnew extends RacBase {
                 +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
                 +"} \n"
                 +"static int k = 0; \n"
-                +" /*@ requires true; \nsignals (java.io.FileNotFoundException e) e == null; */\n"
+                +" /*@ requires true; \n"
+                +"     signals (java.io.FileNotFoundException e) e == null; */\n"
                 +"static void m(int i) throws java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
                 +"}"
-                ,"/tt/TestJava.java:7: JML signals condition is false"
+                ,"/tt/TestJava.java:8: JML signals condition is false"
+                ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
     }
@@ -285,7 +339,8 @@ public class racnew extends RacBase {
                 +" /*@ requires true; \nsignals (java.io.FileNotFoundException e) e == null; */\n"
                 +"static void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
                 +"}"
-                ,"/tt/TestJava.java:7: JML signals condition is false"
+                ,"/tt/TestJava.java:8: JML signals condition is false"
+                ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
     }
@@ -299,7 +354,8 @@ public class racnew extends RacBase {
                 +" /*@ requires true; \nsignals_only \\nothing; */\n"
                 +"static void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
                 +"}"
-                ,"/tt/TestJava.java:7: JML signals_only condition is false"
+                ,"/tt/TestJava.java:8: JML signals_only condition is false"
+                ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
     }
@@ -326,7 +382,8 @@ public class racnew extends RacBase {
                 +" /*@ requires true; \nsignals_only java.io.FileNotFoundException; */\n"
                 +"static void m(int i) throws Exception, java.io.FileNotFoundException { throw new Exception(); } "
                 +"}"
-                ,"/tt/TestJava.java:7: JML signals_only condition is false"
+                ,"/tt/TestJava.java:8: JML signals_only condition is false"
+                ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
     }
@@ -367,10 +424,18 @@ public class racnew extends RacBase {
     }
 
     @Test public void testResult1() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ ensures \\result == 4; */ static int m(int i) { return 5; } " +
-                "}"
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
+                +" m(1); \n"
+                +" System.out.println(\"END\"); } \n"
+                +" static int k = 0; \n" 
+                +" /*@ ensures \\result == 4; */ \n"
+                +" static int m(int i) { \n"
+                +" return 5; } "
+                +"}"
+                ,"/tt/TestJava.java:6: JML postcondition is false"
+                ,"/tt/TestJava.java:5: Associated declaration"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"/tt/TestJava.java:5: Associated declaration"
                 ,"END"
         );
     }
@@ -381,6 +446,10 @@ public class racnew extends RacBase {
                 "}"
                 ,"LABEL ENS = 0"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"/tt/TestJava.java:2: Associated declaration"
+                ,"LABEL ENS = 0"
+                ,"/tt/TestJava.java:1: JML postcondition is false"
+                ,"/tt/TestJava.java:2: Associated declaration"
                 ,"LABEL ENS = 1"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
                 ,"END"
@@ -405,7 +474,7 @@ public class racnew extends RacBase {
     }
     
     @Test public void testOld3() {
-        //print = true; options.put("-showrac","");
+        //print = true; main.addUndocOption("-showrac");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 + "public static void main(String[] args) { \n"
                 + "  m(1); m(0); \n"
@@ -755,7 +824,9 @@ public class racnew extends RacBase {
                 " static void m(int i) { \n" +
                 "} " +
                 "}"
-                ,"/tt/TestJava.java:5: JML precondition is false"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"END"
                 );
         
@@ -909,7 +980,9 @@ public class racnew extends RacBase {
     @Test public void testSpecFile() {
         addMockFile("$A/tt/A.jml","package tt; public class A { //@ ghost static int i = 0;\n  //@ invariant i == 0; \n //@ requires i == 1;\n static int m(); }");
         helpTCX("tt.A","package tt; public class A { static int m() { return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
-                ,"/$A/tt/A.jml:3: JML precondition is false"
+                ,"/tt/A.java:2: JML precondition is false"
+                ,"/$A/tt/A.jml:3: Associated declaration"
+                ,"/tt/A.java:2: JML precondition is false"
                 ,"END"
                 );
         
@@ -977,9 +1050,11 @@ public class racnew extends RacBase {
                 +"m(); "
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/$A/tt/A.jml:2: JML static invariant is false"
+                ,"/tt/A.java:3: JML invariant is false on leaving method"
+                ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"MID"
-                ,"/$A/tt/A.jml:2: JML static invariant is false"
+                ,"/tt/A.java:3: JML invariant is false on entering method"
+                ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"END"
                 );
     }
@@ -994,21 +1069,31 @@ public class racnew extends RacBase {
                 +"static int i = 0;  \n "
                 +"void m() { i = 1-i; }  \n "
                 +"public static void main(String[] args) { \n"
-                +"new A().m(); "
-                +"System.out.println(\"MID\"); "
-                +"new A().m(); "
-                +"System.out.println(\"END\"); "
+                +"new A().m(); \n"
+                +"System.out.println(\"MID\"); \n"
+                +"new A().m(); i = 5; \n"
+                +"System.out.println(\"MID\"); \n"
+                +"new A().m(); \n"
+                +"System.out.println(\"END\"); \n"
                 +"}}"
-                ,"/$A/tt/A.jml:2: JML static invariant is false"
+                ,"/tt/A.java:3: JML invariant is false on leaving method"
+                ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"MID"
-                ,"/$A/tt/A.jml:2: JML static invariant is false"
-                ,"/$A/tt/A.jml:2: JML static invariant is false"
+                ,"/tt/A.java:3: JML invariant is false on entering method"
+                ,"/$A/tt/A.jml:2: Associated declaration"
+                ,"MID"
+                ,"/tt/A.java:3: JML invariant is false on entering method"
+                ,"/$A/tt/A.jml:2: Associated declaration"
+                ,"/tt/A.java:3: JML invariant is false on leaving method"
+                ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"END"
+                ,"/tt/A.java:4: JML invariant is false on leaving method"
+                ,"/$A/tt/A.jml:2: Associated declaration"
                 );
     }
 
     @Test public void testInvariant() { 
-        options.put("-noRacSource", null);
+        main.addOptions("-noRacSource=false");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"void m(); \n"
@@ -1023,14 +1108,14 @@ public class racnew extends RacBase {
                 +"new A().m(); "
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/tt/A.java:3: JML invariant is false"
+                ,"/tt/A.java:3: JML invariant is false on leaving method"
                 ," void m() { i = 1-i; }  "
                 ,"      ^"
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"//@ invariant i == 0; "
                 ,"    ^"
                 ,"MID"
-                ,"/tt/A.java:3: JML invariant is false"
+                ,"/tt/A.java:3: JML invariant is false on leaving method"
                 ," void m() { i = 1-i; }  "
                 ,"      ^"
                 ,"/$A/tt/A.jml:2: Associated declaration"
@@ -1280,6 +1365,7 @@ public class racnew extends RacBase {
     
     /** Forall, exists quantifier */
     @Test public void testForallQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; 0<=i && i<=5; i >= 2); \n "
@@ -1294,6 +1380,7 @@ public class racnew extends RacBase {
     
     /** Forall, exists quantifier */
     @Test public void testForallQuantifier2() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; 0<=i && i<=5; i >= 0); \n "
@@ -1309,6 +1396,7 @@ public class racnew extends RacBase {
     /** Forall, exists quantifier */
     @Test public void testForallQuantifier3() {
         expectedErrors = 2;
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; ; i >= 0); \n "
@@ -1324,6 +1412,7 @@ public class racnew extends RacBase {
     }
     
     @Test public void testForallQuantifier4() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; 0<i && i<=5; (\\exists int j; 0<=j && j < 5; j<i)); \n "
@@ -1338,6 +1427,7 @@ public class racnew extends RacBase {
     
     /** Numof quantifier */
     @Test public void testCountQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\num_of int i; 0 <= i && i <= 5; true); \n "
@@ -1352,6 +1442,7 @@ public class racnew extends RacBase {
     
     /** Numof quantifier */
     @Test public void testCountQuantifier3() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n = (\\num_of int i; 0 <= i && i < 5; i >= 2); \n "
@@ -1366,6 +1457,7 @@ public class racnew extends RacBase {
     
     /** Numof quantifier */
     @Test public void testCountQuantifierExt() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static int m = 2;\n"
                 +"public static void main(String[] argv) { \n "
@@ -1390,7 +1482,8 @@ public class racnew extends RacBase {
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"END"
-                ,"/tt/A.java:4: JML postcondition is false"
+                ,"/tt/A.java:5: JML postcondition is false"
+                ,"/tt/A.java:4: Associated declaration"
         );
     }
     
@@ -1398,6 +1491,7 @@ public class racnew extends RacBase {
     /** Numof quantifier */
     @Test public void testCountTwo() {
         expectedErrors = 1;
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\num_of int i,j; 0 <= i && i <= 5 && 0 <= j && j < i; true); \n "
@@ -1412,6 +1506,7 @@ public class racnew extends RacBase {
     
     /** Sum quantifier */
     @Test public void testSumQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\sum int i; 0<i && i<=5; i+1); \n "
@@ -1426,6 +1521,7 @@ public class racnew extends RacBase {
     
     /** Sum quantifier */
     @Test public void testProdQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\product int i; 0<i && i<=5; i+1); \n "
@@ -1440,6 +1536,7 @@ public class racnew extends RacBase {
     
     /** Max quantifier */
     @Test public void testMaxQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\max int i; 0<=i && i<=5 && (i%2)==0; i+1); \n "
@@ -1454,6 +1551,7 @@ public class racnew extends RacBase {
     
     /** Max quantifier, with function call */
     @Test public void testMaxQuantifier2() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"  public static int inc(int i) { return i + 10; }\n"
                 +"public static void main(String[] argv) { \n "
@@ -1469,6 +1567,7 @@ public class racnew extends RacBase {
     
     /**  quantifier over short */
     @Test public void testShortQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost short n1 = (\\max int i; 0<=i && i<=5; (short)(i+10)); \n "
@@ -1483,6 +1582,7 @@ public class racnew extends RacBase {
     
     /**  quantifier over short */
     @Test public void testShortQuantifierB() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost short n1 = (\\max short i; 2<=i && i<=5; i); \n "
@@ -1497,6 +1597,7 @@ public class racnew extends RacBase {
     
     /**  quantifier over byte */
     @Test public void testByteQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost byte n1 = (\\max int i; 2<=i && i<=5; (byte)i); \n "
@@ -1511,6 +1612,7 @@ public class racnew extends RacBase {
     
     /**  quantifier over byte */
     @Test public void testByteQuantifierB() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost byte n1 = (\\max byte i; 2<=i && i<=5; i); \n "
@@ -1525,6 +1627,7 @@ public class racnew extends RacBase {
     
     /**  quantifier over long */
     @Test public void testLongQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\max int i; 0<=i && i<=5; (i+10L)); \n "
@@ -1539,6 +1642,7 @@ public class racnew extends RacBase {
     
     /**  quantifier over long */
     @Test public void testLongQuantifierB() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\max long i; 0<=i && i<=5; (i+10L)); \n "
@@ -1553,6 +1657,7 @@ public class racnew extends RacBase {
     
     /**  quantifier over double */
     @Test public void testDoubleQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost double n1 = (\\max int i; 0<=i && i<=5; (double)(i+10.5)); \n "
@@ -1567,6 +1672,7 @@ public class racnew extends RacBase {
     
     /**  quantifier over float */
     @Test public void testFloatQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost float n1 = (\\max int i; 0<=i && i<=5; (float)(i+10.5)); \n "
@@ -1581,6 +1687,7 @@ public class racnew extends RacBase {
     
     /**  quantifier over char */
     @Test public void testCharQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost char n1 = (\\max int i; 'a'<i && i<='q'; (char)i); \n "
@@ -1595,6 +1702,7 @@ public class racnew extends RacBase {
     
     /**  quantifier over char */
     @Test public void testCharQuantifierB() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost char n1 = (\\max char i; 'a'<i && i<='q'; i); \n "
@@ -1609,6 +1717,7 @@ public class racnew extends RacBase {
     
     /** Min quantifier */
     @Test public void testMinQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\min int i; 0<=i && i<=5 && (i%2)==1; i+1); \n "
@@ -1623,6 +1732,7 @@ public class racnew extends RacBase {
     
     /** Max quantifier */
     @Test public void testMaxLongQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n = (\\max int i; 0<=i && i<=5 && (i%2)==0; (long)i+1); \n "
@@ -1637,6 +1747,7 @@ public class racnew extends RacBase {
     
     /** Min quantifier */
     @Test public void testMinLongQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n = (\\min int i; 0<=i && i<=5 && (i%2)==1; (long)i+1); \n "
@@ -1651,6 +1762,7 @@ public class racnew extends RacBase {
     
     /** Max quantifier */
     @Test public void testMaxDoubleQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost double n = (\\max int i; 0<=i && i<=5 && (i%2)==0; (double)i+1); \n "
@@ -1665,6 +1777,7 @@ public class racnew extends RacBase {
     
     /** double quantifier */
     @Test public void testMinDoubleQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost double n = (\\min int i; 0<=i && i<=5 && (i%2)==1; (double)i+1); \n "
@@ -1679,6 +1792,7 @@ public class racnew extends RacBase {
     
     /** boolean quantifier */
     @Test public void testBooleanQuantifier() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +" boolean bb = true;"
@@ -1697,6 +1811,7 @@ public class racnew extends RacBase {
     /** Object quantifier */
     @Test public void testObjectQuantifier() {
         expectedNotes = 0;
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; import java.util.*; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +" List<Object> list = new LinkedList<Object>();\n"
@@ -1783,7 +1898,6 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:7: JML null initialization of non_null variable loc"
                 ,"END"
                 );
-
     }
     
     @Test public void testNullDefault() {
@@ -1800,7 +1914,6 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:7: JML null initialization of non_null variable loc"
                 ,"END"
                 );
-
     }
     
     // FIXME - duplicate errors for constraint (one per method)
@@ -1811,7 +1924,10 @@ public class racnew extends RacBase {
     // what about assignable
     // check any problems with grouped clauses
     @Test public void testNotImplemented() {
-        expectedErrors = 20;
+        // FIXME - fix the debug statement, fix duplication and reseting of messages
+        main.addOptions("-keys=DEBUG");
+        //print = true;
+        expectedErrors = 15;
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"//@ axiom true;\n"
                 +"//@ invariant \\duration(true) == 0;\n"
@@ -1825,41 +1941,40 @@ public class racnew extends RacBase {
                 +"    //@ assume \\duration(true) == 0;\n"
                 +"    //@ ghost long k = \\duration(true);\n"
                 +"    //@ set k = \\duration(true);\n"
-                +"    //@ debug k = \\duration(true);\n"
+                +"    //@ debug k = \\duration(true);\n" 
                 +"    System.out.println(\"END\"); "
                 +"}\n"
                 +"//@ ghost long z = \\duration(true);\n"
                 +"//@ ghost long[] zz = { \\duration(true) } ;\n"
-                +"//@ requires \\duration(true) == 0;\n"
+                +"/*@ requires \\duration(true) == 0;*/"
+                +"int ma() { return 0; }\n"
                 +"//@ ensures \\duration(true) == 0;\n"
                 +"//@ signals (Exception ex) \\duration(true) == 0;\n"
                 +"//@ signals_only RuntimeException;\n"
                 +"//@ diverges \\duration(true) == 0;\n"
                 +"//@ duration  \\duration(true);\n"
                 +"//@ working_space \\duration(true);\n"
-                +"int ma() { return 0; }\n"
                 +"int mb() { return 0; }\n"
                 +"}"
-                ,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom",5
-                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration expression",15
-                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration expression",5
+                ,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom clause",5
+//                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",15
+//                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration",5
                 ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
-                ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration expression",9
-                ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration expression",9
-                ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",24
-                ,"/tt/A.java:13: Note: Not implemented for runtime assertion checking: set statement containing \\duration expression",9
-                ,"/tt/A.java:14: Note: Not implemented for runtime assertion checking: debug statement containing \\duration expression",9
-                ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration expression",5
-                ,"/tt/A.java:19: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration expression",5
-                ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: signals clause containing \\duration expression",5
-                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",5
-                ,"/tt/A.java:22: Note: Not implemented for runtime assertion checking: diverges clause",5
-                ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: duration clause",5
-                ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: working_space clause",5
-                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",5
-                ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",20
-                ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",25
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration expression",5
+                ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25
+                ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration",25
+                ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",33
+                ,"/tt/A.java:13: Note: Not implemented for runtime assertion checking: set statement containing \\duration",26
+                ,"/tt/A.java:14: Note: Not implemented for runtime assertion checking: debug statement containing \\duration",28
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",24
+                ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",23
+                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",25
+                ,"/tt/A.java:19: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration",22
+                ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: signals clause containing \\duration",37
+                ,"/tt/A.java:22: Note: Not implemented for runtime assertion checking: diverges clause containing \\duration",23
+                ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: duration clause containing \\duration",24
+                ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: working_space clause containing \\duration",28
+//                ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration",20
+//                ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration",25
                 ,"END"
                 );
 
@@ -1884,15 +1999,15 @@ public class racnew extends RacBase {
                 +"//@   ensures true;\n"
                 +"static int m() { return 0; }\n"
                 +"}"
-                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
-                ,"/tt/A.java:8: Note: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
-                ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: requires clause containing \\duration expression",7
+                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",25
+                ,"/tt/A.java:8: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",25
+                ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",25
                 ,"END"
                 );
     }
      // FIXME - does not do inherited invariant checking when super classes are not public
     @Test public void testSuperInvariant() {
-        //print = true; options.put("-showrac","");
+        //print = true; main.addUndocOption("-showrac");
         helpTCX("tt.A","package tt; public class A  extends B { \n"
                 +" public void m() {} //@ invariant i == 1; \n"
                 +"public static void main(String[] args) { \n"
@@ -1929,7 +2044,7 @@ public class racnew extends RacBase {
 
     // FIXME - does not do inherited invariant checking
     @Test public void testSuperInvariantB() {
-        //print = true; options.put("-showrac","");
+        //print = true; main.addUndocOption("-showrac");
         addMockFile("$A/tt/B.java","package tt; public class B extends tt.C { \n"
                 +"//@  invariant i == 2; \n"
                 +"}\n"
@@ -2022,22 +2137,65 @@ public class racnew extends RacBase {
     
     @Test public void testAssignable() {
         helpTCX("tt.A","package tt; public class A {\n"
-                +"  static int j,k;\n"
+                +"  static int j=0,k;\n"
                 +"  //@ requires i > 0;\n"
                 +"  //@ modifies j;\n"
                 +"  //@ ensures j == i;\n"
                 +"  public static void setj(int i) {\n"
-                +"    k = i;\n"
+                +"    j = i;\n"
                 +"  }\n"
                 +"  //@ ensures j == 1;\n"
                 +"  public static void main(String[] args) {\n"
                 +"    setj(0);\n"
                 +"  }\n"
                 +"}\n"
+                ,"/tt/A.java:11: JML precondition is false"
+                ,"/tt/A.java:3: Associated declaration"
                 ,"/tt/A.java:3: JML precondition is false"
-                ,"/tt/A.java:9: JML postcondition is false"
+                ,"/tt/A.java:10: JML postcondition is false"
+                ,"/tt/A.java:9: Associated declaration"
         );
-
+    }
+    
+    @Test public void testAssignable2() {
+        helpTCX("tt.A","package tt; public class A {\n"
+                +"  static int j=0,k;\n"
+                +"  //@ requires i > 0;\n"
+                +"  //@ modifies j;\n"
+                +"  //@ ensures j == i;\n"
+                +"  public static void setj(int i) {\n"
+                +"    k = i;\n" // Intentionally k - but precondition is false, so does not violate the assignable clause
+                +"  }\n"
+                +"  //@ ensures j == 1;\n"
+                +"  public static void main(String[] args) {\n"
+                +"    setj(0);\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/A.java:11: JML precondition is false"
+                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: JML precondition is false"
+                ,"/tt/A.java:10: JML postcondition is false"
+                ,"/tt/A.java:9: Associated declaration"
+        );
+    }
+    
+    @Test public void testAssignable3() {
+        helpTCX("tt.A","package tt; public class A {\n"
+                +"  static int j=0,k;\n"
+                +"  //@ requires i > 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ ensures j == i;\n"
+                +"  public static void setj(int i) {\n"
+                +"    j = i;\n" 
+                +"  }\n"
+                +"  //@ ensures j == 1;\n"
+                +"  public static void main(String[] args) {\n"
+                +"    setj(1);\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/A.java:4: JML An item is assigned that is not in the assignable statement"
+                ,"/tt/A.java:9: Associated declaration" // FIXME - this does not make sense
+        );
     }
     
     @Test public void testLabelledStatement() {

@@ -1,4 +1,12 @@
 Recent stuff
+- new options: RAC source, Rac check assumptions, Rac display mode, esc Asserts, style of ESC
+- old options: --noJML --roots --showbb, --stopIfParseErrors
+- get rid of old update site versions
+- try packaging solvers
+- ESC on MAC
+- review api tests and interface
+- handling .jml files
+- review verbosity, progress monitors
 
 Recent stuff - UI
 - typechecking a WorkingSet causes tasks to be run in parallel (in different contexts) - and it is not clear from the UI what is happening
@@ -20,6 +28,11 @@ Recent stuff - UI
 - preferences: roots; remove noInternalSpecs
 - incrementality
 
+Other
+-- compile style
+-- annotations processing
+-- generics
+-- test locale; more localization
 
 Product pieces
 - typechecker for JML and extensions
