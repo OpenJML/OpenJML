@@ -1347,8 +1347,6 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",14
-                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assignable) in method m3bad",9
-                ,"/tt/TestJava.java:23: warning: Associated declaration",7
                 ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3badb",9
                 ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3badc",9
                 ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m4bad",10
