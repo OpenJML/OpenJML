@@ -323,8 +323,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
     /** Suffix for the name of a basic block after an if statement */
     public static final String AFTERIF = "_afterIf";
     
-    /** Prefix for branch condition variables */
-    public static final String BRANCHCONDITION_PREFIX = "branchCondition_";
+//    /** Prefix for branch condition variables */
+//    public static final String BRANCHCONDITION_PREFIX = "branchCondition_";
     
 
     

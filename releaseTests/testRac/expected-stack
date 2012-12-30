@@ -1,6 +1,6 @@
 START
 ../testfiles/testRac/A.java:4: JML assertion is false
 org.jmlspecs.utils.Utils$JmlAssertionError: ../testfiles/testRac/A.java:4: JML assertion is false
-	at org.jmlspecs.utils.Utils.assertionFailure(Utils.java:44)
+	at org.jmlspecs.utils.Utils.assertionFailure(Utils.java:51)
 	at A.main(A.java:4)
 END

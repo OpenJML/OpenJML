@@ -763,7 +763,12 @@ public class JmlTreeUtils {
      */
     public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, @NonNull JCExpression init) {
         int modifierFlags = 0;
-        VarSymbol v = new VarSymbol(modifierFlags, name, type, owner);
+        // We use type.baseType() here to remove any constType in case the 
+        // expression the type came from is a literal. This made the difference 
+        // in making the racnew2.testLblConst test work.
+        // TODO - figure out why - something in code generation
+        // TODO - where else should we be using baseType()?
+        VarSymbol v = new VarSymbol(modifierFlags, name, type.baseType(), owner);
         JCVariableDecl d = factory.VarDef(v,init);
         d.pos = init.pos;
         return d;

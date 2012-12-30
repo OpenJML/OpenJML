@@ -67,3 +67,5 @@ JML options:
   -subexpressions            ESC: Enables tracing with subexpressions
   -roots                     Enables the Reflective Object-Oriented Testing System---w00t!
   -crossRefAssociatedInfo    >...
+  -showRacSource             RAC: Enables error messages with source information [-noRacSource=false]
+  -noRacSource               RAC: Enables error messages with source information

@@ -79,7 +79,8 @@ public class racnew extends RacBase {
     }
 
     // FIXME - need to put in type conversion
-    public void _testAssertion3() {
+    @Ignore
+    @Test public void testAssertion3() {
         helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { //@ assert false: args.length; \n System.out.println(\"END\"); }}"
                 ,"/tt/TestAssert.java:1: JML assertion is false"
                 ,"END"
@@ -159,10 +160,10 @@ public class racnew extends RacBase {
     /** Failed precondition with nowarn */
     @Test public void testPrecondition2NoWarn() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(0); \n" +
+                "m(0); //@ nowarn Precondition;\n" +
                 "System.out.println(\"END\"); }\n" +
-                " /*@ requires i != 0; */ \n" +
-                " static void m(int i) {} //@ nowarn Precondition;\n" +
+                " /*@ requires i != 0; */ //@ nowarn Precondition;\n" +
+                " static void m(int i) {} \n" +
                 "}"
                 ,"END"
                 );
@@ -243,9 +244,11 @@ public class racnew extends RacBase {
     }
 
     @Test public void testPostcondition1Nowarn() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ ensures k == 0; */ /*@ nowarn Postcondition;*/\n"+
-                " static int m(int i) { k = i; return 13; } " +
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                " m(1); System.out.println(\"END\"); } /*@ nowarn Postcondition;*/\n" +
+                " static int k = 0; \n" +
+                " /*@ ensures k == 0; */ \n"+
+                " static int m(int i) { k = i; return 13; }/*@ nowarn Postcondition;*/ " +
                 "}"
                 ,"END"
                 );
@@ -652,7 +655,7 @@ public class racnew extends RacBase {
                 "//@ assert \\nonnullelements(s2null,new Integer[]{5/z}); \n" +
                 "System.out.println(\"END\"); } \n" +
                 " static void m(Object[] o) { \n" +
-                "//@ assert (\\lblpos ELEM \\nonnullelements(o)); \n" +
+                "//@ assert (\\lbl ELEM \\nonnullelements(o)); \n" +
                 "} " +
                 "}"
                 ,"LABEL ELEM = true"
@@ -672,7 +675,7 @@ public class racnew extends RacBase {
                 "m(null); \n" +
                 "System.out.println(\"END\"); } \n" +
                 " static void m(/*@nullable*/Object[] o) { \n" +
-                "//@ assert (\\lblpos ELEM \\nonnullelements((\\lbl O o))); \n" +
+                "//@ assert (\\lbl ELEM \\nonnullelements((\\lbl O o))); \n" +
                 "} " +
                 "}"
                 ,"LABEL O = null"
@@ -1169,7 +1172,8 @@ public class racnew extends RacBase {
                 +"}}"
                 ,"START"
                 ,"MID"
-                ,"/$A/tt/A.jml:2: JML constraint is false"
+                ,"/tt/A.java:3: JML constraint clause is false on leaving method"
+                ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"END"
                 );
     }
@@ -1404,8 +1408,8 @@ public class racnew extends RacBase {
                 +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: Variable declaration containing JML quantifier expression",25
-                ,"/tt/A.java:4: Note: Not implemented for runtime assertion checking: Variable declaration containing JML quantifier expression",26
+                ,"/tt/A.java:3: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression",25
+                ,"/tt/A.java:4: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression",26
                 ,"A false false"
                 ,"END"
         );
@@ -1498,7 +1502,7 @@ public class racnew extends RacBase {
                 +"//@ debug System.out.println(\"A \" + n1); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: Variable declaration containing JML quantifier expression",23
+                ,"/tt/A.java:3: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression",23
                 ,"A 0"
                 ,"END"
         );
@@ -1859,8 +1863,8 @@ public class racnew extends RacBase {
                 +"   local = (String)ooo;"
                 +"System.out.println(\"END\"); "
                 +"}} class B { //@ model  int i; \n}"
-                ,"/tt/A.java:4: JML assignment of null to non_null"
-                ,"/tt/A.java:7: JML assignment of null to non_null"
+                ,"/tt/A.java:4: JML assignment of null to a non_null variable"
+                ,"/tt/A.java:7: JML assignment of null to a non_null variable"
                 ,"END"
                 );
 
@@ -1874,7 +1878,7 @@ public class racnew extends RacBase {
                 +"   A.ooo = null;\n"
                 +"System.out.println(\"END\"); "
                 +"}} class B { //@ model  int i; \n}"
-                ,"/tt/A.java:4: JML assignment of null to non_null"
+                ,"/tt/A.java:4: JML assignment of null to a non_null variable"
                 ,"END"
                 );
 
@@ -1910,8 +1914,8 @@ public class racnew extends RacBase {
                 +"   //@ ghost String loc = null; \n"
                 +"System.out.println(\"END\"); "
                 +"}} class B { //@ model  int i; \n}"
-                ,"/tt/A.java:3: JML null initialization of non_null variable ooo"
-                ,"/tt/A.java:7: JML null initialization of non_null variable loc"
+                ,"/tt/A.java:3: JML null initialization of non_null field ooo"
+                ,"/tt/A.java:7: JML null initialization of non_null field loc"
                 ,"END"
                 );
     }
@@ -2193,8 +2197,8 @@ public class racnew extends RacBase {
                 +"    setj(1);\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/A.java:4: JML An item is assigned that is not in the assignable statement"
-                ,"/tt/A.java:9: Associated declaration" // FIXME - this does not make sense
+                ,"/tt/A.java:7: JML An item is assigned that is not in the assignable statement"
+                ,"/tt/A.java:4: Associated declaration" // FIXME - this does not make sense
         );
     }
     

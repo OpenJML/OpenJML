@@ -461,6 +461,7 @@ public class racnew2 extends RacBase {
                 "//@ assert (\\lbl STRING \"abc\") != null; \n" +
                 "} " +
                 "}"
+                ,"LABEL OBJECT = null"
                 ,"LABEL INT = 4"
                 ,"LABEL SHORT = 1"
                 ,"LABEL LONG = 2"

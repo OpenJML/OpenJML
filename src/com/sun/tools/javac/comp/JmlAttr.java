@@ -3477,10 +3477,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1).setType(syms.booleanType));
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString(q.op == JmlToken.BSMIN ? "_min$$$" : "_max$$$"), F.Type(restype), F.Literal(restype.tag,0).setType(restype));
                 valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
-//            } else if (q.op == JmlToken.BSMIN) {
-//                firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTags.BOOLEAN), F.Literal(TypeTags.BOOLEAN,1).setType(syms.booleanType));
-//                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_min$$$"), F.Type(restype), F.Literal(restype.tag,0).setType(restype));
-//                valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
             } else {
                 return;
             }

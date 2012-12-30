@@ -145,7 +145,7 @@ public class Utils {
     /** Tests that an array and all the elements of the array are non-null 
      * @param array the array to test
      * @return true if all elements are not null, false if at least one is
-     */  // FIXME - this is a different style from the others - it emits no message
+     */
     public static boolean nonnullElementCheck(Object[] array) {
         if (array == null) return false;
         for (Object o: array) {
