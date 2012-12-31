@@ -894,7 +894,7 @@ public class JmlSpecs {
         MethodSpecs mspecs = new MethodSpecs(m.mods,ms);
         ms.pos = m.pos;
         ms.decl = m;
-        ms.deSugared = ms;
+        ms.deSugared = null;// FIXME - was ms?
         return mspecs;
     }
 
@@ -904,7 +904,7 @@ public class JmlSpecs {
         MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
         ms.pos = pos;
         ms.decl = null;
-        ms.deSugared = ms;
+        ms.deSugared = null; // FIXME- was ms?
         return mspecs;
     }
 

@@ -311,7 +311,7 @@ public class racnew extends RacBase {
                 +"  static void m(int i) { k = i; } " +
                 "}"
                 ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: /tt/TestJava.java:10: JML postcondition is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:42)"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:27)"
                 ,"\tat tt.TestJava.m(TestJava.java:10)"
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 );
@@ -357,7 +357,7 @@ public class racnew extends RacBase {
                 +" /*@ requires true; \nsignals_only \\nothing; */\n"
                 +"static void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
                 +"}"
-                ,"/tt/TestJava.java:8: JML signals_only condition is false"
+                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause"
                 ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
@@ -385,7 +385,7 @@ public class racnew extends RacBase {
                 +" /*@ requires true; \nsignals_only java.io.FileNotFoundException; */\n"
                 +"static void m(int i) throws Exception, java.io.FileNotFoundException { throw new Exception(); } "
                 +"}"
-                ,"/tt/TestJava.java:8: JML signals_only condition is false"
+                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause"
                 ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
@@ -400,7 +400,8 @@ public class racnew extends RacBase {
                 +" /*@ requires true; \n*/\n"
                 +"static void m(int i) throws java.io.FileNotFoundException { throw new RuntimeException(); } "
                 +"}"
-                ,"/tt/TestJava.java:8: JML unexpected exception"
+                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause"
+                ,"/tt/TestJava.java:8: Associated declaration"
                 ,"END"
                 );
     }
@@ -414,6 +415,20 @@ public class racnew extends RacBase {
                 +" /*@ requires true; \n*/\n"
                 +"static void m(int i) throws java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
                 +"}"
+                ,"END"
+                );
+    }
+
+    @Test public void testSignalsOnlyDefault2() {
+        helpTCX("tt.TestJava","package tt; public class TestJava {\n"
+                +" public static void main(String[] args) { \n"
+                +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
+                +"} \n"
+                +"static int k = 0; \n"
+                +" \n"
+                +"static void m(int i) throws java.io.FileNotFoundException { throw new RuntimeException(); } "
+                +"}"
+                ,"/tt/TestJava.java:8: JML unexpected exception" // FIXME - what about this case?
                 ,"END"
                 );
     }
@@ -807,18 +822,40 @@ public class racnew extends RacBase {
                 "} " +
                 "}"
                 ,"/tt/TestJava.java:3: JML Division by zero"
-                ,"/tt/TestJava.java:3: JML precondition is undefined - exception thrown"
+                ,"JML undefined precondition - exception thrown" // FIXME - this should have a line number
+                ,"java.lang.ArithmeticException: / by zero"
+                ,"\tat tt.TestJava.main(TestJava.java:3)"
+                ,"/tt/TestJava.java:3: JML Division by zero"
+                ,"Runtime exception while evaluating preconditions - preconditions are undefined in JML"
+                ,"java.lang.ArithmeticException: / by zero"
+                ,"\tat tt.TestJava.m(TestJava.java:3)"
+                ,"\tat tt.TestJava.main(TestJava.java:2)"
                 ,"VALUE 0"
+                ,"JML undefined precondition while checking postconditions - exception thrown"
+                ,"java.lang.ArithmeticException: / by zero"
+                ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"VALUE 1"
                 ,"/tt/TestJava.java:4: JML Division by zero"
-                ,"/tt/TestJava.java:4: JML postcondition is undefined - exception thrown"
+                ,"Runtime exception while evaluating postconditions - postconditions are undefined in JML"
+                ,"java.lang.ArithmeticException: / by zero"
+                ,"\tat tt.TestJava.m(TestJava.java:4)"
+                ,"\tat tt.TestJava.main(TestJava.java:2)"
+                ,"/tt/TestJava.java:4: JML Division by zero"
+                ,"JML undefined postcondition - exception thrown"
+                ,"java.lang.ArithmeticException: / by zero"
+                ,"\tat tt.TestJava.main(TestJava.java:4)"
                 ,"VALUE 2"
-                ,"/tt/TestJava.java:4: JML postcondition is false"
+                ,"/tt/TestJava.java:5: JML postcondition is false"
+                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"/tt/TestJava.java:4: Associated declaration"
                 ,"END"
                 );
-        
+        // FIXME - would like to make the stack traces above more helpful
     }
     
+    // tests that requires clauses in the same spec case are evaluated in order as if connected by &&
+    // (if not, in this case we would get an exception)
     @Test public void testUndefined2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); m(1); System.out.println(\"END\"); } \n" +
@@ -1896,10 +1933,10 @@ public class racnew extends RacBase {
                 +"   //@ ghost non_null String loc = null; \n"
                 +"System.out.println(\"END\"); "
                 +"}} class B { //@ model  int i; \n}"
-                ,"/tt/A.java:2: JML null initialization of non_null variable oo"
-                ,"/tt/A.java:4: JML null initialization of non_null variable oooo"
-                ,"/tt/A.java:6: JML null initialization of non_null variable local"
-                ,"/tt/A.java:7: JML null initialization of non_null variable loc"
+                ,"/tt/A.java:2: JML null initialization of non_null field oo"
+                ,"/tt/A.java:4: JML null initialization of non_null field oooo"
+                ,"/tt/A.java:6: JML null initialization of non_null field local"
+                ,"/tt/A.java:7: JML null initialization of non_null field loc"
                 ,"END"
                 );
     }

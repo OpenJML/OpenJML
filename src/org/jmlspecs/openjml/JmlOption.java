@@ -43,8 +43,8 @@ public enum JmlOption implements IOption {
     PROVER("-prover",true,"The prover to use to check verification conditions",null),
     PROVEREXEC("-exec",true,"The prover executable to use",null),
 
-    NONNULLBYDEFAULT("-nonnullByDefault",false,"Makes references non_null by default",null),
-    NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default","-nonnullByDefault=false"),
+    NONNULLBYDEFAULT("-nonnullByDefault",false,"Makes references non_null by default","-nullableByDefault=false"),
+    NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default",null),
     SPECS("-specspath",true,"Specifies the directory path to search for specification files",null),
     NOCHECKSPECSPATH("-noCheckSpecsPath",false,"When on, no warnings for non-existent specification path directories are issued",null),
     NOPURITYCHECK("-noPurityCheck",false,"When on, no warnings for use of impure methods are issued",null),

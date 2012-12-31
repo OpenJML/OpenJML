@@ -118,7 +118,7 @@ public class escnew extends EscBase {
                 +"public class TestJava { \n"
                 
                 +"  //@ signals (Exception) false;\n"
-                +"  public void m1bad(int[] a, int i) {\n"
+                +"  public void m1bad(int[] a, int i) throws RuntimeException {\n"
                 +"    throw new RuntimeException(); \n"
                 +"  }\n"
                 
@@ -137,7 +137,7 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"  //@ ensures false;\n"
-                +"  public void m2good(int[] a, int i) {\n"
+                +"  public void m2good(int[] a, int i) throws RuntimeException {\n"
                 +"    throw new RuntimeException(); \n"
                 +"  }\n"
                 
@@ -365,6 +365,7 @@ public class escnew extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
+                +"  /*@ signals_only \\nothing;*/\n" // FIXME - this used to be part of the default if there were no spec cases at all.
                 +"  public int z(int i)  {\n"
                 +"      return i;\n"
                 +"  }\n"
@@ -378,15 +379,15 @@ public class escnew extends EscBase {
                 +"      z(k/k);\n"
                 +"  }\n"
                 
-                +"  //@ requires k > 0; \n"
+                +"  //@ requires k > 0;  \n"
                 +"  public int m1good(int k)  {\n"
                 +"      int i = z(k/k);\n"
                 +"      return i;\n"
                 +"  }\n"
                 +"  }\n"
                 
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1bad",18
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",10
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1bad",18
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",10
 
                 );
     }

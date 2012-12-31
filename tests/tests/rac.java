@@ -23,9 +23,9 @@ public class rac extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        options.put("-showNotImplemented", "");
-        options.put("-noPurityCheck",""); // System specs have a lot of purity errors, so turn this off for now
-        options.put("-noInternalSpecs",   ""); // Faster with this option; should work either way
+        main.addOptions("-showNotImplemented");
+        main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
+        main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way
 //        options.put("-jmldebug",   "");
         expectedNotes = 0;
     }
@@ -244,7 +244,7 @@ public class rac extends RacBase {
                 +"  static void m(int i) { k = i; } " +
                 "}"
                 ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: /tt/TestJava.java:10: JML postcondition is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:48)"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:24)"
                 ,"\tat tt.TestJava.m(TestJava.java:10)"
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 );
@@ -328,7 +328,7 @@ public class rac extends RacBase {
                 +" /*@ requires true; \n*/\n"
                 +"static void m(int i) throws java.io.FileNotFoundException { throw new RuntimeException(); } "
                 +"}"
-                ,"/tt/TestJava.java:8: JML unexpected exception"
+                ,"/tt/TestJava.java:8: JML signals_only condition is false"
                 ,"END"
                 );
     }
