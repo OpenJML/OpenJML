@@ -20,6 +20,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.SpecPublic;
 
@@ -131,11 +132,16 @@ public class JmlProblemRequestor implements IProblemRequestor {
 				// The 64 is ProblemSeverities.SecondaryError, which has discouraged access
 				severity == 64 || finalErrorMessage.contains("The prover") 
 				|| finalErrorMessage.contains("Associated declaration");
+			// The OpenJML note is translated to ProblemSeverities.Ignore, for
+			// lack of a better mapping. The p.isWarning() includes the Ignore
+			// category - so we can't use it directly. Actually(), p.isError()
+			// does not include all error categories (TODO - clean this up?)
 			final int finalSeverity = 
 				staticCheckWarning ? IMarker.SEVERITY_WARNING :
-					p.isWarning() ? IMarker.SEVERITY_WARNING :
-						severity > 0  ? IMarker.SEVERITY_ERROR :
-							IMarker.SEVERITY_INFO;
+					p.isError() ? IMarker.SEVERITY_ERROR :
+					severity == ProblemSeverities.Ignore ? IMarker.SEVERITY_INFO :
+					severity > 0  ? IMarker.SEVERITY_ERROR :
+					                IMarker.SEVERITY_WARNING ;
 
 			// Eclipse recommends that things that modify the resources
 			// in a workspace be performed in a IWorkspaceRunnable

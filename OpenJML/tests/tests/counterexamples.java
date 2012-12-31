@@ -312,7 +312,7 @@ public class counterexamples extends EscBase {
                 +"  //@ also requires i==0; \n"
                 +"  //@ ensures false;\n"
                 +"  //@ signals (RuntimeException e) k==1;\n"
-                +"  public void cc(int i) {\n"
+                +"  public void cc(int i) throws RuntimeException {\n"
                 +"      k=1; if (i==0) throw new RuntimeException();\n"
                 +"      k=0; return ;\n"
                 +"  }\n"
@@ -344,7 +344,7 @@ public class counterexamples extends EscBase {
                 +"  }\n"
                 
                 +"  //@ ensures \\result == i+10;\n"
-                +"  public int c(int i) {\n"
+                +"  public int c(int i) throws RuntimeException {\n"
                 +"    return i+10;\n"
                 +"  }\n"
                 +"}\n"

@@ -11,13 +11,9 @@ public class esc extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        options.put("-noPurityCheck","");
-        options.put("-nullableByDefault",""); // Because the tests were written this way
-        //options.put("-jmlverbose",   "");
-        //options.put("-showbb",   "");
-        //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
-        //options.put("-trace",   "");
+        main.addOptions("-noPurityCheck");
+        main.addOptions("-nullableByDefault"); // Because the tests were written this way
+        //main.addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
@@ -26,7 +22,6 @@ public class esc extends EscBase {
     // FIXME - causes a prover failure
     @Test @Ignore
     public void testCollect() {
-        options.put("-showbb","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                 +"  //@ invariant \\type(Short) <: \\type(java.lang.Long);\n"
@@ -200,7 +195,6 @@ public class esc extends EscBase {
 
     @Test
     public void testForEach3() {  
-        //options.put("-escdebug",""); options.put("-showbb",""); options.put("-showds",""); options.put("-trace",""); options.put("-method","m9");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -346,7 +340,6 @@ public class esc extends EscBase {
     // Test well-definedness within the implicit old
     @Test
     public void testNonNullElements() {
-        //options.put("-showbb",""); options.put("-method", "m1a"); options.put("-trace","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -525,7 +518,7 @@ public class esc extends EscBase {
                 +"public class TestJava { \n"
                 
                 +"  int i;\n"
-                +"  static TestJava t;\n"
+                +"  static /*@ nullable */ TestJava t;\n"
                 
                 +"  //@ requires t != null;\n"
                 +"  //@ modifies \\everything;\n"
@@ -563,7 +556,7 @@ public class esc extends EscBase {
     // TODO - test not_modified and old nested in each other; remember to test definedness            
 
     @Test
-    public void testFresh() {
+    public void testFresh() { 
         helpTCX("tt.TestJava","package tt; \n"
                 +"abstract public class TestJava { \n"
                 
@@ -828,7 +821,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables1a() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -852,7 +844,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables1b() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -877,7 +868,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables1c() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -901,7 +891,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables1d() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -929,7 +918,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables6a() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -954,7 +942,6 @@ public class esc extends EscBase {
 
     @Test
     public void testAssignables6b() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -982,7 +969,6 @@ public class esc extends EscBase {
 
     @Test
     public void testAssignables6c() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1007,7 +993,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables6d() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1035,7 +1020,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables5a() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1060,7 +1044,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables5b() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1087,7 +1070,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables5c() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1112,7 +1094,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables5d() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1138,7 +1119,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables5e() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1161,7 +1141,6 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables5f() {
-        //options.put("-method","m1x");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1496,7 +1475,7 @@ public class esc extends EscBase {
                 +"  //@ modifies k;\n"
                 +"  //@ ensures k == 10;\n"
                 +"  //@ signals (Exception e) k<0;\n"
-                +"  public void m1(int i) {\n"
+                +"  public void m1(int i) throws RuntimeException {\n"
                 +"    m(i);\n"
                 +"    k = 10;\n"
                 +"  }\n"
@@ -1508,7 +1487,7 @@ public class esc extends EscBase {
                 +"    m(1);\n"
                 +"    m(2);\n"
                 +"    k = 10;\n"
-                +"  }\n"
+                +"  }\n" // Line 20
 
                 +"  //@ requires i >= 0;\n"
                 +"  //@ modifies k;\n"
@@ -1531,7 +1510,7 @@ public class esc extends EscBase {
                 +"  }\n"
                 
                 +"  //@ requires i >= 0;\n"
-                +"  //@ modifies k;\n"
+                +"  //@ modifies k;\n" // Line 40
                 +"  //@ ensures \\result == 12;\n"
                 +"  //@ signals (Exception e) false;\n"
                 +"  public int m4(int i) {\n"
@@ -1554,7 +1533,7 @@ public class esc extends EscBase {
                 +"    return 10+m(0)+m(2);\n"
                 +"  }\n"
                 
-                +"  //@ requires i == 0;\n"
+                +"  //@ requires i == 0;\n" // Line 60
                 +"  //@ modifies k;\n"
                 +"  //@ ensures k>0 && \\result == i+1;\n"
                 +"  //@ signals (Exception e) false;\n"
@@ -1564,7 +1543,7 @@ public class esc extends EscBase {
                 +"  //@ ensures false;\n"
                 +"  //@ signals (Exception e) k == -10-i;\n"
                 +"  //@ signals_only Exception;\n"
-                +"  public int m(int i) {\n"
+                +"  public int m(int i) {\n"  // Line 70
                 +"    if (i > 0) {\n"
                 +"      k = -10-i;\n"
                 +"      throw new RuntimeException();\n"
@@ -1649,18 +1628,28 @@ public class esc extends EscBase {
                 
                 +"  //@ requires ii == 10;\n"
                 +"  //@ ensures true;\n"
-                +"  public Object insx(int ii) { binstance = ii == 0;           /*@ set oo = null;*/ return null; }\n"
-                +"}",
-                "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8, // nothing sets bstatic true
-                "/tt/TestJava.java:8: warning: Associated declaration",23,  // Only one error reported per method - could be any one of these
-                //"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8, // nothings sets binstance true
-                //"/tt/TestJava.java:9: warning: Associated declaration",16,
-                //"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",8, // nothing sets binstance2 true
-                //"/tt/TestJava.java:10: warning: Associated declaration",16,
-                "/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method i(int)",21, // precondition is false
-                "/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method inst",55,
-                "/tt/TestJava.java:25: warning: The prover cannot establish an assertion (Invariant) in method insx",84, // binstance is false
-                "/tt/TestJava.java:9: warning: Associated declaration",16
+                +"  public Object insx(int ii) { binstance = true;           /*@ set oo = null;*/ return null; }\n"
+                
+                +"  //@ requires ii == 10;\n"
+                +"  //@ ensures true;\n"
+                +"  public Object insy(int ii) { binstance = ii == 0;            return null; }\n"
+                
+                +"  //@ requires ii == 10;\n"
+                +"  //@ ensures true;\n"
+                +"  public Object insz(int ii) { binstance = ii == 0;            return o; }\n"
+                +"}"
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8 // nothing sets bstatic true
+                ,"/tt/TestJava.java:8: warning: Associated declaration",23  // Only one error reported per method - could be any one of these
+                //,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8 // nothings sets binstance true
+                //,"/tt/TestJava.java:9: warning: Associated declaration",16
+                //,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",8 // nothing sets binstance2 true
+                //,"/tt/TestJava.java:10: warning: Associated declaration",16
+                ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method i(int)",21 // precondition is false
+                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method inst",55
+                ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Invariant) in method insy",64 // binstance is false
+                ,"/tt/TestJava.java:9: warning: Associated declaration",16
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Invariant) in method insz",64 // binstance is false
+                ,"/tt/TestJava.java:9: warning: Associated declaration",16
         );
     }
 
@@ -1766,7 +1755,6 @@ public class esc extends EscBase {
 
     @Test
     public void testOld() {
-      //options.put("-showbb","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static int i;\n"
@@ -1843,8 +1831,7 @@ public class esc extends EscBase {
 
     @Test
     public void testNonNull2() {
-        options.put("-nullableByDefault",null);
-        options.put("-nonnullByDefault","");
+        main.addOptions("-nonnullByDefault");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ii == 10;\n"
@@ -1883,7 +1870,7 @@ public class esc extends EscBase {
 
     @Test
     public void testNonNull4() {
-        options.put("-nullableByDefault",null);
+        main.addOptions("-nullableByDefault=false");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ii == 10;\n"
@@ -1903,8 +1890,7 @@ public class esc extends EscBase {
     // Tests that a cast is nonnull if the argument is
     @Test
     public void testNonNull5() {
-        options.put("-nullableByDefault",null);
-        //options.put("-showbb", "");
+        main.addOptions("-nullableByDefault=false");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public Integer inst() { \n"
@@ -1931,6 +1917,26 @@ public class esc extends EscBase {
     public void testNonNullParam() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
+                +"  \n"
+                +"  public /*@ non_null*/Object inst(boolean b, /*@ non_null */Object i, Object ii) { return i; }\n"
+                +"  \n"
+                +"  public /*@ non_null*/Object instbad(boolean b, /*@ non_null */Object i, Object ii) { return ii; }\n"
+                +"  \n"
+                +"  public /*@ non_null*/Object inst2(boolean b, @NonNull Object i, Object ii) { return i; }\n"
+                +"  \n"
+                +"  public /*@ non_null*/Object inst2bad(boolean b, @NonNull Object i, Object ii) { return ii; }\n"
+                +"}",
+                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",88,
+                "/tt/TestJava.java:6: warning: Associated declaration",14,
+                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 83,
+                "/tt/TestJava.java:10: warning: Associated declaration",14
+        );
+    }
+
+    @Test
+    public void testNonNullParamNL() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
                 +"  //@ ensures \\result != null;\n"
                 +"  public Object inst(boolean b, /*@ non_null */Object i, Object ii) { return i; }\n"
                 +"  //@ ensures \\result != null;\n"
@@ -1944,13 +1950,30 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:5: warning: Associated declaration",7,
                 "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad", 69,
                 "/tt/TestJava.java:9: warning: Associated declaration",7
+
+        );
+    }
+
+    @Test
+    public void testNonNullParamNL2() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                +"  \n"
+                +"  public Object inst(boolean b, /*@ non_null */Object i, Object ii) { return i; }\n"
+                +"  \n"
+                +"  public Object instbad(boolean b, /*@ non_null */Object i, Object ii) { return ii; }\n"
+                +"  \n"
+                +"  public Object inst2(boolean b, @NonNull Object i, Object ii) { return i; }\n"
+                +"  \n"
+                +"  public Object inst2bad(boolean b, @NonNull Object i, Object ii) { return ii; }\n"
+                +"}"
+
         );
     }
 
     @Test
     public void testNonNullParam2() {
-        options.put("-nullableByDefault",null);
-        options.put("-nonnullByDefault","");
+        main.addOptions("-nonnullByDefault");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ ensures \\result != null;\n"
@@ -1971,7 +1994,7 @@ public class esc extends EscBase {
 
     @Test
     public void testNonNullParam3() {
-        options.put("-nullableByDefault",null);
+        main.addOptions("-nullableByDefault=false");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 +"  //@ ensures \\result != null;\n"
@@ -1992,7 +2015,7 @@ public class esc extends EscBase {
 
     @Test
     public void testNonNullParam4() {
-        options.put("-nullableByDefault",null);
+        main.addOptions("-nullableByDefault=false");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ ensures \\result != null;\n"
@@ -2071,7 +2094,6 @@ public class esc extends EscBase {
 
     @Test
     public void testMethodCallRet() {
-        //options.put("-showbb",""); options.put("-trace",""); options.put("-method","inst2");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  static public int j;\n"
@@ -2235,7 +2257,6 @@ public class esc extends EscBase {
 
     @Test
     public void testWhileSpecs() {
-        //options.put("-showbb",""); options.put("-trace",""); options.put("-method","insta");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void insta() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
@@ -2508,7 +2529,6 @@ public class esc extends EscBase {
     
     @Test
     public void testArraysMD2() {
-        //options.put("-method", "inst5x");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst5x(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; */  a[0] = a[1]; /*@ assert a[0][3] == a[1][3]; */}\n" // OK
@@ -2523,7 +2543,6 @@ public class esc extends EscBase {
     
     @Test
     public void testArraysMD3() {
-        //options.put("-method", "inst5x");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst7(/*@non_null*/boolean[][] a, /*@non_null*/boolean[][] b) { /*@ assume b.length == 10 && a.length == 10 && b[0] != null && a[0] != null && b[0].length == 5 && a[0].length==6;*/ b[0][0] = true; b = a; a[0][0] = false; /*@ assert !b[0][0]; */}\n" // OK
@@ -3097,7 +3116,7 @@ public class esc extends EscBase {
                 +"  public static void m7a(TestJava o) { \n"
                 +"    boolean i = p(o) || o.z() == 0; \n"
                 +"  }\n"
-                +"  public int z() { return 0; }\n"
+                +"  //@ signals_only \\nothing; \n public int z() { return 0; }\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m0",14
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m6a",32
@@ -3148,7 +3167,7 @@ public class esc extends EscBase {
                 +"  public static void m7a(TestJava o) { \n"
                 +"    boolean i = p(o) || o.z() == 0; \n"
                 +"  }\n"
-                +"  public static int z() { return 0; }\n"
+                +"  //@ signals_only \\nothing; \n public static int z() { return 0; }\n"
                 +"}"
         );
     }
@@ -3495,9 +3514,6 @@ public class esc extends EscBase {
     
     @Test
     public void testCatch2() {
-//        options.put("-showbb","");
-//        options.put("-trace","");
-//        options.put("-method","mx");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void mx() {\n"
@@ -3715,13 +3731,13 @@ public class esc extends EscBase {
                 +"  //@ requires i >= 0;\n"
                 +"  //@ ensures i>0;\n"
                 +"  //@ signals (Exception e) i == 0;\n"
-                +"  public void m3() {\n"
+                +"  public void m3() throws RuntimeException {\n"
                 +"    if (i==0) throw new RuntimeException();\n"
                 +"  }\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ ensures i>0;\n"
                 +"  //@ signals (Exception e) i == 1;\n" // FAILS
-                +"  public void m3a() {\n"
+                +"  public void m3a() throws RuntimeException {\n"
                 +"    if (i==0) throw new RuntimeException();\n"
                 +"  }\n"
                 +"}"

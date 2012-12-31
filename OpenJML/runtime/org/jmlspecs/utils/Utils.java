@@ -15,6 +15,18 @@ import org.jmlspecs.annotation.*; // Keep this to match the .jml file, for now
  */
 public class Utils {
 
+    /** Reports a JML assertion (any JML precondition, postcondition, etc.)
+     * failure with the given message.
+     * @param message The message to report
+     */
+    // This one is declared first to minimize changes to its location 
+    public static void assertionFailure(String message) {
+        if (useExceptions) throw new JmlAssertionError(message);
+        //if (useJavaAssert) assert false: message;
+        System.out.println(message); System.out.flush();
+        if (showStack) (new JmlAssertionError(message)).printStackTrace(System.out);
+    }
+    
     //@ public normal_behavior
     //@    ensures \result.size() == 0;
     static public /*@non_null pure */ <E> org.jmlspecs.lang.JMLList<E> defaultEmpty() {
@@ -40,18 +52,7 @@ public class Utils {
     static final public String invariantMethodString = "_JML$$$checkInvariant";
     static final public String staticinvariantMethodString = "_JML$$$checkStaticInvariant";
 
-    /** Reports a JML assertion (any JML precondition, postcondition, etc.)
-     * failure with the given message.
-     * @param message The message to report
-     */
-    public static void assertionFailure(String message) {
-        if (useExceptions) throw new JmlAssertionError(message);
-        //if (useJavaAssert) assert false: message;
-        System.out.println(message); System.out.flush();
-        if (showStack) (new JmlAssertionError(message)).printStackTrace(System.out);
-    }
-    
-    /** Reports aJML assertion failure with the given message if the second argument is null
+    /** Reports a JML assertion failure with the given message if the second argument is null
      * @param message the message to report if the second argument is null
      * @param v value to be tested 
      * @return the object which is the last argument
@@ -133,6 +134,10 @@ public class Utils {
         return v;
     }
     
+    public static String typeName(Throwable t) {
+        return t.getClass().toString();
+    }
+    
     /** Reports aJML assertion failure with optional additional information
      * @param message the message to report
      * @param optMessage possibly null additional information
@@ -183,7 +188,7 @@ public class Utils {
      * @author David Cok
      */
     public static class JmlAssertionError extends java.lang.Error {
-        //private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
         /** The constructor with an informational message string
          * @param s the reason for the failure
          */
@@ -192,8 +197,19 @@ public class Utils {
         }
     }
     
-    // The remaining declarations provide a mechanism for reporting
+    // The report... methods provide a mechanism for reporting
     // values encountered during execution.
+    
+    /** Just prints out a message */
+    public static void report(String str) {
+        System.out.println(str);
+    }
+    
+    /** Prints out a message, the exception message, and the exception stack */
+    public static void reportException(String str, RuntimeException e) {
+        System.out.println(str);
+        e.printStackTrace(System.out);
+    }
 
     /** Reports a byte value under the given key
      * @param key the identifier for the value
