@@ -2,8 +2,9 @@ package org.jmlspecs.utils;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-import org.jmlspecs.annotation.*; // Keep this to match the .jml file, for now
+// Keep this to match the .jml file, for now
 
 /** 
  * This class contains utility methods used in internal translations for both
@@ -11,10 +12,9 @@ import org.jmlspecs.annotation.*; // Keep this to match the .jml file, for now
  * functionality; in ESC, the specifications written here are used to provide
  * background predicate logic for built-in functionality. 
  * @author David Cok
- *
  */
 public class Utils {
-
+    
     /** Reports a JML assertion (any JML precondition, postcondition, etc.)
      * failure with the given message.
      * @param message The message to report
@@ -386,6 +386,18 @@ public class Utils {
             System.err.println("ISTO: " + t.erasure() + " " + tt.erasure());
             return false;
         }
+    }
+    
+    public static <T> Iterator<T> iterator(Iterable<T> iterable) {
+        return iterable.iterator();
+    }
+    
+    public static <T> T next(Iterator<T> iterable) {
+        return iterable.next();
+    }
+    
+    public static boolean hasNext(Iterator<?> iterable) {
+        return iterable.hasNext();
     }
     
     // TODO - document this and following

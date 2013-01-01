@@ -974,7 +974,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCFieldAccess m = findUtilsMethod(pos,methodName);
         List<JCExpression> args = new ListBuffer<JCExpression>().appendArray(translatedArgs).toList();
         JCExpression c = M.at(pos.getPreferredPosition()).Apply(null,m,args);
-        c.setType(((Type.MethodType)m.type).restype);
+        if (m.type instanceof Type.MethodType){ 
+            c.setType(((Type.MethodType)m.type).restype);
+        } else if (m.type instanceof Type.ForAll) {
+            Type.ForAll tfa = (Type.ForAll)m.type;
+            c.setType(((Type.MethodType)tfa.qtype).restype);
+        } else {
+            // FIXME - error
+        }
         return c;
     }
 
@@ -1066,8 +1073,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCVariableDecl d = treeutils.makeVarDef(t, n, esc ? null : methodDecl.sym , pos.getPreferredPosition()); // FIXME - see note below
         // We mark all temporaries as final, as an inidcation that they will
         // be used only one.
-        d.mods.flags |= Flags.FINAL;
-        d.sym.flags_field |= Flags.FINAL;
+//        d.mods.flags |= Flags.FINAL;
+//        d.sym.flags_field |= Flags.FINAL;
         currentStatements.add(d);
         JCIdent id = M.at(pos).Ident(d.sym);
         return id;
@@ -1089,8 +1096,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 expr); // FIXME - here and above is the owner the new methodDecl or the old one, or doesn't it matter
         // We mark all temporaries as final, as an indication that they will
         // be used only one.
-        d.mods.flags |= Flags.FINAL;
-        d.sym.flags_field |= Flags.FINAL;
+//        d.mods.flags |= Flags.FINAL;
+//        d.sym.flags_field |= Flags.FINAL;
         currentStatements.add(d);
         JCIdent id = treeutils.makeIdent(expr.pos,d.sym);
         return id;
@@ -1999,13 +2006,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             error(that.pos,"Unexpected call of JmlAssertionAdder.visitContinue while translating JML: " + that.getClass());
             return;
         }
-        JCContinue st = M.at(that.pos()).Continue(that.label);
-        st.target = treeMap.get(that.target);
-        if (st.target == null) {
-            error(that.pos,"Unknown continue target");
+        if (that.label == null) {
+            JCBreak st = M.at(that.pos()).Break(that.label);
+            st.setType(that.type);
+            st.label = continueStack.get(0).getLabel();
+            st.target = continueStack.get(0);
+            result = addStat(st);
+        } else {
+            JCContinue st = M.at(that.pos()).Continue(that.label);
+            st.setType(that.type);
+            st.target = treeMap.get(that.target);
+            if (st.target == null) {
+                error(that.pos,"Unknown continue target");
+            }
+            result = addStat(st);
         }
-        st.setType(that.type);
-        result = addStat(st);
     }
     
 
@@ -3408,7 +3423,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         visitAssignopHelper(that,false);
     }
 
-    // FIXME - review
+    // OK
     protected void visitAssignopHelper(JCAssignOp that, boolean scanned) {
         JCExpression lhs = that.lhs;
         JCExpression rhs = that.rhs;
@@ -3417,12 +3432,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (lhs instanceof JCIdent) {
             // We start with: id = expr
             // We generate
+            //    ... statements for the subexpressions of lhs (if any)
             //    ... statements for the subexpressions of expr
-            //    tempRHS = ...
-            //    temp = lhs' op tempRHS
+            //    temp = lhs' op rhs'
             //    lhs' = temp
             
-            lhs = scanned ? lhs : scanExpr(lhs); // This may no longer be a JCIdent
+            lhs = scanned ? lhs : scanExpr(lhs); // This may no longer be a JCIdent (e.g. f may become this.f or T.f)
             rhs = scanned ? rhs : scanExpr(rhs);
             addBinaryChecks(that, op, lhs, rhs);
 
@@ -3431,18 +3446,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             checkAssignable(methodDecl, lhs, that);
 
             // Note that we need to introduce the temporary since the rhs contains
-            // identifiers that may be captured by the lhs.
+            // identifiers that may be captured by the lhs. - TODO - need an example?
             JCIdent id = newTemp(rhs);
-            addStat(M.at(that.pos()).Exec(treeutils.makeAssign(that.pos, lhs, id))); // type not set
-            if (lhs instanceof JCIdent) result = eresult =treeutils.makeIdent(lhs.pos,((JCIdent)lhs).sym);
+            addStat(treeutils.makeAssignStat(that.pos, lhs, id));
+            if (lhs instanceof JCIdent) result = eresult = treeutils.makeIdent(lhs.pos,((JCIdent)lhs).sym);
             else {
-                result = eresult =newTemp(lhs);
+                result = eresult = newTemp(lhs);
             }
             
         } else if (lhs instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)lhs;
             if (fa.sym.isStatic()) {
-                // FIXME - if fa.selected is actually an expression, we need to evaluate and discard it
+                if (!scanned && !isATypeTree(fa.selected)) scanExpr(fa.selected); 
                 JCExpression tree = treeutils.makeType(fa.selected.pos, fa.sym.owner.type);
                 JCFieldAccess newfa = treeutils.makeSelect(fa.selected.pos, tree, fa.sym);
                 newfa.name = fa.name;
@@ -3471,9 +3486,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // identifiers that will be captured by the lhs.
             rhs = treeutils.makeBinary(that.pos,op ,lhs,rhs);
             JCIdent id = newTemp(rhs);
-            JCAssign assign = treeutils.makeAssign(that.pos, lhs, id);
-            currentStatements.add(M.at(that.pos()).Exec(assign));
-            result = eresult =lhs;
+            addStat(treeutils.makeAssignStat(that.pos, lhs, id));
+            result = eresult = newTemp(lhs);
         } else if (lhs instanceof JCArrayAccess) {
             JCArrayAccess aa = (JCArrayAccess)lhs;
             JCExpression array = scanned ? aa.indexed : scanExpr(aa.indexed);
@@ -3484,14 +3498,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression index = scanned ? aa.index: scanExpr(aa.index);
             e = treeutils.makeBinary(index.pos, JCTree.GE, index, treeutils.zero);
             addAssert(that.pos(), Label.POSSIBLY_NEGATIVEINDEX, e, currentStatements);
-            JCFieldAccess newfa = M.at(array.pos).Select(array, syms.lengthVar.name);
-            newfa.type = syms.intType;
-            newfa.sym = syms.lengthVar;
+
+            JCFieldAccess newfa = treeutils.makeLength(array.pos(), array);
             e = treeutils.makeBinary(index.pos, JCTree.LT, index, newfa);
             addAssert(that.pos(), Label.POSSIBLY_TOOLARGEINDEX, e, currentStatements);
 
             rhs = scanned ? rhs : scanExpr(rhs);
-            lhs = new JmlBBArrayAccess(null,array,index);
+            lhs = new JmlBBArrayAccess(null,array,index); // FIXME - use factory
             lhs.pos = aa.pos;
             lhs.type = aa.type;
 
@@ -3500,12 +3513,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             // Note that we need to introduce the temporary since the rhs contains
             // identifiers that will be captured by the lhs.
-            rhs = treeutils.makeBinary(that.pos,op ,lhs,rhs);
+            rhs = treeutils.makeBinary(that.pos,op,lhs,rhs);
             JCIdent id = newTemp(rhs);
             
-            result = eresult =treeutils.makeAssign(that.pos, lhs, id);
+            addStat(treeutils.makeAssignStat(that.pos, lhs, id));
+            result = eresult = newTemp(lhs);
         } else {
-            error(that.pos,"Unexpected kind of AST in jmlAssertionAdder.visitAssignOp: " + that.getClass());
+            error(that.pos,"Unexpected kind of AST in JmlAssertionAdder.visitAssignOp: " + that.getClass());
         }
     }
 
@@ -3521,13 +3535,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCAssignOp b = M.at(that.pos()).Assignop(JCTree.MINUS_ASG,that.getExpression(),treeutils.one);
             b.setType(that.type);
             visitAssignop(b);
-            result = eresult; // FIXME - redundant?
             return;
         } else if (tag == JCTree.PREINC) {
             JCAssignOp b = M.at(that.pos()).Assignop(JCTree.PLUS_ASG,that.getExpression(),treeutils.one);
             b.setType(that.type);
             visitAssignop(b);
-            result = eresult;
             return;
         } else if (tag == JCTree.POSTDEC){
             JCExpression arg = scanExpr(that.getExpression());
@@ -3753,7 +3765,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         
-        JCExpression length = treeutils.makeLength(that.indexed.pos,indexed);
+        JCExpression length = treeutils.makeLength(that.indexed.pos(),indexed);
         if (addAsserts) {
             JCExpression compare = treeutils.makeBinary(that.pos, JCTree.LT, index, 
                     length);
@@ -4128,56 +4140,103 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlDoWhileLoop while translating JML: " + that.getClass());
             return;
         }
-      
+        if (pureCopy) {
+            JCExpression e = scanExpr(that.cond);
+            JmlDoWhileLoop loop = M.at(that.pos()).DoLoop(null,e);
+            try {
+                treeMap.put(that, loop);
+                JCStatement bl = convert(that.body);
+                loop.body = bl;
+                loop.setType(that.type);
+                loop.loopSpecs = scanCopy(that.loopSpecs); 
+                result = loop;
+            } finally {
+                treeMap.remove(that);
+            }
+            return;
+        }
+        
+        /*
+         *   loop_invariant INV
+         *   loop_variant  VAR
+         *   label: do { BODY } while (COND);
+         * becomes
+         *   {
+         *      ... declare index
+         *      assert INV
+         *      label: do {
+         *         havoc
+         *         assume INV
+         *         TEMP = VAR
+         *         assert 0 <= TEMP
+         *         loop_bodyN: {
+         *            ... statements from BODY
+         *            ... continue --> break loop_bodyN;
+         *            ... break --> break;
+         *         }
+         *         ... statements from COND // put before INV for side-effects
+         *         assert INV
+         *         TEMP2 = VAR
+         *         assert TEMP2 < TEMP
+         *         if (!COND') {
+         *             assert INV;
+         *             break;
+         *         }
+         *      } while (true);
+         *   }
+         *         
+         */
+
+        // FIXME - need label for loop if any and the target mapping
+        
+        // Outer block to restrict scopes of temporaries
+        pushBlock();
+
+        JCVariableDecl indexDecl = loopHelperDeclareIndex(that.pos());
+
+        java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
+
+        // Create this early so it is available as a target
+        JmlWhileLoop loop = M.at(that.pos()).WhileLoop(treeutils.trueLit,null);
+        treeMap.put(that, loop);
+
+        // Test that invariants hold before entering loop
+        loopHelperInitialInvariant(that.loopSpecs);
+
+        // New loop body
         pushBlock();
         
-        // Havoc any variables changed in the loop
+        // Havoc all items that migth be changed in the loop
         if (esc) {
-            ListBuffer<JCExpression> targets = TargetFinder.findVars(that.getStatement(),null);
-            TargetFinder.findVars(that.getCondition(),targets);
-            // synthesize a modifies list
-            JmlStatementHavoc st = M.at(that.body.pos).JmlHavocStatement(targets.toList());
-            st.type = Type.noType;
-            addStat(st);
-        }
-
-        scan(that.body);
-
-        if (esc) {
-            pushBlock();
-
-            JCExpression test = scanExpr(that.cond);
-            JCExpression ne = treeutils.makeNot(that.cond.pos, test);
-
-            //JmlStatementExpr as = addAssume(that.cond.pos(),Label.BRANCHT,ne,null);
-            JCStatement br = M.at(that.cond.pos).Break(null);
-            JCBlock bl = M.at(that.cond.pos).Block(0,List.<JCStatement>of(br));
-            JCStatement ifs = M.at(that.cond.pos).If(ne,bl,null);
-            ifs.type = Type.noType;
-            addStat(ifs);
-
-            //addAssume(that.cond.pos(),Label.BRANCHE,test,currentStatements);
-
-            bl = popBlock(0,that.cond.pos);
-            addStat(bl);
+           // FIXME - need havoc statement
         }
         
-        JCBlock bl = popBlock(0,that.pos);
-
-        if (esc) {
-            JmlDoWhileLoop st = M.at(that.pos()).DoLoop(bl,treeutils.trueLit);
-            st.type = Type.noType;
-            st.loopSpecs = null;
-            addStat(st);
-        }
+        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs);
         
-        if (rac) {
-            // FIXME - need to translate the condition
-            JmlDoWhileLoop st = M.at(that.pos()).DoLoop(bl,that.cond);
-            st.type = that.type;
-            st.loopSpecs = null;
-            addStat(st);
-        }
+        // Now in the loop, so check that the variants are non-negative
+        loopHelperCheckNegative(decreasesIDs, that.pos());
+        
+        // Then translate the original loop body
+        // Have to do some footwork to get the Block object before constructing its contents
+        
+        loopHelperMakeBody(that.body);
+        
+        // Now compute any side-effects of the loop condition
+        JCExpression cond = scanExpr(that.cond);
+        
+        // increment the index
+        loopHelperIncrementIndex(indexDecl);
+        
+        // After the loop, check the invariants and check that the variants have decreased
+        loopHelperAssertInvariants(that.loopSpecs,decreasesIDs);
+        
+        // Construct the loop test and the exit block. The loop invariant is
+        // tested again, though it is the same test as immediately above.
+        loopHelperMakeBreak(that.loopSpecs,cond,loop,that.pos());
+
+        // Finish up the new loop body
+        // Finish up the output block
+        loopHelperFinish(loop,that);
     }
 
     // FIXME - need to do for rac
@@ -4187,24 +4246,362 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlEnhancedForLoop while translating JML: " + that.getClass());
             return;
         }
-        // FIXME Need to add specifications; also index and values variables
-        JCVariableDecl v = M.at(that.var.pos).VarDef(that.var.sym,null);
-        v.setType(that.var.type);
-        JCExpression e = scanExpr(that.expr);
-        pushBlock();
-        // Now havoc any variables changed in the loop
-        {
-            ListBuffer<JCExpression> targets = TargetFinder.findVars(that.getStatement(),null);
-            TargetFinder.findVars(that.getExpression(),targets);
-            // synthesize a modifies list
-            JmlStatementHavoc st = M.at(that.body.pos).JmlHavocStatement(targets.toList());
-            addStat(st);
+        
+        if (pureCopy) {
+            JCExpression expr = scanExpr(that.expr);
+            JCVariableDecl var = convert(that.var);
+            // FIXME - should not do this two-level design
+            JCEnhancedForLoop jloop = M.at(that.pos()).ForeachLoop(var,expr,null);
+            List<JmlStatementLoop> loopSpecs = scanCopy(that.loopSpecs);
+            JmlEnhancedForLoop loop = M.at(that.pos()).JmlEnhancedForLoop(jloop, loopSpecs);
+            jloop.type = loop.type = that.type;
+            try {
+                treeMap.put(that, jloop);
+                JCStatement bl = convert(that.body);
+                loop.body = bl;
+                loop.loopSpecs = scanCopy(that.loopSpecs); 
+                result = loop;
+            } finally {
+                treeMap.remove(that);
+            }
+            return;
         }
-        scan(that.body);
-        JCBlock b = popBlock(0,that.body.pos);
-        addStat(M.at(that.pos()).ForeachLoop(v, e, b));
+        
+        /*   loop_invariant INV
+         *   loop_variant  VAR
+         *   label: for (T v: ARRAY) BODY
+         * becomes
+         *   {
+         *      ... statements from ARRAY
+         *      ... declare INDEX = 0
+         *      ... compute LENGTH
+         *      assert INV
+         *      label: while (true) {
+         *         havoc
+         *         assume INV
+         *         TEMP = VAR
+         *         if (INDEX >= LENGTH) {
+         *             assert INV;
+         *             break;
+         *         }
+         *         assert 0 <= TEMP
+         *         declare v = ARRAY[INDEX]
+         *         loop_bodyN: {
+         *            ... statements from BODY
+         *            ... continue --> break loop_bodyN;
+         *            ... break --> break;
+         *         }
+         *         INDEX = INDEX + 1
+         *         assert INV
+         *         TEMP2 = VAR
+         *         assert TEMP2 < TEMP
+         *      }
+         *      // FIXME - if break exits still have to satisfy invariant, put the check here
+         *   }
+         *         
+         */
+        /*   loop_invariant INV
+         *   loop_variant  VAR
+         *   label: for (T v: ITERABLE) BODY
+         * becomes
+         *   {
+         *      ... statements from ITERABLE
+         *      ... declare INDEX = 0
+         *      ... declare ITERATOR = ITERABLE.iterator()
+         *      assert INV
+         *      label: while (true) {
+         *         havoc
+         *         assume INV
+         *         TEMP = VAR
+         *         if (ITERATOR.hasNext()) {
+         *             assert INV;
+         *             break;
+         *         }
+         *         declare v = ITERATOR.next()
+         *         assert 0 <= TEMP
+         *         loop_bodyN: {
+         *            ... statements from BODY
+         *            ... continue --> break loop_bodyN;
+         *            ... break --> break;
+         *         }
+         *         INDEX = INDEX + 1
+         *         assert INV
+         *         TEMP2 = VAR
+         *         assert TEMP2 < TEMP
+         *      }
+         *      // FIXME - if break exits still have to satisfy invariant, put the check here
+         *   }
+         *         
+         */
+        
+        // FIXME - need label for loop if any and the target mapping
+        
+        // Outer block to restrict scopes of temporaries
+        pushBlock();
+
+        JCExpression array = scanExpr(that.expr);
+
+        JCVariableDecl indexDecl = loopHelperDeclareIndex(that.pos());;
+
+        java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
+
+        // Create this early so it is available as a target
+        JmlWhileLoop loop = M.at(that.pos()).WhileLoop(treeutils.trueLit,null);
+        treeMap.put(that, loop);
+
+        if (that.expr.type.tag == TypeTags.ARRAY) {
+        
+            JCExpression lengthExpr = treeutils.makeLength(array.pos(), array);
+            lengthExpr = newTemp(lengthExpr); // FIXME - could give it a recognizable name
+
+            // Test that invariants hold before entering loop
+            loopHelperInitialInvariant(that.loopSpecs);
+
+            // New loop body
+            pushBlock();
+
+            // Havoc all items that might be changed in the loop
+            if (esc) {
+                // FIXME - need havoc statement
+            }
+
+            // Assume the invariants
+            // Compute and remember the variants
+            loopHelperAssumeInvariants(that.loopSpecs,decreasesIDs);
+
+            // Compute the condition, recording any side-effects
+            {
+
+                JCExpression cond = treeutils.makeBinary(that.pos, JCTree.LT, 
+                        treeutils.makeIdent(that.pos,indexDecl.sym),
+                        lengthExpr);
+
+                // The exit block tests the condition; if exiting, it tests the
+                // invariant and breaks.
+                loopHelperMakeBreak(that.loopSpecs,cond,loop,that.pos());
+            }
+
+            // Now in the loop, so check that the variants are non-negative
+            loopHelperCheckNegative(decreasesIDs, that.pos());
+
+            JCArrayAccess aa = new JmlBBArrayAccess(null,array,treeutils.makeIdent(that.pos, indexDecl.sym));
+            aa.setType(that.var.type);
+            JCVariableDecl loopVarDecl = treeutils.makeVarDef(that.var.type, 
+                    that.var.name, methodDecl.sym, aa);
+            addStat(loopVarDecl);
+
+
+        } else {
+            // Have an iterable instead of an array
+            
+            Name iteratorName = names.fromString("_JML_iterator_" + (++count));
+            JCExpression iter = methodCallUtilsExpression(array.pos(),"iterator",array);
+            JCVariableDecl decl = treeutils.makeVarDef(
+                    iter.type,
+                    iteratorName,
+                    methodDecl.sym,
+                    iter);
+            addStat(decl);
+            
+            // Test that invariants hold before entering loop
+            loopHelperInitialInvariant(that.loopSpecs);
+
+            // New loop body
+            pushBlock();
+
+            // Havoc all items that might be changed in the loop
+            if (esc) {
+                // FIXME - need havoc statement
+            }
+
+            // Assume the invariants
+            // Compute and remember the variants
+            loopHelperAssumeInvariants(that.loopSpecs,decreasesIDs);
+
+            // Compute the condition, recording any side-effects
+            {
+
+                // iterator.hasNext()
+                JCExpression cond = methodCallUtilsExpression(array.pos(),"hasNext",
+                        treeutils.makeIdent(array.pos, decl.sym));
+
+                // The exit block tests the condition; if exiting, it tests the
+                // invariant and breaks.
+                loopHelperMakeBreak(that.loopSpecs,cond,loop,that.pos());
+            }
+            
+            // Now in the loop, so check that the variants are non-negative
+            loopHelperCheckNegative(decreasesIDs, that.pos());
+
+            // T v = ITERATOR.next()
+            JCExpression value = methodCallUtilsExpression(array.pos(),"next",
+                    treeutils.makeIdent(array.pos, decl.sym));
+            addStat( treeutils.makeVarDef(
+                    that.var.type,
+                    that.var.name,
+                    methodDecl.sym,
+                    value) );
+
+        }
+        
+        // Then translate the original loop body
+        // Have to do some footwork to get the Block object before constructing its contents
+        loopHelperMakeBody(that.body);
+    
+        // increment the index
+        loopHelperIncrementIndex(indexDecl);
+        
+        // After the loop, check the invariants and check that the variants have decreased
+        loopHelperAssertInvariants(that.loopSpecs,decreasesIDs);
+        
+        // Finish up the new loop body
+        // Finish up the output block
+        loopHelperFinish(loop,that);
+
+        // FIXME Need to add specifications; also index and values variables
+//        JCVariableDecl v = M.at(that.var.pos).VarDef(that.var.sym,null);
+//        v.setType(that.var.type);
+//        JCExpression e = scanExpr(that.expr);
+//        pushBlock();
+//        // Now havoc any variables changed in the loop
+//        {
+//            ListBuffer<JCExpression> targets = TargetFinder.findVars(that.getStatement(),null);
+//            TargetFinder.findVars(that.getExpression(),targets);
+//            // synthesize a modifies list
+//            JmlStatementHavoc st = M.at(that.body.pos).JmlHavocStatement(targets.toList());
+//            addStat(st);
+//        }
+//        scan(that.body);
+//        JCBlock b = popBlock(0,that.body.pos);
+//        addStat(M.at(that.pos()).ForeachLoop(v, e, b));
         // result?
     }
+    
+    protected java.util.List<JCVariableDecl> indexStack = new LinkedList<JCVariableDecl>();
+    
+    protected JCVariableDecl loopHelperDeclareIndex(DiagnosticPosition pos) {
+        Name indexName = names.fromString("index_" + pos.getPreferredPosition() + "_" + (++count));
+        JCVariableDecl indexDecl = treeutils.makeVarDef(syms.intType, indexName, methodDecl.sym, treeutils.zero);
+        addStat(indexDecl);
+        indexStack.add(0,indexDecl);
+        return indexDecl;
+    }
+    
+    protected void loopHelperIncrementIndex(JCVariableDecl var) {
+        JCIdent oldid = treeutils.makeIdent(var.pos, var.sym);
+        JCIdent newid = treeutils.makeIdent(var.pos, var.sym);
+        addStat( treeutils.makeAssignStat(var.pos, newid,
+                treeutils.makeBinary(var.pos, JCTree.PLUS, treeutils.intplusSymbol, oldid, treeutils.one)));
+    }
+    
+    protected void loopHelperInitialInvariant(List<JmlStatementLoop> loopSpecs) {
+        if (loopSpecs != null) {
+            for (JmlStatementLoop inv: loopSpecs) {
+                if (inv.token == JmlToken.LOOP_INVARIANT) {
+                    JCExpression e = scanJML(inv.expression);
+                    addAssert(inv.pos(),Label.LOOP_INVARIANT_PRELOOP, e, currentStatements);
+                }
+            }
+        }
+    }
+    
+    protected void loopHelperMakeBreak(List<JmlStatementLoop> loopSpecs, JCExpression cond, JCTree loop, DiagnosticPosition pos) {
+        pushBlock();
+        if (loopSpecs != null) {
+            for (JmlStatementLoop inv: loopSpecs) {
+                if (inv.token == JmlToken.LOOP_INVARIANT) {
+                    JCExpression e = scanJML(inv.expression);
+                    addAssert(inv.pos(),Label.LOOP_INVARIANT_ENDLOOP, e, currentStatements);
+                }
+            }
+        }
+        JCBreak br = M.at(pos).Break(null);
+        br.target = loop;
+        addStat(br);
+        JCBlock bl = popBlock(0,pos.getPreferredPosition());
+        JCExpression ncond = treeutils.makeNot(pos.getPreferredPosition(),cond);
+        addStat(M.at(pos).If(ncond,bl,null));
+    }
+    
+    protected void loopHelperMakeBody(JCStatement body) {
+        JCBlock bodyBlock = M.at(body.pos()).Block(0, null);
+        Name label = names.fromString("loopBody_" + body.pos + "_" + (++count));
+        JCLabeledStatement lab = M.at(body.pos()).Labelled(label,bodyBlock);
+        continueStack.add(0,lab);
+        addStat(lab);
+
+        try {
+            JCBlock bl = translateIntoBlock(body.pos,body);
+            bodyBlock.stats = bl.stats;
+        } finally {
+            continueStack.remove(0);
+        }
+    }
+    
+    protected void loopHelperAssumeInvariants(List<JmlStatementLoop> loopSpecs, java.util.List<JCIdent> decreasesIDs) {
+        // Assume the invariants
+        if (loopSpecs != null) {
+            for (JmlStatementLoop inv: loopSpecs) {
+                if (inv.token == JmlToken.LOOP_INVARIANT) {
+                    JCExpression e = scanJML(inv.expression);
+                    addAssume(inv.pos(),Label.LOOP_INVARIANT_ASSUMPTION, e, currentStatements);
+                }
+            }
+        }
+
+        // Compute and remember the variants
+        if (loopSpecs != null) {
+            for (JmlStatementLoop inv: loopSpecs) {
+                if (inv.token == JmlToken.DECREASES) {
+                    JCExpression e = scanJML(inv.expression);
+                    JCIdent id = newTemp(e);
+                    decreasesIDs.add(id);
+                }
+            }
+        }
+    }
+    
+    protected void loopHelperCheckNegative(java.util.List<JCIdent> decreasesIDs, DiagnosticPosition pos) {
+        for (JCIdent id: decreasesIDs) {
+            JCBinary compare = treeutils.makeBinary(pos.getPreferredPosition(), JCTree.LE, treeutils.intleSymbol, treeutils.zero, id);
+            addAssert(id.pos(),Label.LOOP_DECREASES_NEGATIVE,compare,currentStatements);
+        }
+    }
+
+    protected void loopHelperAssertInvariants(List<JmlStatementLoop> loopSpecs, java.util.List<JCIdent> decreasesIDs) {
+        if (loopSpecs != null) {
+            for (JmlStatementLoop inv: loopSpecs) {
+                if (inv.token == JmlToken.LOOP_INVARIANT) {
+                    JCExpression e = scanJML(inv.expression);
+                    addAssert(inv.pos(),Label.LOOP_INVARIANT, e, currentStatements);
+                }
+            }
+
+            Iterator<JCIdent> iter = decreasesIDs.iterator();
+            for (JmlStatementLoop inv: loopSpecs) {
+                if (inv.token == JmlToken.DECREASES) {
+                    JCExpression e = scanJML(inv.expression);
+                    JCIdent id = newTemp(e);
+                    JCBinary bin = treeutils.makeBinary(inv.pos, JCTree.LT,  treeutils.intltSymbol, id, iter.next());
+                    addAssert(inv.pos(),Label.LOOP_DECREASES, bin, currentStatements);
+                }
+            }
+        }
+        
+    }
+    
+    protected void loopHelperFinish(JmlWhileLoop loop, JCTree that) {
+        JCBlock bl = popBlock(0,that.pos);
+        loop.body = bl;
+        loop.setType(that.type);
+        addStat(loop);
+        treeMap.remove(that);
+        indexStack.remove(0);
+
+        
+        addStat(popBlock(0,that.pos));
+    }
+    
 
     @Override
     public void visitJmlForLoop(JmlForLoop that) {
@@ -4212,59 +4609,114 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlForLoop while translating JML: " + that.getClass());
             return;
         }
-        scan(that.init);
-        if (esc) {
-            // FIXME - need to scan the init, cond, step ; need to add specs
-            Name loopCount = names.fromString("loopCount_" + that.pos);
-            JCVariableDecl vd = treeutils.makeVariableDecl(loopCount,syms.intType,treeutils.zero,that.pos);
-            addStat(vd);
-            JCStatement increment = M.at(that.pos()).Exec(
-                    treeutils.makeAssign(that.pos, treeutils.makeIdent(that.pos,vd.sym), 
-                            treeutils.makeBinary(that.pos,JCTree.PLUS,treeutils.intplusSymbol,treeutils.makeIdent(that.pos, vd.sym),treeutils.makeLit(that.pos,syms.intType,1))));
-            JCBlock condBlock = null;
-            if (that.cond != null) {
-                pushBlock();
-                JCExpression e = scanExpr(that.cond);
-                JCExpression notcond = treeutils.makeNot(e.pos,e);
-                pushBlock();
-                ///addAssume(e.pos(),Label.BRANCHT,notcond,currentStatements);
-                addStat(M.Break(null));
-                JCBlock thenBlock = popBlock(0,e.pos);
-                pushBlock();
-                //addAssume(e.pos(),Label.BRANCHE,e,currentStatements);
-                JCBlock elseBlock = popBlock(0,e.pos);
-                JCStatement ifstat = M.at(that.cond.pos).If(notcond,thenBlock,elseBlock);
-                addStat(ifstat);
-                condBlock = popBlock(0,that.cond.pos);
+        
+        if (pureCopy) {
+            List<JCStatement> init = convert(that.init);
+            JCExpression cond = scanExpr(that.cond);
+            List<JCExpressionStatement> step = convert(that.step);
+            JmlForLoop loop = M.at(that.pos()).ForLoop(init,cond,step,null);
+            try {
+                treeMap.put(that, loop);
+                JCStatement bl = convert(that.body);
+                loop.body = bl;
+                loop.setType(that.type);
+                loop.loopSpecs = scanCopy(that.loopSpecs); 
+                result = loop;
+            } finally {
+                treeMap.remove(that);
             }
-            pushBlock();
-
-            // Now havoc any variables changed in the loop
-            {
-                ListBuffer<JCExpression> targets = TargetFinder.findVars(that.getStatement(),null);
-                TargetFinder.findVars(that.getCondition(),targets);
-                // synthesize a modifies list
-                JmlStatementHavoc st = M.at(that.body.pos).JmlHavocStatement(targets.toList());
-                addStat(st);
-            }
-
-
-            // FIXME - need to add the increment onto the update statements
-            // FIXME - need to transform the update statements, but ForLoop wants a list of JCExpressionStatement not JCStatement
-            if (condBlock != null) addStat(condBlock);
-            scan(that.body);
-            JCBlock b = popBlock(0,that.body.pos);
-            addStat(M.at(that.pos()).ForLoop(List.<JCStatement>nil(), treeutils.trueLit, that.step, b));
+            return;
         }
         
-        if (rac) {
-            pushBlock();
-            scan(that.body);
-            JCBlock b = popBlock(0,that.body.pos);
-            // FIXME - need to scan the cond and step
-            addStat(M.at(that.pos()).ForLoop(List.<JCStatement>nil(), that.cond, that.step, b));
+        /*   loop_invariant INV
+         *   loop_variant  VAR
+         *   label: for (INIT; COND; STEP) BODY
+         * becomes
+         *   {
+         *      ... statements from INIT
+         *      assert INV
+         *      label: while (true) {
+         *         havoc
+         *         assume INV
+         *         TEMP = VAR
+         *         ... statements from COND
+         *         if (!COND') {
+         *             assert INV;
+         *             break;
+         *         }
+         *         assert 0 <= TEMP
+         *         loop_bodyN: {
+         *            ... statements from BODY
+         *            ... continue --> break loop_bodyN;
+         *            ... break --> break;
+         *         }
+         *         ... statements from STEP
+         *         assert INV
+         *         TEMP2 = VAR
+         *         assert TEMP2 < TEMP
+         *      }
+         *      // FIXME - if break exits still have to satisfy invariant, put the check here
+         *   }
+         *         
+         */
+        
+        // FIXME - need label for loop if any and the target mapping
+        
+        // Outer block to restrict scopes of temporaries
+        pushBlock();
+
+        if (that.init != null) scan(that.init);
+        
+        JCVariableDecl indexDecl = loopHelperDeclareIndex(that.pos());;
+
+        java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
+
+        // Create this early so it is available as a target
+        JmlWhileLoop loop = M.at(that.pos()).WhileLoop(treeutils.trueLit,null);
+        treeMap.put(that, loop);
+
+        // Test that invariants hold before entering loop
+        loopHelperInitialInvariant(that.loopSpecs);
+
+        // New loop body
+        pushBlock();
+        
+        // Havoc all items that migth be changed in the loop
+        if (esc) {
+           // FIXME - need havoc statement
         }
-        // result?
+        
+        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs);
+        
+        // Compute the condition, recording any side-effects
+        if (that.cond != null) {
+            
+            JCExpression cond = scanExpr(that.cond);
+
+            // The exit block tests the condition; if exiting, it tests the
+            // invariant and breaks.
+            loopHelperMakeBreak(that.loopSpecs, cond, loop, that.pos());
+        }
+        
+        // Now in the loop, so check that the variants are non-negative
+        loopHelperCheckNegative(decreasesIDs, that.pos());
+        
+        // Then translate the original loop body
+        // Have to do some footwork to get the Block object before constructing its contents
+        
+        loopHelperMakeBody(that.body);
+        
+        if (that.step != null) scan(that.step);
+        
+        // increment the index
+        loopHelperIncrementIndex(indexDecl);
+        
+        // After the loop, check the invariants and check that the variants have decreased
+        loopHelperAssertInvariants(that.loopSpecs,decreasesIDs);
+        
+        // Finish up the new loop body
+        // Finish up the output block
+        loopHelperFinish(loop,that);
     }
 
     @Override
@@ -4661,7 +5113,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 break;
 //
-//            case BSINDEX:
+            case BSINDEX:
+                if (indexStack.isEmpty()) {
+                    // FIXME - internal error
+                } else {
+                    JCVariableDecl vd = indexStack.get(0);
+                    JCIdent id = treeutils.makeIdent(that.pos,vd.sym);
+                    eresult = id;
+                    break;
+                }
+                
 //            case BSVALUES:
 //                if (that.info == null) {
 //                    log.error(that.pos,"esc.internal.error","No loop index found for this use of " + that.token.internedName());
@@ -5178,6 +5639,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = stat;
         }
     }
+    
+    java.util.List<JCLabeledStatement> continueStack = new java.util.LinkedList<JCLabeledStatement>();
 
     @Override
     public void visitJmlWhileLoop(JmlWhileLoop that) {
@@ -5185,78 +5648,106 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             error(that.pos,"Unexpected call of JmlAssertionAdder.visitJmlWhileLoop while translating JML: " + that.getClass());
             return;
         }
-        // FIXME - need to add specs; 
+        if (pureCopy) {
+            JCExpression e = scanExpr(that.cond);
+            JmlWhileLoop loop = M.at(that.pos()).WhileLoop(e,null);
+            try {
+                treeMap.put(that, loop);
+                JCStatement bl = convert(that.body);
+                loop.body = bl;
+                loop.setType(that.type);
+                loop.loopSpecs = scanCopy(that.loopSpecs); 
+                result = loop;
+            } finally {
+                treeMap.remove(that);
+            }
+            return;
+        }
+        
+        /*   loop_invariant INV
+         *   loop_variant  VAR
+         *   label: while (COND) {
+         *     BODY
+         *   }
+         * becomes
+         *   {
+         *      assert INV
+         *      label: while (true) {
+         *         havoc
+         *         assume INV
+         *         TEMP = VAR
+         *         ... statements from COND
+         *         if (!COND') {
+         *             assert INV;
+         *             break;
+         *         }
+         *         assert 0 <= TEMP
+         *         loop_bodyN: {
+         *            ... statements from BODY
+         *            ... continue --> break loop_bodyN;
+         *            ... break --> break;
+         *         }
+         *         assert INV
+         *         TEMP2 = VAR
+         *         assert TEMP2 < TEMP
+         *      }
+         *      // FIXME - if break exits still have to satisfy invariant, put the check here
+         *   }
+         *         
+         */
+        
+        // FIXME - need label for loop if any and the target mapping
+        
+        // Outer block to restrict scopes of temporaries
+        pushBlock();
+
+        JCVariableDecl indexDecl = loopHelperDeclareIndex(that.pos());;
+
+        java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
+
+        // Create this early so it is available as a target
+        JmlWhileLoop loop = M.at(that.pos()).WhileLoop(treeutils.trueLit,null);
+        treeMap.put(that, loop);
+
+        // Test that invariants hold before entering loop
+        loopHelperInitialInvariant(that.loopSpecs);
+
+        // New loop body
+        pushBlock();
+        
+        // Havoc all items that migth be changed in the loop
         if (esc) {
-            pushBlock();
-
-            // Now havoc any variables changed in the loop
-            ListBuffer<JCExpression> targets = TargetFinder.findVars(that.getStatement(),null);
-            TargetFinder.findVars(that.getCondition(),targets);
-            // synthesize a modifies list
-            JmlStatementHavoc st = M.at(that.body.pos).JmlHavocStatement(targets.toList());
-            addStat(st);
-
-            JCExpression test = scanExpr(that.cond);
-            JCExpression ne = treeutils.makeNot(that.cond.pos, test);
-
-            //        // Now havoc any variables changed in the loop body
-            //        {
-            //            java.util.List<JCExpression> targets = TargetFinder.findVars(that.body,null);
-            //            TargetFinder.findVars(test,targets);
-            //            //if (update != null) TargetFinder.findVars(update,targets);
-            //            // synthesize a modifies list
-            //            int wpos = that.body.pos+1;
-            //            //log.noticeWriter.println("HEAP WAS " + currentMap.get((VarSymbol) heapVar.sym));
-            //            newIdentIncarnation(heapVar,wpos);
-            //            //log.noticeWriter.println("HEAP NOW " + currentMap.get((VarSymbol) heapVar.sym) + " " + (wpos+1));
-            //            for (JCExpression e: targets) {
-            //                if (e instanceof JCIdent) {
-            //                    JCIdent id = newIdentIncarnation((JCIdent)e,wpos);
-            //                    program.declarations.add(id);
-            //                //} else if (e instanceof JCFieldAccess) {
-            //                //} else if (e instanceof JCArrayAccess) {
-            //                    
-            //                } else {
-            //                    // FIXME - havoc in loops
-            //                    log.noticeWriter.println("UNIMPLEMENTED HAVOC IN LOOP " + e.getClass());
-            //                }
-            //            }
-            //        }
-
-            DiagnosticPosition pos = that.cond.pos();
-            //JmlStatementExpr as = addAssume(pos,Label.BRANCHT,ne,null);
-            JCStatement br = M.at(pos).Break(null);
-            JCBlock bl = M.at(pos).Block(0,List.<JCStatement>of(br));
-            JCStatement ifs = M.at(pos).If(ne,bl,null);
-            ifs.type = Type.noType;
-            addStat(ifs);
-
-            //addAssume(that.cond.pos(),Label.BRANCHE,test,currentStatements);
-
-            scan(that.body);
-
-
-
-            bl = popBlock(0,that.cond.pos);
-            JmlWhileLoop stw = M.at(that.pos()).WhileLoop(treeutils.trueLit, bl);
-            stw.setType(that.type);
-            stw.loopSpecs = null;
-            result = addStat(stw);
+           // FIXME - need havoc statement
         }
+        
+        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs);
+        
+        // Compute the condition, recording any side-effects
+        {
+            
+            JCExpression cond = scanExpr(that.cond);
 
-        if (rac) {
-            // FIXME - need to translate the conditional - be careful of labels on the loop
-            JCStatement bl = translateIntoBlock(that.body.pos, that.body);
-            JmlWhileLoop st = M.at(that.pos()).WhileLoop(that.cond, bl);
-            st.setType(that.type);
-            st.loopSpecs = null;
-            result = addStat(st);
+            // The exit block tests the condition; if exiting, it tests the
+            // invariant and breaks.
+            loopHelperMakeBreak(that.loopSpecs, cond, loop, that.pos());
         }
-// TODO- optimization - if there are no extra statements produced, we can keep the (translated) expression in the while condition        
-//        else {
-        // Something like this;
-//            addStat(M.at(that.pos()).WhileLoop(e, b));
-//        }
+        
+        // Now in the loop, so check that the variants are non-negative
+        loopHelperCheckNegative(decreasesIDs, that.pos());
+        
+        // Then translate the original loop body
+        // Have to do some footwork to get the Block object before constructing its contents
+        loopHelperMakeBody(that.body);
+        
+        // increment the index
+        loopHelperIncrementIndex(indexDecl);
+        
+        // After the loop, check the invariants and check that the variants have decreased
+        loopHelperAssertInvariants(that.loopSpecs,decreasesIDs);
+        
+        // Finish up the new loop body
+        // Finish up the output block
+        loopHelperFinish(loop,that);
     }
 }
 

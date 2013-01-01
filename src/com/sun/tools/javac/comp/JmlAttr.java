@@ -3165,10 +3165,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 
             case BSINDEX:
                 t = syms.intType;
-                if (foreachLoopStack.isEmpty()) {
+                if (loopStack.isEmpty()) {
                     log.error(that.pos,"jml.outofscope",jt.internedName());
-                } else {
-                    that.info = foreachLoopStack.get(0).indexDecl.sym;
                 }
                 break;
                 
@@ -4457,13 +4455,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** Attributes the specs for a do-while loop */
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
+        loopStack.add(0,that);
         attribLoopSpecs(that.loopSpecs,env);
         super.visitDoLoop(that);
+        loopStack.remove(0);
     }
     
+    java.util.List<JCTree> loopStack = new java.util.LinkedList<JCTree>();
     java.util.List<JmlEnhancedForLoop> foreachLoopStack = new java.util.LinkedList<JmlEnhancedForLoop>();
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop tree) {
+        loopStack.add(0,tree);
         foreachLoopStack.add(0,tree);
         try {
         // MAINTENANCE ISSUE: code duplicated mostly from the superclass
@@ -4511,6 +4513,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             loopEnv.info.scope.leave();
             result = null;
         } finally {
+            loopStack.remove(0);
             foreachLoopStack.remove(0);
         }
     }
@@ -4759,6 +4762,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // MAINTENANCE ISSUE: code duplicated mostly from the superclass
 
     public void visitJmlForLoop(JmlForLoop tree) {
+        loopStack.add(0,tree);
         Env<AttrContext> loopEnv =
             env.dup(env.tree, env.info.dup(env.info.scope.dup()));
         savedSpecOK = true;
@@ -4773,11 +4777,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         attribStat(tree.body, loopEnv);
         loopEnv.info.scope.leave();
         result = null;
+        loopStack.remove(0);
     }
 
     public void visitJmlWhileLoop(JmlWhileLoop that) {
+        loopStack.add(0,that);
         attribLoopSpecs(that.loopSpecs,env);
         super.visitWhileLoop(that);
+        loopStack.remove(0);
     }
 
     public void visitJmlStatementLoop(JmlStatementLoop that) {
