@@ -161,4 +161,9 @@ public class Strings {
     public final static String syntheticExceptionID = "_JML___syntheticExceptionID"; //$NON-NLS-1$
     
 
+    /** Synthetic methods are constructed to implement the combination of model
+     * fields and represents clauses; the name of method is this prefix string
+     * combined with name of the model field.
+     */
+    public final static String modelFieldMethodPrefix = "_JML$model$";
 }

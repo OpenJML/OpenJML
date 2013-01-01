@@ -138,7 +138,7 @@ public class Utils {
         return t.getClass().toString();
     }
     
-    /** Reports aJML assertion failure with optional additional information
+    /** Reports a JML assertion failure with optional additional information
      * @param message the message to report
      * @param optMessage possibly null additional information
      */

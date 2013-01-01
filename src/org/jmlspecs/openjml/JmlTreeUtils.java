@@ -802,6 +802,15 @@ public class JmlTreeUtils {
         return call;
     }
     
+    public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, MethodSymbol sym, JCExpression ... args) {
+        JCExpression meth = factory.at(pos).Ident(sym);
+        if (receiver != null) meth = makeSelect(pos.getPreferredPosition(), receiver, sym);
+        JCMethodInvocation call = factory.at(pos).Apply(List.<JCExpression>nil(), meth, List.<JCExpression>nil());
+        call.type = sym.type.getReturnType();
+        call.varargsElement = null;
+        return call;
+    }
+    
     // TODO _ document
     public JCMethodInvocation makeMethodInvocation(int pos, JCExpression object, Name methodName, JCExpression arg) {
         JCFieldAccess meth = factory.Select(object,methodName);

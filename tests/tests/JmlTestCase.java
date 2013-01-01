@@ -217,8 +217,8 @@ public abstract class JmlTestCase { //extends junit.framework.TestCase {
 
     
     /** Prints out the errors collected by the diagnostic listener */
-    public void printErrors() {
-        System.out.println("ERRORS " + collector.getDiagnostics().size() + " " + name.getMethodName());
+    public void printDiagnostics() {
+        System.out.println("DIAGNOSTICS " + collector.getDiagnostics().size() + " " + name.getMethodName());
         for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
             long line = dd.getLineNumber();
             long start = dd.getStartPosition();
@@ -229,23 +229,23 @@ public abstract class JmlTestCase { //extends junit.framework.TestCase {
         }
     }
 
-    /** Checks that all of the collected error messages match the data supplied
+    /** Checks that all of the collected diagnostic messages match the data supplied
      * in the arguments.
-     * @param errors an array of expected error messages that are checked against the actual messages
+     * @param messages an array of expected messages that are checked against the actual messages
      * @param cols an array of expected column numbers that are checked against the actual diagnostics
      */
-    public void checkMessages(/*@ non_null */String[] errors, /*@ non_null */int[] cols) {
+    public void checkMessages(/*@ non_null */String[] messages, /*@ non_null */int[] cols) {
         List<Diagnostic<? extends JavaFileObject>> diags = collector.getDiagnostics();
-        if (print || (!noExtraPrinting && errors.length != diags.size())) printErrors();
-        assertEquals("Saw wrong number of errors ",errors.length,diags.size());
+        if (print || (!noExtraPrinting && messages.length != diags.size())) printDiagnostics();
+        assertEquals("Saw wrong number of errors ",messages.length,diags.size());
         assertEquals("Saw wrong number of columns ",cols.length,diags.size());
         for (int i = 0; i<diags.size(); ++i) {
-            assertEquals("Message for item " + i,errors[i],noSource(diags.get(i)));
+            assertEquals("Message for item " + i,messages[i],noSource(diags.get(i)));
             assertEquals("Column number for item " + i,cols[i],diags.get(i).getColumnNumber()); // Column number is 1-based
         }
     }
 
-    /** Checks that all of the collected error messages match the data supplied
+    /** Checks that all of the collected messages match the data supplied
      * in the arguments.
      * @param a a sequence of expected values, alternating between error message and column numbers
      */
@@ -253,22 +253,22 @@ public abstract class JmlTestCase { //extends junit.framework.TestCase {
         try {
             assertEquals("Wrong number of messages seen",a.length,2*collector.getDiagnostics().size());
             List<Diagnostic<? extends JavaFileObject>> diags = collector.getDiagnostics();
-            if (print || (!noExtraPrinting && 2*diags.size() != a.length)) printErrors();
+            if (print || (!noExtraPrinting && 2*diags.size() != a.length)) printDiagnostics();
             assertEquals("Saw wrong number of errors ",a.length,2*diags.size());
             for (int i = 0; i<diags.size(); ++i) {
                 assertEquals("Message for item " + i,a[2*i].toString(),noSource(diags.get(i)));
                 assertEquals("Column number for item " + i,((Integer)a[2*i+1]).intValue(),diags.get(i).getColumnNumber()); // Column number is 1-based
             }
         } catch (AssertionError ae) {
-            if (!print && !noExtraPrinting) printErrors();
+            if (!print && !noExtraPrinting) printDiagnostics();
             throw ae;
         }
     }
     
     /** Checks that there are no diagnostic messages */
     public void checkMessages() {
-        if (print || (!noExtraPrinting && 0 != 2*collector.getDiagnostics().size())) printErrors();
-        assertEquals("Saw wrong number of errors ",0,collector.getDiagnostics().size());
+        if (print || (!noExtraPrinting && 0 != 2*collector.getDiagnostics().size())) printDiagnostics();
+        assertEquals("Saw wrong number of messages ",0,collector.getDiagnostics().size());
     }
 
     /** Used to add a pseudo file to the file system. Note that for testing, a 

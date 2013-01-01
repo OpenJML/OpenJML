@@ -1568,7 +1568,6 @@ public class escnew extends EscBase {
 
     @Test
     public void testControl() {
-        main.addOptions("-method","m2bad");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int x,xx; static int y,yy; \n"

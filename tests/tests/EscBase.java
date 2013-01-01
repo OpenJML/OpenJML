@@ -72,7 +72,7 @@ public abstract class EscBase extends JmlTestCase {
             List<JavaFileObject> files = List.of(f);
             int ex = main.compile(args, context, files, null);
             
-            if (print) printErrors();
+            if (print) printDiagnostics();
             int j = 0;
             for (int i=0; i<expectedErrors; i++) {
                 int col = ((Integer)list[2*i+1]).intValue();
@@ -107,7 +107,7 @@ public abstract class EscBase extends JmlTestCase {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
-            if (!print && !noExtraPrinting) printErrors();
+            if (!print && !noExtraPrinting) printDiagnostics();
             throw e;
         }
     }

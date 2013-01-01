@@ -33,7 +33,7 @@ public class prettyprinting extends ParseBase {
             //sc = ((JmlParser)p).getScanner();
             JCTree tree = p.parseCompilationUnit();
             String out = JmlPretty.write(tree);
-            if (collector.getDiagnostics().size() != 0) printErrors();
+            if (collector.getDiagnostics().size() != 0) printDiagnostics();
             assertEquals("Found parsing errors",0,collector.getDiagnostics().size());
             if (!precise) {
                 code = code.replaceAll("[ \t\r\n]+"," ");
