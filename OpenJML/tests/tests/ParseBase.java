@@ -119,7 +119,7 @@ abstract public class ParseBase extends JmlTestCase {
                     System.out.println(t.getClass() + " " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + parser.getEndPos(t));
                 }
             }
-            if (print) printErrors();
+            if (print) printDiagnostics();
             Object p1, p2, p3;
             for (JCTree t: actual) {
                 if (i>=expected.length) break;
@@ -143,7 +143,7 @@ abstract public class ParseBase extends JmlTestCase {
             if (parser.getScanner().token() != Token.EOF) fail("Not at end of input");
         } catch (AssertionError e) {
             if (!print) printTree(actual);
-            if (!print) printErrors();
+            if (!print) printDiagnostics();
             throw e;
         }
     }

@@ -85,7 +85,7 @@ public abstract class TCBase extends JmlTestCase {
             int ex = main.compile(new String[]{ "-Xlint:unchecked" }, context, files, null);
             
             if (print) JmlSpecs.instance(context).printDatabase();
-            if (print) printErrors();
+            if (print) printDiagnostics();
             int i=0;
             int k = 0;
             Object p1,p2,p3,p4;
@@ -116,7 +116,7 @@ public abstract class TCBase extends JmlTestCase {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
-            if (!print && !noExtraPrinting) printErrors();
+            if (!print && !noExtraPrinting) printDiagnostics();
             throw e;
         }
     }

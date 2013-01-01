@@ -71,7 +71,7 @@ public class expressions extends ParseBase {
                 }
             }
             if (print || collector.getDiagnostics().size() != 0)
-                printErrors();
+                printDiagnostics();
             if (collector.getDiagnostics().size() != 0) {
                 fail("Saw unexpected errors");
             }
@@ -113,7 +113,7 @@ public class expressions extends ParseBase {
             //if (jml) sc.setJml(jml);
             p.parseExpression();
             int i = 0;
-            if (print || collector.getDiagnostics().size() != list.length) printErrors();
+            if (print || collector.getDiagnostics().size() != list.length) printDiagnostics();
             assertEquals("Saw wrong number of errors ",list.length,collector.getDiagnostics().size());
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
                 assertEquals("Error message " + i,list[i++],noSource((JCDiagnostic)dd));

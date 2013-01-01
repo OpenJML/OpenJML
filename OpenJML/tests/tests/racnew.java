@@ -310,9 +310,10 @@ public class racnew extends RacBase {
                 +"        ensures k == 0; */\n"
                 +"  static void m(int i) { k = i; } " +
                 "}"
-                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: /tt/TestJava.java:10: JML postcondition is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:27)"
-                ,"\tat tt.TestJava.m(TestJava.java:10)"
+                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: /tt/TestJava.java:14: JML postcondition is false"
+                ,"/tt/TestJava.java:10: Associated declaration"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:24)"
+                ,"\tat tt.TestJava.m(TestJava.java:14)"
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 );
     }
@@ -892,14 +893,20 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSpecModelMethod() {
-        addMockFile("$A/tt/A.jml","package tt; public class A { " 
-                +"/*@ model static pure int mm() { return 5; } */ "
+        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
+                +"/*@ model static pure int mm() { return 5; } */ \n"
                 +"//@ ghost static int i = 0;\n  "
                 +"//@ invariant i == 0; \n //@ ensures i == 1;\n static int m(); "
                 +"}"
                 );
-        helpTCX("tt.A","package tt; public class A { static int m() { //@ set i = mm(); \n return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
-                ,"/$A/tt/A.jml:3: JML postcondition is false"
+        helpTCX("tt.A","package tt; public class A { static int m() { \n"
+                +"  //@ set i = mm(); \n"
+                +"  return 0; }  \n"
+                +" public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
+                ,"/tt/A.java:1: JML postcondition is false"
+                ,"/$A/tt/A.jml:5: Associated declaration"
+                ,"/tt/A.java:4: JML postcondition is false"
+                ,"/$A/tt/A.jml:5: Associated declaration"
                 ,"END"
                 );
         
@@ -1091,22 +1098,23 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSuchThat() {
-        expectedErrors = 1;
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int j = 5; \n "
-                +"//@ static model int i; \n "
-                +"//@ static represents i \\such_that i == j+1; \n "
+                +"static int j = 5; \n"
+                +"//@ static model int i; \n"
+                +"//@ static represents i \\such_that i == j+1; \n"
                 +"public static void main(String[] args) { \n"
                 +"System.out.println(\"END\"); "
                 +"}"
                 +"}"
-                ,"/tt/A.java:4: Note: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",13
+                ,"/tt/A.java:4: Note: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",12
+                ,"/tt/A.java:3: warning: JML model field is not implemented: i",22
                 ,"END"
                 );
 
     }
     
     @Test public void testModelField() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
                 +"//@ static model int i; \n "
@@ -1126,8 +1134,10 @@ public class racnew extends RacBase {
 
     }
     
+    // FIXME - this results of this test are different when run standalone
     @Test public void testModelFieldST() {
-        expectedErrors = 1;
+        main.addOptions("-keys=DEBUG");
+        expectedNotes = 0;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
                 +"//@ static model int i; \n "
@@ -1151,8 +1161,8 @@ public class racnew extends RacBase {
     
     /** Duplicate represents */
     @Test public void testModelField1() {
-        expectedExit = 1;
-        expectedErrors = 1;
+        main.addOptions("-keys=DEBUG");
+        continueAnyway = true;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
                 +"//@ static model int i; \n "
@@ -1164,7 +1174,10 @@ public class racnew extends RacBase {
                 +"//@ debug System.out.println(\"A \" + i); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/tt/A.java:5: Duplicate represents clause - only the first is used for RAC",13
+                ,"/tt/A.java:5: warning: Duplicate represents clause - only the first is used for RAC",13
+                ,"A 6"
+                ,"A 11"
+                ,"END"
                 );
 
     }
@@ -1175,9 +1188,12 @@ public class racnew extends RacBase {
     
     /** Represents with super model field */
     @Test public void testModelField3() {
+        continueAnyway = true;
+        print = true;
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
                 +" int j = 5; \n "
-                +"//@  represents this.i = j+1; \n "
+                +"//@  represents i = j+1; \n "
                 +"public static void main(String[] args) { \n"
                 +"PA a = new PA();\n"
                 +"PB b = new PB();\n"
@@ -1187,9 +1203,31 @@ public class racnew extends RacBase {
                 +"//@ debug System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\"); "
                 +"}} class PB { //@ model  int i; \n}"
+                ,"/tt/PA.java:11: warning: JML model field is not implemented: i",57
                 ,"A 6"
-                ,"/tt/PA.java:11: JML model field is not implemented: i"
                 ,"B 0"
+                ,"B 6"
+                ,"END"
+                );
+
+    }
+
+    /** Using a model field in a field access */
+    @Test public void testModelField1a() {
+        continueAnyway = true;
+        print = true;
+        main.addOptions("-keys=DEBUG");
+        helpTCX("tt.PA","package tt; public class PA { \n"
+                +" static int j = 5; \n "
+                +"//@  model int i; represents i = j; \n"
+                +"public static void main(String[] args) { \n"
+                +"PA a = new PA();\n"
+                +"//@ debug System.out.println(\"A \" + a.i); \n"
+                +"PB b = new PB();\n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"System.out.println(\"END\"); "
+                +"}} class PB { //@ model  int i; represents i = PA.j+1; \n\n}"
+                ,"A 5"
                 ,"B 6"
                 ,"END"
                 );
@@ -1198,6 +1236,7 @@ public class racnew extends RacBase {
 
     /** Represents with super model field */
     @Test public void testModelField3a() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
                 +" int j = 5; \n "
                 +"//@  represents super.i = j+1; \n "
@@ -1208,10 +1247,10 @@ public class racnew extends RacBase {
                 +"//@ debug System.out.println(\"B \" + b.i); \n"
                 +"b = new PA();\n"
                 +"//@ debug System.out.println(\"B \" + b.i); \n"
-                +"System.out.println(\"END\"); "
-                +"}} class PB { //@ model protected int i; \n}"
+                +"System.out.println(\"END\"); \n"
+                +"}} class PB { //@ model protected int i; }\n"
+                ,"/tt/PA.java:12: warning: JML model field is not implemented: i",39
                 ,"A 6"
-                ,"/tt/PA.java:11: JML model field is not implemented: i"
                 ,"B 0"
                 ,"B 6"
                 ,"END"
@@ -1222,6 +1261,7 @@ public class racnew extends RacBase {
 
     /** Represents with super model field */
     @Test public void testModelField4() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.QA","package tt; public class QA extends QB { \n"
                 +" int j = 5; \n "
                 +"public static void main(String[] args) { \n"
@@ -1231,13 +1271,11 @@ public class racnew extends RacBase {
                 +"//@ debug System.out.println(\"B \" + b.i); \n"
                 +"b = new QA();\n"
                 +"//@ debug System.out.println(\"B \" + b.i); \n"
-                +"System.out.println(\"END\"); "
+                +"System.out.println(\"END\"); \n"
                 +"}} class QB { //@ model  int i; \n}"
-                ,"/tt/QA.java:10: JML model field is not implemented: i"
+                ,"/tt/QA.java:11: warning: JML model field is not implemented: i",30
                 ,"A 0"
-                ,"/tt/QA.java:10: JML model field is not implemented: i"
                 ,"B 0"
-                ,"/tt/QA.java:10: JML model field is not implemented: i"
                 ,"B 0"
                 ,"END"
                 );
@@ -1246,14 +1284,17 @@ public class racnew extends RacBase {
 
     /** Model field with no represents */
     @Test public void testModelField2() {
+        main.addOptions("-keys=DEBUG");
+        expectedExit = 0;
+        continueAnyway = true;
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int j = 5; \n "
-                +"//@ static model int i; \n "
+                +"static int j = 5; \n"
+                +"//@ static model int i; \n"
                 +"public static void main(String[] args) { \n"
                 +"//@ debug System.out.println(\"A \" + i); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/tt/A.java:3: JML model field is not implemented: i"
+                ,"/tt/A.java:3: warning: JML model field is not implemented: i",22
                 ,"A 0"
                 ,"END"
         );
@@ -1291,7 +1332,6 @@ public class racnew extends RacBase {
     
     /** Forall, exists quantifier */
     @Test public void testForallQuantifier3() {
-        expectedErrors = 2;
         main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
@@ -1386,7 +1426,6 @@ public class racnew extends RacBase {
     // FIXME - quantifiers witrh multiple declarations
     /** Numof quantifier */
     @Test public void testCountTwo() {
-        expectedErrors = 1;
         main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
@@ -1754,7 +1793,7 @@ public class racnew extends RacBase {
                 +"   /*@ non_null*/ String local = \"\";\n"
                 +"   local = (String)ooo;"
                 +"System.out.println(\"END\"); "
-                +"}} class B { //@ model  int i; \n}"
+                +"}} class B { //@ model  int i; represents i = 0; \n}"
                 ,"/tt/A.java:4: JML assignment of null to a non_null variable"
                 ,"/tt/A.java:7: JML assignment of null to a non_null variable"
                 ,"END"
@@ -1769,7 +1808,7 @@ public class racnew extends RacBase {
                 +"   A.oo = null;\n"
                 +"   A.ooo = null;\n"
                 +"System.out.println(\"END\"); "
-                +"}} class B { //@ model  int i; \n}"
+                +"}} class B { //@ model  int i; represents i = 0; \n}"
                 ,"/tt/A.java:4: JML assignment of null to a non_null variable"
                 ,"END"
                 );
@@ -1787,7 +1826,7 @@ public class racnew extends RacBase {
                 +"   /*@ non_null*/ String local = ooo;\n"
                 +"   //@ ghost non_null String loc = null; \n"
                 +"System.out.println(\"END\"); "
-                +"}} class B { //@ model  int i; \n}"
+                +"}} class B {  \n}"
                 ,"/tt/A.java:2: JML null initialization of non_null field oo"
                 ,"/tt/A.java:4: JML null initialization of non_null field oooo"
                 ,"/tt/A.java:6: JML null initialization of non_null field local"
@@ -1805,7 +1844,7 @@ public class racnew extends RacBase {
                 +"   /*@ nullable*/ String local = (String)ooo;\n"
                 +"   //@ ghost String loc = null; \n"
                 +"System.out.println(\"END\"); "
-                +"}} class B { //@ model  int i; \n}"
+                +"}} class B { \n}"
                 ,"/tt/A.java:3: JML null initialization of non_null field ooo"
                 ,"/tt/A.java:7: JML null initialization of non_null field loc"
                 ,"END"
@@ -1823,7 +1862,7 @@ public class racnew extends RacBase {
         // FIXME - fix the debug statement, fix duplication and reseting of messages
         main.addOptions("-keys=DEBUG");
         //print = true;
-        expectedErrors = 17;
+        expectedExit = 1;
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"//@ axiom true;\n"
                 +"//@ invariant \\duration(true) == 0;\n"
@@ -1845,7 +1884,7 @@ public class racnew extends RacBase {
                 +"/*@ requires \\duration(true) == 0;*/"
                 +"int ma() { return 0; }\n"
                 +"//@ ensures \\duration(true) == 0;\n"
-                +"//@ signals (Exception ex) \\duration(true) == 0;\n"
+                +"//@ signals (Exception ex) \\duration(true) == 0;\n" // Line 20
                 +"//@ signals_only RuntimeException;\n"
                 +"//@ diverges \\duration(true) == 0;\n"
                 +"//@ duration  \\duration(true);\n"
@@ -1871,13 +1910,14 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: working_space clause containing \\duration",28
                 ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",29
                 ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",34
+                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: method (or represents clause) containing \\duration",30
+                ,"/tt/A.java:5: Unrecoverable situation: Unimplemented construct in a method or model method or represents clause",30
                 ,"END"
                 );
 
     }
     
     @Test public void testNotImplemented2() {
-        expectedErrors = 3;
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"public static void main(String[] args) { \n"
                 +"    m();\n"

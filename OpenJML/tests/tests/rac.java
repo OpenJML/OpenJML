@@ -1175,7 +1175,6 @@ public class rac extends RacBase {
     }
 
     @Test public void testSuchThat() {
-        expectedErrors = 1;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
                 +"//@ static model int i; \n "
@@ -1211,7 +1210,7 @@ public class rac extends RacBase {
     }
     
     @Test public void testModelFieldST() {
-        expectedErrors = 1;
+        continueAnyway = true;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
                 +"//@ static model int i; \n "
@@ -1235,8 +1234,6 @@ public class rac extends RacBase {
     
     /** Duplicate represents */
     @Test public void testModelField1() {
-        expectedExit = 1;
-        expectedErrors = 1;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
                 +"//@ static model int i; \n "
@@ -1248,7 +1245,10 @@ public class rac extends RacBase {
                 +"//@ debug System.out.println(\"A \" + i); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/tt/A.java:5: Duplicate represents clause - only the first is used for RAC",13
+                ,"/tt/A.java:5: warning: Duplicate represents clause - only the first is used for RAC",13
+                ,"A 6"
+                ,"A 11"
+                ,"END"
                 );
 
     }
@@ -1373,7 +1373,6 @@ public class rac extends RacBase {
     
     /** Forall, exists quantifier */
     @Test public void testForallQuantifier3() {
-        expectedErrors = 2;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; ; i >= 0); \n "
@@ -1462,7 +1461,6 @@ public class rac extends RacBase {
     // FIXME - quantifiers witrh multiple declarations
     /** Numof quantifier */
     @Test public void testCountTwo() {
-        expectedErrors = 1;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\num_of int i,j; 0 <= i && i <= 5 && 0 <= j && j < i; true); \n "
@@ -1876,7 +1874,6 @@ public class rac extends RacBase {
     // what about assignable
     // check any problems with grouped clauses
     @Test public void testNotImplemented() {
-        expectedErrors = 20;
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"//@ axiom true;\n"
                 +"//@ invariant \\duration(true) == 0;\n"
@@ -1931,7 +1928,6 @@ public class rac extends RacBase {
     }
     
     @Test public void testNotImplemented2() {
-        expectedErrors = 3;
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"public static void main(String[] args) { \n"
                 +"    m();\n"

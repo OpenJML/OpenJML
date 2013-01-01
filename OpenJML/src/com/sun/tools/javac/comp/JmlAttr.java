@@ -3167,6 +3167,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 t = syms.intType;
                 if (loopStack.isEmpty()) {
                     log.error(that.pos,"jml.outofscope",jt.internedName());
+                } else {
+                    that.info = loopStack.get(0).sym;
                 }
                 break;
                 
@@ -4452,20 +4454,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         log.useSource(pr);
         return s;
     }
+    
+    protected int loopIndexCount = 0;
 
     /** Attributes the specs for a do-while loop */
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
-        loopStack.add(0,that);
+        loopStack.add(0,treeutils.makeIdent(that.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
         attribLoopSpecs(that.loopSpecs,env);
         super.visitDoLoop(that);
         loopStack.remove(0);
     }
     
-    java.util.List<JCTree> loopStack = new java.util.LinkedList<JCTree>();
+    java.util.List<JCIdent> loopStack = new java.util.LinkedList<JCIdent>();
     java.util.List<JmlEnhancedForLoop> foreachLoopStack = new java.util.LinkedList<JmlEnhancedForLoop>();
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop tree) {
-        loopStack.add(0,tree);
+        loopStack.add(0,treeutils.makeIdent(tree.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
         foreachLoopStack.add(0,tree);
         try {
         // MAINTENANCE ISSUE: code duplicated mostly from the superclass
@@ -4762,7 +4766,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // MAINTENANCE ISSUE: code duplicated mostly from the superclass
 
     public void visitJmlForLoop(JmlForLoop tree) {
-        loopStack.add(0,tree);
+        loopStack.add(0,treeutils.makeIdent(tree.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
         Env<AttrContext> loopEnv =
             env.dup(env.tree, env.info.dup(env.info.scope.dup()));
         savedSpecOK = true;
@@ -4781,7 +4785,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     public void visitJmlWhileLoop(JmlWhileLoop that) {
-        loopStack.add(0,that);
+        loopStack.add(0,treeutils.makeIdent(that.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
         attribLoopSpecs(that.loopSpecs,env);
         super.visitWhileLoop(that);
         loopStack.remove(0);

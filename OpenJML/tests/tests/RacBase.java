@@ -27,11 +27,11 @@ public abstract class RacBase extends JmlTestCase {
 
     static String testspecpath1 = "$A"+z+"$B";
     static String testspecpath;
-    int expectedExit = 0;
-    int expectedRACExit = 0;
-    int expectedErrors = 0;
-    int expectedNotes;
-    boolean jdkrac = false;
+    int expectedExit = 0; // Expected result of compiler
+    int expectedRACExit = 0; // Expected result of RACed program
+    int expectedNotes; // Number of messages to ignore (e.g. uninteresting compiler warnings)
+    boolean jdkrac = false; // Set to true to do external system tests of RAC (emulating outside of JUnit)
+    boolean continueAnyway = false; // If true, attempt to run the program despite compiler warnings or errors
 
     /** The java executable */
     // TODO: This is going to use the external setting for java, rather than
@@ -89,8 +89,7 @@ public abstract class RacBase extends JmlTestCase {
         Log.instance(context).multipleErrors = true;
         expectedExit = 0;
         expectedRACExit = 0;
-        expectedErrors = 0;
-        expectedNotes = 2;
+        expectedNotes = 2; // Two lines to ignore
         print = false;
     }
     
@@ -129,10 +128,6 @@ public abstract class RacBase extends JmlTestCase {
      */
     public void helpTCX(String classname, String s, Object... list) {
 
-//        if (this.getClass() == racnew.class ) {
-//            System.out.println("rac tests disabled");
-//            return;  // FIXME - turning off these tests for now
-//        }
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
         StreamGobbler out=null,err=null;
         try {
@@ -147,15 +142,20 @@ public abstract class RacBase extends JmlTestCase {
             Log.instance(context).useSource(files.first());
             int ex = main.compile(new String[]{}, context, files.toList(), null);
             
-            if (print || collector.getDiagnostics().size()!=(expectedErrors+expectedNotes)) printErrors();
-            assertEquals("Errors seen",expectedErrors+expectedNotes,collector.getDiagnostics().size());
-            for (int i=0; i<expectedErrors; i++) {
+            if (print) printDiagnostics();
+            int observedMessages = collector.getDiagnostics().size() - expectedNotes;
+
+            for (int i=0; i<observedMessages; i++) {
                 int k = 2*i + 2*expectedNotes;
-                assertEquals("Error " + i, list[k].toString(), noSource(collector.getDiagnostics().get(i)));
-                assertEquals("Error " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
+                if (k > list.length) {
+                    if (!print) printDiagnostics();
+                    fail("More diagnostics than expected");
+                }
+                assertEquals("Message " + i, list[k].toString(), noSource(collector.getDiagnostics().get(i)));
+                assertEquals("Message " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
-            if (ex != 0) return;
+            if (ex != 0 && !continueAnyway) return;
             
             if (rac == null) rac = defrac;
             rac[rac.length-1] = classname;
@@ -169,7 +169,7 @@ public abstract class RacBase extends JmlTestCase {
                 fail("Process did not complete within the timeout period");
             }
             
-            int i = expectedErrors*2;
+            int i = observedMessages*2;
             if (print) {
                 String data = out.input();
                 if (data.length() > 0) {
@@ -203,6 +203,9 @@ public abstract class RacBase extends JmlTestCase {
                 }
             }
 
+            if (i != list.length && !print) { // if print, then we already printed
+                printDiagnostics();
+            }
             if (i> list.length) fail("More output than specified: " + i + " vs. " + list.length + " lines");
             if (i< list.length) fail("Less output than specified: " + i + " vs. " + list.length + " lines");
             if (p.exitValue() != expectedRACExit) fail("Exit code was " + p.exitValue());
@@ -210,6 +213,7 @@ public abstract class RacBase extends JmlTestCase {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
+            if (!print) printDiagnostics();
             if (!print && !noExtraPrinting) {
                 if (out != null) {
                     String[] lines = out.input().split(term);

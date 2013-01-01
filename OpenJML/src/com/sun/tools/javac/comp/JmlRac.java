@@ -1192,7 +1192,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         // FIXME - review the following
         result = that;
         if (that.sym != null && that.sym.kind == Kinds.VAR && attr.isModel(that.sym)) {
-            Name name = names.fromString("_JML$model$" + that.name);
+            Name name = names.fromString(Strings.modelFieldMethodPrefix + that.name);
             ClassSymbol sym = currentClassInfo.decl.sym;
             Scope.Entry e = sym.members().lookup(name);
             while (e.sym == null) {  // FIXME - do we need to look in interfaces?
@@ -1360,7 +1360,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 }
                 if (sym != null) {
                     // Construct a method that implements the represents clause
-                    Name name = names.fromString("_JML$model$" + sym.name);
+                    Name name = names.fromString(Strings.modelFieldMethodPrefix + sym.name);
                     JmlMethodDecl mdecl = null;
                     // Check if we already have a method for this model field
                     for (JmlTypeClauseDecl m: typeSpecs.modelFieldMethods) {
@@ -1373,7 +1373,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                                 // But no body yet
                                 mdecl.body.stats = List.<JCStatement>of(st);
                             } else {
-                                log.error(r.pos,"jml.duplicate.represents");
+                                log.warning(r.pos,"jml.duplicate.represents");
                             }
                         } catch (JmlRacNotImplemented ee) {
                             // Can't implement this represents clause because
@@ -2233,7 +2233,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
     public void visitIdent(JCIdent tree) {
         if (tree.sym != null && tree.sym.kind == Kinds.VAR && attr.isModel(tree.sym)) {
             // A model field is converted to a method call
-            Name name = names.fromString("_JML$model$" + tree.name);
+            Name name = names.fromString(Strings.modelFieldMethodPrefix + tree.name);
             ClassSymbol sym = currentClassInfo.decl.sym;
             Scope.Entry e = sym.members().lookup(name);
             while (e.sym == null) {// FIXME - do we need to look in interfaces?

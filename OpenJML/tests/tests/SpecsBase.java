@@ -172,13 +172,13 @@ public class SpecsBase extends TCBase {
             if (collector.getDiagnostics().size() != 0) {
                 System.out.println("ERRORS FOUND " + testClass);
                 foundErrors = true;
-                printErrors();
+                printDiagnostics();
             }
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
-            if (!print && !noExtraPrinting) printErrors();
+            if (!print && !noExtraPrinting) printDiagnostics();
             throw e;
         }
         assertTrue("Found errors checking specs for " + testClass, !foundErrors);

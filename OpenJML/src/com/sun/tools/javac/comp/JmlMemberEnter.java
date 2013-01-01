@@ -35,6 +35,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Attribute.Compound;
@@ -1066,7 +1067,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             long flags = Flags.SYNTHETIC;
             flags |= (vdecl.mods.flags & (Flags.STATIC|Flags.AccessFlags));
             modelMethodNames.add(vdecl.name);
-            Name name = names.fromString("_JML$model$" + vdecl.name);
+            Name name = names.fromString(Strings.modelFieldMethodPrefix + vdecl.name);
             JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name,vdecl.vartype,
                     List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(),jmlF.Block(0,List.<JCStatement>nil()), null);
             mr.pos = vdecl.pos;
