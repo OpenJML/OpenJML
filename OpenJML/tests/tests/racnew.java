@@ -872,151 +872,6 @@ public class racnew extends RacBase {
         
     }
     
-    @Test public void testForLoop2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " m(); System.out.println(\"END\"); } \n" +
-                " static void m() { \n" +
-                "    //@ loop_invariant i <9 ; \n" +
-                "    //@ decreases 10-i; \n" +
-                "    for (int i=0; i<10; i++) ; \n" +
-                "} " +
-                "}"
-                ,"/tt/TestJava.java:4: JML loop invariant is false"
-                ,"/tt/TestJava.java:4: JML loop invariant is false"
-                ,"END"
-                );
-    }
-
-    @Test public void testForLoop() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " m(); System.out.println(\"END\"); } \n" +
-                " static void m() { \n" +
-                "    //@ loop_invariant i <= 10 ; \n" +
-                "    //@ decreases 7-i; \n" +
-                "    for (int i=0; i<10; i++) ; \n" +
-                "} " +
-                "}"
-                ,"/tt/TestJava.java:5: JML loop variant is less than 0"
-                ,"/tt/TestJava.java:5: JML loop variant is less than 0"
-                ,"/tt/TestJava.java:5: JML loop variant is less than 0"
-                ,"END"
-                );
-    }
-
-    @Test public void testForEachLoop() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " m(); System.out.println(\"END\"); } \n" +
-                " static void m() { \n" +
-                "    int[] a = new int[10];\n" +
-                "    //@ ghost int i = 0; \n" +
-                "    //@ loop_invariant i <= a.length ; \n" +
-                "    //@ decreases a.length-i; \n" +
-                "    for (int j: a) { \n" +
-                "       //@ set i = i + 1;\n" +
-                "    }\n" +
-                "} " +
-                "}"
-                ,"END"
-                );
-    }
-    @Test public void testForEachLoop2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " m(); System.out.println(\"END\"); } \n" +
-                " static void m() { \n" +
-                "    int[] a = new int[10];\n" +
-                "    //@ ghost int i = 0; \n" +
-                "    //@ loop_invariant i < a.length ; \n" +
-                "    //@ decreases a.length-i-2; \n" +
-                "    for (int j: a) { \n" +
-                "       //@ set i = i + 1;\n" +
-                "    }\n" +
-                "} " +
-                "}"
-                ,"/tt/TestJava.java:7: JML loop variant is less than 0"
-                ,"/tt/TestJava.java:6: JML loop invariant is false"
-                ,"/tt/TestJava.java:7: JML loop variant is less than 0"
-                ,"END"
-                );
-    }
-
-    
-    @Test public void testLoop() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(5); m(0); System.out.println(\"END\"); } \n" +
-                " static void m(int i) { \n" +
-                "    //@ loop_invariant i>= 0; \n" +
-                "    //@ decreases i; \n" +
-                "    while (i>0) --i; \n" +
-                "} " +
-                "}"
-                ,"END"
-                );
-    }
-
-    
-    @Test public void testLoop2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(5); m(0); m(-1); System.out.println(\"END\"); } \n" +
-                " static void m(int i) { \n" +
-                "    System.out.println(\"VALUE \" + i); \n" +
-                "    //@ loop_invariant i>= 0; \n" +
-                "    //@ decreases i; \n" +
-                "    while (i>=0) --i; \n" +
-                "} " +
-                "}"
-                ,"VALUE 5"
-                ,"/tt/TestJava.java:5: JML loop invariant is false"
-                ,"/tt/TestJava.java:6: JML loop variant is less than 0"
-                ,"VALUE 0"
-                ,"/tt/TestJava.java:5: JML loop invariant is false"
-                ,"/tt/TestJava.java:6: JML loop variant is less than 0"
-                ,"VALUE -1"
-                ,"/tt/TestJava.java:5: JML loop invariant is false"
-                ,"/tt/TestJava.java:6: JML loop variant is less than 0"
-                ,"END"
-                );
-    }
-
-    
-    @Test public void testDoLoop() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(5); m(1); System.out.println(\"END\"); } \n" +
-                " static void m(int i) { \n" +
-                "    //@ loop_invariant i>= 0; \n" +
-                "    //@ decreases i; \n" +
-                "    do { --i; } while (i>0); \n" +
-                "} " +
-                "}"
-                ,"END"
-                );
-    }
-
-    
-    @Test public void testDoLoop2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(5); m(0); m(-1); System.out.println(\"END\"); } \n" +
-                " static void m(int i) { \n" +
-                "    System.out.println(\"VALUE \" + i); \n" +
-                "    //@ loop_invariant i>= 0; \n" +
-                "    //@ decreases i; \n" +
-                "    do { --i; } while (i>=0); \n" +
-                "} " +
-                "}"
-                ,"VALUE 5"
-                ,"/tt/TestJava.java:5: JML loop invariant is false"
-                ,"/tt/TestJava.java:6: JML loop variant is less than 0"
-                ,"VALUE 0"
-                ,"/tt/TestJava.java:5: JML loop invariant is false"
-                ,"/tt/TestJava.java:6: JML loop variant is less than 0"
-                ,"VALUE -1"
-                ,"/tt/TestJava.java:5: JML loop invariant is false"
-                ,"/tt/TestJava.java:6: JML loop variant is less than 0"
-                ,"/tt/TestJava.java:5: JML loop invariant is false"
-                ,"/tt/TestJava.java:6: JML loop variant is less than 0"
-                ,"END"
-                );
-    }
-
     @Test public void testSpecFile() {
         addMockFile("$A/tt/A.jml","package tt; public class A { //@ ghost static int i = 0;\n  //@ invariant i == 0; \n //@ requires i == 1;\n static int m(); }");
         helpTCX("tt.A","package tt; public class A { static int m() { return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
@@ -1968,7 +1823,7 @@ public class racnew extends RacBase {
         // FIXME - fix the debug statement, fix duplication and reseting of messages
         main.addOptions("-keys=DEBUG");
         //print = true;
-        expectedErrors = 15;
+        expectedErrors = 17;
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"//@ axiom true;\n"
                 +"//@ invariant \\duration(true) == 0;\n"
@@ -2014,8 +1869,8 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:22: Note: Not implemented for runtime assertion checking: diverges clause containing \\duration",23
                 ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: duration clause containing \\duration",24
                 ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: working_space clause containing \\duration",28
-//                ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration",20
-//                ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration",25
+                ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",29
+                ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",34
                 ,"END"
                 );
 
@@ -2274,54 +2129,6 @@ public class racnew extends RacBase {
                 "}"
                 ,"/tt/A.java:2: JML assertion is false");
     }
-
-    @Test public void testForEach3() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list); }"
-                +"static void m(java.util.List<Integer> list) { \n "
-                +"int sum = 0; \n"
-                +"//@ loop_invariant sum >= 0; \n"
-                +"for (int o: list) {  sum += o; }  \n"
-                +"//@ assert sum >= 0; \n"
-                +"}}"
-                );
-    }
-
-    @Test public void testForEach3bad() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list);}"
-                +"static void m(java.util.List<Integer> list) { \n "
-                +"int sum = 0; \n"
-                +"//@ loop_invariant sum >= 0; \n"
-                +"for (int o: list) {  sum += o; }  \n"
-                +"//@ assert sum > 0; \n"
-                +"}}"
-                ,"/tt/A.java:5: JML assertion is false"
-                );
-    }
-
-    @Test public void testForEach4() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{1,2,3}; m(aa); }"
-                +"static void m(Integer[] list) { \n "
-                +"int sum = 0; \n"
-                +"//@ loop_invariant sum >= 0; \n"
-                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
-                +"//@ assert sum >= 0; \n"
-                +"}}"
-                );
-    }
-
-    @Test public void testForEach4bad() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{0,0,0}; m(aa); }"
-                +"static void m(Integer[] list) { \n "
-                +"int sum = 0; \n"
-                +"//@ loop_invariant sum >= 0; \n"
-                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
-                +"//@ assert sum > 0; \n"
-                +"}}"
-                ,"/tt/A.java:5: JML assertion is false"
-                );
-    }
-
-
 
 
 }

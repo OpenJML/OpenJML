@@ -617,7 +617,7 @@ public class JmlTreeUtils {
     }
     
     /** Makes an attributed AST for the length operation on an array. */
-    public JCFieldAccess makeLength(int pos, JCExpression array) {
+    public JCFieldAccess makeLength(DiagnosticPosition pos, JCExpression array) {
         JCFieldAccess fa = (JCFieldAccess)factory.at(pos).Select(array, syms.lengthVar);
         fa.type = syms.intType;
         return fa;

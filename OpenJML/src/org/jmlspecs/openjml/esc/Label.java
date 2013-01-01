@@ -150,7 +150,10 @@ public class Label {
     /** Used for assert statements generated to check that assume statements are feasible */
     /*@ non_null*/ public final static Label ASSUME_CHECK = new Label("AssumeCheck");
     
-    /** Used for the loop invariant assertion or assumption. */
+    /** Used for the loop invariant assumption at beginning of loop body. */
+    /*@ non_null*/ public final static Label LOOP_INVARIANT_ASSUMPTION = new Label("LoopInvariantAssumption");
+    
+    /** Used for the loop invariant assertion at end of loop body. */
     /*@ non_null*/ public final static Label LOOP_INVARIANT = new Label("LoopInvariant");
     
     /** Used for the loop invariant assertion or assumption. */
