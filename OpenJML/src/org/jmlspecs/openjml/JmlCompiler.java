@@ -118,35 +118,65 @@ public class JmlCompiler extends JavaCompiler {
         }
         if (cu instanceof JmlCompilationUnit) {
             JmlCompilationUnit jmlcu = (JmlCompilationUnit)cu;
-            jmlcu.mode = JmlCompilationUnit.JAVA_SOURCE_PARTIAL;
-            JavaFileObject specsFile = findSpecs(jmlcu);
-            jmlcu.specsCompilationUnit = parseSpecs(specsFile,jmlcu);
-            if (jmlcu.specsCompilationUnit == null) {
-                // If there are no specs, that means that not even the .java file is
-                // on the specification path.  That may well be something to warn
-                // about.  For now (and for the sake of the tests), we will be
-                // helpful and add the .java file to the specs sequence despite it
-                // not being on the specification path.
-                // TODO log.warning("jml.no.specs",filename.getName());
-                jmlcu.specsCompilationUnit = jmlcu;
+            if (fileobject.getKind() == JavaFileObject.Kind.SOURCE) { // A .java file
+                jmlcu.mode = JmlCompilationUnit.JAVA_SOURCE_PARTIAL;
+                JavaFileObject specsFile = findSpecs(jmlcu,true);
+                // FIXME - this comparison is not robust, though is usually working
+                // we use it to avoid parsing a file twice (which would also give
+                // duplicate error messages) - what does JavaCompiler do?
+                //log.noticeWriter.println(f.toUri().normalize().getPath() + " VS " + javaCU.getSourceFile().toUri().normalize().getPath());
+                if (specsFile != null && specsFile.equals(jmlcu.getSourceFile())) {
+                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("The java file is its own specs for " + specsFile);
+                    jmlcu.specsCompilationUnit = jmlcu;
+                } else {
+                    jmlcu.specsCompilationUnit = parseSingleFile(specsFile);
+                }
+
+                if (jmlcu.specsCompilationUnit == null) {
+                    // If there are no specs, that means that not even the .java file is
+                    // on the specification path.  That may well be something to warn
+                    // about.  For now (and for the sake of the tests), we will be
+                    // helpful and add the .java file to the specs sequence despite it
+                    // not being on the specification path.
+                    // TODO log.warning("jml.no.specs",filename.getName());
+                    jmlcu.specsCompilationUnit = jmlcu;
+                } else {
+                    JmlCompilationUnit jcu = jmlcu.specsCompilationUnit;
+                    if (jcu != cu) jcu.mode = JmlCompilationUnit.SPEC_FOR_SOURCE;
+                }
+                // Only need dependencies in interactive situations - Eclipse and programmatic api
+                // Needs to be false for testing or we run out of memory
+                if (false) {
+                    JmlCompilationUnit jcu = jmlcu.specsCompilationUnit;
+                    //log.noticeWriter.println(jmlcu.sourcefile + " depends on " + jcu.sourcefile);
+                    Dependencies.instance(context).dependsOn(jmlcu.sourcefile,jcu.sourcefile);
+                }
             } else {
-                JmlCompilationUnit jcu = jmlcu.specsCompilationUnit;
-                if (jcu != cu) jcu.mode = JmlCompilationUnit.SPEC_FOR_SOURCE;
-            }
-            // Only need dependencies in interactive situations - Eclipse and programmatic api
-            // Needs to be false for testing or we run out of memory
-            if (false) {
-                JmlCompilationUnit jcu = jmlcu.specsCompilationUnit;
-                //log.noticeWriter.println(jmlcu.sourcefile + " depends on " + jcu.sourcefile);
-                Dependencies.instance(context).dependsOn(jmlcu.sourcefile,jcu.sourcefile);
+                jmlcu.mode = JmlCompilationUnit.SPEC_FOR_SOURCE;
+                JavaFileObject javaFile = findSpecs(jmlcu,false); // look for corresponding java file
+                JmlCompilationUnit javacu = parseSingleFile(javaFile);
+                if (javacu != null) {
+                    javacu.specsCompilationUnit = jmlcu; 
+                    javacu.mode = JmlCompilationUnit.JAVA_SOURCE_PARTIAL;
+                    cu = javacu;
+                } else {
+                    log.warning("jml.no.java.file",jmlcu.sourcefile);
+                }
+                // Only need dependencies in interactive situations - Eclipse and programmatic api
+                // Needs to be false for testing or we run out of memory
+                if (false) {
+                    JmlCompilationUnit jcu = jmlcu.specsCompilationUnit;
+                    //log.noticeWriter.println(jmlcu.sourcefile + " depends on " + jcu.sourcefile);
+                    Dependencies.instance(context).dependsOn(jmlcu.sourcefile,jcu.sourcefile);
+                }
             }
         } else {
             log.error("jml.internal",
                     "JmlCompiler.parse expects to receive objects of type JmlCompilationUnit, but it found a " 
-                    + cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
+                            + cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
         }
         try {
-            if (cu.endPositions != null) {
+            if (cu.endPositions != null) { // FIXME - is this ever non-null? and why only of we are in the mode of parsing multiple files
                 JavaFileObject prev = log.useSource(fileobject);
                 log.setEndPosTable(fileobject,cu.endPositions);
                 log.useSource(prev);
@@ -159,10 +189,11 @@ public class JmlCompiler extends JavaCompiler {
     
     /** Finds the specs for a given compilation unit.
      * @param jmlcu The compilation unit of the Java source, if any
+     * @param specs if true, looks for any specs file; if false, looks for Java file
      * @return the source object of the specifications
      */
     /*@ nullable */
-    public JavaFileObject findSpecs(JmlCompilationUnit jmlcu) {
+    public JavaFileObject findSpecs(JmlCompilationUnit jmlcu, boolean specs) {
         JCTree.JCExpression pkgName = jmlcu.getPackageName();
         String pack = pkgName == null ? null : pkgName.toString();
         String filepath = jmlcu.getSourceFile().getName();
@@ -180,7 +211,13 @@ public class JmlCompiler extends JavaCompiler {
         if (i < ii) i = ii;
         int k = filepath.lastIndexOf(".");
         String rootname = k >= 0 ? filepath.substring(i+1,k) : filepath.substring(i+1);
-        JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(pack == null ? rootname : (pack + "." + rootname));
+        JavaFileObject f;
+        if (specs) {
+            f = JmlSpecs.instance(context).findAnySpecFile(pack == null ? rootname : (pack + "." + rootname));
+        } else {
+            rootname = rootname + Strings.javaSuffix;
+            f = JmlSpecs.instance(context).findSpecificSourceFile(pack == null ? rootname : (pack + "." + rootname));
+        }
         return f;
     }
     
@@ -194,7 +231,7 @@ public class JmlCompiler extends JavaCompiler {
     public JmlCompilationUnit parseSpecs(Symbol.TypeSymbol typeSymbol) {
         String typeName = typeSymbol.flatName().toString();
         JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(typeName);
-        /*@Nullable*/ JmlCompilationUnit speccu = parseSpecs(f,null);
+        /*@Nullable*/ JmlCompilationUnit speccu = parseSingleFile(f);
         if (speccu != null) speccu.packge = (Symbol.PackageSymbol)typeSymbol.outermostClass().getEnclosingElement();
         return speccu;
     }
@@ -206,24 +243,24 @@ public class JmlCompiler extends JavaCompiler {
      * @param javaCU the compilation unit that provoked this parsing, if any
      * @return the possibly empty list of parsed compilation units, as ASTs
      */
-    //@ non_null
-    public JmlCompilationUnit parseSpecs(/*@ nullable*/JavaFileObject f, /*@ nullable*/JmlCompilationUnit javaCU) {
+    //@ nullable
+    public JmlCompilationUnit parseSingleFile(/*@ nullable*/JavaFileObject f) {
         inSequence = true;
-        JmlCompilationUnit jmlcu = null;
-        if (f != null) {
-            // FIXME - this comparison is not robust, though is usually working
-            // we use it to avoid parsing a file twice (which would also give
-            // duplicate error messages) - what does JavaCompiler do?
-            //log.noticeWriter.println(f.toUri().normalize().getPath() + " VS " + javaCU.getSourceFile().toUri().normalize().getPath());
-            if (javaCU != null && f.equals(javaCU.getSourceFile())) {
-                if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("The java file is its own specs for " + f);
-                jmlcu = javaCU;
+        try {
+            if (f != null) {
+                JCCompilationUnit result = parse(f);
+                if (result instanceof JmlCompilationUnit) {
+                    return (JmlCompilationUnit)result;
+                } else {
+                    log.error("jml.internal","The result of a parse is a JCCompilationUnit instead of a JmlCompilationUnit");
+                    return null;
+                }
             } else {
-                jmlcu = (JmlCompilationUnit)parse(f);
+                return null;
             }
+        } finally {
+            inSequence = false;
         }
-        inSequence = false;
-        return jmlcu;
     }
     
     @Override

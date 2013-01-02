@@ -1355,6 +1355,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
                 if (e instanceof JCIdent) sym = ((JCIdent)e).sym;
                 else if (e instanceof JCFieldAccess) sym = ((JCFieldAccess)e).sym;
                 else {
+                	// FIXME - on what occasions would it be a field access?
                     log.warning(r.pos(),"jml.internal.notsobad",
                             "The lhs of a represents clause is expected to be an identifier or field access (found "+e.getClass()+")");
                 }

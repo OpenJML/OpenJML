@@ -5,15 +5,12 @@ import static org.junit.Assert.fail;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-
-import com.sun.tools.javac.util.Options;
 
 /** Tests running the tool as if from the command-line (for typechecking);
  * includes erroneous command-line argument combinations and combinations
@@ -73,10 +70,10 @@ public class compiler {
         String errOutput = berr.toString();
         actualOutput = actualOutput.toString().replace("\\","/");
         errOutput = errOutput.toString().replace("\\","/");
-        if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
         if (print) System.out.println("ACTUAL ERR: " + errOutput);
+        if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;
         if (capture) try {
             String tail = "";
             if (print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + errOutput);
@@ -258,6 +255,160 @@ public class compiler {
                           );
     }
 
+    /** Tests using having a .jml file on the command line.
+     * @throws Exception
+     */ 
+    @Test
+    public void testJML() throws Exception {
+        helper(new String[]
+                          { "-classpath","runtime",
+                            "-sourcepath","testfiles/testNoErrors",
+                            "-specspath","runtime",
+                            "-noPurityCheck",
+                            "testfiles/testNoErrors/A.jml"
+                          },0,0
+                          ,""
+                          );
+    }
+
+    /** Tests using having a .jml file on the command line, but the corresponding
+     * Java file has a type error.
+     * @throws Exception
+     */ 
+    @Test
+    public void testJML1() throws Exception {
+        print = true;
+        helper(new String[]
+                          { "-classpath","runtime",
+                            "-sourcepath","testfiles/testJavaErrors2",
+                            "-specspath","runtime;testfiles/testJavaErrors2",
+                            "-noPurityCheck",
+                            "testfiles/testJavaErrors2/A.java"
+                          },1,1
+                          ,"testfiles/testJavaErrors2/A.java:2: error: incompatible types"
+                          );
+    }
+
+    /** Tests using having a .jml file on the command line, but the corresponding
+     * Java file has a type error.
+     * @throws Exception
+     */ 
+    @Test
+    public void testJML1A() throws Exception {
+        helper(new String[]
+                          { "-classpath","runtime",
+                            "-sourcepath","testfiles/testJavaParseErrors",
+                            "-specspath","runtime;testfiles/testJavaParseErrors",
+                            "-noPurityCheck",
+                            "testfiles/testJavaParseErrors/A.jml"
+                          },1,1
+                          ,"testfiles/testJavaParseErrors/A.java:2: error: illegal start of expression"
+                          );
+    }
+
+    /** Tests using having a .jml file on the command line, but the corresponding
+     * Java file has a type error - but in the JML, so it is ignored since there 
+     * already is a specs file.
+     * @throws Exception
+     */ 
+    @Test
+    public void testJML1B() throws Exception {
+        print = true;
+        helper(new String[]
+                          { "-classpath","runtime",
+                            "-sourcepath","testfiles/testJavaErrors",
+                            "-specspath","runtime;testfiles/testJavaErrors",
+                            "-noPurityCheck",
+                            "testfiles/testJavaErrors/A.java"
+                          },0,0,
+                          ""
+                          );
+    }
+
+    /** Tests using having a .jml file on the command line.
+     * @throws Exception
+     */ 
+    @Test
+    public void testJML2() throws Exception {
+        helper(new String[]
+                          { "-classpath","runtime",
+                            "-sourcepath","testfiles/testNoSource",
+                            "-specspath","runtime",
+                            "-noPurityCheck",
+                            "testfiles/testNoSource/A.jml"
+                          },0,0
+                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: testfiles/testNoSource/A.jml" + eol + "1 warning" + eol
+                          );
+    }
+
+    /** Tests using having a .jml file on the command line.
+     * @throws Exception
+     */ 
+    @Test
+    public void testJML3() throws Exception {
+        helper(new String[]
+                          { "-classpath","runtime",
+                            "-sourcepath","",
+                            "-specspath","runtime",
+                            "-noPurityCheck",
+                            "testfiles/testNoErrors/A.jml"
+                          },0,0
+                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: testfiles/testNoErrors/A.jml" + eol + "1 warning" + eol
+                          );
+    }
+
+    @Test
+    public void testJML4() throws Exception {
+        helper(new String[]
+                          { "-classpath","runtime",
+                            "-sourcepath","",
+                            "-specspath","runtime",
+                            "-noPurityCheck",
+                            "testfiles/testNoSourceParseError/A.jml"
+                          },1,0
+                          ,"testfiles/testNoSourceParseError/A.jml:4: error: illegal start of expression" + eol +
+                           "int i = ;" + eol +
+                           "        ^" + eol +
+                           "warning: There is no java file on the sourcepath corresponding to the given jml file: testfiles/testNoSourceParseError/A.jml" + eol + 
+                           "1 error" + eol +
+                           "1 warning" + eol
+                          );
+    }
+
+    @Test
+    public void testJML5() throws Exception {
+        helper(new String[]
+                          { "-classpath","runtime",
+                            "-sourcepath","",
+                            "-specspath","runtime",
+                            "-noPurityCheck",
+                            "testfiles/testNoSourceTypeError/A.jml"
+                          },1,0
+                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: testfiles/testNoSourceTypeError/A.jml" + eol +
+                           "testfiles/testNoSourceTypeError/A.jml:4: error: incompatible types" + eol + 
+                           "  Integer s = \"abc\";" + eol + 
+                           "              ^" + eol +
+                           "  required: Integer" + eol + 
+                           "  found:    String" + eol +
+                           "1 error" + eol +
+                           "1 warning" + eol
+                           );
+    }
+
+    // FIXME - the jml and class files do not match - we should get type errors
+    @Test
+    public void testJML6() throws Exception {
+        helper(new String[]
+                          { "-classpath","runtime;testfiles/testNoSourceWithClass",
+                            "-sourcepath","",
+                            "-specspath","runtime;testfiles/testNoSourceWithClass",
+                            "-noPurityCheck",
+                            "testfiles/testNoSourceWithClass/A.jml"
+                          },0,0
+                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: testfiles/testNoSourceWithClass/A.jml" + eol + "1 warning" + eol
+                          );
+    }
+
     /** Tests using source path but including java spec files - may encounter
      * compilation warnings in the spec files as they evolve.
      * Uses bin for classpath.
@@ -292,12 +443,10 @@ public class compiler {
     // This test requires jmlruntime.jar to have been created - run the Makefile
     // in the OpenJML project
     /** Tests using the runtime jar */
-    //@Test  // FIXME - this requires jmlruntime.jar - don't want to require running the release build before
-    // running the JUnit tests, so we'll disable this for not - not having success building the jmlruntime.jar
-    // library programmatically
-    @Test @Ignore
+    //@Test  // FIXME - try running the build programmatically
+    @Test 
     public void testSourcePath4() throws Exception {
-        if (!new java.io.File("jars/jmlruntime.jar").exists()) {
+        if (!new java.io.File("tempjars/jmlruntime.jar").exists()) {
             System.setErr(savederr);
             System.setOut(savedout);
             System.out.println("Starting");
@@ -330,10 +479,10 @@ public class compiler {
 //                int e = p.waitFor();
 //                System.out.println("Exit " + e);
 //            }
-            System.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars direcctory.  It will not be run until a release has been built.");
+            System.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars directory.  It will not be run until a release has been built.");
         } else {
             helper(new String[]
-                          { "-classpath","jars/jmlruntime.jar",
+                          { "-classpath","tempjars/jmlruntime.jar",
                             "-sourcepath","testfiles/testNoErrors",
                             "-specspath","",
                             "-noInternalSpecs",

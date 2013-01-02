@@ -1096,7 +1096,7 @@ public class JmlEnter extends Enter {
         if (jfo.getKind() == JavaFileObject.Kind.SOURCE) return super.classNameMatchesFileName(c, env);
         // FIXME: Actually we are loose in our comparison
         String filename = jfo.getName();
-        return filename.startsWith(classname) && filename.length() > classname.length() && filename.charAt(classname.length()) == '.';
+        return filename.endsWith(classname + ".jml"); // FIXME - put in Strings file or a better test on suffix
     }
 
     /** Overrides Enter.main simply to add to the list of compilation units 
