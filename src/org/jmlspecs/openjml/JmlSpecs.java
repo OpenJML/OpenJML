@@ -349,6 +349,19 @@ public class JmlSpecs {
         return specsDirs;
     }
     
+    /** Returns the source path
+     */
+    public String[] getSourcePath() {
+        Options options = Options.instance(context);
+        String s = options.get(Strings.sourcepathOptionName);
+        if (s == null) s = options.get(Strings.classpathOptionName);
+        if (s == null) s = System.getProperty("java.class.path");
+        if (s == null) s = "";
+        return s.split(java.io.File.pathSeparator);
+    }
+    
+
+    
     /** Sets the specifications path according to the given string; the
      * string must be a sequence of directories, separated by the host
      * systems java.io.File.pathSeparator character.  The directories are
@@ -744,6 +757,22 @@ public class JmlSpecs {
     public JavaFileObject findSpecificSpecFile(String filename) {
         for (Dir dir: getSpecsPath()) {
             JavaFileObject j = dir.findFile(filename);
+            if (j != null) return j;
+        }
+        return null;
+    }
+ 
+    /** Finds a specific file on the sourcepath
+     * 
+     * @param filename The fully qualified (package + file + suffix) name of 
+     * the file to be found, with / separation
+     * @return The file found, or null if not found
+     */
+    //@ nullable
+    public JavaFileObject findSpecificSourceFile(String filename) {
+        for (String dir: getSourcePath()) {
+            if (dir.isEmpty()) continue;
+            JavaFileObject j = make(dir).findFile(filename);
             if (j != null) return j;
         }
         return null;

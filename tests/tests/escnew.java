@@ -1,16 +1,8 @@
 package tests;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
-
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.Utils;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runners.Parameterized.Parameters;
-
-import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Names;
 
 
 public class escnew extends EscBase {
@@ -1082,96 +1074,98 @@ public class escnew extends EscBase {
                 );
     }
 
-//    public void testBoxing() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +"public class TestJava { \n"
-//                
-//                +"  public int m1bad(/*@ nullable */ Integer i) {\n"
-//                +"    return i;\n"
-//                +"  }\n"
-//                
-//                +"  public void m1ok() {\n"
-//                +"    int i = 3;\n"
-//                +"    Integer ii = i;\n"
-//                +"    int j = ii;\n"
-//                +"    //@ assert i == j;\n"
-//                +"  }\n"
-//                
-//                +"}"
-//                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
-//                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
-//                ,"/tt/TestJava.java:14: warning: Associated declaration",7
-//                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
-//                ,"/tt/TestJava.java:24: warning: Associated declaration",7
-//                );
-//    }
+    @Test @Ignore
+    public void testBoxing() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public int m1bad(/*@ nullable */ Integer i) {\n"
+                +"    return i;\n"
+                +"  }\n"
+                
+                +"  public void m1ok() {\n"
+                +"    int i = 3;\n"
+                +"    Integer ii = i;\n"
+                +"    int j = ii;\n"
+                +"    //@ assert i == j;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+                ,"/tt/TestJava.java:14: warning: Associated declaration",7
+                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                ,"/tt/TestJava.java:24: warning: Associated declaration",7
+                );
+    }
 
     // FIXME
-//    public void testSelect() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +"public class TestJava { \n"
-//                
-//                +"  public int f;\n"
-//                
-//                +"  //@ requires true;\n"
-//                +"  //@ ensures \\result == 1;\n"
-//                +"  public int m1bad() {\n"
-//                +"    return this.f ;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires this.f == 1;\n"
-//                +"  //@ ensures \\result == 1;\n"
-//                +"  public int m1ok() {\n"
-//                +"    return this.f ;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires true;\n"
-//                +"  //@ ensures \\result == 1;\n"
-//                +"  public int m2bad() {\n"
-//                +"    return f ;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires f == 1;\n"
-//                +"  //@ ensures \\result == 1;\n"
-//                +"  public int m2ok() {\n"
-//                +"    return f ;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires f == 1;\n"
-//                +"  //@ ensures \\result == 1;\n"
-//                +"  public int m3bad(TestJava p) {\n"
-//                +"    return p.f ;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires true;\n"
-//                +"  //@ ensures true;\n"
-//                +"  public int m3bad2(/*@nullable*/ TestJava p) {\n"
-//                +"    return p.f ;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires p.f == 1;\n"
-//                +"  //@ ensures \\result == 1;\n"
-//                +"  public int m3ok(TestJava p) {\n"
-//                +"    return p.f ;\n"
-//                +"  }\n"
-//                
-//                +"  public void m4ok(TestJava p) {\n"
-//                +"    System.out.println(\"A\");\n"
-//                +"  }\n"
-//                
-//                
-//                
-//                +"}"
-//                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-//                ,"/tt/TestJava.java:5: warning: Associated declaration",7
-//                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
-//                ,"/tt/TestJava.java:15: warning: Associated declaration",7
-//                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
-//                ,"/tt/TestJava.java:25: warning: Associated declaration",7
-//                ,"/tt/TestJava.java:32: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3bad2",13
-//                );
-//    }
+    @Test @Ignore
+    public void testSelect() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public int f;\n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m1bad() {\n"
+                +"    return this.f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires this.f == 1;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m1ok() {\n"
+                +"    return this.f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m2bad() {\n"
+                +"    return f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires f == 1;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m2ok() {\n"
+                +"    return f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires f == 1;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m3bad(TestJava p) {\n"
+                +"    return p.f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures true;\n"
+                +"  public int m3bad2(/*@nullable*/ TestJava p) {\n"
+                +"    return p.f ;\n"
+                +"  }\n"
+                
+                +"  //@ requires p.f == 1;\n"
+                +"  //@ ensures \\result == 1;\n"
+                +"  public int m3ok(TestJava p) {\n"
+                +"    return p.f ;\n"
+                +"  }\n"
+                
+                +"  public void m4ok(TestJava p) {\n"
+                +"    System.out.println(\"A\");\n"
+                +"  }\n"
+                
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:5: warning: Associated declaration",7
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+                ,"/tt/TestJava.java:15: warning: Associated declaration",7
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                ,"/tt/TestJava.java:25: warning: Associated declaration",7
+                ,"/tt/TestJava.java:32: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3bad2",13
+                );
+    }
 
     @Test
     public void testArrayIndex() {

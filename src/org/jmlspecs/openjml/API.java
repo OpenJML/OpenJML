@@ -359,7 +359,7 @@ public class API implements IAPI {
 
     @Override public @Nullable
     JavaFileObject findSpecs(JmlCompilationUnit jmlcu) {
-        return ((JmlCompiler)JmlCompiler.instance(main.context)).findSpecs(jmlcu);
+        return ((JmlCompiler)JmlCompiler.instance(main.context)).findSpecs(jmlcu,true);
     }
 
 

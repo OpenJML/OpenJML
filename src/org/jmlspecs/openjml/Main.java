@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
@@ -502,7 +503,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     //@ requires \nonnullelements(args);
     //@ ensures \result != null && \nonnullelements(\result);
-    String[] processJmlArgs(@NonNull String [] args, @NonNull Options options) {
+    String[] processJmlArgs(@NonNull String [] args, @NonNull Options options, ListBuffer<File> jmlfiles) {
         java.util.List<String> newargs = new ArrayList<String>();
         java.util.List<String> files = new ArrayList<String>();
         int i = 0;
@@ -511,6 +512,15 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         //newargs.addAll(computeDependencyClosure(files));
         newargs.addAll(files);
+        File f;
+        Iterator<String> iter = newargs.iterator();
+        while (iter.hasNext()) {
+            String s = iter.next();
+            if (s.endsWith(".jml") && (f=new File(s)).exists()) {
+                jmlfiles.add(f);
+                iter.remove();
+            }
+        }
         return newargs.toArray(new String[newargs.size()]);
     }
     
@@ -697,8 +707,10 @@ public class Main extends com.sun.tools.javac.main.Main {
     @Override
     public List<File> processArgs(String[] args) {
         Options options = Options.instance(this.context);
-        args = processJmlArgs(args,options);
+        ListBuffer<File> jmlfiles = new ListBuffer<File>();
+        args = processJmlArgs(args,options,jmlfiles);
         List<File> files = super.processArgs(args);
+        if (files != null) files = files.appendList(jmlfiles);
         //args.addAll(computeDependencyClosure(files));
         if (!setupOptions()) return null;
         return files;
