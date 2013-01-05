@@ -657,6 +657,26 @@ public class escall2 extends EscBase {
                 );
     }
     
+    @Test @Ignore // FIXME - need a test to check type testing as part of condition
+    public void testTypeCast() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m(String s) {\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1",14
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1a",14
+                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2",17
+                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2a",17
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3",7
+                ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3a",7
+                );
+    }
+    
     @Test
     public void testDZero() {
         helpTCX("tt.TestJava","package tt; \n"

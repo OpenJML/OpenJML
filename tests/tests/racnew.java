@@ -561,10 +561,17 @@ public class racnew extends RacBase {
                 " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
                 ,"LABEL CLS = class java.lang.Object"
+                ,"LABEL CLS = class java.lang.Object"
                 ,"CLASS class java.lang.Object"
+                ,"LABEL CLS = class java.lang.String"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
                 ,"LABEL CLS = class java.lang.String"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class java.lang.String"
+                ,"LABEL CLS = class java.lang.Boolean"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
                 ,"LABEL CLS = class java.lang.Boolean"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class java.lang.Boolean"
@@ -580,8 +587,14 @@ public class racnew extends RacBase {
                 " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
                 ,"LABEL CLS = class [Ljava.lang.Object;"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"LABEL CLS = class [Ljava.lang.Object;"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class [Ljava.lang.Object;"
+                ,"LABEL CLS = class [Ljava.lang.String;"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
                 ,"LABEL CLS = class [Ljava.lang.String;"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class [Ljava.lang.String;"
@@ -605,6 +618,9 @@ public class racnew extends RacBase {
                 "//@ assert (\\lbl AST8 \\typeof((double)0)) != null; \n" +
                 "} " +
                 "}"
+                ,"LABEL CLS = int"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
                 ,"LABEL CLS = int"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"LABEL AST = boolean"
@@ -639,17 +655,71 @@ public class racnew extends RacBase {
     @Test public void testTypeOf4() {
         helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new LinkedList<String>()); m(new LinkedList<Integer>());  m(new HashSet<Integer>()); System.out.println(\"END\"); } \n" +
-                " //@ requires (\\lbl CLS \\typeof(i)) .equals( \\type(LinkedList<Integer>) ); \n" +
+                " //@ requires (\\lbl CLS \\typeof(i)) .equals ( \\type(LinkedList<Integer>) ); \n" +
                 " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
                 ,"LABEL CLS = class java.util.LinkedList"
-                ,"/tt/TestJava.java:3: JML precondition is false"
+//                ,"/tt/TestJava.java:2: JML precondition is false"
+//                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"LABEL CLS = class java.util.LinkedList"
+//                ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.HashSet"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"LABEL CLS = class java.util.HashSet"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class java.util.HashSet"
+                ,"END"
+                );
+        
+    }
+    
+    // FIXME - want typeof to return a JML type with type parameter information
+    @Test public void testTypeOf5() {
+        helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
+                "m(new LinkedList<String>()); m(new LinkedList<Integer>());  m(new HashSet<Integer>()); System.out.println(\"END\"); } \n" +
+                " //@ requires (\\lbl CLS \\typeof(i)) == ( \\type(LinkedList<Integer>) ); \n" +
+                " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
+                "}"
+                ,"LABEL CLS = class java.util.LinkedList"
+//                ,"/tt/TestJava.java:2: JML precondition is false"
+//                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"LABEL CLS = class java.util.LinkedList"
+//                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.HashSet"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"LABEL CLS = class java.util.HashSet"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class java.util.HashSet"
+                ,"END"
+                );
+        
+    }
+    
+    // FIXME - want typeof to return a JML type with type parameter information
+    @Test public void testTypeOf6() {
+        helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
+                "m(new LinkedList<String>());  m(new HashSet<Integer>()); System.out.println(\"END\"); } \n" +
+                " //@ requires (\\lbl CLS \\typeof(i)) != ( \\type(LinkedList<Integer>) ); \n" +
+                " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
+                "}"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
                 ,"LABEL CLS = class java.util.LinkedList"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class java.util.LinkedList"
                 ,"LABEL CLS = class java.util.HashSet"
-                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"LABEL CLS = class java.util.HashSet"
                 ,"CLASS class java.util.HashSet"
                 ,"END"
                 );
@@ -702,8 +772,8 @@ public class racnew extends RacBase {
         
     }
     
-    @Test @Ignore
-    public void testTypelc() { // FIXME - problem with \type of primitive types
+    @Test 
+    public void testTypelc() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(); mm(); ma(); mg(); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -735,7 +805,7 @@ public class racnew extends RacBase {
                 "//@ set c = (\\lbl TYP3 c); \n" +
                 "//@ set c = \\type(String[][]); \n" +
                 "//@ set c = (\\lbl TYP4 c); \n" +
-                "} " +
+                "} \n" +
                 " static void mg() { \n" +
                 "//@ ghost \\TYPE c; \n" +
                 "//@ set c = \\type(java.lang.Class<Integer>); \n" +
@@ -754,15 +824,15 @@ public class racnew extends RacBase {
                 ,"LABEL TYP2 = class [Ljava.lang.String;"
                 ,"LABEL TYP3 = class [[Ljava.lang.String;"
                 ,"LABEL TYP4 = class [[Ljava.lang.String;"
-                ,"LABEL TYP1 = class java.lang.Class"
-                ,"LABEL TYP2 = class java.lang.Class"
+                ,"LABEL TYP1 = class java.lang.Class<class java.lang.Integer>"
+                ,"LABEL TYP2 = class java.lang.Class<?>"
                 ,"END"
                 );
         
     }
     
-    @Test @Ignore
-    public void testSubtype() {  // FIXME - \type(int) does not work
+    @Test
+    public void testSubtype() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(); mm(); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -774,28 +844,28 @@ public class racnew extends RacBase {
                 " static void m() { \n" +
                 "//@ ghost boolean c; \n" +
                 "//@ set c = o.getClass() <: o.getClass(); \n" + // Object <: Object  // Class
-                "//@ set c = (\\lblpos TYP1 c); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
                 "//@ set c = \\typeof(o) <: \\typeof(o); \n" +  // Object <: Object // \TYPE
-                "//@ set c = (\\lblpos TYP2 c); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
                 "//@ set c = \\typeof(o) <: \\typeof(oo); \n" + // Object <: String // \TYPE
-                "//@ set c = (\\lblpos TYP3 c); \n" +
+                "//@ set c = (\\lbl TYP3 c); \n" +
                 "//@ set c = \\typeof(oo) <: \\typeof(o); \n" + // String <: Object // \TYPE
-                "//@ set c = (\\lblpos TYP4 c); \n" +
+                "//@ set c = (\\lbl TYP4 c); \n" +
                 "//@ set c = \\typeof(ob) <: \\typeof(oo); \n" + // Boolean <: String // \TYPE
-                "//@ set c = (\\lblpos TYP5 c); \n" +
+                "//@ set c = (\\lbl TYP5 c); \n" +
                 "}\n" +
                 " static void mm() { \n" +
                 "//@ ghost boolean c; \n" +
                 "//@ set c = s.getClass() <: b.getClass(); \n" + // String <: Boolean // Class
-                "//@ set c = (\\lblpos TYP1 c); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
                 "//@ set c = \\typeof(s) <: \\typeof(b); \n" +  // String <: Boolean // \TYPE
-                "//@ set c = (\\lblpos TYP2 c); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
                 "//@ set c = \\type(int) <: \\typeof(o); \n" + // int <: Object // \TYPE
-                "//@ set c = (\\lblpos TYP3 c); \n" +
+                "//@ set c = (\\lbl TYP3 c); \n" +
                 "//@ set c = \\type(int) <: \\type(int); \n" + // int <: int  // false
-                "//@ set c = (\\lblpos TYP4 c); \n" +
+                "//@ set c = (\\lbl TYP4 c); \n" +
                 "//@ set c = \\type(int) <: \\type(boolean); \n" + // int <: boolean
-                "//@ set c = (\\lblpos TYP5 c); \n" +
+                "//@ set c = (\\lbl TYP5 c); \n" +
                 "}\n" +
                 "}"
                 ,"LABEL TYP1 = true"

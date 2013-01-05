@@ -567,10 +567,9 @@ public class rac extends RacBase {
                 " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
                 ,"LABEL CLS = class java.util.LinkedList"
-                ,"/tt/TestJava.java:3: JML precondition is false"
+//                ,"/tt/TestJava.java:3: JML precondition is false"  // FIXME
                 ,"CLASS class java.util.LinkedList"
                 ,"LABEL CLS = class java.util.LinkedList"
-                ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class java.util.LinkedList"
                 ,"LABEL CLS = class java.util.HashSet"
                 ,"/tt/TestJava.java:3: JML precondition is false"
