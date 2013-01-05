@@ -135,6 +135,8 @@ public class JmlTreeUtils {
     final public JCIdent utilsClassIdent;
     final public Symbol andSymbol;
     final public Symbol orSymbol;
+    final public Symbol intbitandSymbol;
+    final public Symbol longbitandSymbol;
     final public Symbol bitorSymbol;
     final public Symbol notSymbol;
     final public Symbol objecteqSymbol;
@@ -191,6 +193,8 @@ public class JmlTreeUtils {
         utilsClassIdent.sym = utilsClassIdent.type.tsym;
         andSymbol = findOpSymbol("&&",syms.booleanType);
         orSymbol = findOpSymbol("||",syms.booleanType);
+        intbitandSymbol = findOpSymbol("&",syms.intType);
+        longbitandSymbol = findOpSymbol("&",syms.longType);
         bitorSymbol = findOpSymbol("|",syms.booleanType);
         notSymbol = findOpSymbol("!",syms.booleanType);
         objecteqSymbol = findOpSymbol("==",syms.objectType);

@@ -213,6 +213,9 @@ public class Label {
     /** Used to designate a possible exception because of a potential divide by 0 */
     /*@ non_null*/ public final static Label POSSIBLY_DIV0 = new Label("PossiblyDivideByZero");
 
+    /** Used to designate a possible exception because of a potential large shift value */
+    /*@ non_null*/ public final static Label POSSIBLY_LARGESHIFT = new Label("PossiblyLargeShift");
+
     /** Used to designate a possible exception because of a bad cast */
     /*@ non_null*/ public final static Label POSSIBLY_BADCAST = new Label("PossiblyBadCast");
     

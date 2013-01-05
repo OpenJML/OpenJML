@@ -3593,6 +3593,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression nonzero = treeutils.makeBinary(that.pos, JCTree.NE, rhs, treeutils.makeIntLiteral(that.pos, 0));
             addAssert(that.pos(),Label.POSSIBLY_DIV0,nonzero,currentStatements);
         }
+        // NOTE: In Java a shift by 0 is a no-op (aside from type promotion of the lhs);
+        // a shift by a positive or negative amount s is actually a shift by 
+        // the amount (s & 31) for int lhs or (s & 63) for long lhs.
+        // So any rhs value is legal, but may be unexpected.
+        
+        if (op == JCTree.SL || op == JCTree.SR || op == JCTree.USR) {
+            int mask =  (lhs.type.tag == TypeTags.LONG) ? 63 : 31;
+            JCExpression expr = treeutils.makeBinary(that.pos,  JCTree.BITAND, 
+                    mask == 31 ? treeutils.intbitandSymbol : treeutils.longbitandSymbol,
+                    rhs, treeutils.makeIntLiteral(that.pos,  mask));
+            expr = treeutils.makeBinary(that.pos, JCTree.EQ, rhs, expr);
+            addAssert(that.pos(),Label.POSSIBLY_LARGESHIFT,expr,currentStatements);
+        }
         // FIXME - add checks for numeric overflow
         
     }
@@ -3609,10 +3622,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitBinary(JCBinary that) {
+        // FIXME - check on numeric promotion, particularly shift operators
         if (pureCopy) {
             JCExpression lhs = scanExpr(that.getLeftOperand());
             JCExpression rhs = scanExpr(that.getRightOperand());
-            result = eresult = treeutils.makeBinary(that.pos,that.getTag(),lhs,rhs);
+            result = eresult = treeutils.makeBinary(that.pos,that.getTag(),that.getOperator(),lhs,rhs);
         } else if (translatingJML) {
             JCExpression lhs = scanExpr(that.getLeftOperand());
             JCExpression rhs = that.getRightOperand();
