@@ -222,6 +222,30 @@ public class racnew2 extends RacBase {
         );        
     }
 
+    /** Tests binary operators */
+    @Test public void testShift() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  int a=5,b=6,c=100;  \n" +
+                "  int d = a << b; \n" +
+                "  d = a << c; \n" +  // ERROR
+                "  d = a >> b; \n" +
+                "  d = a >> c; \n" + // ERROR
+                "  d = a >>> b; \n" +
+                "  d = a >>> c; \n" + // ERROR
+                "  long e = 20L << b; \n" +
+                "  e = 20L << (b+40); \n" + // OK
+                "  e = 20L << c; \n" + // ERROR
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"/tt/TestJava.java:4: JML shift amount is out of expected range"
+                ,"/tt/TestJava.java:6: JML shift amount is out of expected range"
+                ,"/tt/TestJava.java:8: JML shift amount is out of expected range"
+                ,"/tt/TestJava.java:11: JML shift amount is out of expected range"
+                ,"END"
+        );        
+    }
+
     /** Tests unary operators */ // FIXME - test unary with expressions in ++ -- 
     @Test public void testUnary() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
