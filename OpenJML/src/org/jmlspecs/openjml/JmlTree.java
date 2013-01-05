@@ -819,15 +819,15 @@ public class JmlTree implements IJmlTree {
         /** This is a specification file but there is no Java source or binary file */
         //public static final int SPEC_ALONE = ?;
         
-        static public boolean isJava(int mode) { return (mode & 1) != 0; }
-        
-        static public boolean isSpec(int mode) { return (mode & 2) != 0; }
+//        static public boolean isJava(int mode) { return (mode & 1) != 0; }
+//        
+//        static public boolean isSpec(int mode) { return (mode & 2) != 0; }
         
         static public boolean isForSource(int mode) { return (mode & 4) == 0; }
         
         static public boolean isForBinary(int mode) { return (mode & 4) != 0; }
         
-        static public boolean isFull(int mode) { return (mode & 8) == 0; }
+//        static public boolean isFull(int mode) { return (mode & 8) == 0; }
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlCompilationUnit(List<JCAnnotation> packageAnnotations,

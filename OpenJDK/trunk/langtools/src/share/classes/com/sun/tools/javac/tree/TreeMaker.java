@@ -328,6 +328,7 @@ public class TreeMaker implements JCTree.Factory {
     {
         JCMethodInvocation tree = new JCMethodInvocation(typeargs, fn, args);
         tree.pos = pos;
+        tree.varargsElement = null;
         return tree;
     }
 

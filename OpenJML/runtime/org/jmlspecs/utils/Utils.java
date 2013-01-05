@@ -358,6 +358,14 @@ public class Utils {
         return JmlTypeRac.make(base,args);
     }
     
+    public static  IJMLTYPE makeTYPEN(Class<?> base) {
+        return JmlTypeRac.make(base,null);
+    }
+    
+    public static  IJMLTYPE makeTYPEQ() {
+        return JmlTypeRac.make(null,null);
+    }
+    
     public static final IJMLTYPE[] emptyArgs = {};
     
     public static  IJMLTYPE makeTYPE0(Class<?> base) {
@@ -388,6 +396,19 @@ public class Utils {
         }
     }
     
+    public static boolean isEqualTo(IJMLTYPE t, IJMLTYPE tt) {
+        if (t == tt) return true;
+        if (t == null || tt == null) return false;
+        return tt.erasure() == t.erasure();
+//        JmlTypeRac tt = (JmlTypeRac)t;
+//        if (erasure() != tt.erasure()) return false;
+//        if (args.length != tt.args.length) return false;
+//        for (int i=0; i<args.length; i++) {
+//            if (!args[i].equals(tt.args[i])) return false;
+//        }
+//        return true;
+    }
+    
     public static <T> Iterator<T> iterator(Iterable<T> iterable) {
         return iterable.iterator();
     }
@@ -407,12 +428,13 @@ public class Utils {
         final private IJMLTYPE[] args;
         final private static Map<IJMLTYPE,IJMLTYPE> internSet = new HashMap<IJMLTYPE,IJMLTYPE>();
         
-        public static IJMLTYPE make(Class<?> base, IJMLTYPE... args) {
+        public static IJMLTYPE make(Class<?> base, IJMLTYPE[] args) {
             JmlTypeRac t = new JmlTypeRac(base,args);
             return t.intern();
         }
         
         public String toString() {
+            if (base == null) return "?"; // FIXME - really this is just unknown, not a wildcard
             String s = base.toString();
             if (args != null && args.length > 0) {
                 s = s + "<";
@@ -447,20 +469,12 @@ public class Utils {
 
         @Override
         public boolean equals(IJMLTYPE t) {
-            if (t == null) return false;
-            if (this == t) return true;
-            if (!(t instanceof JmlTypeRac)) return false;
-            JmlTypeRac tt = (JmlTypeRac)t;
-            if (erasure() != tt.erasure()) return false;
-            if (args.length != tt.args.length) return false;
-            for (int i=0; i<args.length; i++) {
-                if (!args[i].equals(tt.args[i])) return false;
-            }
-            return true;
+            return isEqualTo(this,t);
         }
         
         //JAVA16  @Override
         public int hashCode() {
+            if (base == null) return 0;
             int i = base.hashCode();
             int k = 0;
             for (IJMLTYPE t: args) i = i + (t.hashCode()<< (++k));

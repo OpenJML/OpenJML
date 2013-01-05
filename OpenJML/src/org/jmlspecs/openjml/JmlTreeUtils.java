@@ -892,6 +892,7 @@ public class JmlTreeUtils {
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
         for (JCExpression e: args) list.append(e);
         JCMethodInvocation call = factory.Apply(List.<JCExpression>nil(),meth,list.toList());
+        call.type = ((MethodType)meth.type).getReturnType();
         return call;
     }
 

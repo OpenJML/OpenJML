@@ -3304,7 +3304,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 if (!t.equals(TYPE)) that.op = JmlToken.JSUBTYPE_OF; // Java subtyping
                 
-                result = that.type = syms.booleanType;
+                result = syms.booleanType;
                 break;
                 
             default:
