@@ -2635,7 +2635,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             
-            boolean isVoid = ((Type.MethodType)calleeMethodSym.type).restype.tag == TypeTags.VOID;
+            Type resultType = ((Type.MethodType)calleeMethodSym.type).getReturnType();
+            boolean isVoid = resultType.tag == TypeTags.VOID;
             
 
             // FIXME - what is the next line?
@@ -2660,6 +2661,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
 
             java.util.List<JCExpression> preExpressions = new LinkedList<JCExpression>();
+            
+            JCIdent resultId = isVoid ? null : newTemp(that.pos(), resultType);
             
             pushBlock();
             
@@ -2752,22 +2755,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
 
-            JCIdent result = null;
             if (rac) {
                 if (isVoid) {
                     addStat( M.at(that.pos()).Exec(trExpr) );
                     resultSym = null;
                 } else {
-                    result = newTemp(trExpr);
-                    resultSym = result.sym;
+                    addStat( treeutils.makeAssignStat(that.pos, resultId, trExpr) );
+                    resultSym = resultId.sym;
                 }
             }
             if (esc) {
                 addStat( comment(that) );
             }
             
-            eresult = result;
-
             for (MethodSymbol mpsym: utils.parents(calleeMethodSym)) {
 
                 JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
@@ -2838,8 +2838,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             addStat( popBlock(0,Position.NOPOS) );
-            //System.out.println("APPLY EXIT " + statementStack.size());
-        
+
+            if (resultId != null) result = eresult = treeutils.makeIdent(resultId.pos, resultId.sym);
+            else result = eresult = null;
+            
         } finally {
             paramActuals = savedParamActuals;
             resultSym = savedSym;
@@ -3782,7 +3784,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     typeok.setType(syms.booleanType);
                     // FIXME - end position?
                     JCExpression cond = treeutils.makeOr(that.pos, eqnull, typeok);
-                    addAssert(that.pos(),Label.POSSIBLY_BADCAST,cond,currentStatements);
+                    if (translatingJML) {
+                        addAssert(that.pos(),Label.UNDEFINED_BADCAST,treeutils.makeImplies(that.pos,condition,cond),currentStatements, lhs.type, clazz.type);
+                    } else {
+                        addAssert(that.pos(),Label.POSSIBLY_BADCAST,cond,currentStatements, lhs.type, clazz.type);
+                    }
                 }
             }
         }
@@ -3810,10 +3816,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     typeok.setType(syms.booleanType);
                     // FIXME - end position?
                     JCExpression cond = treeutils.makeOr(that.pos, eqnull, typeok);
-                    addAssert(that.pos(),Label.POSSIBLY_BADCAST,cond,currentStatements,
-                            lhs.type, clazz.type);
+                    if (translatingJML) {
+                        addAssert(that.pos(),Label.UNDEFINED_BADCAST,treeutils.makeImplies(that.pos,condition,cond),currentStatements, lhs.type, clazz.type);
+                    } else {
+                        addAssert(that.pos(),Label.POSSIBLY_BADCAST,cond,currentStatements, lhs.type, clazz.type);
+                    }
                 }
-                
             }
             
         }
