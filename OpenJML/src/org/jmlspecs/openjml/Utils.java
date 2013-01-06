@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -15,8 +18,11 @@ import org.jmlspecs.annotation.NonNull;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -450,6 +456,54 @@ public class Utils {
       }
       return false;
   }
+  
+  // Includes self
+  public java.util.List<ClassSymbol> parents(ClassSymbol c) {
+      List<ClassSymbol> classes = new LinkedList<ClassSymbol>();
+      List<ClassSymbol> interfaces = new LinkedList<ClassSymbol>();
+      Set<ClassSymbol> interfaceSet = new HashSet<ClassSymbol>();
+      ClassSymbol cc = c;
+      while (cc != null) {
+          classes.add(0,cc);
+          cc = (ClassSymbol)cc.getSuperclass().tsym;
+      }
+      for (ClassSymbol ccc: classes) {
+          List<Type> ifs = ccc.getInterfaces();
+          for (Type ifc : ifs) {
+              ClassSymbol sym = (ClassSymbol)ifc.tsym;
+              if (interfaceSet.add(sym)) interfaces.add(sym);
+          }
+      }
+      // FIXME - the interfaces are not in a good order
+      Iterator<ClassSymbol> iter = interfaces.iterator();
+      while (iter.hasNext()) {
+          ClassSymbol ccc = iter.next();
+          List<Type> ifs = ccc.getInterfaces();
+          for (Type ifc : ifs) {
+              ClassSymbol sym = (ClassSymbol)ifc.tsym;
+              if (interfaceSet.add(sym)) interfaces.add(sym);
+          }
+      }
+      interfaces.addAll(classes);
+      return interfaces;
+  }
+  
+  // Includes self // FIXME - review for order
+  public java.util.List<MethodSymbol> parents(MethodSymbol m) {
+      List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
+      for (ClassSymbol c: parents((ClassSymbol)m.owner)) {
+          for (Symbol mem: c.getEnclosedElements()) {
+              if (mem instanceof MethodSymbol &&
+                      mem.name.equals(m.name) &&
+                      m.overrides(mem, c, Types.instance(context), true)) {
+                  methods.add((MethodSymbol)mem);
+              }
+          }
+      }
+      return methods;
+  }
+  
+
   
   /** Instances of this class are used to abort operations that are not
    * implemented.
