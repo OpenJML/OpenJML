@@ -147,7 +147,7 @@ public abstract class RacBase extends JmlTestCase {
 
             for (int i=0; i<observedMessages; i++) {
                 int k = 2*i + 2*expectedNotes;
-                if (k > list.length) {
+                if (k >= list.length) {
                     if (!print) printDiagnostics();
                     fail("More diagnostics than expected");
                 }

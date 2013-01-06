@@ -55,6 +55,29 @@ public class racnew2 extends RacBase {
         );        
     }
     
+    @Test public void testMethodCall() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*; \n" +
+                " public class TestJava { \n" +
+                "   //@ ensures \\result > 0; \n" +
+                "   public static int m(int i) {return i;} \n" +
+                "   public static void main(String... args) {\n" +
+                "     System.out.println(\"START\"); \n" +
+                "     int k = m(1);\n" +
+                "     System.out.println(\"MID\"); \n" +
+                "     k += 5 + m(-1);\n" +
+                "     System.out.println(\"END\"); \n" +
+                "   }" +
+                "}"
+                ,"START"
+                ,"MID"
+                ,"/tt/TestJava.java:4: JML postcondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:9: JML postcondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"END"
+        );        
+    }
+    
     /** Tests new array */
     @Test public void testNewArray() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
@@ -411,6 +434,23 @@ public class racnew2 extends RacBase {
                 ,"/tt/TestJava.java:7: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
                 ,"Exception in thread \"main\" java.lang.ClassCastException: java.lang.Boolean cannot be cast to java.lang.Integer"
                 ,"\tat tt.TestJava.main(TestJava.java:7)"
+        );        
+    }
+
+    /** Test a type tests and casts in JML */
+    @Test public void testTypeCast6() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  Boolean b = Boolean.TRUE; \n" +
+                "  Integer i = new Integer(10); /*@ nullable */Integer ii = null; \n" +
+                "  Object o = i; \n" +
+                "  //@ assert o instanceof Integer && (Integer)o != null; \n" +
+                "  o = b; \n" +
+                "  //@ assert o instanceof Integer && (Integer)o != null; \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"/tt/TestJava.java:7: JML assertion is false"
+                ,"END"
         );        
     }
 
