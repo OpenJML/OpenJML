@@ -7,6 +7,7 @@ package org.jmlspecs.openjml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -460,7 +461,7 @@ public class Utils {
   // Includes self
   public java.util.List<ClassSymbol> parents(ClassSymbol c) {
       List<ClassSymbol> classes = new LinkedList<ClassSymbol>();
-      List<ClassSymbol> interfaces = new LinkedList<ClassSymbol>();
+      ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
       Set<ClassSymbol> interfaceSet = new HashSet<ClassSymbol>();
       ClassSymbol cc = c;
       while (cc != null) {
@@ -475,9 +476,9 @@ public class Utils {
           }
       }
       // FIXME - the interfaces are not in a good order
-      Iterator<ClassSymbol> iter = interfaces.iterator();
-      while (iter.hasNext()) {
-          ClassSymbol ccc = iter.next();
+      int i = 0;
+      while (i < interfaces.size()) {
+          ClassSymbol ccc = interfaces.get(i++);
           List<Type> ifs = ccc.getInterfaces();
           for (Type ifc : ifs) {
               ClassSymbol sym = (ClassSymbol)ifc.tsym;
@@ -501,6 +502,14 @@ public class Utils {
           }
       }
       return methods;
+  }
+  
+  public boolean visible(Symbol base, Symbol parent, long flags) {
+      if (base == parent) return true;
+      if ((flags & Flags.PUBLIC) != 0) return true;
+      if ((flags & Flags.PRIVATE) != 0) return false;
+      if (base.packge().equals(parent.packge())) return true;
+      return (flags & Flags.PROTECTED) != 0 && parent.isSubClass(base, Types.instance(context));
   }
   
 

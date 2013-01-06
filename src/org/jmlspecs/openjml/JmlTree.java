@@ -546,7 +546,7 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl) { // FIXME - needs token, modifiers?
+        public JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl) {
             JmlTypeClauseDecl t = new JmlTypeClauseDecl(pos,decl);
             t.source = Log.instance(context).currentSourceFile();
             return t;
@@ -2966,7 +2966,11 @@ public class JmlTree implements IJmlTree {
         protected JmlTypeClauseDecl(int pos, JCTree decl) {
             this.pos = pos;
             this.token = JmlToken.JMLDECL;
-            this.modifiers = null;  // FIXME - are these the same modifiers as in the declaration; why is the declaration a JCTree?
+            this.modifiers = 
+                    decl instanceof JCVariableDecl ? ((JCVariableDecl)decl).mods :
+                        decl instanceof JCMethodDecl ? ((JCMethodDecl)decl).mods :
+                            decl instanceof JCClassDecl ? ((JCClassDecl)decl).mods :
+                        null;  // FIXME - something wrong if this is null
             this.decl = decl;
         }
         
