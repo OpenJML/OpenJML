@@ -2246,6 +2246,94 @@ public class racnew extends RacBase {
                 );
     }
     
+    // FIXME - many outputs need column numbers
+
+    @Test public void testInheritedMethod() {
+        addMockFile("$A/tt/B.java","package tt; public class B extends tt.C implements I { \n"
+                +"//@ also ensures i == 2; \n"
+                +"public void m() {} ; \n"
+                +"}\n"
+                );
+        addMockFile("$A/tt/C.java","package tt; public class C implements I { \n"
+                +"static int i=0;  \n"
+                +"//@ ensures i == 3; \n"
+                +" public void m() {} ; \n"
+                +"}\n"
+                );
+        addMockFile("$A/tt/I.java","package tt; public interface I { \n"
+                +"//@ ensures false; \n"
+                +"public void m(); \n"
+                +"}\n"
+                );
+        helpTCX("tt.A","package tt; public class A  extends tt.B { \n"
+                +"//@ also ensures i == 2; \n"
+                +"public void m() {} ; \n"
+
+                +"public static void main(String[] args) { \n"
+                +"System.out.println(\"A\"); \n"
+                +"   (new A()).m(); \n"
+                +"System.out.println(\"END\"); \n"
+                +"}} \n"
+                ,"A"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/tt/I.java:2: Associated declaration"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/tt/C.java:3: Associated declaration"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/tt/B.java:2: Associated declaration"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/tt/I.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/tt/C.java:3: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/tt/B.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"END"
+                );
+    }
+    
+    @Test public void testInheritedMethod2() {
+        addMockFile("$A/tt/B.java","package tt; public class B extends ttt.C implements I { \n"
+                +"//@ also private behavior ensures i == 2; \n"
+                +"public void m() {} ; \n"
+                +"}\n"
+                );
+        addMockFile("$A/ttt/C.java","package ttt; public class C implements tt.I { \n"
+                +"static public int i=0;  \n"
+                +"//@ ensures i == 3; \n"
+                +" public void m() {} ; \n"
+                +"}\n"
+                );
+        addMockFile("$A/tt/I.java","package tt; public interface I { \n"
+                +"//@ ensures false; \n"
+                +"public void m(); \n"
+                +"}\n"
+                );
+        helpTCX("tt.A","package tt; public class A  extends tt.B { \n"
+                +"//@ also ensures i == 2; \n"
+                +"public void m() {} ; \n"
+
+                +"public static void main(String[] args) { \n"
+                +"System.out.println(\"A\"); \n"
+                +"   (new A()).m(); \n"
+                +"System.out.println(\"END\"); \n"
+                +"}} \n"
+                ,"A"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/tt/I.java:2: Associated declaration"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/tt/I.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"END"
+                );
+    }
+    
     @Test public void testAssignable() {
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static int j=0,k;\n"
