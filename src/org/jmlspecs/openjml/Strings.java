@@ -155,6 +155,11 @@ public class Strings {
      */
     final static public String exceptionVarString = "_JML___exception"; //$NON-NLS-1$
     
+    /** A string used as the name of the exception variable for method calls
+     * within the body of a method.
+     */
+    final static public String exceptionCallVarString = "_JML___exceptionCall"; //$NON-NLS-1$
+    
     /** A string used as the ID of the Exception in a a signals clause that
      * does not actually have an ID present: signals (Exception) ...
      */ // FIXME - can we use the one above just as well?
