@@ -291,7 +291,7 @@ public class escnewassignable extends EscBase {
                 +"  //@ assignable y, A.xx, a.xx, a.x, this.y, TestJava.yy, tt.TestJava.yy; \n"
                 +"  public void m3bad(int i) {\n"
                 +"    ms();\n"
-                +"  }\n"
+                +"  }\n"  // Line 20
 
                 +"  //@ assignable xx; \n"
                 +"  public void m3good(int i) {\n"
@@ -317,7 +317,7 @@ public class escnewassignable extends EscBase {
                 +"  public void m() {\n"
                 +"  }\n"
 
-                +"  //@ assignable xx; \n"
+                +"  //@ assignable xx; \n"  // Line 40
                 +"  public void ms() {\n"
                 +"  }\n"
 

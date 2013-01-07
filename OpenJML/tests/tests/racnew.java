@@ -330,6 +330,8 @@ public class racnew extends RacBase {
                 +"}"
                 ,"/tt/TestJava.java:8: JML signals condition is false"
                 ,"/tt/TestJava.java:7: Associated declaration"
+                ,"/tt/TestJava.java:3: JML signals condition is false"
+                ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
     }
@@ -344,6 +346,8 @@ public class racnew extends RacBase {
                 +"static void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
                 +"}"
                 ,"/tt/TestJava.java:8: JML signals condition is false"
+                ,"/tt/TestJava.java:7: Associated declaration"
+                ,"/tt/TestJava.java:3: JML signals condition is false"
                 ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
@@ -2334,6 +2338,42 @@ public class racnew extends RacBase {
                 );
     }
     
+    @Test public void testInheritedMethod3() {
+        addMockFile("$A/tt/C.java","package tt; public class C { \n"
+                +"static public int i=0;  \n"
+                +"//@ requires kc == 3; ensures i == 3; \n"
+                +" public void m(int kc) {} ; \n"
+                +"}\n"
+                );
+        addMockFile("$A/tt/B.java","package tt; public class B extends C { \n"
+                +"//@ also requires kb == 2; ensures i == 2; \n"
+                +"public void m(int kb) {} ; \n"
+                +"}\n"
+                );
+        helpTCX("tt.A","package tt; public class A  extends tt.B { \n"
+                +"//@ also requires ka==1; ensures i == 1; \n"
+                +"public void m(int ka) {} ; \n"
+
+                +"public static void main(String[] args) { \n"
+                +"   System.out.println(\"C\"); (new A()).m(3); \n"
+                +"   System.out.println(\"B\"); (new A()).m(2); \n"
+                +"   System.out.println(\"A\"); (new A()).m(1); \n"
+                +"   System.out.println(\"NONE\"); (new A()).m(0); \n"
+                +"System.out.println(\"END\"); \n"
+                +"}} \n"
+                ,"A"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/tt/I.java:2: Associated declaration"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/tt/I.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"END"
+                );
+    }
+    
     @Test public void testAssignable() {
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static int j=0,k;\n"
@@ -2431,6 +2471,35 @@ public class racnew extends RacBase {
         helpTCX("tt.A","package tt; public class A { public static void main(String[] args) {  }\n static { //@ assert false; \n } " +
                 "}"
                 ,"/tt/A.java:2: JML assertion is false");
+    }
+
+    @Test
+    public void testChangedParam() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures \\result == i;\n"
+                +"  public static int m1bad(int i) {\n"
+                +"    return (i+=1) ;\n"
+                +"  }\n"
+                
+                +"  //@ ensures \\result == i+1;\n"
+                +"  public static int m1good(int i) {\n"
+                +"    return (i+=1) ;\n"
+                +"  }\n"
+                
+                +"  public static void main(String ... args) {\n"
+                +"    m1good(2);\n"
+                +"    m1bad(4);\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:4: JML postcondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:13: JML postcondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
+                );
     }
 
 
