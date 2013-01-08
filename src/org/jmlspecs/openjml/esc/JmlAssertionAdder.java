@@ -1236,6 +1236,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(dd);
         }
         
+        paramActuals = new HashMap<Symbol,JCExpression>();
         ListBuffer<JCStatement> preStats = new ListBuffer<JCStatement>();
         ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
@@ -1295,6 +1296,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         for (MethodSymbol msym: utils.parents(decl.sym)) {
             JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(msym);
+            Iterator<VarSymbol> iter = msym.params.iterator();
+            for (JCVariableDecl dp: decl.params) {
+                paramActuals.put(iter.next(),treeutils.makeIdent(dp.pos, dp.sym));
+            }
+            
             for (JmlSpecificationCase scase : denestedSpecs.cases) {
                 if (!utils.visible(classDecl.sym, msym.owner, scase.modifiers.flags)) continue;
                 JCIdent preident = null;
@@ -1322,10 +1328,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 precount++;
                 Name prename = names.fromString(Strings.prePrefix + precount);
-                JCVariableDecl d = treeutils.makeVarDef(syms.booleanType, prename, decl.sym, treeutils.falseLit);
-                d.pos = scase.pos;
-                preident = treeutils.makeIdent(scase.pos, d.sym);
-                addStat(initialStats,d);
+                JCVariableDecl dx = treeutils.makeVarDef(syms.booleanType, prename, decl.sym, treeutils.falseLit);
+                dx.pos = scase.pos;
+                preident = treeutils.makeIdent(scase.pos, dx.sym);
+                addStat(initialStats,dx);
                 addStat(currentStatements, treeutils.makeAssignStat(scase.pos, preident, preexpr));
                 preconditions.put(scase, preident);
                 if (combinedPrecondition == null || preexpr == treeutils.trueLit) {
