@@ -236,7 +236,7 @@ public class escboogie extends EscBase {
                 
                 +"  public void m2bad(@Nullable TestJava o) {\n"
                 +"    o.f = 1 ;\n"
-                +"    //@ assert f > 0 ;\n"
+                +"    // @ assert f > 0 ;\n"
                 +"  }\n"
                 
                 +"  public void m1good(TestJava o) {\n"

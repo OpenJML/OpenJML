@@ -460,9 +460,9 @@ public class JmlEsc extends JmlTreeScanner {
                 // however, it is an expression, and not evaluated for ESC. Even if it is
                 // a literal string, it is printed with quotes around it.
                 if (prev != null) log.useSource(prev);
-                if (assertStat.declPos != Position.NOPOS) {
+                if (assertStat.associatedPos != Position.NOPOS) {
                     if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
-                    log.warning(assertStat.declPos, "jml.associated.decl");
+                    log.warning(assertStat.associatedPos, "jml.associated.decl");
                     if (assertStat.associatedSource != null) log.useSource(prev);
                 }
                 return false;
@@ -715,9 +715,9 @@ public class JmlEsc extends JmlTreeScanner {
                         // however, it is an expression, and not evaluated for ESC. Even if it is
                         // a literal string, it is printed with quotes around it.
                         if (prev != null) log.useSource(prev);
-                        if (assertStat.declPos != Position.NOPOS) {
+                        if (assertStat.associatedPos != Position.NOPOS) {
                             if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
-                            log.warning(assertStat.declPos, "jml.associated.decl");
+                            log.warning(assertStat.associatedPos, "jml.associated.decl");
                             if (assertStat.associatedSource != null) log.useSource(prev);
                         }
 
@@ -727,11 +727,11 @@ public class JmlEsc extends JmlTreeScanner {
                             log.warning(assertStat.pos, "jml.associated.decl");
                         } else if (label == Label.ASSIGNABLE) {
                             log.warning(assertStat.pos,"esc.assertion.invalid",label,decl.getName() + cf, "");
-                            log.warning(assertStat.declPos, "jml.associated.decl");
+                            log.warning(assertStat.associatedPos, "jml.associated.decl");
                         } else if (label != Label.EXPLICIT_ASSERT && label != Label.EXPLICIT_ASSUME){
                             log.warning(assertStat.pos,"esc.assertion.invalid",label,decl.getName() + cf, ""); 
-                            if (assertStat.pos != assertStat.declPos && assertStat.declPos != Position.NOPOS){
-                                log.warning(assertStat.declPos, "jml.associated.decl");
+                            if (assertStat.pos != assertStat.associatedPos && assertStat.associatedPos != Position.NOPOS){
+                                log.warning(assertStat.associatedPos, "jml.associated.decl");
                             }
                         } else {
                             log.warning(assertStat.pos,"esc.assertion.invalid",label,decl.getName() + cf, ""); 

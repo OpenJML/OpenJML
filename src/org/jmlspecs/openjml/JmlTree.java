@@ -2489,7 +2489,7 @@ public class JmlTree implements IJmlTree {
         /** The associated expression (e.g. the asserted condition) */
         public JCTree.JCExpression expression;
         
-        /** An associated optional expression (e.g. such as the one thata
+        /** An associated optional expression (e.g. such as the one that
          * can come with a Java assert statement).
          */
         public JCTree.JCExpression optionalExpression = null;
@@ -2511,7 +2511,7 @@ public class JmlTree implements IJmlTree {
         public JavaFileObject associatedSource = null;
         
         /** The position within associatedSource */
-        public int declPos;
+        public int associatedPos;  // TODO - change to DiagnosticPosition
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementExpr(int pos, JmlToken token, Label label, JCTree.JCExpression expression) {
@@ -2519,7 +2519,7 @@ public class JmlTree implements IJmlTree {
             this.token = token;
             this.expression = expression;
             this.label = label;
-            this.declPos = pos;
+            this.associatedPos = pos;
         }
     
         @Override
