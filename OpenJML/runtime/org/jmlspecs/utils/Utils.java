@@ -14,12 +14,12 @@ import java.util.Map;
  * @author David Cok
  */
 public class Utils {
-    
     /** Reports a JML assertion (any JML precondition, postcondition, etc.)
      * failure with the given message.
      * @param message The message to report
      */
     // This one is declared first to minimize changes to its location 
+    public static final String ASSERTION_FAILURE = "assertionFailure"; // Must match the method name
     public static void assertionFailure(String message) {
         if (useExceptions) throw new JmlAssertionError(message);
         //if (useJavaAssert) assert false: message;
@@ -205,6 +205,7 @@ public class Utils {
         System.out.println(str);
     }
     
+    public static final String REPORT_EXCEPTION = "reportException"; // must match method name
     /** Prints out a message, the exception message, and the exception stack */
     public static void reportException(String str, RuntimeException e) {
         System.out.println(str);

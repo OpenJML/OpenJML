@@ -1377,7 +1377,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         JmlTree.JmlStatementExpr st = factory.at(statement.pos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
         st.optionalExpression = null;
         st.source = source;
-        st.declPos = declpos;
+        st.associatedPos = declpos;
         st.type = null; // no type for a statement
         copyEndPosition(st,statement);
         statements.add(st);
@@ -1401,7 +1401,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         st = factory.at(usepos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
         st.optionalExpression = null;
         st.source = source;
-        st.declPos = declpos;
+        st.associatedPos = declpos;
         st.type = null; // no type for a statement
         statements.add(st);
     }
@@ -1414,7 +1414,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         st.optionalExpression = null;
         st.type = null; // no type for a statement
         st.source = source;
-        st.declPos = usepos;// FIXME - what should this be set to?
+        st.associatedPos = usepos;// FIXME - what should this be set to?
         statements.add(st);
     }
     

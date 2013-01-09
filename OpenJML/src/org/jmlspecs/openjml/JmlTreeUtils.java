@@ -561,14 +561,14 @@ public class JmlTreeUtils {
     /** Makes a JML assert statement */
     public JmlStatementExpr makeAssert(DiagnosticPosition pos, Label label, JCExpression expr) {
         JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlToken.ASSERT, label, expr);
-        e.declPos = Position.NOPOS;
+        e.associatedPos = Position.NOPOS;
         return e;
     }
 
     /** Makes a JML assert statement */
     public JmlStatementExpr makeAssert(DiagnosticPosition pos, Label label, JCExpression expr, DiagnosticPosition relatedPos) {
         JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlToken.ASSERT, label, expr);
-        e.declPos = relatedPos == null ? Position.NOPOS : relatedPos.getPreferredPosition();
+        e.associatedPos = relatedPos == null ? Position.NOPOS : relatedPos.getPreferredPosition();
         return e;
     }
 
