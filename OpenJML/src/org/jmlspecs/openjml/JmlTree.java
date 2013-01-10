@@ -347,7 +347,7 @@ public class JmlTree implements IJmlTree {
         /** Creates a variable declaration from its components; captures the sourcefile
          * from the current value in the log */
         @Override
-        public JCVariableDecl VarDef(JCModifiers mods,
+        public JmlVariableDecl VarDef(JCModifiers mods,
                 Name name,
                 JCExpression vartype,
                 JCExpression init) {

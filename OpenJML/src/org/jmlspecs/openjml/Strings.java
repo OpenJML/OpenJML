@@ -155,6 +155,12 @@ public class Strings {
      */
     final static public String exceptionVarString = "_JML___exception"; //$NON-NLS-1$
     
+    /** A String used as the name of the exception variable when catching 
+     * runtime exceptions that may happen while evaluating JML expressions
+     * during RAC.
+     */
+    final static public String runtimeException = "_JML__runtimeExcpetion"; //$NON-NLS-1$
+    
     /** A string used as the name of the exception variable for method calls
      * within the body of a method.
      */
@@ -165,7 +171,11 @@ public class Strings {
      */ // FIXME - can we use the one above just as well?
     public final static String syntheticExceptionID = "_JML___syntheticExceptionID"; //$NON-NLS-1$
     
-
+    /** The prefix of names used to record the result of a
+     * conditional expression.
+     */
+    public final static String conditionalResult = "_JML__conditionalResult_";
+    
     /** Synthetic methods are constructed to implement the combination of model
      * fields and represents clauses; the name of method is this prefix string
      * combined with name of the model field.
