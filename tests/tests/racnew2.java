@@ -593,6 +593,72 @@ public class racnew2 extends RacBase {
         );        
     }
     
+    /** Checks one can do assignments in a model method. */
+    @Test public void testModelMethod() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                " //@ assert m(); \n" +
+                " //@ assert m(); \n" +
+                " System.out.println(\"END\"); } \n" +
+                " //@ ghost static int i = 0; \n" +
+                " //@ ghost static int j = 0; \n" +
+                " //@ model static boolean m() { j = 1; i+= 1; int k = 2; return i == 1; } " +
+                "}"
+                ,"/tt/TestJava.java:3: JML assertion is false"
+                ,"END"
+        );        
+    }
+    
+    /** Checks select expressions. */
+    @Test public void testSelect() {
+        expectedRACExit = 1;
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                " //@ assert a[0] == 0; \n" +
+                " //@ assert b != null && b[0] == 0; \n" +
+                " //@ assert b[0] == 0; \n" +
+                " System.out.println(\"END\"); } \n" +
+                " static int[] a = { 0,1,2}; \n" +
+                " /*@nullable*/ static int[] b = null;\n" +
+                "}"
+                ,"/tt/TestJava.java:3: JML assertion is false"
+                ,"/tt/TestJava.java:4: JML A null object is dereferenced within a JML expression"
+                ,"Exception in thread \"main\" java.lang.NullPointerException"
+                ,"\tat tt.TestJava.main(TestJava.java:4)"
+        );        
+    }
+    
+    /** Checks select expressions. */
+    @Test public void testSelect2() {
+        expectedRACExit = 1;
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                " System.out.println(a[1]); \n" +
+                " System.out.println(b[1]); \n" +
+                " System.out.println(\"END\"); } \n" +
+                " static int[] a = { 0,1,2}; \n" +
+                " /*@nullable*/ static int[] b = null;\n" +
+                "}"
+                ,"1"
+                ,"/tt/TestJava.java:3: JML A null object is dereferenced"
+                ,"Exception in thread \"main\" java.lang.NullPointerException"
+                ,"\tat tt.TestJava.main(TestJava.java:3)"
+        );        
+    }
+    
+    /** Checks select expressions. */
+    @Ignore @Test public void testGen() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                " System.out.println(m(1)); \n" +
+                " System.out.println(n(new G<Integer>())); \n" +
+                " System.out.println(\"END\"); } \n" +
+                " static <T> T m(T i) { return i; } \n" +
+                " static class G<T> {} \n" +
+                " static <T> int p(G<?> i) { return 5; } \n" +
+                "}"
+                ,"1"
+                ,"5"
+                ,"END"
+        );        
+    }
+    
 
 
 }
