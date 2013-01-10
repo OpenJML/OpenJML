@@ -2501,12 +2501,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    protected void checkAgainstCallerSpecs(JCExpression scannedItem, JCExpression pre) {
+    // FIXME - document and review
+    protected void checkAgainstCallerSpecs(JCExpression scannedItem, JCExpression precondition) {
         List<JmlSpecificationCase> cases = specs.getDenestedSpecs(methodDecl.sym).cases;
         for (JmlSpecificationCase c : cases) {
             JCExpression condition = checkAssignable(false,scannedItem,c);
             if (condition != treeutils.trueLit) {
-                condition = treeutils.makeImplies(scannedItem.pos, pre, condition);
+                condition = treeutils.makeImplies(scannedItem.pos, precondition, condition);
                 addAssert(scannedItem.pos(),Label.ASSIGNABLE,condition,currentStatements,c.pos(),c.sourcefile);
             }
         }
@@ -3349,8 +3350,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // But in a multi-dimensional initializer, each nested {...} is itself
         // a JCNewArray, though now with a null elemtype. 
 
-        // FIXME - need to check definedness by testing preconditions when translatingJML
-
         ListBuffer<JCExpression> dims = new ListBuffer<JCExpression>();
         for (JCExpression dim: that.dims) {
             dims.add(convertExpr(dim));
@@ -3365,22 +3364,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             elems = null;
         }
 
-        // FIXME - this will end up with new array expressions in translated JML for esc???
-        
-        if (!esc || translatingJML) {
+        if (pureCopy) {
+            JCExpression elemtype = convert(that.elemtype);
+            result = eresult = M.at(that.pos()).NewArray(elemtype, dims.toList(), elems == null ? null: elems.toList()).setType(that.type);
+        } else if (rac || translatingJML) {
             // This will create a fully-qualified version of the type name
             JCExpression elemtype = that.elemtype == null ? null : treeutils.makeType(that.elemtype.pos, that.elemtype.type);
             result = eresult = M.at(that.pos()).NewArray(elemtype, dims.toList(), elems == null ? null: elems.toList()).setType(that.type);
-            if (!translatingJML && !pureCopy) result = eresult =newTemp(eresult);
-        } else {
-            JCVariableDecl id = treeutils.makeVarDef(that.type,names.fromString(Strings.newArrayVarString + that.pos), null, 0);
+            if (!translatingJML) result = eresult = newTemp(eresult);
+        } else { // esc
+            JCVariableDecl id = treeutils.makeVarDef(that.type,names.fromString(Strings.newArrayVarString + that.pos), null, that.pos);
             addStat(id);
             result = eresult = treeutils.makeIdent(that.pos, id.sym);
             addAssume(that.pos(),Label.NULL_CHECK,treeutils.makeNeqObject(that.pos, eresult, treeutils.nulllit), currentStatements);
             // FIXME - need assertions about size of array and about any known array elements; about allocation time
             // also about type of the array
         }
-        
     }
 
     // OK
@@ -3425,19 +3424,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - review
     @Override
     public void visitAssign(JCAssign that) {
-        if (translatingJML) {
-            error(that.pos,"Unexpected call of JmlAssertionAdder.visitAssign while translating JML: " + that.getClass());
-            return;
-        }
         if (pureCopy) {
             JCExpression lhs = convertExpr(that.lhs);
             JCExpression rhs = convertExpr(that.rhs);
-            // FIXME - am not doing RAC for the checks implemented below - nonnull receiver, index out of range
-            // nor for null assignment
-            JCExpression assign = treeutils.makeAssign(that.pos,  lhs, rhs);
-            result = eresult = assign;
+            result = eresult = treeutils.makeAssign(that.pos,  lhs, rhs);
             return;
         }
+        // FIXME - am not doing RAC for the checks implemented below - nonnull receiver, index out of range
+        // nor for null assignment
         if (that.lhs instanceof JCIdent) {
             JCIdent id = (JCIdent)that.lhs;
             JCExpression lhs = convertExpr(that.lhs);
@@ -3525,9 +3519,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitAssignop(JCAssignOp that) {
-        // FIXME - needs pureCopy
-        if (translatingJML) {
-            error(that.pos,"Unexpected call of JmlAssertionAdder.visitAssignop while translating JML: " + that.getClass());
+        if (pureCopy) {
+            JCExpression lhs = convertExpr(that.lhs);
+            JCExpression rhs = convertExpr(that.rhs);
+            JCAssignOp a = M.at(that.pos()).Assignop(that.getTag(), lhs, rhs);
+            a.operator = that.operator;
+            a.setType(that.type);
+            result = eresult = a;
             return;
         }
         visitAssignopHelper(that,false);
@@ -3559,15 +3557,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // identifiers that may be captured by the lhs. - TODO - need an example?
             JCIdent id = newTemp(rhs);
             addStat(treeutils.makeAssignStat(that.pos, lhs, id));
-            if (lhs instanceof JCIdent) result = eresult = treeutils.makeIdent(lhs.pos,((JCIdent)lhs).sym);
-            else {
+            if (lhs instanceof JCIdent) {
+                result = eresult = treeutils.makeIdent(lhs.pos,((JCIdent)lhs).sym);
+            } else {
                 result = eresult = newTemp(lhs);
             }
             
         } else if (lhs instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)lhs;
             if (fa.sym.isStatic()) {
-                if (!scanned && !isATypeTree(fa.selected)) convertExpr(fa.selected); 
+                if (!scanned && !isATypeTree(fa.selected)) convertExpr(fa.selected); // FIXME - review this isATypeTree check
                 JCExpression tree = treeutils.makeType(fa.selected.pos, fa.sym.owner.type);
                 JCFieldAccess newfa = treeutils.makeSelect(fa.selected.pos, tree, fa.sym);
                 newfa.name = fa.name;
@@ -3592,12 +3591,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addBinaryChecks(that,op,lhs,rhs);
             checkAssignable(methodDecl, lhs, that);
 
-            // Note that we need to introduce the temporary since the rhs contains
-            // identifiers that will be captured by the lhs.
+            // Note that we need to introduce the temporary since the rhs may contain
+            // identifiers that will be captured by the lhs. (TODO - example?)
             rhs = treeutils.makeBinary(that.pos,op ,lhs,rhs);
             JCIdent id = newTemp(rhs);
             addStat(treeutils.makeAssignStat(that.pos, lhs, id));
             result = eresult = newTemp(lhs);
+            
         } else if (lhs instanceof JCArrayAccess) {
             JCArrayAccess aa = (JCArrayAccess)lhs;
             JCExpression array = scanned ? aa.indexed : convertExpr(aa.indexed);
@@ -3622,12 +3622,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             checkAssignable(methodDecl, lhs, that);
             
             // Note that we need to introduce the temporary since the rhs contains
-            // identifiers that will be captured by the lhs.
+            // identifiers that will be captured by the lhs. (TODO _ example?)
             rhs = treeutils.makeBinary(that.pos,op,lhs,rhs);
             JCIdent id = newTemp(rhs);
             
             addStat(treeutils.makeAssignStat(that.pos, lhs, id));
             result = eresult = newTemp(lhs);
+            
         } else {
             error(that.pos,"Unexpected kind of AST in JmlAssertionAdder.visitAssignOp: " + that.getClass());
         }
@@ -3644,15 +3645,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (tag == JCTree.PREDEC) {
             JCAssignOp b = M.at(that.pos()).Assignop(JCTree.MINUS_ASG,that.getExpression(),treeutils.one);
             b.setType(that.type);
-            visitAssignop(b);
-            return;
+            visitAssignopHelper(b,false);
         } else if (tag == JCTree.PREINC) {
             JCAssignOp b = M.at(that.pos()).Assignop(JCTree.PLUS_ASG,that.getExpression(),treeutils.one);
             b.setType(that.type);
-            visitAssignop(b);
-            return;
+            visitAssignopHelper(b,false);
         } else if (tag == JCTree.POSTDEC){
-            JCExpression arg = convertExpr(that.getExpression());
+            JCExpression arg = convertExpr(that.getExpression()); // FIXME - check that this is not converted to a different temporary beofre being incremented
             JCIdent id = newTemp(arg);
             JCAssignOp b = M.at(that.pos()).Assignop(JCTree.MINUS_ASG,arg,treeutils.one);
             b.setType(that.type);
@@ -3680,7 +3679,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression nonzero = treeutils.makeBinary(that.pos, JCTree.NE, rhs, treeutils.makeIntLiteral(that.pos, 0));
             addAssert(that.pos(),Label.POSSIBLY_DIV0,nonzero,currentStatements);
         }
-        // NOTE: In Java a shift by 0 is a no-op (aside from type promotion of the lhs);
+        // NOTE: In Java, a shift by 0 is a no-op (aside from type promotion of the lhs);
         // a shift by a positive or negative amount s is actually a shift by 
         // the amount (s & 31) for int lhs or (s & 63) for long lhs.
         // So any rhs value is legal, but may be unexpected.
@@ -3693,6 +3692,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             expr = treeutils.makeBinary(that.pos, JCTree.EQ, rhs, expr);
             addAssert(that.pos(),Label.POSSIBLY_LARGESHIFT,expr,currentStatements);
         }
+        // FIXME - add a command-line switch to enable the above?
         // FIXME - add checks for numeric overflow
         
     }
@@ -3704,22 +3704,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
     }
     
-    // FIXME - check that condition is never used when !(esc||rac)
+    // FIXME - check that condition is never used when pureCopy == true
 
     // OK
     @Override
     public void visitBinary(JCBinary that) {
         // FIXME - check on numeric promotion, particularly shift operators
+        int tag = that.getTag();
         if (pureCopy) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
-            result = eresult = treeutils.makeBinary(that.pos,that.getTag(),that.getOperator(),lhs,rhs);
+            result = eresult = treeutils.makeBinary(that.pos,tag,that.getOperator(),lhs,rhs);
         } else if (translatingJML) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = that.getRightOperand();
-            int tag = that.getTag();
             JCExpression prev = condition;
             try {
+                // FIXME - check that all the checks in makeBinaryCHecks are here - or somehow reuse that method here
+                // same for unary checks
                 if (tag == JCTree.AND) {
                     condition = treeutils.makeAnd(that.lhs.pos, condition, lhs);
                     rhs = convertExpr(rhs); // condition is used within scanExpr so this statement must follow the previous one
@@ -3746,16 +3748,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // putting the whole if into the try sinmplifies the code
                 condition = prev;
             }
-            // FIXME - add checks for numeric overflow - PLUS MINUS MUL - what about SL SR USR
-            result = eresult = treeutils.makeBinary(that.pos,that.getTag(),lhs,rhs);
+            // FIXME - add checks for numeric overflow - PLUS MINUS MUL
+            result = eresult = treeutils.makeBinary(that.pos,tag,that.getOperator(),lhs,rhs);
         } else {
-            if (that.getTag() == JCTree.OR) {
+            if (tag == JCTree.OR) {
                 JCConditional cond = M.at(that.pos()).Conditional(that.lhs,treeutils.trueLit,that.rhs);
                 cond.setType(that.type);
                 visitConditional(cond);
                 return;
             }
-            if (that.getTag() == JCTree.AND) {
+            if (tag == JCTree.AND) {
                 JCConditional cond = M.at(that.pos()).Conditional(that.lhs,that.rhs,treeutils.falseLit);
                 cond.setType(that.type);
                 visitConditional(cond);
@@ -3763,14 +3765,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
-            addBinaryChecks(that,that.getTag(),lhs,rhs);
-            JCBinary bin = treeutils.makeBinary(that.pos,that.getTag(),that.getOperator(),lhs,rhs);
+            addBinaryChecks(that,tag,lhs,rhs);
+            JCBinary bin = treeutils.makeBinary(that.pos,tag,that.getOperator(),lhs,rhs);
             result = eresult = newTemp(bin);
         }
     }
 
     @Override
     public void visitTypeCast(JCTypeCast that) {
+        // Note - casting a null produces a null value
         JCExpression lhs = convertExpr(that.getExpression());
         JCTree type = that.getType();
         JCTree clazz = treeutils.makeType(that.pos, type.type);
@@ -3778,96 +3781,68 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCTypeCast e = M.at(that.pos()).TypeCast(clazz,lhs);
         e.setType(that.type);
         treeutils.copyEndPosition(e,that);
+        
+        if (pureCopy) {
+            result = eresult = e;
+            return;
+        }
+        
         // Check that expression is either null or the correct type
         JCExpression eqnull = treeutils.makeEqObject(that.pos,lhs,treeutils.makeNullLiteral(that.pos));
 
         // FIXME - need to adjust condition and check for undefinedness
+        // FIXME - here and elsewhere, for rac, do we check for conditions that Java will check for itself?
         
-        // FIXME - check semantics of null in typecase and type test
-        if (esc) {
-            if (types.isSameType(clazz.type,lhs.type)) {
-                // redundant
-            } else if (clazz.type.isPrimitive()) {
-                if (lhs.type.isPrimitive()) {
-                    // Must be numeric to numeric - do numeric range checks
-                    // FIXME - implement
+        if (types.isSameType(clazz.type,lhs.type)) {
+            // redundant
+        } else if (clazz.type.isPrimitive()) {
+            if (lhs.type.isPrimitive()) {
+                // Must be numeric to numeric - do numeric range checks
+                // FIXME - implement
 
-                } else {
-                    // must be unboxing (object to primitive)
-                    // FIXME - implement
-
-                }
             } else {
-                if (lhs.type.isPrimitive()) {
-                    // Must be primitive to object (boxing) 
-                    // FIXME - implement
+                // must be unboxing (object to primitive)
+                // FIXME - implement
+
+            }
+        } else {
+            if (lhs.type.isPrimitive()) {
+                // Must be primitive to object (boxing) 
+                // FIXME - implement
+            } else {
+                // object to object
+                JCExpression typeok = M.at(that.pos()).TypeTest(lhs, clazz);
+                typeok.setType(syms.booleanType);
+                // FIXME - end position?
+                JCExpression cond = treeutils.makeOr(that.pos, eqnull, typeok);
+                if (translatingJML) {
+                    cond = treeutils.makeImplies(that.pos,condition,cond);
+                    addAssert(that.pos(),Label.UNDEFINED_BADCAST,cond,currentStatements, lhs.type, clazz.type);
                 } else {
-                    // object to object
-                    JCExpression typeok = M.at(that.pos()).TypeTest(lhs, clazz);
-                    typeok.setType(syms.booleanType);
-                    // FIXME - end position?
-                    JCExpression cond = treeutils.makeOr(that.pos, eqnull, typeok);
-                    if (translatingJML) {
-                        addAssert(that.pos(),Label.UNDEFINED_BADCAST,treeutils.makeImplies(that.pos,condition,cond),currentStatements, lhs.type, clazz.type);
-                    } else {
-                        addAssert(that.pos(),Label.POSSIBLY_BADCAST,cond,currentStatements, lhs.type, clazz.type);
-                    }
+                    addAssert(that.pos(),Label.POSSIBLY_BADCAST,cond,currentStatements, lhs.type, clazz.type);
                 }
             }
         }
-        if (rac) {
-            // FIXME - here and elsewhere, do we check for conditions that Java will check for itself?
-            if (types.isSameType(clazz.type,lhs.type)) {
-                // redundant
-            } else if (clazz.type.isPrimitive()) {
-                if (lhs.type.isPrimitive()) {
-                    // Must be numeric to numeric - do numeric range checks
-                    // FIXME - implement
-
-                } else {
-                    // must be unboxing (object to primitive)
-                    // FIXME - implement
-
-                }
-            } else {
-                if (lhs.type.isPrimitive()) {
-                    // Must be primitive to object (boxing) 
-                    // FIXME - implement
-                } else {
-                    // object to object
-                    JCExpression typeok = M.at(that.pos()).TypeTest(lhs, clazz);
-                    typeok.setType(syms.booleanType);
-                    // FIXME - end position?
-                    JCExpression cond = treeutils.makeOr(that.pos, eqnull, typeok);
-                    if (translatingJML) {
-                        addAssert(that.pos(),Label.UNDEFINED_BADCAST,treeutils.makeImplies(that.pos,condition,cond),currentStatements, lhs.type, clazz.type);
-                    } else {
-                        addAssert(that.pos(),Label.POSSIBLY_BADCAST,cond,currentStatements, lhs.type, clazz.type);
-                    }
-                }
-            }
-            
-        }
-        result = eresult = (translatingJML || pureCopy) ? e: newTemp(e);
+        result = eresult = translatingJML ? e : newTemp(e);
     }
 
+    // OK
     /** This translates the instanceof operation */
     @Override
     public void visitTypeTest(JCInstanceOf that) {
         JCExpression lhs = convertExpr(that.getExpression());
         JCTree type = that.getType();
         JCTree clazz = treeutils.makeType(type.pos, type.type);
-        
+
         // No checks needed - Java allows (null instanceof type)
         // The value is always false
-        if (esc) {
-            // FIXME - not yet implemented as an assertion
-        }
-        if (!esc) { // rac or nothing
+        if (pureCopy || rac) {
             JCInstanceOf e = M.at(that.pos()).TypeTest(lhs,clazz);
             e.setType(that.type);
             treeutils.copyEndPosition(e,that);
             result = eresult = (translatingJML || pureCopy) ? e : newTemp(e);
+        } else { // esc
+            // FIXME - not yet implemented as an assertion
         }
     }
 
@@ -3912,12 +3887,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
 
-        //JCArrayAccess aa = M.at(that.pos()).Indexed(indexed,index);
-        JmlBBArrayAccess aa = new JmlBBArrayAccess(null,indexed,index); // FIXME - switch to factory
-        aa.pos = that.pos;
-        aa.setType(that.type);
+        if (pureCopy) {
+            JCArrayAccess aa = M.at(that.pos()).Indexed(indexed,index);
+            aa.setType(that.type);
+            result = eresult = aa;
+        } else {
+            JmlBBArrayAccess aa = new JmlBBArrayAccess(null,indexed,index); // FIXME - switch to factory
+            aa.pos = that.pos;
+            aa.setType(that.type);
+            result = eresult = (translatingJML) ? aa : newTemp(aa);
+        }
         
-        result = eresult = (translatingJML || pureCopy) ? aa : newTemp(aa);
     }
 
     // OK
@@ -3929,7 +3909,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         if (translatingJML && attr.isModel(that.sym)) {
-            JCExpression sel = convertJML(that.selected); // FIXME - what if static
+            JCExpression sel = convertJML(that.selected); // FIXME - what if static; what if not a variable
             Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
             JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
             for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
@@ -3942,34 +3922,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             // This is an internal error - the wrapper for the model field method
             // should have been created during the MemberEnter phase.
-            error(that.pos, "No corresponding model method");
+            error(that.pos, "No corresponding model method for model field " + that.sym);
             return;
         }
-        boolean var = false;
-        if (that.sym instanceof ClassSymbol) {
-            // This is the type name, so the tree should be copied, but without inserting temporary assignments
+        if (that.sym instanceof Symbol.TypeSymbol) {
+            // This is a type name, so the tree should be copied, but without inserting temporary assignments
             // makeType creates a fully-qualified name
             result = eresult = treeutils.makeType(that.pos,that.type);
             return;
-        } else {
-            selected = convertExpr(that.selected);
-            if (that.sym instanceof Symbol.TypeSymbol) {
-                // nothing
-//            } else if (selected instanceof JCFieldAccess &&((JCFieldAccess)selected).type.tsym instanceof ClassSymbol) {
-//                // nothing
-            } else if (!that.sym.isStatic()) {
-                JCExpression nonnull = treeutils.makeNeqObject(that.pos, selected, 
-                        treeutils.nulllit);
-                addAssert(that.pos(),
-                        translatingJML? Label.UNDEFINED_NULL : Label.POSSIBLY_NULL,
-                        nonnull,
-                        currentStatements);
-                var = true;
-            }
+        } 
+        selected = convertExpr(that.selected);
+        boolean var = false;
+        if (!that.sym.isStatic()) {
+            JCExpression nonnull = treeutils.makeNeqObject(that.pos, selected, 
+                    treeutils.nulllit);
+            if (translatingJML) nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
+            addAssert(that.pos(),
+                    translatingJML? Label.UNDEFINED_NULL : Label.POSSIBLY_NULL,
+                            nonnull,
+                            currentStatements);
+            var = true;
         }
         JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,that.sym);
         result = eresult = (translatingJML || !var) ? fa : newTemp(fa);
     }
+    
+    // FIXME - check use of condition everywhere - only when esc
+    
+    // REVIEWED TO HERE
     
     // OK
     // FIXME - need to test this, document this
