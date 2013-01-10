@@ -386,7 +386,7 @@ public class JmlEsc extends JmlTreeScanner {
         JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
 
         JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true,false);
-        JCBlock newblock = assertionAdder.convertMethodBody(decl,currentClassDecl);
+        JCBlock newblock = assertionAdder.convertMethodBody(tree,currentClassDecl);
         log.noticeWriter.println(JmlPretty.write(newblock));
         
         BoogieProgram program = new Boogier(context).convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl, assertionAdder);
@@ -496,17 +496,17 @@ public class JmlEsc extends JmlTreeScanner {
             log.noticeWriter.println(JmlPretty.write(decl.body));
         }
         
-        JmlMethodDecl tree = (JmlMethodDecl)decl;
+        JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
         JmlClassDecl currentClassDecl = (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)decl.sym.owner).tree;
         
         // Get the denested specs for the method - FIXME - when might they be null?
-        if (tree.sym == null) {
+        if (methodDecl.sym == null) {
             log.error("jml.internal.notsobad", "Unexpected null symbol for " + decl.name);
         }
-        JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
+        JmlMethodSpecs denestedSpecs = methodDecl.sym == null ? null : specs.getDenestedSpecs(methodDecl.sym);
 
         JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true,false);
-        JCBlock newblock = assertionAdder.convertMethodBody(decl,currentClassDecl);
+        JCBlock newblock = assertionAdder.convertMethodBody(methodDecl,currentClassDecl);
         
         if (newblock == null) {
             IProverResult pr =  new ProverResult(proverToUse,IProverResult.ERROR);
