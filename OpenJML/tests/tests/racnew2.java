@@ -160,6 +160,43 @@ public class racnew2 extends RacBase {
         );        
     }
 
+    /** Tests new object in JML */
+    @Test public void testNewObject3() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { \n" +
+                "public int k;\n" +
+                "//@requires i > 0; ensures k == i;\n" +
+                "public TestJava(int i) { k = i < 2 ? i : 5; }\n" +
+                "public static void main(String[] args) { \n" +
+                "  System.out.println(\"TestJava - 1\");\n" +
+                "  TestJava t = new TestJava(1);\n" +
+                "  System.out.println(\"TestJava - 0\");\n" +
+                "  t = new TestJava(0);\n" +
+                "  System.out.println(\"TestJava - 2\");\n" +
+                "  //@ assert (new TestJava(2)).k == 2;\n" +
+                "  System.out.println(\"TestJava - 0\");\n" +
+                "  //@ assert (new TestJava(0)).k == 0;\n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"TestJava - 1"
+                ,"TestJava - 0"
+                ,"/tt/TestJava.java:9: JML precondition is false" // caller check -- TestJava(0)
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: JML precondition is false" // callee check
+                ,"TestJava - 2"
+                ,"/tt/TestJava.java:4: JML postcondition is false" // callee check
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:11: JML postcondition is false" // caller check
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:11: JML assertion is false"
+                ,"TestJava - 0"
+                ,"/tt/TestJava.java:13: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"END"
+        );        
+    }
+
 
     /** Tests a simple try-finally block */
     @Test public void testTry() {
@@ -265,6 +302,22 @@ public class racnew2 extends RacBase {
                 ,"/tt/TestJava.java:6: JML shift amount is out of expected range"
                 ,"/tt/TestJava.java:8: JML shift amount is out of expected range"
                 ,"/tt/TestJava.java:11: JML shift amount is out of expected range"
+                ,"END"
+        );        
+    }
+
+    /** Tests binary operators */
+    @Test public void testConditional() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  int a=5,b=6,c=100;  \n" +
+                "  int d = a < 10 ? b + 3 : c-40; \n" +
+                "  System.out.println(d); \n" +  // ERROR
+                "  //@ assert (c > 4? a + 3 : b + 3) == 9; \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "}"
+                ,"9"
+                ,"/tt/TestJava.java:5: JML assertion is false"
                 ,"END"
         );        
     }
@@ -643,14 +696,55 @@ public class racnew2 extends RacBase {
         );        
     }
     
-    /** Checks select expressions. */
-    @Ignore @Test public void testGen() {
+    /** Checks a model class. */
+    @Test public void testModelClass() {
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " System.out.println(m(1)); \n" +
-                " System.out.println(n(new G<Integer>())); \n" +
+                " //@ debug System.out.println(p(new G())); \n" +
                 " System.out.println(\"END\"); } \n" +
                 " static <T> T m(T i) { return i; } \n" +
-                " static class G<T> {} \n" +
+                " //@ model static public class G {} \n" +
+                " //@ model static int p(G i) { return 5; } \n" +
+                "}"
+                ,"1"
+                ,"5"
+                ,"END"
+        );        
+    }
+    
+    /** Checks generic method. */
+    @Test public void testGenMethod() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                " System.out.println(m(1)); \n" +
+                " System.out.println(\"END\"); } \n" +
+                " static <T> T m(T i) { return i; } \n" +
+                "}"
+                ,"1"
+                ,"END"
+        );        
+    }
+    
+    /** Checks generic method. */
+    @Test public void testGenMethod2() {
+        helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
+                " System.out.println(m(1)); \n" +
+                " System.out.println(\"END\"); } \n" +
+                " static /*@nullable*/ <T> List<?> m(T i) { return null; } \n" +
+                "}"
+                ,"null"
+                ,"END"
+        );        
+    }
+    
+    /** Checks generic classes. */
+    @Test public void testGenClass() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                " System.out.println(m(1)); \n" +
+                " System.out.println(p(new G<Integer>())); \n" +
+                " System.out.println(\"END\"); } \n" +
+                " static <T> T m(T i) { return i; } \n" +
+                " static public class G<T> {} \n" +
                 " static <T> int p(G<?> i) { return 5; } \n" +
                 "}"
                 ,"1"

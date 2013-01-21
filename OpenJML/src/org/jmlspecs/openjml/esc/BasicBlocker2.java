@@ -1148,6 +1148,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         }
     }
     
+    int blockCount = 0;
     
     /** Returns a new, empty BasicBlock
      * 
@@ -1156,8 +1157,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @return the new block
      */
     protected @NonNull BasicBlock newBlock(@NonNull String name, int pos) {
-        JCIdent id = newAuxIdent(name,syms.booleanType,pos,false);
+        JCIdent id = newAuxIdent(name + "_" + (++blockCount),syms.booleanType,pos,false);
         BasicBlock bb = new BasicBlock(id);
+        blockLookup.put(name,bb); // FIXME - there are some situations in which blocks are looked up without the uniqueifying suffix - REVIEW these for ambiguity
         blockLookup.put(id.name.toString(),bb);
         return bb;
     }
@@ -1172,8 +1174,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @return the new block
      */
     protected @NonNull BasicBlock newBlock(@NonNull String name, int pos, @NonNull BasicBlock previousBlock) {
-        JCIdent id = newAuxIdent(name,syms.booleanType,pos,false);
+        JCIdent id = newAuxIdent(name + "_" + (++blockCount),syms.booleanType,pos,false);
         BasicBlock bb = new BasicBlock(id,previousBlock);
+        blockLookup.put(name, bb);
         blockLookup.put(id.name.toString(), bb);
         return bb;
     }
@@ -1230,9 +1233,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
         blockmaps.clear();
         labelmaps.clear();
         
-        terminationSym = (VarSymbol)assertionAdder.terminationSym;
+        terminationSym = (VarSymbol)assertionAdder.terminationSymbols.get(methodDecl);
         terminationVar = newAuxIdent(terminationSym,0);
-        exceptionVar = treeutils.makeIdent(Position.NOPOS,assertionAdder.exceptionSym); // newAuxIdent(EXCEPTION,syms.exceptionType,0,true);
+        exceptionVar = treeutils.makeIdent(Position.NOPOS,assertionAdder.exceptionSymbols.get(methodDecl)); // newAuxIdent(EXCEPTION,syms.exceptionType,0,true);
         heapVar = newAuxIdent(HEAP_VAR,syms.intType,0,true); // FIXME - would this be better as its own uninterpreted type?
         assumeCheckCountVar = newAuxIdent(ASSUME_CHECK_COUNT,syms.intType,0,false);
         assumeCheckCount = 0;

@@ -496,7 +496,7 @@ public class Utils {
           for (Symbol mem: c.getEnclosedElements()) {
               if (mem instanceof MethodSymbol &&
                       mem.name.equals(m.name) &&
-                      m.overrides(mem, c, Types.instance(context), true)) {
+                      (mem ==m || m.overrides(mem, c, Types.instance(context), true))) {
                   methods.add((MethodSymbol)mem);
               }
           }

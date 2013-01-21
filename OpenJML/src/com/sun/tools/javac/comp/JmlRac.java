@@ -1993,7 +1993,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         boolean prev = inSpecExpression;
         try {
             inSpecExpression = true;
-            List<JCStatement> list = expandableTranslate(that.list.toList());
+            List<JCStatement> list = expandableTranslate(that.list);
             result = factory.at(that.pos).Block(0,list);
         } finally {
             inSpecExpression = prev;

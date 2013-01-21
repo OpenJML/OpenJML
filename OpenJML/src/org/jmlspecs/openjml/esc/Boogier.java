@@ -505,10 +505,10 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
         blocksCompleted = new ArrayList<BoogieBlock>();
         blockLookup = new java.util.HashMap<String,BoogieBlock>();
         
-        terminationSym = (VarSymbol)assertionAdder.terminationSym;
-        terminationVar = treeutils.makeIdent(0,terminationSym);
-        exceptionVar = treeutils.makeIdent(Position.NOPOS,assertionAdder.exceptionSym); // newAuxIdent(EXCEPTION,syms.exceptionType,0,true);
-        heapVar = treeutils.makeIdent(0,HEAP_VAR,syms.intType); // FIXME - would this be better as its own uninterpreted type?
+        terminationSym = (VarSymbol)assertionAdder.terminationSymbols.get(methodDecl);
+        terminationVar = treeutils.makeIdent(methodDecl.pos,terminationSym);
+        exceptionVar = treeutils.makeIdent(methodDecl.pos,assertionAdder.exceptionSymbols.get(methodDecl)); // newAuxIdent(EXCEPTION,syms.exceptionType,0,true);
+        heapVar = treeutils.makeIdent(methodDecl.pos,HEAP_VAR,syms.intType); // FIXME - would this be better as its own uninterpreted type?
 //        assumeCheckCountVar = treeutils.makeIdent(0,ASSUME_CHECK_COUNT,syms.intType);
 //        assumeCheckCount = 0;
         

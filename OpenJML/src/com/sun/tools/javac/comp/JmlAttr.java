@@ -1463,7 +1463,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             if (desugaringPure) {
                 JmlMethodClause cl = jmlMaker.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE,
-                        List.<JCExpression>of(jmlMaker.JmlSingleton(JmlToken.BSNOTHING)));
+                        List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlToken.BSNOTHING)));
                 if (pure != null) {
                 	cl.pos = pure.pos;
                     endPosTable.put(cl,pure.getEndPosition(endPosTable));
@@ -3542,7 +3542,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // We need to figure out the iterations that will occur within the body of the
             // RAC expression. That involves some manipulation of the 
             
-            List<JCVariableDecl> decls = q.decls.toList();
+            List<JCVariableDecl> decls = q.decls;
             ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
             JCExpression newvalue = JmlAttr.RACCopy.copy(q.value,context,decls,args,argsID,newids);
             JCExpression newrange = JmlAttr.RACCopy.copy(q.range,context,decls,args,argsID,newids);

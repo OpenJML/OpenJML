@@ -621,7 +621,7 @@ public class JmlParser extends EndPosParser {
      * Parses a choose_if statement (the choose_if token is already read);
      * choose_if statements differ from choose statements in that the first
      * statement of a choose_if must be an assume statement. This is not checked
-     * here.
+     * here. (FIXME - check for the assume?)
      */
 
     public JmlChoose parseChooseIf() {
@@ -1271,7 +1271,7 @@ public class JmlParser extends EndPosParser {
         } else {
             S.nextToken();
         }
-        return toP(jmlF.at(p).JmlTypeClauseMonitorsFor(mods, id, elist));
+        return toP(jmlF.at(p).JmlTypeClauseMonitorsFor(mods, id, elist.toList()));
     }
 
     /**
@@ -1306,7 +1306,7 @@ public class JmlParser extends EndPosParser {
         } else {
             S.nextToken();
         }
-        return toP(jmlF.at(p).JmlStoreRefListExpression(jt, list));
+        return toP(jmlF.at(p).JmlStoreRefListExpression(jt, list.toList()));
     }
 
     public JmlMethodSpecs parseMethodSpecs(JCModifiers mods) {
@@ -1776,7 +1776,7 @@ public class JmlParser extends EndPosParser {
                 new ListBuffer<JCVariableDecl>());
         inJmlDeclaration = prev;
         JmlMethodClauseDecl res = to(jmlF.at(pos)
-                .JmlMethodClauseDecl(jt, decls));
+                .JmlMethodClauseDecl(jt, decls.toList()));
         S.setJmlKeyword(true);
         if (S.token() == Token.SEMI) {
             S.nextToken();
@@ -2548,7 +2548,7 @@ public class JmlParser extends EndPosParser {
                 return toP(jmlF.at(p).Erroneous());
             }
         }
-        JmlQuantifiedExpr q = toP(jmlF.at(pos).JmlQuantifiedExpr(jt, decls,
+        JmlQuantifiedExpr q = toP(jmlF.at(pos).JmlQuantifiedExpr(jt, decls.toList(),
                 range, pred));
         return q;
     }
