@@ -138,7 +138,7 @@ public class esc extends EscBase {
                 
                 +"  public void m7a() {\n"
                 +"    long[] a = { 1,2,3,4};\n"
-                +"    //@ decreases \\index+10;\n" // BAD
+                +"    //@ decreases \\index+10;\n" // BAD - loop does not decrease variant
                 +"    for (long k: a) {\n"
                 +"    }\n"
                 +"  }\n"
@@ -184,11 +184,11 @@ public class esc extends EscBase {
                 
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method m7y",5
                 ,"/tt/TestJava.java:5: warning: Associated declaration",9
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (LoopDecreases) in method m7a",5
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (LoopDecreases) in method m7a",5
                 ,"/tt/TestJava.java:11: warning: Associated declaration",9
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method m8",5
                 ,"/tt/TestJava.java:17: warning: Associated declaration",9
-                ,"/tt/TestJava.java:25: warning: The prover cannot establish an assertion (LoopInvariant) in method m9",5
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (LoopInvariant) in method m9",5
                 ,"/tt/TestJava.java:23: warning: Associated declaration",9
                 );
     }

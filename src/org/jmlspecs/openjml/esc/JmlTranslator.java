@@ -1149,7 +1149,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         // FIXME - is this still actually a list of declarations?
         boolean prev = inSpecExpression;
         inSpecExpression = true;
-        List<JCStatement> list = expandableTranslate(that.list.toList());
+        List<JCStatement> list = expandableTranslate(that.list);
         result = factory.at(that.pos).Block(0,list);
         inSpecExpression = prev;
     }

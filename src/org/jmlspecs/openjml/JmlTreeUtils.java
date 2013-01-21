@@ -372,14 +372,22 @@ public class JmlTreeUtils {
      */ 
     public JCLiteral makeZeroEquivalentLit(int pos, Type type) {
         switch (type.tag) {
-            case TypeTags.CLASS:
-            case TypeTags.ARRAY:
-                return nulllit; // FIXME - pos not set.
             case TypeTags.CHAR:
                 return makeLit(pos,type,0x0000);
+            case TypeTags.LONG:
+            case TypeTags.INT:
+            case TypeTags.SHORT:
+            case TypeTags.BYTE:
             case TypeTags.BOOLEAN:
-            default:
                 return makeLit(pos,type,0);
+            case TypeTags.FLOAT:
+                return makeLit(pos,type,0.0f);
+            case TypeTags.DOUBLE:
+                return makeLit(pos,type,0.0);
+            case TypeTags.CLASS:
+            case TypeTags.ARRAY:
+            default:
+                return makeNullLiteral(pos);
         }
     }
 

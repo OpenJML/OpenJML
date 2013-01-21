@@ -334,7 +334,7 @@ public class JmlFlow extends Flow implements IJmlVisitor {
 
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        quantDeclStack.add(0,that.decls.toList());
+        quantDeclStack.add(0,that.decls);
         if (that.racexpr != null) {
             scanExpr(that.racexpr);
         } else {

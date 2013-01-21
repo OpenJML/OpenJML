@@ -89,7 +89,7 @@ public class JmlTree implements IJmlTree {
         JmlImport JmlImport(JCTree qualid, boolean staticImport, boolean isModel);
         JmlLblExpression JmlLblExpression(JmlToken token, Name label, JCTree.JCExpression expr);
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
-        JmlMethodClauseDecl JmlMethodClauseDecl(JmlToken t, ListBuffer<JCTree.JCVariableDecl> decls);
+        JmlMethodClauseDecl JmlMethodClauseDecl(JmlToken t, List<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(JmlToken t, JCTree.JCExpression e);
         JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword);
         JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlConstraintMethodSig> methodSignatures);
@@ -101,19 +101,19 @@ public class JmlTree implements IJmlTree {
         JmlMethodSpecs JmlMethodSpecs(List<JmlSpecificationCase> cases);
         JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
         JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlToken jt);
-        JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken token, ListBuffer<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
+        JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken token, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
         JmlSingleton JmlSingleton(JmlToken jt);
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlToken t, JmlToken also, List<JmlMethodClause> clauses);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlToken t, JmlToken also, JCBlock block);
         JmlStatement JmlStatement(JmlToken t, JCTree.JCExpressionStatement e);
-        JmlStatementDecls JmlStatementDecls(ListBuffer<JCTree.JCStatement> list);
+        JmlStatementDecls JmlStatementDecls(List<JCTree.JCStatement> list);
         JmlStatementLoop JmlStatementLoop(JmlToken t, JCTree.JCExpression e);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
         JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
         JmlStoreRefKeyword JmlStoreRefKeyword(JmlToken t);
-        JmlStoreRefListExpression JmlStoreRefListExpression(JmlToken t, ListBuffer<JCExpression> list);
+        JmlStoreRefListExpression JmlStoreRefListExpression(JmlToken t, List<JCExpression> list);
         JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, JmlToken token, JCTree.JCIdent ident, JCTree.JCExpression p);
         JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCExpression e, List<JmlConstraintMethodSig> sigs);
         JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl);
@@ -121,7 +121,7 @@ public class JmlTree implements IJmlTree {
         JmlTypeClauseIn JmlTypeClauseIn(List<JmlGroupName> list);
         JmlTypeClauseInitializer JmlTypeClauseInitializer(JmlToken token);
         JmlTypeClauseMaps JmlTypeClauseMaps(JCExpression e, List<JmlGroupName> list);
-        JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, ListBuffer<JCTree.JCExpression> list);
+        JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, List<JCTree.JCExpression> list);
         JmlTypeClauseRepresents JmlTypeClauseRepresents(JCModifiers mods, JCTree.JCExpression ident, boolean suchThat, JCTree.JCExpression e);
         JmlWhileLoop JmlWhileLoop(JCWhileLoop loop, List<JmlStatementLoop> loopSpecs);
     }
@@ -411,7 +411,7 @@ public class JmlTree implements IJmlTree {
         
         /** Creates a JML quantified expression */
         @Override
-        public JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken t, ListBuffer<JCTree.JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression value) {
+        public JmlQuantifiedExpr JmlQuantifiedExpr(JmlToken t, List<JCTree.JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression value) {
             return new JmlQuantifiedExpr(pos,t,decls,range,value);
         }
         
@@ -513,7 +513,7 @@ public class JmlTree implements IJmlTree {
 
         /** Creates a JML statement such as ghost declarations */
         @Override
-        public JmlStatementDecls JmlStatementDecls(ListBuffer<JCTree.JCStatement> list) {
+        public JmlStatementDecls JmlStatementDecls(List<JCTree.JCStatement> list) {
             return new JmlStatementDecls(pos,list);
         }
         
@@ -524,7 +524,7 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public JmlStoreRefListExpression JmlStoreRefListExpression(JmlToken t, ListBuffer<JCExpression> list) {
+        public JmlStoreRefListExpression JmlStoreRefListExpression(JmlToken t, List<JCExpression> list) {
             return new JmlStoreRefListExpression(pos,t,list);
         }
 
@@ -591,7 +591,7 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, ListBuffer<JCTree.JCExpression> list) {
+        public JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, List<JCTree.JCExpression> list) {
             JmlTypeClauseMonitorsFor t = new JmlTypeClauseMonitorsFor(pos, mods, ident, list);
             t.source = Log.instance(context).currentSourceFile();
             return t;
@@ -603,7 +603,7 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public JmlMethodClauseDecl JmlMethodClauseDecl(JmlToken t, ListBuffer<JCTree.JCVariableDecl> decls) {
+        public JmlMethodClauseDecl JmlMethodClauseDecl(JmlToken t, List<JCTree.JCVariableDecl> decls) {
             return new JmlMethodClauseDecl(pos,t,decls);
         }
         
@@ -906,7 +906,7 @@ public class JmlTree implements IJmlTree {
     /** This class represents model program choose and choose_if statements. */
     public static class JmlChoose extends JmlAbstractStatement {
 
-        JmlToken token;
+        public JmlToken token;
         public List<JCBlock> orBlocks;
         /*@Nullable*/ public JCBlock elseBlock;
 
@@ -1731,10 +1731,10 @@ public class JmlTree implements IJmlTree {
     /** This class represents a forall or old method specification clause.*/
     public static class JmlMethodClauseDecl extends JmlMethodClause {
 
-        public ListBuffer<JCTree.JCVariableDecl> decls;
+        public List<JCTree.JCVariableDecl> decls;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlMethodClauseDecl(int pos, JmlToken token, ListBuffer<JCTree.JCVariableDecl> decls) {
+        protected JmlMethodClauseDecl(int pos, JmlToken token, List<JCTree.JCVariableDecl> decls) {
             this.pos = pos;
             this.token = token;
             this.decls = decls;
@@ -2161,7 +2161,7 @@ public class JmlTree implements IJmlTree {
         public JmlToken op;
         
         /** The declarations over which the expressions are quantified */
-        public ListBuffer<JCVariableDecl> decls;
+        public List<JCVariableDecl> decls;
         
         /** The predicate restricting the range of iteration */
         public JCExpression range;
@@ -2174,7 +2174,7 @@ public class JmlTree implements IJmlTree {
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlQuantifiedExpr(int pos, JmlToken op,
-                ListBuffer<JCVariableDecl> decls,
+                List<JCVariableDecl> decls,
                 JCExpression range, JCExpression value) {
             this.pos = pos;
             this.op = op;
@@ -2438,10 +2438,10 @@ public class JmlTree implements IJmlTree {
      */
     public static class JmlStatementDecls extends JmlAbstractStatement {
         public JmlToken token;
-        public ListBuffer<JCTree.JCStatement> list;
+        public List<JCTree.JCStatement> list;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlStatementDecls(int pos, ListBuffer<JCTree.JCStatement> list) {
+        protected JmlStatementDecls(int pos, List<JCTree.JCStatement> list) {
             this.pos = pos;
             this.token = JmlToken.GHOST;
             this.list = list;
@@ -2667,7 +2667,7 @@ public class JmlTree implements IJmlTree {
     public static class JmlStatementLoop extends JmlAbstractStatement {
         public JmlToken token;
         public JCTree.JCExpression expression;
-        public VarSymbol sym; // FIXME - put this in the copy constructors etc.
+        public VarSymbol sym; // FIXME - put this in the copy constructors etc. - what is it for?
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementLoop(int pos, JmlToken token, JCTree.JCExpression expression) {
@@ -2800,10 +2800,10 @@ public class JmlTree implements IJmlTree {
     /** This class represents JML functions that take a list of store-refs as arguments. */
     public static class JmlStoreRefListExpression extends JmlExpression {
         public JmlToken token;
-        public ListBuffer<JCExpression> list;
+        public List<JCExpression> list;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlStoreRefListExpression(int pos, JmlToken token, ListBuffer<JCExpression> list) {
+        protected JmlStoreRefListExpression(int pos, JmlToken token, List<JCExpression> list) {
             this.pos = pos;
             this.token = token;
             this.list = list;
@@ -3198,10 +3198,10 @@ public class JmlTree implements IJmlTree {
     public static class JmlTypeClauseMonitorsFor extends JmlTypeClause {
 
         public JCTree.JCIdent identifier;
-        public ListBuffer<JCTree.JCExpression> list;
+        public List<JCTree.JCExpression> list;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlTypeClauseMonitorsFor(int pos, JCModifiers mods, JCIdent ident, ListBuffer<JCTree.JCExpression> list) {
+        protected JmlTypeClauseMonitorsFor(int pos, JCModifiers mods, JCIdent ident, List<JCTree.JCExpression> list) {
             this.pos = pos;
             this.modifiers = mods;
             this.identifier = ident;

@@ -463,18 +463,24 @@ public class racnew extends RacBase {
         );
     }
     
+    // FIXME - the problem here is that when the caller postconditions are evaluated for m(0),
+    // \old(k) is evaluated at the beginning of main, rather than just before m(0).
     @Test public void testOld() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures (\\lbl ENS \\old(k)) == k; */ static int m(int i) { k=i; return i; } " +
                 "}"
-                ,"LABEL ENS = 0"
-                ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"LABEL ENS = 0" // k==0 at beginning of m(1)
+                ,"/tt/TestJava.java:2: JML postcondition is false" // postcondition false because k is now 1
                 ,"/tt/TestJava.java:2: Associated declaration"
                 ,"LABEL ENS = 0"
-                ,"/tt/TestJava.java:1: JML postcondition is false"
+                ,"/tt/TestJava.java:1: JML postcondition is false" // caller check, after m(1)
+                ,"/tt/TestJava.java:2: Associated declaration"
+                ,"LABEL ENS = 1" // k==1 at beginning of m(0)
+                ,"/tt/TestJava.java:2: JML postcondition is false" // callee check
                 ,"/tt/TestJava.java:2: Associated declaration"
                 ,"LABEL ENS = 1"
-                ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"/tt/TestJava.java:1: JML postcondition is false" // caller check, after m(0)
+                ,"/tt/TestJava.java:2: Associated declaration"
                 ,"END"
         );        
     }
@@ -2006,16 +2012,15 @@ public class racnew extends RacBase {
                 +"//@ working_space \\duration(true);\n"
                 +"int mb() { return 0; }\n"
                 +"}"
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",24
+                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",24
                 ,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom clause",5
-//                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",15
-//                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration",5
                 ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25
                 ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration",25
                 ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",33
                 ,"/tt/A.java:13: Note: Not implemented for runtime assertion checking: set statement containing \\duration",26
                 ,"/tt/A.java:14: Note: Not implemented for runtime assertion checking: debug statement containing \\duration",28
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",24
                 ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",23
                 ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",25
                 ,"/tt/A.java:19: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration",22
