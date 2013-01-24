@@ -225,7 +225,7 @@ public class racnew2 extends RacBase {
     /** Test synchronized statement with null lock */
     @Test public void testSynchronized2() {
         expectedRACExit = 1;
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { \n" +
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) throws Exception { \n" +
                 "new A().m(); }\n " +
                 "public void m() { /*@ nullable*/ Object o = null; int i; \n " +
                 "synchronized (o) { i = 0; } \n}}"
