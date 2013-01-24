@@ -70,7 +70,6 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
 import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
-import org.jmlspecs.openjml.esc.BasicBlocker2.TargetFinder;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
@@ -1357,6 +1356,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         
+        boolean sawSomeSpecs = false;
         for (MethodSymbol msym: utils.parents(decl.sym)) {
             if (msym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
             JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(msym);
@@ -1366,6 +1366,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             for (JmlSpecificationCase scase : denestedSpecs.cases) {
+                sawSomeSpecs = true;
                 if (!utils.visible(classDecl.sym, msym.owner, scase.modifiers.flags)) continue;
                 JCIdent preident = null;
                 JCExpression preexpr = null;
@@ -1404,6 +1405,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     combinedPrecondition = treeutils.makeOr(combinedPrecondition.pos, combinedPrecondition, preident);
                 }
 
+                boolean sawSignalsOnly = false;
 
                 for (JmlMethodClause clause : scase.clauses) {
                     try {
@@ -1443,6 +1445,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                             case SIGNALS_ONLY:
                             {
+                                sawSignalsOnly = true;
                                 if (!esc) { // FIXME _ fix this when esc handles types
                                     currentStatements = exsuresStats;
                                     pushBlock();
@@ -1453,6 +1456,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         condd = treeutils.makeOr(clause.pos, condd, tc);
                                     }
                                     //JCExpression name = methodCallUtilsExpression(clause.pos(),"typeName",exceptionId);
+                                    condd = treeutils.makeImplies(clause.pos, preident, condd);
                                     addAssert(esc ? null :methodDecl.pos(),Label.SIGNALS_ONLY,condd,clause.pos(),clause.sourcefile);
                                     addStat(popBlock(0,methodDecl.pos()));
                                 }
@@ -1500,6 +1504,35 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         continue;
                     }
                 }
+                if (!sawSignalsOnly && rac) {
+                    sawSomeSpecs = true;
+                    currentStatements = exsuresStats;
+                    pushBlock();
+                    JCIdent exceptionId = treeutils.makeIdent(scase.pos,exceptionSym);
+                    JCExpression condd = treeutils.falseLit;
+                    DiagnosticPosition pos = null;
+                    for (JCExpression ex: methodDecl.thrown) {
+                        if (pos == null) pos = ex.pos();
+                        JCExpression tc = M.at(ex.pos()).TypeTest(exceptionId, ex).setType(syms.booleanType);
+                        condd = treeutils.makeOr(ex.pos, condd, tc);
+                    }
+                    addAssert(esc ? null :methodDecl.pos(),Label.SIGNALS_ONLY,condd,pos == null ? methodDecl.pos() : pos, log.currentSourceFile());
+                    addStat(popBlock(0,methodDecl.pos()));
+                }
+            }
+            if (!sawSomeSpecs && rac) {
+                currentStatements = exsuresStats;
+                pushBlock();
+                JCIdent exceptionId = treeutils.makeIdent(methodDecl.pos,exceptionSym);
+                JCExpression condd = treeutils.falseLit;
+                DiagnosticPosition pos = null;
+                for (JCExpression ex: methodDecl.thrown) {
+                    if (pos == null) pos = ex.pos();
+                    JCExpression tc = M.at(ex.pos()).TypeTest(exceptionId, ex).setType(syms.booleanType);
+                    condd = treeutils.makeOr(ex.pos, condd, tc);
+                }
+                addAssert(esc ? null :methodDecl.pos(),Label.SIGNALS_ONLY,condd,pos == null ? methodDecl.pos() : pos, log.currentSourceFile());
+                addStat(popBlock(0,methodDecl.pos()));
             }
         }
 
@@ -1923,6 +1956,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 ListBuffer<JCCatch> ncatchers = new ListBuffer<JCCatch>();
                 for (JCCatch catcher: that.catchers) {
                     JCBlock block = convertBlock(catcher.getBlock());
+                    JCIdent exId = treeutils.makeIdent(catcher.pos, exceptionSym);
+                    JCStatement st = treeutils.makeAssignStat(catcher.pos, exId, treeutils.nulllit);
+                    block.stats = block.stats.prepend(st);
                     JCVariableDecl odecl = catcher.getParameter();  
                     JmlVariableDecl decl = M.at(odecl.pos()).VarDef(odecl.sym,  null); // Catcher declarations have no initializer
                     JCCatch ncatcher = M.at(catcher.pos()).Catch(decl,block);
@@ -2860,6 +2896,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             if (esc) {
+                resultSym = resultId == null ? null : resultId.sym;
             }
             
             ListBuffer<JCStatement> saved = currentStatements;

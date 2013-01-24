@@ -433,7 +433,8 @@ public class racnew extends RacBase {
                 +" \n"
                 +"static void m(int i) throws java.io.FileNotFoundException { throw new RuntimeException(); } "
                 +"}"
-                ,"/tt/TestJava.java:8: JML unexpected exception" // FIXME - what about this case?
+                ,"/tt/TestJava.java:7: JML unexpected exception for the signals_only clause"
+                ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
     }
