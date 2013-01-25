@@ -1430,8 +1430,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 pushBlock();
                                 JCVariableDecl vd = ((JmlMethodClauseSignals)clause).vardef;
                                 JCIdent exceptionId = treeutils.makeIdent(clause.pos,exceptionSym);
-                                JCTypeCast tc = M.TypeCast(vd.type, exceptionId);
-                                vd.init = tc;
+                                JCTypeCast tc = M.at(clause.pos()).TypeCast(vd.type, exceptionId);
+                                vd.init = esc ? exceptionId : tc;
                                 addStat(vd);
                                 //JCVariableDecl evar = treeutils.makeVarDef(vd.type, vd.name, decl.sym, tc); // FIXME - needs a unique name
                                 //addStat(evar);
@@ -2957,7 +2957,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     JCIdent exceptionId = treeutils.makeIdent(clause.pos,exceptionDeclCall.sym);
                                     JCExpression tc = vdo == null ? exceptionId : M.at(vdo.pos()).TypeCast(vdo.type, exceptionId);
                                     JCVariableDecl vd = vdo == null ? null :
-                                            treeutils.makeVarDef(vdo.type,vdo.name,vdo.sym.owner,tc);
+                                            treeutils.makeVarDef(vdo.type,vdo.name,vdo.sym.owner, esc ? exceptionId : tc);
                                     Type vdtype = vd == null ? syms.exceptionType : vd.type;
                                     if (vd != null) {
                                         addStat(vd);
@@ -3559,12 +3559,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCTree type = that.getType();
         JCTree clazz = treeutils.makeType(that.pos, type.type);
         
-        JCTypeCast e = M.at(that.pos()).TypeCast(clazz,lhs);
-        e.setType(that.type);
-        treeutils.copyEndPosition(e,that);
+        JCExpression newexpr = M.at(that.pos()).TypeCast(clazz,lhs);
+        newexpr.setType(that.type);
+        treeutils.copyEndPosition(newexpr,that);
         
         if (pureCopy) {
-            result = eresult = e;
+            result = eresult = newexpr;
             return;
         }
         
@@ -3591,6 +3591,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - implement
             } else {
                 // object to object
+                // For RAC, we check that the expression will not throw an exception
+                // and then we calculate it
+                // For ESC, we do the same check, but we don't do the case
                 JCTree erasure = clazz;
                 if (clazz instanceof JCTypeApply) erasure = ((JCTypeApply)clazz).clazz;
                 JCExpression typeok = M.at(that.pos()).TypeTest(lhs, erasure);
@@ -3603,9 +3606,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     addAssert(that.pos(),Label.POSSIBLY_BADCAST,cond, lhs.type, clazz.type);
                 }
+                if (esc) {
+                    newexpr = lhs;
+                }
             }
         }
-        result = eresult = translatingJML ? e : newTemp(e);
+        result = eresult = translatingJML ? newexpr : newTemp(newexpr);
     }
 
     // OK
