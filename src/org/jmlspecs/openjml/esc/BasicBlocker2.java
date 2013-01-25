@@ -1185,8 +1185,13 @@ public class BasicBlocker2 extends JmlTreeScanner {
         return bb;
     }
     
-    protected @NonNull BasicBlock newBlock(@NonNull String name, int pos) {
-        JCIdent id = newAuxIdent(blockPrefix + pos + "_"  + name + "_" + (++blockCount),syms.booleanType,pos,false);
+    protected String blockName(String key, int pos) {
+        return blockPrefix + pos + "_"  + key;
+    }
+    
+    protected @NonNull BasicBlock newBlock(@NonNull String key, int pos) {
+        String name = blockName(key,pos);
+        JCIdent id = newAuxIdent(name + "_" + (++blockCount),syms.booleanType,pos,false);
         BasicBlock bb = new BasicBlock(id);
         blockLookup.put(name,bb); // FIXME - there are some situations in which blocks are looked up without the uniqueifying suffix - REVIEW these for ambiguity
         blockLookup.put(id.name.toString(),bb);
@@ -1210,8 +1215,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
         return bb;
     }
     
-    protected @NonNull BasicBlock newBlock(@NonNull String name, int pos, @NonNull BasicBlock previousBlock) {
-        JCIdent id = newAuxIdent(blockPrefix + pos + "_" + name + "_" + (++blockCount),syms.booleanType,pos,false);
+    protected @NonNull BasicBlock newBlock(@NonNull String key, int pos, @NonNull BasicBlock previousBlock) {
+        String name = blockName(key,pos);
+        JCIdent id = newAuxIdent(name + "_" + (++blockCount),syms.booleanType,pos,false);
         BasicBlock bb = new BasicBlock(id,previousBlock);
         blockLookup.put(name, bb);
         blockLookup.put(id.name.toString(), bb);
@@ -1235,8 +1241,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
         return b;
     }
     
-    protected BasicBlock newBlockWithRest(@NonNull String name, int pos) {
-        BasicBlock b = newBlock(name,pos,currentBlock);// it gets all the followers of the current block
+    protected BasicBlock newBlockWithRest(@NonNull String key, int pos) {
+        BasicBlock b = newBlock(key,pos,currentBlock);// it gets all the followers of the current block
         // We do this switch to avoid creating more new lists
         List<JCStatement> temp = b.statements; // empty
         b.statements = remainingStatements; // it gets all of the remaining statements
@@ -2843,6 +2849,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         currentBlock.statements.add(comment(that));
         if (breakStack.isEmpty()) {
             // ERROR - FIXME
+            log.error(that.pos(),"jml.internal","Empty break stack");
         } else if (breakStack.get(0) instanceof JCSwitch) {
             // Don't need to do anything.  If the break is not at the end of a block,
             // the compiler would not have passed this.  If it is at the end of a block
@@ -2851,7 +2858,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             // FIXME - for safety, check and warn if there are any remaining statements in the block
         } else if (that.label == null) {
             JCTree t = loopStack.get(0);
-            String s = barblockPrefix + t.pos + LOOPBREAK;
+            String s = blockName(LOOPBREAK,t.pos);
             BasicBlock b = blockLookup.get(s);
             if (b == null) log.noticeWriter.println("NO BREAK BLOCK: " + s);
             else replaceFollows(currentBlock,b);
@@ -2865,7 +2872,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         currentBlock.statements.add(comment(that));
         if (that.label == null) {
             JCTree t = loopStack.get(0);
-            String blockName = blockPrefix + t.pos + LOOPCONTINUE;
+            String blockName = blockName(LOOPCONTINUE,t.pos);
             BasicBlock b = blockLookup.get(blockName);
             if (b == null) log.noticeWriter.println("NO CONTINUE BLOCK: " + blockName);
             else replaceFollows(currentBlock,b);
@@ -3050,7 +3057,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
                 currentMap = savedMap;
             }
         } else if (that.token == null) {
-            super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
+            //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
             scan(that.meth);
             that.meth = result;
@@ -3672,8 +3679,9 @@ public class BasicBlocker2 extends JmlTreeScanner {
                 scan(that.init);
                 that.init = result;
             }
+            // FIXME - clean up this
             if (that.init instanceof JCMethodInvocation) {
-                that.init = null;
+                //that.init = null; - we do want to pass functions on to the logic encoding
                 currentBlock.statements.add(that);
             } else {
                 currentBlock.statements.add(that);
