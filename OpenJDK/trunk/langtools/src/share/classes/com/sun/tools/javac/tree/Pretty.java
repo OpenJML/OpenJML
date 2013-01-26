@@ -171,7 +171,7 @@ public class Pretty extends JCTree.Visitor {
         out.write(lineSep);
     }
 
-    String lineSep = System.getProperty("line.separator");
+    public final static String lineSep = System.getProperty("line.separator"); // DRC - made public final static
 
     /**************************************************************************
      * Traversal methods

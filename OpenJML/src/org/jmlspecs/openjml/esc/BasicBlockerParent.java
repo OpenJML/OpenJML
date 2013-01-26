@@ -60,7 +60,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
-import org.jmlspecs.openjml.esc.BasicBlockProgram.BlockParent;
+import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
 import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
 
 import com.sun.tools.javac.code.Flags;
@@ -91,7 +91,6 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCIf;
 import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCParens;
@@ -125,7 +124,7 @@ import com.sun.tools.javac.util.Names;
  * converting to single-assignment form. 
  * <P>
  * These Java statements are handled: if, switch, loops (for, while, do, foreach),
- * return, throw.
+ * return, throw, break continue.
  * <P>
  * Expression ASTs are used as is (without copying), so there may be some
  * structure sharing in the resulting basic block program.
@@ -134,8 +133,9 @@ import com.sun.tools.javac.util.Names;
  * @typeparam P basic block program type
  * @author David Cok
  */
-abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBlockProgram<T>> extends JmlTreeScanner {
+abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends BasicProgramParent<T>> extends JmlTreeScanner {
 
+    // FIXME - can this stuff be common?
     /////// To have a unique Ter2 instance for each method translated
     // In the initialization of tools, call  Ter2.Factory.preRegister(context);
     // Obtain a new Ter2 when desired with  context.get(Ter2.class);
@@ -174,25 +174,6 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
 //        return instance;
 //    }
     
-    // Options
-    
-    // This implements checking of assumption feasibility.  After an 
-    // assumption that is to be checked, we add the assertion
-    //       assert assumeCheck$<uniqueint>$<label>
-    // and the definition
-    //       assume assumeCheck$<uniqueint>$<label> == <assumecheckvar> != <uniqueint>
-    // where <uniqueint> is a positive integer not used elsewhere for 
-    // this purpose.  Here we use the source code location so that it
-    // can be used as well to generate error messages.
-    // Then we also add to the VC the assumption
-    //       assume <assumecheckvar> == 0
-    // That way all the inserted assertions above are true.  However, we
-    // can change any one of them to false by replacing the assumption
-    // above with
-    //       assume <assumecheckvar> == <uniqueid>
-    // using the specific <uniqueint> of the assumption we want to test
-    
-    
 
     // THE FOLLOWING ARE ALL FIXED STRINGS
     
@@ -201,7 +182,6 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     
     /** The prefix used for names of blocks */
     public static final @NonNull String blockPrefix = "BL_";
-    public static final @NonNull String barblockPrefix = "BL_";
     
     /** Standard name for the block that starts the body */
     public static final @NonNull String BODY_BLOCK_NAME = blockPrefix + "bodyBegin";
@@ -254,6 +234,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     /** Suffix for the name of a basic block after a throw statement */
     public static final String THROW = "_throw";
     
+    // FIXME - use this or not?
     /** Prefix for branch condition variables */
     public static final String BRANCHCONDITION_PREFIX = "branchCondition_";
     
@@ -261,6 +242,8 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     
     // THE FOLLOWING FIELDS ARE EXPECTED TO BE CONSTANT FOR THE LIFE OF THE OBJECT
     // They are either initialized in the constructor or initialized on first use
+    // Some are here for the benefit of derived classes and not used in this
+    // class directly
     
     /** The compilation context */
     @NonNull final protected Context context;
@@ -268,45 +251,24 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     /** The log to which to send error, warning and notice messages */
     @NonNull final protected Log log;
     
+    /** The Names table from the compilation context, initialized in the constructor */
+    @NonNull final protected Names names;
+  
     /** The specifications database for this compilation context, initialized in the constructor */
     @NonNull final protected JmlSpecs specs;
     
     /** The symbol table from the compilation context, initialized in the constructor */
     @NonNull final protected Symtab syms;
     
-    /** The Names table from the compilation context, initialized in the constructor */
-    @NonNull final protected Names names;
-    
     /** The JmlTreeUtils object, holding a bunch of tree-making utilities */
     @NonNull final protected JmlTreeUtils treeutils;
     
-    /** General utilities */
-    @NonNull final protected Utils utils;
-    
     /** The factory used to create AST nodes, initialized in the constructor */
-    @NonNull final protected JmlTree.Maker factory;
+    @NonNull final protected JmlTree.Maker M;
 
-    // Caution - the following are handy, but they are shared, so they won't
-    // have proper position information
-    
-    /** Holds an AST node for a boolean true literal, initialized in the constructor */
-    @NonNull final protected JCLiteral trueLiteral;
-    
-    /** Holds an AST node for a boolean false literal, initialized in the constructor */
-    @NonNull final protected JCLiteral falseLiteral;
-    
-    /** Holds an AST node for a null literal, initialized in the constructor */
-    @NonNull final protected JCLiteral nullLiteral;
-    
-    /** Holds an AST node for a null literal, initialized in the constructor */
-    @NonNull final protected JCLiteral zeroLiteral;
-    
     // THE FOLLOWING FIELDS ARE USED IN THE COURSE OF DOING THE WORK OF CONVERTING
     // TO BASIC BLOCKS.  They are fields of the class because they need to be
     // shared across the visitor methods.
-    
-    /** Place to put new background assertions, such as class predicates */
-    protected List<JCExpression> background;
     
     /** List of blocks completed processing - in basic block state */
     protected java.util.List<T> blocksCompleted;
@@ -335,13 +297,16 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     /** True if the method being converted is static */
     protected boolean isStatic;
     
-
+    /** A counter used to make sure that block names are unique */
+    protected int blockCount = 0;
+    
+    // FIXME - do we need this?
     /** Holds the result of any of the visit methods that produce JCExpressions, since the visitor
      * template used here does not have a return value.  [We could have used the templated visitor,
      * but other methods do not need to return anything, we don't need the additional parameter,
      * and that visitor is complicated by the use of interfaces for the formal parameters.]
      */
-    private JCExpression result;
+    protected JCExpression result;
     
     /** The jfoMap and jfoArray keep track of a mapping between JavaFileObjects and
      * unique Integers. When position information in an encoded identifier refers to 
@@ -389,8 +354,8 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
      * @param kind a suffix to indicate the reason for block
      * @return a composite name for a block
      */
-    public static String blockName(int pos, String kind) {
-        return barblockPrefix + pos + kind;
+    public String blockName(int pos, String kind) {
+        return blockPrefix + pos + kind;
     }
     
     /** The constructor, but use the instance() method to get a new instance,
@@ -398,34 +363,42 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
      * invoked by a derived class constructor.
      * @param context the compilation context
      */
-    protected BasicBlockerP(@NonNull Context context) {
+    protected BasicBlockerParent(@NonNull Context context) {
 //        context.put(key, this);
         this.context = context;
         this.log = Log.instance(context);
-        this.factory = JmlTree.Maker.instance(context);
+        this.M = JmlTree.Maker.instance(context);
         this.names = Names.instance(context);
         this.syms = Symtab.instance(context);
-        this.specs = JmlSpecs.instance(context); // FIXME - can this go away?
+        this.specs = JmlSpecs.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
-        this.utils = Utils.instance(context);
         this.scanMode = AST_JAVA_MODE;
-        
-        trueLiteral = treeutils.trueLit;
-        falseLiteral = treeutils.falseLit;
-        nullLiteral = treeutils.nulllit;
-        zeroLiteral = treeutils.zero;
         
     }
     
-    
-    abstract protected P newProgram(Context context);
+    /** Instantiated by derived classes to create a new (empty) basic block program */
+    abstract public P newProgram(Context context);
     
     /** Creates a new block of the appropriate type, per the derived class of
-     * BaskicBlockerBase.
+     * BasicBlockerBase.
      */
-    abstract protected T newBlock(JCIdent id);
+    abstract public T newBlock(JCIdent id);
     
-    abstract protected T newBlock(JCIdent id, T b);
+    /** Creates a new block of the appropriate type, per the derived class of
+     * BasicBlockerBase; 
+     * the 'previousBlock' gives up its followers to the newly created block. 
+     */
+    public T newBlock(JCIdent id, T previousBlock) {
+        T nb = newBlock(id);
+        List<T> s = nb.followers(); // empty, just don't create a new empty list
+        nb.followers = previousBlock.followers();
+        previousBlock.followers = s;
+        for (T f: nb.followers()) {
+            f.preceders().remove(previousBlock);
+            f.preceders().add(nb);
+        }
+        return nb;
+    }
     
     
     
@@ -435,7 +408,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     /** Should not need this when everything is implemented */
     protected void notImpl(JCTree that) {
         log.noticeWriter.println("Internal error - visit method NOT IMPLEMENTED: " + getClass() + " - "+ that.getClass());
-        result = trueLiteral;
+        result = treeutils.trueLit;
     }
     
     /** Called by visit methods that should never be called. */
@@ -469,7 +442,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
         // This is defensive programming and should not actually be needed
         //log.noticeWriter.println("Checking block " + b.id());
         loop: while (true) {
-            for (T pb: b.preceding) {
+            for (T pb: b.preceders) {
                 //log.noticeWriter.println("   " + b.id() + " follows " + pb.id());
                 if (!blocksCompleted.contains(pb)) {
                     log.noticeWriter.println("Internal Error: block " + pb.id.name + " precedes block " + b.id.name + " , but was not processed before it");
@@ -511,8 +484,8 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
      * @param after block that follows before
      */
     protected void follows(@NonNull T before, @NonNull T after) {
-        before.succeeding.add(after);
-        after.preceding.add(before);
+        before.followers.add(after);
+        after.preceders.add(before);
     }
     
     /** Updates the data structures to indicate that all the after blocks follow the
@@ -522,8 +495,8 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
      */
     protected void follows(@NonNull T before, @NonNull List<T> after) {
         for (T b: after) {
-            before.succeeding.add(b);
-            b.preceding.add(before);
+            before.followers.add(b);
+            b.preceders.add(before);
         }
     }
     
@@ -533,10 +506,10 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
      * @param after new following block
      */
     protected void replaceFollows(@NonNull T before, @NonNull T after) {
-        for (T b: before.succeeding) {
-            b.preceding.remove(before);
+        for (T b: before.followers) {
+            b.preceders.remove(before);
         }
-        before.succeeding.clear();
+        before.followers.clear();
         follows(before,after);
     }
     
@@ -546,10 +519,10 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
      * @param after
      */
     protected void replaceFollows(@NonNull T before, @NonNull List<T> after) {
-        for (T b: before.succeeding) {
-            b.preceding.remove(before);
+        for (T b: before.followers) {
+            b.preceders.remove(before);
         }
-        before.succeeding.clear();
+        before.followers.clear();
         for (T b: after) {
             follows(before,b);
         }
@@ -563,9 +536,10 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
      * @return the new block
      */
     protected @NonNull T newBlock(@NonNull String name, int pos) {
-        JCIdent id = treeutils.makeIdent(pos,name,syms.booleanType);
+        JCIdent id = treeutils.makeIdent(pos,name + "_" + (++blockCount),syms.booleanType);
         T bb = newBlock(id);
         blockLookup.put(id.name.toString(),bb);
+        blockLookup.put(name, bb);
         return bb;
     }
     
@@ -579,9 +553,10 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
      * @return the new block
      */
     protected @NonNull T newBlock(@NonNull String name, int pos, @NonNull T previousBlock) {
-        JCIdent id = treeutils.makeIdent(pos,name,syms.booleanType);
+        JCIdent id = treeutils.makeIdent(pos,name + "_" + (++blockCount),syms.booleanType);
         T bb = newBlock(id,previousBlock);
         blockLookup.put(id.name.toString(), bb);
+        blockLookup.put(name, bb);
         return bb;
     }
     
@@ -601,69 +576,70 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
         remainingStatements = temp; // empty
         return b;
     }
-    
-    /** Converts the top-level block of a method into the elements of a BasicProgram 
-     * 
-     * @param methodDecl the method to convert to to a BasicProgram
-     * @param denestedSpecs the specs of the method
-     * @param classDecl the declaration of the containing class
-     * @return the completed BasicProgram
-     */
-    protected @NonNull P convertMethodBody(JCBlock block, @NonNull JCMethodDecl methodDecl, 
-            JmlMethodSpecs denestedSpecs, @NonNull JCClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
-        
-        this.methodDecl = (JmlMethodDecl)methodDecl;
-        program = newProgram(context);
-        isConstructor = methodDecl.sym.isConstructor();  // FIXME - careful if there is nesting???
-        isStatic = methodDecl.sym.isStatic();
-        if (classDecl.sym == null) {
-            log.error("jml.internal","The class declaration in Ter.convertMethodBody appears not to be typechecked");
-            return null;
-        }
 
-//        JmlClassInfo classInfo = getClassInfo(classDecl.sym);
-//        if (classInfo == null) {
-//            log.error("jml.internal","There is no class information for " + classDecl.sym);
+    // FIXME - should this be common among derived classes?
+//    /** Converts the top-level block of a method into the elements of a BasicProgram 
+//     * 
+//     * @param methodDecl the method to convert to to a BasicProgram
+//     * @param denestedSpecs the specs of the method
+//     * @param classDecl the declaration of the containing class
+//     * @return the completed BasicProgram
+//     */
+//    protected @NonNull P convertMethodBody(JCBlock block, @NonNull JCMethodDecl methodDecl, 
+//            JmlMethodSpecs denestedSpecs, @NonNull JCClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
+//        
+//        this.methodDecl = (JmlMethodDecl)methodDecl;
+//        program = newProgram(context);
+//        isConstructor = methodDecl.sym.isConstructor();  // FIXME - careful if there is nesting???
+//        isStatic = methodDecl.sym.isStatic();
+//        if (classDecl.sym == null) {
+//            log.error("jml.internal","The class declaration in Ter.convertMethodBody appears not to be typechecked");
 //            return null;
 //        }
-        background = new LinkedList<JCExpression>();
-        blocksCompleted = new ArrayList<T>();
-        blockLookup = new java.util.HashMap<String,T>();
-        
-        // Define the start block
-        int pos = methodDecl.pos;
-        T startBlock = newBlock(START_BLOCK_NAME,pos);
-
-        // Define the body block
-        // Put all the program statements in the Body Block
-        T bodyBlock = newBlock(BODY_BLOCK_NAME,methodDecl.body.pos);
-
-        // Then the program
-        bodyBlock.statements.addAll(block.getStatements());
-        follows(startBlock,bodyBlock);
-        
-        // Handle the start block a little specially
-        // It does not have any statements in it
-        startBlock(startBlock); // Start it so the currentMap, currentBlock, remainingStatements are defined
-        completed(currentBlock);
-
-        processBlock(bodyBlock);
-        
-        // Finished processing all the blocks
-        // Make the BasicProgram
-        program.methodDecl = methodDecl;
-//        program.startId = startBlock.id;
-        program.blocks.addAll(blocksCompleted);
-        ((BoogieProgram)program).background = background;  // FIXME
-        return program;
-    }
+//
+////        JmlClassInfo classInfo = getClassInfo(classDecl.sym);
+////        if (classInfo == null) {
+////            log.error("jml.internal","There is no class information for " + classDecl.sym);
+////            return null;
+////        }
+//        background = new LinkedList<JCExpression>();
+//        blocksCompleted = new ArrayList<T>();
+//        blockLookup = new java.util.HashMap<String,T>();
+//        
+//        // Define the start block
+//        int pos = methodDecl.pos;
+//        T startBlock = newBlock(START_BLOCK_NAME,pos);
+//
+//        // Define the body block
+//        // Put all the program statements in the Body Block
+//        T bodyBlock = newBlock(BODY_BLOCK_NAME,methodDecl.body.pos);
+//
+//        // Then the program
+//        bodyBlock.statements.addAll(block.getStatements());
+//        follows(startBlock,bodyBlock);
+//        
+//        // Handle the start block a little specially
+//        // It does not have any statements in it
+//        startBlock(startBlock); // Start it so the currentMap, currentBlock, remainingStatements are defined
+//        completed(currentBlock);
+//
+//        processBlock(bodyBlock);
+//        
+//        // Finished processing all the blocks
+//        // Make the BasicProgram
+//        program.methodDecl = methodDecl;
+////        program.startId = startBlock.id;
+//        program.blocks.addAll(blocksCompleted);
+//        ((BoogieProgram)program).background = background;  // FIXME
+//        return program;
+//    }
     
     /** Does the conversion of a block with Java statements into basic program
      * form, possibly creating new blocks on the todo list
      * @param block the block to process
      */
     protected void processBlock(@NonNull T block) {
-        if (block.preceding.isEmpty()) {
+        if (block.preceders.isEmpty()) {
             // Delete any blocks that do not follow anything
             // This can happen for example if the block is an afterIf block
             // and both the then branch and the else branch terminate with
@@ -676,8 +652,8 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
             if (!block.statements.isEmpty()) {
                 log.warning("jml.internal","A basic block has no predecessors - ingoring it: " + block.id);
             }
-            for (T b: block.succeeding) {
-                b.preceding.remove(block);
+            for (T b: block.followers) {
+                b.preceders.remove(block);
             }
             return;// Don't add it to the completed blocks
         }
@@ -729,7 +705,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
      * @param statements the list to add the new assume statement to
      */
     protected JmlStatementExpr addAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
-        factory.at(pos);
+        M.at(pos);
         JmlStatementExpr st;
 //        if (useAssumeDefinitions) {
 //            JCIdent id = factory.Ident(names.fromString(ASSUMPTION_PREFIX+(unique++)));
@@ -737,7 +713,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
 //            newdefs.add(new BasicProgram.Definition(that.pos,id,that)); // FIXME- end position?
 //            st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,id);
 //        } else {
-            st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,that);
+            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,that);
 //        }
 //        copyEndPosition(st,that);
         st.type = null; // statements do not have a type
@@ -748,7 +724,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     // FIXME - REVIEW and document
     protected JmlStatementExpr addAssume(int startpos, JCTree endpos, Label label, JCExpression that, List<JCStatement> statements) {
         if (startpos < 0) startpos = that.pos; // FIXME - temp 
-        factory.at(startpos);
+        M.at(startpos);
         JmlStatementExpr st;
 //        if (useAssumeDefinitions) {
 //            JCIdent id = factory.Ident(names.fromString(ASSUMPTION_PREFIX+(unique++)));
@@ -756,7 +732,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
 //            newdefs.add(new BasicProgram.Definition(that.pos,id,that)); // FIXME- start, end position?
 //            st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,id);
 //        } else {
-            st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,that);
+            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,that);
 //        }
 //        copyEndPosition(st,endpos);
         st.type = null; // statements do not have a type
@@ -767,9 +743,9 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     // FIXME - REVIEW and document
     protected JmlStatementExpr addAssumeNoDef(int startpos, JCTree endpos, Label label, JCExpression that, List<JCStatement> statements) {
         if (startpos < 0) startpos = that.pos; // FIXME - temp 
-        factory.at(startpos);
+        M.at(startpos);
         JmlStatementExpr st;
-        st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,that);
+        st = M.JmlExpressionStatement(JmlToken.ASSUME,label,that);
 //        copyEndPosition(st,endpos);
         st.type = null; // statements do not have a type
         statements.add(st);
@@ -788,7 +764,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
      * @param statements the list to add the new assume statement to
      */
     protected JmlStatementExpr addUntranslatedAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
-        JmlStatementExpr st = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
+        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
         st.type = null; // statements do not have a type
 //        copyEndPosition(st,that);
         statements.add(st);
@@ -797,7 +773,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     
     // FIXME - REVIEW and document
     protected JmlStatementExpr addUntranslatedAssume(int pos, JCTree posend, Label label, JCExpression that, List<JCStatement> statements) {
-        JmlStatementExpr st = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
+        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
         st.type = null; // statements do not have a type
 //        copyEndPosition(st,posend);
         statements.add(st);
@@ -810,7 +786,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
      * given String.
      */
     public JmlStatementExpr comment(int pos, String s) {
-        return factory.at(pos).JmlExpressionStatement(JmlToken.COMMENT,null,factory.Literal(s));
+        return M.at(pos).JmlExpressionStatement(JmlToken.COMMENT,null,M.Literal(s));
     }
     
     /** This generates a comment statement (not in any statement list) whose content is the
@@ -826,7 +802,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     // FIXME - do we need this - here?
     /** Makes a JML \typeof expression, with the given expression as the argument */
     protected JCExpression makeTypeof(JCExpression e) {
-        JCExpression typeof = factory.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,e);
+        JCExpression typeof = M.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,e);
         typeof.type = syms.classType;
         return typeof;
     }
@@ -850,7 +826,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     // FIXME - review and document
     /** Makes the equivalent of an instanceof operation: e !=null && \typeof(e) <: \type(type) */
     protected JCExpression makeInstanceof(JCExpression e, int epos, Type type, int typepos) {
-        JCExpression e1 = treeutils.makeNeqObject(epos,e,nullLiteral);
+        JCExpression e1 = treeutils.makeNeqObject(epos,e,treeutils.nulllit);
         JCExpression e2 = treeutils.makeJmlBinary(epos,JmlToken.SUBTYPE_OF,makeTypeof(e),makeTypeLiteral(type,typepos));
         //if (inSpecExpression) e2 = trSpecExpr(e2,null);
         JCExpression ee = treeutils.makeBinary(epos,JCTree.AND,e1,e2);
@@ -867,8 +843,8 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     
     // FIXME - review and document
     protected JCExpression makeFunctionApply(int pos, MethodSymbol meth, JCExpression... args) {
-        JCIdent methid = factory.at(pos).Ident(meth);
-        JCExpression e = factory.at(pos).Apply(null,methid,new ListBuffer<JCExpression>().appendArray(args).toList());
+        JCIdent methid = M.at(pos).Ident(meth);
+        JCExpression e = M.at(pos).Apply(null,methid,new ListBuffer<JCExpression>().appendArray(args).toList());
         e.type = meth.getReturnType();
         return e;
     }
@@ -876,7 +852,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     // FIXME - review and document
     protected JCExpression makeSignalsOnly(JmlMethodClauseSignalsOnly clause) {
         JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
-        JCExpression id = factory.at(0).JmlSingleton(JmlToken.BSEXCEPTION);
+        JCExpression id = M.at(0).JmlSingleton(JmlToken.BSEXCEPTION);
         for (JCExpression typetree: clause.list) {
             int pos = typetree.getStartPosition();
             e = treeutils.makeBinary(pos, 
@@ -1125,7 +1101,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
 //                buf.append(inv);
 //                loopSpecs = buf.toList();
 //            }
-            visitLoopWithSpecs(that,null,treeutils.trueLit,null,factory.at(that.body.pos).Block(0,newbody.toList()),null);
+            visitLoopWithSpecs(that,null,treeutils.trueLit,null,M.at(that.body.pos).Block(0,newbody.toList()),null);
             
             
         } else {
@@ -1317,7 +1293,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
             // Note that there might be nesting of other switch statements etc.
             java.util.LinkedList<T> blocks = new java.util.LinkedList<T>();
             T prev = null;
-            JCExpression defaultCond = falseLiteral;
+            JCExpression defaultCond = treeutils.falseLit;
             JmlTree.JmlStatementExpr defaultAsm = null;
             for (JCCase caseStatement: cases) {
                 /*@ nullable */ JCExpression caseValue = caseStatement.getExpression();
@@ -1439,6 +1415,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     // FIXME - the catch blocks should use Java not JML subtype tests
     // FIXME - review
     // FIXME - unify the use of the termination var?
+    @Override
     public void visitTry(JCTry that) {
         currentBlock.statements.add(comment(that.pos,"try..."));
 
@@ -1447,7 +1424,8 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
         int pos = that.pos;
         T brest = newBlockWithRest(blockName(pos,AFTERTRY),pos);// it gets all the followers of the current block
         
-        remainingStatements.clear();
+        // remainingStatements is now empty
+        // Put the statements in the try block into the currentBlock
         remainingStatements.add(that.getBlock());
         
         // We make an empty finally block if the try statement does not
@@ -1460,8 +1438,11 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
         follows(finallyBlock,brest);
 
         finallyStack.add(0,finallyBlock);
+        
+        // FIXME - why no catch blocks?
 
-        // Finish the processing of the current block 
+        // Finish the processing of the current block; it might
+        // refer to the finally block during processing
         processBlockStatements(currentBlock,true);
         finallyStack.remove(0);
         processBlock(finallyBlock);
@@ -1487,20 +1468,22 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
         // Now create an (unprocessed) block for everything that follows the
         // if statement
         T brest = newBlockWithRest(restName,pos);// it gets all the followers of the current block
+        processBlockStatements(currentBlock,true); // complete current block
         
         // Now make the then block
         T thenBlock = newBlock(thenName,pos);
+        addAssume(that.cond.pos, Label.BRANCHT, that.cond, thenBlock.statements);
         thenBlock.statements.add(that.thenpart);
         follows(thenBlock,brest);
         follows(currentBlock,thenBlock);
         
         // Now make the else block
         T elseBlock = newBlock(elseName,pos);
+        addAssume(that.cond.pos, Label.BRANCHE, treeutils.makeNot(that.cond.pos,that.cond), elseBlock.statements);
         if (that.elsepart != null) elseBlock.statements.add(that.elsepart);
         follows(elseBlock,brest);
         follows(currentBlock,elseBlock);
         
-        processBlockStatements(currentBlock,true); // finish current block
         processBlock(thenBlock);
         processBlock(elseBlock);
         processBlock(brest);
@@ -1521,7 +1504,8 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     public void visitBreak(JCBreak that) { 
         currentBlock.statements.add(comment(that));
         if (breakStack.isEmpty()) {
-            // ERROR - FIXME
+          log.error(that.pos(),"jml.internal","Empty break stack");
+
         } else if (breakStack.get(0) instanceof JCSwitch) {
             // Don't need to do anything.  If the break is not at the end of a block,
             // the compiler would not have passed this.  If it is at the end of a block
@@ -1554,7 +1538,8 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
     }
     
     // OK - presumes that the program has already been modified to record
-    // the return value
+    // the return value and that the entire method body is enclosed in an
+    // outer try-finally block
     public void visitReturn(JCReturn that) {
         if (!remainingStatements.isEmpty()) {
             // Not fatal, but does indicate a problem with the original
@@ -1564,6 +1549,8 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
                     "Unexpected statements following a return statement are ignored");
             remainingStatements.clear();
         }
+        
+        // FIXME - not sure why these statements are here
         T b = newBlockWithRest(blockName(that.pos,RETURN),that.pos);
         follows(currentBlock,b);
         completed(currentBlock);
@@ -1597,6 +1584,8 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
                     "Unexpected statements following a throw statement");
             remainingStatements.clear();
         }
+        
+        // FIXME - why are these here
         T b = newBlockWithRest(blockName(that.pos,THROW),that.pos);
         follows(currentBlock,b);
         completed(currentBlock);
@@ -1605,6 +1594,7 @@ abstract public class BasicBlockerP<T extends BlockParent<T>,P extends BasicBloc
         
         // FIXME - if we are already in a catch block we keep the finally block
         // as our follower.
+        // FIXME - shouldn't throws go to the catch blocks?
         
         if (finallyStack.isEmpty()) {
             // We don't expect the finallyStack to ever be empty when there is
