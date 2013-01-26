@@ -489,23 +489,13 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     protected @NonNull BoogieProgram convertMethodBody(JCBlock block, @NonNull JCMethodDecl methodDecl, 
             JmlMethodSpecs denestedSpecs, @NonNull JCClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
         
-        this.methodDecl = (JmlMethodDecl)methodDecl;
-        program = new BoogieProgram(context);
-        isConstructor = methodDecl.sym.isConstructor();  // FIXME - careful if there is nesting???
-        isStatic = methodDecl.sym.isStatic();
-        if (classDecl.sym == null) {
-            log.error("jml.internal","The class declaration in BoogieBlocker.convertMethodBody appears not to be typechecked");
-            return null;
-        }
-
+        initialize(methodDecl,classDecl);
 //        JmlClassInfo classInfo = getClassInfo(classDecl.sym);
 //        if (classInfo == null) {
 //            log.error("jml.internal","There is no class information for " + classDecl.sym);
 //            return null;
 //        }
         background = new LinkedList<JCExpression>();
-        blocksCompleted = new ArrayList<BoogieBlock>();
-        blockLookup = new java.util.HashMap<String,BoogieBlock>();
         
         terminationSym = (VarSymbol)assertionAdder.terminationSymbols.get(methodDecl);
         terminationVar = treeutils.makeIdent(methodDecl.pos,terminationSym);
@@ -555,7 +545,6 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         
         // Finished processing all the blocks
         // Make the BasicProgram
-        program.methodDecl = methodDecl;
 //        program.startId = startBlock.id;
         program.blocks.addAll(blocksCompleted);
         if (assumeCheck != null) booleanAssumeCheck = assumeCheck;
@@ -684,45 +673,45 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         return st;
     }
     
-    // FIXME - REVIEW and document
-    protected JmlStatementExpr addAssumeNoDef(int startpos, JCTree endpos, Label label, JCExpression that, List<JCStatement> statements) {
-        if (startpos < 0) startpos = that.pos; // FIXME - temp 
-        M.at(startpos);
-        JmlStatementExpr st;
-        st = M.JmlExpressionStatement(JmlToken.ASSUME,label,that);
-//        copyEndPosition(st,endpos);
-        st.type = null; // statements do not have a type
-        statements.add(st);
-        return st;
-    }
+//    // FIXME - REVIEW and document
+//    protected JmlStatementExpr addAssumeNoDef(int startpos, JCTree endpos, Label label, JCExpression that, List<JCStatement> statements) {
+//        if (startpos < 0) startpos = that.pos; // FIXME - temp 
+//        M.at(startpos);
+//        JmlStatementExpr st;
+//        st = M.JmlExpressionStatement(JmlToken.ASSUME,label,that);
+////        copyEndPosition(st,endpos);
+//        st.type = null; // statements do not have a type
+//        statements.add(st);
+//        return st;
+//    }
     
-    // FIXME - REVIEW and document
-    /** Adds a new UNTRANSLATED assume statement to the end of the given statements list; the statements list
-     * should be a list of statements that will be processed (and translated) at some later time;
-     * the assume statement is
-     * given the declaration pos and label from the arguments; it is presumed the input expression is
-     * untranslated, as is the produced assume statement.
-     * @param pos the declaration position of the assumption
-     * @param label the kind of assumption
-     * @param that the (untranslated) expression being assumed
-     * @param statements the list to add the new assume statement to
-     */
-    protected JmlStatementExpr addUntranslatedAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
-        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
-        st.type = null; // statements do not have a type
-//        copyEndPosition(st,that);
-        statements.add(st);
-        return st;
-    }
+//    // FIXME - REVIEW and document
+//    /** Adds a new UNTRANSLATED assume statement to the end of the given statements list; the statements list
+//     * should be a list of statements that will be processed (and translated) at some later time;
+//     * the assume statement is
+//     * given the declaration pos and label from the arguments; it is presumed the input expression is
+//     * untranslated, as is the produced assume statement.
+//     * @param pos the declaration position of the assumption
+//     * @param label the kind of assumption
+//     * @param that the (untranslated) expression being assumed
+//     * @param statements the list to add the new assume statement to
+//     */
+//    protected JmlStatementExpr addUntranslatedAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
+//        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
+//        st.type = null; // statements do not have a type
+////        copyEndPosition(st,that);
+//        statements.add(st);
+//        return st;
+//    }
     
-    // FIXME - REVIEW and document
-    protected JmlStatementExpr addUntranslatedAssume(int pos, JCTree posend, Label label, JCExpression that, List<JCStatement> statements) {
-        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
-        st.type = null; // statements do not have a type
-//        copyEndPosition(st,posend);
-        statements.add(st);
-        return st;
-    }
+//    // FIXME - REVIEW and document
+//    protected JmlStatementExpr addUntranslatedAssume(int pos, JCTree posend, Label label, JCExpression that, List<JCStatement> statements) {
+//        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
+//        st.type = null; // statements do not have a type
+////        copyEndPosition(st,posend);
+//        statements.add(st);
+//        return st;
+//    }
     
     
     // FIXME - REVIEW and document
@@ -862,20 +851,6 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 
     // STATEMENT NODES
     
-    // Just process all the statements in the block prior to any other
-    // remaining statements 
-    public void visitBlock(JCBlock that) {
-        List<JCStatement> s = that.getStatements();
-        if (s != null) remainingStatements.addAll(0,s);
-    }
-    
-    
-    // OK
-    // FIXME - the label needs to be able to be the target of break & continue statements
-    public void visitLabelled(JCLabeledStatement that) {
-        // FIXME - save the label?
-        that.getStatement().accept(this);
-    }
     
     // FIXME - REVIEW
     public void visitExec(JCExpressionStatement that)    { 
