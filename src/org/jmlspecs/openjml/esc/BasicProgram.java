@@ -22,6 +22,8 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.Context;
 
+// FIXME - needs review
+
 /**
  * A BasicProgram is an equivalent representation of a method:
  * <UL>
@@ -40,15 +42,18 @@ import com.sun.tools.javac.util.Context;
  */
 // Note: everything declared protected is intended for use just in this class
 // and any future derived classes - not in the containing package
-public class BasicProgram extends BasicBlockProgram<BasicProgram.BasicBlock> {
+public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
     
+    /** Constructor of an empty program */
     public BasicProgram(Context context) {
         super(context);
     }
 
     /** Factory method to create a new block. */
     @Override
-    protected BasicBlockProgram.BlockParent<BasicBlock> newBlock(JCIdent id) { return new BasicBlock(id); }
+    protected BasicBlock newBlock(JCIdent id) { 
+        return new BasicBlock(id); 
+    }
         
     /** The id of the starting block */
     //@ non_null
@@ -213,7 +218,7 @@ public class BasicProgram extends BasicBlockProgram<BasicProgram.BasicBlock> {
      * @author David Cok
      *
      */
-    static public class BasicBlock extends BasicBlockProgram.BlockParent<BasicBlock> {
+    static public class BasicBlock extends BasicProgramParent.BlockParent<BasicBlock> {
         
         /** A constructor creating an empty block with a name 
          * 
@@ -223,53 +228,26 @@ public class BasicProgram extends BasicBlockProgram<BasicProgram.BasicBlock> {
             super(id);
         }
         
-        /** A constructor creating an empty block with a given name; the
-         * newly created block becomes the block that precedes the blocks
-         * that previously succeeded the argument. 
-         * @param id the identifier of the new block
-         * @param b the block donating its followers
-         */
-        // BEFORE  b.succeeding -> List
-        // AFTER   b.succeeding -> NONE; this.succeeding -> List
-        protected BasicBlock(@NonNull JCIdent id, @NonNull BasicBlock b) {
-            this(id);
-            List<BasicBlock> s = succeeding; // empty, just don't create a new empty list
-            succeeding = b.succeeding;
-            b.succeeding = s;
-            for (BasicBlock f: succeeding) {
-                f.preceding.remove(b);
-                f.preceding.add(this);
-            }
-        }
-        
-        
-        /** Generates a human-readable String representation of the block */
-        @Override // @NonNull
-        public String toString() {
-            java.io.StringWriter s = new java.io.StringWriter();
-            write(s,null);
-            return s.toString();
-        }
-        
+       
         /** Writes out the basic block to the given Writer
          * 
          * @param w where to put a String representation of the block
          */
         public void write(Writer w, BasicProgram program) {
+            // The 'false' argument allows non-compilable output and avoids
+            // putting JML comment symbols everywhere
+            JmlPretty pw = new JmlPretty(w,false);
             try {
-                // The 'false' argument allows non-compilable output and avoids
-                // putting JML comment symbols everywhere
-                JmlPretty pw = new JmlPretty(w,false);
-                w.write(id+":\n");
-                w.write("    follows");
-                for (BasicBlock ss: preceding) {
-                    w.write(" ");
-                    w.write(ss.id.toString());
+                pw.print(id+":"+JmlPretty.lineSep);
+                pw.print("    follows");
+                for (BasicBlock ss: preceders()) {
+                    pw.print(" ");
+                    pw.print(ss.id.toString());
                 }
-                w.write("\n");
-                w.flush();
+                pw.print(JmlPretty.lineSep);
+                pw.flush();
+                pw.indentAndPrint();
                 for (JCTree t: statements) {
-                    w.write("    "); // FIXME - use JMLPretty indentation?
                     t.accept(pw);
                     if (program != null && t instanceof JmlTree.JmlStatementExpr && ((JmlTree.JmlStatementExpr)t).expression instanceof JCIdent) {
                         JCIdent i = (JCIdent)((JmlTree.JmlStatementExpr)t).expression;
@@ -294,19 +272,36 @@ public class BasicProgram extends BasicBlockProgram<BasicProgram.BasicBlock> {
 //                            }
 //                        }
                     }
-                    w.write("\n");
-                    w.flush();
+                    pw.print(JmlPretty.lineSep);
+                    pw.flush();
                 }
-                w.write("    goto");
-                for (BasicBlock ss: succeeding) {
-                    w.write(" ");
-                    w.write(ss.id.toString());
+                if (followers.isEmpty()) {
+                    pw.print("return;");
+                } else {
+                    pw.print("goto");
+                    boolean first = true;
+                    for (BasicBlock ss: followers) {
+                        if (first) first = false; else pw.print(",");
+                        pw.print(" ");
+                        pw.print(ss.id.toString());
+                    }
+                    pw.print(";");
                 }
-                w.write("\n");
-                w.flush();
+                pw.undent(); // FIXME - check that this undents in the right place
+                pw.print(JmlPretty.lineSep);
+                pw.flush();
             } catch (java.io.IOException e) {
-                System.out.println("EXCEPTION: " + e); // FIXME
+                try {
+                    pw.print("EXCEPTION while pretty printing: " + e);
+                } catch (java.io.IOException ee) {
+                    // Give up
+                }
             }
+        }
+        
+        @Override
+        public void write(Writer w) {
+            write(w,null);
         }
     }
     

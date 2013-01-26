@@ -755,7 +755,7 @@ public class JmlEsc extends JmlTreeScanner {
                 terminationPos = stat.pos;
             }
         }
-        for (BasicBlock b: block.succeeding) {
+        for (BasicBlock b: block.followers) {
             value = reportInvalidAssertion(b,smt,solver,decl);
             if (value) return true;
         }
@@ -1017,14 +1017,14 @@ public class JmlEsc extends JmlTreeScanner {
 //        for (BasicBlock b: block.succeeding) log.noticeWriter.print(" " + b.id);
 //        log.noticeWriter.println();
 //        
-        if (block.succeeding.size() == 0) {
+        if (block.followers.size() == 0) {
             ca.add(c);
             n++;
             ca.paths = n;
             return ca;
         }
         Counter cc = new Counter();
-        for (BasicBlock b: block.succeeding) {
+        for (BasicBlock b: block.followers) {
             Counter ccc = getParCount(b,program,full);
             for (int i=0; i<ccc.paths; i++) {
                 cc.add(c);
@@ -1055,11 +1055,11 @@ public class JmlEsc extends JmlTreeScanner {
     public Counter fanCount(BasicBlock block, BasicProgram program) {
         Counter c = new Counter();
         c.count(block);
-        if (block.succeeding.size() == 0) {
+        if (block.followers.size() == 0) {
             //c.nodes++;
             return c;
         }
-        for (BasicBlock b: block.succeeding) {
+        for (BasicBlock b: block.followers) {
             c.add(getFanCount(b,program));
             //c.nodes ++;
         }
@@ -1079,13 +1079,13 @@ public class JmlEsc extends JmlTreeScanner {
                 //log.noticeWriter.println(    "  BLOCK-A " + Counter.counts(bb));
             }
         }
-        if (block.succeeding.size() == 0) {
+        if (block.followers.size() == 0) {
             BasicBlock bb = new BasicBlock(null);
             bb.statements.addAll(p);
             newp.blocks.add(bb);
             //log.noticeWriter.println(    "  BLOCK-B " + Counter.counts(bb));
         } else {
-            for (BasicBlock bb: block.succeeding) {
+            for (BasicBlock bb: block.followers) {
                 newblocks(p,bb,program,newp);
             }
         }
@@ -1144,14 +1144,14 @@ public class JmlEsc extends JmlTreeScanner {
             JCExpression expr = factory.Literal(TypeTags.BOOLEAN,1); // TRUE
             expr.type = syms.booleanType;
             if (VCmode == 0) {
-                for (BasicBlock follower: block.succeeding()) {
+                for (BasicBlock follower: block.followers()) {
                     JCExpression e = factory.Binary(JCTree.AND,expr,follower.id);
                     e.pos = follower.id.pos;
                     e.type = syms.booleanType;
                     expr = e;
                 }
             } else if (VCmode == 1) {
-                for (BasicBlock follower: block.succeeding()) {
+                for (BasicBlock follower: block.followers()) {
                     JCExpression fexpr = blockExpr(follower);
                     JCExpression e = factory.Binary(JCTree.AND,expr,fexpr);
                     e.pos = follower.id.pos;
@@ -1424,7 +1424,7 @@ public class JmlEsc extends JmlTreeScanner {
                             while (!todo.isEmpty()) {
                                 BasicBlock b = todo.remove(0);
                                 if (neededBlocks.contains(b)) continue;
-                                todo.addAll(b.preceding);
+                                todo.addAll(b.preceders);
                                 neededBlocks.add(b);
                             }
                             
@@ -2047,8 +2047,8 @@ public class JmlEsc extends JmlTreeScanner {
      */
     public boolean hasFeasibleChain(/*@ non_null*/ BasicBlock bl, /*@ non_null*/ ICounterexample s) {
         if ("true".equals(s.get(bl.id.name.toString()))) return false;
-        if (bl.preceding.size() == 0) return true; // presuming it is the start block, which may not be the case?? FIXME
-        for (BasicBlock b: bl.preceding) {
+        if (bl.preceders.size() == 0) return true; // presuming it is the start block, which may not be the case?? FIXME
+        for (BasicBlock b: bl.preceders) {
             if (hasFeasibleChain(b,s)) return true;
         }
         return false;

@@ -5,25 +5,22 @@
 package org.jmlspecs.openjml.esc;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
-import org.jmlspecs.openjml.esc.BasicBlockProgram.BlockParent;
-import org.smtlib.IExpr;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -32,43 +29,40 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
 
+// FIXME - needs review
+
 /**
- * A BasicProgram is an equivalent representation of a method:
+ * A BoogieProgram is an equivalent representation of a method as a Boogie 2 program:
  * <UL>
  * <LI>it expresses the program as a DAG of basic blocks
  * <LI>each block represents a non-branching set of code
- * <LI>DSA has been applied
- * <LI>all statements have been converted to assumptions and assertions
- * <LI>the AST used for expressions is simplified
+ * <LI>FIXME - describe Boogie form
  * </UL>
- * The BasicBlocks are allowed to have regular Java/JML statements (as an 
- * interim state) but are then
- * massaged (by the BasicBlocker) into the official BasicProgram form.  This 
- * class just holds the data and does not provide transforming functionality.
  * 
  * @author David Cok
  */
 // Note: everything declared protected is intended for use just in this class
 // and any future derived classes - not in the containing package
-public class BoogieProgram extends BasicBlockProgram<BoogieProgram.BoogieBlock>{
+public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>{
     
+    // FIXME - document these
     protected int style = 0;
     protected final int HEAP_STYLE = 1;
     protected final int SEP_STYLE = 0;
     
+    /** Constructor of an empty program */
     public BoogieProgram(Context context) {
         super(context);
     }
 
-    public Map<String,JmlStatementExpr> assertMap = new HashMap<String,JmlStatementExpr>();
-    
     /** Factory method to create a new block. */
     @Override
-    protected BasicBlockProgram.BlockParent<BoogieBlock> newBlock(JCIdent id) { return new BoogieBlock(id); }
+    protected BoogieBlock newBlock(JCIdent id) { 
+        return new BoogieBlock(id); 
+    }
         
     /** A list of (global) variable declarations; that is - variables that are used in
      * more than one block. They may or may not have an initial value.
@@ -81,20 +75,25 @@ public class BoogieProgram extends BasicBlockProgram<BoogieProgram.BoogieBlock>{
     protected List<JCExpression> background = new ArrayList<JCExpression>();
 
     /** Returns the (mutable) list of background assertions that are part of this program
-     * @return the program's definitions
+     * @return the program's background definitions
      */
     @Pure
     public List<JCExpression> background() {
         return background;
     }
     
+    // FIXME - docuemnt
+    public Map<String,JmlStatementExpr> assertMap = new HashMap<String,JmlStatementExpr>();
     
+    /** A pretty printer for types */
     public String trType(Type t) {
         if (t == syms.booleanType) return "bool";
         if (t == syms.intType) return "int"; // FIXME - 
         return "REF";
     }
-    /** Writes out the BasicProgram to the given Writer (e.g. log.noticeWriter) for diagnostics */
+    
+    /** Writes out the BasicProgram to the given Writer (using log.noticeWriter) 
+     * for diagnostics */
     public void write(Writer w) {
         try {
             //w.append("START = " + startId + "\n");
@@ -164,25 +163,17 @@ public class BoogieProgram extends BasicBlockProgram<BoogieProgram.BoogieBlock>{
         }
     }
 
-    /** Writes the BasicProgram to a string with the given initial string */
-    public String write(String header) {
-        StringWriter sw = new StringWriter();
-        sw.append(header);
-        write(sw);
-        return sw.toString();
-    }
-
     /** This class holds a basic block (a sequence of non-branching
      * statements, expressions have no embedded calls or side-effects such
      * as assignments).
-     * The expressions in a BasicBlock use JCTree nodes.
-     * Note that a BasicBlock becomes basic as a process of evolution.
+     * The expressions in a BoogieBlock use JCTree nodes.
+     * Note that a basic block becomes basic as a process of evolution.
      * @author David Cok
      *
      */
-    static public class BoogieBlock extends BasicBlockProgram.BlockParent<BoogieBlock> {
+    static public class BoogieBlock extends BasicProgramParent.BlockParent<BoogieBlock> {
         
-        /** A constructor creating an empty block with a name 
+        /** A constructor creating an empty block with a name and position 
          * 
          * @param id the name of the block
          */
@@ -190,66 +181,55 @@ public class BoogieProgram extends BasicBlockProgram<BoogieProgram.BoogieBlock>{
             super(id);
         }
         
-        /** A constructor creating an empty block with a given name; the
-         * newly created block becomes the block that precedes the blocks
-         * that previously succeeded the argument. 
-         * @param id the identifier of the new block
-         * @param b the block donating its followers
-         */
-        // BEFORE  b.succeeding -> List
-        // AFTER   b.succeeding -> NONE; this.succeeding -> List
-        protected BoogieBlock(@NonNull JCIdent id, @NonNull BoogieBlock b) {
-            this(id);
-            List<BoogieBlock> s = succeeding; // empty, just don't create a new empty list
-            succeeding = b.succeeding;
-            b.succeeding = s;
-            for (BoogieBlock f: succeeding) {
-                f.preceding.remove(b);
-                f.preceding.add(this);
-            }
-        }
-        
         /** Writes out the basic block to the given Writer
          * 
          * @param w where to put a String representation of the block
          */
-        public void write(Writer w, JmlPretty bp) {
+        public void write(Writer w, JmlPretty pw) {
             try {
-                // The 'false' argument allows non-compilable output and avoids
-                // putting JML comment symbols everywhere
-                JmlPretty pw = bp;
-                w.write(id+":\n");
-                w.flush();
+                pw.print(id+":"+JmlPretty.lineSep);
+                pw.flush();
+                pw.indentAndPrint();
                 for (JCTree t: statements) {
-                    w.write("    "); // FIXME - use JMLPretty indentation?
                     t.accept(pw);
-                    w.write("\n");
-                    w.flush();
+                    pw.print("\n");
+                    pw.flush();
                 }
-                if (succeeding.isEmpty()) {
-                    w.write("    return;\n"); // FIXME - replace all the \n
+                pw.undent();
+                if (followers.isEmpty()) {
+                    pw.print("return;");
                 } else {
-                    w.write("    goto");
+                    pw.print("goto");
                     boolean first = true;
-                    for (BoogieBlock ss: succeeding) {
+                    for (BoogieBlock ss: followers) {
                         if (first) first = false; else w.write(",");
-                        w.write(" ");
-                        w.write((ss).id.toString()); // FIXME _ can this be done without a cast
+                        pw.print(" ");
+                        pw.print(ss.id.toString());
                     }
-                    w.write(";\n");
+                    pw.print(";");
                 }
-                w.flush();
+                pw.undent(); // FIXME - check that this undents in the right place
+                pw.print(JmlPretty.lineSep);
+              pw.flush();
             } catch (java.io.IOException e) {
-                System.out.println("EXCEPTION: " + e); // FIXME
+                try {
+                    pw.print("EXCEPTION while pretty printing: " + e);
+                } catch (java.io.IOException ee) {
+                    // Give up
+                }
             }
         }
-
         
+        @Override
+        public void write(Writer w) {
+            write(w, new JmlPretty(w,false));
+        }
     }
     
+    // FIXME - document
     public class BoogiePrinter extends JmlPretty {
         public BoogiePrinter(Writer out) { super(out,false); }
-        
+
         public void visitJmlStatementExpr(JmlStatementExpr that) {
             try { 
                 if (that.token == JmlToken.COMMENT) {
@@ -284,21 +264,21 @@ public class BoogieProgram extends BasicBlockProgram<BoogieProgram.BoogieBlock>{
                 throw new UncheckedIOException(e);
             }
         }
-        
+
         @Override
         public void visitVarDef(JCVariableDecl tree) {
-//            try {
-//                print("var ");
-//                print(tree.name.toString());
-//                print(" : ");
-//                print(trType(tree.type));
-//                print(" ;");
-//                println();
-//            } catch (IOException e) {
-//                throw new UncheckedIOException(e);
-//            }
+            //            try {
+            //                print("var ");
+            //                print(tree.name.toString());
+            //                print(" : ");
+            //                print(trType(tree.type));
+            //                print(" ;");
+            //                println();
+            //            } catch (IOException e) {
+            //                throw new UncheckedIOException(e);
+            //            }
         }
-        
+
         @Override
         public void visitAssign(JCAssign tree) {
             try {
@@ -352,7 +332,7 @@ public class BoogieProgram extends BasicBlockProgram<BoogieProgram.BoogieBlock>{
                 throw new UncheckedIOException(e);
             }
         }
-        
+
         @Override
         public void visitSelect(JCFieldAccess tree) {
             try {
@@ -393,62 +373,62 @@ public class BoogieProgram extends BasicBlockProgram<BoogieProgram.BoogieBlock>{
         @Override
         public void visitApply(JCMethodInvocation tree) {
             try {
-            JCExpression m = tree.meth;
-            if (m instanceof JCIdent) {
-//                if (((JCIdent)m).name.toString().equals(BasicBlocker2.STOREString)) {
-//                    result = F.fcn(F.symbol("store"),
-//                            convertExpr(tree.args.get(0)),
-//                            convertExpr(tree.args.get(1)),
-//                            convertExpr(tree.args.get(2))
-//                            );
-//                    return;
-//                }
-            } else if (m == null) {
-                if (tree instanceof JmlBBFieldAssignment) {
-                    JCTree name = tree.args.get(1);
-                    JCTree obj = tree.args.get(2);
-                    JCTree value = tree.args.get(3);
-                    if (style == SEP_STYLE) {
-                        // f := f[o := expr ]
-                        print(name.toString());
-                        print(" := ");
-                        print(name.toString());
-                        print("[");
-                        printExpr(obj);
-                        print(" := ");
-                        printExpr(value);
-                        print("]");
-                        return;
-                    } else {
-                        throw new RuntimeException("Unimplemented in BoogiePrinter.visitAssign " + tree.getClass());
+                JCExpression m = tree.meth;
+                if (m instanceof JCIdent) {
+                    //                if (((JCIdent)m).name.toString().equals(BasicBlocker2.STOREString)) {
+                    //                    result = F.fcn(F.symbol("store"),
+                    //                            convertExpr(tree.args.get(0)),
+                    //                            convertExpr(tree.args.get(1)),
+                    //                            convertExpr(tree.args.get(2))
+                    //                            );
+                    //                    return;
+                    //                }
+                } else if (m == null) {
+                    if (tree instanceof JmlBBFieldAssignment) {
+                        JCTree name = tree.args.get(1);
+                        JCTree obj = tree.args.get(2);
+                        JCTree value = tree.args.get(3);
+                        if (style == SEP_STYLE) {
+                            // f := f[o := expr ]
+                            print(name.toString());
+                            print(" := ");
+                            print(name.toString());
+                            print("[");
+                            printExpr(obj);
+                            print(" := ");
+                            printExpr(value);
+                            print("]");
+                            return;
+                        } else {
+                            throw new RuntimeException("Unimplemented in BoogiePrinter.visitAssign " + tree.getClass());
+                        }
+                    }
+                    else if (tree instanceof JmlBBArrayAssignment) {
+                        // [0] = store([1],[2], store(select([1],[2]),[3],[4]))
+                        //                    IExpr.IFcnExpr sel = F.fcn(F.symbol("select"),
+                        //                            convertExpr(tree.args.get(1)),
+                        //                            convertExpr(tree.args.get(2))
+                        //                            );
+                        //                    IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
+                        //                                    sel,
+                        //                                    convertExpr(tree.args.get(3)),
+                        //                                    convertExpr(tree.args.get(4))
+                        //                                    );
+                        //
+                        //                    IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
+                        //                            convertExpr(tree.args.get(1)),
+                        //                            convertExpr(tree.args.get(2)),
+                        //                            newarray
+                        //                            );
+                        //                    result = F.fcn(F.symbol("="), convertExpr(tree.args.get(0)),right);
+                        //                    return;
                     }
                 }
-                else if (tree instanceof JmlBBArrayAssignment) {
-                    // [0] = store([1],[2], store(select([1],[2]),[3],[4]))
-//                    IExpr.IFcnExpr sel = F.fcn(F.symbol("select"),
-//                            convertExpr(tree.args.get(1)),
-//                            convertExpr(tree.args.get(2))
-//                            );
-//                    IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
-//                                    sel,
-//                                    convertExpr(tree.args.get(3)),
-//                                    convertExpr(tree.args.get(4))
-//                                    );
-//
-//                    IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
-//                            convertExpr(tree.args.get(1)),
-//                            convertExpr(tree.args.get(2)),
-//                            newarray
-//                            );
-//                    result = F.fcn(F.symbol("="), convertExpr(tree.args.get(0)),right);
-//                    return;
-                }
+                notImpl(tree);
+                super.visitApply(tree);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-            notImpl(tree);
-            super.visitApply(tree);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
         }
 
 

@@ -102,8 +102,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         return "<Exception>";
     }
     
+    public void undent() {
+        super.undent();
+    }
+    
+    public void flush() throws IOException {
+        out.flush();
+    }
+    
     // FIXME - document or delete
-    protected void indentAndPrint() throws IOException {
+    public void indentAndPrint() throws IOException {
         indent();
         for (int i=width; i>0; --i) print(" ");
     }

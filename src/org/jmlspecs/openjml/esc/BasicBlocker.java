@@ -1273,7 +1273,7 @@ public class BasicBlocker extends JmlTreeScanner {
         // This is defensive programming and should not actually be needed
         // log.noticeWriter.println("Checking block " + b.id());
         loop: while (true) {
-            for (BasicBlock pb : b.preceding) {
+            for (BasicBlock pb : b.preceders) {
                 // log.noticeWriter.println("   " + b.id() + " follows " +
                 // pb.id());
                 if (!blocksCompleted.contains(pb)) {
@@ -1300,7 +1300,7 @@ public class BasicBlocker extends JmlTreeScanner {
             // to the finally block, not to the catch blocks. So we adjust
             // the content of the top of the catchList stack, which visitThrow
             // uses to set the following blocks to the throw statement
-            BasicBlock finallyBlock = tryreturnStack.get(0).succeeding().get(0);
+            BasicBlock finallyBlock = tryreturnStack.get(0).followers().get(0);
             catchListStack.get(0).clear();
             catchListStack.get(0).add(finallyBlock);
         } else if (nm.endsWith(LOOPAFTER)) {
@@ -1339,8 +1339,8 @@ public class BasicBlocker extends JmlTreeScanner {
      *            block that follows before
      */
     protected void follows(@NonNull BasicBlock before, @NonNull BasicBlock after) {
-        before.succeeding.add(after);
-        after.preceding.add(before);
+        before.followers.add(after);
+        after.preceders.add(before);
     }
 
     /**
@@ -1355,8 +1355,8 @@ public class BasicBlocker extends JmlTreeScanner {
     protected void follows(@NonNull BasicBlock before,
             @NonNull List<BasicBlock> after) {
         for (BasicBlock b : after) {
-            before.succeeding.add(b);
-            b.preceding.add(before);
+            before.followers.add(b);
+            b.preceders.add(before);
         }
     }
 
@@ -1369,10 +1369,10 @@ public class BasicBlocker extends JmlTreeScanner {
      */
     protected void replaceFollows(@NonNull BasicBlock before,
             @NonNull BasicBlock after) {
-        for (BasicBlock b : before.succeeding) {
-            b.preceding.remove(before);
+        for (BasicBlock b : before.followers) {
+            b.preceders.remove(before);
         }
-        before.succeeding.clear();
+        before.followers.clear();
         follows(before, after);
     }
 
@@ -1385,10 +1385,10 @@ public class BasicBlocker extends JmlTreeScanner {
      */
     protected void replaceFollows(@NonNull BasicBlock before,
             @NonNull List<BasicBlock> after) {
-        for (BasicBlock b : before.succeeding) {
-            b.preceding.remove(before);
+        for (BasicBlock b : before.followers) {
+            b.preceders.remove(before);
         }
-        before.succeeding.clear();
+        before.followers.clear();
         for (BasicBlock b : after) {
             follows(before, b);
         }
@@ -1512,10 +1512,23 @@ public class BasicBlocker extends JmlTreeScanner {
     BasicBlock newBlock(@NonNull String name, int pos,
             @NonNull BasicBlock previousBlock) {
         JCIdent id = newAuxIdent(name, syms.booleanType, pos, false);
-        BasicBlock bb = new BasicBlock(id, previousBlock);
+        BasicBlock bb = newBlock(id, previousBlock);
         blockLookup.put(id.name.toString(), bb);
         return bb;
     }
+    
+    public BasicBlock newBlock(JCIdent id, BasicBlock previousBlock) {
+        BasicBlock nb = new BasicBlock(id);
+        List<BasicBlock> s = nb.followers(); // empty, just don't create a new empty list
+        nb.followers = previousBlock.followers();
+        previousBlock.followers = s;
+        for (BasicBlock f: nb.followers()) {
+            f.preceders().remove(previousBlock);
+            f.preceders().add(nb);
+        }
+        return nb;
+    }
+
 
     /**
      * Converts the top-level block of a method into the elements of a
@@ -1730,10 +1743,10 @@ public class BasicBlocker extends JmlTreeScanner {
      *            the block to process
      */
     protected void processBlock(@NonNull BasicBlock block) {
-        if (block.preceding.isEmpty()) {
+        if (block.preceders.isEmpty()) {
             // Delete any blocks that do not follow anything
-            for (BasicBlock b : block.succeeding) {
-                b.preceding.remove(block);
+            for (BasicBlock b : block.followers) {
+                b.preceders.remove(block);
             }
             return;// Don't add it to the completed blocks
         }
@@ -2702,10 +2715,10 @@ public class BasicBlocker extends JmlTreeScanner {
      */
     protected VarMap initMap(BasicBlock block) {
         VarMap newMap = new VarMap();
-        if (block.preceding.size() == 0) {
+        if (block.preceders.size() == 0) {
             // keep the empty one
-        } else if (block.preceding.size() == 1) {
-            newMap.putAll(blockmaps.get(block.preceding.get(0)));
+        } else if (block.preceders.size() == 1) {
+            newMap.putAll(blockmaps.get(block.preceders.get(0)));
         } else {
             // Here we do the DSA step of combining the results of the blocks
             // that precede
@@ -2729,7 +2742,7 @@ public class BasicBlocker extends JmlTreeScanner {
             List<VarMap> all = new LinkedList<VarMap>();
             VarMap combined = new VarMap();
             int maxe = -1;
-            for (BasicBlock b : block.preceding) {
+            for (BasicBlock b : block.preceders) {
                 VarMap m = blockmaps.get(b);
                 all.add(m);
                 combined.putAll(m);
@@ -2749,7 +2762,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 }
                 newMap.put(sym, max, maxName);
 
-                for (BasicBlock b : block.preceding) {
+                for (BasicBlock b : block.preceders) {
                     VarMap m = blockmaps.get(b);
                     Integer i = m.get(sym);
                     if (i < max) {
@@ -8331,7 +8344,7 @@ public class BasicBlocker extends JmlTreeScanner {
             // }
             BasicBlock block = program.startBlock();
             outer: while (traceBlockStatements(block, ce)) {
-                for (BasicBlock next : block.succeeding()) {
+                for (BasicBlock next : block.followers()) {
                     String s = next.id().toString();
                     String value = ce.get(s);
                     if (value.equals("false")) {

@@ -234,13 +234,13 @@ public class SMTTranslator extends JmlTreeScanner {
     public void convertBasicBlock(BasicProgram.BasicBlock block) {
         Iterator<JCStatement> iter = block.statements.iterator();
         IExpr tail; 
-        if (block.succeeding.isEmpty()) {
+        if (block.followers.isEmpty()) {
             tail = F.symbol("true");
-        } else if (block.succeeding.size() == 1) {
-            tail = F.symbol(block.succeeding.get(0).id.name.toString());
+        } else if (block.followers.size() == 1) {
+            tail = F.symbol(block.followers.get(0).id.name.toString());
         } else {
             ArrayList<IExpr> args = new ArrayList<IExpr>();
-            for (BasicProgram.BasicBlock bb: block.succeeding) {
+            for (BasicProgram.BasicBlock bb: block.followers) {
                 args.add(F.symbol(bb.id.name.toString()));
             }
             tail = F.fcn(F.symbol("and"),args);

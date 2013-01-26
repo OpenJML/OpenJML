@@ -30,7 +30,7 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjml.esc.BasicBlockProgram.BlockParent;
+import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
 import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
 
 import com.sun.tools.javac.code.Flags;
@@ -149,7 +149,7 @@ import com.sun.tools.javac.util.Position;
  * 
  * @author David Cok
  */
-public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgram> {
+public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,BoogieProgram> {
 
     /////// To have a unique BoogieBlocker2 instance for each method translated
     // In the initialization of tools, call  BoogieBlocker2.Factory.preRegister(context);
@@ -170,7 +170,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //        new Context.Key<BoogieBlocker2>();
     
     /////// To have one BoogieBlocker2 instance per context use this method without the pre-registration
-    // Don't need pre-registration since we are not replacing any tool and not using a factory
+    // Don't need pre-registration since we are not replacing any tool and not using a M
     // To obtain a reference to the instance of BoogieBlocker2 for the current context
     //                                 BoogieBlocker2.instance(context);
     
@@ -275,6 +275,13 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
     protected JCIdent heapVar;
     protected JCIdent terminationVar;  // 0=no termination requested; 1=return executed; 2 = exception happening
     
+    // THE FOLLOWING FIELDS ARE USED IN THE COURSE OF DOING THE WORK OF CONVERTING
+    // TO BASIC BLOCKS.  They are fields of the class because they need to be
+    // shared across the visitor methods.
+    
+    /** Place to put new background assertions, such as class predicates */
+    protected List<JCExpression> background;
+    
     /** Holds the result of any of the visit methods that produce JCExpressions, since the visitor
      * template used here does not have a return value.  [We could have used the templated visitor,
      * but other methods do not need to return anything, we don't need the additional parameter,
@@ -340,21 +347,16 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
         
     }
     
+    /** Creates an empty new BoogieProgram */
     @Override
-    protected BoogieProgram newProgram(Context context) {
+    public BoogieProgram newProgram(Context context) {
         return new BoogieProgram(context);
     }
     
-
-    
+    /** Creates an empty new BoogieBlock */
     @Override
-    protected BoogieBlock newBlock(JCIdent id){
+    public BoogieBlock newBlock(JCIdent id){
         return new BoogieProgram.BoogieBlock(id);
-    }
-    
-    @Override
-    protected BoogieBlock newBlock(JCIdent id, BoogieBlock b){
-        return new BoogieProgram.BoogieBlock(id, b);
     }
     
     
@@ -464,7 +466,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
      */
     protected JCIdent newIdentUse(VarSymbol sym, Name name) {
         // Boogie does not care about AST position
-        JCIdent n = factory.Ident(name);
+        JCIdent n = M.Ident(name);
         n.sym = sym;
         n.type = sym.type;
         return n;
@@ -586,7 +588,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //            newdefs.add(stat);
 //            that = id;
 //        }
-        JmlTree.JmlStatementExpr st = factory.at(statement.pos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
+        JmlTree.JmlStatementExpr st = M.at(statement.pos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
         st.optionalExpression = null;
         st.source = source;
         st.associatedPos = declpos;
@@ -605,7 +607,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
      * it is presumed the statement will be translated later */
     protected void addUntranslatedAssert(Label label, JCExpression that, int declpos, List<JCStatement> statements, int usepos, /*@Nullable*/JavaFileObject source) {
         JmlStatementExpr st;
-        st = factory.at(usepos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
+        st = M.at(usepos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
         st.optionalExpression = null;
         st.source = source;
         st.associatedPos = declpos;
@@ -617,7 +619,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
     /** Adds an assertion to the given statement list; the expression is presumed translated */
     protected void addAssertNoTrack(Label label, JCExpression that, List<JCStatement> statements, int usepos, /*@Nullable*/JavaFileObject source) {
         JmlStatementExpr st;
-        st = factory.at(usepos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
+        st = M.at(usepos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
         st.optionalExpression = null;
         st.type = null; // no type for a statement
         st.source = source;
@@ -647,15 +649,15 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
      * @param statements the list to add the new assume statement to
      */
     protected JmlStatementExpr addAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
-        factory.at(pos);
+        M.at(pos);
         JmlStatementExpr st;
 //        if (useAssumeDefinitions) {
-//            JCIdent id = factory.Ident(names.fromString(ASSUMPTION_PREFIX+(unique++)));
+//            JCIdent id = M.Ident(names.fromString(ASSUMPTION_PREFIX+(unique++)));
 //            id.type = syms.booleanType;
 //            newdefs.add(new BasicProgram.Definition(that.pos,id,that)); // FIXME- end position?
-//            st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,id);
+//            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,id);
 //        } else {
-            st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,that);
+            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,that);
 //        }
 //        copyEndPosition(st,that);
         st.type = null; // statements do not have a type
@@ -666,15 +668,15 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
     // FIXME - REVIEW and document
     protected JmlStatementExpr addAssume(int startpos, JCTree endpos, Label label, JCExpression that, List<JCStatement> statements) {
         if (startpos < 0) startpos = that.pos; // FIXME - temp 
-        factory.at(startpos);
+        M.at(startpos);
         JmlStatementExpr st;
 //        if (useAssumeDefinitions) {
-//            JCIdent id = factory.Ident(names.fromString(ASSUMPTION_PREFIX+(unique++)));
+//            JCIdent id = M.Ident(names.fromString(ASSUMPTION_PREFIX+(unique++)));
 //            id.type = syms.booleanType;
 //            newdefs.add(new BasicProgram.Definition(that.pos,id,that)); // FIXME- start, end position?
-//            st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,id);
+//            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,id);
 //        } else {
-            st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,that);
+            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,that);
 //        }
 //        copyEndPosition(st,endpos);
         st.type = null; // statements do not have a type
@@ -685,9 +687,9 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
     // FIXME - REVIEW and document
     protected JmlStatementExpr addAssumeNoDef(int startpos, JCTree endpos, Label label, JCExpression that, List<JCStatement> statements) {
         if (startpos < 0) startpos = that.pos; // FIXME - temp 
-        factory.at(startpos);
+        M.at(startpos);
         JmlStatementExpr st;
-        st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,that);
+        st = M.JmlExpressionStatement(JmlToken.ASSUME,label,that);
 //        copyEndPosition(st,endpos);
         st.type = null; // statements do not have a type
         statements.add(st);
@@ -706,7 +708,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
      * @param statements the list to add the new assume statement to
      */
     protected JmlStatementExpr addUntranslatedAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
-        JmlStatementExpr st = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
+        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
         st.type = null; // statements do not have a type
 //        copyEndPosition(st,that);
         statements.add(st);
@@ -715,7 +717,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
     
     // FIXME - REVIEW and document
     protected JmlStatementExpr addUntranslatedAssume(int pos, JCTree posend, Label label, JCExpression that, List<JCStatement> statements) {
-        JmlStatementExpr st = factory.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
+        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
         st.type = null; // statements do not have a type
 //        copyEndPosition(st,posend);
         statements.add(st);
@@ -750,7 +752,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
         String s = "arrays_" + encodeType(componentType);
         JCIdent id = arrayIdMap.get(s);
         if (id == null) {
-            id = factory.Ident(names.fromString(s));
+            id = M.Ident(names.fromString(s));
             id.pos = 0;
             id.type = new ArrayType(componentType,syms.arrayClass);
             VarSymbol sym = new VarSymbol(0,id.name,id.type,null);
@@ -769,7 +771,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
      * given String.
      */
     public JmlStatementExpr comment(int pos, String s) {
-        return factory.at(pos).JmlExpressionStatement(JmlToken.COMMENT,null,factory.Literal(s));
+        return M.at(pos).JmlExpressionStatement(JmlToken.COMMENT,null,M.Literal(s));
     }
     
     /** This generates a comment statement (not in any statement list) whose content is the
@@ -784,7 +786,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
     // FIXME - do we need this - here?
     /** Makes a JML \typeof expression, with the given expression as the argument */
     protected JCExpression makeTypeof(JCExpression e) {
-        JCExpression typeof = factory.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,e);
+        JCExpression typeof = M.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,e);
         typeof.type = syms.classType;
         return typeof;
     }
@@ -808,7 +810,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
     // FIXME - review and document
     /** Makes the equivalent of an instanceof operation: e !=null && \typeof(e) <: \type(type) */
     protected JCExpression makeInstanceof(JCExpression e, int epos, Type type, int typepos) {
-        JCExpression e1 = treeutils.makeNeqObject(epos,e,nullLiteral);
+        JCExpression e1 = treeutils.makeNeqObject(epos,e,treeutils.nulllit);
         JCExpression e2 = treeutils.makeJmlBinary(epos,JmlToken.SUBTYPE_OF,makeTypeof(e),makeTypeLiteral(type,typepos));
         //if (inSpecExpression) e2 = trSpecExpr(e2,null);
         JCExpression ee = treeutils.makeBinary(epos,JCTree.AND,e1,e2);
@@ -825,8 +827,8 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
     
     // FIXME - review and document
     protected JCExpression makeFunctionApply(int pos, MethodSymbol meth, JCExpression... args) {
-        JCIdent methid = factory.at(pos).Ident(meth);
-        JCExpression e = factory.at(pos).Apply(null,methid,new ListBuffer<JCExpression>().appendArray(args).toList());
+        JCIdent methid = M.at(pos).Ident(meth);
+        JCExpression e = M.at(pos).Apply(null,methid,new ListBuffer<JCExpression>().appendArray(args).toList());
         e.type = meth.getReturnType();
         return e;
     }
@@ -834,7 +836,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
     // FIXME - review and document
     protected JCExpression makeSignalsOnly(JmlMethodClauseSignalsOnly clause) {
         JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
-        JCExpression id = factory.at(0).JmlSingleton(JmlToken.BSEXCEPTION);
+        JCExpression id = M.at(0).JmlSingleton(JmlToken.BSEXCEPTION);
         for (JCExpression typetree: clause.list) {
             int pos = typetree.getStartPosition();
             e = treeutils.makeBinary(pos, 
@@ -928,7 +930,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
             log.warning("esc.not.implemented","BoogieBlocker.visitApply for " + that.meth.getClass());
             msym = null;
             obj = null;
-            result = trueLiteral;
+            result = treeutils.trueLit;
             return;
         }
         if (msym != null && msym.type instanceof Type.ForAll) tfa = (Type.ForAll)msym.type;
@@ -1073,7 +1075,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //                        JCExpression oldid = trSpecExpr(id,log.currentSourceFile()); // FIXME
 //                        JCIdent newid = newIdentIncarnation(id,npos); // new incarnation
 //                        // newid == precondition ? newid : oldid
-//                        JCExpression e = factory.at(pos).Conditional(preCondition,newid,oldid);
+//                        JCExpression e = M.at(pos).Conditional(preCondition,newid,oldid);
 //                        e.type = newid.type;
 //                        e = treeutils.makeBinary(pos,JCTree.EQ,newid,e);
 //                        addAssume(pos,Label.HAVOC,e,currentBlock.statements);
@@ -1092,7 +1094,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //                        newaccess.pos = id.pos;
 //                        newaccess.type = type;
 //
-//                        JCExpression right = factory.at(id.pos).Conditional(preCondition,newaccess,oldaccess);
+//                        JCExpression right = M.at(id.pos).Conditional(preCondition,newaccess,oldaccess);
 //                        right.type = type;
 //                        
 //                        JCExpression expr = new JmlBBFieldAssignment(newid,oldid,currentThisId,right);
@@ -1179,7 +1181,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //                                boolean above = false;
 //                                if (indexhi != null) checkArrayAccess(array,indexhi,sr.pos);
 //                                else {
-//                                    //indexhi = factory.at(sr.pos).Select(array,lengthSym);
+//                                    //indexhi = M.at(sr.pos).Select(array,lengthSym);
 //                                    indexhi = new JmlBBFieldAccess(lengthIdent,array);
 //                                    indexhi.pos = sr.pos;
 //                                    indexhi.type = syms.intType;
@@ -1202,28 +1204,28 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //
 ////                                JCIdent label = newAuxIdent("havoclabel$"+npos,syms.intType,npos,false);
 ////                                labelmaps.put(label.name,currentMap.copy());
-////                                JCExpression oldaccess = factory.at(npos).JmlMethodInvocation(JmlToken.BSOLD,access,label);
+////                                JCExpression oldaccess = M.at(npos).JmlMethodInvocation(JmlToken.BSOLD,access,label);
 ////
-////                                JCArrayAccess newaccess = factory.at(access.pos).Indexed(access.indexed,access.index);
+////                                JCArrayAccess newaccess = M.at(access.pos).Indexed(access.indexed,access.index);
 ////                                newaccess.type = access.type;
 ////
 ////                                //                            JCIdent meth = newAuxIdent("arbitrary$",syms.intType,npos);
 ////                                //                            ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
 ////                                //                            for (Name n: ns) {
-////                                //                                JCIdent id = factory.at(npos).Ident(n);
+////                                //                                JCIdent id = M.at(npos).Ident(n);
 ////                                //                                id.type = syms.intType;
 ////                                //                                args.append(id);
 ////                                //                            }
-////                                //                            JCMethodInvocation app = factory.at(npos).Apply(null,meth,args.toList());
+////                                //                            JCMethodInvocation app = M.at(npos).Apply(null,meth,args.toList());
 ////                                //                            app.type = ar.type;
 ////
-////                                JCConditional cond = factory.at(sr.pos).Conditional(
+////                                JCConditional cond = M.at(sr.pos).Conditional(
 ////                                        treeutils.makeBinary(JCTree.AND,entry.pre,accumRange,npos),newaccess,oldaccess);
 ////                                cond.type = access.type;
 ////
 ////                                JCExpression assign = treeutils.makeBinary(JCTree.EQ,newaccess,cond,npos);
 ////
-////                                JmlQuantifiedExpr quant = factory.at(sr.pos).JmlQuantifiedExpr(JmlToken.BSFORALL,null,factory.Type(syms.intType),ns,fullRange,assign);
+////                                JmlQuantifiedExpr quant = M.at(sr.pos).JmlQuantifiedExpr(JmlToken.BSFORALL,null,M.Type(syms.intType),ns,fullRange,assign);
 ////
 ////                                JCIdent nid = newArrayIncarnation(sr.type,npos);                            
 ////                                JmlQuantifiedExpr trQuant = (JmlQuantifiedExpr)trSpecExpr(quant,log.currentSourceFile()); // FIXME
@@ -1258,7 +1260,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //                                JCIdent nid = newArrayIncarnation(sr.type,pos);
 //                                JCExpression newvalue = new JmlBBArrayAccess(nid,array,index,sr.pos,sr.type);
 //
-//                                JCExpression condValue = factory.at(sr.pos).Conditional(preCondition,newvalue,oldvalue);
+//                                JCExpression condValue = M.at(sr.pos).Conditional(preCondition,newvalue,oldvalue);
 //                                condValue.type = oldvalue.type;
 //
 //                                JCExpression expr = new JmlBBArrayAssignment(nid,arrayID,array,index,condValue);
@@ -1295,8 +1297,8 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
     private JCExpression accumRange;
     protected JCExpression extractQuantifiers(JCExpression expr, ListBuffer<Name> ns) {
         if (expr instanceof JCIdent) {
-            accumRange = trueLiteral;
-            fullRange = trueLiteral;
+            accumRange = treeutils.trueLit;
+            fullRange = treeutils.trueLit;
             return expr;
         } else if (expr instanceof JmlStoreRefArrayRange) {
             JmlStoreRefArrayRange a = (JmlStoreRefArrayRange)expr;
@@ -1306,11 +1308,11 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
                 id = a.lo;
             } else {
                 Name n = names.fromString("i"+(ns.size()+1));
-                id = factory.at(expr.pos).Ident(n); // No symbol - FIXME ???
+                id = M.at(expr.pos).Ident(n); // No symbol - FIXME ???
                 id.type = syms.intType;
                 ns.append(n);
-                fullRange = treeutils.makeBinary(a.pos,JCTree.AND,fullRange,treeutils.makeBinary(a.pos,JCTree.LE,zeroLiteral,id));
-                //JCExpression len = factory.at(a.pos).Select(a.expression,lengthSym);
+                fullRange = treeutils.makeBinary(a.pos,JCTree.AND,fullRange,treeutils.makeBinary(a.pos,JCTree.LE,treeutils.makeZeroEquivalentLit(a.pos,syms.intType),id));
+                //JCExpression len = M.at(a.pos).Select(a.expression,lengthSym);
                 JCExpression len = new JmlBBFieldAccess(lengthIdent,a.expression);
                 len.pos = a.pos;
                 len.type = syms.intType;
@@ -1318,14 +1320,14 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
                 if (a.lo != null) accumRange = treeutils.makeBinary(a.lo.pos,JCTree.AND,accumRange,treeutils.makeBinary(a.lo.pos,JCTree.LE,a.lo,id));
                 if (a.hi != null) accumRange = treeutils.makeBinary(a.hi.pos,JCTree.AND,accumRange,treeutils.makeBinary(a.hi.pos,JCTree.LE,id,a.hi));
             }
-            e = factory.at(expr.pos).Indexed(e,id);
+            e = M.at(expr.pos).Indexed(e,id);
             e.type = expr.type;
             return e;
         } else if (expr instanceof JCFieldAccess) {
             JCFieldAccess a = (JCFieldAccess)expr;
             JCExpression e = extractQuantifiers(a.selected,ns);
             if (e == a.selected) return e;
-            e = factory.at(expr.pos).Select(e,a.sym);
+            e = M.at(expr.pos).Select(e,a.sym);
             e.type = a.type;
             return e;
         } else {
@@ -1345,7 +1347,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //        newaccess.pos = pos;
 //        newaccess.type = type;
 //
-//        JCExpression right = factory.at(pos).Conditional(preCondition,newaccess,oldaccess);
+//        JCExpression right = M.at(pos).Conditional(preCondition,newaccess,oldaccess);
 //        right.type = type;
 //        
 //        JCExpression expr = new JmlBBFieldAssignment(newid,oldid,selected,right);
@@ -1396,7 +1398,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //            }
 //            JCIdent oldid = newIdentUse(vsym,newpos);
 //            JCIdent newid = newIdentIncarnation(vsym,newpos);
-//            JCExpression e = factory.at(newpos).Conditional(preCondition,newid,oldid);
+//            JCExpression e = M.at(newpos).Conditional(preCondition,newid,oldid);
 //            e.type = vsym.type;
 //            e = treeutils.makeEquality(newpos,newid,e);
 //            addAssume(newpos,Label.HAVOC,e,currentBlock.statements);
@@ -1575,7 +1577,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //            result = that;
 //        } else {
 //            log.warning(that,"jml.internal","Did not expect a JCArrayAccess node in BoogieBlocker2.visitIndexed");
-//            result = new JmlBBArrayAccess(arr,indexed,index); // FIXME -= factory
+//            result = new JmlBBArrayAccess(arr,indexed,index); // FIXME -= M
 //        }
     }
 
@@ -1804,14 +1806,14 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //                ListBuffer<JCVariableDecl> decls = ListBuffer.<JCVariableDecl>lb();
 //                for (JCVariableDecl d: that.decls) {
 //                    JCIdent id = newIdentUse(d.sym,0);
-//                    JCVariableDecl dd = factory.at(d.pos).VarDef(d.mods,id.name,d.vartype,null);
+//                    JCVariableDecl dd = M.at(d.pos).VarDef(d.mods,id.name,d.vartype,null);
 //                    dd.type = d.type;
 //                    decls.append(dd);
 //                }
 //                JCExpression range = trExpr(that.range);
 //                condition = range == null ? condition : treeutils.makeBinary(condition.pos,JCTree.AND,condition,range);
 //                JCExpression predicate = trExpr(that.value);
-//                JmlQuantifiedExpr now = factory.at(that.pos).JmlQuantifiedExpr(op,decls,range,predicate);
+//                JmlQuantifiedExpr now = M.at(that.pos).JmlQuantifiedExpr(op,decls,range,predicate);
 //                now.type = that.type;
 //                result = now;
 //            } finally {
@@ -3019,7 +3021,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //        
 //        Context context;
 //        IProver prover;
-//        JmlTree.Maker factory;
+//        JmlTree.Maker M;
 //        Names names;
 //        Symtab syms;
 //        Writer w;
@@ -3074,7 +3076,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //            try {
 //                for (JCExpression e: exprlist) {
 //                    JCIdent id = newIdent(e);
-//                    JCExpression ex = factory.at(Position.NOPOS).Binary(JCTree.EQ,id,e);
+//                    JCExpression ex = M.at(Position.NOPOS).Binary(JCTree.EQ,id,e);
 //                    ex.type = syms.booleanType;
 //                    ids.add(id);
 //                    prover.assume(ex);
@@ -3116,13 +3118,13 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //        /** Returns the dynamic type of the variable given in the argument */
 //        public String getType(String eid) {
 //            try {
-//                factory.at(Position.NOPOS);
-//                JCIdent expr = factory.Ident(Names.instance(context).fromString(eid));
+//                M.at(Position.NOPOS);
+//                JCIdent expr = M.Ident(Names.instance(context).fromString(eid));
 //                expr.type = syms.objectType;
-//                JCExpression e = factory.JmlMethodInvocation(JmlToken.BSTYPEOF,expr);
+//                JCExpression e = M.JmlMethodInvocation(JmlToken.BSTYPEOF,expr);
 //                e.type = syms.classType;
 //                JCIdent id = newIdent(e);
-//                JCExpression ex = factory.at(Position.NOPOS).Binary(JCTree.EQ,id,e);
+//                JCExpression ex = M.at(Position.NOPOS).Binary(JCTree.EQ,id,e);
 //                ex.type = syms.booleanType;
 //                prover.assume(ex);
 //                IProverResult res = prover.check(true);
@@ -3147,7 +3149,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //        public Subexpressor(Context context, IProver prover, Map<String,String> values, Writer w) {
 //            this.context = context;
 //            this.prover = prover;
-//            this.factory = JmlTree.Maker.instance(context);
+//            this.M = JmlTree.Maker.instance(context);
 //            this.names = Names.instance(context);
 //            this.syms = Symtab.instance(context);
 //            this.w = w;
@@ -3157,7 +3159,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //        public void request(JCExpression expr) {
 //            JCIdent id = newIdent(expr);
 //            requests.put(id.name.toString(),expr);
-//            JCBinary bin = factory.Binary(JCTree.EQ,id,expr);
+//            JCBinary bin = M.Binary(JCTree.EQ,id,expr);
 //            bin.type = syms.booleanType;
 //            bin.pos = Position.NOPOS;
 //            exprs.add(bin);
@@ -3167,7 +3169,7 @@ public class Boogier extends BasicBlockerP<BoogieProgram.BoogieBlock,BoogieProgr
 //        public JCIdent newIdent(JCExpression expr)  {
 //            Type t = expr.type;
 //            Name n = names.fromString(prefix + (++count));
-//            JCIdent id = factory.Ident(n);
+//            JCIdent id = M.Ident(n);
 //            id.type = t;
 //            return id;
 //        }

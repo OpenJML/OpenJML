@@ -74,6 +74,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
@@ -195,8 +196,21 @@ import com.sun.tools.javac.util.Position;
  * 
  * @author David Cok
  */
-public class BasicBlocker2 extends JmlTreeScanner {
+public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,BasicProgram>  {
 
+    /** Creates an empty new BasicProgram */
+    @Override
+    public BasicProgram newProgram(Context context) {
+        return new BasicProgram(context);
+    }
+    
+    /** Creates an empty new BasicBlock */
+    @Override
+    public BasicProgram.BasicBlock newBlock(JCIdent id){
+        return new BasicProgram.BasicBlock(id);
+    }
+    
+    
     /////// To have a unique BasicBlocker2 instance for each method translated
     // In the initialization of tools, call  BasicBlocker2.Factory.preRegister(context);
     // Obtain a new BasicBlocker2 when desired with  context.get(BasicBlocker2.class);
@@ -320,10 +334,6 @@ public class BasicBlocker2 extends JmlTreeScanner {
     
     //-----------------------------------------------------------------
     // Names for various basic blocks
-    
-    /** The prefix used for names of blocks */
-    public static final @NonNull String blockPrefix = "BL_";
-    public static final @NonNull String barblockPrefix = "BL_";
     
     /** Standard name for the block that starts the body */
     public static final @NonNull String BODY_BLOCK_NAME = blockPrefix + "bodyBegin";
@@ -459,33 +469,33 @@ public class BasicBlocker2 extends JmlTreeScanner {
     /** List of blocks completed processing - in basic block state */
     protected java.util.List<BasicBlock> blocksCompleted;
     
-    /** A map of names to blocks */
-    protected java.util.Map<String,BasicBlock> blockLookup;
-    
-    /** A variable to hold the block currently being processed */
-    protected BasicBlock currentBlock;
+//    /** A map of names to blocks */
+//    protected java.util.Map<String,BasicBlock> blockLookup;
+//    
+//    /** A variable to hold the block currently being processed */
+//    protected BasicBlock currentBlock;
     
     /** The variable name that is currently the 'this' variable */
     protected JCIdent currentThisId;
     
-    /** Ordered list of statements from the current block that are yet to be processed into basic program form */
-    protected List<JCStatement> remainingStatements;
-    
-    /** The program being constructed */
-    protected BasicProgram program = null;
+//    /** Ordered list of statements from the current block that are yet to be processed into basic program form */
+//    protected List<JCStatement> remainingStatements;
+//    
+//    /** The program being constructed */
+//    protected BasicProgram program = null;
     
     // Characteristics of the method under study
     // FIXME - what about methods in anonymous classes - do we have to be reentrant?
     
-    /** The declaration of the method under conversion */
-    protected JmlMethodDecl methodDecl;
-    
-    /** True if the method being converted is a constructor */
-    protected boolean isConstructor;
-    
-    /** True if the method being converted is static */
-    protected boolean isStatic;
-    
+//    /** The declaration of the method under conversion */
+//    protected JmlMethodDecl methodDecl;
+//    
+//    /** True if the method being converted is a constructor */
+//    protected boolean isConstructor;
+//    
+//    /** True if the method being converted is static */
+//    protected boolean isStatic;
+//    
 
     // FIXME - document the following; check when initialized
     // FIXME - exceptionVar and terminationVar are no longer needed I think
@@ -496,20 +506,17 @@ public class BasicBlocker2 extends JmlTreeScanner {
     protected JCIdent assumeCheckCountVar; // FIXME - initialized?
     protected int assumeCheckCount;  // FIXME - initialized?
     
-    /** A counter used to make sure that block names are unique */
-    protected int blockCount = 0;
-    
     /** This is an integer that rises monotonically on each use and is used
      * to make sure new identifiers are unique.
      */
     protected int unique;
     
-    /** Holds the result of any of the visit methods that produce JCExpressions, since the visitor
-     * template used here does not have a return value.  [We could have used the templated visitor,
-     * but other methods do not need to return anything, we don't need the additional parameter,
-     * and that visitor is complicated by the use of interfaces for the formal parameters.]
-     */
-    private JCExpression result;
+//    /** Holds the result of any of the visit methods that produce JCExpressions, since the visitor
+//     * template used here does not have a return value.  [We could have used the templated visitor,
+//     * but other methods do not need to return anything, we don't need the additional parameter,
+//     * and that visitor is complicated by the use of interfaces for the formal parameters.]
+//     */
+//    private JCExpression result;
     
     /** A mapping from BasicBlock to the sym->incarnation map giving the map that
      * corresponds to the state at the exit of the BasicBlock.
@@ -577,6 +584,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @param context the compilation context
      */
     protected BasicBlocker2(@NonNull Context context) {
+        super(context);
+        
 //        context.put(key, this);
         this.context = context;
         this.log = Log.instance(context);
@@ -1084,7 +1093,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
         // This is defensive programming and should not actually be needed
         //log.noticeWriter.println("Checking block " + b.id());
         loop: while (true) {
-            for (BasicBlock pb: b.preceding) {
+            for (BasicBlock pb: b.preceders) {
                 if (!blocksCompleted.contains(pb)) {
                     log.noticeWriter.println("Internal Error: block " + pb.id.name + " precedes block " + b.id.name + " , but was not processed before it");
                     processBlock(pb);
@@ -1127,8 +1136,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @param after block that follows before
      */
     protected void follows(@NonNull BasicBlock before, @NonNull BasicBlock after) {
-        before.succeeding.add(after);
-        after.preceding.add(before);
+        before.followers.add(after);
+        after.preceders.add(before);
     }
     
     /** Updates the data structures to indicate that all the after blocks follow the
@@ -1138,8 +1147,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
      */
     protected void follows(@NonNull BasicBlock before, @NonNull List<BasicBlock> after) {
         for (BasicBlock b: after) {
-            before.succeeding.add(b);
-            b.preceding.add(before);
+            before.followers.add(b);
+            b.preceders.add(before);
         }
     }
     
@@ -1149,10 +1158,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @param after new following block
      */
     protected void replaceFollows(@NonNull BasicBlock before, @NonNull BasicBlock after) {
-        for (BasicBlock b: before.succeeding) {
-            b.preceding.remove(before);
+        for (BasicBlock b: before.followers) {
+            b.preceders.remove(before);
         }
-        before.succeeding.clear();
+        before.followers.clear();
         follows(before,after);
     }
     
@@ -1162,10 +1171,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @param after
      */
     protected void replaceFollows(@NonNull BasicBlock before, @NonNull List<BasicBlock> after) {
-        for (BasicBlock b: before.succeeding) {
-            b.preceding.remove(before);
+        for (BasicBlock b: before.followers) {
+            b.preceders.remove(before);
         }
-        before.succeeding.clear();
+        before.followers.clear();
         for (BasicBlock b: after) {
             follows(before,b);
         }
@@ -1185,19 +1194,19 @@ public class BasicBlocker2 extends JmlTreeScanner {
         return bb;
     }
     
-    protected String blockName(String key, int pos) {
-        return blockPrefix + pos + "_"  + key;
-    }
-    
-    protected @NonNull BasicBlock newBlock(@NonNull String key, int pos) {
-        String name = blockName(key,pos);
-        JCIdent id = newAuxIdent(name + "_" + (++blockCount),syms.booleanType,pos,false);
-        BasicBlock bb = new BasicBlock(id);
-        blockLookup.put(name,bb); // FIXME - there are some situations in which blocks are looked up without the uniqueifying suffix - REVIEW these for ambiguity
-        blockLookup.put(id.name.toString(),bb);
-        return bb;
-    }
-    
+//    protected String blockName(String key, int pos) {
+//        return blockPrefix + pos + "_"  + key;
+//    }
+//    
+//    protected @NonNull BasicBlock newBlock(@NonNull String key, int pos) {
+//        String name = blockName(key,pos);
+//        JCIdent id = newAuxIdent(name + "_" + (++blockCount),syms.booleanType,pos,false);
+//        BasicBlock bb = new BasicBlock(id);
+//        blockLookup.put(name,bb); // FIXME - there are some situations in which blocks are looked up without the uniqueifying suffix - REVIEW these for ambiguity
+//        blockLookup.put(id.name.toString(),bb);
+//        return bb;
+//    }
+//    
     /** Returns a new, empty BasicBlock, but the new block takes all of the 
      * followers of the given block; the previousBlock will then have no
      * followers.
@@ -1209,21 +1218,21 @@ public class BasicBlocker2 extends JmlTreeScanner {
      */
     protected @NonNull BasicBlock newBlockOld(@NonNull String name, int pos, @NonNull BasicBlock previousBlock) {
         JCIdent id = newAuxIdent(name + "_" + (++blockCount),syms.booleanType,pos,false);
-        BasicBlock bb = new BasicBlock(id,previousBlock);
+        BasicBlock bb = newBlock(id,previousBlock);
         blockLookup.put(name, bb);
         blockLookup.put(id.name.toString(), bb);
         return bb;
     }
     
-    protected @NonNull BasicBlock newBlock(@NonNull String key, int pos, @NonNull BasicBlock previousBlock) {
-        String name = blockName(key,pos);
-        JCIdent id = newAuxIdent(name + "_" + (++blockCount),syms.booleanType,pos,false);
-        BasicBlock bb = new BasicBlock(id,previousBlock);
-        blockLookup.put(name, bb);
-        blockLookup.put(id.name.toString(), bb);
-        return bb;
-    }
-    
+//    protected @NonNull BasicBlock newBlock(@NonNull String key, int pos, @NonNull BasicBlock previousBlock) {
+//        String name = blockName(key,pos);
+//        JCIdent id = newAuxIdent(name + "_" + (++blockCount),syms.booleanType,pos,false);
+//        BasicBlock bb = new BasicBlock(id,previousBlock);
+//        blockLookup.put(name, bb);
+//        blockLookup.put(id.name.toString(), bb);
+//        return bb;
+//    }
+//    
     /** Returns a new, empty BasicBlock, but the new block takes all of the 
      * followers and the remaining statements of the current block; the 
      * currentBlock will then have no remaining statements and no followers.
@@ -1241,14 +1250,14 @@ public class BasicBlocker2 extends JmlTreeScanner {
         return b;
     }
     
-    protected BasicBlock newBlockWithRest(@NonNull String key, int pos) {
-        BasicBlock b = newBlock(key,pos,currentBlock);// it gets all the followers of the current block
-        // We do this switch to avoid creating more new lists
-        List<JCStatement> temp = b.statements; // empty
-        b.statements = remainingStatements; // it gets all of the remaining statements
-        remainingStatements = temp; // empty
-        return b;
-    }
+//    protected BasicBlock newBlockWithRest(@NonNull String key, int pos) {
+//        BasicBlock b = newBlock(key,pos,currentBlock);// it gets all the followers of the current block
+//        // We do this switch to avoid creating more new lists
+//        List<JCStatement> temp = b.statements; // empty
+//        b.statements = remainingStatements; // it gets all of the remaining statements
+//        remainingStatements = temp; // empty
+//        return b;
+//    }
     
     /** Converts the top-level block of a method into the elements of a BasicProgram 
      * 
@@ -1372,7 +1381,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
      * @param block the block to process
      */
     protected void processBlock(@NonNull BasicBlock block) {
-        if (block.preceding.isEmpty()) {
+        if (block.preceders.isEmpty()) {
             // Delete any blocks that do not follow anything
             // This can happen for example if the block is an afterIf block
             // and both the then branch and the else branch terminate with
@@ -1385,8 +1394,8 @@ public class BasicBlocker2 extends JmlTreeScanner {
             if (!block.statements.isEmpty()) {
                 log.warning("jml.internal","A basic block has no predecessors - ingoring it: " + block.id);
             }
-            for (BasicBlock b: block.succeeding) {
-                b.preceding.remove(block);
+            for (BasicBlock b: block.followers) {
+                b.preceders.remove(block);
             }
             return;// Don't add it to the completed blocks
         }
@@ -1697,10 +1706,10 @@ public class BasicBlocker2 extends JmlTreeScanner {
     protected VarMap initMap(BasicBlock block) {
         VarMap newMap = new VarMap();
         currentMap = newMap;
-        if (block.preceding.size() == 0) {
+        if (block.preceders.size() == 0) {
             // keep the empty one
-        } else if (block.preceding.size() == 1) {
-            newMap.putAll(blockmaps.get(block.preceding.get(0))); 
+        } else if (block.preceders.size() == 1) {
+            newMap.putAll(blockmaps.get(block.preceders.get(0))); 
         } else {
             // Here we do the DSA step of combining the results of the blocks that precede
             // the block we are about to process. The situation is this: a particular symbol,
@@ -1716,7 +1725,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
             List<VarMap> all = new LinkedList<VarMap>();
             VarMap combined = new VarMap();
             int maxe = -1;
-            for (BasicBlock b : block.preceding) {
+            for (BasicBlock b : block.preceders) {
                 VarMap m = blockmaps.get(b);
                 all.add(m);
                 combined.putAll(m);
@@ -1749,7 +1758,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
                     }
                     newMap.put(sym,max,newName);
 
-                    for (BasicBlock b: block.preceding) {
+                    for (BasicBlock b: block.preceders) {
                         VarMap m = blockmaps.get(b);
                         Integer i = m.get(sym);
                         if (i < max) {
@@ -1793,7 +1802,7 @@ public class BasicBlocker2 extends JmlTreeScanner {
                     }
                     newMap.put(sym,max,newName);
                     if (different) {
-                        for (BasicBlock b: block.preceding) {
+                        for (BasicBlock b: block.preceders) {
                             VarMap m = blockmaps.get(b);
                             Integer i = m.get(sym);
                             if (i < max) {
@@ -2093,25 +2102,25 @@ public class BasicBlocker2 extends JmlTreeScanner {
         if (s != null) remainingStatements.addAll(0,s);
     }
     
-    public void visitJmlWhileLoop(JmlWhileLoop that)  { 
-        currentBlock.statements.add(comment(that.pos,"while..."));
-        visitLoopWithSpecs(that, null, that.cond, null, that.body, null);
-    }
-    
-    public void visitWhileLoop(JCWhileLoop that) {
-        currentBlock.statements.add(comment(that.pos,"while..."));
-        visitLoopWithSpecs(that, null, that.cond, null, that.body, null);
-    }
-    
-    public void visitJmlForLoop(JmlForLoop that) {
-        currentBlock.statements.add(comment(that.pos,"for..."));
-        visitLoopWithSpecs(that,that.init,that.cond,that.step,that.body,that.loopSpecs );
-    }
-    
-    public void visitForLoop(JCForLoop that) { 
-        currentBlock.statements.add(comment(that.pos,"for..."));
-        visitLoopWithSpecs(that,that.init,that.cond,that.step,that.body,null );
-    }
+//    public void visitJmlWhileLoop(JmlWhileLoop that)  { 
+//        currentBlock.statements.add(comment(that.pos,"while..."));
+//        visitLoopWithSpecs(that, null, that.cond, null, that.body, null);
+//    }
+//    
+//    public void visitWhileLoop(JCWhileLoop that) {
+//        currentBlock.statements.add(comment(that.pos,"while..."));
+//        visitLoopWithSpecs(that, null, that.cond, null, that.body, null);
+//    }
+//    
+//    public void visitJmlForLoop(JmlForLoop that) {
+//        currentBlock.statements.add(comment(that.pos,"for..."));
+//        visitLoopWithSpecs(that,that.init,that.cond,that.step,that.body,that.loopSpecs );
+//    }
+//    
+//    public void visitForLoop(JCForLoop that) { 
+//        currentBlock.statements.add(comment(that.pos,"for..."));
+//        visitLoopWithSpecs(that,that.init,that.cond,that.step,that.body,null );
+//    }
     
     // FIXME - review and document
     List<JCTree> loopStack = new LinkedList<JCTree>();
@@ -2163,55 +2172,55 @@ public class BasicBlocker2 extends JmlTreeScanner {
      *   goto rest...
      */ // FIXME - allow for unrolling; review the above and the implementation
 
-    // FIXME - check and document
-    protected void visitLoopWithSpecs(JCTree that, List<JCStatement> init, JCExpression test, List<JCExpressionStatement> update, JCStatement body, List<JmlStatementLoop> loopSpecs) {
-        loopStack.add(0,that);
-        breakStack.add(0,that);
-        int pos = that.pos;
-        BasicBlock bloopBody = newBlock(LOOPBODY,pos);
-        BasicBlock bloopContinue = newBlock(LOOPCONTINUE,pos);
-        BasicBlock bloopEnd = newBlock(LOOPEND,pos);
-        BasicBlock bloopBreak = newBlock(LOOPBREAK,pos);
-
-        // Now create an (unprocessed) block for everything that follows the
-        // loop statement
-        BasicBlock brest = newBlockWithRest(LOOPAFTER,pos);// it gets all the followers and statements of the current block
-
-        follows(currentBlock,bloopBody);
-        if (tempFromForeachLoop) follows(currentBlock,bloopEnd);
-        follows(bloopBody,bloopContinue);
-        follows(bloopEnd,bloopBreak);
-        follows(bloopBreak,brest);
-
-        // Finish out the current block with the loop initialization
-        if (init != null) remainingStatements.addAll(init);
-        processBlockStatements(true);
-        scan(test);
-//        completed(currentBlock);
-        
-
-        // Create the loop body block
-        bloopBody.statements.add(body);
-        
-        // Create the loop continue block
-        // do the update
-        if (update != null) bloopContinue.statements.addAll(update);
-        
-        int end = endPos(body);
-        if (end <= 0) {
-            log.noticeWriter.println("BAD END");
-        }
-        
-        // Now process all the blocks
-        processBlock(bloopBody);
-        processBlock(bloopContinue);
-        processBlock(bloopEnd);
-        processBlock(bloopBreak);
-        loopStack.remove(0);
-        breakStack.remove(0);
-        processBlock(brest);
-        
-    }
+//    // FIXME - check and document
+//    protected void visitLoopWithSpecs(JCTree that, List<JCStatement> init, JCExpression test, List<JCExpressionStatement> update, JCStatement body, List<JmlStatementLoop> loopSpecs) {
+//        loopStack.add(0,that);
+//        breakStack.add(0,that);
+//        int pos = that.pos;
+//        BasicBlock bloopBody = newBlock(LOOPBODY,pos);
+//        BasicBlock bloopContinue = newBlock(LOOPCONTINUE,pos);
+//        BasicBlock bloopEnd = newBlock(LOOPEND,pos);
+//        BasicBlock bloopBreak = newBlock(LOOPBREAK,pos);
+//
+//        // Now create an (unprocessed) block for everything that follows the
+//        // loop statement
+//        BasicBlock brest = newBlockWithRest(LOOPAFTER,pos);// it gets all the followers and statements of the current block
+//
+//        follows(currentBlock,bloopBody);
+//        if (tempFromForeachLoop) follows(currentBlock,bloopEnd);
+//        follows(bloopBody,bloopContinue);
+//        follows(bloopEnd,bloopBreak);
+//        follows(bloopBreak,brest);
+//
+//        // Finish out the current block with the loop initialization
+//        if (init != null) remainingStatements.addAll(init);
+//        processBlockStatements(true);
+//        scan(test);
+////        completed(currentBlock);
+//        
+//
+//        // Create the loop body block
+//        bloopBody.statements.add(body);
+//        
+//        // Create the loop continue block
+//        // do the update
+//        if (update != null) bloopContinue.statements.addAll(update);
+//        
+//        int end = endPos(body);
+//        if (end <= 0) {
+//            log.noticeWriter.println("BAD END");
+//        }
+//        
+//        // Now process all the blocks
+//        processBlock(bloopBody);
+//        processBlock(bloopContinue);
+//        processBlock(bloopEnd);
+//        processBlock(bloopBreak);
+//        loopStack.remove(0);
+//        breakStack.remove(0);
+//        processBlock(brest);
+//        
+//    }
     
 //    protected void visitLoopWithSpecsOld(JCTree that, List<JCStatement> init, JCExpression test, List<JCExpressionStatement> update, JCStatement body, List<JmlStatementLoop> loopSpecs) {
 //        loopStack.add(0,that);
@@ -2385,19 +2394,19 @@ public class BasicBlocker2 extends JmlTreeScanner {
     
     boolean tempFromForeachLoop = false;
     
-    public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
-        currentBlock.statements.add(comment(that.pos,"for..."));
-        tempFromForeachLoop = true;
-        visitForeachLoopWithSpecs(that,that.loopSpecs);
-        tempFromForeachLoop = false;
-    }
-
-    public void visitForeachLoop(JCEnhancedForLoop that) {
-        currentBlock.statements.add(comment(that.pos,"for..."));
-        visitForeachLoopWithSpecs(that,null);
-    }
-    
-    protected void visitForeachLoopWithSpecs(JCEnhancedForLoop that, com.sun.tools.javac.util.List<JmlStatementLoop> loopSpecs) {
+//    public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
+//        currentBlock.statements.add(comment(that.pos,"for..."));
+//        tempFromForeachLoop = true;
+//        visitForeachLoopWithSpecs(that,that.loopSpecs);
+//        tempFromForeachLoop = false;
+//    }
+//
+//    public void visitForeachLoop(JCEnhancedForLoop that) {
+//        currentBlock.statements.add(comment(that.pos,"for..."));
+//        visitForeachLoopWithSpecs(that,null);
+//    }
+//    
+    protected void __visitForeachLoopWithSpecs(JCEnhancedForLoop that, com.sun.tools.javac.util.List<JmlStatementLoop> loopSpecs) {
         int pos = that.pos;
         if (that.expr.type.tag == TypeTags.ARRAY) {
             // for (T v; arr) S
@@ -2501,14 +2510,13 @@ public class BasicBlocker2 extends JmlTreeScanner {
         breakStack.add(0,that);
         int pos = that.pos;
         BasicBlock bloopStart = currentBlock;
-        BasicBlock bloopContinue = newBlockOld(barblockPrefix + pos + LOOPCONTINUE,pos);
-        BasicBlock bloopEnd = newBlockOld(barblockPrefix + pos + LOOPEND,pos);
-        BasicBlock bloopBreak = newBlockOld(barblockPrefix + pos + LOOPBREAK,pos);
-        String restName = barblockPrefix + pos + LOOPAFTERDO;
+        BasicBlock bloopContinue = newBlock(blockName(pos, LOOPCONTINUE),pos);
+        BasicBlock bloopEnd = newBlock(blockName(pos, LOOPEND),pos);
+        BasicBlock bloopBreak = newBlock(blockName(pos, LOOPBREAK),pos);
 
         // Create an (unprocessed) block for everything that follows the
         // loop statement
-        BasicBlock brest = newBlockOld(restName,pos,currentBlock);// it gets all the followers of the current block
+        BasicBlock brest = newBlock(blockName(pos,LOOPAFTERDO),pos,currentBlock);// it gets all the followers of the current block
         List<JCStatement> temp = brest.statements;
         brest.statements = remainingStatements; // it gets all of the remaining statements
         remainingStatements = temp;
@@ -2724,214 +2732,13 @@ public class BasicBlocker2 extends JmlTreeScanner {
     /** Should call this because case statements are handled in switch. */
     public void visitCase(JCCase that) { shouldNotBeCalled(that); }
     
-    /** Stack to hold BasicBlocks for catch clauses, when try statements are nested */
-    protected java.util.List<BasicBlock> catchStack = new java.util.LinkedList<BasicBlock>();
-    
-    /** Stack to hold BasicBlocks for finally clauses, when try statements are nested */
-    protected java.util.List<BasicBlock> finallyStack = new java.util.LinkedList<BasicBlock>();
-
-    // This sets up a complicated arrangement of blocks
-    //
-    // currentBlock:    try statement
-    //                  rest of statements
-    //
-    // becomes
-    //
-    // currentBlock:    try statement block
-    //                      throw - goto catchBlocks
-    //                      return - goto tryreturnBlock
-    //                  goto finallyBlock
-    //
-    // tryreturnBlock:  assume terminationVar > 0
-    //                  goto finallyBlock
-    //
-    // catchBlocks:     assume terminationVar < 0
-    //                  assume condition on exception
-    //                  reset terminationVar to 0
-    //                  catch block statements
-    //                  goto finallyBlock
-    //
-    // finallyBlock:    any finally block statements
-    //                  goto afterTryBlock, condExceptionBlock, condReturnBlock
-    //                [ if the try block is nested then instead we
-    //                  goto afterTryBlock, catchBlocks of outer try, tryreturnBlock of outer try]
-    //
-    // afterTryBlock:   assume terminationVar == 0
-    //                  rest of statements
-    //
-    //
-    // FIXME - the catch blocks should use Java not JML subtype tests
-    // FIXME - review
-    // FIXME - unify the use of the termination var?
-    public void visitTry(JCTry that) {
-        currentBlock.statements.add(comment(that.pos,"try..."));
-
-        // Create an (unprocessed) block for everything that follows the
-        // try statement
-        int pos = that.pos;
-        BasicBlock brest = newBlockWithRestOld(barblockPrefix + pos + AFTERTRY,pos);// it gets all the followers of the current block
-        brest.statements.addAll(remainingStatements); // it gets all of the remaining statements
-        
-        remainingStatements.clear();
-        remainingStatements.add(that.getBlock());
-        
-        // We make an empty finally block if the try statement does not
-        // have one, just to simplify things
-        String finallyBlockName = barblockPrefix + pos + FINALLY;
-        BasicBlock finallyBlock = newBlockOld(finallyBlockName,pos);
-        JCBlock finallyStat = that.getFinallyBlock();
-        if (finallyStat != null) finallyBlock.statements.addAll(finallyStat.getStatements()); // it gets the (unprocessed) statements of the finally statement
-        follows(currentBlock,finallyBlock);
-        follows(finallyBlock,brest);
-
-        finallyStack.add(0,finallyBlock);
-
-        // Finish the processing of the current block 
-        processBlockStatements(true);
-        finallyStack.remove(0);
-        processBlock(finallyBlock);
-        processBlock(brest);
-    }
-    
-    // is this true FIMXE review this
-    /** Should call this because catch statements are desugared before calling the BasicBlocker. */
-    public void visitCatch(JCCatch that) { 
-        shouldNotBeCalled(that); 
-    }
-    
-    // OK
-    public void visitIf(JCIf that) {
-        int pos = that.pos;
-        currentBlock.statements.add(comment(pos,"if..."));
-        
-        // Create a bunch of block names
-        String thenName = barblockPrefix + pos + THENSUFFIX;
-        String elseName = barblockPrefix + pos + ELSESUFFIX;
-        String restName = barblockPrefix + pos + AFTERIF;
-                
-        // Now create an (unprocessed) block for everything that follows the
-        // if statement
-        BasicBlock brest = newBlockWithRestOld(restName,pos);// it gets all the followers of the current block
-        
-        // Now make the then block
-        BasicBlock thenBlock = newBlockOld(thenName,pos);
-        addAssume(that.cond.pos, Label.BRANCHT, that.cond, thenBlock.statements);
-        thenBlock.statements.add(that.thenpart);
-        follows(thenBlock,brest);
-        follows(currentBlock,thenBlock);
-        
-        // Now make the else block
-        BasicBlock elseBlock = newBlockOld(elseName,pos);
-        addAssume(that.cond.pos, Label.BRANCHE, treeutils.makeNot(that.cond.pos,that.cond), elseBlock.statements);
-        if (that.elsepart != null) elseBlock.statements.add(that.elsepart);
-        follows(elseBlock,brest);
-        follows(currentBlock,elseBlock);
-        
-        processBlockStatements(true); // finish current block
-        processBlock(thenBlock);
-        processBlock(elseBlock);
-        processBlock(brest);
-    }
     
     // FIXME - REVIEW
     public void visitExec(JCExpressionStatement that)    { 
         // This includes assignments and stand-alone method invocations
         scan(that.expr);
     }
-    
-    /** This is a stack of loops and switch statements - anything that can 
-     * contain a break statement
-     */
-    protected java.util.List<JCTree> breakStack = new java.util.LinkedList<JCTree>();
-    
-    // FIXME - needs review
-    public void visitBreak(JCBreak that) { 
-        currentBlock.statements.add(comment(that));
-        if (breakStack.isEmpty()) {
-            // ERROR - FIXME
-            log.error(that.pos(),"jml.internal","Empty break stack");
-        } else if (breakStack.get(0) instanceof JCSwitch) {
-            // Don't need to do anything.  If the break is not at the end of a block,
-            // the compiler would not have passed this.  If it is at the end of a block
-            // the logic in handling JCSwitch has taken care of everything.
-            
-            // FIXME - for safety, check and warn if there are any remaining statements in the block
-        } else if (that.label == null) {
-            JCTree t = loopStack.get(0);
-            String s = blockName(LOOPBREAK,t.pos);
-            BasicBlock b = blockLookup.get(s);
-            if (b == null) log.noticeWriter.println("NO BREAK BLOCK: " + s);
-            else replaceFollows(currentBlock,b);
-        } else {
-            log.error("esc.not.implemented","break statements with labels in BasicBlocker");
-        }
-    }
-    
-    // FIXME - review with loops
-    public void visitContinue(JCContinue that) {
-        currentBlock.statements.add(comment(that));
-        if (that.label == null) {
-            JCTree t = loopStack.get(0);
-            String blockName = blockName(LOOPCONTINUE,t.pos);
-            BasicBlock b = blockLookup.get(blockName);
-            if (b == null) log.noticeWriter.println("NO CONTINUE BLOCK: " + blockName);
-            else replaceFollows(currentBlock,b);
-        } else {
-            log.warning("esc.not.implemented","continue statements with labels in BasicBlocker");
-        }
-    }
-    
-    // OK - presumes that the program has already been modified to record
-    // the return value
-    public void visitReturn(JCReturn that) {
         
-        // FIXME - need to check what shuold/does happen if the return statement
-        // is in a catch or finally block
-        
-        if (finallyStack.isEmpty()) {
-            // We don't expect the finallyStack to ever be empty when there is
-            // a return statement only because
-            // JmlAssertionAdder wraps everything in a try-finally statement
-            log.warning(that.pos(),"esc.internal.error","finally stack is unexpectedly empty");
-        } else {
-            BasicBlock finallyBlock = finallyStack.get(0);
-            replaceFollows(currentBlock,finallyBlock);
-        }
-        if (!remainingStatements.isEmpty()) {
-            // Not fatal, but does indicate a problem with the original
-            // program, which the compiler may have already identified
-            log.warning(remainingStatements.get(0).pos(),
-                    "esc.internal.error",
-                    "Unexpected statements following a return statement are ignored");
-        }
-    }
-    
-    // OK - presumes that the program has already been modified to record
-    // the value of the exception being thrown
-    public void visitThrow(JCThrow that) { 
-        
-        // FIXME - if we are already in a catch block we keep the finally block
-        // as our follower.
-        
-        if (finallyStack.isEmpty()) {
-            // We don't expect the finallyStack to ever be empty when there is
-            // a throw statement only because
-            // JmlAssertionAdder wraps everything in a try-finally statement
-            log.warning(that.pos(),"esc.internal.error","finally stack is unexpectedly empty");
-        } else {
-            BasicBlock finallyBlock = finallyStack.get(0);
-            replaceFollows(currentBlock,finallyBlock);
-        }
-        
-        if (!remainingStatements.isEmpty()) {
-            // Not fatal, but does indicate a problem with the original
-            // program, which the compiler may have already identified
-            log.warning(remainingStatements.get(0).pos(),
-                    "esc.internal.error",
-                    "Unexpected statements following a throw statement");
-        }
-    }
-    
     // FIXME - needs review - al;ready converted to a BasicBlock assert?
     public void visitAssert(JCAssert that) { // This is a Java assert statement
         currentBlock.statements.add(comment(that));
