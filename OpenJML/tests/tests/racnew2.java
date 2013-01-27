@@ -362,6 +362,36 @@ public class racnew2 extends RacBase {
 
 
     /** Tests switch statement */
+    @Test public void testBreak() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  m(0);  m(2); m(3);  m(5); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(int i) { \n" +
+                "    out: { \n" +
+                "       in: { \n" +
+                "            System.out.print(i + \"A\");\n" +
+                // Unlabelled breaks are not allowed for blocks
+                "            if (i == 2) break in;\n" +
+                "            if (i == 3) break out;\n" +
+                "            System.out.print(\"B\");\n" +
+                "           }\n" +
+                "            System.out.print(\"C\");\n" +
+                "            if (i == 5) break out;\n" +
+                "            System.out.print(\"D\");\n" +
+                "        }\n" +
+                "            System.out.println(\"Z\");\n" +
+                "  } \n" +
+                "}"
+                ,"0ABCDZ"
+                ,"2ACDZ"
+                ,"3AZ"
+                ,"5ABCZ"
+                ,"END"
+        );        
+    }
+
+    /** Tests switch statement */
     @Test public void testSwitch() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m(0); m(1); m(2); m(3); \n" +
@@ -398,6 +428,27 @@ public class racnew2 extends RacBase {
                 ,"/tt/TestJava.java:9: JML assertion is false" // case 0 falls through
                 ,"/tt/TestJava.java:13: JML assertion is false"
                 ,"END"
+        );        
+    }
+
+    /** Tests switch statement with block breaks */
+    @Test public void testSwitch3() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  m(0); m(1); m(2); m(3); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(int i) { \n" +
+                "  System.out.print(i);  \n" +
+                "  out: { switch (i) { \n" +
+                "  case 0: break; \n" +
+                "  case 1: break out; \n" +
+                "  case 2: in: { break in; } System.out.print(\"X\"); break; \n" +
+                "  default: in: { if (i == 3)  break; } System.out.print(\"Y\"); break; \n" +
+                "  }\n" +
+                "  System.out.print(\"Z\"); }\n" +
+                "  }\n" +
+                "}"
+                ,"0Z12XZ3ZEND"
         );        
     }
 

@@ -30,6 +30,7 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
 import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
 
@@ -554,6 +555,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         return program;
     }
     
+    int assertCount = 0;
     
     // FIXME - REVIEW and document
     protected void addAssert(Label label, JCExpression that, int declpos, List<JCStatement> statements, int usepos, JavaFileObject source, JCTree statement) {
@@ -581,6 +583,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         st.optionalExpression = null;
         st.source = source;
         st.associatedPos = declpos;
+        st.id = "ASSERT__" + (++assertCount);
         st.type = null; // no type for a statement
         copyEndPosition(st,statement);
         statements.add(st);
@@ -600,6 +603,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         st.optionalExpression = null;
         st.source = source;
         st.associatedPos = declpos;
+        st.id = "ASSERT__" + (++assertCount);
         st.type = null; // no type for a statement
         statements.add(st);
     }
@@ -612,6 +616,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         st.optionalExpression = null;
         st.type = null; // no type for a statement
         st.source = source;
+        st.id = "ASSERT__" + (++assertCount);
         st.associatedPos = usepos;// FIXME - what should this be set to?
         statements.add(st);
     }
@@ -650,6 +655,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //        }
 //        copyEndPosition(st,that);
         st.type = null; // statements do not have a type
+        st.id = "ASSUME__" + (++assertCount);
         statements.add(st);
         return st;
     }
@@ -669,6 +675,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //        }
 //        copyEndPosition(st,endpos);
         st.type = null; // statements do not have a type
+        st.id = "ASSUME__" + (++assertCount);
         statements.add(st);
         return st;
     }
@@ -1561,7 +1568,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     
     // FIXME - review
     public void visitAssign(JCAssign that) {
-        //scan(that.lhs);
+        scan(that.lhs);
         scan(that.rhs);
         JCExpression left = that.lhs;
         JCExpression right = (that.rhs);
@@ -1572,8 +1579,8 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // FIXME - is all implicit casting handled
     // Note that the left and right expressions are translated.
     protected JCExpression doAssignment(Type restype, JCExpression left, JCExpression right, int pos, JCExpression assignExpr) {
-        scan(left);
-        scan(right);
+//        scan(left);
+//        scan(right);
         currentBlock.statements.add(treeutils.makeAssignStat(pos,left,right));
         return assignExpr;
 //        if (left instanceof JCIdent) {
@@ -1646,7 +1653,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         return null;
     }
 
-    // OK -= except FIXME - review newIdentIncarnation
+    // FIXME - this is all wrong -= except FIXME - review newIdentIncarnation
     public void visitVarDef(JCVariableDecl that) { 
         currentBlock.statements.add(comment(that));
         JCIdent lhs = treeutils.makeIdent(that.getPreferredPosition(),that.sym);
@@ -1734,13 +1741,16 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
             } else {
                 JCIdent lhs = treeutils.makeIdent(that.getPreferredPosition(),that.sym);
                 program.declarations.add(lhs);
-                //currentBlock.statements.add(that);
+                JCStatement stat = treeutils.makeAssignStat(that.pos, lhs, that.init);
+                currentBlock.statements.add(stat);
             }
         } else if (that.init == null) {
             JCIdent lhs = treeutils.makeIdent(that.getPreferredPosition(),that.sym);
+            scan(lhs);
             program.declarations.add(lhs);
         } else {
             JCIdent lhs = treeutils.makeIdent(that.getPreferredPosition(),that.sym);
+            scan(lhs);
             program.declarations.add(lhs);
 
             scan(that.init);
@@ -2259,6 +2269,13 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         }
         return classInfo;
     }
+    
+    // OK
+    @Override
+    public void visitLabelled(JCLabeledStatement that) {
+        super.visitLabelled(that);
+    }
+
 
 //    // FIXME - Review
 //    /** This class converts a counterexample into more readable information */

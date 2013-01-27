@@ -6468,21 +6468,19 @@ public class BasicBlocker extends JmlTreeScanner {
                 // We need to make it a JCFieldAccess with a 'this'
 
                 // FIXME - is there a symbol for this?
-                JCIdent thisIdX = factory.Ident(names._this);
-                thisIdX.pos = that.pos;
+                JCIdent thisIdX = factory.at(that.pos).Ident(names._this);
                 VarSymbol v = new VarSymbol(0, thisIdX.name, owner.type, owner);
                 v.pos = 0;
                 thisIdX.sym = v;
                 thisIdX.type = owner.type;
-                JCFieldAccess now = factory.Select(thisIdX, vsym.name);
-                now.pos = that.pos;
+                JCFieldAccess now = factory.at(that.pos).Select(thisIdX, vsym.name);
                 now.type = that.type;
                 now.sym = vsym;
                 result = trExpr(now);
             } else if (signalsVar != null && vsym == signalsVar.sym) {
                 result = newIdentUse((VarSymbol) exceptionVar.sym, that.pos);
             } else if (vsym.name == names._this) {
-                result = currentThisId;
+                result = factory.at(that.pos).Ident(currentThisId.sym);
             } else if (owner == null
                     && vsym.name.toString().startsWith(RESULT_PREFIX)) {
                 // If there are nested function calls, then the \result of the

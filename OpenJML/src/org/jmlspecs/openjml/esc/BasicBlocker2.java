@@ -1883,13 +1883,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     // STATEMENT NODES
     
-    // Just process all the statements in the block prior to any other
-    // remaining statements 
-    // OK
-    public void visitBlock(JCBlock that) {
-        List<JCStatement> s = that.getStatements();
-        if (s != null) remainingStatements.addAll(0,s);
-    }
+//    // Just process all the statements in the block prior to any other
+//    // remaining statements 
+//    // OK
+//    public void visitBlock(JCBlock that) {
+//        List<JCStatement> s = that.getStatements();
+//        if (s != null) remainingStatements.addAll(0,s);
+//    }
     
 //    protected void __visitForeachLoopWithSpecs(JCEnhancedForLoop that, com.sun.tools.javac.util.List<JmlStatementLoop> loopSpecs) {
 //        int pos = that.pos;
@@ -1967,162 +1967,162 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //    }
 
     // OK
-    // FIXME - the label needs to be able to be the target of break & continue statements
+    @Override
     public void visitLabelled(JCLabeledStatement that) {
         VarMap map = currentMap.copy();
         labelmaps.put(that.label,map);
-        that.getStatement().accept(this);
+        super.visitLabelled(that);
     }
     
-    // Translation of a switch statement
-    //  switch (swexpr) {
-    //       case A:
-    //              SA;
-    //              break;
-    //       case B:
-    //              SB;
-    //              // fall through
-    //       case C:
-    //              SC;
-    //              break;
-    //       default:
-    //              SD;
-    //   }
-    //   translates to
-    //   -- continuation of current block:
-    //          assume $$switchExpr$<pos>$<unique> == swexpr;
-    //          goto $$case$<A>,$$case$<B>,$$case$<C>
-    //     $$case$<A>:
-    //          assume $$switchExpr$<pos>$<unique> == A;
-    //          SA
-    //          goto $$BL$<pos>$switchAfter
-    //     $$case$<B>:
-    //          assume $$switchExpr$<pos>$<unique> == B;
-    //          SB
-    //          goto $$caseBody$<C>
-    //     $$case$<C>:
-    //          assume $$switchExpr$<pos>$<unique> == C;
-    //          goto $$caseBody$<C>
-    //     $$caseBody$<C>:  // Need this block because B fallsthrough to C
-    //          SC
-    //          goto $$BL$<pos>$switchAfter
-    //     $$defaultcase$<N>:
-    //          assume !($$switchExpression$<pos>$<pos> == A && ...);
-    //          SD
-    //          goto $$BL$<pos>$switchAfter
-    //     $$BL$<pos>$switchAfter:
-    //          ....
-    //     
-    // OK
-    public void visitSwitch(JCSwitch that) { 
-        currentBlock.statements.add(comment(that.pos(),"switch ..."));
-        int pos = that.pos;
-        scan(that.selector);
-        JCExpression switchExpression = that.selector;
-        int swpos = switchExpression.getStartPosition();
-        List<JCCase> cases = that.cases;
-        
-        // The block that follows the switch statement
-        BasicBlock brest = null;
-        
-        try {
-            breakStack.add(0,that);
-
-            // We create a new auxiliary variable to hold the switch value, so 
-            // we can track its value and so the subexpression does not get
-            // replicated.  We add an assumption about its value and add it to
-            // list of new variables
-            Name switchName = names.fromString(SWITCH_EXPR_PREFIX + pos + "__" + (unique++));
- 
-            JCIdent vd = newAuxIdent(switchName,switchExpression.type,swpos,false);
-            program.declarations.add(vd);
-            JCExpression newexpr = treeutils.makeBinary(swpos,JCTree.EQ,vd,switchExpression);
-            addAssume(swpos,switchExpression,Label.SWITCH_VALUE,newexpr,currentBlock.statements);
-            BasicBlock switchStart = currentBlock;
-
-            // Now create an (unprocessed) basic block for everything that follows the
-            // switch statement
-            brest = newBlockWithRest("switchAfter",pos);// it gets all the followers of the current block
-
-            // Now we need to make an unprocessed basic block for each of the case statements,
-            // adding them to the todo list at the end
-            // Note that there might be nesting of other switch statements etc.
-            java.util.LinkedList<BasicBlock> blocks = new java.util.LinkedList<BasicBlock>();
-            BasicBlock prev = null;
-            JCExpression defaultCond = falseLiteral;
-            JmlTree.JmlStatementExpr defaultAsm = null;
-            for (JCCase caseStatement: cases) {
-                /*@ nullable */ JCExpression caseValue = caseStatement.getExpression();
-                List<JCStatement> stats = caseStatement.getStatements();
-                int casepos = caseStatement.getStartPosition();
-                
-                // create a block for this case test
-                BasicBlock blockForTest = newBlock(caseValue == null ? "default" : "case", casepos);
-                blocks.add(blockForTest);
-                follows(switchStart,blockForTest);
-                
-                // create the case test, or null if this is the default case
-                /*@ nullable */ JCBinary eq = caseValue == null ? null : treeutils.makeBinary(caseValue.getStartPosition(),JCTree.EQ,vd,caseValue);
-                JmlStatementExpr asm = addAssume(caseStatement.pos,Label.CASECONDITION,eq,blockForTest.statements);
-                checkAssumption(caseStatement.pos,Label.CASECONDITION,blockForTest.statements);
-                
-                // continue to build up the default case test
-                if (caseValue == null) defaultAsm = asm; // remember the assumption for the default case
-                else defaultCond = treeutils.makeOr(caseValue.getStartPosition(),eq,defaultCond);
-
-                // determine whether this case falls through to the next
-                boolean fallthrough = stats.isEmpty() || !(stats.get(stats.size()-1) instanceof JCBreak);
-                
-                if (prev == null) {
-                    // statements can go in the same block
-                    blockForTest.statements.addAll(stats);
-                    follows(blockForTest,brest); // The following block is reset if there is fallthrough to a next block
-                    prev = fallthrough ? blockForTest : null;
-                } else {
-                    // falling through from the previous case
-                    // since there is fall-through, the statements need to go in their own block
-                    BasicBlock blockForStats = newBlock("caseBody",casepos);
-                    blockForStats.statements.addAll(stats);
-                    follows(blockForTest,blockForStats);
-                    replaceFollows(prev,blockForStats);
-                    follows(blockForStats,brest);
-                    blocks.add(blockForStats);
-                    prev = fallthrough ?  blockForStats : null;
-                }
-            }
-
-            // Now fix up the default case (which is not necessarily last).
-            // Fortunately we remembered it
-            int dpos = defaultAsm == null ? pos : defaultAsm.pos;
-            JCExpression eq = treeutils.makeUnary(dpos,JCTree.NOT,defaultCond);
-            if (defaultAsm != null) {
-                // There was a default case already made, but at the time we just
-                // put in null for the case condition, since we did not know it
-                // yet (and we wanted to process the statements in textual order).
-                // So here we violate encapsulation a bit and poke it in.
-                defaultAsm.expression = eq;
-            } else {
-                // There was no default - we need to construct an empty one
-                // create a block for this case test
-                BasicBlock blockForTest = newBlock("defaultcase",pos);
-                blocks.add(blockForTest);
-                follows(switchStart,blockForTest);
-                follows(blockForTest,brest);
-                
-                addAssume(pos,Label.CASECONDITION,eq,blockForTest.statements);
-            }
-            
-            processBlockStatements(true); // Complete the current block
-            // Now process all of the blocks we created
-            for (BasicBlock b: blocks) {
-                processBlock(b);
-            }
-        } finally {
-            breakStack.remove(0);
-        }
-        // Should never actually be null
-        if (brest != null) processBlock(brest);
-    }
+//    // Translation of a switch statement
+//    //  switch (swexpr) {
+//    //       case A:
+//    //              SA;
+//    //              break;
+//    //       case B:
+//    //              SB;
+//    //              // fall through
+//    //       case C:
+//    //              SC;
+//    //              break;
+//    //       default:
+//    //              SD;
+//    //   }
+//    //   translates to
+//    //   -- continuation of current block:
+//    //          assume $$switchExpr$<pos>$<unique> == swexpr;
+//    //          goto $$case$<A>,$$case$<B>,$$case$<C>
+//    //     $$case$<A>:
+//    //          assume $$switchExpr$<pos>$<unique> == A;
+//    //          SA
+//    //          goto $$BL$<pos>$switchAfter
+//    //     $$case$<B>:
+//    //          assume $$switchExpr$<pos>$<unique> == B;
+//    //          SB
+//    //          goto $$caseBody$<C>
+//    //     $$case$<C>:
+//    //          assume $$switchExpr$<pos>$<unique> == C;
+//    //          goto $$caseBody$<C>
+//    //     $$caseBody$<C>:  // Need this block because B fallsthrough to C
+//    //          SC
+//    //          goto $$BL$<pos>$switchAfter
+//    //     $$defaultcase$<N>:
+//    //          assume !($$switchExpression$<pos>$<pos> == A && ...);
+//    //          SD
+//    //          goto $$BL$<pos>$switchAfter
+//    //     $$BL$<pos>$switchAfter:
+//    //          ....
+//    //     
+//    // OK
+//    public void visitSwitch(JCSwitch that) { 
+//        currentBlock.statements.add(comment(that.pos(),"switch ..."));
+//        int pos = that.pos;
+//        scan(that.selector);
+//        JCExpression switchExpression = that.selector;
+//        int swpos = switchExpression.getStartPosition();
+//        List<JCCase> cases = that.cases;
+//        
+//        // The block that follows the switch statement
+//        BasicBlock brest = null;
+//        
+//        try {
+//            breakStack.add(0,that);
+//
+//            // We create a new auxiliary variable to hold the switch value, so 
+//            // we can track its value and so the subexpression does not get
+//            // replicated.  We add an assumption about its value and add it to
+//            // list of new variables
+//            Name switchName = names.fromString(SWITCH_EXPR_PREFIX + pos + "__" + (unique++));
+// 
+//            JCIdent vd = newAuxIdent(switchName,switchExpression.type,swpos,false);
+//            program.declarations.add(vd);
+//            JCExpression newexpr = treeutils.makeBinary(swpos,JCTree.EQ,vd,switchExpression);
+//            addAssume(swpos,switchExpression,Label.SWITCH_VALUE,newexpr,currentBlock.statements);
+//            BasicBlock switchStart = currentBlock;
+//
+//            // Now create an (unprocessed) basic block for everything that follows the
+//            // switch statement
+//            brest = newBlockWithRest("switchAfter",pos);// it gets all the followers of the current block
+//
+//            // Now we need to make an unprocessed basic block for each of the case statements,
+//            // adding them to the todo list at the end
+//            // Note that there might be nesting of other switch statements etc.
+//            java.util.LinkedList<BasicBlock> blocks = new java.util.LinkedList<BasicBlock>();
+//            BasicBlock prev = null;
+//            JCExpression defaultCond = falseLiteral;
+//            JmlTree.JmlStatementExpr defaultAsm = null;
+//            for (JCCase caseStatement: cases) {
+//                /*@ nullable */ JCExpression caseValue = caseStatement.getExpression();
+//                List<JCStatement> stats = caseStatement.getStatements();
+//                int casepos = caseStatement.getStartPosition();
+//                
+//                // create a block for this case test
+//                BasicBlock blockForTest = newBlock(caseValue == null ? "default" : "case", casepos);
+//                blocks.add(blockForTest);
+//                follows(switchStart,blockForTest);
+//                
+//                // create the case test, or null if this is the default case
+//                /*@ nullable */ JCBinary eq = caseValue == null ? null : treeutils.makeBinary(caseValue.getStartPosition(),JCTree.EQ,vd,caseValue);
+//                JmlStatementExpr asm = addAssume(caseStatement.pos,Label.CASECONDITION,eq,blockForTest.statements);
+//                //checkAssumption(caseStatement.pos,Label.CASECONDITION,blockForTest.statements);
+//                
+//                // continue to build up the default case test
+//                if (caseValue == null) defaultAsm = asm; // remember the assumption for the default case
+//                else defaultCond = treeutils.makeOr(caseValue.getStartPosition(),eq,defaultCond);
+//
+//                // determine whether this case falls through to the next
+//                boolean fallthrough = stats.isEmpty() || !(stats.get(stats.size()-1) instanceof JCBreak);
+//                
+//                if (prev == null) {
+//                    // statements can go in the same block
+//                    blockForTest.statements.addAll(stats);
+//                    follows(blockForTest,brest); // The following block is reset if there is fallthrough to a next block
+//                    prev = fallthrough ? blockForTest : null;
+//                } else {
+//                    // falling through from the previous case
+//                    // since there is fall-through, the statements need to go in their own block
+//                    BasicBlock blockForStats = newBlock("caseBody",casepos);
+//                    blockForStats.statements.addAll(stats);
+//                    follows(blockForTest,blockForStats);
+//                    replaceFollows(prev,blockForStats);
+//                    follows(blockForStats,brest);
+//                    blocks.add(blockForStats);
+//                    prev = fallthrough ?  blockForStats : null;
+//                }
+//            }
+//
+//            // Now fix up the default case (which is not necessarily last).
+//            // Fortunately we remembered it
+//            int dpos = defaultAsm == null ? pos : defaultAsm.pos;
+//            JCExpression eq = treeutils.makeUnary(dpos,JCTree.NOT,defaultCond);
+//            if (defaultAsm != null) {
+//                // There was a default case already made, but at the time we just
+//                // put in null for the case condition, since we did not know it
+//                // yet (and we wanted to process the statements in textual order).
+//                // So here we violate encapsulation a bit and poke it in.
+//                defaultAsm.expression = eq;
+//            } else {
+//                // There was no default - we need to construct an empty one
+//                // create a block for this case test
+//                BasicBlock blockForTest = newBlock("defaultcase",pos);
+//                blocks.add(blockForTest);
+//                follows(switchStart,blockForTest);
+//                follows(blockForTest,brest);
+//                
+//                addAssume(pos,Label.CASECONDITION,eq,blockForTest.statements);
+//            }
+//            
+//            processBlockStatements(true); // Complete the current block
+//            // Now process all of the blocks we created
+//            for (BasicBlock b: blocks) {
+//                processBlock(b);
+//            }
+//        } finally {
+//            breakStack.remove(0);
+//        }
+//        // Should never actually be null
+//        if (brest != null) processBlock(brest);
+//    }
     
     // OK
     /** Should call this because case statements are handled in switch. */
