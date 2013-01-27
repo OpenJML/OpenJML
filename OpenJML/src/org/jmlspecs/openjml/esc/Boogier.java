@@ -547,7 +547,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         // Finished processing all the blocks
         // Make the BasicProgram
 //        program.startId = startBlock.id;
-        program.blocks.addAll(blocksCompleted);
+        //program.blocks.addAll(blocksCompleted);
         if (assumeCheck != null) booleanAssumeCheck = assumeCheck;
         program.background = background;
 //        program.assumeCheckVar = assumeCheckCountVar;

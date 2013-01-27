@@ -1440,7 +1440,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCExpression ex = ((JmlMethodClauseSignals)clause).expression;
                                 ex = convertJML(ex,preident,true);
                                 ex = treeutils.makeImplies(clause.pos, preident, ex);
-                                addAssert(esc ? null : methodDecl.pos(),Label.SIGNALS,ex,clause.pos(),clause.sourcefile);
+                                addAssert(methodDecl.pos(),Label.SIGNALS,ex,clause.pos(),clause.sourcefile);
                                 addStat(popBlock(0,clause.pos()));
                                 break;
                             }
@@ -1459,7 +1459,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     }
                                     //JCExpression name = methodCallUtilsExpression(clause.pos(),"typeName",exceptionId);
                                     condd = treeutils.makeImplies(clause.pos, preident, condd);
-                                    addAssert(esc ? null : methodDecl.pos(),Label.SIGNALS_ONLY,condd,clause.pos(),clause.sourcefile);
+                                    addAssert(methodDecl.pos(),Label.SIGNALS_ONLY,condd,clause.pos(),clause.sourcefile);
                                     addStat(popBlock(0,methodDecl.pos()));
                                 }
                                 break;

@@ -359,7 +359,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         loop: while (true) {
             for (T pb: b.preceders) {
                 //log.noticeWriter.println("   " + b.id() + " follows " + pb.id());
-                if (!blocksCompleted.contains(pb)) {
+                if (!program.blocks.contains(pb)) {
                     log.noticeWriter.println("Internal Error: block " + pb.id.name + " precedes block " + b.id.name + " , but was not processed before it");
                     processBlock(pb);
                     continue loop; // the list of preceding blocks might have changed - check it over again
@@ -369,6 +369,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         }
 
         //log.noticeWriter.println("Starting block " + b.id);
+        program.blocks.add(b);
         setCurrentBlock(b);
     }
     
@@ -537,9 +538,11 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             }
             return;// Don't add it to the completed blocks
         }
-        if (!blocksCompleted.contains(block)) {
+        if (!program.blocks.contains(block)) {
             startBlock(block);
             processBlockStatements(true);
+        } else {
+            log.warning("jml.internal","Basic block " + block.id + " is being processed another time");
         }
     }
     
@@ -1113,9 +1116,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         // FIXME - not sure why these statements are here
         T b = newBlockWithRest(RETURN,that.pos);
         follows(currentBlock,b);
-        completed(currentBlock);
-        startBlock(b);
-        completed(b);
+        processBlockStatements(true);
+        processBlock(b);
         
         // FIXME - need to check what shuold/does happen if the return statement
         // is in a catch or finally block
@@ -1148,9 +1150,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         // FIXME - why are these here
         T b = newBlockWithRest(blockName(that.pos,THROW),that.pos);
         follows(currentBlock,b);
-        completed(currentBlock);
-        startBlock(b);
-        completed(b);
+        processBlockStatements(true);
+        processBlock(b);
         
         // FIXME - if we are already in a catch block we keep the finally block
         // as our follower.
@@ -1467,8 +1468,9 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     public void visitBlock(JCBlock that) {
         List<JCStatement> s = that.getStatements();
         if (s != null) {
+            // Add the block statements BEFORE any remaining statements
             remainingStatements.addAll(0,s);
-            processBlockStatements(false); // FIXME - this should not be needed now that visitLabelled is fixed
+            //processBlockStatements(false); // FIXME - this should not be needed now that visitLabelled is fixed
         }
     }
     
