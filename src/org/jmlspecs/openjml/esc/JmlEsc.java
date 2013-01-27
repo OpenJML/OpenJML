@@ -435,9 +435,9 @@ public class JmlEsc extends JmlTreeScanner {
                 JmlStatementExpr assertStat = program.assertMap.get(id);
                 Label label = Label.find(reason);
                 // FIXME - defensive chjeck assertStat not null
-                kk = out.indexOf("_return"); // FIXME - use defined String
+                kk = out.indexOf(BasicBlockerParent.RETURN); // FIXME - use defined String
                 if (kk >= 0) {
-                    kkk = out.lastIndexOf("BL_",kk) + "BL_".length(); // FIXME - use defined String
+                    kkk = out.lastIndexOf(BasicBlockerParent.blockPrefix,kk) + BasicBlockerParent.blockPrefix.length();
                     try {
                         terminationPos = Integer.parseInt(out.substring(kkk,kk));
                     } catch (NumberFormatException e) {
@@ -448,7 +448,7 @@ public class JmlEsc extends JmlTreeScanner {
                 if (terminationPos == 0) terminationPos = decl.pos;
                 JavaFileObject prev = null;
                 int pos = assertStat.pos;
-                if (pos == Position.NOPOS) pos = terminationPos;
+                if (pos == Position.NOPOS || pos == decl.pos) pos = terminationPos;
                 if (assertStat.source != null) prev = log.useSource(assertStat.source);
                 String extra = "";
                 JCExpression optional = assertStat.optionalExpression;
@@ -703,7 +703,7 @@ public class JmlEsc extends JmlTreeScanner {
                     if (Options.instance(context).get("-newesc") != null) {
                         JavaFileObject prev = null;
                         int pos = assertStat.pos;
-                        if (pos == Position.NOPOS) pos = terminationPos;
+                        if (pos == Position.NOPOS || pos == decl.pos) pos = terminationPos;
                         if (assertStat.source != null) prev = log.useSource(assertStat.source);
                         String extra = "";
                         JCExpression optional = assertStat.optionalExpression;

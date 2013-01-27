@@ -48,10 +48,10 @@ public abstract class EscBase extends JmlTestCase {
         if (option == null) {
             // nothing set
         } else if (option.equals("-boogie")) {
-            options.put("-newesc","");
-            options.put("-boogie","");
+            main.addUndocOption("-newesc");
+            main.addUndocOption("-boogie");
         } else {
-            options.put(option,"");
+            main.addUndocOption(option);
         }
     }
 

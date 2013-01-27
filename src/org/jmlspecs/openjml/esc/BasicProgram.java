@@ -246,8 +246,9 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
                 }
                 pw.print(JmlPretty.lineSep);
                 pw.flush();
-                pw.indentAndPrint();
+                //pw.indentAndPrint(); // FIXME - can't we use indenting?
                 for (JCTree t: statements) {
+                    pw.print("    ");
                     t.accept(pw);
                     if (program != null && t instanceof JmlTree.JmlStatementExpr && ((JmlTree.JmlStatementExpr)t).expression instanceof JCIdent) {
                         JCIdent i = (JCIdent)((JmlTree.JmlStatementExpr)t).expression;
@@ -276,9 +277,9 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
                     pw.flush();
                 }
                 if (followers.isEmpty()) {
-                    pw.print("return;");
+                    pw.print("    return;");
                 } else {
-                    pw.print("goto");
+                    pw.print("    goto");
                     boolean first = true;
                     for (BasicBlock ss: followers) {
                         if (first) first = false; else pw.print(",");
@@ -287,7 +288,7 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
                     }
                     pw.print(";");
                 }
-                pw.undent(); // FIXME - check that this undents in the right place
+                //pw.undent(); // FIXME - check that this undents in the right place
                 pw.print(JmlPretty.lineSep);
                 pw.flush();
             } catch (java.io.IOException e) {

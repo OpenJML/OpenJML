@@ -113,9 +113,10 @@ public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>
             
             pw.print("procedure ");
             pw.print(methodDecl.name);
+            pw.print("(");
             boolean first = true;
             for (JCVariableDecl p : methodDecl.params) {
-                if (first) { first = false; pw.print("("); } else pw.print(",");
+                if (first) { first = false; } else pw.print(",");
                 pw.print(p.name.toString() + "__" + p.pos);
                 pw.print(" : ");
                 pw.print(trType(p.type));
@@ -244,12 +245,14 @@ public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>
                         print(that.label);
                         print("\"} ");
                     }
-                    print("{ :id ");
-                    print(that.pos);
-                    print("} ");
+                    if (that.id != null) {
+                        print("{ :id ");
+                        print(that.id);
+                        print("} ");
+                    }
                     printExpr(that.expression); 
                     print(";");
-                    assertMap.put(Integer.toString(that.pos), that);
+                    assertMap.put(that.id, that);
                     //println();
                 }
             } catch (IOException e) { perr(that,e); }

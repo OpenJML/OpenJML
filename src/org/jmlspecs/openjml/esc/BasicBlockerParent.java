@@ -27,6 +27,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
 
@@ -105,17 +106,17 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     /** Standard name for the starting block of the program (just has the preconditions) */
     public static final @NonNull String START_BLOCK_NAME = "Start";
     
-//    /** Standard name for the final return block, whether or not a value is returned */
-//    public static final @NonNull String RETURN_BLOCK_NAME = blockPrefix + "return";
-//    
-//    /** Standard name for the exception block */
-//    public static final @NonNull String EXCEPTION_BLOCK_NAME = blockPrefix + "exception";
-    
     /** Suffix for the name of a basic block for a finally block */
     public static final String FINALLY = "_finally";
     
     /** Suffix for the name of a basic block for a finally block */
     public static final String AFTERTRY = "_AfterTry";
+    
+    /** Suffix for the name of a basic block that comes after a switch statement */
+    public static final String AFTERLABEL = "_AfterLabel";
+    
+    /** Suffix for the name of a basic block that comes after a switch statement */
+    public static final String AFTERSWITCH = "_AfterSwitch";
     
     /** Suffix for the name of a basic block holding the body of a loop */
     public static final String LOOPBODY = "_LoopBody";
@@ -776,7 +777,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     //   translates to
     //   -- continuation of current block:
     //          assume $$switchExpression$<pos>$<pos> == swexpr;
-    //          goto $$case$<A>,$$case$<B>,$$case$<C>
+    //          goto $$case$<A>,$$case$<B>,$$case$<C>,$$defaultcase$<D>
     //     $$case$<A>:
     //          assume $$switchExpression$<pos>$<pos> == A;
     //          SA
@@ -791,14 +792,14 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     //     $$caseBody$<C>:  // Need this block because B fallsthrough to C
     //          SC
     //          goto $$BL$<pos>$switchEnd
-    //     $$defaultcase$<C>:
+    //     $$defaultcase$<D>:
     //          assume !($$switchExpression$<pos>$<pos> == A && ...);
     //          SD
     //          goto $$BL$<pos>$switchEnd
     //     $$BL$<pos>$switchEnd:
     //          ....
-    //     
-    // FIXME - review
+    //   
+    @Override
     public void visitSwitch(JCSwitch that) { 
         currentBlock.statements.add(comment(that.pos(),"switch ..."));
         int pos = that.pos;
@@ -808,7 +809,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         List<JCCase> cases = that.cases;
         
         // Create the ending block name
-        String endBlock = blockName(pos,"_switchEnd"); // FIXME - define string?
         T brest = null;
         
         try {
@@ -821,15 +821,19 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             String switchName = ("_switchExpression_" + pos); // FIXME - define string?
  
             JCIdent vd = treeutils.makeIdent(swpos,switchName,switchExpression.type);
-            ((BoogieProgram)program).declarations.add(vd);   // FIXME
+            if (program instanceof BoogieProgram)
+              ((BoogieProgram)program).declarations.add(vd);   // FIXME
+            else if (program instanceof BasicProgram)
+                ((BasicProgram)program).declarations.add(vd);   // FIXME
             JCExpression newexpr = treeutils.makeBinary(swpos,JCTree.EQ,vd,switchExpression);
             addAssume(swpos,switchExpression,Label.SWITCH_VALUE,newexpr,currentBlock.statements);
             T switchStart = currentBlock;
 
             // Now create an (unprocessed) block for everything that follows the
             // switch statement
-            brest = newBlockWithRest(endBlock,pos);// it gets all the followers of the current block
-
+            brest = newBlockWithRest(AFTERSWITCH,pos);// it gets all the followers of the current block
+            breakBlocks.put(names.empty, brest);
+            
             // Now we need to make an unprocessed block for each of the case statements,
             // adding them to the todo list at the end
             // Note that there might be nesting of other switch statements etc.
@@ -862,7 +866,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
                 if (prev == null) {
                     // statements can go in the same block
                     blockForTest.statements.addAll(stats);
-                    if (!fallthrough) follows(blockForTest,brest);
+                    follows(blockForTest,brest); // The following block is reset if there is fallthrough to a next block
                     prev = fallthrough ? blockForTest : null;
                 } else {
                     // falling through from the previous case
@@ -876,11 +880,9 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
                     prev = fallthrough ?  blockForStats : null;
                 }
             }
-            if (prev != null) {
-                // The last case statement did not appear to have a break statement
-                // Add a break, even if it does not necessarily need it (e.g. it returns)  // FIXME - test this
-                follows(prev,brest);
-            }
+
+            // Now fix up the default case (which is not necessarily last).
+            // Fortunately we remembered it
             int dpos = defaultAsm == null ? pos : defaultAsm.pos;
             JCExpression eq = treeutils.makeUnary(dpos,JCTree.NOT,defaultCond);
             if (defaultAsm != null) {
@@ -906,8 +908,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
                 processBlock(b);
             }
         } finally {
-            breakStack.remove(0);  // FIXME - this is not going to work for embedded breaks - maybe does now
+            breakStack.remove(0);
+            breakBlocks.remove(names.empty);
         }
+        // Should never actually be null
         if (brest != null) processBlock(brest);
     }
     
@@ -1021,42 +1025,76 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         processBlock(elseBlock);
         processBlock(brest);
     }
-
-    // FIXME - needs review
+    
+    /** This is a stack of loops and switch statements - anything that can 
+     * contain a break statement
+     */
+    protected java.util.List<JCTree> breakStack = new java.util.LinkedList<JCTree>();
+    
+    /** This is a map of label to Block, giving the block to which a labelled break
+     * should jump - which is the Block after the labelled statement.
+     */
+    protected java.util.Map<Name,T> breakBlocks = new java.util.HashMap<Name,T>();
+    
+    @Override // OK
     public void visitBreak(JCBreak that) { 
-        currentBlock.statements.add(comment(that));
-        if (breakStack.isEmpty()) {
+        if (that.label != null) {
+            // Note that a break with a label exits the labelled statement, even
+            // if we are currently in a switch
+            T breakBlock = breakBlocks.get(that.label);
+            if (breakBlock == null) {
+                log.error(that.pos(),"jml.internal","No target found for break label " + that.label);
+            } else {
+                replaceFollows(currentBlock,breakBlock);
+            }
+        } else if (breakStack.isEmpty()) {
           log.error(that.pos(),"jml.internal","Empty break stack");
 
-        } else if (breakStack.get(0) instanceof JCSwitch) {
-            // Don't need to do anything.  If the break is not at the end of a block,
-            // the compiler would not have passed this.  If it is at the end of a block
-            // the logic in handling JCSwitch has taken care of everything.
-            
-            // FIXME - for safety, check and warn if there are any remaining statements in the block
-        } else if (that.label == null) {
-            JCTree t = loopStack.get(0);
-            String s = blockName(t.pos,LOOPBREAK);
-            T b = blockLookup.get(s);
-            if (b == null) log.noticeWriter.println("NO BREAK BLOCK: " + s);
-            else replaceFollows(currentBlock,b);
         } else {
-            log.error("esc.not.implemented","break statements with labels in Ter");
+            JCTree tree = breakStack.get(0);
+            if (tree instanceof JCSwitch) {
+                // Don't need to do anything.  If the break is not at the end of a block,
+                // the compiler would not have passed this.  If it is at the end of a block
+                // the logic in handling JCSwitch has taken care of everything.
+                T b = breakBlocks.get(names.empty);
+                if (b == null) {
+                    log.error(that.pos(),"jml.internal","Corresponding break target is not found");
+                } else {
+                    replaceFollows(currentBlock,b);
+                }
+
+            } else {
+                T b = breakBlocks.get(names.empty);
+                if (b == null) {
+                    log.error(that.pos(),"jml.internal","Corresponding break target is not found");
+                } else {
+                    replaceFollows(currentBlock,b);
+                }
+            }
+        }
+        if (!remainingStatements.isEmpty()) {
+            log.warning(remainingStatements.get(0).pos(),"jml.internal.notsobad","Statements after a break statement are unreachable and are ignored");
         }
     }
     
     // FIXME - review with loops
     public void visitContinue(JCContinue that) {
         currentBlock.statements.add(comment(that));
-        if (that.label == null) {
+        if (loopStack.isEmpty()) {
+            log.error(that.pos(),"jml.internal","Empty loop stack for continue statement");
+        } else if (that.label == null) {
             JCTree t = loopStack.get(0);
             String blockName = blockName(t.pos,LOOPCONTINUE);
             T b = blockLookup.get(blockName);
             if (b == null) log.noticeWriter.println("NO CONTINUE BLOCK: " + blockName);
             else replaceFollows(currentBlock,b);
         } else {
-            log.warning("esc.not.implemented","continue statements with labels in Ter");
+            log.warning("esc.not.implemented","continue statements with labels in BasicBlockerParent");
         }
+        if (!remainingStatements.isEmpty()) {
+            log.warning(remainingStatements.get(0).pos(),"jml.internal/notsobad","Statements after a break statement are unreachable and are ignored");
+        }
+
     }
     
     // OK - presumes that the program has already been modified to record
@@ -1073,7 +1111,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         }
         
         // FIXME - not sure why these statements are here
-        T b = newBlockWithRest(blockName(that.pos,RETURN),that.pos);
+        T b = newBlockWithRest(RETURN,that.pos);
         follows(currentBlock,b);
         completed(currentBlock);
         startBlock(b);
@@ -1203,7 +1241,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         // Now create an (unprocessed) block for everything that follows the
         // loop statement
         T brest = newBlockWithRest(LOOPAFTER,pos);// it gets all the followers and statements of the current block
-
+        T previousBreakBlock = breakBlocks.put(names.empty, brest);
+        
         // Finish out the current block with the loop initialization
         if (init != null) remainingStatements.addAll(init);
         processBlockStatements(false);
@@ -1240,6 +1279,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         processBlock(bloopBreak);
         loopStack.remove(0);
         breakStack.remove(0);
+        breakBlocks.put(names.empty, previousBreakBlock);
+        
         processBlock(brest);
         
     }
@@ -1367,24 +1408,29 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         // Create an (unprocessed) block for everything that follows the
         // loop statement
         T brest = newBlockWithRest(LOOPAFTERDO,pos);// it gets all the followers of the current block
+        T previousBreakBlock = breakBlocks.put(names.empty, bloopBreak);
         
-        // do the loop body
-        remainingStatements.add(that.body);
-        processBlockStatements(true);
-        
-        follows(bloopStart,bloopContinue);
-        follows(bloopContinue,bloopEnd);
-        follows(bloopEnd,bloopBreak);
-        follows(bloopBreak,brest);
-        
-        processBlock(bloopContinue);
+        try {
+            // do the loop body
+            remainingStatements.add(that.body);
+            processBlockStatements(true);
+
+            follows(bloopStart,bloopContinue);
+            follows(bloopContinue,bloopEnd); // FIXME - really?
+            follows(bloopEnd,bloopBreak);
+            follows(bloopBreak,brest);
+
+            processBlock(bloopContinue);
+
+        } finally {
+            currentBlock = null;
+            loopStack.remove(0);
+            breakStack.remove(0);
+            breakBlocks.put(names.empty,previousBreakBlock);
+        }
         processBlock(bloopEnd);
         processBlock(bloopBreak);
         processBlock(brest);
-
-        currentBlock = null;
-        loopStack.remove(0);
-        breakStack.remove(0);
     }
 
     @Override
@@ -1420,15 +1466,25 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     @Override
     public void visitBlock(JCBlock that) {
         List<JCStatement> s = that.getStatements();
-        if (s != null) remainingStatements.addAll(0,s);
+        if (s != null) {
+            remainingStatements.addAll(0,s);
+            processBlockStatements(false); // FIXME - this should not be needed now that visitLabelled is fixed
+        }
     }
     
     // OK
-    // FIXME - the label needs to be able to be the target of break & continue statements
     @Override
     public void visitLabelled(JCLabeledStatement that) {
-        // FIXME - save the label?
-        that.getStatement().accept(this);
+        T nextBlock = newBlockWithRest(AFTERLABEL,that.pos);
+        follows(currentBlock,nextBlock);
+        breakBlocks.put(that.label, nextBlock);
+        try {
+            remainingStatements.add(that.getStatement());
+            processBlockStatements(true);
+        } finally {
+            breakBlocks.remove(that.label);
+        }
+        processBlock(nextBlock);
     }
 
     @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
@@ -1553,7 +1609,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     }
     
 
-    // FIXME -  VarDef
     // FIXME _ what about the BB nodes
 
     
@@ -1562,42 +1617,40 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     // translated into asserts and assume statements, or into uninterpreted
     // functions.
     
-    // Adds specs to a Java Variable Declaration
-    // FIXME - delegate to visitVarDef?
-    // FIXME - use a constructed name?
-    @Override public void visitJmlVariableDecl(JmlVariableDecl that) { notImpl(that); }
-    
+    // Needs implementation in derived classes
+    @Override public void visitJmlMethodInvocation(JmlMethodInvocation that)    { notImpl(that); }
+    @Override public void visitJmlVariableDecl(JmlVariableDecl that)            { notImpl(that); }
+    @Override public void visitJmlSingleton(JmlSingleton that)                  { notImpl(that); }
 
-    @Override public void visitJmlBinary(JmlBinary that)           { shouldNotBeCalled(that); }
-    @Override public void visitJmlChoose(JmlChoose that)                     { shouldNotBeCalled(that); }
-    @Override public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that)                     { shouldNotBeCalled(that); }
-    @Override public void visitJmlGroupName(JmlGroupName that)               { shouldNotBeCalled(that); }
-    @Override public void visitJmlLblExpression(JmlLblExpression that) { shouldNotBeCalled(that); }    
-    @Override public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that)                     { shouldNotBeCalled(that); }
+    @Override public void visitJmlBinary(JmlBinary that)                        { shouldNotBeCalled(that); }
+    @Override public void visitJmlChoose(JmlChoose that)                        { shouldNotBeCalled(that); }
+    @Override public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlGroupName(JmlGroupName that)                  { shouldNotBeCalled(that); }
+    @Override public void visitJmlLblExpression(JmlLblExpression that)          { shouldNotBeCalled(that); }    
+    @Override public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that)    { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that)    { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlMethodSpecs(JmlMethodSpecs that)           { shouldNotBeCalled(that); }
-    @Override public void visitJmlModelProgramStatement(JmlModelProgramStatement that)                     { shouldNotBeCalled(that); }
-    @Override public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that){ shouldNotBeCalled(that); }
-    @Override public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlSetComprehension(JmlSetComprehension that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlSingleton(JmlSingleton that) { notImpl(that); }
-    @Override public void visitJmlSpecificationCase(JmlSpecificationCase that){ shouldNotBeCalled(that); }
-    @Override public void visitJmlStatement(JmlStatement that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlStatementDecls(JmlStatementDecls that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlStatementLoop(JmlStatementLoop that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodSpecs(JmlMethodSpecs that)              { shouldNotBeCalled(that); }
+    @Override public void visitJmlModelProgramStatement(JmlModelProgramStatement that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that)  { shouldNotBeCalled(that); }
+    @Override public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that)        { shouldNotBeCalled(that); }
+    @Override public void visitJmlSetComprehension(JmlSetComprehension that)    { shouldNotBeCalled(that); }
+    @Override public void visitJmlSpecificationCase(JmlSpecificationCase that)  { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatement(JmlStatement that)                  { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementDecls(JmlStatementDecls that)        { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementLoop(JmlStatementLoop that)          { shouldNotBeCalled(that); }
     @Override public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that){ shouldNotBeCalled(that); }
-    @Override public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that)   { shouldNotBeCalled(that); }
+    @Override public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that)      { shouldNotBeCalled(that); }
     @Override public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlTypeClauseIn(JmlTypeClauseIn that)         { shouldNotBeCalled(that); }
-    @Override public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that)     { shouldNotBeCalled(that); }
-    @Override public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that)     { shouldNotBeCalled(that); }
-    @Override public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that)     { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseIn(JmlTypeClauseIn that)            { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that)        { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that)        { shouldNotBeCalled(that); }
+    @Override public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that)        { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) { shouldNotBeCalled(that); }
@@ -1605,26 +1658,17 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     @Override public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) { shouldNotBeCalled(that); }
 
     // These do not need to be implemented
-    @Override public void visitJmlCompilationUnit(JmlCompilationUnit that)   { shouldNotBeCalled(that); }
-    @Override public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
-    @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
-    @Override public void visitJmlStatementSpec(JmlStatementSpec that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlCompilationUnit(JmlCompilationUnit that)      { shouldNotBeCalled(that); }
+    @Override public void visitJmlImport(JmlImport that)                        { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodDecl(JmlMethodDecl that)                { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementSpec(JmlStatementSpec that)          { shouldNotBeCalled(that); }
 
-    // Needs implementation in derived classes
-    @Override public void visitJmlMethodInvocation(JmlMethodInvocation that) { notImpl(that); }
 
     
-    /** This is a stack of loops and switch statements - anything that can 
-     * contain a break statement
-     */
-    protected java.util.List<JCTree> breakStack = new java.util.LinkedList<JCTree>();
-    
-
     /** This method is not called for top-level classes, since the BasicBlocker
      *  is invoked directly for each method.
      */
     // FIXME - what about for anonymous classes or local classes or nested classes
-    // FIXME - review this, and compare to the above
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
         // Nested classes are found in JmlEsc.  We get to this point if there is a local
@@ -1644,7 +1688,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     // OK
     @Override
     public void visitJmlStatementHavoc(JmlStatementHavoc that) { 
-        currentBlock.statements.add(that); // FIXME - are the targets all OK for Boogie?
+        notImpl(that);
     }
     
 

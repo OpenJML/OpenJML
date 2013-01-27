@@ -2503,6 +2503,9 @@ public class JmlTree implements IJmlTree {
         /** A Label that gives detail about the kind of assertion or assumption */
         public Label label;
         
+        /** A String just used to distinguish assertions for reporting purposes */
+        public String id = null;
+        
         /** The file containing the specification (e.g. clause) from which this
          * assertion or assumption arises; if null then is the same as source. 
          * (source and pos are the location in 

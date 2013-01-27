@@ -982,6 +982,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             st.associatedPos = associatedPos == null ? Position.NOPOS : associatedPos.getPreferredPosition();
             st.associatedSource = associatedSource;
             st.optionalExpression = info;
+            st.id = assertID;
             currentStatements.add(st);
             return st;
         } 
@@ -1097,6 +1098,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             st.associatedPos = associatedPosition == null ? Position.NOPOS : associatedPosition.getPreferredPosition();
             st.associatedSource = associatedSource;
             st.optionalExpression = info;
+            st.id = "ASSUME_" + (++assertCount);
             if (currentStatements != null) currentStatements.add(st);
         }
         if (rac && racCheckAssumeStatements) {
@@ -1419,7 +1421,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 ex = convertJML(ex,preident,true);
                                 ex = treeutils.makeImplies(clause.pos, preident, ex);
                                 // FIXME - if the clause is synthetic, the source file may be null, and for signals clause
-                                addAssert(esc ? null :methodDecl.pos(),Label.POSTCONDITION,ex,clause.pos(),clause.sourcefile);
+                                addAssert(methodDecl.pos(),Label.POSTCONDITION,ex,clause.pos(),clause.sourcefile);
                                 addStat(popBlock(0,clause.pos()));
                                 break;
                             }
@@ -1438,7 +1440,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCExpression ex = ((JmlMethodClauseSignals)clause).expression;
                                 ex = convertJML(ex,preident,true);
                                 ex = treeutils.makeImplies(clause.pos, preident, ex);
-                                addAssert(esc ? null :methodDecl.pos(),Label.SIGNALS,ex,clause.pos(),clause.sourcefile);
+                                addAssert(esc ? null : methodDecl.pos(),Label.SIGNALS,ex,clause.pos(),clause.sourcefile);
                                 addStat(popBlock(0,clause.pos()));
                                 break;
                             }
@@ -1457,7 +1459,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     }
                                     //JCExpression name = methodCallUtilsExpression(clause.pos(),"typeName",exceptionId);
                                     condd = treeutils.makeImplies(clause.pos, preident, condd);
-                                    addAssert(esc ? null :methodDecl.pos(),Label.SIGNALS_ONLY,condd,clause.pos(),clause.sourcefile);
+                                    addAssert(esc ? null : methodDecl.pos(),Label.SIGNALS_ONLY,condd,clause.pos(),clause.sourcefile);
                                     addStat(popBlock(0,methodDecl.pos()));
                                 }
                                 break;
@@ -1471,7 +1473,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
                                 ex = convertJML(ex,preident,true);
                                 ex = treeutils.makeImplies(clause.pos, preident, ex);
-                                //addAssert(esc ? null :methodDecl.pos(),Label.SIGNALS,ex,currentStatements,clause.pos(),clause.sourcefile);
+                                //addAssert(methodDecl.pos(),Label.SIGNALS,ex,currentStatements,clause.pos(),clause.sourcefile);
                                 popBlock(0,clause.pos());
                                 notImplemented(clause.pos(),clause.token.internedName() + " clause");
                                 break;
@@ -1486,7 +1488,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCExpression ex = ((JmlMethodClauseConditional)clause).expression;
                                 ex = convertJML(ex,preident,true);
                                 ex = treeutils.makeImplies(clause.pos, preident, ex);
-                                //addAssert(esc ? null :methodDecl.pos(),Label.SIGNALS,ex,currentStatements,clause.pos(),clause.sourcefile);
+                                //addAssert(methodDecl.pos(),Label.SIGNALS,ex,currentStatements,clause.pos(),clause.sourcefile);
                                 popBlock(0,clause.pos());
                                 notImplemented(clause.pos(),clause.token.internedName() + " clause");
                                 break;
@@ -1893,9 +1895,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!pureCopy) addStat(comment(that.pos(),"label:: " + that.label + ": ..."));
         // Note that the labeled statement will turn into a block
         // FIXME - the block may have introduced declarations that are then used after the block? also may not work correctcly for labelled loops
+        JCLabeledStatement stat = M.at(that.pos()).Labelled(that.label, null);
+        treeMap.put(that, stat);
         JCBlock block = convertIntoBlock(that.pos(),that.body);
-        JCLabeledStatement stat = M.at(that.pos()).Labelled(that.label, block);
+        stat.body = block;
         result = addStat(stat);
+        treeMap.remove(that);
     }
 
     //OK
@@ -2934,7 +2939,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     addStat(comment(clause));
                                     pushBlock();
                                     JCExpression e = convertJML(((JmlMethodClauseExpr)clause).expression, condition, true);
-                                    addAssert(that.pos(),Label.POSTCONDITION,e,clause.pos(),clause.sourcefile);
+                                    addAssume(that.pos(),Label.POSTCONDITION,e,clause.pos(),clause.sourcefile);
                                     JCBlock bl = popBlock(0,that.pos());
                                     addStat( wrapRuntimeException(clause.pos(), bl, 
                                             "JML undefined postcondition - exception thrown",
@@ -2972,7 +2977,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     
                                     //JCVariableDecl evar = treeutils.makeVarDef(vd.type, vd.name, decl.sym, tc); // FIXME - needs a unique name
                                     //addStat(evar);
-                                    addAssert(esc ? null :that.pos(),Label.SIGNALS,e,clause.pos(),clause.sourcefile);
+                                    addAssume(esc ? null :that.pos(),Label.SIGNALS,e,clause.pos(),clause.sourcefile);
                                     bl = popBlock(0,that.pos());
                                     JCStatement st = M.at(clause.pos()).If(ex,bl,null);
                                     bl = M.at(clause.pos()).Block(0,List.<JCStatement>of(st));
