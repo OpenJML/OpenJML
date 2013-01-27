@@ -1203,7 +1203,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         // Finished processing all the blocks
         // Make the BasicProgram
         program.startId = startBlock.id;
-        program.blocks.addAll(blocksCompleted);
+        //program.blocks.addAll(blocksCompleted);
         if (assumeCheck != null) booleanAssumeCheck = assumeCheck;
         program.definitions = newdefs;
         program.pdefinitions = newpdefs;
