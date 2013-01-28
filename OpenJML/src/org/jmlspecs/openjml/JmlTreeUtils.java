@@ -148,6 +148,7 @@ public class JmlTreeUtils {
 //    final public Symbol intminusasgSymbol;
 //    final public Symbol intplusasgSymbol;
     final public Symbol inteqSymbol;
+    final public Symbol intneqSymbol;
     final public Symbol intltSymbol;
     final public Symbol intleSymbol;
     final public JCLiteral trueLit;
@@ -206,6 +207,7 @@ public class JmlTreeUtils {
 //        intminusasgSymbol = findOpSymbol("-=",syms.intType);
 //        intplusasgSymbol = findOpSymbol("+=",syms.intType);
         inteqSymbol = findOpSymbol("==",syms.intType);
+        intneqSymbol = findOpSymbol("!=",syms.intType);
         intltSymbol = findOpSymbol("<",syms.intType);
         intleSymbol = findOpSymbol("<=",syms.intType);
         trueLit = makeLit(0,syms.booleanType,1);

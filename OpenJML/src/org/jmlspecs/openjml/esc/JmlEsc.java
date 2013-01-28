@@ -435,7 +435,7 @@ public class JmlEsc extends JmlTreeScanner {
                 JmlStatementExpr assertStat = program.assertMap.get(id);
                 Label label = Label.find(reason);
                 // FIXME - defensive chjeck assertStat not null
-                kk = out.indexOf(BasicBlockerParent.RETURN); // FIXME - use defined String
+                kk = out.lastIndexOf(BasicBlockerParent.RETURN);
                 if (kk >= 0) {
                     kkk = out.lastIndexOf(BasicBlockerParent.blockPrefix,kk) + BasicBlockerParent.blockPrefix.length();
                     try {
@@ -755,7 +755,7 @@ public class JmlEsc extends JmlTreeScanner {
                 terminationPos = stat.pos;
             }
         }
-        for (BasicBlock b: block.followers) {
+        for (BasicBlock b: block.followers()) {
             value = reportInvalidAssertion(b,smt,solver,decl);
             if (value) return true;
         }

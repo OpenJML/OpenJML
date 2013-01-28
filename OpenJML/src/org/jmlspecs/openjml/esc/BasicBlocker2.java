@@ -314,8 +314,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** A variable name used in checking assumptions */
     public static final String ASSUME_CHECK_COUNT = "__assumeCheckCount";
     
-    /** The prefix for names of switch expressions */
-    public static final String SWITCH_EXPR_PREFIX = "__switch_expression__";
+//    /** The prefix for names of switch expressions */
+//    public static final String SWITCH_EXPR_PREFIX = "__switch_expression__";
     
     /** Name of length field */
     public static final String LENGTH = "length";
@@ -499,10 +499,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     // FIXME - document the following; check when initialized
     // FIXME - exceptionVar and terminationVar are no longer needed I think
-    protected JCIdent exceptionVar = null;
-    protected JCIdent heapVar;
-    protected JCIdent terminationVar;  // 0=no termination requested; 1=return executed; 2 = exception happening
     
+    protected JCIdent heapVar;
     protected JCIdent assumeCheckCountVar; // FIXME - initialized?
     protected int assumeCheckCount;  // FIXME - initialized?
     
@@ -1095,12 +1093,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @param b the completed block
      */
     @Override
-    protected boolean completed(@NonNull BasicBlock b) {
-        if (super.completed(b)) return true;
+    protected void completeBlock(@NonNull BasicBlock b) {
+//        if (super.completed(b)) return true;
+        super.completeBlock(b);
         blockmaps.put(b,currentMap);
         currentMap = null; // Defensive - so no inadvertent assignments
         //log.noticeWriter.println("Completed block " + b.id);
-        return false;
+//        return false;
     }
     
     /** Converts the top-level block of a method into the elements of a BasicProgram 
@@ -1112,7 +1111,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      */
     protected @NonNull BasicProgram convertMethodBody(JCBlock block, @NonNull JCMethodDecl methodDecl, 
             JmlMethodSpecs denestedSpecs, @NonNull JCClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
-        initialize(methodDecl,classDecl);
+        initialize(methodDecl,classDecl,assertionAdder);
         this.isDefined.clear();
         unique = 0;
 //        inSpecExpression = false;
@@ -1132,9 +1131,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         blockmaps.clear();
         labelmaps.clear();
         
-        terminationSym = (VarSymbol)assertionAdder.terminationSymbols.get(methodDecl);
-        terminationVar = newAuxIdent(terminationSym,0);
-        exceptionVar = treeutils.makeIdent(Position.NOPOS,assertionAdder.exceptionSymbols.get(methodDecl)); // newAuxIdent(EXCEPTION,syms.exceptionType,0,true);
+//        terminationVar = newAuxIdent(terminationSym,0);
+//        exceptionVar = treeutils.makeIdent(Position.NOPOS,assertionAdder.exceptionSymbols.get(methodDecl)); // newAuxIdent(EXCEPTION,syms.exceptionType,0,true);
         heapVar = newAuxIdent(HEAP_VAR,syms.intType,0,true); // FIXME - would this be better as its own uninterpreted type?
         assumeCheckCountVar = newAuxIdent(ASSUME_CHECK_COUNT,syms.intType,0,false);
         assumeCheckCount = 0;
@@ -1196,7 +1194,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //            }
 //        }
 
-        completed(currentBlock);
+        completeBlock(currentBlock);
 
         processBlock(bodyBlock);
         
@@ -1467,24 +1465,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //            JCExpression eq = (treeutils.makeEquality(pos,newId,baseId));
 //            addAssume(pos,Label.SYN,eq,b.statements);
 //        }
-//    }
-    
-//    /** This generates a comment statement (not added to any statement list) whose content is the
-//     * given String.
-//     */
-//    public JmlStatementExpr comment(int pos, String s) {
-//        return factory.at(pos).JmlExpressionStatement(JmlToken.COMMENT,null,factory.Literal(s));
-//    }
-//    
-//    public JmlStatementExpr comment(DiagnosticPosition pos, String s) {
-//        return factory.at(pos).JmlExpressionStatement(JmlToken.COMMENT,null,factory.Literal(s));
-//    }
-//    
-//    /** This generates a comment statement (not in any statement list) whose content is the
-//     * given JCTree, pretty-printed.
-//     */
-//    public JmlStatementExpr comment(JCTree t) {
-//        return comment(t.pos(),JmlPretty.write(t,false));
 //    }
     
     /** Returns the initial VarMap of the given block; the returned map is a combination

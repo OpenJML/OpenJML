@@ -64,11 +64,6 @@ public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>
         return new BoogieBlock(id); 
     }
         
-    /** A list of (global) variable declarations; that is - variables that are used in
-     * more than one block. They may or may not have an initial value.
-     */
-    protected List<JCIdent> declarations = new ArrayList<JCIdent>();
-    
     /** A list of background assertions that are needed to support the functions
      * and constants used in the program.
      */

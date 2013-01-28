@@ -95,11 +95,6 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
         }
     }
     
-    /** A list of (global) variable declarations; that is - variables that are used in
-     * more than one block. They may or may not have an initial value.
-     */
-    protected List<JCIdent> declarations = new ArrayList<JCIdent>();
-
     /** A list of logical assertions (e.g. equalities that are definitions)
      *  used in the block equations but are not block equations themselves.
      */
