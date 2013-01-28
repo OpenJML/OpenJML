@@ -550,8 +550,9 @@ public class SMTTranslator extends JmlTreeScanner {
 
     @Override
     public void visitTypeTest(JCInstanceOf tree) {
-        notImpl(tree); // TODO
-        super.visitTypeTest(tree);
+//        notImpl(tree); // TODO
+//        super.visitTypeTest(tree);
+        result = F.symbol("true");
     }
 
     @Override

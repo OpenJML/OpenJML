@@ -5,12 +5,9 @@
 package org.jmlspecs.openjml.esc;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
@@ -19,10 +16,11 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
 
 import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
+
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.ListBuffer;
@@ -45,52 +43,16 @@ import com.sun.tools.javac.util.Position;
  * <P>
  * Expression ASTs are used as is (without copying), so there may be some
  * structure sharing in the resulting basic block program.
+ * <P>
+ * The class expects a new object to be instantiated for each method to be
+ * converted to a Basic Block program, including for methods in local
+ * and anonymous classes.
  * 
  * @typeparam T basic block type
  * @typeparam P basic block program type
  * @author David Cok
  */
 abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends BasicProgramParent<T>> extends JmlTreeScanner {
-
-    // FIXME - can this stuff be common?
-    /////// To have a unique BasicBlocker instance for each method translated
-    // In the initialization of tools, call  BasicBlocker.Factory.preRegister(context);
-    // Obtain a new BasicBlocker when desired with  context.get(BasicBlocker.class);
-        
-//    /** Register a Ter Factory, if nothing is registered yet */
-//    public static void preRegister(final Context context) {
-//        //if (context.get(key) != null) return;
-//        context.put(key, new Context.Factory<BasicBlocker>() {
-//            @Override
-//            public BasicBlocker make(Context context) {
-//                return new BasicBlocker(context);
-//            }
-//        });
-//    }
-//    
-//    final public static Context.Key<BasicBlocker> key =
-//        new Context.Key<BasicBlocker>();
-    
-    /////// To have one BasicBlocker instance per context use this method without the pre-registration
-    // Don't need pre-registration since we are not replacing any tool and not using a factory
-    // To obtain a reference to the instance of BasicBlocker for the current context
-    //                                 BasicBlocker.instance(context);
-    
-//    /** Get the instance for this context. 
-//     * 
-//     * @param context the compilation context
-//     * @return a (unique for the context) Ter instance
-//     */
-//    public static BasicBlocker instance(@NonNull Context context) {
-//        BasicBlocker instance = context.get(key);
-//        // This is lazily initialized so that a derived class can preRegister to
-//        // replace this Ter
-//        if (instance == null) {
-//            instance = new BasicBlocker(context);
-//        }
-//        return instance;
-//    }
-    
 
     // THE FOLLOWING ARE ALL FIXED STRINGS
     
@@ -151,11 +113,17 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     /** Suffix for the name of a basic block after a throw statement */
     public static final String THROW = "_throw";
     
-    // FIXME - use this or not?
-    /** Prefix for branch condition variables */
-    public static final String BRANCHCONDITION_PREFIX = "branchCondition_";
+    /** Suffix for the name of a basic block for the body of a switch case */
+    public static final String CASEBODY = "_caseBody_";
     
-
+    /** Suffix for the name of a basic block for the case expression test */
+    public static final String CASETEST = "_caseTest";
+    
+    /** Suffix for the name of a basic block for the switch default case */
+    public static final String CASEDEFAULT = "_switchDefault";
+    
+    /** Part of the name for switch expressions */
+    public static final String SWITCHEXPR = "_switchExpression_";
     
     // THE FOLLOWING FIELDS ARE EXPECTED TO BE CONSTANT FOR THE LIFE OF THE OBJECT
     // They are either initialized in the constructor or initialized on first use
@@ -183,12 +151,25 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     /** The factory used to create AST nodes, initialized in the constructor */
     @NonNull final protected JmlTree.Maker M;
 
+    // The following fields depend on the method being converted but
+    // are otherwise fixed for the life of the object
+
+    /** The declaration of the method under conversion */
+    protected JmlMethodDecl methodDecl;
+    
+    /** True if the method being converted is a constructor */
+    protected boolean isConstructor;
+    
+    /** True if the method being converted is static */
+    protected boolean isStatic;
+    
+    /** The program being constructed */
+    protected P program = null;
+    
+
     // THE FOLLOWING FIELDS ARE USED IN THE COURSE OF DOING THE WORK OF CONVERTING
     // TO BASIC BLOCKS.  They are fields of the class because they need to be
     // shared across the visitor methods.
-    
-    /** List of blocks completed processing - in basic block state */
-    protected java.util.List<T> blocksCompleted;
     
     /** A map of names to blocks */
     protected java.util.Map<String,T> blockLookup;
@@ -199,24 +180,15 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     /** Ordered list of statements from the current block that are yet to be processed into basic program form */
     protected List<JCStatement> remainingStatements;
     
-    /** The program being constructed */
-    protected P program = null;
-    
-    // Characteristics of the method under study
-    // FIXME - what about methods in anonymous classes - do we have to be reentrant?
-    
-    /** The declaration of the method under conversion */
-    protected JmlMethodDecl methodDecl;
-    
-    /** True if the method being converted is a constructor */
-    protected boolean isConstructor;
-    
-    /** True if the method being converted is static */
-    protected boolean isStatic;
-    
     /** A counter used to make sure that block names are unique */
     protected int blockCount = 0;
     
+    protected VarSymbol terminationSym;
+    protected VarSymbol exceptionSym;
+
+//    protected JCIdent exceptionVar = null;
+//    protected JCIdent terminationVar;  // 0=no termination requested; 1=return executed; 2 = exception happening
+
     // FIXME - do we need this?
     /** Holds the result of any of the visit methods that produce JCExpressions, since the visitor
      * template used here does not have a return value.  [We could have used the templated visitor,
@@ -225,45 +197,29 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      */
     protected JCExpression result;
     
-    /** The jfoMap and jfoArray keep track of a mapping between JavaFileObjects and
-     * unique Integers. When position information in an encoded identifier refers to 
-     * a file that is not the file containing the implementation of the method being
-     * translated and verified, then we have to indicate which file contains the source
-     * for the position reference. This indication is an @ followed by an integer included in the identifier,
-     * where the integer is a unique positive integer associated with the file. Since
-     * these mappings are static, the associations remain constant across different methods
-     * and different compilation contexts.
-     * <BR>
-     * jfoMap is a mapping from JavaFileObject to Integer
-     */
-    // FIXME - should reconsider whether these mappings should be static
-    static Map<JavaFileObject,Integer> jfoMap = new HashMap<JavaFileObject,Integer>();
 
-    /** Maps integers to JavaFileObject, the reverse of the mapping in jfoMap */
-    static ArrayList<JavaFileObject> jfoArray = new ArrayList<JavaFileObject>();
-    static {
-        jfoArray.add(0,null);
+    /** The constructor, but use the instance() method to get a new instance,
+     * in order to support extension.  This constructor should only be
+     * invoked by a derived class constructor.
+     * @param context the compilation context
+     */
+    protected BasicBlockerParent(@NonNull Context context) {
+        this.context = context;
+        this.log = Log.instance(context);
+        this.M = JmlTree.Maker.instance(context);
+        this.names = Names.instance(context);
+        this.syms = Symtab.instance(context);
+        this.specs = JmlSpecs.instance(context);
+        this.treeutils = JmlTreeUtils.instance(context);
+        this.scanMode = AST_JAVA_MODE;
     }
     
-    /** Returns the int associated with a file, creating it if necessary */
-    // FIXME - check what equals and hashmap are being used.
-    public static int getIntForFile(JavaFileObject jfo) {
-        Integer i = jfoMap.get(jfo);
-        int k;
-        if (i == null) {
-            k = jfoArray.size();
-            jfoArray.add(k,jfo);
-            jfoMap.put(jfo,k);
-        } else {
-            k = i;
-        }
-        return k;
-    }
+    /** Instantiated by derived classes to create a new (empty) basic block program */
+    abstract public P newProgram(Context context);
     
-    /** Returns the file associated with an int */
-    public static JavaFileObject getFileForInt(int i) {
-        return jfoArray.get(i);
-    }
+    /** Creates a new block of the appropriate type.
+     */
+    abstract public T newBlock(JCIdent id);
     
     /** Creates a block name - note that this format is presumed when 
      * proof failures are being traced and understood.
@@ -274,31 +230,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     public String blockName(int pos, String kind) {
         return blockPrefix + pos + kind;
     }
-    
-    /** The constructor, but use the instance() method to get a new instance,
-     * in order to support extension.  This constructor should only be
-     * invoked by a derived class constructor.
-     * @param context the compilation context
-     */
-    protected BasicBlockerParent(@NonNull Context context) {
-//        context.put(key, this);
-        this.context = context;
-        this.log = Log.instance(context);
-        this.M = JmlTree.Maker.instance(context);
-        this.names = Names.instance(context);
-        this.syms = Symtab.instance(context);
-        this.specs = JmlSpecs.instance(context);
-        this.treeutils = JmlTreeUtils.instance(context);
-        this.scanMode = AST_JAVA_MODE;
-        
-    }
-    
-    /** Instantiated by derived classes to create a new (empty) basic block program */
-    abstract public P newProgram(Context context);
-    
-    /** Creates a new block of the appropriate type.
-     */
-    abstract public T newBlock(JCIdent id);
     
     /** Creates a new block of the appropriate type; 
      * the 'previousBlock' gives up its followers to the newly created block. 
@@ -317,7 +248,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     
     
     
-    // METHODS
+    // UTILITY METHODS
 
 
     /** Should not need this when everything is implemented */
@@ -332,17 +263,63 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         throw new JmlInternalError();
     }
     
-    // FIXME - use treeutils?
-    /** Creates a translated expression whose value is the given type;
-     * the result is a JML type, e.g. a representation of an instantiated generic.*/
-    protected JCExpression makeTypeLiteral(Type type, int pos) {
-        return treeutils.trType(pos,type);
+
+    // GENERAL AND HELPER METHODS FOR PROCESSING BLOCKS
+    
+    /** Does the conversion of a block with Java statements into basic program
+     * form. Newly created blocks should be processed by recursive calls
+     * to this method. This method operates by calling startBlock to 
+     * initialize block processing (which also sets the value of currentBlock
+     * and puts all statements from the currentBlock on the remainingStatements
+     * list), then calling processCurrentBlock() to process everything on
+     * remainingStatements; processCurrentBlock() also calls completeBlock() to 
+     * wrap up any processing on the block.
+     * 
+     * @param block the block to process
+     */
+    protected void processBlock(@NonNull T block) {
+        if (block.preceders().isEmpty()) {
+            // Delete any blocks that do not follow anything
+            // This can happen for example if the block is an afterIf block
+            // and both the then branch and the else branch terminate with
+            // a return or throw statement. If the block does contain some
+            // statement then those will never be executed. They should 
+            // have been warned about by the compiler. Here we will 
+            // log a warning, ignore the block, and continue processing.
+            // Note that the block will still have an id and be in the 
+            // id map (blockLookup).
+            if (!block.statements.isEmpty()) {
+                log.warning("jml.internal","A basic block has no predecessors - ignoring it: " + block.id);
+            }
+            program.blocks.remove(block);
+            for (T b: block.followers()) {
+                b.preceders().remove(block);
+            }
+            return;
+        }
+        if (!program.blocks.contains(block)) {
+            startBlock(block);
+            processCurrentBlock();
+        } else {
+            log.warning("jml.internal","Basic block " + block.id + " is being processed another time");
+        }
     }
     
-    
+    /** Finishes processing statements on the remainingStatements list;
+     * call this to complete processing the currentBlock once processing
+     * has been started (e.g., when new statements have been added to the
+     * remainingStatements list).
+     */
+    protected void processCurrentBlock() {
+        while (!remainingStatements.isEmpty()) {
+            JCStatement s = remainingStatements.remove(0);
+            if (s != null) s.accept(this);  // A defensive check - statements in the list should not be null
+        }
+        completeBlock(currentBlock);
+    }
     
 
-    /** Start the processing of the given block:
+    /** Initialize the processing of the given block:
      * <UL>
      * <LI> checks that any preceding blocks are already processed (if not, something has gone wrong)
      * <LI> does special processing for finally and lop-after blocks
@@ -357,7 +334,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         // This is defensive programming and should not actually be needed
         //log.noticeWriter.println("Checking block " + b.id());
         loop: while (true) {
-            for (T pb: b.preceders) {
+            for (T pb: b.preceders()) {
                 //log.noticeWriter.println("   " + b.id() + " follows " + pb.id());
                 if (!program.blocks.contains(pb)) {
                     log.noticeWriter.println("Internal Error: block " + pb.id.name + " precedes block " + b.id.name + " , but was not processed before it");
@@ -378,21 +355,19 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      * @param b the new currentBlock
      */
     protected void setCurrentBlock(T b) {
+        if (currentBlock != null) {
+            log.warning("jml.internal.notsobad","Starting block " + b.id + " when " + currentBlock.id + " is not completed");
+        }
         currentBlock = b;
         remainingStatements = currentBlock.statements;
         currentBlock.statements = new ArrayList<JCStatement>();
     }
     
-    /** Files away a completed block, adding it to the blocksCompleted list and
-     * to the lookup Map; returns true if the block was already completed or is null.
+    /** Allows derived classes to do any cleanup activity.
      * @param b the completed block
      */
-    protected boolean completed(@NonNull T b) {
-        if (b == null) return true;
-        if (blocksCompleted.contains(b)) return true; // Already completed - if a block's processing is ended early, it will have already been marked completed
-        blocksCompleted.add(b);
-        //log.noticeWriter.println("Completed block " + b.id);
-        return false;
+    protected void completeBlock(@NonNull T b) {
+        currentBlock = null;
     }
     
     /** Updates the data structures to indicate that the after block follows the
@@ -401,8 +376,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      * @param after block that follows before
      */
     protected void follows(@NonNull T before, @NonNull T after) {
-        before.followers.add(after);
-        after.preceders.add(before);
+        before.followers().add(after);
+        after.preceders().add(before);
     }
     
     /** Updates the data structures to indicate that all the after blocks follow the
@@ -412,8 +387,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      */
     protected void follows(@NonNull T before, @NonNull List<T> after) {
         for (T b: after) {
-            before.followers.add(b);
-            b.preceders.add(before);
+            before.followers().add(b);
+            b.preceders().add(before);
         }
     }
     
@@ -423,10 +398,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      * @param after new following block
      */
     protected void replaceFollows(@NonNull T before, @NonNull T after) {
-        for (T b: before.followers) {
-            b.preceders.remove(before);
+        for (T b: before.followers()) {
+            b.preceders().remove(before);
         }
-        before.followers.clear();
+        before.followers().clear();
         follows(before,after);
     }
     
@@ -436,10 +411,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      * @param after
      */
     protected void replaceFollows(@NonNull T before, @NonNull List<T> after) {
-        for (T b: before.followers) {
-            b.preceders.remove(before);
+        for (T b: before.followers()) {
+            b.preceders().remove(before);
         }
-        before.followers.clear();
+        before.followers().clear();
         for (T b: after) {
             follows(before,b);
         }
@@ -454,6 +429,11 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      */
     protected @NonNull T newBlock(@NonNull String key, int pos) {
         String name = blockName(pos,key);
+        // The block count is appended to be sure that the id is unique. Blocks
+        // can originate from the same DiagnosticPosition and so the pos and key
+        // are not always enough to distinguish them. So the pos and the key
+        // are not entirely necessary, but they do serve some documentation 
+        // function.
         JCIdent id = treeutils.makeIdent(pos,name + "_" + (++blockCount),syms.booleanType);
         T bb = newBlock(id);
         blockLookup.put(id.name.toString(),bb);
@@ -472,6 +452,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      */
     protected @NonNull T newBlock(@NonNull String key, int pos, @NonNull T previousBlock) {
         String name = blockName(pos,key);
+        // See the comment in the newBlock(...) method above
         JCIdent id = treeutils.makeIdent(pos,name + "_" + (++blockCount),syms.booleanType);
         T bb = newBlock(id,previousBlock);
         blockLookup.put(id.name.toString(), bb);
@@ -496,70 +477,25 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         return b;
     }
     
-    /** A helper initialization routine for derived classes, to be called at
+    /** A helper initialization routine for derived classes, called internally at
      * the start of converting a method body
      */
     protected @NonNull void initialize(@NonNull JCMethodDecl methodDecl, 
-           @NonNull JCClassDecl classDecl) {
+           @NonNull JCClassDecl classDecl, JmlAssertionAdder assertionAdder) {
         this.methodDecl = (JmlMethodDecl)methodDecl;
-        program = newProgram(context);
-        program.methodDecl = methodDecl;
-        isConstructor = methodDecl.sym.isConstructor();  // FIXME - careful if there is nesting???
-        isStatic = methodDecl.sym.isStatic();
+        this.program = newProgram(context);
+        this.program.methodDecl = methodDecl;
+        this.isConstructor = methodDecl.sym.isConstructor();
+        this.isStatic = methodDecl.sym.isStatic();
         if (classDecl.sym == null) {
             log.error("jml.internal","The class declaration in convertMethodBody appears not to be typechecked");
-            return;
         }
-        blocksCompleted = new ArrayList<T>();
-        blockLookup = new java.util.HashMap<String,T>();
+        this.blockLookup = new java.util.HashMap<String,T>();
+        this.terminationSym = (VarSymbol)assertionAdder.terminationSymbols.get(methodDecl);
+        this.exceptionSym = (VarSymbol)assertionAdder.exceptionSymbols.get(methodDecl);
+
     }
 
-    
-    /** Does the conversion of a block with Java statements into basic program
-     * form, possibly creating new blocks on the todo list
-     * @param block the block to process
-     */
-    protected void processBlock(@NonNull T block) {
-        if (block.preceders.isEmpty()) {
-            // Delete any blocks that do not follow anything
-            // This can happen for example if the block is an afterIf block
-            // and both the then branch and the else branch terminate with
-            // a return or throw statement. If the block does contain some
-            // statement then those will never be executed. They should 
-            // have been warned about by the compiler. Here we will 
-            // log a warning, ignore the block, and continue processing.
-            // Note that the block will still have an id and be in the 
-            // id map.
-            if (!block.statements.isEmpty()) {
-                log.warning("jml.internal","A basic block has no predecessors - ignoring it: " + block.id);
-            }
-            for (T b: block.followers) {
-                b.preceders.remove(block);
-            }
-            return;// Don't add it to the completed blocks
-        }
-        if (!program.blocks.contains(block)) {
-            startBlock(block);
-            processBlockStatements(true);
-        } else {
-            log.warning("jml.internal","Basic block " + block.id + " is being processed another time");
-        }
-    }
-    
-    /** Iterates through the statements on the remainingStatements list, processing them
-     * 
-     * @param complete call 'completed' on the currentBlock, if true
-     */
-    protected void processBlockStatements(boolean complete) {
-        while (!remainingStatements.isEmpty()) {
-            JCStatement s = remainingStatements.remove(0);
-            if (s != null) s.accept(this);  // A defensive check - statements in the list should not be null
-        }
-        if (complete) completed(currentBlock);
-    }
-    
-    
-    
     /** Associates end position information with newnode, taking the information
      * from srcnode; the information is stored in the end-position table that
      * is part of log.currentSource(). No action happens if either argument is null.
@@ -571,22 +507,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             if (end != Position.NOPOS) z.put(newnode, end);
         }
     }
+    
 
+    // METHODS TO ADD ASSUME AND ASSERT STATEMENTS
     
-    
-//    // FIXME - REVIEW and document
-//    /** Adds a new assume statement to the end of the currentBlock; the assume statement is
-//     * given the declaration pos and label from the arguments; it is presumed the input expression is
-//     * translated, as is the produced assume statement.
-//     * @param pos the declaration position of the assumption
-//     * @param label the kind of assumption
-//     * @param that the (translated) expression being assumed
-//     */
-//    protected void addAssume(int pos, Label label, JCExpression that) {
-//        addAssume(pos,label,that,currentBlock.statements);
-//    }
-    
-    // FIXME - REVIEW and document
     /** Adds a new assume statement to the end of the given statements list; the assume statement is
      * given the declaration pos and label from the arguments; it is presumed the input expression is
      * translated, as is the produced assume statement.
@@ -597,10 +521,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      */
     protected JmlStatementExpr addAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
         JmlStatementExpr st;
-//        if (useAssumeDefinitions) {
+//        if (useAssumeDefinitions) { // FIXME - decide what to do about implementing assume definitions
 //            JCIdent id = factory.Ident(names.fromString(ASSUMPTION_PREFIX+(unique++)));
 //            id.type = syms.booleanType;
-//            newdefs.add(new BasicProgram.Definition(that.pos,id,that)); // FIXME- end position?
+//            newdefs.add(new BasicProgram.Definition(that.pos,id,that));
 //            st = factory.JmlExpressionStatement(JmlToken.ASSUME,label,id);
 //        } else {
             st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
@@ -635,37 +559,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         statements.add(st);
         return st;
     }
-    
-//    // FIXME - REVIEW and document
-//    /** Adds a new UNTRANSLATED assume statement to the end of the given statements list; the statements list
-//     * should be a list of statements that will be processed (and translated) at some later time;
-//     * the assume statement is
-//     * given the declaration pos and label from the arguments; it is presumed the input expression is
-//     * untranslated, as is the produced assume statement.
-//     * @param pos the declaration position of the assumption
-//     * @param label the kind of assumption
-//     * @param that the (untranslated) expression being assumed
-//     * @param statements the list to add the new assume statement to
-//     */
-//    protected JmlStatementExpr addUntranslatedAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
-//        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
-//        st.type = null; // statements do not have a type
-////        copyEndPosition(st,that);
-//        statements.add(st);
-//        return st;
-//    }
-    
-//    // FIXME - REVIEW and document
-//    protected JmlStatementExpr addUntranslatedAssume(int pos, JCTree posend, Label label, JCExpression that, List<JCStatement> statements) {
-//        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
-//        st.type = null; // statements do not have a type
-////        copyEndPosition(st,posend);
-//        statements.add(st);
-//        return st;
-//    }
-    
-    
-    
+        
     /** This generates a comment statement (not added to any statement list) whose content is the
      * given String.
      */
@@ -691,61 +585,9 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         return typeof;
     }
     
-//    // FIXME - review and document
-//    /** Makes a Java this parse tree node (attributed) */
-//    protected JCIdent makeThis(int pos) {
-//        return treeutils.makeIdent(pos,methodDecl._this);
-//    }
-    
-    // FIXME - review and document
-    /** Makes the equivalent of an instanceof operation: \typeof(e) <: \type(type) */
-    protected JCExpression makeNNInstanceof(JCExpression e, int epos, Type type, int typepos) {
-        JCExpression e1 = makeTypeof(e);
-        JCExpression e2 = makeTypeLiteral(type,typepos);
-        //if (inSpecExpression) e2 = trSpecExpr(e2,null);
-        JCExpression ee = treeutils.makeJmlBinary(epos,JmlToken.SUBTYPE_OF,e1,e2);
-        return ee;
-    }
-    
-//    // FIXME - review and document
-//    /** Makes the equivalent of an instanceof operation: e !=null && \typeof(e) <: \type(type) */
-//    protected JCExpression makeInstanceof(JCExpression e, int epos, Type type, int typepos) {
-//        JCExpression e1 = treeutils.makeNeqObject(epos,e,treeutils.nulllit);
-//        JCExpression e2 = treeutils.makeJmlBinary(epos,JmlToken.SUBTYPE_OF,makeTypeof(e),makeTypeLiteral(type,typepos));
-//        //if (inSpecExpression) e2 = trSpecExpr(e2,null);
-//        JCExpression ee = treeutils.makeBinary(epos,JCTree.AND,e1,e2);
-//        return ee;
-//    }
-    
-//    // FIXME - review and document
-//    protected MethodSymbol makeFunction(Name name, Type resultType, Type... argTypes) {
-//        ListBuffer<Type> args = new ListBuffer<Type>().appendArray(argTypes);
-//        MethodType methodType = new MethodType(args.toList(),resultType,com.sun.tools.javac.util.List.<Type>nil(),syms.methodClass);
-//        MethodSymbol meth = new MethodSymbol(Flags.STATIC,name,methodType,null); // no owner
-//        return meth;
-//    }
-    
-//    // FIXME - review and document
-//    protected JCExpression makeFunctionApply(int pos, MethodSymbol meth, JCExpression... args) {
-//        JCIdent methid = M.at(pos).Ident(meth);
-//        JCExpression e = M.at(pos).Apply(null,methid,new ListBuffer<JCExpression>().appendArray(args).toList());
-//        e.type = meth.getReturnType();
-//        return e;
-//    }
-    
-//    // FIXME - review and document
-//    protected JCExpression makeSignalsOnly(JmlMethodClauseSignalsOnly clause) {
-//        JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
-//        JCExpression id = M.at(0).JmlSingleton(JmlToken.BSEXCEPTION);
-//        for (JCExpression typetree: clause.list) {
-//            int pos = typetree.getStartPosition();
-//            e = treeutils.makeBinary(pos, 
-//                    JCTree.OR, makeNNInstanceof(id, pos, typetree.type, pos), e);
-//        }
-//        return e;
-//    }
 
-    // FIXME - review and document
+    // FIXME - is this right and do we need it?
+    /** Retrieve the end position of the given node */
     protected int endPos(JCTree t) {
         if (t instanceof JCBlock) {
             return ((JCBlock)t).endpos;
@@ -762,7 +604,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
 
     // JAVA CONTROL STATEMENT NODES
     
-    // FIXME - update this
     // Translation of a switch statement
     //  switch (swexpr) {
     //       case A:
@@ -802,17 +643,18 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     //     $$BL$<pos>$switchEnd:
     //          ....
     //   
+    // FIXME - need to implement/test for switch expressions that are Strings or Enums
     @Override
     public void visitSwitch(JCSwitch that) { 
         currentBlock.statements.add(comment(that.pos(),"switch ..."));
         int pos = that.pos;
         scan(that.selector);
-        JCExpression switchExpression = (that.selector);
+        JCExpression switchExpression = that.selector;
         int swpos = switchExpression.getStartPosition();
         List<JCCase> cases = that.cases;
         
         // Create the ending block name
-        T brest = null;
+        T blockAfter = null;
         
         try {
             breakStack.add(0,that);
@@ -821,36 +663,35 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             // we can track its value and so the subexpression does not get
             // replicated.  We add an assumption about its value and add it to
             // list of new variables
-            String switchName = ("_switchExpression_" + pos); // FIXME - define string?
- 
+            String switchName = SWITCHEXPR + pos;
             JCIdent vd = treeutils.makeIdent(swpos,switchName,switchExpression.type);
-            if (program instanceof BoogieProgram)
-              ((BoogieProgram)program).declarations.add(vd);   // FIXME
-            else if (program instanceof BasicProgram)
-                ((BasicProgram)program).declarations.add(vd);   // FIXME
+
+            program.declarations.add(vd);
+
             JCExpression newexpr = treeutils.makeBinary(swpos,JCTree.EQ,vd,switchExpression);
             addAssume(swpos,switchExpression,Label.SWITCH_VALUE,newexpr,currentBlock.statements);
             T switchStart = currentBlock;
 
             // Now create an (unprocessed) block for everything that follows the
             // switch statement
-            brest = newBlockWithRest(AFTERSWITCH,pos);// it gets all the followers of the current block
-            breakBlocks.put(names.empty, brest);
+            blockAfter = newBlockWithRest(AFTERSWITCH,pos);// it gets all the followers of the current block
+            breakBlocks.put(names.empty, blockAfter);
             
-            // Now we need to make an unprocessed block for each of the case statements,
-            // adding them to the todo list at the end
+            // Now we need to make a block for each of the case statements,
+            // adding them to the todo list to be processed at the end
             // Note that there might be nesting of other switch statements etc.
             java.util.LinkedList<T> blocks = new java.util.LinkedList<T>();
-            T prev = null;
+            T prevCaseBlock = null;
             JCExpression defaultCond = treeutils.falseLit;
             JmlTree.JmlStatementExpr defaultAsm = null;
+            boolean fallthrough = false; // Nothing to fall through to the first case
             for (JCCase caseStatement: cases) {
                 /*@ nullable */ JCExpression caseValue = caseStatement.getExpression();
                 List<JCStatement> stats = caseStatement.getStatements();
                 int casepos = caseStatement.getStartPosition();
                 
                 // create a block for this case test
-                T blockForTest = newBlock(caseValue == null ? "_default" : "_case" ,
+                T blockForTest = newBlock(caseValue == null ? CASEDEFAULT : CASETEST ,
                         caseValue == null ? casepos: caseStatement.getStartPosition());
                 blocks.add(blockForTest);
                 follows(switchStart,blockForTest);
@@ -863,25 +704,33 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
                 if (caseValue == null) defaultAsm = asm; // remember the assumption for the default case
                 else defaultCond = treeutils.makeOr(caseValue.getStartPosition(),eq,defaultCond);
 
-                // determine whether this case falls through to the next
-                boolean fallthrough = stats.isEmpty() || !(stats.get(stats.size()-1) instanceof JCBreak);
+                // It is always safe for the value of 'fallthrough' to be true, 
+                // since processing of the blocks will take care of changing a
+                // block's followers in the case where there is no fall through.
+                // However, it is a bit of an optimization to know when 'fallthrough'
+                // is false, since we avoid creating an unnecessary block.
                 
-                if (prev == null) {
+                if (!fallthrough) {
                     // statements can go in the same block
                     blockForTest.statements.addAll(stats);
-                    follows(blockForTest,brest); // The following block is reset if there is fallthrough to a next block
-                    prev = fallthrough ? blockForTest : null;
+                    follows(blockForTest,blockAfter); // The following block is reset if there is fallthrough to a next block
+                    prevCaseBlock = blockForTest;
                 } else {
-                    // falling through from the previous case
+                    // (possibly) falling through from the previous case
                     // since there is fall-through, the statements need to go in their own block
-                    T blockForStats = newBlock("_caseBody_",caseStatement.getStartPosition());
+                    T blockForStats = newBlock(CASEBODY,caseStatement.getStartPosition());
                     blockForStats.statements.addAll(stats);
+                    
                     follows(blockForTest,blockForStats);
-                    replaceFollows(prev,blockForStats);
-                    follows(blockForStats,brest);
+                    replaceFollows(prevCaseBlock,blockForStats);
+                    follows(blockForStats,blockAfter); // The following block is reset if there turns out to be fallthrough
                     blocks.add(blockForStats);
-                    prev = fallthrough ?  blockForStats : null;
+                    prevCaseBlock = blockForStats;
                 }
+                
+                // Compute and remember whether control falls through to the next case
+                fallthrough = stats.isEmpty() ||
+                        !(prevCaseBlock.statements.get(prevCaseBlock.statements.size()-1) instanceof JCBreak);
             }
 
             // Now fix up the default case (which is not necessarily last).
@@ -897,16 +746,16 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             } else {
                 // There was no default - we need to construct an empty one
                 // create a block for this case test
-                T blockForTest = newBlock("_defaultcase_",pos);
+                T blockForTest = newBlock(CASEDEFAULT,pos);
                 blocks.add(blockForTest);
                 follows(switchStart,blockForTest);
-                follows(blockForTest,brest);
+                follows(blockForTest,blockAfter);
                 
                 addAssume(that.pos,Label.CASECONDITION,eq,blockForTest.statements);
             }
             
-            processBlockStatements(true); // Complete the current block
-            // Now process all of the blocks we created
+            processCurrentBlock(); // Complete the current block
+            // Now process all of the blocks we created, in order
             for (T b: blocks) {
                 processBlock(b);
             }
@@ -914,18 +763,18 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             breakStack.remove(0);
             breakBlocks.remove(names.empty);
         }
-        // Should never actually be null
-        if (brest != null) processBlock(brest);
+        // Should never actually be null, unless some exception happened
+        if (blockAfter != null) processBlock(blockAfter);
     }
     
     // OK
     /** Should call this because case statements are handled in switch. */
     public void visitCase(JCCase that) { shouldNotBeCalled(that); }
     
-    /** Stack to hold Ts for catch clauses, when try statements are nested */
+    /** Stack to hold Blocks for catch clauses, when try statements are nested */
     protected java.util.List<T> catchStack = new java.util.LinkedList<T>();
     
-    /** Stack to hold Ts for finally clauses, when try statements are nested */
+    /** Stack to hold Blocks for finally clauses, when try statements are nested */
     protected java.util.List<T> finallyStack = new java.util.LinkedList<T>();
 
     // This sets up a complicated arrangement of blocks
@@ -936,30 +785,23 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     // becomes
     //
     // currentBlock:    try statement block
-    //                      throw - goto catchBlocks
-    //                      return - goto tryreturnBlock
+    //                      throw - set exceptionVar, terminationVar; goto catchBlocks
+    //                      return - set returnValue, terminationVar; goto finallyBlock
     //                  goto finallyBlock
     //
-    // tryreturnBlock:  assume terminationVar > 0
-    //                  goto finallyBlock
-    //
-    // catchBlocks:     assume terminationVar < 0
-    //                  assume condition on exception
-    //                  reset terminationVar to 0
+    // catchBlocks:     assume condition on exception
+    //                  reset terminationVar to 0, exceptionVar to null
     //                  catch block statements
     //                  goto finallyBlock
     //
     // finallyBlock:    any finally block statements
-    //                  goto afterTryBlock, condExceptionBlock, condReturnBlock
-    //                [ if the try block is nested then instead we
-    //                  goto afterTryBlock, catchBlocks of outer try, tryreturnBlock of outer try]
+    //                  if exceptionVar is not null, goto next outer catch block, else the corresponding finally block
+    //                  if terminationVar is not 0, goto next outer finally block
+    //                  goto afterTryBlock
     //
-    // afterTryBlock:   assume terminationVar == 0
-    //                  rest of statements
+    // afterTryBlock:   rest of statements
     //
     //
-    // FIXME - the catch blocks should use Java not JML subtype tests
-    // FIXME - review
     // FIXME - unify the use of the termination var?
     @Override
     public void visitTry(JCTry that) {
@@ -968,34 +810,109 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         // Create an (unprocessed) block for everything that follows the
         // try statement
         int pos = that.pos;
-        T brest = newBlockWithRest(AFTERTRY,pos);// it gets all the followers of the current block
+        T afterTry = newBlockWithRest(AFTERTRY,pos);// it gets all the followers of the current block
         
         // remainingStatements is now empty
         // Put the statements in the try block into the currentBlock
         remainingStatements.add(that.getBlock());
         
-        // We make an empty finally block if the try statement does not
-        // have one, just to simplify things
+        // We make an empty block that will contain
+        // both catch clause statements and finally block statements. It serves
+        // as the target for any return or throw statements and for exits from
+        // the finally blocks of nested try statements.
+        T targetBlock = newBlock("tryTarget",pos);
         T finallyBlock = newBlock(FINALLY,pos);
-        JCBlock finallyStat = that.getFinallyBlock();
-        if (finallyStat != null) finallyBlock.statements.addAll(finallyStat.getStatements()); // it gets the (unprocessed) statements of the finally statement
-        follows(currentBlock,finallyBlock);
-        follows(finallyBlock,brest);
-
-        finallyStack.add(0,finallyBlock);
+        follows(currentBlock,targetBlock);
         
-        // FIXME - why no catch blocks?
+        List<T> blocks = new LinkedList<T>();
+        blocks.add(targetBlock);
+        
+        // NOTE: A lot of structure sharing occurs in the following.
+        
+        // First create the non-exception path
+        // Note: value for exceptionSym != null ==> an exception has been thrown
+        //       value for terminationSym != 0 ==> return or throw executed
+        //       value for terminationSym == 0 ==> no return or throw executed
+        
+        JCIdent ex = treeutils.makeIdent(pos, exceptionSym);
+        JCExpression noex = treeutils.makeEqObject(pos,ex,treeutils.nulllit);
+        T noexceptionBlock = newBlock("noException",pos);
+        addAssume(pos,Label.IMPLICIT_ASSUME,noex,noexceptionBlock.statements);
+        follows(targetBlock,noexceptionBlock);
+        follows(noexceptionBlock,finallyBlock);
+        blocks.add(noexceptionBlock);
+        
+        // Now create the paths for each case statement
+        List<JCStatement> assumptions = new LinkedList<JCStatement>();
+        addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeNeqObject(pos,ex,treeutils.nulllit),assumptions);
+        for (JCCatch catcher: that.catchers) {
+            JCExpression tt = M.at(catcher.pos).TypeTest(ex,catcher.param.vartype).setType(syms.booleanType);
+            tt = M.at(catcher.pos).Parens(tt).setType(tt.type);
+            T catchBlock = newBlock("catch",catcher.pos);
+            follows(targetBlock,catchBlock);
+            follows(catchBlock,finallyBlock);
+            catchBlock.statements.addAll(assumptions);
+            addAssume(catcher.pos,Label.IMPLICIT_ASSUME,tt,catchBlock.statements);
+            addAssume(catcher.pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(catcher.pos,tt),assumptions);
+            JCVariableDecl d = catcher.param; // FIXME _ perhaps a whole new symbol should be made
+            d.init = ex;
+            catchBlock.statements.add(d);
+            JCIdent nex = treeutils.makeIdent(catcher.pos, exceptionSym);
+            catchBlock.statements.add(treeutils.makeAssignStat(catcher.pos,nex,treeutils.nulllit));
+            JCIdent term = treeutils.makeIdent(catcher.pos, terminationSym);
+            catchBlock.statements.add(treeutils.makeAssignStat(catcher.pos,term,treeutils.zero));
+            catchBlock.statements.addAll(catcher.body.stats);
+            blocks.add(catchBlock);
+        }
+        
+        // And the path if an exception is not caught by anything
+        T noCatchBlock = newBlock("nocatch",pos);
+        noCatchBlock.statements.addAll(assumptions);
+        follows(targetBlock,noCatchBlock);
+        follows(noCatchBlock,finallyBlock);
+        blocks.add(noCatchBlock);
+    
+        JCBlock finallyStat = that.getFinallyBlock();
+        if (finallyStat != null) finallyBlock.statements.addAll(finallyStat.getStatements()); // it gets the statements of the finally statement
+        follows(finallyBlock,afterTry);
+        
+        // And lastly, the blocks for out-of-band exits from the finally block
+        // The normal ending block is for when there is no pending exception or return;
+        // it takes all the finallyBlock followers and itself follows the finallyBlock.
+        // The return/exception ending block follows the finallyBlock and precedes
+        // the targetBlock for enclosing try-finally block.
+        T finallyNormalBlock = newBlock("finallyNormal",pos,finallyBlock);
+        JCIdent term = treeutils.makeIdent(pos, terminationSym);
+        JCBinary bin = treeutils.makeBinary(pos,JCTree.EQ,treeutils.inteqSymbol,term,treeutils.zero);
+        addAssume(pos,Label.IMPLICIT_ASSUME,bin,finallyNormalBlock.statements);
+        follows(finallyBlock,finallyNormalBlock);
 
+        T finallyExitBlock = newBlock("finallyExit",pos);
+        term = treeutils.makeIdent(pos, terminationSym);
+        bin = treeutils.makeBinary(pos,JCTree.NE,treeutils.intneqSymbol,term,treeutils.zero);
+        addAssume(pos,Label.IMPLICIT_ASSUME,bin,finallyExitBlock.statements);
+        follows(finallyBlock,finallyExitBlock);
+        if (!finallyStack.isEmpty()) follows(finallyExitBlock,finallyStack.get(0));
+        else follows(finallyExitBlock,finallyNormalBlock.followers());
+        
+        finallyStack.add(0,targetBlock);
+        
         // Finish the processing of the current block; it might
         // refer to the finally block during processing
-        processBlockStatements(true);
+        processCurrentBlock();
+        finallyStack.remove(0);
+        finallyStack.add(0,finallyBlock);
+        for (T b: blocks) {
+            processBlock(b);
+        }
         finallyStack.remove(0);
         processBlock(finallyBlock);
-        processBlock(brest);
+        processBlock(finallyNormalBlock);
+        processBlock(finallyExitBlock);
+        processBlock(afterTry);
     }
     
-    // is this true FIMXE review this
-    /** Should call this because catch statements are desugared before calling the Ter. */
+    /** Catch statements are handled in visitTry */
     public void visitCatch(JCCatch that) { 
         shouldNotBeCalled(that); 
     }
@@ -1007,26 +924,26 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         
         // Now create an (unprocessed) block for everything that follows the
         // if statement
-        T brest = newBlockWithRest(AFTERIF,pos);// it gets all the followers of the current block
-        processBlockStatements(true); // complete current block
+        T afterIf = newBlockWithRest(AFTERIF,pos);// it gets all the followers of the current block
         
         // Now make the then block
         T thenBlock = newBlock(THENSUFFIX,pos);
         addAssume(that.cond.pos, Label.BRANCHT, that.cond, thenBlock.statements);
         thenBlock.statements.add(that.thenpart);
-        follows(thenBlock,brest);
+        follows(thenBlock,afterIf);
         follows(currentBlock,thenBlock);
         
         // Now make the else block
         T elseBlock = newBlock(ELSESUFFIX,pos);
         addAssume(that.cond.pos, Label.BRANCHE, treeutils.makeNot(that.cond.pos,that.cond), elseBlock.statements);
         if (that.elsepart != null) elseBlock.statements.add(that.elsepart);
-        follows(elseBlock,brest);
+        follows(elseBlock,afterIf);
         follows(currentBlock,elseBlock);
         
+        processCurrentBlock(); // complete current block
         processBlock(thenBlock);
         processBlock(elseBlock);
-        processBlock(brest);
+        processBlock(afterIf);
     }
     
     /** This is a stack of loops and switch statements - anything that can 
@@ -1113,11 +1030,11 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             remainingStatements.clear();
         }
         
-        // FIXME - not sure why these statements are here
-        T b = newBlockWithRest(RETURN,that.pos);
-        follows(currentBlock,b);
-        processBlockStatements(true);
-        processBlock(b);
+        // There are no remaining statements, so this new block is empty.
+        // But we create it so there is a block that marks the return statement
+        // and can be used to note the termination point in a trace
+        T afterReturn = newBlockWithRest(RETURN,that.pos);
+        follows(currentBlock,afterReturn);
         
         // FIXME - need to check what shuold/does happen if the return statement
         // is in a catch or finally block
@@ -1127,11 +1044,14 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             // a return statement only because
             // JmlAssertionAdder wraps everything in a try-finally statement
             // TODO - generalize this
-            log.warning("esc.internal.error","finally stack is unexpectedly empty");
+            log.warning(that.pos(),"esc.internal.error","finally stack is unexpectedly empty");
         } else {
             T finallyBlock = finallyStack.get(0);
-            replaceFollows(b,finallyBlock);
+            replaceFollows(afterReturn,finallyBlock);
         }
+        
+        processCurrentBlock();
+        processBlock(afterReturn);
     }
     
     // OK - presumes that the program has already been modified to record
@@ -1147,27 +1067,26 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             remainingStatements.clear();
         }
         
-        // FIXME - why are these here
+        // There are no remaining statements, so this new block is empty.
+        // But we create it so there is a block that marks the throw statement
+        // and can be used to note the termination point in a trace
         T b = newBlockWithRest(blockName(that.pos,THROW),that.pos);
         follows(currentBlock,b);
-        processBlockStatements(true);
-        processBlock(b);
-        
-        // FIXME - if we are already in a catch block we keep the finally block
-        // as our follower.
-        // FIXME - shouldn't throws go to the catch blocks?
         
         if (finallyStack.isEmpty()) {
             // We don't expect the finallyStack to ever be empty when there is
             // a return statement only because
             // JmlAssertionAdder wraps everything in a try-finally statement
             // TODO - generalize this
-            log.warning("esc.internal.error","finally stack is unexpectedly empty");
+            log.warning(that.pos(),"esc.internal.error","finally stack is unexpectedly empty");
         } else {
-            T finallyBlock = finallyStack.get(0);
-            replaceFollows(currentBlock,finallyBlock);
+            T targetBlock = finallyStack.get(0);
+            replaceFollows(currentBlock,targetBlock);
         }
-        
+
+        processCurrentBlock();
+        processBlock(b);
+
     }
     
     // OK - FIXME - turn into a try-finally with lock operations?
@@ -1246,9 +1165,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         
         // Finish out the current block with the loop initialization
         if (init != null) remainingStatements.addAll(init);
-        processBlockStatements(false);
         scan(test);  // FIXME - is this needed? if so, how about elsewehere?
-        completed(currentBlock);
         
         T bloopStart = currentBlock;
         follows(bloopStart,bloopBody);
@@ -1274,6 +1191,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         follows(bloopBreak,brest);
 
         // Now process all the blocks
+        processCurrentBlock();
         processBlock(bloopBody);
         processBlock(bloopContinue);
         processBlock(bloopEnd);
@@ -1402,25 +1320,27 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         breakStack.add(0,that);
         int pos = that.pos;
         T bloopStart = currentBlock;
+        T bloopBody = newBlock(LOOPBODY,pos);
         T bloopContinue = newBlock(LOOPCONTINUE,pos);
         T bloopEnd = newBlock(LOOPEND,pos);
         T bloopBreak = newBlock(LOOPBREAK,pos);
+        follows(currentBlock,bloopBody);
+        follows(bloopBody,bloopContinue);
+        follows(bloopContinue,bloopEnd); // FIXME - really?
+        follows(bloopEnd,bloopBreak);
 
         // Create an (unprocessed) block for everything that follows the
         // loop statement
-        T brest = newBlockWithRest(LOOPAFTERDO,pos);// it gets all the followers of the current block
+        T bloopAfter = newBlockWithRest(LOOPAFTERDO,pos);// it gets all the followers of the current block
+        follows(bloopBreak,bloopAfter);
         T previousBreakBlock = breakBlocks.put(names.empty, bloopBreak);
         
         try {
             // do the loop body
-            remainingStatements.add(that.body);
-            processBlockStatements(true);
+            bloopBody.statements.add(that.body);
 
-            follows(bloopStart,bloopContinue);
-            follows(bloopContinue,bloopEnd); // FIXME - really?
-            follows(bloopEnd,bloopBreak);
-            follows(bloopBreak,brest);
-
+            processCurrentBlock();
+            processBlock(bloopBody);
             processBlock(bloopContinue);
 
         } finally {
@@ -1431,7 +1351,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         }
         processBlock(bloopEnd);
         processBlock(bloopBreak);
-        processBlock(brest);
+        processBlock(bloopAfter);
     }
 
     @Override
@@ -1482,7 +1402,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         breakBlocks.put(that.label, nextBlock);
         try {
             remainingStatements.add(that.getStatement());
-            processBlockStatements(true);
+            processCurrentBlock();
         } finally {
             breakBlocks.remove(that.label);
         }

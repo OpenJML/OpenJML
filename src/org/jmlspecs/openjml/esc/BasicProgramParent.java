@@ -52,8 +52,14 @@ abstract public class BasicProgramParent<T extends BasicProgramParent.BlockParen
     
     /** A list of blocks that constitute this BasicProgram. */
     //@ non_null
-    protected ArrayList<T> blocks;
+    protected List<T> blocks;
     
+    /** A list of variables that will need to be declared at the beginning of
+     * a basic block program (because they do not have declarations elsewhere
+     * and to be sure that their declarations precede use).
+     */
+    protected List<JCIdent> declarations = new ArrayList<JCIdent>();
+
     /** Returns this program's list of blocks 
      * @return this program's blocks
      */
