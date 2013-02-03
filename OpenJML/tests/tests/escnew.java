@@ -996,8 +996,8 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3bad",26
                 ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Postcondition) in method m4bad",5
                 ,"/tt/TestJava.java:31: warning: Associated declaration",7
-                ,"/tt/TestJava.java:52: warning: The prover cannot establish an assertion (Postcondition) in method m1bug",5
-                ,"/tt/TestJava.java:50: warning: Associated declaration",7
+//                ,"/tt/TestJava.java:52: warning: The prover cannot establish an assertion (Postcondition) in method m1bug",5
+//                ,"/tt/TestJava.java:50: warning: Associated declaration",7
                 );
     }
 
@@ -1296,7 +1296,7 @@ public class escnew extends EscBase {
                 +"    t.f /= i ;\n"
                 +"  }\n"
                 
-                +"  //@ requires i != 0;\n"
+                +"  //@ requires i != 0 && (a != null ==> a.length > 1);\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public void m4bad(@Nullable int[] a, int i) {\n"
                 +"    a[0] /= i ;\n"

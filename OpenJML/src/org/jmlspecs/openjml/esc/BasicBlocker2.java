@@ -656,6 +656,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             Name s = mapn.get(vsym);
             if (s == null) {
                 s = encodedName(vsym,everythingIncarnation);
+                if (isDefined.add(s)) {
+                    //System.out.println("AddedC " + sym + " " + n);
+                    JCIdent idd = treeutils.makeIdent(0, vsym);
+                    idd.name = s;
+                    addDeclaration(idd);
+                }
+
                 put(vsym,everythingIncarnation,s);
             }
             return s;
@@ -806,12 +813,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected Name encodedName(VarSymbol sym, int incarnationPosition) {
         if (incarnationPosition == 0 || sym.owner == null) {
             Name n = sym.getQualifiedName();
-            if (isDefined.add(n)) {
-                //System.out.println("AddedC " + sym + " " + n);
-                JCIdent id = treeutils.makeIdent(0, sym);
-                id.name = n;
-                program.declarations.add(id);
-            }
+//            if (isDefined.add(n)) {
+//                //System.out.println("AddedC " + sym + " " + n);
+//                JCIdent id = treeutils.makeIdent(0, sym);
+//                id.name = n;
+//                program.declarations.add(id);
+//            }
             return n;
         } else
             return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition + "___" + (unique++));
@@ -828,7 +835,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             //System.out.println("AddedC " + sym + " " + n);
             JCIdent id = treeutils.makeIdent(0, sym);
             id.name = n;
-            program.declarations.add(id);
+            addDeclaration(id);
         }
         return n;
     }
@@ -964,6 +971,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         n.type = vsym.type;
         n.sym = vsym;
         currentMap.put(vsym,incarnationPosition,n.name);
+        if (isDefined.add(n.name)) addDeclaration(n);
         return n;
     }
     
@@ -972,6 +980,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         n.type = vsym.type;
         n.sym = vsym;
         currentMap.put(vsym,incarnationPosition,n.name);
+        if (isDefined.add(n.name)) addDeclaration(n);
         return n;
     }
     
@@ -990,6 +999,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         n.type = id.type;
         // FIXME - end information?
         currentMap.put(id.sym,incarnation,n.name);
+        if (isDefined.add(n.name)) {
+            //System.out.println("AddedC " + sym + " " + n);
+//            JCIdent idd = treeutils.makeIdent(0, id.sym);
+//            idd.name = n.name;
+            addDeclaration(n);
+        }
         return n;
     }
     
@@ -1000,6 +1015,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         n.type = id.type;
         // FIXME - end information?
         currentMap.put(id,incarnation,n.name);
+        if (isDefined.add(n.name)) {
+            //System.out.println("AddedC " + sym + " " + n);
+//            JCIdent idd = treeutils.makeIdent(0, id);
+//            idd.name = n.name;
+            addDeclaration(n);
+        }
         return n;
     }
     
@@ -1522,7 +1543,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                         max++;
                         JCIdent id = newIdentIncarnation(sym,max); // relies on the uniqueness value to be different
                         // Need to declare this before all relevant blocks, so we do it at the very beginning
-                        program.declarations.add(id);
+                        //program.declarations.add(id);
                         newName = id.name;
                     }
                     newMap.put(sym,max,newName);
@@ -1566,7 +1587,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                         max++;
                         JCIdent id = newIdentIncarnation(sym,max); // relies on the uniqueness value to be different
                         // Need to declare this before all relevant blocks, so we do it at the very beginning
-                        program.declarations.add(id);
+                        //program.declarations.add(id);
                         newName = id.name;
                     }
                     newMap.put(sym,max,newName);
@@ -2524,7 +2545,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected void havoc(JCExpression storeref) {
         if (storeref instanceof JCIdent) {
             JCIdent id = newIdentIncarnation((JCIdent)storeref,storeref.pos);
-            program.declarations.add(id);
+            //program.declarations.add(id);
             //} else if (e instanceof JCFieldAccess) {
             //} else if (e instanceof JCArrayAccess) {
 
@@ -2681,6 +2702,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     public Map<JCTree,JCTree> toLogicalForm = new HashMap<JCTree,JCTree>();
 //    public Map<JCTree,String> toValue = new HashMap<JCTree,String>();
     
+    public void addDeclaration(JCIdent that) {
+        JCIdent t = treeutils.makeIdent(0,that.sym);
+        t.name = that.name;
+        program.declarations.add(t);
+    }
+    
     // OK
     @Override
     public void visitIdent(JCIdent that) {
@@ -2689,7 +2716,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             that.name = getCurrentName(vsym);
             if (isDefined.add(that.name)) {
                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Added " + that.sym + " " + that.name);
-                program.declarations.add(that);
+                addDeclaration(that);
             }
         } else if (that.sym == null) {
             // Temporary variables that are introduced by decomposing expressions do not have associated symbols
@@ -2720,7 +2747,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             id.name = that.name;
             if (isDefined.add(that.name)) {
                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedF " + that.sym + " " + that.name);
-                program.declarations.add(id);
+                addDeclaration(id);
             }
             result = id;
             
@@ -2730,7 +2757,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedF " + that.sym + " " + that.name);
                 JCIdent id = treeutils.makeIdent(that.pos,that.sym);
                 id.name = that.name;
-                program.declarations.add(id);
+                addDeclaration(id);
             }
             result = that;
         }
@@ -2773,7 +2800,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (left instanceof JCIdent) {
             JCIdent id = (JCIdent)left;
             JCIdent newid = newIdentIncarnation(id,left.pos);
-            currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
+            //currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
             JCBinary expr = treeutils.makeEquality(pos,newid,right);
             copyEndPosition(expr,right);
             addAssume(TreeInfo.getStartPos(statement),Label.ASSIGNMENT,expr);
@@ -2800,7 +2827,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             if (sym.isStatic()) {
                 JCIdent id = newIdentUse(sym,left.pos);
                 JCIdent newid = newIdentIncarnation(id,left.pos);
-                currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
+                // currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
                 JCBinary expr = treeutils.makeEquality(pos,newid,right);
                 copyEndPosition(expr,right);
                 addAssume(TreeInfo.getStartPos(statement),Label.ASSIGNMENT,expr);
@@ -2810,12 +2837,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,pos);
                 if (isDefined.add(oldfield.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + oldfield.sym + " " + oldfield.name);
-                    program.declarations.add(oldfield);
+                    addDeclaration(oldfield);
                 }
                 JCIdent newfield = newIdentIncarnation(oldfield,pos);
                 if (isDefined.add(newfield.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + newfield.sym + " " + newfield.name);
-                    program.declarations.add(newfield);
+                    addDeclaration(newfield);
                 }
                 JCExpression expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,right);
                 expr.pos = pos;
@@ -2862,21 +2889,17 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 scan(that.init);
                 that.init = result;
             }
-            // FIXME - clean up this
-            if (that.init instanceof JCMethodInvocation) {
-                //that.init = null; - we do want to pass functions on to the logic encoding
-                currentBlock.statements.add(that);
-            } else {
-                currentBlock.statements.add(that);
-            }
-        } else if (that.init == null) {
-            JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
-            currentBlock.statements.add(treeutils.makeVarDef(that.type, lhs.name, that.sym.owner, that.pos));
+            isDefined.add(that.name);
+            currentBlock.statements.add(that);
         } else {
             JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
-            scan(that.init);
-            that.init = result;
-            currentBlock.statements.add(treeutils.makeVarDef(that.type, lhs.name, that.sym.owner, that.init));
+            isDefined.add(lhs.name);
+            if (that.init != null) {
+                scan(that.init);
+                that.init = result;
+                JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.EQ,lhs,that.init);
+                addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
+            }
         }
 
         

@@ -601,6 +601,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         VarSymbol savedThisSym = this.currentThisSym;
         Symbol savedExceptionSym = this.exceptionSym;
         Symbol savedResultSym = this.resultSym;
+        Symbol savedTerminationSym = this.terminationSym;
         ListBuffer<JCStatement> prevStats = initialStatements;
         
         try {
@@ -683,6 +684,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.currentThisSym = savedThisSym;
             this.resultSym = savedResultSym;
             this.exceptionSym = savedExceptionSym;
+            this.terminationSym = savedTerminationSym;
         }
     }
     
@@ -3020,7 +3022,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             // Make try block
             if (exceptionSym != null) exsuresStatsOuter.add(treeutils.makeAssignStat(that.pos,treeutils.makeIdent(that.pos, exceptionSym),treeutils.makeIdent(that.pos, exceptionDeclCall.sym)));
+            
+            // TERMINATION
+            // The termination symbol will be null if a method call is present in class-level declaration
+            // FIXME - not sure what precisely should be done - should we declare a termination symbol in this case? RAC probably needs it.
+            if (terminationSym != null) {
+                JCIdent tid = treeutils.makeIdent(that.pos,terminationSym);
+                JCStatement term = treeutils.makeAssignStat(that.pos,tid,treeutils.makeIntLiteral(that.pos,-that.pos));
+                exsuresStatsOuter.add(term);
+            }
+            
             exsuresStatsOuter.add(M.at(that.pos()).Throw(treeutils.makeIdent(that.pos, exceptionDeclCall.sym)));
+            
             JCBlock ensuresBlock = M.at(that.pos()).Block(0, ensuresStatsOuter.toList());
             JCBlock exsuresBlock = M.at(that.pos()).Block(0, exsuresStatsOuter.toList());
             addStat( wrapException(that.pos(), ensuresBlock, exceptionDeclCall, exsuresBlock ));

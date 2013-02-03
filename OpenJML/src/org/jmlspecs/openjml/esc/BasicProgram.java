@@ -55,10 +55,12 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
         return new BasicBlock(id); 
     }
         
-    /** The id of the starting block */
+    /** The id of the starting block; the pos of the block indicates where
+     * in the original program the block starts */
     //@ non_null
     protected JCIdent startId;
     
+    // FIXME _ not currently used and not sure it should be
     /** This class represents a definition
      * <UL>
      * <LI>id: the identifier being defined
@@ -100,7 +102,7 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
      */
     protected List<Definition> definitions = new ArrayList<Definition>();
     
-    // FIXME - and what are these?
+    /** Axioms - that is, assertions that do not rely on declarations within the basic block program */
     protected List<JCExpression> pdefinitions = new ArrayList<JCExpression>();
 
     /** A map of expressions and ids that are the assumptions to be checked for vacuity. */
@@ -121,7 +123,7 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
     protected List<JCExpression> background = new ArrayList<JCExpression>();
 
     /** Returns the (mutable) list of background assertions that are part of this program
-     * @return the program's definitions
+     * @return the program's background assertions
      */
     @Pure
     public List<JCExpression> background() {

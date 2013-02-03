@@ -1098,6 +1098,30 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     // LOOPS
     
     
+    @Override
+    public void visitJmlWhileLoop(JmlWhileLoop that)  { 
+        currentBlock.statements.add(comment(that.pos(),"while..."));
+        loopHelper(that, null, that.cond, null, that.body);
+    }
+    
+    @Override
+    public void visitWhileLoop(JCWhileLoop that) {
+        currentBlock.statements.add(comment(that.pos(),"while..."));
+        loopHelper(that, null, that.cond, null, that.body);
+    }
+    
+    @Override
+    public void visitJmlForLoop(JmlForLoop that) {
+        currentBlock.statements.add(comment(that.pos(),"for..."));
+        loopHelper(that,that.init,that.cond,that.step,that.body);
+    }
+    
+    @Override
+    public void visitForLoop(JCForLoop that) { 
+        currentBlock.statements.add(comment(that.pos(),"for..."));
+        loopHelper(that,that.init,that.cond,that.step,that.body);
+    }
+    
     // FIXME - review and document
     protected List<JCTree> loopStack = new LinkedList<JCTree>();
     
@@ -1105,51 +1129,38 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      * becomes
      * LoopStart: - is actually the end of the current Block
      *   Init;
-     *   assert loop invariants
-     *   [ goto LoopDo     <<< if a do while loop ]
      * IF UNROLLING:
      *          compute loop condition
      *          goto LoopUnroll0, LoopEnd
      *       LoopUnroll0:
      *          assume loop condition
-     *          compute decreasing, check that it is >= 0
      *          S
      *          Update
-     *          assert loop invariant
-     *          check that decreasing has decreased
      *       [  compute loop condition
      *          goto LoopUnroll1, LoopEnd
      *       LoopUnroll1:
      *          assume loop condition
-     *          compute decreasing, check that it is >= 0
      *          S
      *          Update
-     *          assert loop invariant
-     *          check that decreasing has decreased
      *        ]  
-     *   havoc any loop modified variables
-     *   assume loop invariants
-     *   compute loop condition (which may have side effects creating other statements)
+     *   compute loop condition
      *   goto LoopBody, LoopEnd
      * LoopBody:
      *   assume loop condition value
-     *   compute decreasing, check that it is >= 0
      *   S  [ break -> LoopBreak; continue -> LoopContinue ]
      *   goto LoopContinue
      * LoopContinue:  <-- all continues go here
      *   Update;
-     *   assert loop invariants
-     *   check that decreasing is less
+     *   
      * LoopEnd:
      *   assume !(loop condition value) 
      *   goto LoopBreak
      * LoopBreak: <-- all breaks go here
-     *   //assert loop invariants 
-     *   goto rest...
+     *   goto LoopAfter...
      */ // FIXME - allow for unrolling; review the above and the implementation
 
-    // FIXME - check and document
-    protected void visitLoopWithSpecs(JCTree that, List<JCStatement> init, JCExpression test, List<JCExpressionStatement> update, JCStatement body, List<JmlStatementLoop> loopSpecs) {
+    // FIXME - check and document; add backedges
+    protected void loopHelper(JCTree that, List<JCStatement> init, JCExpression test, List<JCExpressionStatement> update, JCStatement body) {
         loopStack.add(0,that);
         breakStack.add(0,that);
         int pos = that.pos;
@@ -1158,37 +1169,38 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         T bloopEnd = newBlock(LOOPEND,pos);
         T bloopBreak = newBlock(LOOPBREAK,pos);
 
-        // Now create an (unprocessed) block for everything that follows the
+        // Now create a block for everything that follows the
         // loop statement
-        T brest = newBlockWithRest(LOOPAFTER,pos);// it gets all the followers and statements of the current block
-        T previousBreakBlock = breakBlocks.put(names.empty, brest);
+        T bloopAfter = newBlockWithRest(LOOPAFTER,pos);// it gets all the followers and statements of the current block
+        T previousBreakBlock = breakBlocks.put(names.empty, bloopAfter);
         
-        // Finish out the current block with the loop initialization
         if (init != null) remainingStatements.addAll(init);
-        scan(test);  // FIXME - is this needed? if so, how about elsewehere?
+        scan(test);
+        JCExpression ntest = result;
         
         T bloopStart = currentBlock;
         follows(bloopStart,bloopBody);
-        if (tempFromForeachLoop) follows(bloopStart,bloopEnd);
+        follows(bloopStart,bloopEnd);
 
         // Create the loop body block
+        addAssume(test.pos,Label.LOOP,ntest,bloopBody.statements);
         bloopBody.statements.add(body);
         follows(bloopBody,bloopContinue);
         
         // Create the loop continue block
-        // do the update
+        // It does the update
         if (update != null) bloopContinue.statements.addAll(update);
         
         int end = endPos(body);
         if (end <= 0) {
-            log.noticeWriter.println("BAD EBND");
+            log.noticeWriter.println("BAD EBND"); // FIXME - figure this out
         }
         
-        // Create the (empty) LoopEnd block
-        follows(bloopEnd,bloopBreak);
+        // Create the loop end block
+        addAssume(test.pos,Label.LOOP,treeutils.makeNot(test.pos, ntest),bloopEnd.statements);
         
-        // Create the (empty) LoopBreak block
-        follows(bloopBreak,brest);
+        follows(bloopEnd,bloopBreak);
+        follows(bloopBreak,bloopAfter);  // FIXME - don't need both break and after, I think
 
         // Now process all the blocks
         processCurrentBlock();
@@ -1200,26 +1212,23 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         breakStack.remove(0);
         breakBlocks.put(names.empty, previousBreakBlock);
         
-        processBlock(brest);
+        processBlock(bloopAfter);
         
     }
     
-    
-    boolean tempFromForeachLoop = false;
-    
+    @Override
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
         currentBlock.statements.add(comment(that.pos(),"for..."));
-        tempFromForeachLoop = true;
-        visitForeachLoopWithSpecs(that,that.loopSpecs);
-        tempFromForeachLoop = false;
+        loopHelperEFor(that);
     }
 
+    @Override
     public void visitForeachLoop(JCEnhancedForLoop that) {
         currentBlock.statements.add(comment(that.pos(),"for..."));
-        visitForeachLoopWithSpecs(that,null);
+        loopHelperEFor(that);
     }
     
-    protected void visitForeachLoopWithSpecs(JCEnhancedForLoop that, com.sun.tools.javac.util.List<JmlStatementLoop> loopSpecs) {
+    protected void loopHelperEFor(JCEnhancedForLoop that) {
         if (that.expr.type.tag == TypeTags.ARRAY) {
             // for (T v; arr) S
             // becomes
@@ -1275,7 +1284,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
 //                buf.append(inv);
 //                loopSpecs = buf.toList();
 //            }
-            visitLoopWithSpecs(that,null,treeutils.trueLit,null,M.at(that.body.pos).Block(0,newbody.toList()),null);
+            loopHelper(that,null,treeutils.trueLit,null,M.at(that.body.pos).Block(0,newbody.toList()));
             
             
         } else {
@@ -1283,31 +1292,26 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         }
     }
     
+    @Override
     public void visitDoLoop(JCDoWhileLoop that) {
         currentBlock.statements.add(comment(that.pos(),"do..."));
-        visitDoLoopWithSpecs(that,null);
+        loopHelperDoWhile(that);
     }    
 
+    @Override
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
         currentBlock.statements.add(comment(that.pos(),"do..."));
-        visitDoLoopWithSpecs(that,that.loopSpecs);
+        loopHelperDoWhile(that);
     }
 
-    // FIXME - rewview this
     /* FOR A DO-WHILE LOOP
      * do { S; } while (Test)    becomes
      * 
-     * LoopStart: - is actually the end of the current Block
-     *   assert loop invariants
-     *   havoc any loop modified variables
-     *   assume loop invariants
-     *   compute decreasing, check that it is >= 0
+     * LoopBody:
      *   S  [ break -> LoopBreak; continue -> LoopContinue ]
      *   goto LoopContinue
      * LoopContinue:  <-- all continues go here
      *   compute loop condition (which may have side effects creating other statements)
-     *   assert loop invariants
-     *   check that decreasing is less
      *   goto LoopEnd
      * LoopEnd:
      *   assume !(loop condition value) 
@@ -1315,11 +1319,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      * LoopBreak: <-- all breaks go here
      *   goto rest...
      */ // FIXME - allow for unrolling
-    protected void visitDoLoopWithSpecs(JCDoWhileLoop that, List<JmlStatementLoop> loopSpecs) {
+    protected void loopHelperDoWhile(JCDoWhileLoop that) {
         loopStack.add(0,that);
         breakStack.add(0,that);
         int pos = that.pos;
-        T bloopStart = currentBlock;
         T bloopBody = newBlock(LOOPBODY,pos);
         T bloopContinue = newBlock(LOOPCONTINUE,pos);
         T bloopEnd = newBlock(LOOPEND,pos);
@@ -1341,10 +1344,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
 
             processCurrentBlock();
             processBlock(bloopBody);
+            scan(that.cond);
+            JCExpression ntest = result;
+            addAssume(that.cond.pos,Label.LOOP,treeutils.makeNot(ntest.pos,ntest),bloopEnd.statements);
             processBlock(bloopContinue);
 
         } finally {
-            currentBlock = null;
             loopStack.remove(0);
             breakStack.remove(0);
             breakBlocks.put(names.empty,previousBreakBlock);
@@ -1354,30 +1359,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         processBlock(bloopAfter);
     }
 
-    @Override
-    public void visitJmlWhileLoop(JmlWhileLoop that)  { 
-        currentBlock.statements.add(comment(that.pos(),"while..."));
-        visitLoopWithSpecs(that, null, that.cond, null, that.body, null);
-    }
-    
-    @Override
-    public void visitWhileLoop(JCWhileLoop that) {
-        currentBlock.statements.add(comment(that.pos(),"while..."));
-        visitLoopWithSpecs(that, null, that.cond, null, that.body, null);
-    }
-    
-    @Override
-    public void visitJmlForLoop(JmlForLoop that) {
-        currentBlock.statements.add(comment(that.pos(),"for..."));
-        visitLoopWithSpecs(that,that.init,that.cond,that.step,that.body,that.loopSpecs );
-    }
-    
-    @Override
-    public void visitForLoop(JCForLoop that) { 
-        currentBlock.statements.add(comment(that.pos(),"for..."));
-        visitLoopWithSpecs(that,that.init,that.cond,that.step,that.body,null );
-    }
-    
 
     // JAVA OTHER STATEMENT AND EXPRESSION NODES
     
