@@ -365,7 +365,7 @@ public class JmlEsc extends JmlTreeScanner {
             log.noticeWriter.println("SKIPPING PROOF OF " + decl.name);
             return true;
         }
-        proverToUse = "z3";
+        proverToUse = "z3_4_3";
         progress(1,2,"Starting proof of " + decl.sym.owner.flatName() + "." + decl.sym + " with prover " + proverToUse);
         
         if (print) {
@@ -436,6 +436,7 @@ public class JmlEsc extends JmlTreeScanner {
                 Label label = Label.find(reason);
                 // FIXME - defensive chjeck assertStat not null
                 kk = out.lastIndexOf(BasicBlockerParent.RETURN);
+                if (kk < 0) kk = id.lastIndexOf(BasicBlockerParent.THROW);
                 if (kk >= 0) {
                     kkk = out.lastIndexOf(BasicBlockerParent.blockPrefix,kk) + BasicBlockerParent.blockPrefix.length();
                     try {
@@ -485,7 +486,7 @@ public class JmlEsc extends JmlTreeScanner {
             log.noticeWriter.println("SKIPPING PROOF OF " + decl.name);
             return new ProverResult(proverToUse,IProverResult.SKIPPED);
         }
-        proverToUse = "z3";
+        proverToUse = "z3_4_3";
         progress(1,2,"Starting proof of " + decl.sym.owner.name + "." + decl.name + " with prover " + proverToUse);
         
         if (print) {
@@ -530,7 +531,7 @@ public class JmlEsc extends JmlTreeScanner {
         }
         
         SMT smt = new SMT();
-        smt.processCommandLine(new String[]{"-L","C:/cygwin/home/dcok/eclipseProjects/SMTProjects/SMT/logics"}, smt.smtConfig);
+        smt.processCommandLine(new String[]{"-L","C:/cygwin/home/dcok/eprojects/SMTProjects/SMT/logics"}, smt.smtConfig);
         
         String exec = proverToUse.equals("test") ? null : Options.instance(context).get("openjml.prover." + proverToUse);
         ISolver solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
@@ -644,6 +645,14 @@ public class JmlEsc extends JmlTreeScanner {
         if (value) {
             return false;
         }
+        {
+            int k = id.indexOf(BasicBlockerParent.RETURN);
+            if (k < 0) k = id.indexOf(BasicBlockerParent.THROW);
+            if (k > 0) {
+                int kk = BasicBlockerParent.blockPrefix.length();
+                terminationPos = Integer.parseInt(id.substring(kk,k));
+            }
+        }
         
         // FIXME - would like to have a range, not just a single position point,
         // for both the 'pos' value below, which is the position of the return statement
@@ -749,11 +758,11 @@ public class JmlEsc extends JmlTreeScanner {
 //            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).label == Label.RETURN) {
 //                resultpos = stat.pos;
 //            }
-            // FIXME - hardcoded string that is also used in JmlAssertionAdder
-            // FIXME - looking for RESULT does not work for void functcinos
-            if (stat instanceof JCVariableDecl && ((JCVariableDecl)stat).name.toString().startsWith(Strings.terminationVarString)) {
-                terminationPos = stat.pos;
-            }
+//            // FIXME - hardcoded string that is also used in JmlAssertionAdder
+//            // FIXME - looking for RESULT does not work for void functcinos
+//            if (stat instanceof JCVariableDecl && ((JCVariableDecl)stat).name.toString().startsWith(Strings.terminationVarString)) {
+//                terminationPos = stat.pos;
+//            }
         }
         for (BasicBlock b: block.followers()) {
             value = reportInvalidAssertion(b,smt,solver,decl);

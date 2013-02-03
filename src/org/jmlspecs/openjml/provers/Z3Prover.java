@@ -51,7 +51,7 @@ public class Z3Prover extends AbstractProver implements IProver {
     //    
         /** The String by which to invoke the prover */
         /*@ nullable */
-        protected String app = Options.instance(context).get("openjml.prover.cvc3");
+        protected String app = Options.instance(context).get("openjml.prover.z3");
         
         /** The one instance of the associated translator */
         /*@ non_null */
@@ -151,6 +151,7 @@ public class Z3Prover extends AbstractProver implements IProver {
         @Override
         protected String[] app() {
             return new String[]{app,"/s","/m"};
+            //return new String[]{app,"/smt2"};
         }
         
         /** Does the startup work */
