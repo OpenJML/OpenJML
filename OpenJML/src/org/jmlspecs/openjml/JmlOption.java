@@ -36,6 +36,7 @@ public enum JmlOption implements IOption {
     BOOGIE("-boogie",false,"Enables static checking with boogie",null),
     USEJAVACOMPILER("-java",false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null),
     NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored",null),
+    NEWESC("-newesc",false,"When on, uses the new SMT-based implementation",null),
 
     STOPIFERRORS("-stopIfParseErrors",false,"When enabled, stops after parsing if any files have parsing errors",null),
 

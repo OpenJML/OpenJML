@@ -531,7 +531,8 @@ public class JmlEsc extends JmlTreeScanner {
         }
         
         SMT smt = new SMT();
-        smt.processCommandLine(new String[]{"-L","C:/cygwin/home/dcok/eprojects/SMTProjects/SMT/logics"}, smt.smtConfig);
+        //smt.processCommandLine(new String[]{"-L","C:/cygwin/home/dcok/eprojects/SMTProjects/SMT/logics"}, smt.smtConfig);
+        smt.processCommandLine(new String[]{}, smt.smtConfig);
         
         String exec = proverToUse.equals("test") ? null : Options.instance(context).get("openjml.prover." + proverToUse);
         ISolver solver = smt.startSolver(smt.smtConfig,proverToUse,exec);

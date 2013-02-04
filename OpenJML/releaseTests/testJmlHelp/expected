@@ -46,8 +46,8 @@ JML options:
   -method                    The method name on which to run ESC
   -prover                    The prover to use to check verification conditions
   -exec                      The prover executable to use
-  -nonnullByDefault          Makes references non_null by default
-  -nullableByDefault         Makes references nullable by default [-nonnullByDefault=false]
+  -nonnullByDefault          Makes references non_null by default [-nullableByDefault=false]
+  -nullableByDefault         Makes references nullable by default
   -specspath                 Specifies the directory path to search for specification files
   -noCheckSpecsPath          When on, no warnings for non-existent specification path directories are issued
   -noPurityCheck             When on, no warnings for use of impure methods are issued

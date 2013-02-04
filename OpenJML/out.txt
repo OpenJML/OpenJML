@@ -1,4 +1,0 @@
-Boogie program verifier version 2.2.30705.1126, Copyright (c) 2003-2012, Microsoft.
-boogie_m1bad.bpl(12,4): Error: more than one declaration of variable name: f__44
-boogie_m1bad.bpl(31,22): Error: undeclared identifier: this
-2 name resolution errors detected in boogie_m1bad.bpl
