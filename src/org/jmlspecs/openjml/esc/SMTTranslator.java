@@ -18,7 +18,9 @@ import org.smtlib.ICommand;
 import org.smtlib.ICommand.IScript;
 import org.smtlib.IExpr;
 import org.smtlib.IExpr.IDeclaration;
+import org.smtlib.IParser;
 import org.smtlib.ISort;
+import org.smtlib.SMT;
 import org.smtlib.command.C_assert;
 import org.smtlib.command.C_check_sat;
 import org.smtlib.command.C_declare_fun;
@@ -129,6 +131,7 @@ public class SMTTranslator extends JmlTreeScanner {
     //  one for each assertion, or a form that accommodates push/pop/coreids etc.
     
     public ICommand.IScript convert(BasicProgram program) {
+        SMT smt = new SMT();
         script = new Script();
         ICommand c;
         commands = script.commands();
@@ -157,6 +160,12 @@ public class SMTTranslator extends JmlTreeScanner {
                 refSort,
                 F.createSortExpression(F.symbol("Int"))));
         commands.add(c);
+        try {
+            c = smt.smtConfig.smtFactory.createParser(smt.smtConfig,smt.smtConfig.smtFactory.createSource("(assert (forall ((o REF)) (>= (select length o) 0)))",null)).parseCommand();
+            commands.add(c);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         args = new LinkedList<ISort>();
         args.add(refSort);
         c = new C_declare_fun(F.symbol("asIntArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),F.createSortExpression(F.symbol("Int"))));

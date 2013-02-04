@@ -33,7 +33,8 @@ fi
 
 TEMPJAR=tempjars
 
-VERSION=`date +%Y%m%d`
+REVISION=`svn info . | grep Revision | sed -e "s/Revision: //"`
+VERSION=`date +%Y%m%d`-REV${REVISION}
 NAME=openjml-${VERSION}.tar.gz
 
 	echo Building ${NAME} in `pwd`
@@ -97,12 +98,6 @@ NAME=openjml-${VERSION}.tar.gz
 	(cd temp; jar -cfm ../${TEMPJAR}/openjml.jar ../temp2/manifest . )
 	##cp ${TEMPJAR}/openjml.jar ../OpenJMLUI
 	echo "   " jmlspecs.jar openjml.jar created
-	
-    rm temp/com/sun/tools/*/*/*.properties temp/com/sun/tools/*/*/*/*/*.properties
-    rm -rf temp/specs*
-    (cd temp; jar cf ../${TEMPJAR}/openjmlboot.jar . )
-    cp ${TEMPJAR}/openjmlboot.jar ${UI}
-    echo "   " openjmlboot.jar created
 	
     rm -rf temp temp2
     

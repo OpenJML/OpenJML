@@ -47,8 +47,7 @@ public class SMTProver extends AbstractProver implements IProver {
 //    
     /** The String by which to invoke the prover */
     /*@ nullable */
-    protected String app = "C:/cygwin/home/dcok/java/jre1.7.0/bin/java.exe"; // System.getProperty("openjml.prover.cvc3");
-    //protected String app = "/cygdrive/c/cygwin/home/dcok/java/jre1.7.0/bin/java"; // System.getProperty("openjml.prover.cvc3");
+    protected String app;
     
     /** The one instance of the associated translator */
     /*@ non_null */
@@ -66,6 +65,8 @@ public class SMTProver extends AbstractProver implements IProver {
     /** Creates and starts the prover process, sending any startup information */
     public SMTProver(Context context) throws ProverException {
         super(context);
+        String javahome = System.getProperty("java.home");
+        app = javahome + "/bin/java";
         showCommunication = 3;
         translator = new SMTTranslator(this);
         if (org.jmlspecs.openjml.esc.JmlEsc.escdebug && showCommunication <= 1) showCommunication = 2;
@@ -150,7 +151,7 @@ public class SMTProver extends AbstractProver implements IProver {
     protected String[] app() {
         String solver = Options.instance(context).get("openjml.solver.smtCommandLine");
         if (solver == null || solver.isEmpty()) {
-            return new String[]{app,"-jar","C:/cygwin/home/dcok/eclipseProjects/SMTProjects/SMT/jSMTLIB.jar"};  // FIXME
+            return new String[]{app,"org.smtlib.SMT"};
         } else {
             return solver.split(",");
         }
