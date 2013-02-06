@@ -183,22 +183,13 @@ public class Utils {
 																		// - use
 																		// eclipse
 																		// version?
-			int version = 6; // the current default
-			if (versionString.startsWith("1.6"))
-				version = 6;
-			else if (versionString.startsWith("1.5"))
-				version = 5;
-			else if (versionString.startsWith("1.4"))
-				version = 4;
-			else if (versionString.startsWith("1.7"))
-				version = 7;
-			else if (versionString.startsWith("1.8"))
-				version = 8;
-			else if (versionString.startsWith("1.9"))
-				version = 9;
-			else {
+			int version = 7; // the current default
+			if (versionString.startsWith("1.") && versionString.length() > 3
+					&& (version = (versionString.charAt(2) - '0')) >= 4 && version <= 9) {
+				// found OK version number
+			} else {
 				Log.log("Unrecognized version: " + versionString);
-				version = 6; // default, if the version string is in an
+				version = 7; // default, if the version string is in an
 								// unexpected format
 			}
 

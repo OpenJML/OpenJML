@@ -8345,7 +8345,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 for (BasicBlock next : block.followers()) {
                     String s = next.id().toString();
                     String value = ce.get(s);
-                    if (value.equals("false")) {
+                    if (value != null && value.equals("false")) {
                         block = next;
                         continue outer;
                     }
