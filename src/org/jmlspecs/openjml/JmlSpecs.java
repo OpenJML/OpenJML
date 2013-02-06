@@ -14,6 +14,7 @@ package org.jmlspecs.openjml;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,12 +24,14 @@ import java.util.zip.ZipFile;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
+import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
+import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
@@ -295,7 +298,7 @@ public class JmlSpecs {
         
         for (String s: ss) {
             if (s.endsWith(".jar")) {
-                d = new JarDir(s,"libToUse");
+                d = new JarDir(s,libToUse);
                 if (d.exists()) {
                     if (verbose) log.noticeWriter.println("Using internal specs " + d);
                     dirs.add(d);
@@ -317,7 +320,27 @@ public class JmlSpecs {
         // Finally, for working in the Eclipse environment, see if there
         // is an environment variable that is set.
         
+//        Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
+//        if (specs != null) {
+//        	Enumeration<String> en = specs.getEntryPaths("java" + version);
+//        	String p = en.nextElement();
+//        		System.out.println(p);
+//        		String pp = specs.getLocation();
+//        		System.out.println(pp);
+//        		java.net.URL ppp = specs.getEntry("");
+//        		System.out.println(ppp);
+//        }
+        
         String sy = Options.instance(context).get(Strings.eclipseSpecsProjectLocation);
+//        if (sy == null) {
+//            Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
+//            if (specs != null) {
+//            		String pp = specs.getLocation();
+//            		System.out.println(pp);
+//            		int k = pp.indexOf("file:/") + "file:/".length();
+//            		sy = pp.substring(k);
+//            }
+//        }
         // These are used in testing - sy should be the trunk directory of the Specs project
         if (sy != null) {
             

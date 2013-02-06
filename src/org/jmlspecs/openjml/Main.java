@@ -419,8 +419,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                 // are thrown away. That is also why we do the hack of saving
                 // the options to a private variable, just to be able to
                 // apply them in the compile() call below.
-                initialize(writer, diagListener, options, emptyArgs);
                 savedOptions = Options.instance(context());
+                initialize(writer, diagListener, options, emptyArgs);
                 // The following line does an end-to-end compile, in a fresh context
                 errorcode = compile(args); // context and new options are created in here
                 if (errorcode != 0 && 
@@ -709,6 +709,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         Options options = Options.instance(this.context);
         ListBuffer<File> jmlfiles = new ListBuffer<File>();
         args = processJmlArgs(args,options,jmlfiles);
+        if (filenames == null) filenames = new ListBuffer<File>(); // needed when called from the API
         List<File> files = super.processArgs(args);
         if (files != null) files = files.appendList(jmlfiles);
         //args.addAll(computeDependencyClosure(files));
