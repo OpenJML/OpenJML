@@ -574,8 +574,27 @@ public class YicesProver extends AbstractProver implements IProver {
         //log.noticeWriter.println("REASSERTING");
         for (Map.Entry<String,String> entry : ce.sortedEntries()) {
             String v = entry.getKey();
-            String s = "(= " + v + " " + entry.getValue() +")";
-            if (v.charAt(0) == '(') continue;
+            String s;
+            if (v.indexOf("&&") != -1) continue;
+            if (v.indexOf(".length") != -1) continue;
+            int kk = v.indexOf("!=");
+            if (kk != -1) {
+                s = "(/= " + v.substring(0,kk) + " " + v.substring(kk+2) + ")";
+            } else {
+                s = "(= " + v + " " + entry.getValue() +")";
+                if (v.charAt(0) == '(') continue;
+                if (v.charAt(0) == '!' && entry.getValue().equals("false")) {
+                    s = v.substring(2,v.length()-1);
+                    int k = s.indexOf("==");
+                    if ( k == -1) continue;
+                    String s1 = s.substring(0,k).trim();
+                    if (s1.charAt(0) == '(') continue;
+                    String s2 = s.substring(k+2).trim();
+                    s = "(= " + s1 + " " + s2 + ")";
+                }
+            }
+            if (v.indexOf("==") != -1) continue;
+            s = s.replace("null", "NULL");
             //log.noticeWriter.println("REASSERTING " + s);
             try {
                 rawassume(s);

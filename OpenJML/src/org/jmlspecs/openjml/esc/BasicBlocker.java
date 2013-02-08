@@ -1052,6 +1052,7 @@ public class BasicBlocker extends JmlTreeScanner {
      */
     protected Name encodedName(MethodSymbol sym, int declpos,
             int incarnationPosition) {
+        if (sym.name.toString().startsWith("makeTYPE")) return sym.name;
         return names.fromString(sym.getQualifiedName()
                 + (declpos < 0 ? "$" : ("$" + declpos + "$"))
                 + incarnationPosition);
@@ -3149,6 +3150,9 @@ public class BasicBlocker extends JmlTreeScanner {
                         mi.divergesPredicates.add(p);
                     } else if (c.token == JmlToken.SIGNALS_ONLY) {
                         JCExpression post = makeSignalsOnly((JmlMethodClauseSignalsOnly) c);
+                        post = treeutils
+                                .makeJmlBinary(post.getPreferredPosition(),
+                                        JmlToken.IMPLIES, spre, post);
                         JmlMethodClauseExpr p = factory.at(post.pos)
                                 .JmlMethodClauseExpr(JmlToken.SIGNALS, post);
                         p.sourcefile = c.source();
