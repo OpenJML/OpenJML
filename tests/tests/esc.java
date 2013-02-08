@@ -54,8 +54,12 @@ public class esc extends EscBase {
     }
     
 
-    @Test
+    @Test @Ignore
     public void testForEachA() {
+        options.put("-method", "m1");
+        //options.put("-ce", "");
+        options.put("-showbb", "");
+        //options.put("-trace", "");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -124,7 +128,7 @@ public class esc extends EscBase {
                 );
     }
 
-    @Test
+    @Test @Ignore
     public void testForEach() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -193,7 +197,7 @@ public class esc extends EscBase {
                 );
     }
 
-    @Test
+    @Test @Ignore
     public void testForEach3() {  
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1474,7 +1478,7 @@ public class esc extends EscBase {
                 +"  //@ requires i >= 0;\n"
                 +"  //@ modifies k;\n"
                 +"  //@ ensures k == 10;\n"
-                +"  //@ signals (Exception e) k<0;\n"
+                +"  //@ signals (Exception e) k<0; signals_only Exception;\n"
                 +"  public void m1(int i) throws RuntimeException {\n"
                 +"    m(i);\n"
                 +"    k = 10;\n"
@@ -1483,16 +1487,18 @@ public class esc extends EscBase {
                 +"  //@ modifies k;\n"
                 +"  //@ ensures k == 10;\n"
                 +"  //@ signals (Exception e) k==-11;\n"
+                +"  //@ signals_only Exception;\n"
                 +"  public void m2(int i) {\n"
                 +"    m(1);\n"
                 +"    m(2);\n"
-                +"    k = 10;\n"
-                +"  }\n" // Line 20
+                +"    k = 10;\n" // Line 20
+                +"  }\n"
 
                 +"  //@ requires i >= 0;\n"
                 +"  //@ modifies k;\n"
                 +"  //@ ensures k == 10;\n"
                 +"  //@ signals (Exception e) k==-12;\n"
+                +"  //@ signals_only Exception;\n"
                 +"  public void m3(int i) {\n"
                 +"    m(0);\n"
                 +"    m(2);\n"
@@ -1503,14 +1509,15 @@ public class esc extends EscBase {
                 +"  //@ modifies k;\n"
                 +"  //@ ensures k == 10;\n"
                 +"  //@ signals (Exception e) k==-13;\n" // FAILS
+                +"  //@ signals_only Exception;\n"
                 +"  public void m3a(int i) {\n"
                 +"    m(0);\n"
-                +"    m(2);\n"
-                +"    k = 10;\n"
+                +"    m(2);\n"  // FAILS
+                +"    k = 10;\n" // Line 40
                 +"  }\n"
                 
                 +"  //@ requires i >= 0;\n"
-                +"  //@ modifies k;\n" // Line 40
+                +"  //@ modifies k;\n"
                 +"  //@ ensures \\result == 12;\n"
                 +"  //@ signals (Exception e) false;\n"
                 +"  public int m4(int i) {\n"
@@ -1518,9 +1525,10 @@ public class esc extends EscBase {
                 +"  }\n"
                 
                 +"  //@ requires i >= 0;\n"
-                +"  //@ modifies k;\n"
+                +"  //@ modifies k;\n"  // Line 50
                 +"  //@ ensures false;\n"
                 +"  //@ signals (Exception e) k == -11;\n"
+                +"  //@ signals_only Exception;\n"
                 +"  public int m5(int i) {\n"
                 +"    return 10+m(1)+m(0);\n"
                 +"  }\n"
@@ -1528,22 +1536,23 @@ public class esc extends EscBase {
                 +"  //@ requires i >= 0;\n"
                 +"  //@ modifies k;\n"
                 +"  //@ ensures false;\n"
-                +"  //@ signals (Exception e) k == -12;\n"
+                +"  //@ signals (Exception e) k == -12;\n" // Line 60
+                +"  //@ signals_only Exception;\n"
                 +"  public int m6(int i) {\n"
                 +"    return 10+m(0)+m(2);\n"
                 +"  }\n"
                 
-                +"  //@ requires i == 0;\n" // Line 60
+                +"  //@ requires i == 0;\n"
                 +"  //@ modifies k;\n"
                 +"  //@ ensures k>0 && \\result == i+1;\n"
                 +"  //@ signals (Exception e) false;\n"
                 +"  //@ also \n"
-                +"  //@ requires i > 0;\n"
+                +"  //@ requires i > 0;\n" // Line 70
                 +"  //@ modifies k;\n"
                 +"  //@ ensures false;\n"
                 +"  //@ signals (Exception e) k == -10-i;\n"
                 +"  //@ signals_only Exception;\n"
-                +"  public int m(int i) {\n"  // Line 70
+                +"  public int m(int i) {\n"
                 +"    if (i > 0) {\n"
                 +"      k = -10-i;\n"
                 +"      throw new RuntimeException();\n"
@@ -1552,8 +1561,8 @@ public class esc extends EscBase {
                 +"    return i+1;\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3a",6
-                ,"/tt/TestJava.java:33: warning: Associated declaration",7
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3a",6
+                ,"/tt/TestJava.java:35: warning: Associated declaration",7
                 );
     }
     
