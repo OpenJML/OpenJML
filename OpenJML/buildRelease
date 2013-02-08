@@ -33,6 +33,7 @@ fi
 
 TEMPJAR=tempjars
 
+svn up
 REVISION=`svn info . | grep Revision | sed -e "s/Revision: //"`
 VERSION=`date +%Y%m%d`-REV${REVISION}
 NAME=openjml-${VERSION}.tar.gz
