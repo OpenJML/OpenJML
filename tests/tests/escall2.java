@@ -1051,6 +1051,7 @@ public class escall2 extends EscBase {
    
     @Test
     public void testAssignable() {
+        options.put("-showbb", "");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -1062,7 +1063,7 @@ public class escall2 extends EscBase {
                 +"  //@ assignable this.a;\n"
                 +"  public void m1(TestJava o) {\n"
                 +"    o.a = 0;\n"  // BAD
-                +"  }\n"
+                +"  }\n" // Line 10
                 
                 +"  //@ assignable \\nothing;\n"
                 +"  public void m2(TestJava o) {\n"
@@ -1087,7 +1088,7 @@ public class escall2 extends EscBase {
                 +"  //@ assignable this.b;\n"
                 +"  public void m4y(TestJava o) {\n"
                 +"    TestJava.b = 0;\n"  // OK
-                +"  }\n"
+                +"  }\n" // Line 30
                 
                 +"  //@ assignable this.a;\n"
                 +"  public void m4a(TestJava o) {\n"
@@ -1100,7 +1101,7 @@ public class escall2 extends EscBase {
                 +"    o.a = 0;\n"  // OK
                 +"  }\n"
                 
-                +"  //@ assignable this.a;\n"
+                +"  //@ assignable this.a;\n" // Line 40
                 +"  public void m5(TestJava o) {\n"
                 +"    a = 0;\n"  // OK
                 +"  }\n"
@@ -1112,7 +1113,7 @@ public class escall2 extends EscBase {
                 
                 +"  //@ assignable \\nothing;\n"
                 +"  public void m7(TestJava o) {\n"
-                +"    a = 0;\n"  // BAD
+                +"    a = 0;\n"  // BAD // Line 50
                 +"  }\n"
                 
                 +"  //@ assignable \\nothing;\n"
