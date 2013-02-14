@@ -574,28 +574,49 @@ public class YicesProver extends AbstractProver implements IProver {
         //log.noticeWriter.println("REASSERTING");
         for (Map.Entry<String,String> entry : ce.sortedEntries()) {
             String v = entry.getKey();
+            String val = entry.getValue();
+            //log.noticeWriter.println("REASSERTING " + v + " AS " + val);
             String s;
             if (v.indexOf("&&") != -1) continue;
             if (v.indexOf(".length") != -1) continue;
+            if (v.indexOf("<=") != -1) continue;
+            if (v.indexOf("<:") != -1) continue;
+            if (v.indexOf(">") != -1) continue;
+            if (v.indexOf("+") != -1) continue;
+            if (val.equals("?")) continue;
+            if (v.equals(val)) continue;
+            v = v.replace("null", "NULL");
+
+//            } else if (val.equals("true")) {
+//                s = v;
+//            } else if (val.equals("false")) {
+//                s = "(not " + v + ")";
+
+            if (v.charAt(0) == '!' && val.equals("false")) {
+                v = v.substring(1);
+                val = "true";
+            } else if (v.charAt(0) == '!' && val.equals("true")) {
+                v = v.substring(1);
+                val = "false";
+            }
+
             int kk = v.indexOf("!=");
             if (kk != -1) {
                 s = "(/= " + v.substring(0,kk) + " " + v.substring(kk+2) + ")";
             } else {
-                s = "(= " + v + " " + entry.getValue() +")";
-                if (v.charAt(0) == '(') continue;
-                if (v.charAt(0) == '!' && entry.getValue().equals("false")) {
-                    s = v.substring(2,v.length()-1);
-                    int k = s.indexOf("==");
-                    if ( k == -1) continue;
-                    String s1 = s.substring(0,k).trim();
+                s = "(= " + v + " " + val +")";
+                int k = v.indexOf("==");
+                if ( k != -1) {
+                    String s1 = v.substring(0,k).trim();
                     if (s1.charAt(0) == '(') continue;
-                    String s2 = s.substring(k+2).trim();
+                    String s2 = v.substring(k+2).trim();
                     s = "(= " + s1 + " " + s2 + ")";
+                    v = s1;
                 }
+                if (v.charAt(0) == '(') continue;
             }
-            if (v.indexOf("==") != -1) continue;
-            s = s.replace("null", "NULL");
-            //log.noticeWriter.println("REASSERTING " + s);
+            if (s.indexOf("==") != -1) continue;
+            //log.noticeWriter.println("      " + s);
             try {
                 rawassume(s);
             } catch (ProverException e) {

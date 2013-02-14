@@ -846,7 +846,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         List<JCStatement> assumptions = new LinkedList<JCStatement>();
         addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeNeqObject(pos,ex,treeutils.nulllit),assumptions);
         for (JCCatch catcher: that.catchers) {
-            JCExpression tt = M.at(catcher.pos).TypeTest(ex,catcher.param.vartype).setType(syms.booleanType);
+            JCExpression ty = catcher.param != null ? catcher.param.vartype : treeutils.makeType(catcher.pos, syms.exceptionType);
+            JCExpression tt = M.at(catcher.pos).TypeTest(ex,ty).setType(syms.booleanType);
             tt = M.at(catcher.pos).Parens(tt).setType(tt.type);
             T catchBlock = newBlock("catch",catcher.pos);
             follows(targetBlock,catchBlock);
@@ -855,8 +856,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,tt,catchBlock.statements);
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(catcher.pos,tt),assumptions);
             JCVariableDecl d = catcher.param; // FIXME _ perhaps a whole new symbol should be made
-            d.init = ex;
-            catchBlock.statements.add(d);
+            if (d != null) {
+                d.init = ex;
+                catchBlock.statements.add(d);
+            }
             JCIdent nex = treeutils.makeIdent(catcher.pos, exceptionSym);
             catchBlock.statements.add(treeutils.makeAssignStat(catcher.pos,nex,treeutils.nulllit));
             JCIdent term = treeutils.makeIdent(catcher.pos, terminationSym);
@@ -1070,8 +1073,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         // There are no remaining statements, so this new block is empty.
         // But we create it so there is a block that marks the throw statement
         // and can be used to note the termination point in a trace
-        T b = newBlockWithRest(blockName(that.pos,THROW),that.pos);
-        follows(currentBlock,b);
+        T afterThrow = newBlockWithRest(THROW,that.pos);
+        follows(currentBlock,afterThrow);
         
         if (finallyStack.isEmpty()) {
             // We don't expect the finallyStack to ever be empty when there is
@@ -1081,11 +1084,11 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             log.warning(that.pos(),"esc.internal.error","finally stack is unexpectedly empty");
         } else {
             T targetBlock = finallyStack.get(0);
-            replaceFollows(currentBlock,targetBlock);
+            replaceFollows(afterThrow,targetBlock);
         }
 
         processCurrentBlock();
-        processBlock(b);
+        processBlock(afterThrow);
 
     }
     

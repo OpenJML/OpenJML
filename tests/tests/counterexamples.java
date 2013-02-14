@@ -134,7 +134,6 @@ public class counterexamples extends EscBase {
     /** Tests loops */
     @Test
     public void testCE6() {
-        //options.put("-showbb",""); options.put("-method","m1"); options.put("-showds","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -162,6 +161,7 @@ public class counterexamples extends EscBase {
                 +"}\n"
                 
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m1",13
+                ,"/tt/TestJava.java:4: warning: Prover failed: m1(int): ERROR: no longer satisfiable",15 // FIXME
                 ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m2",9
                 );
     }
@@ -427,6 +427,7 @@ public class counterexamples extends EscBase {
     /** Tests try/catch/finally */
     @Test
     public void testCE15() {
+        options.put("-showbb",""); options.put("-method","m2"); options.put("-showds","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
