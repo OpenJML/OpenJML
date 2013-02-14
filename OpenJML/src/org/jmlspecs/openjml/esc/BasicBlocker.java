@@ -6355,7 +6355,9 @@ public class BasicBlocker extends JmlTreeScanner {
         // if (objTrans == thisId) return; // 'this' is always non-null
         JCExpression e = treeutils.makeJmlBinary(pos, JmlToken.IMPLIES,
                 condition, assertion);
-        addAssert(label, e, pos, currentBlock.statements, pos,
+        int p = pos;
+        if (label == Label.ASSIGNABLE) p = assertion.pos; 
+        addAssert(label, e, p, currentBlock.statements, pos,
                 log.currentSourceFile(), assertion);
     }
 

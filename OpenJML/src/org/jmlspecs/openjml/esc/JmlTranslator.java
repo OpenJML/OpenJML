@@ -516,8 +516,9 @@ public class JmlTranslator extends JmlTreeTranslator {
                 if (cond != trueLit) {
                     // assert that (precond ==> cond)
                     // this does no translation
-                    JCExpression e = treeutils.makeImplies(precond.pos,precond,cond);
-                    assignee.selected = makeTrueCheck(pos,e,assignee.selected,"assignable",Label.ASSIGNABLE);
+                    JCExpression ee = treeutils.makeImplies(precond.pos,precond,cond);
+                    ee.pos = m.pos;
+                    assignee.selected = makeTrueCheck(pos,ee,assignee.selected,"assignable",Label.ASSIGNABLE);
                 }
             }
         }
@@ -640,6 +641,7 @@ public class JmlTranslator extends JmlTreeTranslator {
                     // assert that (precond ==> cond)
                     // this does no translation
                     JCExpression e = treeutils.makeImplies(precond.pos,precond,cond);
+                    e.pos = m.pos;
                     wrapped = makeTrueCheck(pos,e,wrapped,"target not assignable",Label.ASSIGNABLE);
                 }
             }
