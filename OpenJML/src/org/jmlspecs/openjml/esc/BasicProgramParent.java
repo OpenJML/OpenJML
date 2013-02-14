@@ -55,8 +55,8 @@ abstract public class BasicProgramParent<T extends BasicProgramParent.BlockParen
     protected List<T> blocks;
     
     /** A list of variables that will need to be declared at the beginning of
-     * a basic block program (because they do not have declarations elsewhere
-     * and to be sure that their declarations precede use).
+     * a basic block program. Boogie requires all declarations at the beginning
+     * of the implementation.
      */
     protected List<JCIdent> declarations = new ArrayList<JCIdent>();
 

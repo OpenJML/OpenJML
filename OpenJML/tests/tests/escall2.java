@@ -33,8 +33,11 @@ public class escall2 extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
+//        main.addUndocOption(option);
+//        main.addOptions("-nullableByDefault","-noPurityCheck");
+        setOption(option);
+        options.put("-nullableByDefault","");
         options.put("-noPurityCheck","");
-        options.put("-nullableByDefault",""); // Because the tests were written this way
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
         //options.put("-showbb",   "");
@@ -1076,12 +1079,12 @@ public class escall2 extends EscBase {
                 +"    this.a = 0;\n"  // OK
                 +"  }\n"
                 
-                +"  //@ assignable this.a;\n"
+                +"  //@ assignable TestJava.b;\n"
                 +"  public void m4x(TestJava o) {\n"
                 +"    this.b = 0;\n"  // OK
                 +"  }\n"
                 
-                +"  //@ assignable this.a;\n"
+                +"  //@ assignable this.b;\n"
                 +"  public void m4y(TestJava o) {\n"
                 +"    TestJava.b = 0;\n"  // OK
                 +"  }\n"
@@ -1130,10 +1133,49 @@ public class escall2 extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assignable) in method m1",9
+                ,"/tt/TestJava.java:7: warning: Associated declaration",7
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assignable) in method m2",9
+                ,"/tt/TestJava.java:11: warning: Associated declaration",7
                 ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assignable) in method m4a",9
+                ,"/tt/TestJava.java:31: warning: Associated declaration",7
                 ,"/tt/TestJava.java:50: warning: The prover cannot establish an assertion (Assignable) in method m7",7
+                ,"/tt/TestJava.java:48: warning: Associated declaration",7
                 ,"/tt/TestJava.java:63: warning: The prover cannot establish an assertion (Assignable) in method m9b",9
+                ,"/tt/TestJava.java:61: warning: Associated declaration",7
+                );
+    }
+   
+    @Test
+    public void testPureMethod() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +" public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ public normal_behavior requires b; ensures \\result == 5; \n"
+                +"  //@ also public normal_behavior requires !b; ensures \\result == 7; \n"
+                +"  @Pure public int m(boolean b) {\n"
+                +"    return b ? 5 : 7;\n"
+                +"  }\n"
+                
+                +"  public void m1() {\n"
+                +"    //@ assert m(true) == 5; \n"
+                +"  }\n"
+                
+                +"  public void m2() {\n"
+                +"    //@ assert m(false) == 7; \n"
+                +"  }\n"
+                
+                +"  public void m1a(boolean bb) {\n"
+                +"    //@ assert m(bb) == 6; \n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
                 );
     }
    

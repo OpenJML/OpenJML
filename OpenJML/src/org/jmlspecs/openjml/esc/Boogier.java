@@ -1380,8 +1380,18 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     
     // OK
     @Override
-    public void visitJmlStatementHavoc(JmlStatementHavoc that) { 
-        currentBlock.statements.add(that); // FIXME - are the targets all OK for Boogie?
+    public void visitJmlStatementHavoc(JmlStatementHavoc that) {
+        // TODO - seems a shame to recopy the whole list on the chance that there is a \nothing to remove
+        Iterator<JCExpression> iter = that.storerefs.iterator();
+        ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
+        while (iter.hasNext()) {
+            JCExpression x = iter.next();
+            if (x instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)x).token == JmlToken.BSNOTHING)
+                {}
+            else newlist.add(x);
+        }
+        that.storerefs = newlist.toList();
+        if (!that.storerefs.isEmpty()) currentBlock.statements.add(that); // FIXME - are the targets all OK for Boogie?
     }
     
 
@@ -1523,9 +1533,9 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // FIXME - review
     public void visitAssign(JCAssign that) {
         scan(that.lhs);
+        JCExpression left = result;
         scan(that.rhs);
-        JCExpression left = that.lhs;
-        JCExpression right = (that.rhs);
+        JCExpression right = result;
         result = doAssignment(that.type,left,right,that.pos,that);
     }
 //    
