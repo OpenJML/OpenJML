@@ -47,6 +47,7 @@ public class JmlDebugTreePrinter extends JmlTreeScanner {
         out.println(indent + t.getClass() 
                 + " " + t.getTag() 
                 + " " + t.getStartPosition() 
+                + " " + t.getPreferredPosition() 
                 + " " + (endPositions==null?"":Integer.toString(TreeInfo.getEndPos(t, endPositions))));
         String oldindent = indent;
         indent = indent + "  ";

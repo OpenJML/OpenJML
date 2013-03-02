@@ -66,7 +66,7 @@ import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.comp.JmlEnter;
-import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
@@ -77,6 +77,7 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
@@ -603,7 +604,8 @@ public class JmlEsc extends JmlTreeScanner {
         IResponse resp = solver.get_value(s);
         if (resp instanceof org.smtlib.sexpr.ISexpr.ISeq){
             org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
-            return !se.toString().contains("false"); // FIXME - really should test the second item of the returned pair
+            if (se instanceof org.smtlib.sexpr.ISexpr.ISeq) se = ((org.smtlib.sexpr.ISexpr.ISeq)se).sexprs().get(1);
+            return !se.toString().contains("false");
         } else if (resp instanceof IResponse.IError) {
             log.error("jml.internal.notsobad", ((IResponse.IError)resp).errorMsg());
             return true;
@@ -620,6 +622,7 @@ public class JmlEsc extends JmlTreeScanner {
         org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id);
         IResponse resp = solver.get_value(s);
         org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
+        if (se instanceof org.smtlib.sexpr.ISexpr.ISeq) se = ((org.smtlib.sexpr.ISexpr.ISeq)se).sexprs().get(1);
         return Integer.parseInt(se.toString());
     }
 
@@ -630,6 +633,7 @@ public class JmlEsc extends JmlTreeScanner {
             return resp.toString();
         } else {
             org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
+            if (se instanceof org.smtlib.sexpr.ISexpr.ISeq) se = ((org.smtlib.sexpr.ISexpr.ISeq)se).sexprs().get(1);
             return se.toString();
         }
     }
@@ -688,13 +692,14 @@ public class JmlEsc extends JmlTreeScanner {
                 log.noticeWriter.println("STATEMENT: " + stat);
                 if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSUME) {
                     JmlStatementExpr x = (JmlStatementExpr)stat;
-                    if (x.expression instanceof JCBinary) {
-                        JCExpression lhs = ((JCBinary)x.expression).lhs;
-                        log.noticeWriter.println("VALUE: " + lhs + " = " + getValue(lhs.toString(),smt,solver));
-                    } else if (x.expression instanceof JCIdent) {
-                        Name n = ((JCIdent)x.expression).name;
-                        log.noticeWriter.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
-                    } 
+                    traceSubExpr(x.expression,smt,solver);
+//                    if (x.expression instanceof JCBinary) {
+//                        JCExpression lhs = ((JCBinary)x.expression).lhs;
+//                        log.noticeWriter.println("VALUE: " + lhs + " = " + getValue(lhs.toString(),smt,solver));
+//                    } else if (x.expression instanceof JCIdent) {
+//                        Name n = ((JCIdent)x.expression).name;
+//                        log.noticeWriter.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
+//                    } 
                 } else if (stat instanceof JCVariableDecl) {
                         Name n = ((JCVariableDecl)stat).name;
                         log.noticeWriter.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
@@ -770,6 +775,19 @@ public class JmlEsc extends JmlTreeScanner {
             if (value) return true;
         }
         return false;
+    }
+    
+    public void traceSubExpr(JCExpression e, SMT smt, ISolver solver) {
+        if (e instanceof JCIdent) {
+            Name n = ((JCIdent)e).name;
+            log.noticeWriter.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
+        } else if (e instanceof JCBinary) {
+            traceSubExpr(((JCBinary)e).lhs,smt,solver);
+            traceSubExpr(((JCBinary)e).rhs,smt,solver);
+        } else if (e instanceof JCUnary) {
+            traceSubExpr(((JCUnary)e).arg,smt,solver);
+        }
+        
     }
     
     public class SMTListener implements org.smtlib.Log.IListener {

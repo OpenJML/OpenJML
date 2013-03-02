@@ -288,7 +288,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             // log a warning, ignore the block, and continue processing.
             // Note that the block will still have an id and be in the 
             // id map (blockLookup).
-            if (!block.statements.isEmpty()) {
+            if (!block.statements.isEmpty() && !block.id().name.toString().contains("finallyNormal") && !block.id().name.toString().contains("finallyExit")) {
                 log.warning("jml.internal","A basic block has no predecessors - ignoring it: " + block.id);
             }
             program.blocks.remove(block);

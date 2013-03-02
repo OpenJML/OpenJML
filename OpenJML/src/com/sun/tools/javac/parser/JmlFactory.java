@@ -70,14 +70,14 @@ public class JmlFactory extends ParserFactory {
      * @param keepDocComments  if true, javadoc comments are kept
      * @param genEndPos   if true, AST node end position information is kept
      * @param keepLineMap  if true, the mapping from position to line is kept
-     * @param enableJml   if true, JML comments are parsed
+     * @param enableJml   if true, parser begins within a JML comment
      * @return the new parser, ready to go
      */
     public JmlParser newParser(CharSequence input, boolean keepDocComments,
             boolean genEndPos, boolean keepLineMap, boolean enableJml) {
         JmlScanner lexer = (JmlScanner) scannerFactory.newScanner(input, keepDocComments);
         lexer.setJml(enableJml);
-        JmlParser p = new JmlParser(this, lexer, keepDocComments || true); // FIXME - why the true
+        JmlParser p = new JmlParser(this, lexer, keepDocComments);
         p.names = Names.instance(context);
         p.context = context;
         p.utils = Utils.instance(context);
@@ -87,7 +87,7 @@ public class JmlFactory extends ParserFactory {
     /** Generates a new parser that will parse the given input;
      * the parser will parse JML annotations and javadoc
      * comments, keeping a line map and end positions;
-     * the beginning of the parse may not be within a JML annotation.
+     * the beginning of the parse must not be within a JML annotation.
      * @param input the characters to parse
      * @return the new parser
      */

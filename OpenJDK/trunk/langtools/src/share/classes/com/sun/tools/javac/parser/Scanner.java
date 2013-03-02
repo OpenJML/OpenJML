@@ -189,12 +189,7 @@ public class Scanner implements Lexer {
         buflen = inputLength;
         buf[buflen] = EOI;
         bp = -1;
-        //scanChar(); // DRC - replaced this by the following because scanChar is now inherited
-        ch = buf[++bp];
-        if (ch == '\\') {
-            convertUnicode();
-        }
-
+        scanChar();
     }
 
     /** Report an error at the given position using the provided arguments.
@@ -408,7 +403,7 @@ public class Scanner implements Lexer {
 
     /** Read fractional part of floating point number.
      */
-    protected void scanFraction() { // DRC - changed to protected to be able to snag .. between ints
+    private void scanFraction() {
         skipIllegalUnderscores();
         if ('0' <= ch && ch <= '9') {
             scanDigits(10);
@@ -434,7 +429,7 @@ public class Scanner implements Lexer {
 
     /** Read fractional part and 'd' or 'f' suffix of floating point number.
      */
-    protected void scanFractionAndSuffix() { // DRC - changed private to protected
+    protected void scanFractionAndSuffix() { // DRC - changed to protected to be able to snag .. between ints
         this.radix = 10;
         scanFraction();
         if (ch == 'f' || ch == 'F') {

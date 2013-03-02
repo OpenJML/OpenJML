@@ -2260,15 +2260,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             } finally {
                 currentMap = savedMap;
             }
-        } else if (that.token == null) {
+        } else if (that.token == null || that.token == JmlToken.BSTYPELC || that.token == JmlToken.BSTYPEOF) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
             scan(that.meth);
-            that.meth = result;
+            if (that.meth != null) that.meth = result;
             scanList(that.args);
             result = that;
         } else {
-            log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker: " + that.token.internedName());
+            log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker2: " + that.token.internedName());
 //            for (JCExpression e: that.args) {
 //                e.accept(this);
 //            }
@@ -2619,7 +2619,17 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             currentBlock.statements.add(that);
         } else if (that.token == JmlToken.ASSUME || that.token == JmlToken.ASSERT) {
             scan(that.expression);
-            currentBlock.statements.add(that);
+            that.expression = result;
+            JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.token,that.label,result);
+            st.id = that.id;
+            scan(that.optionalExpression);
+            st.optionalExpression = result;
+            st.associatedPos = that.associatedPos;
+            st.associatedSource = that.associatedSource;
+            st.line = that.line;
+            st.source = that.source;
+            st.type = that.type;
+            currentBlock.statements.add(st);
         } else {
             log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.token.internedName());
         }
@@ -2740,7 +2750,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     @Override
     public void visitSelect(JCFieldAccess that) {
-        if (!(that.sym instanceof Symbol.VarSymbol)) return; // This is a qualified type name 
+        if (!(that.sym instanceof Symbol.VarSymbol)) { result = that; return; } // This is a qualified type name 
         if (that.sym.isStatic()) {
             that.name = getCurrentName((Symbol.VarSymbol)that.sym);
             JCIdent id = treeutils.makeIdent(that.pos,that.sym);
