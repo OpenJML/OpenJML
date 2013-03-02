@@ -1180,5 +1180,48 @@ public class escall2 extends EscBase {
                 );
     }
    
+    @Test
+    public void testPureMethod2() {
+        options.put("-showbb","");
+        options.put("-method","m2");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +" public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ public normal_behavior requires b; ensures \\result == 5; \n"
+                +"  @Pure public int m(boolean b) {\n"
+                +"    return b ? 5 : 7;\n"
+                +"  }\n"
+                
+                +"  public void m1() {\n"
+                +"    //@ assert m(true) == 5; \n"
+                +"  }\n"
+                
+                +"  public void m2() {\n"
+                +"    //@ assert m(false) == 5; \n"
+                +"  }\n"
+                
+                +"  public void m1a(boolean bb) {\n"
+                +"    //@ assert m(bb) == 6; \n"
+                +"  }\n"
+                
+                +"  public void m1b() {\n"
+                +"    //@ assert m(true) == 7; \n"
+                +"  }\n"
+        
+        
+                +"}"
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m2",17
+                ,"/tt/TestJava.java:7: warning: Associated declaration",30
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1a",17
+                ,"/tt/TestJava.java:7: warning: Associated declaration",30
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m1b",9
+                );
+    }
+   
 
 }

@@ -53,7 +53,8 @@ public class JmlScanner extends DocCommentScanner {
 
     /**
      * This factory is used to generate instances of JmlScanner. There is
-     * typically a new instance for each new file parsed. The Context is used to
+     * one factory per compilation context and a new instance of JmlScanner
+     * for each new file parsed. The Context is used to
      * have a consistent set of information across all files parsed within a
      * compilation task.
      */
@@ -104,9 +105,10 @@ public class JmlScanner extends DocCommentScanner {
          * @see com.sun.tools.javac.parser.Scanner.Factory#newScanner(char[],
          * int, boolean)
          */
-        /** The last character in the input array may be overwritten with an EOI character; if you
-         * control the size of the input array, make it at least one character larger than necessary, 
-         * to avoid the overwriting or reallocating and copying the array.
+        /** The last character in the input array may be overwritten with an 
+         * EOI character; if you control the size of the input array, make it at
+         * least one character larger than necessary, 
+         * to avoid reallocating and copying the array.
          */
         @Override
         public JmlScanner newScanner(char[] input, int inputLength, boolean keepDocComments) {
@@ -323,7 +325,7 @@ public class JmlScanner extends DocCommentScanner {
             scanIdent(); // Only valid if ch is isJavaIdentifierStart
             sp = 0; // See the use of sp in Scanner - if sp is not reset, then the
                     // next identifier is appended to the key
-            Name key = name();
+            Name key = name(); // the identified just scanned
             if (keys.contains(key.toString())) {
                 if (isplus) foundplus = true;
                 else {
@@ -352,9 +354,11 @@ public class JmlScanner extends DocCommentScanner {
             // We are already in a JML comment - so we have an embedded comment.
             // The action is to just ignore the embedded comment start
             // characters.
+            // FIXME - what if the embedded comment has keys?
             return;
         }
 
+        // We initialize state and proceed to process the comment as JML text
         jmlcommentstyle = style;
         jml = true;
         jmlkeyword = true;
@@ -368,7 +372,7 @@ public class JmlScanner extends DocCommentScanner {
      * endPos() gives (one past) the end character position of the scanned
      * token.
      * <P>
-     * Both pos and endPos point to the end of a character sequence if the
+     * Both pos and endPos point to the end of a unicode sequence if the
      * relevant character is represented by a unicode sequence. The internal bp
      * pointer should be at endPos and the internal ch variable should contain
      * the following character.
@@ -419,7 +423,7 @@ public class JmlScanner extends DocCommentScanner {
             if (!jml) {
                 if (jmlToken == JmlToken.ENDJMLCOMMENT) {
                     token(Token.CUSTOM);
-                    if (!returnEndOfCommentTokens || !initialJml) continue;
+                    if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
                     return;
                 } else {
                     return; // A Java token
@@ -556,7 +560,7 @@ public class JmlScanner extends DocCommentScanner {
     }
 
     /** This method presumes the NOWARN token has been read and handles the names
-     * within the nowarn, reading through the terminating semicolon or end of JML comment\
+     * within the nowarn, reading through the terminating semicolon or end of JML comment
      */
     public void scanNowarn() {
         boolean prev = jmlkeyword;
@@ -681,9 +685,9 @@ public class JmlScanner extends DocCommentScanner {
             if (tt != null) {
                 token(Token.CUSTOM);
                 jmlToken = tt;
-                return;
+                return; 
             }
-
+            // FIXME - can we count on jmlToken to be null?
         } else if (t == Token.ASSERT) {
             token(Token.CUSTOM);
             jmlToken = JmlToken.ASSERT;

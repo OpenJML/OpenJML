@@ -192,7 +192,7 @@ public class escnew extends EscBase {
                 +"  //@ signals (Exception e) true;\n"
                 +"  public void m1bad(int[] a, int i) throws Exception {\n"
                 +"      if (i == 0) \n"
-                +"         throw new Exception();\n"
+                +"         throw new Exception();\n" // Line 10
                 +"      else\n"
                 +"         throw new Exception();\n"
                 +"  }\n"
@@ -206,7 +206,7 @@ public class escnew extends EscBase {
                 +"      if (i == 0) \n"
                 +"         throw new Exception();\n"
                 +"      else\n"
-                +"         throw new Exception();\n"
+                +"         throw new Exception();\n" // Line 23
                 +"  }\n"
                 
                 +"}"
@@ -417,6 +417,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testTry() {
+       // options.put("-method", "m2bad");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -502,6 +503,18 @@ public class escnew extends EscBase {
                 +"       try {\n"
                 +"        kk=1; if (i == 0) throw new RuntimeException();\n"
                 +"       } catch (RuntimeException e) {\n"
+                +"           kk = 2;\n"
+                +"        } \n"
+                +"       kk = 3;\n"
+                +"       return kk; \n"
+                +"  }\n"
+                
+                +"  //@ assignable kk;\n"
+                +"  //@ ensures \\result == 3; signals (Exception e)  false; \n"
+                +"  public int m4agood(int i ) throws Exception {\n"
+                +"       try {\n"
+                +"        kk=1; if (i == 0) throw new RuntimeException();\n"
+                +"       } catch (Exception e) {\n"
                 +"           kk = 2;\n"
                 +"        } \n"
                 +"       kk = 3;\n"

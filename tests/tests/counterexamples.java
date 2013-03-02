@@ -19,8 +19,10 @@ public class counterexamples extends EscBase {
         //options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
+        options.put("-newesc","");
         options.put("-trace",""); // show traces
-        //options.put("-ce",""); // show proverResults
+        options.put("-ce",""); // show proverResults
+        options.put("-showbb",""); // show proverResults
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 2;
     }
@@ -66,15 +68,15 @@ public class counterexamples extends EscBase {
                 
                 +"  public void m1(int k) {\n"
                 +"    c1(k,k!=0);\n"
-                +"    TestJava j = new TestJava(2+3);"
-                +"    (k==0?this:j).m1(0);"
+                +"    TestJava j = new TestJava(2+3);\n"
+                +"    (k==0?this:j).m1(0);\n"
                 +"  }\n"
                 
                 +"  //@ requires k == 0;\n"
                 +"  public void c1(int k, boolean b) {};\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Precondition) in method m1",7
-                ,"/tt/TestJava.java:7: warning: Associated declaration",16
+                ,"/tt/TestJava.java:9: warning: Associated declaration",7
                 );
     }
     
@@ -161,7 +163,6 @@ public class counterexamples extends EscBase {
                 +"}\n"
                 
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m1",13
-                ,"/tt/TestJava.java:4: warning: Prover failed: m1(int): ERROR: no longer satisfiable",15 // FIXME
                 ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m2",9
                 );
     }
@@ -169,23 +170,24 @@ public class counterexamples extends EscBase {
     /** Tests pure methods */
     @Test
     public void testCE7() {
+        //options.put("-showbb",""); options.put("-method","m2"); options.put("-showds","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1() {\n"
-                +"      //@ assert c(2) != -2;\n"
+                +"      //@ assert c(2) != -2;\n" // ERROR - c(2) can be any negative number
                 +"  }\n"
                 
                 +"  public void m2() {\n"
-                +"      //@ assert cc(2) != -3;\n"
+                +"      //@ assert cc(2) != -3;\n" // OK - we know cc(2) is -2
                 +"  }\n"
                 
                 +"  public void m3() {\n"
-                +"      //@ assert b();\n"
+                +"      //@ assert b();\n" // ERROR - b() can be anything
                 +"  }\n"
                 
                 +"  public void m4() {\n"
-                +"      //@ assert bb(0);\n"
+                +"      //@ assert bb(0);\n" // ERROR - bb(0) ncan be anything - is this any different from m3?
                 +"  }\n"
                 
                 +"  //@ normal_behavior requires z > 0; ensures \\result < 0;\n"
@@ -312,6 +314,7 @@ public class counterexamples extends EscBase {
                 +"  //@ also requires i==0; \n"
                 +"  //@ ensures false;\n"
                 +"  //@ signals (RuntimeException e) k==1;\n"
+                +"  //@ signals_only RuntimeException;\n"
                 +"  public void cc(int i) throws RuntimeException {\n"
                 +"      k=1; if (i==0) throw new RuntimeException();\n"
                 +"      k=0; return ;\n"
@@ -418,8 +421,8 @@ public class counterexamples extends EscBase {
                 
                 +"}\n"
                 
+                ,"/tt/TestJava.java:11: warning: Label X has value true",39 // FIXME - point to the label, not the expression?
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Unreachable) in method m1",11
-                ,"/tt/TestJava.java:11: warning: Label X reported",29
                 );
     }
     
@@ -427,7 +430,7 @@ public class counterexamples extends EscBase {
     /** Tests try/catch/finally */
     @Test
     public void testCE15() {
-        options.put("-showbb",""); options.put("-method","m2"); options.put("-showds","");
+        //options.put("-showbb",""); options.put("-method","m3"); options.put("-showds","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -448,7 +451,7 @@ public class counterexamples extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 
-                +"  //@ requires i != 0; ensures false; \n"
+                +"  //@ requires i != 0; ensures false; \n" //Line 19
                 +"  public void m2(int i) throws Exception {\n"
                 +"    int k = 0;\n"
                 +"    try {\n"
@@ -470,7 +473,7 @@ public class counterexamples extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 
-                +"  //@ requires i == 0; ensures false; \n"
+                +"  //@ requires i == 0; ensures false; \n" // Line 40
                 +"  public void m3(int i) throws Exception {\n"
                 +"    int k = 0;\n"
                 +"    try {\n"
@@ -497,7 +500,7 @@ public class counterexamples extends EscBase {
                 ,"/tt/TestJava.java:3: warning: Associated declaration",7
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m2",10
                 ,"/tt/TestJava.java:19: warning: Associated declaration",24
-                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Postcondition) in method m3",15
+                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (Postcondition) in method m3",26
                 ,"/tt/TestJava.java:40: warning: Associated declaration",24
                 );
     }
