@@ -1182,8 +1182,8 @@ public class escall2 extends EscBase {
    
     @Test
     public void testPureMethod2() {
-        options.put("-showbb","");
-        options.put("-method","m2");
+//        options.put("-showbb","");
+//        options.put("-method","m2");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +" public class TestJava { \n"
@@ -1206,7 +1206,7 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"  public void m1a(boolean bb) {\n"
-                +"    //@ assert m(bb) == 6; \n"
+                +"    //@ assert m(bb) == 5; \n"
                 +"  }\n"
                 
                 +"  public void m1b() {\n"

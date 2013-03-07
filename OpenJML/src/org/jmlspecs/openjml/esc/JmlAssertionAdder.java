@@ -643,7 +643,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (isConstructor) {
                 ListBuffer<JCStatement> newstats = new ListBuffer<JCStatement>();
                 newstats.addAll(methodDecl.body.stats);
-                addPrePostConditions(methodDecl, initialStatements,outerFinalizeStats, isConstructor);
+                addPrePostConditions(initialStatements,outerFinalizeStats);
                 newstats.addAll(initialStatements);
                 newstats.addAll(outerFinalizeStats);
                 
@@ -654,14 +654,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             pushBlock();
 
             initialStatements.add( comment(methodDecl.pos(),"Check Preconditions"));
-            addPrePostConditions(methodDecl, initialStatements,outerFinalizeStats, isConstructor);
+            outerFinalizeStats.add( comment(methodDecl.pos(),"Check Postconditions"));
+            addPrePostConditions(initialStatements, outerFinalizeStats);
 
             addStat( comment(methodDecl.pos(),"Method Body"));
             
             if (methodDecl.body != null) scan(methodDecl.body.stats);
             JCBlock b = popBlock(0,methodDecl.body == null ? methodDecl.pos(): methodDecl.body.pos());
             
-            outerFinalizeStats.prepend( comment(methodDecl.pos(),"Check Postconditions"));
             
             // The outerTryStatement just has a finally clause in which the
             // postconditions and exceptional postconditions are checked.
@@ -1276,30 +1276,35 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     /** Computes and adds checks for all the pre and postcondition clauses. */
     // FIXME - review this
-    protected void addPrePostConditions(JCMethodDecl decl, 
+    protected void addPrePostConditions( 
             ListBuffer<JCStatement> initialStats, 
-            ListBuffer<JCStatement> finalizeStats,
-            boolean isConstructor) {
-        if (decl.sym == null) {
-            log.warning("jml.internal.notsobad", "Unexpected null symbol for " + decl.getName());
-        }
-        ListBuffer<JCStatement> saved = currentStatements;
+            ListBuffer<JCStatement> finalizeStats
+            ) {
+        
+        JCMethodDecl methodDecl = this.methodDecl;
+        boolean methodIsStatic = methodDecl.sym.isStatic();
+        boolean isConstructor = methodDecl.sym.isConstructor();
+        ListBuffer<JCStatement> savedCurrentStatements = currentStatements;
+        currentStatements = initialStats;
 
         // Add a precondition that the parameter != null on each formal parameter, if needed
         // Not adding these because the nonnull conditions are part of the deNestedSpecs.
         // However it would be nice to use these and leave them out of the  combinedPrecondition
         // because we get more accurate error messages.
         // Added  back - appears to be needed for ESC - FIXME - review all this
-        currentStatements = initialStats;
         if (esc) {
-            for (JCVariableDecl d: decl.params) {
+            for (JCVariableDecl d: methodDecl.params) {
                 if (specs.isNonNull(d.sym, (Symbol.ClassSymbol)d.sym.owner.owner)) {
                     addAssume(d.pos(),Label.NULL_CHECK,treeutils.makeNeqObject(d.pos,treeutils.makeIdent(d.pos, d.sym), treeutils.nulllit));
                 }
             }
         }
-        for (JCVariableDecl d: decl.params) {
-            JCVariableDecl dd = treeutils.makeVarDef(d.type,M.Name("PRE_"+d.name.toString()),  
+        
+        /** Declare new variables, initialized to the values of the formal 
+         * parameters, so that they can be referred to in postconditions. 
+         */
+        for (JCVariableDecl d: methodDecl.params) {
+            JCVariableDecl dd = treeutils.makeVarDef(d.type,M.Name(Strings.formalPrefix+d.name.toString()),  
                     d.sym.owner, M.Ident(d.sym));
             preparams.put(d.sym,dd);
             if (esc) dd.sym.owner = null;
@@ -1311,70 +1316,78 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
         
-        DiagnosticPosition p = methodDecl.pos();
-        JCExpression cond = treeutils.makeEqObject(p.getPreferredPosition(),
-                treeutils.makeIdent(p.getPreferredPosition(), exceptionSym), treeutils.nulllit);
+        // Construct a condition, to be used later, that the method has not thrown an exception
+        DiagnosticPosition methodPos = methodDecl.pos();
+        JCExpression noException = treeutils.makeEqObject(methodPos.getPreferredPosition(),
+                treeutils.makeIdent(methodPos.getPreferredPosition(), exceptionSym), treeutils.nulllit);
         
-        boolean methodIsStatic = methodDecl.sym.isStatic();
-        JCExpression combinedPrecondition = null;
+        // the following list of parents includes self
+        java.util.List<ClassSymbol> parents = utils.parents((ClassSymbol)methodDecl.sym.owner);
         
-        // the following includes self
-        java.util.List<ClassSymbol> parents = utils.parents((ClassSymbol)decl.sym.owner);
-        
+        // Iterate through parent classes and interfaces, adding relevant axioms and invariants
         currentStatements = preStats;
-        if (!isConstructor) {
+        for (ClassSymbol csym: parents) {
+            JmlSpecs.TypeSpecs tspecs = specs.get(csym);
 
-            for (ClassSymbol csym: parents) {
-                JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+            for (JmlTypeClause clause : tspecs.clauses) {
+                JmlTypeClauseExpr t;
+                //if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags)) continue;
 
-                for (JmlTypeClause clause : tspecs.clauses) {
-                    JmlTypeClauseExpr t;
-                    if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags)) continue;
-
-                    try {
-                        switch (clause.token) {
-                            case INVARIANT:
-                                if (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC)) {
-                                    if (!isHelper(decl.sym)) {
-                                        t = (JmlTypeClauseExpr)clause;
-                                        addAssume(methodDecl.pos(),Label.INVARIANT_ENTRANCE,
-                                                convertJML(t.expression),
-                                                clause.pos(),clause.source);
-                                    }
-                                }
-                                break;
-                            case AXIOM:
-                                if (rac) {
-                                    notImplemented(clause.pos(), "axiom clause");
-                                } else if (esc) {
+                try {
+                    switch (clause.token) {
+                        case INVARIANT:
+                            if (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC)) {
+                                if (!isHelper(methodDecl.sym) && (methodIsStatic || !isConstructor) &&
+                                        utils.visible(classDecl.sym, csym, clause.modifiers.flags) // FIXME - test visibility
+                                        ) {
                                     t = (JmlTypeClauseExpr)clause;
-                                    addAssume(methodDecl.pos(),Label.AXIOM,
+                                    addAssume(methodDecl.pos(),Label.INVARIANT_ENTRANCE,
                                             convertJML(t.expression),
                                             clause.pos(),clause.source);
                                 }
-                                break;
-                            default:
-                                // Skip
+                            }
+                            break;
+                        case AXIOM:
+                            if (rac) {
+                                notImplemented(clause.pos(), "axiom clause");
+                            } else if (esc) {
+                                t = (JmlTypeClauseExpr)clause;
+                                addAssume(methodDecl.pos(),Label.AXIOM,
+                                        convertJML(t.expression),
+                                        clause.pos(),clause.source);
+                            }
+                            break;
+                        default:
+                            // Skip
 
-                        }
-                    } catch (JmlNotImplementedException e) {
-                        notImplemented(clause.token.internedName() + " clause containing ", e);
                     }
+                } catch (JmlNotImplementedException e) {
+                    notImplemented(clause.token.internedName() + " clause containing ", e);
                 }
             }
         }
         
+        JCExpression combinedPrecondition = null;
+        
+        // Iterate over all methods that methodDecl overrides, collecting specs
         boolean sawSomeSpecs = false;
-        for (MethodSymbol msym: utils.parents(decl.sym)) {
+        for (MethodSymbol msym: utils.parents(methodDecl.sym)) {
             if (msym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
             JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(msym);
+            
+            // Set up the map from parameter symbol of the overridden method to 
+            // corresponding parameter of the target method.
+            // We need this even if names have not changed, because the parameters 
+            // will have been attributed with different symbols.
             Iterator<VarSymbol> iter = msym.params.iterator();
-            for (JCVariableDecl dp: decl.params) {
+            for (JCVariableDecl dp: methodDecl.params) {
                 paramActuals.put(iter.next(),treeutils.makeIdent(dp.pos, dp.sym));
             }
             
             for (JmlSpecificationCase scase : denestedSpecs.cases) {
                 sawSomeSpecs = true;
+                System.out.println("SCASE: " + scase.modifiers.flags + " " + scase);
+                System.out.println("VISIBILITY: " + msym + " " + utils.visible(classDecl.sym, msym.owner, scase.modifiers.flags));
                 if (!utils.visible(classDecl.sym, msym.owner, scase.modifiers.flags)) continue;
                 JCIdent preident = null;
                 JCExpression preexpr = null;
@@ -1401,7 +1414,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 precount++;
                 Name prename = names.fromString(Strings.prePrefix + precount);
-                JCVariableDecl dx = treeutils.makeVarDef(syms.booleanType, prename, decl.sym, treeutils.falseLit);
+                JCVariableDecl dx = treeutils.makeVarDef(syms.booleanType, prename, methodDecl.sym, treeutils.falseLit);
                 dx.pos = scase.pos;
                 preident = treeutils.makeIdent(scase.pos, dx.sym);
                 addStat(initialStats,dx);
@@ -1551,6 +1564,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (ClassSymbol csym: parents) {
             JmlSpecs.TypeSpecs tspecs = specs.get(csym);
             for (JmlTypeClause clause : tspecs.clauses) {
+                System.out.println("VISIBILITY3: " + utils.visible(classDecl.sym, csym, clause.modifiers.flags));
                 if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags)) continue;
                 JmlTypeClauseExpr t;
                 try {
@@ -1558,7 +1572,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         // FIXME - add in assert of non-null fields - check staticness
                         case INVARIANT:
                             if (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC)) {
-                                if (!isHelper(decl.sym)) {
+                                if (!isHelper(methodDecl.sym)) {
                                     pushBlock();
                                     t = (JmlTypeClauseExpr)clause;
                                     addAssert(methodDecl.pos(),Label.INVARIANT_EXIT,
@@ -1581,7 +1595,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }
                             break;
                         case INITIALLY:
-                            if (isConstructor && !isHelper(decl.sym)) {
+                            if (isConstructor && !isHelper(methodDecl.sym)) {
                                 pushBlock();
                                 t = (JmlTypeClauseExpr)clause;
                                 addAssert(methodDecl.pos(),Label.INITIALLY,
@@ -1602,7 +1616,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
 
-        p = methodDecl.pos();
+        methodPos = methodDecl.pos();
 
         // If combinedPrecondition is null then there were no specs, so the implicit precondition is true and does not
         // need to be checked
@@ -1612,7 +1626,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addAssume(combinedPrecondition.pos(),Label.PRECONDITION,combinedPrecondition);
         }
         
-        currentStatements = saved;
+        currentStatements = savedCurrentStatements;
         if (rac) {
             Name n;
             JCVariableDecl vd;
@@ -1620,30 +1634,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (!isConstructor) {
                 n = names.fromString("preEx");
-                vd = treeutils.makeVarDef(syms.runtimeExceptionType, n, methodDecl.sym, decl.pos);
-                ex = treeutils.makeIdent(decl.pos,vd.sym);
-                JCExpression str = treeutils.makeStringLiteral("Runtime exception while evaluating preconditions - preconditions are undefined in JML",decl.pos);
-                JCStatement st = methodCallUtilsStatement(decl.pos(),"reportException",str,ex);
-                JCBlock bl = M.at(decl.pos).Block(0, List.<JCStatement>of(st));
-                JCCatch catcher = M.at(decl.pos).Catch(vd,bl);
-                bl = M.at(decl.pos).Block(0, preStats.toList());
-                st = M.at(decl.pos).Try(bl,List.<JCCatch>of(catcher),null);
+                vd = treeutils.makeVarDef(syms.runtimeExceptionType, n, methodDecl.sym, methodDecl.pos);
+                ex = treeutils.makeIdent(methodDecl.pos,vd.sym);
+                JCExpression str = treeutils.makeStringLiteral("Runtime exception while evaluating preconditions - preconditions are undefined in JML",methodDecl.pos);
+                JCStatement st = methodCallUtilsStatement(methodDecl.pos(),"reportException",str,ex);
+                JCBlock bl = M.at(methodDecl.pos).Block(0, List.<JCStatement>of(st));
+                JCCatch catcher = M.at(methodDecl.pos).Catch(vd,bl);
+                bl = M.at(methodDecl.pos).Block(0, preStats.toList());
+                st = M.at(methodDecl.pos).Try(bl,List.<JCCatch>of(catcher),null);
                 preStats = new ListBuffer<JCStatement>();
                 preStats.add(st);
             }
             
             {
                 n = names.fromString("postEx");
-                vd = treeutils.makeVarDef(syms.runtimeExceptionType, n, methodDecl.sym, decl.pos);
-                ex = treeutils.makeIdent(decl.pos,vd.sym);
-                JCExpression str = treeutils.makeStringLiteral("Runtime exception while evaluating postconditions - postconditions are undefined in JML",decl.pos);
-                JCStatement st = methodCallUtilsStatement(decl.pos(),"reportException",str,ex);
-                JCBlock bl = M.at(decl.pos).Block(0, List.<JCStatement>of(st));
-                JCCatch catcher = M.at(decl.pos).Catch(vd,bl);
-                bl = M.at(decl.pos).Block(0, ensuresStats.toList());
+                vd = treeutils.makeVarDef(syms.runtimeExceptionType, n, methodDecl.sym, methodDecl.pos);
+                ex = treeutils.makeIdent(methodDecl.pos,vd.sym);
+                JCExpression str = treeutils.makeStringLiteral("Runtime exception while evaluating postconditions - postconditions are undefined in JML",methodDecl.pos);
+                JCStatement st = methodCallUtilsStatement(methodDecl.pos(),"reportException",str,ex);
+                JCBlock bl = M.at(methodDecl.pos).Block(0, List.<JCStatement>of(st));
+                JCCatch catcher = M.at(methodDecl.pos).Catch(vd,bl);
+                bl = M.at(methodDecl.pos).Block(0, ensuresStats.toList());
                 ensuresStats = new ListBuffer<JCStatement>();
                 if (!bl.stats.isEmpty()) {
-                    st = M.at(decl.pos).Try(bl,List.<JCCatch>of(catcher),null);
+                    st = M.at(methodDecl.pos).Try(bl,List.<JCCatch>of(catcher),null);
                     ensuresStats.add(st);
                 }
             }
@@ -1651,16 +1665,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!isConstructor) {
                 
                 n = names.fromString("sigEx");
-                vd = treeutils.makeVarDef(syms.runtimeExceptionType, n, methodDecl.sym, decl.pos);
-                ex = treeutils.makeIdent(decl.pos,vd.sym);
-                JCExpression str = treeutils.makeStringLiteral("Runtime exception while evaluating exceptional postconditions - signals clauses are undefined in JML",decl.pos);
-                JCStatement st = methodCallUtilsStatement(decl.pos(),"reportException",str,ex);
-                JCBlock bl = M.at(decl.pos).Block(0, List.<JCStatement>of(st));
-                JCCatch catcher = M.at(decl.pos).Catch(vd,bl);
-                bl = M.at(decl.pos).Block(0, exsuresStats.toList());
+                vd = treeutils.makeVarDef(syms.runtimeExceptionType, n, methodDecl.sym, methodDecl.pos);
+                ex = treeutils.makeIdent(methodDecl.pos,vd.sym);
+                JCExpression str = treeutils.makeStringLiteral("Runtime exception while evaluating exceptional postconditions - signals clauses are undefined in JML",methodDecl.pos);
+                JCStatement st = methodCallUtilsStatement(methodDecl.pos(),"reportException",str,ex);
+                JCBlock bl = M.at(methodDecl.pos).Block(0, List.<JCStatement>of(st));
+                JCCatch catcher = M.at(methodDecl.pos).Catch(vd,bl);
+                bl = M.at(methodDecl.pos).Block(0, exsuresStats.toList());
                 exsuresStats = new ListBuffer<JCStatement>();
                 if (!bl.stats.isEmpty()) {
-                    st = M.at(decl.pos).Try(bl,List.<JCCatch>of(catcher),null);
+                    st = M.at(methodDecl.pos).Try(bl,List.<JCCatch>of(catcher),null);
                     exsuresStats.add(st);
                 }
             
@@ -1671,7 +1685,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (ensuresStats.isEmpty() && exsuresStats.isEmpty()) {
             // skip
         } else {
-            JCStatement ifstat = M.at(p).If(cond,M.Block(0, ensuresStats.toList()),M.Block(0,exsuresStats.toList()));
+            JCStatement ifstat = M.at(methodPos).If(noException,M.Block(0, ensuresStats.toList()),M.Block(0,exsuresStats.toList()));
             finalizeStats.add(ifstat);
         }
         paramActuals = null;
