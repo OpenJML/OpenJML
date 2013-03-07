@@ -141,9 +141,16 @@ public class Strings {
      */
     final static public String labelVarString = "LABEL_"; //$NON-NLS-1$
 
+    /** The prefix for names of assertions that are to be specifically checked */
     final static public String assertPrefix =  "ASSERT_"; //$NON-NLS-1$
 
+    /** TODO: ??? */
     final static public String prePrefix = "Pre_"; //$NON-NLS-1$
+    
+    /** The prefix of variables that hold the values of formals in the pre-state,
+     * for use by postconditions.
+     */
+    final static public String formalPrefix = "PRE_";
     
     /** A String used as variable that records the location of the return or
      * throw statement marking the exit from a method.
@@ -159,7 +166,7 @@ public class Strings {
      * runtime exceptions that may happen while evaluating JML expressions
      * during RAC.
      */
-    final static public String runtimeException = "_JML__runtimeExcpetion"; //$NON-NLS-1$
+    final static public String runtimeException = "_JML__runtimeException"; //$NON-NLS-1$
     
     /** A string used as the name of the exception variable for method calls
      * within the body of a method.

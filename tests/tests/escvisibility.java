@@ -1,0 +1,660 @@
+package tests;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.tools.JavaFileObject;
+
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+@RunWith(Parameterized.class)
+public class escvisibility extends EscBase {
+
+    String option;
+    
+    public escvisibility(String option) {
+        this.option = option;
+    }
+    
+    @Parameters
+    static public  Collection<String[]> datax() {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        data.add(new String[]{"-boogie"}); 
+        data.add(new String[]{"-newesc"}); 
+        //data.add(new String[]{null}); 
+        //data.add(new String[]{"-rac"}); 
+        return data;
+    }
+    
+    @Override
+    public void setUp() throws Exception {
+        //noCollectDiagnostics = true;
+        super.setUp();
+        setOption(option);
+        main.addOptions("-noPurityCheck");
+        String z = java.io.File.pathSeparator;
+        String testspecpath = "$A"+z+"$B";
+        options.put("-classpath",   testspecpath);
+        options.put("-sourcepath",   testspecpath);
+        options.put("-specspath",   testspecpath);
+        //options.put("-jmlverbose",   "");
+        //options.put("-method",   "m2bad");
+        //options.put("-showbb",   "");
+        //options.put("-jmldebug",   "");
+        //options.put("-noInternalSpecs",   "");
+        //options.put("-showce",   "");
+        //options.put("-trace",   "");
+        //JmlEsc.escdebug = true;
+        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
+        //print = true;
+    }
+
+//    protected void helpTCX(String classname, String s, Object... list) {
+//        try {
+//            String filename = classname.replace(".","/") + ".java";
+//            JavaFileObject f = new TestJavaFileObject(filename,s);
+//            addMockFile("#B/" + filename,f);
+//            super.helpTCX(classname, s, list);
+//        } catch (Exception e) {
+//            System.out.println("EXCEPTION: " + e);
+//        }
+//    }
+
+    // Invariant inherited from same package
+    
+    @Test
+    public void testPrivate() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public boolean b = true;\n"
+                +"  //@ private invariant b; \n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() throws Exception {\n"
+                +"      b = false;\n"
+                +"  }\n"
+                
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testPublic() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public boolean b = true;\n"
+                +"  //@ public invariant b; \n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() throws Exception {\n"
+                +"      b = false;\n"
+                +"  }\n"
+                
+                +"}"
+                
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                );
+    }
+    
+    @Test
+    public void testProtected() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public boolean b = true;\n"
+                +"  //@ protected invariant b; \n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() throws Exception {\n"
+                +"      b = false;\n"
+                +"  }\n"
+                
+                +"}"
+                
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",17
+                );
+    }
+    
+    @Test
+    public void testPackage() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public boolean b = true;\n"
+                +"  //@ invariant b; \n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() throws Exception {\n"
+                +"      b = false;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                );
+    }
+    
+    // Invariant in same class
+    
+    @Test
+    public void testPrivate2() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public boolean b = true;\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  //@ private invariant b; \n"
+                +"  public void m1() {\n"
+                +"      b = false;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:6: warning: Associated declaration",15
+                );
+    }
+    
+    @Test
+    public void testPublic2() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public boolean b = true;\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  //@ public invariant b; \n"
+                +"  public void m1() {\n"
+                +"      b = false;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:6: warning: Associated declaration",14
+                );
+    }
+    
+    @Test
+    public void testProtected2() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public boolean b = true;\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  //@ protected invariant b; \n"
+                +"  public void m1() {\n"
+                +"      b = false;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:6: warning: Associated declaration",17
+                );
+    }
+    
+    @Test
+    public void testPackage2() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public boolean b = true;\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  //@ invariant b; \n"
+                +"  public void m1() {\n"
+                +"      b = false;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                );
+    }
+    
+    // Inherited method spec in same package
+    
+    @Test
+    public void testPrivate3() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  //@ private normal_behavior ensures false;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testPublic3() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  //@ public normal_behavior ensures false;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: warning: Associated declaration",30
+                );
+    }
+    
+    @Test
+    public void testProtected3() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  //@ protected normal_behavior ensures false;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: warning: Associated declaration",33
+                );
+    }
+    
+    @Test
+    public void testPackage3() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  //@ normal_behavior ensures false;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: warning: Associated declaration",23
+                );
+    }
+    
+    // Inherited lightweight method spec in same package
+    
+    @Test
+    public void testPrivate3a() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  //@   ensures false;\n"
+                +"  private void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testPublic3a() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  //@  ensures false;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: warning: Associated declaration",8
+                );
+    }
+    
+    @Test
+    public void testProtected3a() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  //@  ensures false;\n"
+                +"  protected void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: warning: Associated declaration",8
+                );
+    }
+    
+    @Test
+    public void testPackage3a() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  //@  ensures false;\n"
+                +"  void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: warning: Associated declaration",8
+                );
+    }
+    
+    // Inherited method spec in same class
+    
+    @Test
+    public void testPrivate4() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  //@ private normal_behavior ensures false;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:7: warning: Associated declaration",31
+                );
+    }
+    
+    @Test
+    public void testPublic4() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  //@ public normal_behavior ensures false;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:7: warning: Associated declaration",30
+                );
+    }
+    
+    @Test
+    public void testProtected4() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  //@ protected normal_behavior ensures false;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:7: warning: Associated declaration",33
+                );
+    }
+    
+    @Test
+    public void testPackage4() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class Parent { \n"
+                
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava extends Parent { \n"
+                +"  //@ normal_behavior ensures false;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:7: warning: Associated declaration",23
+                );
+    }
+    
+    // Inherited method specs from a different package
+    
+    @Test
+    public void testPrivate5() {
+        options.put("-method", "TestJava.m1");
+        helpTCX2("tt.TestJava","package tt; \n"
+                +"public class TestJava extends tx.Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}",
+                
+                "tx.Parent","package tx; public class Parent {\n"
+                        +"  //@ private normal_behavior ensures false;\n"
+                        +"  public void m1() {\n"
+                        +"  }\n"
+                        +"}"
+                        
+                );
+    }
+    
+    @Test
+    public void testPublic5() {
+        options.put("-method", "TestJava.m1");
+        helpTCX2("tt.TestJava","package tt; \n"
+                +"public class TestJava extends tx.Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}",
+                
+                "tx.Parent","package tx; public class Parent {\n"
+                        +"  //@ public normal_behavior ensures false;\n"
+                        +"  public void m1() {\n"
+                        +"  }\n"
+                        +"}"
+                        
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tx/Parent.java:2: warning: Associated declaration",30
+                );
+    }
+    
+    @Test
+    public void testProtected5() {
+        options.put("-method", "TestJava.m1");
+        helpTCX2("tt.TestJava","package tt; \n"
+                +"public class TestJava extends tx.Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}",
+                
+                "tx.Parent","package tx; public class Parent {\n"
+                        +"  //@ protected normal_behavior ensures false;\n"
+                        +"  public void m1() {\n"
+                        +"  }\n"
+                        +"}"
+                        
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tx/Parent.java:2: warning: Associated declaration",33
+                );
+    }
+    
+    @Test
+    public void testPackage5() {
+        options.put("-method", "TestJava.m1");
+        helpTCX2("tt.TestJava","package tt; \n"
+                +"public class TestJava extends tx.Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}",
+                
+                "tx.Parent","package tx; public class Parent {\n"
+                        +"  //@ normal_behavior ensures false;\n"
+                        +"  public void m1() {\n"
+                        +"  }\n"
+                        +"}"
+                        
+                );
+    }
+    
+
+    // Inherited lightweight method specs from a different package
+    
+    @Test
+    public void testPrivate6() {
+        options.put("-method", "TestJava.m1");
+        helpTCX2("tt.TestJava","package tt; \n"
+                +"public class TestJava extends tx.Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}",
+                
+                "tx.Parent","package tx; public class Parent {\n"
+                        +"  //@  ensures false;\n"
+                        +"  private void m1() {\n"
+                        +"  }\n"
+                        +"}"
+                        
+                );
+    }
+    
+    @Test
+    public void testPublic6() {
+        options.put("-method", "TestJava.m1");
+        helpTCX2("tt.TestJava","package tt; \n"
+                +"public class TestJava extends tx.Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}",
+                
+                "tx.Parent","package tx; public class Parent {\n"
+                        +"  //@  ensures false;\n"
+                        +"  public void m1() {\n"
+                        +"  }\n"
+                        +"}"
+                        
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tx/Parent.java:2: warning: Associated declaration",8
+                );
+    }
+    
+    @Test
+    public void testProtected6() {
+        options.put("-method", "TestJava.m1");
+        helpTCX2("tt.TestJava","package tt; \n"
+                +"public class TestJava extends tx.Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}",
+                
+                "tx.Parent","package tx; public class Parent {\n"
+                        +"  //@  ensures false;\n"
+                        +"  protected void m1() {\n"
+                        +"  }\n"
+                        +"}"
+                        
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tx/Parent.java:2: warning: Associated declaration",8
+                );
+    }
+    
+    @Test
+    public void testPackage6() {
+        options.put("-method", "TestJava.m1");
+        helpTCX2("tt.TestJava","package tt; \n"
+                +"public class TestJava extends tx.Parent { \n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"}",
+                
+                "tx.Parent","package tx; public class Parent {\n"
+                        +"  //@  ensures false;\n"
+                        +"  void m1() {\n"
+                        +"  }\n"
+                        +"}"
+                        
+                );
+    }
+    
+
+
+}

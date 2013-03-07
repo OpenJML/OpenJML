@@ -1478,16 +1478,36 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Desugar any specification cases
             JmlMethodSpecs newspecs;
             if (!methodSpecs.cases.isEmpty()) {
-                ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
-                cl.appendList(clauses);
-                ListBuffer<JmlSpecificationCase> newcases = deNest(cl,methodSpecs.cases,null,decl);
-                newspecs = jmlMaker.at(methodSpecs.pos).JmlMethodSpecs(newcases.toList());
-                cl = new ListBuffer<JmlMethodClause>();
-                cl.appendList(clauses);
-                if (!methodSpecs.impliesThatCases.isEmpty()) newspecs.impliesThatCases = deNest(cl,methodSpecs.impliesThatCases,null,decl).toList();
-                cl = new ListBuffer<JmlMethodClause>();
-                cl.appendList(clauses);
-                if (!methodSpecs.forExampleCases.isEmpty()) newspecs.forExampleCases = deNest(cl,methodSpecs.forExampleCases,null,decl).toList();
+                ListBuffer<JmlSpecificationCase> allcases = new ListBuffer<JmlSpecificationCase>();
+                ListBuffer<JmlSpecificationCase> allitcases = new ListBuffer<JmlSpecificationCase>();
+                ListBuffer<JmlSpecificationCase> allfecases = new ListBuffer<JmlSpecificationCase>();
+                for (JmlSpecificationCase c: methodSpecs.cases) {
+                    ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
+                    cl.appendList(clauses);
+                    JCModifiers mods = c.modifiers;
+                    if (c.token == null) mods = decl.mods;
+                    ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
+                    allcases.appendList(newcases);
+                }
+                for (JmlSpecificationCase c: methodSpecs.impliesThatCases) {
+                    ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
+                    cl.appendList(clauses);
+                    JCModifiers mods = c.modifiers;
+                    if (c.token == null) mods = decl.mods;
+                    ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
+                    allitcases.appendList(newcases);
+                }
+                for (JmlSpecificationCase c: methodSpecs.forExampleCases) {
+                    ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
+                    cl.appendList(clauses);
+                    JCModifiers mods = c.modifiers;
+                    if (c.token == null) mods = decl.mods;
+                    ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
+                    allfecases.appendList(newcases);
+                }
+                newspecs = jmlMaker.at(methodSpecs.pos).JmlMethodSpecs(allcases.toList());
+                newspecs.impliesThatCases = allitcases.toList();
+                newspecs.forExampleCases = allfecases.toList();
             } else if (!clauses.isEmpty()) {
                 JCModifiers mods = jmlMaker.at(decl.pos).Modifiers(decl.mods.flags & Flags.AccessFlags);
                 JmlSpecificationCase c = jmlMaker.JmlSpecificationCase(mods,false,null,null,clauses.toList());
@@ -1508,12 +1528,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     boolean desugaringPure = false;
     
     // FIXME - this ignores anything after a clause group.  That is OK in strict JML.  DO we want it?  There is no warning.
-    public ListBuffer<JmlSpecificationCase> deNest(ListBuffer<JmlMethodClause> prefix, List<JmlSpecificationCase> cases, /*@ nullable */JmlSpecificationCase parent, JmlMethodDecl decl) {
+    public ListBuffer<JmlSpecificationCase> deNest(ListBuffer<JmlMethodClause> prefix, List<JmlSpecificationCase> cases, /*@ nullable */JmlSpecificationCase parent, JmlMethodDecl decl, JCModifiers mods) {
         ListBuffer<JmlSpecificationCase> newlist = new ListBuffer<JmlSpecificationCase>();
         if (cases.isEmpty()) {
             if (parent != null) {
                 addDefaultSignalsOnly(prefix,parent,decl);
-            	newlist.append(((JmlTree.Maker)make).at(parent.pos).JmlSpecificationCase(parent.modifiers,parent.code,parent.token,parent.also,prefix.toList()));
+            	newlist.append(((JmlTree.Maker)make).at(parent.pos).JmlSpecificationCase(mods,parent.code,parent.token,parent.also,prefix.toList()));
             }
             else {
                 // ERROR - not allowed to have an empty collection of specification cases
@@ -1523,11 +1543,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else if (cases.size() == 1) {
         	// common case that just avoids copying the prefix
             JmlSpecificationCase c = cases.get(0);
-            handleCase(parent, decl, newlist, c, prefix);
+            handleCase(parent, decl, newlist, c, prefix, mods);
         } else {
             for (JmlSpecificationCase cse: cases) {
                 ListBuffer<JmlMethodClause> pr = copy(prefix);
-                handleCase(parent, decl, newlist, cse, pr);
+                handleCase(parent, decl, newlist, cse, pr, mods);
             }
         }
         return newlist;
@@ -1560,7 +1580,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
 	protected void handleCase(JmlSpecificationCase parent, JmlMethodDecl decl,
 			ListBuffer<JmlSpecificationCase> newlist, JmlSpecificationCase cse,
-			ListBuffer<JmlMethodClause> pr) {
+			ListBuffer<JmlMethodClause> pr, JCModifiers mods) {
 		if (cse.token == JmlToken.MODEL_PROGRAM) {
 		    newlist.append(cse);  // FIXME - check that model programs are only at the outer level
 		    return;
@@ -1574,13 +1594,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		        pr.append(jmlF.at(cse.pos).JmlMethodClauseExpr(JmlToken.ENSURES,falseLit));
 		    }
 		}
-		newlist.appendList(deNestHelper(pr,cse.clauses,parent==null?cse:parent,decl));
+		newlist.appendList(deNestHelper(pr,cse.clauses,parent==null?cse:parent,decl,mods));
 	}
     
-    public ListBuffer<JmlSpecificationCase> deNestHelper(ListBuffer<JmlMethodClause> prefix, List<JmlMethodClause> clauses, JmlSpecificationCase parent, JmlMethodDecl decl) {
+    public ListBuffer<JmlSpecificationCase> deNestHelper(ListBuffer<JmlMethodClause> prefix, List<JmlMethodClause> clauses, JmlSpecificationCase parent, JmlMethodDecl decl, JCModifiers mods) {
         for (JmlMethodClause m: clauses) {
             if (m instanceof JmlMethodClauseGroup) {
-                return deNest(prefix,((JmlMethodClauseGroup)m).cases, parent,decl);
+                return deNest(prefix,((JmlMethodClauseGroup)m).cases, parent,decl, mods);
             }
             JmlToken t = m.token;
             if (t == JmlToken.ENSURES) {
@@ -1659,6 +1679,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         addDefaultSignalsOnly(prefix,parent,decl);
         ListBuffer<JmlSpecificationCase> newlist = new ListBuffer<JmlSpecificationCase>();
         JmlSpecificationCase sc = (((JmlTree.Maker)make).JmlSpecificationCase(parent,prefix.toList()));
+        sc.modifiers = mods;
         newlist.append(sc);
         return newlist;
     }

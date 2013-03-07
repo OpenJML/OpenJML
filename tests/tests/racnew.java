@@ -1987,11 +1987,11 @@ public class racnew extends RacBase {
         expectedExit = 1;
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"//@ axiom true;\n"
-                +"//@ invariant \\duration(true) == 0;\n"
-                +"//@ model long i;\n"
-                +"//@ represents i =  \\duration(true);\n"
-                +"//@ constraint \\duration(true) == 0;\n"
-                +"//@ initially \\duration(true) == 0;\n"
+                +"//@ public invariant \\duration(true) == 0;\n"
+                +"//@ public model long i;\n"
+                +"//@ public represents i =  \\duration(true);\n"
+                +"//@ public constraint \\duration(true) == 0;\n"
+                +"//@ public initially \\duration(true) == 0;\n"
                 +"public static void main(String[] args) { \n"
                 +"    //@ hence_by true; \n"
                 +"    //@ assert \\duration(true) == 0;\n"
@@ -2013,9 +2013,9 @@ public class racnew extends RacBase {
                 +"//@ working_space \\duration(true);\n"
                 +"int mb() { return 0; }\n"
                 +"}"
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",24
-                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",24
                 ,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom clause",5
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31
+                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
                 ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25
                 ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration",25
@@ -2023,7 +2023,7 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:13: Note: Not implemented for runtime assertion checking: set statement containing \\duration",26
                 ,"/tt/A.java:14: Note: Not implemented for runtime assertion checking: debug statement containing \\duration",28
                 ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",23
-                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",25
+                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",32
                 ,"/tt/A.java:19: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration",22
                 ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: signals clause containing \\duration",37
                 ,"/tt/A.java:22: Note: Not implemented for runtime assertion checking: diverges clause containing \\duration",23
@@ -2031,8 +2031,8 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: working_space clause containing \\duration",28
                 ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",29
                 ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",34
-                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: method (or represents clause) containing \\duration",30
-                ,"/tt/A.java:5: Unrecoverable situation: Unimplemented construct in a method or model method or represents clause",30
+                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: method (or represents clause) containing \\duration",37
+                ,"/tt/A.java:5: Unrecoverable situation: Unimplemented construct in a method or model method or represents clause",37
                 ,"END"
                 );
 
@@ -2335,9 +2335,13 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:3: JML postcondition is false"
                 ,"/$A/tt/I.java:2: Associated declaration"
                 ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/ttt/C.java:3: Associated declaration"
+                ,"/tt/A.java:3: JML postcondition is false"
                 ,"/tt/A.java:2: Associated declaration"
                 ,"/tt/A.java:6: JML postcondition is false"
                 ,"/$A/tt/I.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/ttt/C.java:3: Associated declaration"
                 ,"/tt/A.java:6: JML postcondition is false"
                 ,"/tt/A.java:2: Associated declaration"
                 ,"END"

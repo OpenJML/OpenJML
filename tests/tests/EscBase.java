@@ -10,8 +10,11 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Utils;
 
+import com.sun.tools.javac.code.Symbol.PackageSymbol;
+import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Names;
 
 
 public abstract class EscBase extends JmlTestCase {
@@ -62,14 +65,39 @@ public abstract class EscBase extends JmlTestCase {
     }
 
     
-    protected void helpTCX(String classname, String s, Object... list) {
+    protected void helpTCX2(String classname, String s, String classname2, String s2, Object... list) {
         try {
-            expectedErrors = list.length/2;
             String filename = classname.replace(".","/")+".java";
             JavaFileObject f = new TestJavaFileObject(filename,s);
-            
+            String filename2 = classname2.replace(".","/")+".java";
+            JavaFileObject f2 = new TestJavaFileObject(filename2,s2);
             Log.instance(context).useSource(f);
-            List<JavaFileObject> files = List.of(f);
+            helpTCXB(List.of(f,f2),list);
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+            fail("Exception thrown while processing test: " + e);
+        }
+    }
+
+    protected void helpTCX(String classname, String s, Object... list) {
+        try {
+            String filename = classname.replace(".","/")+".java";
+            JavaFileObject f = new TestJavaFileObject(filename,s);
+            Log.instance(context).useSource(f);
+            helpTCXB(List.of(f),list);
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+            fail("Exception thrown while processing test: " + e);
+        } catch (AssertionError e) {
+            if (!print && !noExtraPrinting) printDiagnostics();
+            throw e;
+        }
+    }
+
+    protected void helpTCXB(List<JavaFileObject> files, Object... list) {
+        try {
+            expectedErrors = list.length/2;
+            
             int ex = main.compile(args, context, files, null);
             
             if (print) printDiagnostics();
