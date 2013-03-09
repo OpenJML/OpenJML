@@ -685,6 +685,28 @@ public class escvisibility extends EscBase {
     
     
     @Test
+    public void testPrivate8() {
+        options.put("-method", "TestJava.m1");
+        addMockJavaFile("tx/B.java","package tx; public class B {\n"
+                +"  //@ private normal_behavior\n"
+                +"  //@  requires false;\n"
+                +"  static public void m1() {\n"
+                +"  }\n"
+                +"}"
+                );
+                        
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void m1() {\n"
+                +"     tx.B.m1();"
+                +"  }\n"
+                
+                +"}"
+                
+                );
+    }
+    
+    @Test
     public void testPublic8() {
         options.put("-method", "TestJava.m1");
         addMockJavaFile("tx/B.java","package tx; public class B {\n"
@@ -710,6 +732,51 @@ public class escvisibility extends EscBase {
     }
     
     
+    @Test
+    public void testProtected8() {
+        options.put("-method", "TestJava.m1");
+        addMockJavaFile("tx/B.java","package tx; public class B {\n"
+                +"  //@ protected normal_behavior\n"
+                +"  //@  requires false;\n"
+                +"  static public void m1() {\n"
+                +"  }\n"
+                +"}"
+                );
+                        
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void m1() {\n"
+                +"     tx.B.m1();"
+                +"  }\n"
+                
+                +"}"
+                
+                );
+    }
+        
+    @Test
+    public void testPackage8() {
+        options.put("-method", "TestJava.m1");
+        addMockJavaFile("tx/B.java","package tx; public class B {\n"
+                +"  //@ normal_behavior\n"
+                +"  //@  requires false;\n"
+                +"  static public void m1() {\n"
+                +"  }\n"
+                +"}"
+                );
+
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void m1() {\n"
+                +"     tx.B.m1();"
+                +"  }\n"
+
+                    +"}"
+
+                );
+    }
+
+
     @Test
     public void testPrivate9() {
         options.put("-method", "TestJava.m1");
