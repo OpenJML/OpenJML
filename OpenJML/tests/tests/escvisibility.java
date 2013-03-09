@@ -656,5 +656,150 @@ public class escvisibility extends EscBase {
     }
     
 
+    // Not-inherited method spec
+    
+    
+    @Test
+    public void testPublic7() {
+        options.put("-method", "TestJava.m1");
+        addMockJavaFile("tx/B.java","package tx; public class B {\n"
+                +"  //@  requires false;\n"
+                +"  static public void m1() {\n"
+                +"  }\n"
+                +"}"
+                );
+                        
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void m1() {\n"
+                +"     tx.B.m1();"
+                +"  }\n"
+                
+                +"}"
+                
+                        
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m1",13
+                ,"/tx/B.java:2: warning: Associated declaration",8
+                );
+    }
+    
+    
+    @Test
+    public void testPublic8() {
+        options.put("-method", "TestJava.m1");
+        addMockJavaFile("tx/B.java","package tx; public class B {\n"
+                +"  //@ public normal_behavior\n"
+                +"  //@  requires false;\n"
+                +"  static public void m1() {\n"
+                +"  }\n"
+                +"}"
+                );
+                        
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void m1() {\n"
+                +"     tx.B.m1();"
+                +"  }\n"
+                
+                +"}"
+                
+                        
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m1",13
+                ,"/tx/B.java:3: warning: Associated declaration",8
+                );
+    }
+    
+    
+    @Test
+    public void testPrivate9() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  //@ private normal_behavior\n"
+                +"  //@  requires false;\n"
+                +"  static public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava { \n"
+                +"  public void m1() {\n"
+                +"      B.m1();"
+                +"  }\n"
+                
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testPublic9() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  //@ public normal_behavior\n"
+                +"  //@  requires false;\n"
+                +"  static public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava { \n"
+                +"  public void m1() {\n"
+                +"      B.m1();"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
+                ,"/tt/TestJava.java:4: warning: Associated declaration",8
+                );
+    }
+    
+    @Test
+    public void testProtected9() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  //@ protected normal_behavior\n"
+                +"  //@  requires false;\n"
+                +"  static public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava { \n"
+                +"  public void m1() {\n"
+                +"      B.m1();"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
+                ,"/tt/TestJava.java:4: warning: Associated declaration",8
+                );
+    }
+    
+    @Test
+    public void testPackage9() {
+        options.put("-method", "TestJava.m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  //@ normal_behavior\n"
+                +"  //@  requires false;\n"
+                +"  static public void m1() {\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"public class TestJava { \n"
+                +"  public void m1() {\n"
+                +"      B.m1();"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
+                ,"/tt/TestJava.java:4: warning: Associated declaration",8
+                );
+    }
+    
+
 
 }

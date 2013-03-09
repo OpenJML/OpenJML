@@ -10,11 +10,8 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Utils;
 
-import com.sun.tools.javac.code.Symbol.PackageSymbol;
-import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Names;
 
 
 public abstract class EscBase extends JmlTestCase {
@@ -96,6 +93,8 @@ public abstract class EscBase extends JmlTestCase {
 
     protected void helpTCXB(List<JavaFileObject> files, Object... list) {
         try {
+            for (JavaFileObject f: mockFiles) files = files.append(f);
+            
             expectedErrors = list.length/2;
             
             int ex = main.compile(args, context, files, null);
@@ -160,8 +159,8 @@ public abstract class EscBase extends JmlTestCase {
      * @param filename the name of the file, including leading directory components 
      * @param file the JavaFileObject to be associated with this name
      */
-    protected void addMockFile(String filename, JavaFileObject file) {
-        specs.addMockFile(filename,file);
+    protected void addMockJavaFile(String filename, JavaFileObject file) {
+        mockFiles.add(file);
     }
 
 
