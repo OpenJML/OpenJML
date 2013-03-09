@@ -70,7 +70,9 @@ public enum JmlOption implements IOption {
     ASSOCINFO("-crossRefAssociatedInfo",false,">...",null),
     
     SHOW_RAC_SOURCE("-showRacSource",false,"RAC: Enables error messages with source information","-noRacSource=false"),
-    NO_RAC_SOURCE("-noRacSource",false,"RAC: Enables error messages with source information",null)
+    NO_RAC_SOURCE("-noRacSource",false,"RAC: Enables error messages with source information",null),
+    NO_RAC_CHECK_ASSUMPTIONS("-noRacCheckAssumptions",false,"RAC: Disables checking that assumptions hold",null),
+    NO_RAC_JAVA_CHECKS("-noRacJavaChecks",false,"RAC: Disables explicit checking of Java language checks",null)
     //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove
     ;
     

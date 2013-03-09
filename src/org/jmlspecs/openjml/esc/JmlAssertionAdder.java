@@ -291,12 +291,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     public boolean racCheckAssumeStatements;
 
-    /** If true, then in RAC, explicit checks are included even when the Java
+    /** If true, then explicit checks are included even when the Java
      * language would catch the error itself (e.g., OpenJML will check for a
      * null reference in advance of a dereference and Java throwing a 
-     * NullPointerException).
+     * NullPointerException). This should always be true for esc, but only
+     * true for rac if the appropriate option is set.
      */
-    public boolean racJavaChecks;
+    public boolean javaChecks;
     
     // Constant items set in the constructor
     
@@ -507,8 +508,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** (Public API) Reinitializes the object to start a new class or compilation unit or method */
     public void initialize() {
         this.showRacSource = !JmlOption.isOption(context,JmlOption.NO_RAC_SOURCE.optionName());
-        this.racCheckAssumeStatements = true; // FIXME - add an option
-        this.racJavaChecks = true;
+        this.racCheckAssumeStatements = !JmlOption.isOption(context,JmlOption.NO_RAC_CHECK_ASSUMPTIONS.optionName());
+        this.javaChecks = esc || (rac && !JmlOption.isOption(context,JmlOption.NO_RAC_JAVA_CHECKS.optionName()));
         this.count = 0;
         this.assertCount = 0;
         this.precount = 0;
@@ -1104,7 +1105,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             st.associatedPos = associatedPosition == null ? Position.NOPOS : associatedPosition.getPreferredPosition();
             st.associatedSource = associatedSource;
             st.optionalExpression = info;
-            st.id = "ASSUME_" + (++assertCount);
+            st.id = "ASSUME_" + (++assertCount); // FIXME - change to a defined String - seems different than in other similar files
             if (currentStatements != null) currentStatements.add(st);
         }
         if (rac && racCheckAssumeStatements) {
@@ -1961,7 +1962,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression lock = convertExpr(that.lock);
         if (that.lock instanceof JCParens && ((JCParens)that.lock).expr instanceof JCIdent && ((JCIdent)((JCParens)that.lock).expr).name.toString().equals("this")) {
             // Don't need to check that 'this' is not null, though this is a complicated and error-prone check
-        } else if (rac || esc) {
+        } else if (javaChecks) {
             JCExpression e = treeutils.makeNeqObject(that.lock.pos, lock, treeutils.nulllit);
             addAssert(that.lock.pos(), Label.POSSIBLY_NULL, e);
         }
@@ -2263,7 +2264,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // assert expr != null;
         pushBlock();
         JCExpression e = treeutils.makeNeqObject(that.expr.pos, convertExpr(that.expr), treeutils.nulllit);
-        addAssert(that.expr.pos(), Label.POSSIBLY_NULL, e);
+        if (javaChecks) addAssert(that.expr.pos(), Label.POSSIBLY_NULL, e);
         if (that.expr.type.tag != TypeTags.BOT) {
             // ???Exception EXCEPTION_??? = expr;
             Name local = names.fromString(Strings.exceptionVarString + "_L_" + that.pos);
@@ -2307,10 +2308,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    // FIXME - document and check
+    /** Check that the given storeref is a subset of the given 
+     * pstoreref, returning the condition under which the storeref
+     * is allowed.
+     */
     protected
-    JCExpression assignmentAllowed(boolean isjml, JmlStoreRefKeyword storeref, JCExpression pstoreref) {
-        int pos = storeref.pos;
+    JCExpression assignmentAllowed(JmlStoreRefKeyword storeref, JCExpression pstoreref) {
+        DiagnosticPosition pos = storeref.pos();
         if (pstoreref instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)pstoreref).token == JmlToken.BSEVERYTHING) return treeutils.trueLit;
         JmlToken token = storeref.token;
         if (token == JmlToken.BSNOTHING) return treeutils.trueLit; 
@@ -2336,10 +2340,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return treeutils.falseLit;
     }
     
-    // FIXME - document and check
+    /** Check that the given storeref is a subset of the given 
+     * pstoreref, returning the condition under which the storeref
+     * is allowed.
+     */
     protected
-    JCExpression assignmentAllowed(boolean isjml, JCIdent id, JCExpression pstoreref) {
-        int pos = id.pos;
+    JCExpression assignmentAllowed(JCIdent id, JCExpression pstoreref) {
+        DiagnosticPosition pos = id.pos();
         if (pstoreref instanceof JmlStoreRefKeyword) {
             JmlToken ptoken = ((JmlStoreRefKeyword)pstoreref).token;
             if (ptoken == JmlToken.BSEVERYTHING) return treeutils.trueLit;
@@ -2373,8 +2380,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!id.sym.isStatic() && pfa.sym == null) {
                         if (s instanceof Symbol.ClassSymbol) return treeutils.falseLit;
                     }
-                    JCIdent idthis = treeutils.makeIdent(pos, classDecl.thisSymbol);
-                    JCExpression result = treeutils.makeEqObject(pos, idthis, 
+                    JCIdent idthis = treeutils.makeIdent(pos.getPreferredPosition(), classDecl.thisSymbol);
+                    JCExpression result = treeutils.makeEqObject(pos.getPreferredPosition(), idthis, 
                             convertJML(pfa.selected)); // FIXME - needs check for not implemented
                     // FIXME - handle case where storeref has a different implicit this
                     return result; 
@@ -2389,10 +2396,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return treeutils.falseLit;
     }
     
-    // FIXME - document and check
+    /** Check that the given storeref is a subset of the given 
+     * pstoreref, returning the condition under which the storeref
+     * is allowed.
+     */
     protected
-    JCExpression assignmentAllowed(boolean isjml, JCFieldAccess fa, JCExpression pstoreref) {
-        int pos = fa.pos;
+    JCExpression assignmentAllowed(JCFieldAccess fa, JCExpression pstoreref) {
+        DiagnosticPosition pos = fa.pos();
+        int posp = pos.getPreferredPosition();
         if (pstoreref instanceof JmlStoreRefKeyword) {
             JmlToken ptoken = ((JmlStoreRefKeyword)pstoreref).token;
             if (ptoken == JmlToken.BSEVERYTHING) return treeutils.trueLit;
@@ -2402,10 +2413,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCIdent pid = (JCIdent)pstoreref;
             if (fa.sym != pid.sym) return treeutils.falseLit;
             if (pid.sym.isStatic()) return treeutils.trueLit;
-            JCIdent idthis = treeutils.makeIdent(pos, classDecl.thisSymbol);
-            JCExpression result = treeutils.makeEqObject(pos, idthis, 
+            JCIdent idthis = treeutils.makeIdent(posp, classDecl.thisSymbol);
+            JCExpression result = treeutils.makeEqObject(posp, idthis, 
                      fa.selected);
-            // FIXME - handle case where storeref has a different implicit this
+            // FIXME - handle case where storeref has a different implicit this - will these happen?
 
             return result; 
 
@@ -2417,7 +2428,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             if (pfa.sym != null && fa.sym == pfa.sym && !pfa.sym.isStatic()) {
                 // a.x vs. b.x  with x not static, so result is (a == b)
-                JCExpression result = treeutils.makeEqObject(pos, fa.selected, convertJML(pfa.selected));
+                JCExpression result = treeutils.makeEqObject(posp, fa.selected, convertJML(pfa.selected));
                 return result;
             }
             if (pfa.sym != null && fa.sym == pfa.sym && pfa.sym.isStatic()) {
@@ -2445,7 +2456,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression result = same ? treeutils.trueLit : treeutils.falseLit;
                     return result;
                 } else {
-                    JCExpression result = treeutils.makeEqObject(pos, fa.selected, convertJML(pfa.selected));
+                    JCExpression result = treeutils.makeEqObject(posp, fa.selected, convertJML(pfa.selected));
                     return result;
                 }
             }
@@ -2461,10 +2472,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return treeutils.falseLit;
     }
 
-    // FIXME - document and check
+    /** Check that the given storeref is a subset of the given 
+     * pstoreref, returning the condition under which the storeref
+     * is allowed.
+     */
     protected
-    JCExpression assignmentAllowed(boolean isjml, JCArrayAccess aa, JCExpression pstoreref) {
-        int pos = aa.pos;
+    JCExpression assignmentAllowed(JCArrayAccess aa, JCExpression pstoreref) {
+        DiagnosticPosition pos = aa.pos();
+        int posp = pos.getPreferredPosition();
         if (pstoreref instanceof JmlStoreRefKeyword) {
             JmlToken ptoken = ((JmlStoreRefKeyword)pstoreref).token;
             if (ptoken == JmlToken.BSEVERYTHING) return treeutils.trueLit;
@@ -2478,32 +2493,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
         } else if (pstoreref instanceof JCArrayAccess) {
             JCArrayAccess paa = (JCArrayAccess)pstoreref;
-            JCExpression a1 = isjml ? (aa.indexed) : (aa.indexed);
-            JCExpression result = treeutils.makeEqObject(pos, a1, (paa.indexed));
+            JCExpression a1 = aa.indexed;
+            JCExpression result = treeutils.makeEqObject(posp, a1, (paa.indexed));
             if (paa.index == null ) return result;
             if (aa.index == null) return treeutils.falseLit;
-            a1 = isjml ? (aa.index) : (aa.index);
-            result = treeutils.makeAnd(pos,result,
-                    treeutils.makeBinary(pos,JCTree.EQ,treeutils.inteqSymbol,a1,(paa.index)));
+            a1 = aa.index;
+            result = treeutils.makeAnd(posp,result,
+                    treeutils.makeBinary(posp,JCTree.EQ,treeutils.inteqSymbol,a1,(paa.index)));
             return result;
             
         } else if (pstoreref instanceof JmlStoreRefArrayRange) {
             JmlStoreRefArrayRange paa = (JmlStoreRefArrayRange)pstoreref;
-            JCExpression a1 = isjml ? (aa.indexed) : (aa.indexed);
-            JCExpression result = treeutils.makeEqObject(pos, a1, convertJML(paa.expression));
+            JCExpression a1 = aa.indexed;
+            JCExpression result = treeutils.makeEqObject(posp, a1, convertJML(paa.expression));
             if (aa.index == null) {
                 if (paa.lo == null && paa.hi == null) return result;
-                if (paa.hi == null) return treeutils.makeAnd(pos, result, treeutils.makeBinary(pos, JCTree.EQ, treeutils.inteqSymbol, convertJML(paa.lo),treeutils.zero));
+                if (paa.hi == null) return treeutils.makeAnd(posp, result, treeutils.makeBinary(pos.getPreferredPosition(), JCTree.EQ, treeutils.inteqSymbol, convertJML(paa.lo),treeutils.zero));
                 
                 // FIXME - compare paa.hi to array.length, paa.lo to zero if not null
                 return treeutils.falseLit;
             } else {
-                JCExpression aat = isjml ? convertJML(aa.index) : (aa.index);
-                result = treeutils.makeAnd(pos,result,
-                        treeutils.makeAnd(pos,
-                                treeutils.makeBinary(pos,JCTree.LE,treeutils.intleSymbol,
+                JCExpression aat = aa.index;
+                result = treeutils.makeAnd(posp,result,
+                        treeutils.makeAnd(posp,
+                                treeutils.makeBinary(posp,JCTree.LE,treeutils.intleSymbol,
                                         paa.lo == null ? treeutils.zero : convertJML(paa.lo),aat),
-                                treeutils.makeBinary(pos,JCTree.LE,treeutils.intleSymbol,
+                                treeutils.makeBinary(posp,JCTree.LE,treeutils.intleSymbol,
                                                 aat, paa.hi == null ? null /* FIXME - need length of array */ : convertJML(paa.hi))
                                ));
                 return result;
@@ -2513,10 +2528,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return treeutils.falseLit;
     }
 
-    // FIXME - document and check
+    /** Check that the given storeref is a subset of the given 
+     * pstoreref, returning the condition under which the storeref
+     * is allowed.
+     */
     protected
-    JCExpression assignmentAllowed(boolean isjml, JmlStoreRefArrayRange aa, JCExpression pstoreref) {
-        int pos = aa.pos;
+    JCExpression assignmentAllowed(JmlStoreRefArrayRange aa, JCExpression pstoreref) {
+        DiagnosticPosition pos = aa.pos();
+        int posp = pos.getPreferredPosition();
         if (pstoreref instanceof JmlStoreRefKeyword) {
             JmlToken ptoken = ((JmlStoreRefKeyword)pstoreref).token;
             if (ptoken == JmlToken.BSEVERYTHING) return treeutils.trueLit;
@@ -2530,26 +2549,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
         } else if (pstoreref instanceof JCArrayAccess) {
             JCArrayAccess paa = (JCArrayAccess)pstoreref;
-            JCExpression result = treeutils.makeEqObject(pos, convertJML(aa.expression), convertJML(paa.indexed));
+            JCExpression result = treeutils.makeEqObject(posp, convertJML(aa.expression), convertJML(paa.indexed));
             if (paa.index == null) return result;
             JCExpression paat = convertJML(paa.index);
-            result = treeutils.makeAnd(pos, result, treeutils.makeBinary(pos,JCTree.EQ,treeutils.inteqSymbol, 
+            result = treeutils.makeAnd(posp, result, treeutils.makeBinary(posp,JCTree.EQ,treeutils.inteqSymbol, 
                     aa.lo == null ? treeutils.zero : convertJML(aa.lo), paat));
 //            result = treeutils.makeAnd(pos, result, treeutils.makeBinary(pos,JCTree.EQ,treeutils.inteqSymbol, 
 //                    aa.hi == null ? /* FIXME - array length -1 */ : jmlrewriter.translate(aa.hi), paat));
             return result;
         } else if (pstoreref instanceof JmlStoreRefArrayRange) {
             JmlStoreRefArrayRange paa = (JmlStoreRefArrayRange)pstoreref;
-            JCExpression result = treeutils.makeEqObject(pos, convertJML(aa.expression), convertJML(paa.expression));
+            JCExpression result = treeutils.makeEqObject(posp, convertJML(aa.expression), convertJML(paa.expression));
             JCExpression a1 = aa.lo == null ? treeutils.zero : convertJML(aa.lo);
             JCExpression a2 = paa.lo == null ? treeutils.zero : convertJML(paa.lo);
-            result = treeutils.makeAnd(pos, result, treeutils.makeBinary(pos,JCTree.LE,treeutils.intleSymbol, 
+            result = treeutils.makeAnd(posp, result, treeutils.makeBinary(posp,JCTree.LE,treeutils.intleSymbol, 
                     a2, a1));
 
             // FIXME - in the null case we want array length - 1
             a1 = aa.hi == null ? treeutils.zero : convertJML(aa.hi);
             a2 = paa.hi == null ? treeutils.zero : convertJML(paa.hi);
-            result = treeutils.makeAnd(pos, result, treeutils.makeBinary(pos,JCTree.LE,treeutils.intleSymbol, 
+            result = treeutils.makeAnd(posp, result, treeutils.makeBinary(pos.getPreferredPosition(),JCTree.LE,treeutils.intleSymbol, 
                     a1, a2));
 
             return result;
@@ -2559,24 +2578,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return treeutils.falseLit;
     }
 
-    // FIXME - choose scanret or jmlrewriter for storeref based on source of argument
-    // FIXME - document and check
+    /** Check that the given storeref is a subset of the given 
+     * pstoreref, returning the condition under which the storeref
+     * is allowed.
+     */
     protected 
-    JCExpression assignmentAllowed(boolean isjml, JCExpression storeref, JCExpression pstoreref) {
+    JCExpression assignmentAllowed(JCExpression storeref, JCExpression pstoreref) {
         if (storeref instanceof JmlStoreRefKeyword) {
-            return assignmentAllowed(isjml,(JmlStoreRefKeyword)storeref,pstoreref);
+            return assignmentAllowed((JmlStoreRefKeyword)storeref,pstoreref);
 
         } else if (storeref instanceof JCIdent) {
-            return assignmentAllowed(isjml,(JCIdent)storeref,pstoreref);
+            return assignmentAllowed((JCIdent)storeref,pstoreref);
             
         } else if (storeref instanceof JCFieldAccess) {
-            return assignmentAllowed(isjml,(JCFieldAccess)storeref,pstoreref);
+            return assignmentAllowed((JCFieldAccess)storeref,pstoreref);
             
         } else if (storeref instanceof JCArrayAccess) {
-            return assignmentAllowed(isjml,(JCArrayAccess)storeref,pstoreref);
+            return assignmentAllowed((JCArrayAccess)storeref,pstoreref);
             
         } else if (storeref instanceof JmlStoreRefArrayRange) {
-            return assignmentAllowed(isjml,(JmlStoreRefArrayRange)storeref,pstoreref);
+            return assignmentAllowed((JmlStoreRefArrayRange)storeref,pstoreref);
             
         }
         
@@ -2584,10 +2605,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return treeutils.falseLit;
     }
     
-    // FIXME - document and check
+    /** Add assertions that the lhs, part of the given AssignOp, is allowed to 
+     * be assigned to within the given method.
+     */
     protected void checkAssignable(JCMethodDecl mdecl, JCExpression lhs, JCAssignOp that) {
         for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
-            JCExpression check = checkAssignable(false,lhs,c);
+            JCExpression check = checkAssignable(lhs,c);
             if (check != treeutils.trueLit) {
                 DiagnosticPosition pos = c.pos();
                 for (JmlMethodClause m : c.clauses) {
@@ -2598,9 +2621,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
 
     }
-    // FIXME - document and check
+
+    /** Check that the given storeref is a subset of the given 
+     * specification case, returning the condition under which the storeref
+     * is allowed.
+     */
     protected @Nullable
-    JCExpression checkAssignable(boolean isjml, JCExpression storeref, JmlSpecificationCase c) {
+    JCExpression checkAssignable(JCExpression storeref, JmlSpecificationCase c) {
         if ((storeref instanceof JCIdent) && ((JCIdent)storeref).sym.owner instanceof Symbol.MethodSymbol) return treeutils.trueLit; 
 
         JCIdent pre = preconditions.get(c);
@@ -2614,7 +2641,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         // Is storeref allowed by some item in the parent method's list?
                         List<JCExpression> pstorerefs = ((JmlMethodClauseStoreRef)mclause).list;
                         for (JCExpression pstoreref: pstorerefs) {
-                            JCExpression nasg = assignmentAllowed(isjml,storeref,pstoreref); 
+                            JCExpression nasg = assignmentAllowed(storeref,pstoreref); 
                             asg = nasg == treeutils.trueLit ? nasg :
                                 asg == treeutils.falseLit ? nasg :
                                     nasg == treeutils.falseLit ? asg :
@@ -2644,7 +2671,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected void checkAgainstCallerSpecs(JCExpression scannedItem, JCExpression precondition) {
         List<JmlSpecificationCase> cases = specs.getDenestedSpecs(methodDecl.sym).cases;
         for (JmlSpecificationCase c : cases) {
-            JCExpression condition = checkAssignable(false,scannedItem,c);
+            JCExpression condition = checkAssignable(scannedItem,c);
             if (condition != treeutils.trueLit) {
                 condition = treeutils.makeImplies(scannedItem.pos, precondition, condition);
                 addAssert(scannedItem.pos(),Label.ASSIGNABLE,condition,c.pos(),c.sourcefile);
@@ -3299,7 +3326,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssert(that.pos(), Label.POSSIBLY_NULL_ASSIGNMENT, e);
             }
             for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
-                JCExpression check = checkAssignable(false,lhs,c);
+                JCExpression check = checkAssignable(lhs,c);
                 if (check != treeutils.trueLit) {
                     DiagnosticPosition pos = c.pos();
                     // FIXME - this is not necessarily the right pos
@@ -3319,7 +3346,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!fa.sym.isStatic()) {
                 JCExpression obj = convertExpr(fa.selected);
                 JCExpression e = treeutils.makeNeqObject(obj.pos, obj, treeutils.nulllit);
-                addAssert(that.lhs.pos(), Label.POSSIBLY_NULL, e);
+                if (javaChecks) addAssert(that.lhs.pos(), Label.POSSIBLY_NULL, e);
                 newfa = treeutils.makeSelect(that.pos, obj, fa.sym);
             } else {
                 // We must evaluate the fa.lhs if it is an expression and not a type,
@@ -3341,7 +3368,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
-                JCExpression check = checkAssignable(false,fa,c);
+                JCExpression check = checkAssignable(fa,c);
                 if (check != treeutils.trueLit) {
                     DiagnosticPosition pos = c.pos();
                     // FIXME - this is not necessarily the right pos
@@ -3361,20 +3388,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCArrayAccess aa = (JCArrayAccess)(that.lhs);
             JCExpression array = convertExpr(aa.indexed);
             JCExpression e = treeutils.makeNeqObject(array.pos, array, treeutils.nulllit);
-            addAssert(that.lhs.pos(), Label.POSSIBLY_NULL, e);
+            if (javaChecks) addAssert(that.lhs.pos(), Label.POSSIBLY_NULL, e);
 
             JCExpression index = convertExpr(aa.index);
             e = treeutils.makeBinary(index.pos, JCTree.GE, index, treeutils.zero);
-            addAssert(that.lhs.pos(), Label.POSSIBLY_NEGATIVEINDEX, e);
+            if (javaChecks) addAssert(that.lhs.pos(), Label.POSSIBLY_NEGATIVEINDEX, e);
             JCFieldAccess newfa = M.at(array.pos).Select(array, syms.lengthVar.name);
             newfa.type = syms.intType;
             newfa.sym = syms.lengthVar;
             e = treeutils.makeBinary(index.pos, JCTree.LT, index, newfa);
-            addAssert(that.lhs.pos(), Label.POSSIBLY_TOOLARGEINDEX, e);
+            if (javaChecks) addAssert(that.lhs.pos(), Label.POSSIBLY_TOOLARGEINDEX, e);
             
             // FIXME - test this
             for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
-                JCExpression check = checkAssignable(false,aa,c);
+                JCExpression check = checkAssignable(aa,c);
                 if (check != treeutils.trueLit) {
                     DiagnosticPosition pos = c.pos();
                     // FIXME - this is not necessarily the right pos
@@ -3471,7 +3498,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 newlhsex = newlhs;
 
                 JCExpression e = treeutils.makeNeqObject(lhs.pos, lhs, treeutils.nulllit);
-                addAssert(that.pos(), Label.POSSIBLY_NULL, e);
+                if (javaChecks) addAssert(that.pos(), Label.POSSIBLY_NULL, e);
 
                 rhs = scanned ? rhs : convertExpr(rhs);
                 if (specs.isNonNull(fa.sym,methodDecl.sym.enclClass())) {
@@ -3498,15 +3525,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression array = scanned ? aa.indexed : convertExpr(aa.indexed);
             JCExpression e = treeutils.makeNeqObject(array.pos, array, treeutils.nulllit);
             // FIXME - location of nnonnull declaration?
-            addAssert(that.pos(), Label.POSSIBLY_NULL, e);
+            if (javaChecks) addAssert(that.pos(), Label.POSSIBLY_NULL, e);
 
             JCExpression index = scanned ? aa.index: convertExpr(aa.index);
             e = treeutils.makeBinary(index.pos, JCTree.GE, index, treeutils.zero);
-            addAssert(that.pos(), Label.POSSIBLY_NEGATIVEINDEX, e);
+            if (javaChecks) addAssert(that.pos(), Label.POSSIBLY_NEGATIVEINDEX, e);
 
             JCFieldAccess newfa = treeutils.makeLength(array.pos(), array);
             e = treeutils.makeBinary(index.pos, JCTree.LT, index, newfa);
-            addAssert(that.pos(), Label.POSSIBLY_TOOLARGEINDEX, e);
+            if (javaChecks) addAssert(that.pos(), Label.POSSIBLY_TOOLARGEINDEX, e);
 
             rhs = scanned ? rhs : convertExpr(rhs);
             lhs = new JmlBBArrayAccess(null,array,index); // FIXME - use factory
@@ -3572,7 +3599,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         if (op == JCTree.DIV || op == JCTree.MOD) {
             JCExpression nonzero = treeutils.makeBinary(that.pos, JCTree.NE, rhs, treeutils.makeIntLiteral(that.pos, 0));
-            addAssert(that.pos(),Label.POSSIBLY_DIV0,nonzero);
+            if (javaChecks) addAssert(that.pos(),Label.POSSIBLY_DIV0,nonzero);
         }
         // NOTE: In Java, a shift by 0 is a no-op (aside from type promotion of the lhs);
         // a shift by a positive or negative amount s is actually a shift by 
@@ -3626,7 +3653,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else if (tag == JCTree.DIV || tag == JCTree.MOD) {
                     rhs = convertExpr(rhs);
                     JCExpression nonzero = treeutils.makeBinary(that.pos, JCTree.NE, rhs, treeutils.makeIntLiteral(that.rhs.pos, 0));
-                    addAssert(that.pos(),Label.UNDEFINED_DIV0,treeutils.makeImplies(that.pos, condition, nonzero));
+                    if (javaChecks) addAssert(that.pos(),Label.UNDEFINED_DIV0,treeutils.makeImplies(that.pos, condition, nonzero));
                 } else if ((tag == JCTree.EQ || tag == JCTree.NE) && that.lhs.type == attr.TYPE) {
                     rhs = convertExpr(rhs);
                     lhs = treeutils.makeUtilsMethodCall(that.pos,"isEqualTo",lhs,rhs);
@@ -3714,11 +3741,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 typeok.setType(syms.booleanType);
                 // FIXME - end position?
                 JCExpression cond = treeutils.makeOr(that.pos, eqnull, typeok);
-                if (translatingJML) {
-                    cond = treeutils.makeImplies(that.pos,condition,cond);
-                    addAssert(that.pos(),Label.UNDEFINED_BADCAST,cond, lhs.type, clazz.type);
-                } else {
-                    addAssert(that.pos(),Label.POSSIBLY_BADCAST,cond, lhs.type, clazz.type);
+                if (javaChecks) {
+                    if (translatingJML) {
+                        cond = treeutils.makeImplies(that.pos,condition,cond);
+                        addAssert(that.pos(),Label.UNDEFINED_BADCAST,cond, lhs.type, clazz.type);
+                    } else {
+                        addAssert(that.pos(),Label.POSSIBLY_BADCAST,cond, lhs.type, clazz.type);
+                    } 
                 }
                 if (esc) {
                     newexpr = lhs;
@@ -3754,7 +3783,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         JCExpression indexed = convertExpr(that.indexed);
 
-        if (!pureCopy) {
+        if (javaChecks) {
             JCExpression nonnull = treeutils.makeNeqObject(that.indexed.pos, indexed, 
                     treeutils.nulllit);
             if (translatingJML) {
@@ -3766,7 +3795,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
 
         JCExpression index = convertExpr(that.index);
-        if (!pureCopy) {
+        if (javaChecks) {
             JCExpression compare = treeutils.makeBinary(that.index.pos, JCTree.LE, treeutils.zero, 
                     index);
             if (translatingJML) {
@@ -3778,7 +3807,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         
         JCExpression length = treeutils.makeLength(that.indexed.pos(),indexed);
-        if (!pureCopy) {
+        if (javaChecks) {
             JCExpression compare = treeutils.makeBinary(that.pos, JCTree.LT, index, 
                     length);
             if (translatingJML) {
@@ -3839,7 +3868,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression nonnull = treeutils.makeNeqObject(that.pos, selected, 
                     treeutils.nulllit);
             if (translatingJML) nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
-            addAssert(that.pos(),
+            if (javaChecks) addAssert(that.pos(),
                     translatingJML? Label.UNDEFINED_NULL : Label.POSSIBLY_NULL,
                             nonnull);
             var = true;

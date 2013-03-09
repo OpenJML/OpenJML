@@ -292,10 +292,30 @@ public abstract class JmlTestCase { //extends junit.framework.TestCase {
      * @param file the JavaFileObject to be associated with this name
      */
     protected void addMockFile(String filename, JavaFileObject file) {
-        mockFiles.add(file);
+        if (filename.endsWith(".java")) mockFiles.add(file);
         specs.addMockFile(filename,file);
     }
     
+    /** Used to add a pseudo file to the command-line.
+     * @param filename the name of the file, including leading directory components 
+     * @param file the JavaFileObject to be associated with this name
+     */
+    protected void addMockJavaFile(String filename, /*@ non_null */String content) {
+        try {
+            addMockJavaFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
+        } catch (Exception e) {
+            fail("Exception in creating a URI: " + e);
+        }
+    }
+
+    /** Used to add a pseudo file to the command-line.
+     * @param filename the name of the file, including leading directory components 
+     * @param file the JavaFileObject to be associated with this name
+     */
+    protected void addMockJavaFile(String filename, JavaFileObject file) {
+        mockFiles.add(file);
+    }
+
     
     // FIXME - document
     String noSource(JCDiagnostic dd) {
