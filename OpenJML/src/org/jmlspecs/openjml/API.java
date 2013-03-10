@@ -798,7 +798,7 @@ public class API implements IAPI {
         JmlMethodDecl tree = getJavaDecl(msym);
         JmlClassDecl cdecl = getJavaDecl((ClassSymbol)msym.owner);
         BasicProgram program = BasicBlocker.convertToBasicBlocks(main.context, tree, JmlSpecs.instance(main.context).getSpecs(msym).cases.deSugared, cdecl);
-        return program.write("BASIC BLOCK PROGRAM FOR " + msym.owner.getQualifiedName() + "." + msym.toString() + "\n\n");
+        return "BASIC BLOCK PROGRAM FOR " + msym.owner.getQualifiedName() + "." + msym.toString() + "\n\n" + program.toString();
     }
     
     // TODO - why is this public?

@@ -1,3 +1,15 @@
+Yet to implement
+- enum definition
+- switch with enum or String
+- break/continue statement does not execute intervening finally blocks
+- lock operations, synchronized statement
+- unrolling loops
+- local classes
+
+Yet to test
+- continue with label
+- dowhile statements with side effects
+
 Recent stuff
 - new options: RAC source, Rac check assumptions, Rac display mode, esc Asserts, style of ESC
 - old options: --noJML --roots --showbb, --stopIfParseErrors
