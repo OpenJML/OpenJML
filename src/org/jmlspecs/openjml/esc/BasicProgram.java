@@ -4,7 +4,6 @@
  */
 package org.jmlspecs.openjml.esc;
 
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -22,21 +21,10 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.Context;
 
-// FIXME - needs review
+// FIXME - needs review - do we need all the fields of BasicProgram
 
 /**
- * A BasicProgram is an equivalent representation of a method:
- * <UL>
- * <LI>it expresses the program as a DAG of basic blocks
- * <LI>each block represents a non-branching set of code
- * <LI>DSA has been applied
- * <LI>all statements have been converted to assumptions and assertions
- * <LI>the AST used for expressions is simplified
- * </UL>
- * The BasicBlocks are allowed to have regular Java/JML statements (as an 
- * interim state) but are then
- * massaged (by the BasicBlocker) into the official BasicProgram form.  This 
- * class just holds the data and does not provide transforming functionality.
+ * An instantiation of BasicProgramParent with a specific kind of BasicBlock.
  * 
  * @author David Cok
  */
@@ -60,7 +48,6 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
     //@ non_null
     protected JCIdent startId;
     
-    // FIXME _ not currently used and not sure it should be
     /** This class represents a definition
      * <UL>
      * <LI>id: the identifier being defined
@@ -179,7 +166,7 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
                 pw.println();
                 w.flush();
             }
-            for (JCExpression e: pdefinitions) { // FIXME - get rid of this
+            for (JCExpression e: pdefinitions) {
                 e.accept(pw);
                 pw.println();
                 w.flush();
@@ -188,23 +175,10 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
                 b.write(w,this);
             }
         } catch (java.io.IOException e) {
-            System.out.println("EXCEPTION: " + e); // FIXME
-            e.printStackTrace(System.out); // FIXME
+            // FIXME - create an error of some sort
+            System.out.println("EXCEPTION: " + e);
+            e.printStackTrace(System.out);
         }
-    }
-
-    /** Writes the BasicProgram to a string with the given initial string */
-    public String write(String header) {
-        StringWriter sw = new StringWriter();
-        sw.append(header);
-        write(sw);
-        return sw.toString();
-    }
-
-    /** Writes the program to a String, returning it. */
-    @Override
-    public String toString() {
-        return write("");
     }
     
     /** This class holds a basic block (a sequence of non-branching
@@ -258,17 +232,6 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
                                 break;
                             }
                         }
-                        // TODO - I don't think the conditional in this loop is ever triggered
-//                        for (JCExpression e : program.pdefinitions) {
-//                            if (e instanceof JCBinary && ((JCBinary)e).lhs instanceof JCIdent 
-//                                    && ((JCIdent)((JCBinary)e).lhs ).name.equals(i.name)) {
-//                                JCExpression rhs = ((JCBinary)e).rhs;
-//                                w.write("    [ ");
-//                                rhs.accept(pw);
-//                                w.write(" ]");
-//                                break;
-//                            }
-//                        }
                     }
                     pw.print(JmlPretty.lineSep);
                     pw.flush();

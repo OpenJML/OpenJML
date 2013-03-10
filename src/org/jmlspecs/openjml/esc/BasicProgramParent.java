@@ -69,24 +69,18 @@ abstract public class BasicProgramParent<T extends BasicProgramParent.BlockParen
     /** The method declaration generating this program */
     protected JCMethodDecl methodDecl;
     
-    /** Writes the BasicProgram to a string with the given initial string */
-    public String write(String header) {
-        StringWriter sw = new StringWriter();
-        sw.append(header);
-        write(sw);
-        return sw.toString();
-    }
-    
     /** Writes out the BasicProgram to the given Writer (e.g. log.noticeWriter) for diagnostics */
     abstract public void write(Writer w);
     
     /** Writes the program to a String, returning it. */
     @Override
     public String toString() {
-        return write("");
+        StringWriter sw = new StringWriter();
+        write(sw);
+        return sw.toString();
     }
 
-    /** The bases class for basic blocks */
+    /** The base class for basic blocks; the type argument is derived Block class */
     static abstract public class BlockParent<T extends BasicProgramParent.BlockParent<T>> {
         /** The identifier of the block */
         /*@ non_null*/protected JCIdent id;

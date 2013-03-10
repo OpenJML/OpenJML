@@ -236,14 +236,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     
     /** Place to put new background assertions, such as class predicates */
     protected List<JCExpression> background;
-    
-    /** Holds the result of any of the visit methods that produce JCExpressions, since the visitor
-     * template used here does not have a return value.  [We could have used the templated visitor,
-     * but other methods do not need to return anything, we don't need the additional parameter,
-     * and that visitor is complicated by the use of interfaces for the formal parameters.]
-     */
-    private JCExpression result;
-    
+       
     /** The variable name that is currently the 'this' variable */
     protected JCIdent currentThisId;
     

@@ -32,8 +32,6 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
 
-// FIXME - needs review
-
 /**
  * A BoogieProgram is an equivalent representation of a method as a Boogie 2 program:
  * <UL>
@@ -48,7 +46,9 @@ import com.sun.tools.javac.util.Context;
 // and any future derived classes - not in the containing package
 public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>{
     
-    // FIXME - document these
+    /** Sets the style of handling heaps and types used by this program.
+     * (FIXME - document these)
+     */
     protected int style = 0;
     protected final int HEAP_STYLE = 1;
     protected final int SEP_STYLE = 0;
@@ -77,21 +77,19 @@ public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>
         return background;
     }
     
-    // FIXME - docuemnt
+    // FIXME - document
     public Map<String,JmlStatementExpr> assertMap = new HashMap<String,JmlStatementExpr>();
     
     /** A pretty printer for types */
     public String trType(Type t) {
         if (t == syms.booleanType) return "bool";
-        if (t == syms.intType) return "int"; // FIXME - 
+        if (t == syms.intType) return "int"; // FIXME - needs more type conversions to Boogie types
         return "REF";
     }
     
-    /** Writes out the BasicProgram to the given Writer (using log.noticeWriter) 
-     * for diagnostics */
+    /** Writes out the BasicProgram to the given Writer  */
     public void write(Writer w) {
         try {
-            //w.append("START = " + startId + "\n");
             JmlPretty pw = new BoogiePrinter(w);
             pw.print("type REF; ");
             pw.println();
@@ -112,7 +110,7 @@ public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>
             boolean first = true;
             for (JCVariableDecl p : methodDecl.params) {
                 if (first) { first = false; } else pw.print(",");
-                pw.print(p.name.toString() + "__" + p.pos);
+                pw.print(p.name.toString() + "__" + p.pos); // FIXME - does this format have to match something somewhere
                 pw.print(" : ");
                 pw.print(trType(p.type));
             }
@@ -154,8 +152,9 @@ public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>
             pw.print("}");
             pw.println();
         } catch (java.io.IOException e) {
-            System.out.println("EXCEPTION: " + e); // FIXME
-            e.printStackTrace(System.out); // FIXME
+            // FIXME - make some sort of error instead of writing to System.out
+            System.out.println("EXCEPTION: " + e);
+            e.printStackTrace(System.out);
         }
     }
 
