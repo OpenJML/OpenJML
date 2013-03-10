@@ -875,6 +875,13 @@ public class JmlTreeUtils {
         return tree;
     }
 
+    /** Makes a JML \typeof expression, with the given expression as the argument */
+    public JCExpression makeTypeof(JCExpression e) {
+        JCExpression typeof = factory.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,e);
+        typeof.type = syms.classType;
+        return typeof;
+    }
+    
     /** Creates an AST for an invocation of a (static) method in org.jmlspecs.utils.Utils,
      * with the given name and arguments.
      * @param pos the node position of the new AST

@@ -5,6 +5,7 @@ Yet to implement
 - lock operations, synchronized statement
 - unrolling loops
 - local classes
+- havoc in loops
 
 Yet to test
 - continue with label
