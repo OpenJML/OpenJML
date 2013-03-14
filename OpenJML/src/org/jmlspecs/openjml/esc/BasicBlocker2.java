@@ -67,6 +67,7 @@ import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 
 import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
@@ -288,9 +289,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** The log to which to send error, warning and notice messages */
     @NonNull final protected Log log;
     
-    /** The specifications database for this compilation context, initialized in the constructor */
-    @NonNull final protected JmlSpecs specs;
-    
     /** The symbol table from the compilation context, initialized in the constructor */
     @NonNull final protected Symtab syms;
     
@@ -318,9 +316,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** Identifier of a synthesized object field holding the allocation time of the object, initialized in the constructor */
     @NonNull protected JCIdent allocIdent;
 
-    /** A counter to ensure unique instances of alloc identifiers */
-    protected int allocCount = 0;
-    
     /** Symbol of a synthesized object field holding the allocation time of the object, initialized in the constructor */
     @NonNull protected VarSymbol allocSym;
 
@@ -391,7 +386,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         this.factory = JmlTree.Maker.instance(context);
         this.names = Names.instance(context);
         this.syms = Symtab.instance(context);
-        this.specs = JmlSpecs.instance(context); // FIXME - can this go away?
         this.treeutils = JmlTreeUtils.instance(context);
         this.utils = Utils.instance(context);
         this.scanMode = AST_JAVA_MODE;
@@ -411,6 +405,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         STORE = names.fromString(STOREString);
     }
     
+    /** This tracks single-assignment versions - it is incremented whenever
+     * a new version of a variable is needed (globally across all variables).
+     */
+    protected static long saversion = 0;
+    
     /** This class implements a map from variable (as a Symbol) to a unique name
      * as used in Single-Assignment form. At any given point in the program there is
      * a current mapping from symbols to names, giving the name that holds the value
@@ -421,37 +420,47 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * <P>
      * FIXME - explain this better, and the everythingIncarnation
      * Each Symbol also has an incarnation number. The number is incremented as new
-     * incarnations happen. The number is used to form the variables SA name.
+     * incarnations happen. The number is used to form the variable's SA name.
+     * <P>
+     * The everythingIncarnation value is used as the default incarnation number
+     * for symbols that have not yet been used. This is 0 in the pre-state. It
+     * is needed, for example, for the following circumstance. Some method call
+     * havocs everything, then a class field is used (without having been used
+     * before and therefore not having an entry in the name maps). That class field
+     * must use a SA Version number different than 0. If it is subsequently
+     * used in an \old expression, it will use an SA Version number of 0 in that
+     * circumstance and must be distinguished from the use after everything has
+     * been havoced.
      */
     public class VarMap {
         // The maps allow VarSymbol or TypeSymbol (for TypeVar)
-        private Map<VarSymbol,Integer> map = new HashMap<VarSymbol,Integer>();
-        private Map<TypeSymbol,Integer> maptypename = new HashMap<TypeSymbol,Integer>();
-        private Map<Symbol,Name> mapn = new HashMap<Symbol,Name>();
-        int everythingIncarnation = 0;
+        private Map<VarSymbol,Long> mapSAVersion = new HashMap<VarSymbol,Long>();
+        private Map<TypeSymbol,Long> maptypeSAVersion = new HashMap<TypeSymbol,Long>();
+        private Map<Symbol,Name> mapname = new HashMap<Symbol,Name>();
+        //long everythingSAversion = 0;
         
         /** Makes a checkpoint copy of the map */
         public VarMap copy() {
             VarMap v = new VarMap();
-            v.map.putAll(this.map);
-            v.maptypename.putAll(this.maptypename);
-            v.mapn.putAll(this.mapn);
-            v.everythingIncarnation = this.everythingIncarnation;
+            v.mapSAVersion.putAll(this.mapSAVersion);
+            v.maptypeSAVersion.putAll(this.maptypeSAVersion);
+            v.mapname.putAll(this.mapname);
+            //v.everythingSAversion = this.everythingSAversion;
             return v;
         }
         
         /** Returns the name for a variable symbol as stored in this map */
         public /*@Nullable*/ Name getName(VarSymbol vsym) {
-            Name s = mapn.get(vsym);
+            Name s = mapname.get(vsym);
             return s;
         }
         
         /** Returns the name for a variable symbol as stored in this map, creating (and
          * storing) one if it is not present. */
         public /*@NonNull*/ Name getCurrentName(VarSymbol vsym) {
-            Name s = mapn.get(vsym);
+            Name s = mapname.get(vsym);
             if (s == null) {
-                s = encodedName(vsym,everythingIncarnation);
+                s = encodedName(vsym,vsym.pos);
                 if (isDefined.add(s)) {
                     //System.out.println("AddedC " + sym + " " + n);
                     JCIdent idd = treeutils.makeIdent(0, vsym);
@@ -459,7 +468,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     addDeclaration(idd);
                 }
 
-                put(vsym,everythingIncarnation,s);
+                putSAVersion(vsym,s,unique);
             }
             return s;
         }
@@ -467,90 +476,96 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         /** Returns the name for a type symbol as stored in this map; returns null
          * if no name is stored */
         public /*@ Nullable */ Name getName(TypeSymbol vsym) {
-            Name s = mapn.get(vsym);
+            Name s = mapname.get(vsym);
             return s;
         }
         
         /** Returns the name for a type symbol as stored in this map, creating (and
          * storing) one if it is not present. */
         public /*@NonNull*/ Name getCurrentName(TypeSymbol vsym) {
-            Name s = mapn.get(vsym);
+            Name s = mapname.get(vsym);
             if (s == null) {
-                s = encodedName(vsym,everythingIncarnation);
-                put(vsym,everythingIncarnation,s);
+                s = encodedTypeName(vsym,0);
+                putSAVersion(vsym,s);
             }
             return s;
         }
         
-        /** Returns the incarnation number for the symbol */
-        public Integer get(VarSymbol vsym) {
-            Integer i = map.get(vsym);
+        /** Returns the incarnation number (single-assignment version
+         * number) for the symbol */
+        public Long getSAVersionNum(VarSymbol vsym) {
+            Long i = mapSAVersion.get(vsym);
             if (i == null) {
-                i = everythingIncarnation;
-                map.put(vsym,i);
+                System.out.println("MISSING SYMBOL " + vsym.getQualifiedName());
+                mapSAVersion.put(vsym,(i=0L));
             }
             return i;
         }
         
-        /** Returns the incarnation number for the type symbol */
-        public Integer get(TypeSymbol vsym) {
-            Integer i = maptypename.get(vsym);
+        /** Returns the incarnation number (single-assignment version
+         * number) for the type symbol */
+        public Long getSAVersionNum(TypeSymbol vsym) {
+            Long i = maptypeSAVersion.get(vsym);
             if (i == null) {
-                i = everythingIncarnation;
-                maptypename.put(vsym,i);
+                maptypeSAVersion.put(vsym,(i=0L));
             }
             return i;
         }
         
-        /** Stores a new incarnation of a symbol */
-        public void put(VarSymbol vsym, Integer i, Name s) {
-            map.put(vsym,i);
-            mapn.put(vsym,s);
+//        /** Stores a new SA version of a symbol */
+//        public void putSAVersion(VarSymbol vsym, Name s) {
+//            mapSAVersion.put(vsym,++saversion);
+//            mapname.put(vsym,s);
+//        }
+        
+        /** Stores a new SA version of a symbol */
+        public void putSAVersion(VarSymbol vsym, Name s, long version) {
+            mapSAVersion.put(vsym,version);
+            mapname.put(vsym,s);
         }
         
-        /** Stores a new incarnation of a symbol */
-        public void put(TypeSymbol vsym, Integer i, Name s) {
-            maptypename.put(vsym,i);
-            mapn.put(vsym,s);
+        /** Stores a new SA version of a type symbol */
+        public void putSAVersion(TypeSymbol vsym, Name s) {
+            maptypeSAVersion.put(vsym,0L);
+            mapname.put(vsym,s);
         }
 
         /** Adds everything in the argument map into the receiver's map */
         public void putAll(VarMap m) {
-            map.putAll(m.map);
-            maptypename.putAll(m.maptypename);
-            mapn.putAll(m.mapn);
-            everythingIncarnation = m.everythingIncarnation;
+            mapSAVersion.putAll(m.mapSAVersion);
+            maptypeSAVersion.putAll(m.maptypeSAVersion);
+            mapname.putAll(m.mapname);
         }
         
         /** Removes a symbol from the map, as when it goes out of scope or
          * when a temporary variable is no longer needed. */
-        public Integer remove(Symbol v) {
-            mapn.remove(v);
-            return map.remove(v);
+        public Long remove(Symbol v) {
+            mapname.remove(v);
+            return mapSAVersion.remove(v);
         }
         
         /** Returns the Set of all variable Symbols that are in the map;
          * note that variables that are in scope but have not been used
          * will not necessarily be present in the map. */
         public Set<VarSymbol> keySet() {
-            return map.keySet();
+            return mapSAVersion.keySet();
         }
         
         /** Returns a debug representation of the map */
         public String toString() {
             StringBuilder s = new StringBuilder();
             s.append("[");
-            Iterator<Map.Entry<VarSymbol,Integer>> entries = map.entrySet().iterator();
+            Iterator<Map.Entry<VarSymbol,Long>> entries = mapSAVersion.entrySet().iterator();
             while (entries.hasNext()) {
-                Map.Entry<VarSymbol,Integer> entry = entries.next();
+                Map.Entry<VarSymbol,Long> entry = entries.next();
                 s.append(entry.getKey());
                 s.append("=");
                 s.append(entry.getValue());
                 s.append(",");
             }
-            Iterator<Map.Entry<TypeSymbol,Integer>> entriest = maptypename.entrySet().iterator();
+            Iterator<Map.Entry<TypeSymbol,Long>> entriest = maptypeSAVersion.entrySet().iterator();
             while (entries.hasNext()) {
-                Map.Entry<TypeSymbol,Integer> entry = entriest.next();
+                Map.Entry<TypeSymbol,Long> entry = entriest.next();
                 s.append(entry.getKey());
                 s.append("=");
                 s.append(entry.getValue());
@@ -583,44 +598,46 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         throw new JmlInternalError();
     }
     
-    /** Creates a translated expression whose value is the given type;
-     * the result is a JML type, e.g. a representation of an instantiated generic.*/
-    protected JCExpression makeTypeLiteral(Type type, int pos) {
-        return treeutils.trType(pos,type);
-    }
-    
 
-    // FIXME - review
-    /** Creates an encoded name from a symbol and an incarnation position of the form
-     *    <symbol name>$<declaration position>$<use position>$<unique-id>
+    /** Creates an encoded name from a symbol and an incarnation position.
+     * If the symbol has a null owner (which is illegal if being compiled for RAC),
+     * the symbol is considered to be a one-time-use temporary and the name is
+     * not encoded.
      * If the symbol has a negative declaration position, that value is not included in the string
      * @param sym the symbol being given a logical name
-     * @param incarnationPosition the incarnation position for which to give a new name
+     * @param incarnationPosition the position (character position in
+     * the source file) at which the symbol is used - note that incarnation positions
+     * are not necessarily unique, but can be used for debugging
      * @return the new name
      */
     protected Name encodedName(VarSymbol sym, int incarnationPosition) {
         if (incarnationPosition == 0 || sym.owner == null) {
             Name n = sym.getQualifiedName();
-//            if (isDefined.add(n)) {
-//                //System.out.println("AddedC " + sym + " " + n);
-//                JCIdent id = treeutils.makeIdent(0, sym);
-//                id.name = n;
-//                program.declarations.add(id);
-//            }
             return n;
         } else
-            return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition + "___" + (unique++));
+            return names.fromString(
+                    sym.getQualifiedName() 
+                    + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) // declaration position
+                    + incarnationPosition // use position
+                    + "___" 
+                    + (++unique) // unique suffix
+                    );
     }
     
+    /** A new name for an array name */ // FIXME ??
     protected Name encodedArrayName(VarSymbol sym, int incarnationPosition) {
         Name n;
         if (incarnationPosition == 0) {
             n = sym.getQualifiedName();
         } else {
-            n = names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition + "___" + (unique++));
+            n = names.fromString(sym.getQualifiedName() 
+                    + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) 
+                    + incarnationPosition 
+                    + "___" 
+                    + (++unique)
+                    );
         }
         if (isDefined.add(n)) {
-            //System.out.println("AddedC " + sym + " " + n);
             JCIdent id = treeutils.makeIdent(0, sym);
             id.name = n;
             addDeclaration(id);
@@ -628,45 +645,21 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         return n;
     }
     
-    // FIXME - review and document
-    protected Name encodedName(TypeSymbol tp, int incarnationPosition) {
-        return names.fromString(tp.name + "_" + incarnationPosition);
-    }
-    
-    // FIXME - review and document
-    protected Name encodedNameNoUnique(VarSymbol sym, int incarnationPosition) {
-        return names.fromString(sym.getQualifiedName() + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) + incarnationPosition);
-    }
-    
-    // FIXME - review
-    /** Creates an encoded name for a Type variable.  There is no incarnation position
-     * because type variables are not assigned after initialization.
+    /** Creates an encoded name for a Type variable.
      * @param sym
      * @param declarationPosition
      * @return the new name
      */
     protected Name encodedTypeName(TypeSymbol sym, int declarationPosition) {
-        return names.fromString(sym.flatName() + "_" + declarationPosition);
-    }
-    
-    // FIXME - review
-    /** Creates an encoded name from a symbol and an incarnation position of the form
-     *    <symbol name>$<declaration position>$<use position>
-     * Does not include a unique id
-     * If the symbol has a negative declaration position, that value is not included in the string
-     * @param sym the symbol being given a logical name
-     * @param incarnationPosition the incarnation position for which to give a new name
-     * @return the new name
-     */
-    protected Name encodedName(MethodSymbol sym, int declpos, int incarnationPosition) {
-        return names.fromString(sym.getQualifiedName() + (declpos < 0 ? "_" : ("_" + declpos + "_")) + incarnationPosition);
+        return names.fromString(sym.flatName() + "_" + declarationPosition + "__" + (++unique));
     }
     
     /** Cached value of the SELECT symbol */
-    Symbol selectSym = null;
+    protected Symbol selectSym = null;
     /** Cached value of the STORE Symbol. */
-    Symbol storeSym = null;
+    protected Symbol storeSym = null;
     
+    // FIXME - review and document
     protected JCExpression makeSelect(JCExpression array, JCExpression index) {
         if (selectSym == null) {
             selectSym = new VarSymbol(0,SELECT,null,null); // FIXME - OK to have no type or owner?
@@ -678,6 +671,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         return app;
     }
     
+    // FIXME - review and document
     protected JCExpression makeStore(JCExpression array, JCExpression index, JCExpression value) {
         if (storeSym == null) {
             storeSym = new VarSymbol(0,STORE,null,null);
@@ -690,31 +684,20 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
     
 
-    
-    // FIXME - review
     /** Creates a new Ident node, but in this case we are not using the name from
      * the current incarnation map - so we supply the name. This is just used for
      * DSA assignments.
      */
-    protected JCIdent newIdentUse(VarSymbol sym, Name name, int useposition) {
-        JCIdent n = factory.at(useposition).Ident(name);
-        n.sym = sym;
-        n.type = sym.type;
-        return n;
-    }
-    
-    // FIXME - review and document
     protected JCIdent newIdentUse(VarMap map, VarSymbol sym, int useposition) {
-        Name name = map.getCurrentName(sym); // Creates a name if ther has not been one created yet
+        Name name = map.getCurrentName(sym); // Creates a name if one has not yet been created
         JCIdent n = factory.at(useposition).Ident(name);
         n.sym = sym;
         n.type = sym.type;
         return n;
     }
     
-    // FIXME - review
     /** Creates an identifier node for a use of a variable at a given source code
-     * position; the current incarnation value is used
+     * position; the current SA version is used.
      * @param sym the underlying symbol (which gives the declaration location)
      * @param useposition the source position of its use
      * @return the new JCIdent node
@@ -727,12 +710,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         return n;
     }
     
-    /** Returns the name to use for a symbol under the current Map. */
-    protected Name getCurrentName(VarSymbol sym) {
-        return currentMap.getCurrentName(sym);
-    }
-    
-    // FIXME - review and document
+    /** Creates an identifier node for a use of a type variable at a given source code
+     * position; the current SA version is used. */
     protected JCIdent newTypeIdentUse(TypeSymbol sym, int useposition) {
         Name name = currentMap.getCurrentName(sym);
         JCIdent n = factory.at(useposition).Ident(name);
@@ -741,8 +720,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         return n;
     }
     
-    // FIXME - review
-    /** Creates an identifier nodes for a new incarnation of the variable, that is,
+    /** Creates an identifier nodes for a new SA version of the variable, that is,
      * when the variable is assigned to.
      * @param id the old identifier, giving the root name, symbol and type
      * @param incarnationPosition the position (and incarnation number) of the new variable
@@ -752,22 +730,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         return newIdentIncarnation((VarSymbol)id.sym,incarnationPosition);
     }
     
-    // FIXME - review
     /** Creates a new incarnation of a variable, with unique id added */
     protected JCIdent newIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
         JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
         n.type = vsym.type;
         n.sym = vsym;
-        currentMap.put(vsym,incarnationPosition,n.name);
-        if (isDefined.add(n.name)) addDeclaration(n);
-        return n;
-    }
-    
-    protected JCIdent newArrayIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
-        JCIdent n = factory.at(incarnationPosition).Ident(encodedArrayName(vsym,incarnationPosition));
-        n.type = vsym.type;
-        n.sym = vsym;
-        currentMap.put(vsym,incarnationPosition,n.name);
+        currentMap.putSAVersion(vsym,n.name,unique);
         if (isDefined.add(n.name)) addDeclaration(n);
         return n;
     }
@@ -782,27 +750,26 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @return the new variable node
      */
     protected JCIdent newIdentIncarnation(JCVariableDecl id, int incarnation) {
-        JCIdent n = factory.at(incarnation).Ident(encodedName(id.sym,incarnation));
-        n.sym = id.sym;
-        n.type = id.type;
-        // FIXME - end information?
-        currentMap.put(id.sym,incarnation,n.name);
-        if (isDefined.add(n.name)) {
-            //System.out.println("AddedC " + sym + " " + n);
-//            JCIdent idd = treeutils.makeIdent(0, id.sym);
-//            idd.name = n.name;
-            addDeclaration(n);
-        }
+        return newIdentIncarnation(id.sym, incarnation);
+    }
+    
+    // FIXME - review and document
+    protected JCIdent newArrayIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
+        JCIdent n = factory.at(incarnationPosition).Ident(encodedArrayName(vsym,incarnationPosition));
+        n.type = vsym.type;
+        n.sym = vsym;
+        currentMap.putSAVersion(vsym,n.name, saversion);
+        if (isDefined.add(n.name)) addDeclaration(n);
         return n;
     }
     
     // FIXME - review and document
     protected JCIdent newIdentIncarnation(TypeSymbol id, int incarnation) {
-        JCIdent n = factory.at(incarnation).Ident(encodedName(id,incarnation));
+        JCIdent n = factory.at(incarnation).Ident(encodedTypeName(id,incarnation));
         n.sym = id;
         n.type = id.type;
         // FIXME - end information?
-        currentMap.put(id,incarnation,n.name);
+        currentMap.putSAVersion(id,n.name);
         if (isDefined.add(n.name)) {
             //System.out.println("AddedC " + sym + " " + n);
 //            JCIdent idd = treeutils.makeIdent(0, id);
@@ -817,7 +784,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCIdent n = factory.at(incarnationPosition).Ident(encodedTypeName(vsym,incarnationPosition));
         n.type = JmlAttr.instance(context).TYPE;
         n.sym = vsym;
-        currentMap.put(vsym,incarnationPosition,n.name);
+        currentMap.putSAVersion(vsym,n.name);
         return n;
     }
     
@@ -935,6 +902,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         heapVar = newAuxIdent(HEAP_VAR,syms.intType,0,true); // FIXME - would this be better as its own uninterpreted type?
         
+        Set<VarSymbol> vsyms = GetSymbols.collectSymbols(methodDecl);
+//        for (VarSymbol v: vsyms) System.out.print(" " + v.toString());
+//        System.out.println("  ENDSYMS");
+        
         // Define the start block
         int pos = methodDecl.pos;
         BasicBlock startBlock = newBlock(START_BLOCK_NAME,pos);
@@ -947,7 +918,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         for (JCVariableDecl d: methodDecl.params) {
             // We reset this with a location of 0 so that the name does not get
             // changed. This is only because the premap does not know these names.
-            // And will probablly have to change when encodedName is made more robust. FIXME
+            // And will probably have to change when encodedName is made more robust. FIXME
             JCVariableDecl dd = treeutils.makeVarDef(d.type,d.name,d.sym.owner,0);
             bodyBlock.statements.add(dd);
         }
@@ -962,7 +933,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
         // Define the thisId
         if (this.methodDecl._this != null) {
-            currentMap.put(this.methodDecl._this, currentMap.everythingIncarnation, this.methodDecl._this.name);
+            currentMap.putSAVersion(this.methodDecl._this, this.methodDecl._this.name, 0);
             thisId = newAuxIdent(this.methodDecl._this.name.toString(),methodDecl.sym.owner.type,pos,false);
             currentThisId = thisId;
         }
@@ -970,25 +941,19 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
         // FIXME - these no longer belong here, I think
         newIdentIncarnation(heapVar,0);
-        newIdentIncarnation(allocSym,allocCount);
-        currentMap.put(syms.lengthVar, 0, names.fromString(LENGTH)); // TODO: Some places use 'length' without encoding, so we store an unencoded name
+        newIdentIncarnation(allocSym,0);
+        currentMap.putSAVersion(syms.lengthVar, names.fromString(LENGTH), 0); // TODO: Some places use 'length' without encoding, so we store an unencoded name
 
+        for (JCVariableDecl d: methodDecl.params) {
+            currentMap.putSAVersion(d.sym, d.name, 0);
+        }
+
+        for (VarSymbol v: vsyms) {
+            currentMap.putSAVersion(v, v.name, 0);
+        }
+        
         premap = currentMap.copy();
         
-
-        // FIXME - have to do static vars of super types also
-        // FIXME - and all the model fields
-        // FIXME - and all the fields of referenced classes
-        // We have to create and store incarnations of class fields so that there is a record of
-        // them in the oldMap. Otherwise, if the variables are used within \old later on, a new 
-        // identifier will be created, with a new unique number.
-//        for (JCTree tree: classInfo.decl.defs ) {
-//            if (tree instanceof JCVariableDecl) {
-//                JCVariableDecl d = (JCVariableDecl)tree;
-//                newIdentIncarnation(d.sym,0);
-//            }
-//        }
-
         completeBlock(currentBlock);
 
         processBlock(bodyBlock);
@@ -1123,81 +1088,79 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected VarMap initMap(BasicBlock block) {
         VarMap newMap = new VarMap();
         currentMap = newMap;
-        if (block.preceders.size() == 0) {
+        if (block.preceders().size() == 0) {
             // keep the empty one
-        } else if (block.preceders.size() == 1) {
-            newMap.putAll(blockmaps.get(block.preceders.get(0))); 
+        } else if (block.preceders().size() == 1) {
+            newMap.putAll(blockmaps.get(block.preceders().get(0))); 
         } else {
             // Here we do the DSA step of combining the results of the blocks that precede
             // the block we are about to process. The situation is this: a particular symbol,
             // sym say, may have been modified in any of the preceding blocks. In each case
             // a new incarnation and a new identifier Name will have been assigned. A record
-            // of that current Identifer Name is in the VarMap for the block. But we need a single
-            // Name to use in this new block.  So we pick a Name (e.g. sym$k$nnn) to use for the new block,
-            // and for each preceding block we add an assumption of the form sym$k$mmm = sym$k$nnn.
+            // of that current Identifier Name is in the VarMap for the block. But we need a single
+            // Name to use in this new block.  So we pick a new Name to use in the new block,
+            // and for each preceding block we add an assumption of the form newname = oldname.
             // This assumption is added to the end of the preceding block.
-            // In this version, we use the minimum incarnation as the new name, 
-            // so that it is defined before all the blocks that use it.
-            // FIXME - review this again, expecially the statement above.
+            // In this version, we use the maximum incarnation as the new name.
+            int pos = block.id.pos;
             List<VarMap> all = new LinkedList<VarMap>();
             VarMap combined = new VarMap();
-            int maxe = -1;
-            for (BasicBlock b : block.preceders) {
+            long maxe = -1;
+            for (BasicBlock b : block.preceders()) {
                 VarMap m = blockmaps.get(b);
                 all.add(m);
                 combined.putAll(m);
-                if (maxe < m.everythingIncarnation) maxe = m.everythingIncarnation;
+                //if (maxe < m.everythingSAversion) maxe = m.everythingSAversion;
             }
-            combined.everythingIncarnation = maxe;
+            //combined.everythingSAversion = maxe;
             for (VarSymbol sym: combined.keySet()) {
                 if (sym.owner instanceof Symbol.ClassSymbol) {
-                    // If the symbol is owned by the class, then it is implicitly part of each VarMap,
+                    // If the symbol is owned by a class, then it is implicitly part of each VarMap,
                     // even if it is not explicitly listed.
 
                     Name maxName = null;
-                    int max = -1;
-                    int num = 0;
+                    long max = -1;
+                    //int num = 0;
                     for (VarMap m: all) {
-                        Integer i = m.get(sym);
-                        if (i != max) num++;
+                        Long i = m.getSAVersionNum(sym);
+                        //if (i != max) num++;
                         if (i > max) {
                             max = i;
                             maxName = m.getName(sym);
                         }
                     }
                     Name newName = maxName;
-                    if (num > 1) {
-                        max++;
-                        JCIdent id = newIdentIncarnation(sym,max); // relies on the uniqueness value to be different
-                        // Need to declare this before all relevant blocks, so we do it at the very beginning
-                        //program.declarations.add(id);
-                        newName = id.name;
-                    }
-                    newMap.put(sym,max,newName);
+//                    if (num > 1) {
+//                        JCIdent id = newIdentIncarnation(sym,block.id.pos); // relies on the uniqueness value to be different
+//                        // Need to declare this before all relevant blocks, so we do it at the very beginning
+//                        program.declarations.add(id);
+//                        newName = id.name;
+//                    }
+                    newMap.putSAVersion(sym,newName,max);
 
                     for (BasicBlock b: block.preceders) {
                         VarMap m = blockmaps.get(b);
-                        Integer i = m.get(sym);
+                        Long i = m.getSAVersionNum(sym);
                         if (i < max) {
-                            // No position information for these nodes
-                            // Type information put in, though I don't know that we need it
-                            JCIdent pold = newIdentUse(m,sym,0);
-                            JCIdent pnew = newIdentUse(newMap,sym,0);
-                            JCBinary eq = treeutils.makeEquality(0,pnew,pold);
-                            addAssume(0,Label.DSA,eq,b.statements);
+                            // Type information ? - FIXME 
+                            JCIdent pold = newIdentUse(m,sym,pos);
+                            JCIdent pnew = newIdentUse(newMap,sym,pos);
+                            JCBinary eq = treeutils.makeEquality(pos,pnew,pold);
+                            addAssume(pos,Label.DSA,eq,b.statements);
                         }
                     }
                 } else {
-                    // If the symbol is owned by the method, then if it is not in every inherited map,
-                    // then it has gone out of scope and need not be repeated.
+                    // If the symbol is owned by the method, then if it is not 
+                    // in every inherited map,
+                    // then it has gone out of scope and need not be repeated. Also
+                    // it is not subject to havoc \everything
                     Name maxName = null;
-                    int max = -1;
-                    int num = 0;
+                    Long max = -1L;
                     boolean skip = false;
                     for (VarMap m: all) {
                         Name n = m.getName(sym);
                         if (n == null) { skip = true; break; }
-                        Integer i = m.get(sym);
+                        Long i = m.getSAVersionNum(sym);
                         if (i > max) {
                             max = i;
                             maxName = n;
@@ -1205,33 +1168,33 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     }
                     if (skip) continue;
                     Name newName = maxName;
-                    boolean different = false;
-                    for (VarMap m: all) {
-                        Name n = m.getName(sym);
-                        if (!newName.equals(n)) { different = true; break; }
-                    }
-                    if (different) {
-                        max++;
-                        JCIdent id = newIdentIncarnation(sym,max); // relies on the uniqueness value to be different
-                        // Need to declare this before all relevant blocks, so we do it at the very beginning
-                        //program.declarations.add(id);
-                        newName = id.name;
-                    }
-                    newMap.put(sym,max,newName);
-                    if (different) {
+//                    boolean different = false;
+//                    for (VarMap m: all) {
+//                        Name n = m.getName(sym);
+//                        if (!newName.equals(n)) { different = true; break; }
+//                    }
+//                    if (different) {
+//                        max++;
+//                        JCIdent id = newIdentIncarnation(sym,pos); // relies on the uniqueness value to be different
+//                        // Need to declare this before all relevant blocks, so we do it at the very beginning
+//                        //program.declarations.add(id);
+//                        newName = id.name;
+//                    }
+                    newMap.putSAVersion(sym,newName,max);
+                    //if (different) {
                         for (BasicBlock b: block.preceders) {
                             VarMap m = blockmaps.get(b);
-                            Integer i = m.get(sym);
+                            Long i = m.getSAVersionNum(sym);
                             if (i < max) {
                                 // No position information for these nodes
                                 // Type information put in, though I don't know that we need it
-                                JCIdent pold = newIdentUse(m,sym,0);
-                                JCIdent pnew = newIdentUse(newMap,sym,0);
-                                JCBinary eq = treeutils.makeEquality(0,pnew,pold);
-                                addAssume(0,Label.DSA,eq,b.statements);
+                                JCIdent pold = newIdentUse(m,sym,pos);
+                                JCIdent pnew = newIdentUse(newMap,sym,pos);
+                                JCBinary eq = treeutils.makeEquality(pos,pnew,pold);
+                                addAssume(pos,Label.DSA,eq,b.statements);
                             }
                         }
-                    }
+                    //}
                 }
             }
         }
@@ -1242,6 +1205,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** Makes a Java parse tree node (attributed) for the this symbol of the methodDecl. */
     protected JCIdent makeThis(int pos) {
         return treeutils.makeIdent(pos,methodDecl._this);
+    }
+    
+    // FIXME - review this
+    /** Creates a translated expression whose value is the given type;
+     * the result is a JML type, e.g. a representation of an instantiated generic.*/
+    protected JCExpression makeTypeLiteral(Type type, int pos) {
+        return treeutils.trType(pos,type);
     }
     
     /** Makes the equivalent of an instanceof operation: \typeof(e) <: \type(type) */
@@ -1769,7 +1739,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             e = treeutils.makeEquality(newpos,newid,e);
             addAssume(newpos,Label.HAVOC,e,currentBlock.statements);
         }
-        currentMap.everythingIncarnation = newpos; // FIXME - this now applies to every not-yet-referenced variable, independent of the preCondition
+        //currentMap.everythingSAversion = newpos; // FIXME - this now applies to every not-yet-referenced variable, independent of the preCondition
     }
 
     /** This method is not called for top-level classes, since the BasicBlocker is invoked
@@ -1894,7 +1864,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     public void visitIdent(JCIdent that) {
         if (that.sym instanceof Symbol.VarSymbol){ 
             Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
-            that.name = getCurrentName(vsym);
+            that.name = currentMap.getCurrentName(vsym);
             if (isDefined.add(that.name)) {
                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Added " + that.sym + " " + that.name);
                 addDeclaration(that);
@@ -1923,7 +1893,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     public void visitSelect(JCFieldAccess that) {
         if (!(that.sym instanceof Symbol.VarSymbol)) { result = that; return; } // This is a qualified type name 
         if (that.sym.isStatic()) {
-            that.name = getCurrentName((Symbol.VarSymbol)that.sym);
+            that.name = currentMap.getCurrentName((Symbol.VarSymbol)that.sym);
             JCIdent id = treeutils.makeIdent(that.pos,that.sym);
             id.name = that.name;
             if (isDefined.add(that.name)) {
@@ -1933,7 +1903,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             result = id;
             
         } else {
-            that.name = getCurrentName((Symbol.VarSymbol)that.sym);
+            that.name = currentMap.getCurrentName((Symbol.VarSymbol)that.sym);
             if (isDefined.add(that.name)) {
                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedF " + that.sym + " " + that.name);
                 JCIdent id = treeutils.makeIdent(that.pos,that.sym);
@@ -2230,5 +2200,30 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     // FIXME - what about Indexed, TypeCast, TypeTest, AssignOp, NewClass, NewArray
 
+    
+    static class GetSymbols extends JmlTreeScanner {
+        
+        public static Set<VarSymbol> collectSymbols(JCMethodDecl method) {
+            GetSymbols gs = new GetSymbols();
+            method.accept(gs);
+            return gs.syms;
+        }
+        
+        private Set<VarSymbol> syms = new HashSet<VarSymbol>();
+        
+        public GetSymbols() {
+            scanMode = this.AST_SPEC_MODE;
+        }
+        
+        public void visitIdent(JCIdent that) {
+            if (that.sym instanceof VarSymbol &&
+                   that.sym.owner instanceof ClassSymbol) syms.add((VarSymbol)that.sym);
+        }
+        
+        public void visitSelect(JCFieldAccess that) {
+            if (that.sym instanceof VarSymbol &&
+                    that.sym.owner instanceof ClassSymbol) syms.add((VarSymbol)that.sym);
+        }
+    }
 
 }
