@@ -121,30 +121,30 @@ public abstract class TCBase extends JmlTestCase {
         }
     }
 
-    /** Used to add a pseudo file to the file system. Note that for testing, a 
-     * typical filename given here might be #B/A.java, where #B denotes a 
-     * mock directory on the specification path
-     * @param filename the name of the file, including leading directory components 
-     * @param content the String constituting the content of the pseudo-file
-     */
-    protected void addMockFile(/*@ non_null */ String filename, /*@ non_null */String content) {
-        try {
-            addMockFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
-        } catch (Exception e) {
-            fail("Exception in creating a URI: " + e);
-        }
-    }
-
-    /** Used to add a pseudo file to the file system. Note that for testing, a 
-     * typical filename given here might be #B/A.java, where #B denotes a 
-     * mock directory on the specification path
-     * @param filename the name of the file, including leading directory components 
-     * @param file the JavaFileObject to be associated with this name
-     */
-    protected void addMockFile(String filename, JavaFileObject file) {
-        specs.addMockFile(filename,file);
-    }
-
+//    /** Used to add a pseudo file to the file system. Note that for testing, a 
+//     * typical filename given here might be #B/A.java, where #B denotes a 
+//     * mock directory on the specification path
+//     * @param filename the name of the file, including leading directory components 
+//     * @param content the String constituting the content of the pseudo-file
+//     */
+//    protected void addMockFile(/*@ non_null */ String filename, /*@ non_null */String content) {
+//        try {
+//            addMockFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
+//        } catch (Exception e) {
+//            fail("Exception in creating a URI: " + e);
+//        }
+//    }
+//
+//    /** Used to add a pseudo file to the file system. Note that for testing, a 
+//     * typical filename given here might be #B/A.java, where #B denotes a 
+//     * mock directory on the specification path
+//     * @param filename the name of the file, including leading directory components 
+//     * @param file the JavaFileObject to be associated with this name
+//     */
+//    protected void addMockFile(String filename, JavaFileObject file) {
+//        specs.addMockFile(filename,file);
+//    }
+//
 
 
 

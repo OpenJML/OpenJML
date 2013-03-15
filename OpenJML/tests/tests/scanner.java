@@ -3,6 +3,7 @@ import static com.sun.tools.javac.parser.Token.*;
 import static org.jmlspecs.openjml.JmlToken.*;
 
 import org.jmlspecs.openjml.JmlToken;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sun.tools.javac.parser.JmlScanner;
@@ -135,11 +136,12 @@ public class scanner extends JmlTestCase {
     }
 
     // FIXME - understand correct behavior here
-//    /** Test some unicode  - multiple backslash*/
-//    @Test public void testSomeUnicode3() {
-//        helpScanner("\\\\u0041 A",new Enum[]{ERROR,IDENTIFIER,IDENTIFIER},
-//                new int[]{0,1,2,7,8,9});  
-//    }
+    /** Test some unicode  - multiple backslash*/
+    @Ignore
+    @Test public void testSomeUnicode3() {
+        helpScanner("\\\\u0041 A",new Enum[]{ERROR,IDENTIFIER,IDENTIFIER},
+                new int[]{0,1,2,7,8,9});  
+    }
     
     /** This tests that the test harness records if not enough tokens are listed */
     @Test public void testHarness1() {
@@ -209,8 +211,6 @@ public class scanner extends JmlTestCase {
     }
     
 
-    // TODO - add tests that the checkMessages calls work even with bad arguments
-    
     /** Tests that JML keywords are not found in Java */
     @Test public void testJmlKeywordsNotInJml() {
         helpScanner("requires ensures pure",
@@ -409,33 +409,29 @@ public class scanner extends JmlTestCase {
     }
 
     /** Test an embedded JML comment */
-    @Test public void testEmbeddedJavaComment3() { // FIXME 
+    // TODO: DO we really want this to work?
+    @Ignore
+    @Test public void testEmbeddedJavaComment3() { 
         helpScanner("//@requires /* requires ensures \n signals */ modifies ",
                 new Enum<?>[]{REQUIRES,ASSIGNABLE,EOF},
-                null);
+                new int[]{3,11,45,53,54,54});
     }
 
     /** Test an embedded Java comment */
     @Test public void testEmbeddedJavaComment4() {
         helpScanner("/*@requires // modifies \n ensures */ signals ",
                 new Enum<?>[]{REQUIRES,ENSURES,EJML,IDENTIFIER,EOF},
-                null);
+                new int[]{3,11,26,33,34,36,37,44,45,45});
     }
 
-    // FIXME - should we make these have some meaning (result is not necessarily correct)
-//    /** Test an embedded Java comment */
-//    @Test public void testEmbeddedJavaComment5() {
-//        helpScanner("/*@requires /* modifies \n ensures */ signals ",
-//                new Enum<?>[]{REQUIRES,ENSURES,EJML,IDENTIFIER,EOF},
-//                null);
-//    }
-//
-//    /** Test an embedded Java comment */
-//    @Test public void testEmbeddedJavaComment6() {
-//        helpScanner("/*@requires /* modifies \n ensures */ requires */ signals ",
-//                new Enum<?>[]{REQUIRES,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
-//                null);
-//    }
+    /** Test an embedded Java comment */
+    @Ignore
+    @Test public void testEmbeddedJavaComment6() {
+        // TODO: DO we really want this to work?
+        helpScanner("/*@requires /* modifies \n ensures */ requires */ signals ",
+                new Enum<?>[]{REQUIRES,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
+                null);
+    }
 
     @Test public void testLineComment1() {
         helpScanner("//@ requires",new Enum<?>[]{REQUIRES,EOF},null);

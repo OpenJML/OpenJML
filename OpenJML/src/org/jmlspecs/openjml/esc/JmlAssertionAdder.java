@@ -1388,8 +1388,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             for (JmlSpecificationCase scase : denestedSpecs.cases) {
                 sawSomeSpecs = true;
-                System.out.println("SCASE: " + scase.modifiers.flags + " " + scase);
-                System.out.println("VISIBILITY: " + msym + " " + utils.visible(classDecl.sym, msym.owner, scase.modifiers.flags));
                 if (!utils.visible(classDecl.sym, msym.owner, scase.modifiers.flags)) continue;
                 JCIdent preident = null;
                 JCExpression preexpr = null;
@@ -1566,7 +1564,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (ClassSymbol csym: parents) {
             JmlSpecs.TypeSpecs tspecs = specs.get(csym);
             for (JmlTypeClause clause : tspecs.clauses) {
-                System.out.println("VISIBILITY3: " + utils.visible(classDecl.sym, csym, clause.modifiers.flags));
                 if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags)) continue;
                 JmlTypeClauseExpr t;
                 try {

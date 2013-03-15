@@ -29,7 +29,7 @@ public class racnew extends RacBase {
         main.addOptions("-showNotImplemented");
         main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
         main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way
-        main.addOptions("-noRacSource");
+        main.addOptions("-noRacSource"); // This is just to avoid a lot of extra output text to check during testing - would be good to put all the information in and check it
         //main.addOptions("-verboseness=4");
         expectedNotes = 0;
     }
@@ -56,7 +56,7 @@ public class racnew extends RacBase {
 
     /** Simple test of output from a JML set statement */
     @Test public void testJML() {
-        helpTCX("tt.TestJML","package tt; public class TestJML { public static void main(String[] args) { //@ ghost int i = 0; \n //@ set i = 1; \n //@ set System.out.println(i); \n System.out.println(\"END\"); }}"
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { //@ ghost int i = 0; \n //@ set i = 1; \n //@ set System.out.println(i); \n System.out.println(\"END\"); }}"
                 ,"1"
                 ,"END"
                 );
@@ -464,8 +464,42 @@ public class racnew extends RacBase {
         );
     }
     
-    // FIXME - the problem here is that when the caller postconditions are evaluated for m(0),
-    // \old(k) is evaluated at the beginning of main, rather than just before m(0).
+    @Test public void testLabel() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
+                " /*@ ensures (\\lbl ENS \\result == 1); */ static int m(int i) { return i; } " +
+                "}"
+                ,"LABEL ENS = true"
+                ,"LABEL ENS = true"
+                ,"LABEL ENS = false"
+                ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"/tt/TestJava.java:2: Associated declaration"
+                ,"LABEL ENS = false"
+                ,"/tt/TestJava.java:1: JML postcondition is false"
+                ,"/tt/TestJava.java:2: Associated declaration"
+                ,"END"
+        );        
+    }
+    
+    @Test public void testLabel2() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
+                " /*@ ensures (\\lbl ENS (\\lbl RES \\result) == 1); */ static int m(int i) { return i; } " +
+                "}"
+                ,"LABEL RES = 1"
+                ,"LABEL ENS = true"
+                ,"LABEL RES = 1"
+                ,"LABEL ENS = true"
+                ,"LABEL RES = 0"
+                ,"LABEL ENS = false"
+                ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"/tt/TestJava.java:2: Associated declaration"
+                ,"LABEL RES = 0"
+                ,"LABEL ENS = false"
+                ,"/tt/TestJava.java:1: JML postcondition is false"
+                ,"/tt/TestJava.java:2: Associated declaration"
+                ,"END"
+        );        
+    }
+    
     @Test public void testOld() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures (\\lbl ENS \\old(k)) == k; */ static int m(int i) { k=i; return i; } " +
@@ -783,8 +817,75 @@ public class racnew extends RacBase {
         
     }
     
-    @Test 
-    public void testTypelc() {
+    @Test public void testLbl() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "m(null); \n" +
+                "System.out.println(\"END\"); } \n" +
+                "static int i = 0; static String n = \"asd\";\n" +
+                " static void m(/*@nullable*/ Object o) { \n" +
+                "//@ assert (\\lbl STRING \"def\") != null; \n" +
+                "++i; //@ assert (\\lbl SHORT (short)(i)) != 0; \n" +
+                "++i; //@ assert (\\lbl LONG (long)(i)) != 0; \n" +
+                "++i; //@ assert (\\lbl BYTE (byte)(i)) != 0; \n" +
+                "++i; //@ assert (\\lbl INT (int)(i)) != 0; \n" +
+                "++i; //@ assert (\\lbl FLOAT (float)(i)) != 0; \n" +
+                "++i; //@ assert (\\lbl DOUBLE (double)(i)) != 0; \n" +
+                "//@ assert (\\lbl CHAR n.charAt(0)) != 0; \n" +
+                "//@ assert (\\lbl BOOLEAN (i == 0)) ; \n" +
+                "//@ assert (\\lbl OBJECT o) == null; \n" +
+                "//@ assert (\\lbl STRING \"abc\") != null; \n" +
+                "} " +
+                "}"
+                ,"LABEL STRING = def"
+                ,"LABEL SHORT = 1"
+                ,"LABEL LONG = 2"
+                ,"LABEL BYTE = 3"
+                ,"LABEL INT = 4"
+                ,"LABEL FLOAT = 5.0"
+                ,"LABEL DOUBLE = 6.0"
+                ,"LABEL CHAR = a"
+                ,"LABEL BOOLEAN = false"
+                ,"/tt/TestJava.java:14: JML assertion is false"
+                ,"LABEL OBJECT = null"
+                ,"LABEL STRING = abc"
+                ,"END"
+                );
+        
+    }
+    
+    @Test public void testLblConst() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "m(null); \n" +
+                "System.out.println(\"END\"); } static int i = 0; \n" +
+                " static void m(/*@nullable*/ Object o) { \n" +
+                "//@ assert (\\lbl OBJECT null) == null; \n" +
+                "//@ assert (\\lbl INT (int)(4)) != 0; \n" +
+                "//@ assert (\\lbl SHORT (short)(1)) != 0; \n" +
+                "//@ assert (\\lbl LONG (long)(2)) != 0; \n" +
+                "//@ assert (\\lbl BYTE (byte)(3)) != 0; \n" +
+                "//@ assert (\\lbl FLOAT (float)(5)) != 0; \n" +
+                "//@ assert (\\lbl DOUBLE (double)(6)) != 0; \n" +
+                "//@ assert (\\lbl CHAR 'a') != 0; \n" +
+                "//@ assert (\\lbl BOOLEAN true) ; \n" +
+                "//@ assert (\\lbl STRING \"abc\") != null; \n" +
+                "} " +
+                "}"
+                ,"LABEL OBJECT = null"
+                ,"LABEL INT = 4"
+                ,"LABEL SHORT = 1"
+                ,"LABEL LONG = 2"
+                ,"LABEL BYTE = 3"
+                ,"LABEL FLOAT = 5.0"
+                ,"LABEL DOUBLE = 6.0"
+                ,"LABEL CHAR = a"
+                ,"LABEL BOOLEAN = true"
+                ,"LABEL STRING = abc"
+                ,"END"
+                );
+        
+    }
+    
+    @Test public void testLblX() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(); mm(); ma(); mg(); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -842,6 +943,65 @@ public class racnew extends RacBase {
         
     }
     
+    @Test
+    public void testTypelc() { 
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "m(); mm(); ma(); mg(); \n" +
+                "System.out.println(\"END\"); } \n" +
+                " static void m() { \n" +
+                "//@ ghost \\TYPE c; \n" +
+                "//@ set c = \\type(int); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
+                "//@ set c = \\type(boolean); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
+                "}\n" +
+                " static void mm() { \n" +
+                "//@ ghost \\TYPE c; \n" +
+                "//@ set c = \\type(java.lang.Object); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
+                "//@ set c = \\type(Object); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
+                "//@ set c = \\type(java.lang.String); \n" +
+                "//@ set c = (\\lbl TYP3 c); \n" +
+                "//@ set c = \\type(String); \n" +
+                "//@ set c = (\\lbl TYP4 c); \n" +
+                "}\n" +
+                " static void ma() { \n" +
+                "//@ ghost \\TYPE c; \n" +
+                "//@ set c = \\type(java.lang.String[]); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
+                "//@ set c = \\type(String[]); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
+                "//@ set c = \\type(java.lang.String[][]); \n" +
+                "//@ set c = (\\lbl TYP3 c); \n" +
+                "//@ set c = \\type(String[][]); \n" +
+                "//@ set c = (\\lbl TYP4 c); \n" +
+                "} \n" +
+                " static void mg() { \n" +
+                "//@ ghost \\TYPE c; \n" +
+                "//@ set c = \\type(java.lang.Class<Integer>); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
+                "//@ set c = \\type(Class<?>); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
+                "} " +
+                "}"
+                ,"LABEL TYP1 = int"
+                ,"LABEL TYP2 = boolean"
+                ,"LABEL TYP1 = class java.lang.Object"
+                ,"LABEL TYP2 = class java.lang.Object"
+                ,"LABEL TYP3 = class java.lang.String"
+                ,"LABEL TYP4 = class java.lang.String"
+                ,"LABEL TYP1 = class [Ljava.lang.String;"
+                ,"LABEL TYP2 = class [Ljava.lang.String;"
+                ,"LABEL TYP3 = class [[Ljava.lang.String;"
+                ,"LABEL TYP4 = class [[Ljava.lang.String;"
+                ,"LABEL TYP1 = class java.lang.Class<class java.lang.Integer>"
+                ,"LABEL TYP2 = class java.lang.Class<?>"
+                ,"END"
+                );
+        
+    }
+
     @Test
     public void testSubtype() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
@@ -1307,28 +1467,6 @@ public class racnew extends RacBase {
 
     }
 
-    /** Using a model field in a field access */
-    @Test public void testModelField1a() {
-        continueAnyway = true;
-        print = true;
-        main.addOptions("-keys=DEBUG");
-        helpTCX("tt.PA","package tt; public class PA { \n"
-                +" static int j = 5; \n "
-                +"//@  model int i; represents i = j; \n"
-                +"public static void main(String[] args) { \n"
-                +"PA a = new PA();\n"
-                +"//@ debug System.out.println(\"A \" + a.i); \n"
-                +"PB b = new PB();\n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
-                +"System.out.println(\"END\"); "
-                +"}} class PB { //@ model  int i; represents i = PA.j+1; \n\n}"
-                ,"A 5"
-                ,"B 6"
-                ,"END"
-                );
-
-    }
-
     /** Represents with super model field */
     @Test public void testModelField3a() {
         main.addOptions("-keys=DEBUG");
@@ -1353,6 +1491,25 @@ public class racnew extends RacBase {
 
     }
 
+    /** Using a model field in a field access */
+    @Test public void testModelField1a() {
+        main.addOptions("-keys=DEBUG");
+        helpTCX("tt.PA","package tt; public class PA { \n"
+                +" static int j = 5; \n "
+                +"//@  model int i; represents i = j; \n"
+                +"public static void main(String[] args) { \n"
+                +"PA a = new PA();\n"
+                +"//@ debug System.out.println(\"A \" + a.i); \n"
+                +"PB b = new PB();\n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"System.out.println(\"END\"); "
+                +"}} class PB { //@ model  int i; represents i = PA.j+1; \n\n}"
+                ,"A 5"
+                ,"B 6"
+                ,"END"
+                );
+
+    }
 
     /** Represents with super model field */
     @Test public void testModelField4() {
@@ -1859,6 +2016,27 @@ public class racnew extends RacBase {
     }
     
     /** Represents with super model field */
+    @Test public void testModelField5a() {
+        continueAnyway = true;
+        addMockFile("$A/tt/B.java","package tt; class B{ //@ model int i; \n}");
+        helpTCX("tt.A","package tt; public class A extends tt.B { \n"
+                +" int j = 5; \n "
+                +"public static void main(String[] args) { \n"
+                +"A a = new A();\n"
+                +"tt.B b = new tt.B();\n"
+                +"//@ debug System.out.println(\"A \" + a.i); \n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"b = new A();\n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"/tt/A.java:1: warning: JML model field is not implemented: i",36
+                ,"END"
+                );
+
+    }
+
+    /** Represents with super model field */
     @Test public void testModelField5() {
         continueAnyway = true;
         main.addOptions("-keys=DEBUG");
@@ -1900,6 +2078,20 @@ public class racnew extends RacBase {
 
     }
 
+    @Test public void testNullAssignment2() {
+        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; @NullableByDefault public class A  { \n"
+                +"/*@non_null*/ static Object o,oo; static Object ooo;\n"
+                +"public static void main(String[] args) { \n"
+                +"   A.oo = null;\n"
+                +"   A.ooo = null;\n"
+                +"System.out.println(\"END\"); "
+                +"}} class B { //@ model  int i; represents i = 0; \n}"
+                ,"/tt/A.java:4: JML assignment of null to a non_null variable"
+                ,"END"
+                );
+
+    }
+
     @Test public void testNullReference() {
         expectedRACExit = 1;
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A  { \n"
@@ -1919,20 +2111,6 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:11: JML A null object is dereferenced within a JML expression"
                 ,"Exception in thread \"main\" java.lang.NullPointerException"
                 ,"\tat tt.A.main(A.java:11)"
-                );
-
-    }
-
-    @Test public void testNullAssignment2() {
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; @NullableByDefault public class A  { \n"
-                +"/*@non_null*/ static Object o,oo; static Object ooo;\n"
-                +"public static void main(String[] args) { \n"
-                +"   A.oo = null;\n"
-                +"   A.ooo = null;\n"
-                +"System.out.println(\"END\"); "
-                +"}} class B { //@ model  int i; represents i = 0; \n}"
-                ,"/tt/A.java:4: JML assignment of null to a non_null variable"
-                ,"END"
                 );
 
     }
@@ -1998,7 +2176,7 @@ public class racnew extends RacBase {
                 +"    //@ assume \\duration(true) == 0;\n"
                 +"    //@ ghost long k = \\duration(true);\n"
                 +"    //@ set k = \\duration(true);\n"
-                +"    //@ debug k = \\duration(true);\n" 
+                +"    //@ debug k = \\duration(true);\n"
                 +"    System.out.println(\"END\"); "
                 +"}\n"
                 +"//@ ghost long z = \\duration(true);\n"
@@ -2522,5 +2700,55 @@ public class racnew extends RacBase {
                 );
     }
 
+    @Test public void testSynchronized() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i; \n synchronized (this) { i = 0; } \n}}"
+                );
+    }
+
+    @Test public void testForEach3() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list); }"
+                +"static void m(java.util.List<Integer> list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (int o: list) {  sum += o; }  \n"
+                +"//@ assert sum >= 0; \n"
+                +"}}"
+                );
+    }
+
+    @Test public void testForEach3bad() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list);}"
+                +"static void m(java.util.List<Integer> list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (int o: list) {  sum += o; }  \n"
+                +"//@ assert sum > 0; \n"
+                +"}}"
+                ,"/tt/A.java:5: JML assertion is false"
+                );
+    }
+
+    @Test public void testForEach4() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{1,2,3}; m(aa); }"
+                +"static void m(Integer[] list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
+                +"//@ assert sum >= 0; \n"
+                +"}}"
+                );
+    }
+
+    @Test public void testForEach4bad() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{0,0,0}; m(aa); }"
+                +"static void m(Integer[] list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
+                +"//@ assert sum > 0; \n"
+                +"}}"
+                ,"/tt/A.java:5: JML assertion is false"
+                );
+    }
 
 }

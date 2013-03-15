@@ -843,7 +843,7 @@ public class api {
             IAPI m = Factory.makeAPI();
             JCTree ast = m.parseString("A.java",program);
             TestScanner v = new TestScanner();
-            v.scanMode = v.AST_JAVA_MODE;
+            v.scanMode = JmlTreeScanner.AST_JAVA_MODE;
             v.scan(ast);
             check("","");
             assertEquals(1,v.numberClasses);
@@ -1083,7 +1083,7 @@ public class api {
     
     /** Tests the parseAndCheck call */
     // parseAndCheck 
-    @Ignore
+    @Test
     public void testParseAndCheckCrash() {
         start(true);
         try {

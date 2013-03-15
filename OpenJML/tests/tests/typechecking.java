@@ -325,7 +325,7 @@ public class typechecking extends TCBase {
     
     @Test public void testSetComp() {
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ invariant new JMLSetType { Integer i | c.contains(i) && i<10}; \n \n }"
-                //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",79
+                //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",79  // FIXME
                 ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.lang.JMLSetType",55
 		);
     }
@@ -333,7 +333,7 @@ public class typechecking extends TCBase {
     // Testing scopes in method specs
     @Test public void testSetCompA() {
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ requires new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
-                //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",78
+                //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",78 // FIXME
                 ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.lang.JMLSetType",54
                 );
     }

@@ -5,11 +5,9 @@ import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.junit.Test;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCErroneous;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCSkip;
 
 public class nowarn extends ParseBase {
 

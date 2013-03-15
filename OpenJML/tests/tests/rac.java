@@ -1,5 +1,6 @@
 package tests;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /** These tests exercise the RAC checking.  They compile a test class 
@@ -26,6 +27,7 @@ public class rac extends RacBase {
         main.addOptions("-showNotImplemented");
         main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
         main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way
+        main.addOptions("-noRacSource"); // This is just to avoid a lot of extra output text to check during testing - would be good to put all the information in and check it
 //        options.put("-jmldebug",   "");
         expectedNotes = 0;
     }
@@ -34,6 +36,13 @@ public class rac extends RacBase {
     @Test public void testJava() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { System.out.println(\"HELLO WORLD\"); }}"
                 ,"HELLO WORLD"
+                );
+    }
+
+    /** Basic Hello World test, with no RAC tests triggered */
+    @Test public void testJavaExit() {
+        expectedRACExit = 5;
+        helpTCX("tt.TestJavaExit","package tt; public class TestJavaExit { public static void main(String[] args) { System.exit(5); }}"
                 );
     }
 
@@ -53,8 +62,8 @@ public class rac extends RacBase {
 
     /** JML assert statement failure */
     @Test public void testAssertion() {
-        helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { //@ assert false; \n System.out.println(\"END\"); }}"
-                ,"/tt/TestAssert.java:1: JML assertion is false"
+        helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { \n//@ assert false; \n System.out.println(\"END\"); }}"
+                ,"/tt/TestAssert.java:2: JML assertion is false"
                 ,"END"
                 );
     }
@@ -68,7 +77,8 @@ public class rac extends RacBase {
     }
 
     // FIXME - need to put in type conversion
-    public void _testAssertion3() {
+    @Ignore
+    @Test public void testAssertion3() {
         helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { //@ assert false: args.length; \n System.out.println(\"END\"); }}"
                 ,"/tt/TestAssert.java:1: JML assertion is false"
                 ,"END"
@@ -346,6 +356,22 @@ public class rac extends RacBase {
                 );
     }
 
+    @Ignore
+    @Test public void testSignalsOnlyDefault2() {
+        helpTCX("tt.TestJava","package tt; public class TestJava {\n"
+                +" public static void main(String[] args) { \n"
+                +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
+                +"} \n"
+                +"static int k = 0; \n"
+                +" \n"
+                +"static void m(int i) throws java.io.FileNotFoundException { throw new RuntimeException(); } "
+                +"}"
+                ,"/tt/TestJava.java:7: JML unexpected exception for the signals_only clause"
+                ,"/tt/TestJava.java:7: Associated declaration"
+                ,"END"
+                );
+    }
+
     @Test public void testResult() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures \\result == 4; */ static int m(int i) { return 4; } " +
@@ -365,7 +391,7 @@ public class rac extends RacBase {
     
     @Test public void testLabel() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ ensures (\\lblneg ENS \\result == 1); */ static int m(int i) { return i; } " +
+                " /*@ ensures (\\lbl ENS \\result == 1); */ static int m(int i) { return i; } " +
                 "}"
                 ,"LABEL ENS = true"
                 ,"LABEL ENS = false"
@@ -376,7 +402,7 @@ public class rac extends RacBase {
     
     @Test public void testLabel2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ ensures (\\lblneg ENS (\\lbl RES \\result) == 1); */ static int m(int i) { return i; } " +
+                " /*@ ensures (\\lbl ENS (\\lbl RES \\result) == 1); */ static int m(int i) { return i; } " +
                 "}"
                 ,"LABEL RES = 1"
                 ,"LABEL ENS = true"
@@ -417,7 +443,6 @@ public class rac extends RacBase {
     }
     
     @Test public void testOld3() {
-        //print = true; options.put("-showrac","");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 + "public static void main(String[] args) { \n"
                 + "  m(1); m(0); \n"
@@ -579,6 +604,56 @@ public class rac extends RacBase {
         
     }
     
+    // FIXME - want typeof to return a JML type with type parameter information
+    @Ignore
+    @Test public void testTypeOf5() {
+        helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
+                "m(new LinkedList<String>()); m(new LinkedList<Integer>());  m(new HashSet<Integer>()); System.out.println(\"END\"); } \n" +
+                " //@ requires (\\lbl CLS \\typeof(i)) == ( \\type(LinkedList<Integer>) ); \n" +
+                " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
+                "}"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.HashSet"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"LABEL CLS = class java.util.HashSet"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class java.util.HashSet"
+                ,"END"
+                );
+        
+    }
+    
+    // FIXME - want typeof to return a JML type with type parameter information
+    @Ignore
+    @Test public void testTypeOf6() {
+        helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
+                "m(new LinkedList<String>());  m(new HashSet<Integer>()); System.out.println(\"END\"); } \n" +
+                " //@ requires (\\lbl CLS \\typeof(i)) != ( \\type(LinkedList<Integer>) ); \n" +
+                " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
+                "}"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.HashSet"
+                ,"LABEL CLS = class java.util.HashSet"
+                ,"CLASS class java.util.HashSet"
+                ,"END"
+                );
+        
+    }
+    
 
     @Test public void testNonnullelement() {
         helpTCX("tt.TestJava","package tt; public class TestJava { static int z = 0; public static void main(String[] args) { \n" +
@@ -594,7 +669,7 @@ public class rac extends RacBase {
                 "//@ assert \\nonnullelements(s2null,new Integer[]{5/z}); \n" +
                 "System.out.println(\"END\"); } \n" +
                 " static void m(Object[] o) { \n" +
-                "//@ assert (\\lblpos ELEM \\nonnullelements(o)); \n" +
+                "//@ assert (\\lbl ELEM \\nonnullelements(o)); \n" +
                 "} " +
                 "}"
                 ,"LABEL ELEM = true"
@@ -614,7 +689,7 @@ public class rac extends RacBase {
                 "m(null); \n" +
                 "System.out.println(\"END\"); } \n" +
                 " static void m(/*@nullable*/Object[] o) { \n" +
-                "//@ assert (\\lblpos ELEM \\nonnullelements((\\lbl O o))); \n" +
+                "//@ assert (\\lbl ELEM \\nonnullelements((\\lbl O o))); \n" +
                 "} " +
                 "}"
                 ,"LABEL O = null"
@@ -692,7 +767,8 @@ public class rac extends RacBase {
         
     }
     
-    public void _testTypelc() { // FIXME - problem with \type of primitive types
+    @Ignore
+    @Test public void testLblX() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(); mm(); ma(); mg(); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -724,7 +800,66 @@ public class rac extends RacBase {
                 "//@ set c = (\\lbl TYP3 c); \n" +
                 "//@ set c = \\type(String[][]); \n" +
                 "//@ set c = (\\lbl TYP4 c); \n" +
+                "} \n" +
+                " static void mg() { \n" +
+                "//@ ghost \\TYPE c; \n" +
+                "//@ set c = \\type(java.lang.Class<Integer>); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
+                "//@ set c = \\type(Class<?>); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
                 "} " +
+                "}"
+                ,"LABEL TYP1 = int"
+                ,"LABEL TYP2 = boolean"
+                ,"LABEL TYP1 = class java.lang.Object"
+                ,"LABEL TYP2 = class java.lang.Object"
+                ,"LABEL TYP3 = class java.lang.String"
+                ,"LABEL TYP4 = class java.lang.String"
+                ,"LABEL TYP1 = class [Ljava.lang.String;"
+                ,"LABEL TYP2 = class [Ljava.lang.String;"
+                ,"LABEL TYP3 = class [[Ljava.lang.String;"
+                ,"LABEL TYP4 = class [[Ljava.lang.String;"
+                ,"LABEL TYP1 = class java.lang.Class<class java.lang.Integer>"
+                ,"LABEL TYP2 = class java.lang.Class<?>"
+                ,"END"
+                );
+        
+    }
+
+    @Ignore @Test
+    public void testTypelc() { 
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "m(); mm(); ma(); mg(); \n" +
+                "System.out.println(\"END\"); } \n" +
+                " static void m() { \n" +
+                "//@ ghost \\TYPE c; \n" +
+                "//@ set c = \\type(int); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
+                "//@ set c = \\type(boolean); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
+                "}\n" +
+                " static void mm() { \n" +
+                "//@ ghost \\TYPE c; \n" +
+                "//@ set c = \\type(java.lang.Object); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
+                "//@ set c = \\type(Object); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
+                "//@ set c = \\type(java.lang.String); \n" +
+                "//@ set c = (\\lbl TYP3 c); \n" +
+                "//@ set c = \\type(String); \n" +
+                "//@ set c = (\\lbl TYP4 c); \n" +
+                "}\n" +
+                " static void ma() { \n" +
+                "//@ ghost \\TYPE c; \n" +
+                "//@ set c = \\type(java.lang.String[]); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
+                "//@ set c = \\type(String[]); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
+                "//@ set c = \\type(java.lang.String[][]); \n" +
+                "//@ set c = (\\lbl TYP3 c); \n" +
+                "//@ set c = \\type(String[][]); \n" +
+                "//@ set c = (\\lbl TYP4 c); \n" +
+                "} \n" +
                 " static void mg() { \n" +
                 "//@ ghost \\TYPE c; \n" +
                 "//@ set c = \\type(java.lang.Class<Integer>); \n" +
@@ -749,8 +884,10 @@ public class rac extends RacBase {
                 );
         
     }
-    
-    public void _testSubtype() {  // FIXME - \type(int) does not work
+
+    @Ignore
+    @Test
+    public void testSubtype() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(); mm(); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -762,9 +899,9 @@ public class rac extends RacBase {
                 " static void m() { \n" +
                 "//@ ghost boolean c; \n" +
                 "//@ set c = o.getClass() <: o.getClass(); \n" + // Object <: Object  // Class
-                "//@ set c = (\\lblpos TYP1 c); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
                 "//@ set c = \\typeof(o) <: \\typeof(o); \n" +  // Object <: Object // \TYPE
-                "//@ set c = (\\lblpos TYP2 c); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
                 "//@ set c = \\typeof(o) <: \\typeof(oo); \n" + // Object <: String // \TYPE
                 "//@ set c = (\\lblpos TYP3 c); \n" +
                 "//@ set c = \\typeof(oo) <: \\typeof(o); \n" + // String <: Object // \TYPE
@@ -775,15 +912,15 @@ public class rac extends RacBase {
                 " static void mm() { \n" +
                 "//@ ghost boolean c; \n" +
                 "//@ set c = s.getClass() <: b.getClass(); \n" + // String <: Boolean // Class
-                "//@ set c = (\\lblpos TYP1 c); \n" +
+                "//@ set c = (\\lbl TYP1 c); \n" +
                 "//@ set c = \\typeof(s) <: \\typeof(b); \n" +  // String <: Boolean // \TYPE
-                "//@ set c = (\\lblpos TYP2 c); \n" +
+                "//@ set c = (\\lbl TYP2 c); \n" +
                 "//@ set c = \\type(int) <: \\typeof(o); \n" + // int <: Object // \TYPE
-                "//@ set c = (\\lblpos TYP3 c); \n" +
+                "//@ set c = (\\lbl TYP3 c); \n" +
                 "//@ set c = \\type(int) <: \\type(int); \n" + // int <: int  // false
-                "//@ set c = (\\lblpos TYP4 c); \n" +
+                "//@ set c = (\\lbl TYP4 c); \n" +
                 "//@ set c = \\type(int) <: \\type(boolean); \n" + // int <: boolean
-                "//@ set c = (\\lblpos TYP5 c); \n" +
+                "//@ set c = (\\lbl TYP5 c); \n" +
                 "}\n" +
                 "}"
                 ,"LABEL TYP1 = true"
@@ -1013,7 +1150,8 @@ public class rac extends RacBase {
         
     }
 
-    public void _testSpecModelClass() { // FIXME - nested class problems?
+    @Ignore @Test
+    public void testSpecModelClass() {
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"/*@ model static class AA { static int mm() { return 5; }} */ \n"
                 +"//@ ghost static int i = 0;\n  "
@@ -1153,6 +1291,7 @@ public class rac extends RacBase {
                 );
     }
 
+    /** Tests that invariants are not checked when executing a helper method */
     @Test public void testHelper() {
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
@@ -1302,6 +1441,27 @@ public class rac extends RacBase {
 
     }
 
+    /** Using a model field in a field access */
+    @Test public void testModelField1a() {
+        continueAnyway = true;
+        print = true;
+        main.addOptions("-keys=DEBUG");
+        helpTCX("tt.PA","package tt; public class PA { \n"
+                +" static int j = 5; \n "
+                +"//@  model int i; represents i = j; \n"
+                +"public static void main(String[] args) { \n"
+                +"PA a = new PA();\n"
+                +"//@ debug System.out.println(\"A \" + a.i); \n"
+                +"PB b = new PB();\n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"System.out.println(\"END\"); "
+                +"}} class PB { //@ model  int i; represents i = PA.j+1; \n\n}"
+                ,"A 5"
+                ,"B 6"
+                ,"END"
+                );
+
+    }
 
     /** Represents with super model field */
     @Test public void testModelField4() {
@@ -1775,26 +1935,52 @@ public class rac extends RacBase {
         );
     }
     
-//    /** Represents with super model field */
-//    @Test public void testModelField5() {
-//        print = true;
-//        addMockFile("$A/tt/B.java","package tt; class B{ //@ model int i; \n}");
-//        helpTCX("tt.A","package tt; public class A extends tt.B { \n"
-//                +" int j = 5; \n "
-//                +"public static void main(String[] args) { \n"
-//                +"A a = new A();\n"
-//                +"tt.B b = new tt.B();\n"
-//                +"//@ debug System.out.println(\"A \" + a.i); \n"
-//                +"//@ debug System.out.println(\"B \" + b.i); \n"
-//                +"b = new A();\n"
-//                +"//@ debug System.out.println(\"B \" + b.i); \n"
-//                +"System.out.println(\"END\"); "
-//                +"}}"
-//                ,"A 0"
-//                ,"END"
-//                );
-//
-//    }
+    /** Represents with super model field */
+    @Test public void testModelField5a() {
+        addMockFile("$A/tt/B.java","package tt; class B{ //@ model int i; \n}");
+        helpTCX("tt.A","package tt; public class A extends tt.B { \n"
+                +" int j = 5; \n "
+                +"public static void main(String[] args) { \n"
+                +"A a = new A();\n"
+                +"tt.B b = new tt.B();\n"
+                +"//@ debug System.out.println(\"A \" + a.i); \n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"b = new A();\n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"/$A/tt/B.java:1: JML model field is not implemented: i"
+                ,"A 0"
+                ,"/$A/tt/B.java:1: JML model field is not implemented: i"
+                ,"B 0"
+                ,"/$A/tt/B.java:1: JML model field is not implemented: i"
+                ,"B 0"
+                ,"END"
+                );
+
+    }
+
+    /** Represents with super model field */
+    @Test public void testModelField5() {
+        addMockFile("$A/tt/B.java","package tt; class B{ //@ model int i; represents i = 15; \n}");
+        helpTCX("tt.A","package tt; public class A extends tt.B { \n"
+                +" int j = 5; \n "
+                +"public static void main(String[] args) { \n"
+                +"A a = new A();\n"
+                +"tt.B b = new tt.B();\n"
+                +"//@ debug System.out.println(\"A \" + a.i); \n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"b = new A();\n"
+                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A 15"
+                ,"B 15"
+                ,"B 15"
+                ,"END"
+                );
+
+    }
 
     @Test public void testNullAssignment() {
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; @NullableByDefault public class A  { \n"
@@ -1827,9 +2013,31 @@ public class rac extends RacBase {
 
     }
 
+    @Test public void testNullReference() {
+        expectedRACExit = 1;
+        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A  { \n"
+                +"/*@nullable*/static A a = null;\n"
+                +"/*@nullable*/ A b = null;\n"
+                +"static int i = 9;\n"
+                +"public static void main(String[] args) { \n"
+                +"   int j; j = A.i;\n"
+                +"   j = a.i;\n" // No null dereference warning since i is static
+                +"   try { j = a.b.i; } catch (NullPointerException e) {} \n"
+                +"   //@ ghost int k; set k = A.i;\n"
+                +"   //@ set k = a.i;\n"
+                +"   //@ set k = a.b.i;\n"
+                +"System.out.println(\"END\"); \n"
+                +"}}"
+                ,"/tt/A.java:8: JML selecting a field of a null object"
+                ,"/tt/A.java:11: JML selecting a field of a null object"
+                ,"/tt/A.java:5: JML unexpected exception"
+                ,"Exception in thread \"main\" java.lang.NullPointerException"
+                ,"\tat tt.A.main(A.java:11)"
+                );
+
+    }
+
     @Test public void testNullInitialization() {
-//        noCollectDiagnostics = true;
-//        print = true;
         helpTCX("tt.A","package tt; /*@nullable_by_default*/ public class A  { \n"
                 +"/*@non_null*/ static Object o,oo = null; \n"
                 +"static Object ooo = null;\n"
@@ -1875,11 +2083,11 @@ public class rac extends RacBase {
     @Test public void testNotImplemented() {
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"//@ axiom true;\n"
-                +"//@ invariant \\duration(true) == 0;\n"
-                +"//@ model long i;\n"
-                +"//@ represents i =  \\duration(true);\n"
-                +"//@ constraint \\duration(true) == 0;\n"
-                +"//@ initially \\duration(true) == 0;\n"
+                +"//@ public invariant \\duration(true) == 0;\n"
+                +"//@ public model long i;\n"
+                +"//@ public represents i =  \\duration(true);\n"
+                +"//@ public constraint \\duration(true) == 0;\n"
+                +"//@ public initially \\duration(true) == 0;\n"
                 +"public static void main(String[] args) { \n"
                 +"    //@ hence_by true; \n"
                 +"    //@ assert \\duration(true) == 0;\n"
@@ -1902,8 +2110,8 @@ public class rac extends RacBase {
                 +"int mb() { return 0; }\n"
                 +"}"
                 ,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom",5
-                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration expression",15
-                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration expression",5
+                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration expression",22
+                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration expression",12
                 ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration expression",9
                 ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration expression",9
@@ -1913,14 +2121,14 @@ public class rac extends RacBase {
                 ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration expression",5
                 ,"/tt/A.java:19: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration expression",5
                 ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: signals clause containing \\duration expression",5
-                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",5
+                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",12
                 ,"/tt/A.java:22: Note: Not implemented for runtime assertion checking: diverges clause",5
                 ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: duration clause",5
                 ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: working_space clause",5
-                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",5
+                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration expression",12
                 ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",20
                 ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",25
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration expression",5
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration expression",12
                 ,"END"
                 );
 
@@ -1950,9 +2158,9 @@ public class rac extends RacBase {
                 ,"END"
                 );
     }
+    
      // FIXME - does not do inherited invariant checking when super classes are not public
     @Test public void testSuperInvariant() {
-        //print = true; options.put("-showrac","");
         helpTCX("tt.A","package tt; public class A  extends B { \n"
                 +" public void m() {} //@ invariant i == 1; \n"
                 +"public static void main(String[] args) { \n"
@@ -2026,7 +2234,9 @@ public class rac extends RacBase {
                 ,"/$A/tt/C.java:3: JML invariant is false" // after B constructor
                 ,"/$A/tt/B.java:2: JML invariant is false"
                 ,"/$A/tt/C.java:3: JML invariant is false" // entering B.m (C.m)
+                // Missing the check of the B invariant
                 ,"/$A/tt/C.java:3: JML invariant is false" // leaving B.m (C.m)
+                // Missing the check of the B invariant
                 ,"MID"
                 ,"/$A/tt/C.java:3: JML invariant is false" // after C constructor
                 ,"/$A/tt/C.java:3: JML invariant is false" // entering C.m
@@ -2080,6 +2290,145 @@ public class rac extends RacBase {
                 );
     }
     
+    @Ignore
+    @Test public void testInheritedMethod() {
+        addMockFile("$A/tt/B.java","package tt; public class B extends tt.C implements I { \n"
+                +"//@ also ensures i == 2; \n"
+                +"public void m() {} ; \n"
+                +"}\n"
+                );
+        addMockFile("$A/tt/C.java","package tt; public class C implements I { \n"
+                +"static int i=0;  \n"
+                +"//@ ensures i == 3; \n"
+                +" public void m() {} ; \n"
+                +"}\n"
+                );
+        addMockFile("$A/tt/I.java","package tt; public interface I { \n"
+                +"//@ ensures false; \n"
+                +"public void m(); \n"
+                +"}\n"
+                );
+        helpTCX("tt.A","package tt; public class A  extends tt.B { \n"
+                +"//@ also ensures i == 2; \n"
+                +"public void m() {} ; \n"
+
+                +"public static void main(String[] args) { \n"
+                +"System.out.println(\"A\"); \n"
+                +"   (new A()).m(); \n"
+                +"System.out.println(\"END\"); \n"
+                +"}} \n"
+                ,"A"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/tt/I.java:2: Associated declaration"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/tt/C.java:3: Associated declaration"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/tt/B.java:2: Associated declaration"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/tt/I.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/tt/C.java:3: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/tt/B.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"END"
+                );
+    }
+    
+    @Ignore
+    @Test public void testInheritedMethod2() {
+        addMockFile("$A/tt/B.java","package tt; public class B extends ttt.C implements I { \n"
+                +"//@ also private behavior ensures i == 2; \n"
+                +"public void m() {} ; \n"
+                +"}\n"
+                );
+        addMockFile("$A/ttt/C.java","package ttt; public class C implements tt.I { \n"
+                +"static public int i=0;  \n"
+                +"//@ ensures i == 3; \n"
+                +" public void m() {} ; \n"
+                +"}\n"
+                );
+        addMockFile("$A/tt/I.java","package tt; public interface I { \n"
+                +"//@ ensures false; \n"
+                +"public void m(); \n"
+                +"}\n"
+                );
+        helpTCX("tt.A","package tt; public class A  extends tt.B { \n"
+                +"//@ also ensures i == 2; \n"
+                +"public void m() {} ; \n"
+
+                +"public static void main(String[] args) { \n"
+                +"System.out.println(\"A\"); \n"
+                +"   (new A()).m(); \n"
+                +"System.out.println(\"END\"); \n"
+                +"}} \n"
+                ,"A"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/tt/I.java:2: Associated declaration"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/ttt/C.java:3: Associated declaration"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/tt/I.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/ttt/C.java:3: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"END"
+                );
+    }
+    
+    @Ignore
+    @Test public void testInheritedMethod3() {
+        addMockFile("$A/tt/C.java","package tt; public class C { \n"
+                +"static public int i=0;  \n"
+                +"//@ requires kc == 3; ensures i == 3; \n"
+                +" public void m(int kc) {} ; \n"
+                +"}\n"
+                );
+        addMockFile("$A/tt/B.java","package tt; public class B extends C { \n"
+                +"//@ also requires kb == 2; ensures i == 2; \n"
+                +"public void m(int kb) {} ; \n"
+                +"}\n"
+                );
+        helpTCX("tt.A","package tt; public class A  extends tt.B { \n"
+                +"//@ also requires ka==1; ensures i == 1; \n"
+                +"public void m(int ka) {} ; \n"
+
+                +"public static void main(String[] args) { \n"
+                +"   System.out.println(\"C\"); (new A()).m(3); \n"
+                +"   System.out.println(\"B\"); (new A()).m(2); \n"
+                +"   System.out.println(\"A\"); (new A()).m(1); \n"
+                +"   System.out.println(\"NONE\"); (new A()).m(0); \n"
+                +"System.out.println(\"END\"); \n"
+                +"}} \n"
+                ,"C"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/tt/C.java:3: Associated declaration"
+                ,"/tt/A.java:5: JML postcondition is false"
+                ,"/$A/tt/C.java:3: Associated declaration"
+                ,"B"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/$A/tt/B.java:2: Associated declaration"
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/$A/tt/B.java:2: Associated declaration"
+                ,"A"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:7: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"NONE"
+                ,"/tt/A.java:8: JML precondition is false"
+                ,"/$A/tt/C.java:3: Associated declaration"
+                ,"/tt/A.java:2: JML precondition is false"
+                ,"END"
+                );
+    }
+ 
     @Test public void testAssignable() {
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static int j,k;\n"
@@ -2087,7 +2436,7 @@ public class rac extends RacBase {
                 +"  //@ modifies j;\n"
                 +"  //@ ensures j == i;\n"
                 +"  public static void setj(int i) {\n"
-                +"    k = i;\n"
+                +"    k = i;\n"  // FIXME - should be an errror
                 +"  }\n"
                 +"  //@ ensures j == 1;\n"
                 +"  public static void main(String[] args) {\n"
@@ -2100,6 +2449,111 @@ public class rac extends RacBase {
 
     }
     
+    @Ignore
+    @Test public void testAssignable2() {
+        helpTCX("tt.A","package tt; public class A {\n"
+                +"  static int j=0,k;\n"
+                +"  //@ requires i > 0;\n"
+                +"  //@ modifies j;\n"
+                +"  //@ ensures j == i;\n"
+                +"  public static void setj(int i) {\n"
+                +"    k = i;\n" // Intentionally k - but precondition is false, so does not violate the assignable clause
+                +"  }\n"
+                +"  //@ ensures j == 1;\n"
+                +"  public static void main(String[] args) {\n"
+                +"    setj(0);\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/A.java:11: JML precondition is false"
+                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: JML precondition is false"
+                ,"/tt/A.java:10: JML postcondition is false"
+                ,"/tt/A.java:9: Associated declaration"
+        );
+    }
+    
+    @Ignore
+    @Test public void testAssignable3() {
+        helpTCX("tt.A","package tt; public class A {\n"
+                +"  static int j=0,k;\n"
+                +"  //@ requires i > 0;\n"
+                +"  //@ modifies k;\n"
+                +"  //@ ensures j == i;\n"
+                +"  public static void setj(int i) {\n"
+                +"    j = i;\n" 
+                +"  }\n"
+                +"  //@ ensures j == 1;\n"
+                +"  public static void main(String[] args) {\n"
+                +"    setj(1);\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/A.java:7: JML An item is assigned that is not in the assignable statement"
+                ,"/tt/A.java:4: Associated declaration" // FIXME - this does not make sense
+        );
+    }
+    
+    @Test public void testLabelledStatement() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i=5; \n outer: while (i > 0)  { --i; } \n /*@ assert i == 0; */ \n System.out.println(\"END\"); }}"
+                ,"END");
+    }
+
+    @Test public void testLabelledStatement2() {
+        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i=5; \n outer: while (i > 0)  { --i; } \n /*@ assert i == -1; */ }}"
+                ,"/tt/A.java:4: JML assertion is false"
+                );
+    }
+
+    @Test public void testInitializer() {
+        helpTCX("tt.A","package tt; public class A { public static void main(String[] args) {  }\n { //@ assert false; \n } " +
+                "}"
+                ); // The assert is not executed
+    }
+
+    @Test public void testInitializer2() {
+        helpTCX("tt.A","package tt; public class A { public static void main(String[] args) { A a = new A(); System.out.println(\"END\"); }\n {  //@ assert false; \n  \n } " +
+                "}"
+                ,"/tt/A.java:2: JML assertion is false"
+                ,"END");
+    }
+
+    @Test public void testInitializer2a() {
+        helpTCX("tt.A","package tt; public class A { public static void main(String[] args) { A a = new A(); System.out.println(\"END\"); }\n  " +
+                "}"
+                ,"END");
+    }
+
+    @Test public void testInitializer3() {
+        helpTCX("tt.A","package tt; public class A { public static void main(String[] args) {  }\n static { //@ assert false; \n } " +
+                "}"
+                ,"/tt/A.java:2: JML assertion is false");
+    }
+
+    @Test
+    public void testChangedParam() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures \\result == i;\n"
+                +"  public static int m1bad(int i) {\n"
+                +"    return (i+=1) ;\n"
+                +"  }\n"
+                
+                +"  //@ ensures \\result == i+1;\n"
+                +"  public static int m1good(int i) {\n"
+                +"    return (i+=1) ;\n"
+                +"  }\n"
+                
+                +"  public static void main(String ... args) {\n"
+                +"    m1good(2);\n"
+                +"    m1bad(4);\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:7: JML postcondition is false"
+                );
+    }
+
     @Test public void testSynchronized() {
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i; \n synchronized (this) { i = 0; } \n}}"
                 );

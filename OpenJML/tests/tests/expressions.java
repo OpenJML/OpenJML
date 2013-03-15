@@ -75,9 +75,6 @@ public class expressions extends ParseBase {
             if (collector.getDiagnostics().size() != 0) {
                 fail("Saw unexpected errors");
             }
-//            if (out.size()*2 != list.length) {
-//                assertEquals("Incorrect number of nodes listed",list.length/2,out.size());
-//            }
             Object p1, p2, p3;
             for (JCTree t: out) {
                 assertEquals("Class not matched at token " + k, list[i++], t.getClass());
@@ -109,8 +106,6 @@ public class expressions extends ParseBase {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s));
             Parser p = ((JmlFactory)fac).newParser(s,false,true,true,jml);
-            //JmlScanner sc = ((JmlParser)p).getScanner();
-            //if (jml) sc.setJml(jml);
             p.parseExpression();
             int i = 0;
             if (print || collector.getDiagnostics().size() != list.length) printDiagnostics();
@@ -126,8 +121,6 @@ public class expressions extends ParseBase {
     
     String noSource(JCDiagnostic dd) {
         return dd.noSource();
-        //return dd.getMessage(Locale.getDefault());
-        //defaultFormatter.format(this,Locale.getDefault(),"%f:%l:%_%t%m");
     }
 
 
@@ -586,17 +579,22 @@ public class expressions extends ParseBase {
                 JCLiteral.class ,23);
     }
 
-    // FIXME - disabled
-//    public void testMisc() {
-//        print = true;
-//        helpExpr("(\\result==j) ==> \\typeof(o) <: \\type(oo) ",
-//                JCParens.class, 0,
-//                JmlQuantifiedExpr.class,1,
-//                JCPrimitiveTypeTree.class, 10,
-//                JCBinary.class ,21,
-//                JCIdent.class ,19,
-//                JCLiteral.class ,23);
-//    }
+    @Test
+    public void testMisc() {
+        print = true;
+        helpExpr("(\\result==j) ==> \\typeof(o) <: \\type(oo) "
+                ,JmlBinary.class ,13
+                ,JCParens.class, 0
+                ,JCBinary.class ,8
+                ,JmlSingleton.class ,1
+                ,JCIdent.class ,10
+                ,JmlBinary.class ,28
+                ,JmlMethodInvocation.class, 24 // FIXME - these two JMLMethodInvocations have different positions
+                ,JCIdent.class ,25
+                ,JmlMethodInvocation.class, 31
+                ,JCIdent.class ,37
+                );
+    }
 
 
 
