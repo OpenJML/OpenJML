@@ -129,7 +129,6 @@ public class SpecsBase extends TCBase {
      */
     public SpecsBase(String classname) {
         this.classname = classname;
-        //setName(classname);
     }
 
 
@@ -156,7 +155,6 @@ public class SpecsBase extends TCBase {
     //@ modifies foundErrors;
     public void helpTCFile(String filename, String s, String testClass) {
         try {
-            setUp(); // FIXME - why this call?
             JavaFileObject f = new TestJavaFileObject(filename,s);
             if (filename != null) addMockFile("#B/" + filename,f);
             Log.instance(context).useSource(f);
@@ -242,7 +240,7 @@ public class SpecsBase extends TCBase {
      */
     static Set<String> donttest = new HashSet<String>();
     static {
-        donttest.add("java.lang.StringCoding"); // Turn this off because it is not public (FIXME)
+        donttest.add("java.lang.StringCoding"); // (FIXME) Turn this off because it is not public 
     }
     
     /** Creates a list of all the files (of any suffix), interpreted as fully-qualified Java class 
@@ -327,8 +325,10 @@ public class SpecsBase extends TCBase {
     // FIXME - the above test template does not seem to trigger all the
     // modifier checking in attribute testing.
 
-    /** Use this to test the specs for a specific file */
+    /** Use this to test the specs for a specific file. Enable it by
+     * adding an @Test as an annotation. */
     
+    @Test
     public void testFileTemp() {
         checkClassGeneric("java.util.LinkedList");
     }

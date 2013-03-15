@@ -236,11 +236,11 @@ public class compilationUnit extends ParseBase {
     
     @Test
     public void testRequires() {
-        checkCompilationUnit("class A { /*@ requires true; requires \\not_specified; */ void m() {}}",
-                JmlCompilationUnit.class, 0,0,69,
-                JmlClassDecl.class, 0,0,69,
+        checkCompilationUnit("class A { /*@ requires true; requires \\not_specified; */ void m(int i) {}}",
+                JmlCompilationUnit.class, 0,0,74,
+                JmlClassDecl.class, 0,0,74,
                 JCModifiers.class, -1,-1,-1,
-                JmlMethodDecl.class, 57,62,68,
+                JmlMethodDecl.class, 57,62,73,
 
                 JmlMethodSpecs.class, 14,14,53,
                 JmlSpecificationCase.class, 14,14,53,
@@ -252,8 +252,12 @@ public class compilationUnit extends ParseBase {
                 
                 JCModifiers.class, -1,-1,-1,
                 JCPrimitiveTypeTree.class, 57,57,61,
-                    // FIXME - should have a JCIdent, parameters?
-                JCBlock.class, 66,66,68
+                // The method name is not an AST
+                JmlVariableDecl.class, 64,68,69,
+                JCModifiers.class, -1,-1,-1,
+                JCPrimitiveTypeTree.class, 64,64,67,
+                // The parameter name is a Name, not an AST
+                JCBlock.class, 71,71,73
                 );
         
         checkMessages();
@@ -277,7 +281,7 @@ public class compilationUnit extends ParseBase {
                 
                 JCModifiers.class, -1,-1,-1,
                 JCPrimitiveTypeTree.class, 57,57,61,
-                    // FIXME - should have a JCIdent, parameters?
+                // The method name is a Name, not an AST
                 JCBlock.class, 66,66,68
                 );
         

@@ -14,26 +14,22 @@ public class modifiers extends TCBase {
 
     @Test public void testClassMods() {
         helpTCF("t/A.java","package t; \n /*@ pure */class A{}");
-//        checkMessages();
     }
     
     @Test public void testClassMods2() {
         helpTCF("t/A.java","package t; \n /*@ non_null */class A{}",
                 "/t/A.java:2: This JML modifier is not allowed for a type declaration", 6
                 );
-//        checkMessages();
     }
     
     @Test public void testClassMods3() {
         helpTCF("t/A.java","package t; \n  static class A{}",
             "/t/A.java:2: modifier static not allowed here", 10);
-//        checkMessages();
     }
     
     @Test public void testClassMods4() {
         String s = "public class A{}";
         helpTCF("A.java",s);
-//        checkMessages();
     }
     
     @Test public void testClassMods5() {
@@ -41,29 +37,24 @@ public class modifiers extends TCBase {
         helpTCF("A.java",s,
                 "/A.java:1: modifier protected not allowed here",11
                 );
-        //checkMessages();
     }
     
     @Test public void testClassMods6() {
         helpTCF("t/A.java","package t; \n /*@ pure pure */class A{}",
                 "/t/A.java:2: duplicate annotation", 11);
-//        checkMessages();
     }
     
     @Test public void testClassMods7() {
         helpTCF("t/A.java","package t; \n /*@ pure */public class A{}");
-//        checkMessages();
     }
     
     @Test public void testClassMods8() {
         helpTCF("t/A.java","package t; \n public /*@ pure */class A{}");
-//        checkMessages();
     }
     
     @Test public void testClassMods9() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}",
                 "/t/A.java:2: duplicate annotation", 21);
-//        checkMessages();
     }
     
     /** Testing annotations without the import */
@@ -71,19 +62,16 @@ public class modifiers extends TCBase {
         helpTCF("t/A.java","package t;  \n public /*@ pure */ @Pure class A{}",
                 "/t/A.java:2: cannot find symbol\n  symbol: class Pure", 22
 		);
-//        checkMessages();
     }
     
     @Test public void testClassMods11() {
         helpTCF("A.java"," \n public /*@ non_null */  class A{}",
                 "/A.java:2: This JML modifier is not allowed for a type declaration", 13);
-//        checkMessages();
     }
     
     @Test public void testClassMods12() {
         helpTCF("A.java"," \n @Deprecated public class A{}"
                 );
-//        checkMessages();
     }
     
     @Test public void testClassMods13() {
@@ -407,13 +395,11 @@ public class modifiers extends TCBase {
                 "/$A/A.jml:1: The return types of method A.m(int,java.lang.Object) are different in the specification and java files: void vs. java.lang.String",25); 
     }
 
-    // FIXME
-//    @Ignore
-//    @Test public void testMatchMethod8() { 
-//        addMockFile("$A/A.jml","public class A { public void m() {} }");
-//        helpTCF("A.java","public class A{ void m(boolean i) {}  public void m() {  } }",
-//                "/A.java:1: The specification of the method A.m() must not have a body",34); 
-//    }
+    @Test public void testMatchMethod8() { 
+        addMockFile("$A/A.jml","public class A { public void m() {} }");
+        helpTCF("A.java","public class A{ void m(boolean i) {}  public void m() {  } }",
+                "/$A/A.jml:1: The specification of the method A.m() must not have a body",34); 
+    }
     
     @Test public void testTopLevelClass() {
         helpTCF("A.java","/*@pure nullable_by_default*/ public class A{ }"
@@ -460,13 +446,11 @@ public class modifiers extends TCBase {
         );
     }
 
-    // FIXME - is this allowed or not?
-//    @Ignore
-//    @Test public void testNestedClass3a() {
-//        helpTCF("A.java","public class A{ /*@nullable_by_default*/ public class B {}}"
-//                ,"/A.java:1: This JML modifier is not allowed for a nested type declaration",20
-//        );
-//    }
+    // TODO - It seems this should be allowed, but check the JML definition
+    @Test public void testNestedClass3a() {
+        helpTCF("A.java","public class A{ /*@nullable_by_default*/ public class B {}}"
+        );
+    }
     
     @Test public void testNestedClass4() {
         helpTCF("A.java","public class A{ /*@spec_public spec_protected*/ private class B {}}"
@@ -490,13 +474,12 @@ public class modifiers extends TCBase {
                 ,"/A.java:1: This JML modifier is not allowed for a nested type declaration",27
         );
     }
-//    FIXME - is this allowed or not
-//    @Ignore
-//    @Test public void testNestedInterface3a() {
-//        helpTCF("A.java","public class A{ /*@nullable_by_default*/ public interface B {}}"
-//                ,"/A.java:1: This JML modifier is not allowed for a nested type declaration",20
-//        );
-//    }
+    
+    // TODO - It seems this should be allowed, but check the JML definition
+    @Test public void testNestedInterface3a() {
+        helpTCF("A.java","public class A{ /*@nullable_by_default*/ public interface B {}}"
+        );
+    }
     
     @Test public void testNestedInterface4() {
         helpTCF("A.java","public class A{ /*@spec_public spec_protected*/ private interface B {}}"
@@ -1062,9 +1045,6 @@ public class modifiers extends TCBase {
     // TODO - test initializers
     
     @Test public void testBinaryMods() {
-//        options.put("-jmldebug","");
-//        options.put("-jmlverbose","");
-//        options.put("-progress","");
         addMockFile("$A/java/lang/Object.jml","/*@ non_null */ public class Object {\n"
                 +"//@ spec_public spec_protected\n"
                 +"public boolean equals(Object o);}");
@@ -1086,13 +1066,11 @@ public class modifiers extends TCBase {
     @Test public void testSecret() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public class A{ /*@ secret model int a; */ @Secret(\"a\") int m() { return 0; } }"
                 );
-//        checkMessages();
     }
      
     @Test public void testSecret2() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public class A{ @Secret(\"x\") int m() { return 0; } //@ model secret int x;  }"
                 );
-//        checkMessages();
     }
     
     @Test public void testAnnotations1() {
@@ -1102,61 +1080,65 @@ public class modifiers extends TCBase {
                 "/$A/A.jml:1: The specification must include all the annotations that the Java declaration declares: @org.jmlspecs.annotation.Pure", 3);
     }
 
-    // TODO - these could use better error messages
-//    public void testBadModifiers() {
-//        helpTCF("A.java","package tt; \n"
-//                +"/*@ nonnull_by_default*/ public class A { \n"
-//                
-//                +"  //@ requires a[i]>0;\n"
-//                +"  public void m1bad(int[] a, int i) {\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i >= 0 && i < a.length;\n"
-//                +"  //@ requires a[i]>0;\n"
-//                +"  public void m1good(int[] a, int i) {\n"
-//                +"  }\n"
-//                
-//                +"}"
-//                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",15
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
-//                );
-//    }
-//    
-//    public void testBadModifiers2() {
-//        helpTCF("A.java","package tt; \n"
-//                +"public class A { \n"
-//                
-//                +"  //@ requires a[i]>0;\n"
-//                +"  public void m1bad(/*@ nonnull */ int[] a, int i) {\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i >= 0 && i < a.length;\n"
-//                +"  //@ requires a[i]>0;\n"
-//                +"  public void m1good(int[] a, int i) {\n"
-//                +"  }\n"
-//                
-//                +"}"
-//                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",15
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
-//                );
-//    }
+    // TODO - the next two could use better error messages
+    @Test @Ignore
+    public void testBadModifiers() {
+        helpTCF("A.java","package tt; \n"
+                +"/*@ nonnull_by_default*/ public class A { \n"
+                
+                +"  //@ requires a[i]>0;\n"
+                +"  public void m1bad(int[] a, int i) {\n"
+                +"  }\n"
+                
+                +"  //@ requires i >= 0 && i < a.length;\n"
+                +"  //@ requires a[i]>0;\n"
+                +"  public void m1good(int[] a, int i) {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                );
+    }
+    
+    @Test @Ignore
+    public void testBadModifiers2() {
+        helpTCF("A.java","package tt; \n"
+                +"public class A { \n"
+                
+                +"  //@ requires a[i]>0;\n"
+                +"  public void m1bad(/*@ nonnull */ int[] a, int i) {\n"
+                +"  }\n"
+                
+                +"  //@ requires i >= 0 && i < a.length;\n"
+                +"  //@ requires a[i]>0;\n"
+                +"  public void m1good(int[] a, int i) {\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                );
+    }
     
     
 
     // FIXME - also need to test this for when a .class file has a JML annotation that the spec file does not - is that tested for Java m
     // FIXME - these need implementing - error for the different in annotations
-//    @Test public void testAnnotations2() {
-//        addMockFile("$A/A.jml","public class A { Object f; }");
-//        helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
-//                "public class A{ @NonNull Object f; }",
-//                "/$A/A.jml:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
-//    }
-//     
-//    @Test public void testAnnotations3() {
-//        addMockFile("$A/A.jml","public class A { Object m(); }");
-//        helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
-//                "public class A{  @NonNull Object m() { return null: }}",
-//                "/$A/A.jml:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
-//    }
+    @Test @Ignore
+    public void testAnnotations2() {
+        addMockFile("$A/A.jml","public class A { Object f; }");
+        helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
+                "public class A{ @NonNull Object f; }",
+                "/$A/A.jml:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
+    }
+     
+    @Test @Ignore
+    public void testAnnotations3() {
+        addMockFile("$A/A.jml","public class A { Object m(); }");
+        helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
+                "public class A{  @NonNull Object m() { return null: }}",
+                "/$A/A.jml:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
+    }
      
 }

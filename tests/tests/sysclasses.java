@@ -15,11 +15,6 @@ public class sysclasses extends TCBase {
         super.setUp();
     }
 
-//    /** Tests typechecking an invariant clause - OK*/  // FIXME
-//    @Test public void testInvariant() {
-//        helpTC(" class A { int k; boolean b; Boolean bb; \n//@ invariant b;\n}");
-//    }
-
     /** Tests using JMLDataGroup*/
     @Test public void testDataGroup() {
         helpTCF("A.java"," class A { //@ public model JMLDataGroup streamState;\n}"

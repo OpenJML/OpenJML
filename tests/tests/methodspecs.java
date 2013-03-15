@@ -42,7 +42,7 @@ public class methodspecs extends TCBase {
                 );
     }
 
-    // FIXME: We'd like to handle this and the above better - the r looks like a type and the
+    // TODO: We'd like to handle this and the above better - the r looks like a type and the
     // equires like a variable, so this is parsed as a declaration in JML.  It
     // does not check until later that there is no ghost or model.
     /** Tests bad keyword */

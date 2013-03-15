@@ -37,8 +37,6 @@ public class binaries extends TCBase {
                 "    java.io.File file; \n" +
                 "}"
                 ,"/$A/java/io/File.jml:3: The method java.io.File.m() is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.",14
-                //,"/$A/java/io/File.jml:3: cannot find symbol\n  symbol:   variable i\n  location: class java.io.File",31
-                //,"/$A/java/io/File.jml:3: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",41
         );
     }
     

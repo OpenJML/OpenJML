@@ -1,5 +1,6 @@
 package tests;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class QuerySecret extends TCBase {
@@ -316,29 +317,29 @@ public class QuerySecret extends TCBase {
         );
     }
     
-//    /** A default existent datagroup */
-//    @Test
-//    public void testSOK3() {
-//        helpTCF("A.java",
-//                "import org.jmlspecs.annotation.*;\n" +
-//                "public class A { \n" + 
-//                "  //@ public model JMLDataGroup m;\n" +
-//                "  @Secret int m() { return 0; } \n" +
-//                "} \n"
-//                ,"/A.java:4: A secret annotation on a method must have exactly one argument",3
-//        );
-//    }
-//    
-//    /** A default non-existent datagroup */
-//    @Test
-//    public void testSOK4() {
-//        helpTCF("A.java",
-//                "import org.jmlspecs.annotation.*;\n" +
-//                "public class A { \n" + 
-//                "  @Query int m() { return 0; } \n" +
-//                "} \n"
-//        );
-//    }
+    /** A default existent datagroup */
+    @Test @Ignore
+    public void testSOK3() {
+        helpTCF("A.java",
+                "import org.jmlspecs.annotation.*;\n" +
+                "public class A { \n" + 
+                "  //@ public model JMLDataGroup m;\n" +
+                "  @Secret int m() { return 0; } \n" +
+                "} \n"
+                ,"/A.java:4: A secret annotation on a method must have exactly one argument",3
+        );
+    }
+    
+    /** A default non-existent datagroup */
+    @Test @Ignore
+    public void testSOK4() {
+        helpTCF("A.java",
+                "import org.jmlspecs.annotation.*;\n" +
+                "public class A { \n" + 
+                "  @Query int m() { return 0; } \n" +
+                "} \n"
+        );
+    }
     
     /** Same datagroup */
     @Test

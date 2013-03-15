@@ -187,7 +187,10 @@ public abstract class JmlTestCase { //extends junit.framework.TestCase {
         main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null,null);
         context = main.context();
         options = Options.instance(context);
-        if (jmldebug) { Utils.instance(context).jmlverbose = Utils.JMLDEBUG; options.put("-jmlverbose", "4");} // FIXME - this is not the right way to set debugging
+        if (jmldebug) {  // FIXME - this is not the right way to set debugging
+            Utils.instance(context).jmlverbose = Utils.JMLDEBUG; 
+            options.put("-jmlverbose", "4");
+        }
         print = false;
         mockFiles = new LinkedList<JavaFileObject>();
         //System.out.println("JUnit: Testing " + getName());
@@ -317,11 +320,9 @@ public abstract class JmlTestCase { //extends junit.framework.TestCase {
     }
 
     
-    // FIXME - document
+    /** Returns the diagnostic message without source location information */
     String noSource(JCDiagnostic dd) {
         return dd.noSource();
-        //return dd.getMessage(Locale.getDefault());
-        //defaultFormatter.format(this,Locale.getDefault(),"%f:%l:%_%t%m");
     }
 
 

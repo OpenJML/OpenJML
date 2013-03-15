@@ -138,7 +138,9 @@ public class bugs extends TCBase {
     }
 
     @Test
-    public void testMisc18() {  // FIXME - this sort of thing ought to fail - all Java keywords need to be in Java land
+    public void testMisc18() {  
+        // FIXME - this sort of thing ought to fail - all Java keywords need to be in Java land
+        // Actually - public can be in a model method or ghost field declaration...
         helpTCF("A.java","public class A { /*@ public non_null */ Object j;  \n} "
                 );
     }
@@ -163,11 +165,32 @@ public class bugs extends TCBase {
                 ,"/A.java:3: cannot find symbol\n  symbol:   variable Short\n  location: class A",37
                 ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",57
                 ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",57
-              ); // TODO: Why duplicate error messages in this case
+              ); 
     }
+    
+    // The duplicate error messages above and in the next two cases are a 
+    // Java artifact (see testCollect2). Also can be confusing.
+    // java.lang does exist, but as an argument java.lang.Long must be
+    // a value, so java.lang must be a type, not a package.  Since no
+    // such package can be found, an error is reported, but it could
+    // have a clearer error message.
+    // However, since it is purely Java, we'll leave it alone.
 
     @Test
     public void testCollect2() {
+        helpTCF("A.java","\n"
+                +"public class A extends java.io.InputStream implements Comparable<A> { \n"
+                +"  public boolean mm() { return m(java.lang.Long.TYPE) && m(java.lang.Long);}\n"
+                +"  public boolean m(Object i) {\n"
+                +"  }  \n"
+                +"}\n"
+                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",64
+                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",64
+              ); 
+    }
+
+    @Test
+    public void testCollect3() {
         helpTCF("A.java","\n"
                 +"public class A extends java.io.InputStream implements Comparable<A> { \n"
                 +"  //@ invariant m(java.lang.Long.TYPE) && m(java.lang.Long);\n"
@@ -176,10 +199,6 @@ public class bugs extends TCBase {
                 +"}\n"
                 ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",49
                 ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",49
-              ); // Duplicate error message as above.  Also can be confusing.
-                // java.lang does exist, but as an argument java.lang.Long must be
-                // a value, so java.lang must be a type, not a package.  Since no
-                // such package can be found, an error is reported, but it could
-                // have a clearer error message.
+              );
     }
 }

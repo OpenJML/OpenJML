@@ -10,6 +10,7 @@ import org.junit.Test;
  */
 public class redundant extends TCBase {
 
+    // FIXME - what about redundantly keywords
 
     @Override
     public void setUp() throws Exception {
