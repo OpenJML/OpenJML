@@ -567,19 +567,25 @@ public class JmlScanner extends DocCommentScanner {
         jmlkeyword = false;
         try {
             nextToken();
-            while (token() != Token.SEMI && jmlToken != JmlToken.ENDJMLCOMMENT) {
-                if (token() != Token.IDENTIFIER){
-                    // Bad statement or missing terminating semicolon
-                    jmlError(pos(), endPos(), "jml.bad.nowarn");
-                    // expected identifier
-                    skipThroughChar(';');
-                    return;
-                }
-                String label = stringVal();
-                handleNowarn(log.currentSource(), pos(), label);
-                nextToken();
-                if (token() == Token.COMMA){
+            if (token() == Token.SEMI || jmlToken == JmlToken.ENDJMLCOMMENT) {
+                // No labels - so this means suppress everything
+                // Indicate this with null
+                handleNowarn(log.currentSource(), pos(), null);
+            } else {
+                while (token() != Token.SEMI && jmlToken != JmlToken.ENDJMLCOMMENT) {
+                    if (token() != Token.IDENTIFIER){
+                        // Bad statement or missing terminating semicolon
+                        jmlError(pos(), endPos(), "jml.bad.nowarn");
+                        // expected identifier
+                        skipThroughChar(';');
+                        return;
+                    }
+                    String label = stringVal();
+                    handleNowarn(log.currentSource(), pos(), label);
                     nextToken();
+                    if (token() == Token.COMMA){
+                        nextToken();
+                    }
                 }
             }
             if (jmlToken == JmlToken.ENDJMLCOMMENT) { 

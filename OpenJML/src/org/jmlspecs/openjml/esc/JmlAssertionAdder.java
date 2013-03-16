@@ -2734,6 +2734,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Map<Symbol,JCVariableDecl> savedpreparams = preparams;
         
         try {
+            boolean methodIsStatic = methodDecl.sym.isStatic();
+            boolean isConstructor = methodDecl.sym.isConstructor();
+
             // Translate the method name, and determine the thisid for the
             // method call
             
@@ -2860,6 +2863,82 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             JCExpression combinedPre = treeutils.falseLit;
             JmlMethodClause mc = null;
+            
+            java.util.List<ClassSymbol> parents = utils.parents((ClassSymbol)methodDecl.sym.owner);
+            
+            addStat(comment(that.pos(), "Checking caller invariants before calling a method"));
+            // Iterate through parent classes and interfaces, adding relevant invariants
+            for (ClassSymbol csym: parents) {
+                JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+
+                for (JmlTypeClause clause : tspecs.clauses) {
+                    JmlTypeClauseExpr t;
+                    //if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags)) continue;
+
+                    try {
+                        switch (clause.token) {
+                            case INVARIANT:
+                                if (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC)) {
+                                    if (!isHelper(methodDecl.sym) && (methodIsStatic || !isConstructor) &&
+                                            utils.visible(classDecl.sym, csym, clause.modifiers.flags) // FIXME - test visibility
+                                            ) {
+                                        t = (JmlTypeClauseExpr)clause;
+                                        // FIXME - what if undefined?
+                                        addAssert(that.pos(),Label.INVARIANT_EXIT_CALLER,
+                                                convertJML(t.expression),
+                                                clause.pos(),clause.source);
+                                    }
+                                }
+                                break;
+                            default:
+                                // Skip
+
+                        }
+                    } catch (JmlNotImplementedException e) {
+                        notImplemented(clause.token.internedName() + " clause containing ", e);
+                    }
+                }
+            }
+
+            ClassSymbol calleeClass = (ClassSymbol)calleeMethodSym.owner;
+            java.util.List<ClassSymbol> calleeParents = utils.parents(calleeClass);
+            
+            addStat(comment(that.pos(), "Checking callee invariants by the caller"));
+            // Iterate through parent classes and interfaces, adding relevant invariants
+            for (ClassSymbol csym: calleeParents) {
+                JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+
+                for (JmlTypeClause clause : tspecs.clauses) {
+                    JmlTypeClauseExpr t;
+                    //if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags)) continue;
+
+                    try {
+                        switch (clause.token) {
+                            case INVARIANT:
+                                if (!calleeMethodSym.isStatic() || utils.hasAny(clause.modifiers,Flags.STATIC)) {
+                                    if (!isHelper(calleeMethodSym) && (calleeMethodSym.isStatic() || !calleeMethodSym.isConstructor()) &&
+                                            // This checks whether the invariant of the callee's parent class
+                                            // is visible within the caller - which is all we can hope for.
+                                            utils.visible(classDecl.sym, csym, clause.modifiers.flags) // FIXME - test visibility
+                                            ) {
+                                        t = (JmlTypeClauseExpr)clause;
+                                        // FIXME - what if undefined?
+                                        addAssert(that.pos(),Label.INVARIANT_ENTRANCE,
+                                                convertJML(t.expression),
+                                                clause.pos(),clause.source);
+                                    }
+                                }
+                                break;
+                            default:
+                                // Skip
+
+                        }
+                    } catch (JmlNotImplementedException e) {
+                        notImplemented(clause.token.internedName() + " clause containing ", e);
+                    }
+                }
+            }
+
             // Iterate over all specs to find preconditions
             for (MethodSymbol mpsym: utils.parents(calleeMethodSym)) {
 
@@ -3092,12 +3171,106 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     exsuresStatsOuter.add( comment(that.pos(),"Checking callee exceptional postconditions"));
                     exsuresStatsOuter.add( wrapRuntimeException(cs.pos(), bl, "JML undefined precondition while checking exceptional postconditions - exception thrown", null));
                 }
-                
-                // FIXME - invariants unless helper
+            }                
+            // FIXME - need constraints
 
-                // FIXME - the source must be handled properly
+            // Iterate through parent classes and interfaces, adding relevant invariants
+            {
+                addStat(comment(that.pos(), "Checking callee invariants by the caller after exiting the callee"));
+                ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
+                ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
+
+                for (ClassSymbol csym: calleeParents) {
+                    JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+
+                    for (JmlTypeClause clause : tspecs.clauses) {
+                        JmlTypeClauseExpr t;
+                        //if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags)) continue;
+
+                        try {
+                            switch (clause.token) {
+                                case INVARIANT:
+                                    if (!calleeMethodSym.isStatic() || utils.hasAny(clause.modifiers,Flags.STATIC)) {
+                                        if (!isHelper(calleeMethodSym) && (calleeMethodSym.isStatic() || !calleeMethodSym.isConstructor()) &&
+                                                // This checks whether the invariant of the callee's parent class
+                                                // is visible within the caller - which is all we can hope for.
+                                                utils.visible(classDecl.sym, csym, clause.modifiers.flags) // FIXME - test visibility
+                                                ) {
+                                            t = (JmlTypeClauseExpr)clause;
+                                            currentStatements = ensuresStats;
+                                            addAssume(that.pos(),Label.INVARIANT_EXIT,
+                                                    convertJML(t.expression),
+                                                    clause.pos(),clause.source);
+                                            currentStatements = exsuresStats;
+                                            addAssume(that.pos(),Label.INVARIANT_EXIT,
+                                                    convertJML(t.expression),
+                                                    clause.pos(),clause.source);
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    // Skip
+
+                            }
+                        } catch (JmlNotImplementedException e) {
+                            notImplemented(clause.token.internedName() + " clause containing ", e);
+                        }
+                    }
+                }
+
+                // Iterate through parent classes and interfaces, adding relevant invariants
+                addStat(comment(that.pos(), "Checking caller upon reentering the caller"));
+                for (ClassSymbol csym: parents) {
+                    JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+
+                    for (JmlTypeClause clause : tspecs.clauses) {
+                        JmlTypeClauseExpr t;
+
+                        try {
+                            switch (clause.token) {
+                                case INVARIANT:
+                                    if (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC)) {
+                                        if (!isHelper(methodDecl.sym) && (methodIsStatic || !isConstructor) &&
+                                                utils.visible(classDecl.sym, csym, clause.modifiers.flags)
+                                                ) {
+                                            t = (JmlTypeClauseExpr)clause;
+                                            // FIXME - what if undefined?
+                                            currentStatements = ensuresStats;
+                                            addAssume(that.pos(),Label.INVARIANT_REENTER_CALLER,
+                                                    convertJML(t.expression),
+                                                    clause.pos(),clause.source);
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    // Skip
+
+                            }
+                        } catch (JmlNotImplementedException e) {
+                            notImplemented(clause.token.internedName() + " clause containing ", e);
+                        }
+                    }
+                }
+
+                JCBlock ensuresBlock = M.at(that.pos).Block(0, ensuresStats.toList());
+                JCBlock exsuresBlock = M.at(that.pos).Block(0, exsuresStats.toList());
+                // The +1 is so that the position of this if statement
+                // and hence the names of the BRANCHT and BRANCHE variables
+                // is different from the if prior to the apply
+                JCStatement st = ensuresBlock;
+                JCBlock bl = M.at(that.pos).Block(0,List.<JCStatement>of(st));
+                ensuresStatsOuter.add(comment(that.pos(),"Checking callee invariants"));
+                ensuresStatsOuter.add( wrapRuntimeException(that.pos(), bl, "JML undefined invariant while checking postconditions - exception thrown", null));
+                st = exsuresBlock;
+                bl = M.at(that.pos).Block(0,List.<JCStatement>of(st));
+                exsuresStatsOuter.add( comment(that.pos(),"Checking callee invariants"));
+                exsuresStatsOuter.add( wrapRuntimeException(that.pos(), bl, "JML undefined invariant while checking exceptional postconditions - exception thrown", null));
 
             }
+
+            // FIXME - the source must be handled properly
+
+
             currentStatements = saved;
             
             // Make try block
@@ -4227,6 +4400,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             n.specsDecls = that.specsDecls; // FIXME - these may be self-references - and I think there are now only one
             n.typeSpecs = null; //that.typeSpecs; // not copied - FIXME? here and elsewhere
             n.typeSpecsCombined = null; //that.typeSpecsCombined; // not copied
+            if (savedClassDefs != null && n.sym.owner instanceof ClassSymbol) {
+                savedClassDefs.add(n);
+            }
             result = n;
         } finally {
             this.classDecl = savedClassDecl;

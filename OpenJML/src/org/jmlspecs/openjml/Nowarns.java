@@ -84,10 +84,10 @@ public class Nowarns {
     public boolean suppress(DiagnosticSource file, int pos, String label) {
         int line = file.getLineNumber(pos);
         for (Item i: nowarns) {
-            if (!label.equals(i.label)) {
+            if (i.label != null && !label.equals(i.label)) {
                 // continue
             } else if (i.source == null) {
-                return true;
+                return true; // FIXME - don't we check the line number? what use case is this?
             } else {
                 if (file.equals(i.source) && line == i.line) return true; 
             }
@@ -101,7 +101,7 @@ public class Nowarns {
      */
     public boolean suppress(JavaFileObject file, int pos, String label) {
         for (Item i: nowarns) {
-            if (!label.equals(i.label)) {
+            if (i.label != null && !label.equals(i.label)) {
                 // continue
             } else if (i.source == null) {
                 return true;
