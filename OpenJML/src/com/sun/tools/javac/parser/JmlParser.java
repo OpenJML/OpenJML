@@ -824,6 +824,7 @@ public class JmlParser extends EndPosParser {
                     if (tree instanceof JmlMethodDecl) {
                         JmlMethodDecl mdecl = (JmlMethodDecl) tree;
                         mdecl.cases = mspecs;
+                        mspecs.decl = mdecl;
                         newlist.append(mdecl);
                     } else if (tree instanceof JmlTypeClauseDecl
                             && ((JmlTypeClauseDecl) tree).decl instanceof JmlMethodDecl) {

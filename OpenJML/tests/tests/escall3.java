@@ -9,31 +9,17 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class escboogie extends EscBase {
+public class escall3 extends EscBase {
 
-    String option;
-    
-    public escboogie(String option) {
-        this.option = option;
+    public escall3(String option, String solver) {
+        super(option,solver);
     }
     
-    @Parameters
-    static public  Collection<String[]> datax() {
-        Collection<String[]> data = new ArrayList<String[]>(10);
-        data.add(new String[]{"-boogie"}); 
-        data.add(new String[]{"-newesc"}); 
-        data.add(new String[]{null}); 
-        //data.add(new String[]{"-rac"}); 
-        return data;
-    }
-    
-
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        options.put("-noPurityCheck","");
-        setOption(option);
+        main.addOptions("-noPurityCheck");
 
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");

@@ -12,20 +12,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class escall2 extends EscBase {
 
-    String option;
-    
-    public escall2(String option) {
-        this.option = option;
-    }
-    
-    @Parameters
-    static public  Collection<String[]> datax() {
-        Collection<String[]> data = new ArrayList<String[]>(10);
-        data.add(new String[]{"-boogie"}); 
-        data.add(new String[]{"-newesc"}); 
-        data.add(new String[]{null}); 
-        //data.add(new String[]{"-rac"}); 
-        return data;
+    public escall2(String option, String solver) {
+        super(option,solver);
     }
 
 
@@ -35,9 +23,8 @@ public class escall2 extends EscBase {
         super.setUp();
 //        main.addUndocOption(option);
 //        main.addOptions("-nullableByDefault","-noPurityCheck");
-        setOption(option);
-        options.put("-nullableByDefault","");
-        options.put("-noPurityCheck","");
+        main.addOptions("-nullableByDefault");
+        main.addOptions("-noPurityCheck");
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
         //options.put("-showbb",   "");

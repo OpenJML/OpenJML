@@ -1,7 +1,13 @@
 package tests;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 /** These tests check the RAC functionality of outputting a stack trace along with
  * notification of failed RAC assertions.  These test that library class files 
@@ -9,8 +15,24 @@ import org.junit.Test;
  * put the new system classes (in jdkbin) in the bootclasspath ahead of the regular
  * java classes.
  */
+@RunWith(Parameterized.class)
 public class racsystem extends RacBase {
 
+    String option;
+    
+    @Parameters
+    static public  Collection<String[]> datax() {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        data.add(new String[]{"-newesc"}); 
+        data.add(new String[]{"-custom"}); 
+        return data;
+    }
+    
+    public racsystem(String o) {
+        option = o;
+    }
+
+    
     /** The command-line to use to run RACed programs - note the inclusion of the
      * RAC-compiled JDK library classes ahead of the regular Java libaray classes
      * in the boot class path. (This may not work on all platforms)
@@ -24,7 +46,7 @@ public class racsystem extends RacBase {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-noPurityCheck",""); // To shut off complaints about misuse of purity in Java specifications
-        //print = true;
+        options.put(option,"");//print = true;
     }
 
     // FIXME - not testing rac-compiled JDK files
@@ -97,7 +119,9 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2d() {
         expectedRACExit = 0;
-        expectedNotes = 2;
+        expectedNotes = 0;
+        main.addOptions("-noInternalSpecs");
+        main.addOptions("-noRacSource");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.showStack = true; \n"
                 +"m();\n"
@@ -118,6 +142,7 @@ public class racsystem extends RacBase {
     
     @Test
     public void testFile3() {
+        print = true;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT EXCEPTION\"); } \n"
                 +"System.out.println(\"END\"); }"
@@ -130,10 +155,10 @@ public class racsystem extends RacBase {
                 );
     }
     
-    /** Not sure what this is supposed to test (TODO) */
     @Test
     public void testHashCode() {
-        expectedNotes = 2;
+        expectedNotes =  0; // 2
+        main.addOptions("-noInternalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.showStack = true; \n"
                 +"int i = ( new Object().hashCode()); \n"
@@ -153,6 +178,7 @@ public class racsystem extends RacBase {
     @Test
     public void testMain() {
         expectedNotes = 2;
+        main.addOptions("-noRacSource");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String[] args) { \n"
                 +"  System.out.println(\"START\"); \n"
@@ -171,7 +197,8 @@ public class racsystem extends RacBase {
     @Test
     public void testMain2() {
         expectedNotes = 0;
-        options.put("-noInternalSpecs","");
+        main.addOptions("-noInternalSpecs");
+        main.addOptions("-noRacSource");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String... args) { \n"
                 +"  System.out.println(\"START\"); \n"

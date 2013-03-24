@@ -1,16 +1,22 @@
 package tests;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-
+@RunWith(Parameterized.class)
 public class escm extends EscBase {
+    
+    public escm(String option, String solver) {
+        super(option,solver);
+    }
+    
 
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        options.put("-noPurityCheck","");
-        //options.put("-newesc", null);
+        main.addOptions("-noPurityCheck");
         
 //        options.put("-jmlverbose",   "");
 //        options.put("-showbb","");

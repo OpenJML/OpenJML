@@ -365,6 +365,8 @@ public class YicesProver extends AbstractProver implements IProver {
                     String pat = "id: ";
                     int k = s.lastIndexOf(pat)+ pat.length();
                     int kk = s.indexOf("\n",k);
+                    int kkk = s.indexOf("\r",k);
+                    kk = kk == -1 ? kkk : kkk == -1 ? kk : kkk < kk ? kkk : kk;
                     if (k >= pat.length()) {
                         k = Integer.valueOf(s.substring(k,kk));
                         if (k != assumeCounter) {
@@ -575,7 +577,9 @@ public class YicesProver extends AbstractProver implements IProver {
         for (Map.Entry<String,String> entry : ce.sortedEntries()) {
             String v = entry.getKey();
             String val = entry.getValue();
-            //log.noticeWriter.println("REASSERTING " + v + " AS " + val);
+//            if (v.indexOf("long") != -1) {
+//                log.noticeWriter.println("REASSERTING " + v + " AS " + val);
+//            }
             String s;
             if (v.indexOf("&&") != -1) continue;
             if (v.indexOf(".length") != -1) continue;
@@ -610,6 +614,7 @@ public class YicesProver extends AbstractProver implements IProver {
                     String s1 = v.substring(0,k).trim();
                     if (s1.charAt(0) == '(') continue;
                     String s2 = v.substring(k+2).trim();
+                    if (s2.equals("long")) s2 = "T$long";
                     s = "(= " + s1 + " " + s2 + ")";
                     v = s1;
                 }

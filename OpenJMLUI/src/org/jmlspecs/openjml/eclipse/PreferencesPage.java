@@ -154,8 +154,6 @@ IWorkbenchPreferencePage {
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.showNotImplementedKey, Messages.OpenJMLUI_PreferencesPage_WarnAboutNonImplementedConstructs,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.showNotExecutableKey, Messages.OpenJMLUI_PreferencesPage_WarnAboutNonExecutableConstructs,
-                getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.checkSpecsPathKey, Messages.OpenJMLUI_PreferencesPage_CheckSpecificationPath,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.noInternalSpecsKey, Messages.OpenJMLUI_PreferencesPage_UseExternalSystemSpecs,
@@ -163,6 +161,14 @@ IWorkbenchPreferencePage {
         addField(new StringFieldEditor(Options.optionalKeysKey, Messages.OpenJMLUI_PreferencesPage_OptionalAnnotationKeys,
                 getFieldEditorParent()));
         
+        
+        // ESC
+        
+		addField(new LabelFieldEditor("zzzzz.ESC","",SWT.NONE, //$NON-NLS-1$ //$NON-NLS-2$
+				getFieldEditorParent()));
+		addField(new LabelFieldEditor("zzzzz.ESC",Messages.OpenJMLUI_PreferencesPage_OptionsRelatingToESC,SWT.SEPARATOR|SWT.HORIZONTAL, //$NON-NLS-1$
+				getFieldEditorParent()));
+
         
         // RAC
         
@@ -172,6 +178,16 @@ IWorkbenchPreferencePage {
 				getFieldEditorParent()));
 
         addField(new BooleanFieldEditor(Options.enableRacKey, Messages.OpenJMLUI_PreferencesPage_EnableAutoRuntimeAssertionChecking,
+                getFieldEditorParent()));
+        addField(new BooleanFieldEditor(Options.compileToJavaAssert, Messages.OpenJMLUI_PreferencesPage_CompileToJavaAssert,
+                getFieldEditorParent()));
+        addField(new BooleanFieldEditor(Options.racNoCheckJavaFeatures, Messages.OpenJMLUI_PreferencesPage_racNoCheckJavaFeatures,
+                getFieldEditorParent()));
+        addField(new BooleanFieldEditor(Options.racNoCheckAssumptions, Messages.OpenJMLUI_PreferencesPage_racNoCheckAssumptions,
+                getFieldEditorParent()));
+        addField(new BooleanFieldEditor(Options.racNoShowSource, Messages.OpenJMLUI_PreferencesPage_racNoShowSource,
+                getFieldEditorParent()));
+        addField(new BooleanFieldEditor(Options.showNotExecutableKey, Messages.OpenJMLUI_PreferencesPage_WarnAboutNonExecutableConstructs,
                 getFieldEditorParent()));
         addField(new StringFieldEditor(Options.racbinKey, Messages.OpenJMLUI_PreferencesPage_DirectoryForRACOutput,
                 getFieldEditorParent()));

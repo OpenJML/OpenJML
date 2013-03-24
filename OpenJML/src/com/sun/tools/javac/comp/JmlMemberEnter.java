@@ -1016,7 +1016,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            ex = jmlF.Apply(List.<JCExpression>nil(),ex,List.<JCExpression>nil());
 //            JCStatement st = jmlF.Exec(ex);
         //JCVariableDecl tp = jmlF.VarDef(jmlF.Modifiers(0),names.fromString("_JML$$this"),jmlF.Type(sym.type),null);
-        if (!JmlOption.isOption(context,"-newesc")) {
+        if (JmlOption.isOption(context,"-custom")) {
             
         JmlTree.JmlMethodDecl m = jmlF.MethodDef(
                 jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),

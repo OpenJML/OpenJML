@@ -25,7 +25,6 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.comp.JmlMemberEnter;
 import com.sun.tools.javac.comp.JmlRac;
-import com.sun.tools.javac.comp.JmlRacNew;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.main.JavaCompiler;
@@ -483,14 +482,14 @@ public class JmlCompiler extends JavaCompiler {
         
         if (env.tree instanceof JCClassDecl) {
             JCTree newtree;
-            if (Options.instance(context).get("-newesc") != null) {
-
-                newtree = new JmlAssertionAdder(context,false,true).convert(env.tree);
-            
-            } else {
+            if (Options.instance(context).get("-custom") != null){
                 
                 newtree = new JmlRac(context,env).translate(env.tree);
                 
+            } else  {
+
+                newtree = new JmlAssertionAdder(context,false,true).convert(env.tree);
+            
             }
                 
             // When we do the RAC translation, we create a new instance
@@ -527,7 +526,7 @@ public class JmlCompiler extends JavaCompiler {
      * @param env the env for a class
      */ // FIXME - check that we always get classes, not CUs and adjust the logic accordingly
     protected void esc(Env<AttrContext> env) {
-        if (Options.instance(context).get("-newesc") == null) new JmlTranslator(context).translate(env);
+        if (Options.instance(context).get("-custom") != null) new JmlTranslator(context).translate(env);
         //log.noticeWriter.println(JmlPretty.write(env.tree));
 
         JmlEsc esc = JmlEsc.instance(context);

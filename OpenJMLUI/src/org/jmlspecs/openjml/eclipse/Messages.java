@@ -49,7 +49,12 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_NonNullByDefault;
 	public static String OpenJMLUI_PreferencesPage_normal;
 	public static String OpenJMLUI_PreferencesPage_OptionalAnnotationKeys;
+	public static String OpenJMLUI_PreferencesPage_OptionsRelatingToESC;
 	public static String OpenJMLUI_PreferencesPage_OptionsRelatingToRAC;
+	public static String OpenJMLUI_PreferencesPage_CompileToJavaAssert;
+	public static String OpenJMLUI_PreferencesPage_racNoCheckJavaFeatures;
+	public static String OpenJMLUI_PreferencesPage_racNoCheckAssumptions;
+	public static String OpenJMLUI_PreferencesPage_racNoShowSource;
 	public static String OpenJMLUI_PreferencesPage_progress;
 	public static String OpenJMLUI_PreferencesPage_quiet;
 	public static String OpenJMLUI_PreferencesPage_SkipPurityCheck;

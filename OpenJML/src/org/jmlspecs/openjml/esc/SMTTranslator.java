@@ -130,8 +130,7 @@ public class SMTTranslator extends JmlTreeScanner {
     //  - might want the option to produce many individual programs, i.e.
     //  one for each assertion, or a form that accommodates push/pop/coreids etc.
     
-    public ICommand.IScript convert(BasicProgram program) {
-        SMT smt = new SMT();
+    public ICommand.IScript convert(BasicProgram program, SMT smt) {
         script = new Script();
         ICommand c;
         commands = script.commands();

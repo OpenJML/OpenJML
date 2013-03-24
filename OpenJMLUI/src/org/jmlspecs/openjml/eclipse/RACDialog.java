@@ -176,6 +176,8 @@ class RACListEditor {
 
 		String[] paths = prop.split(PathItem.split);
 		for (String s : paths) {
+			s = s.trim();
+			if (s.isEmpty()) continue;
 			PathItem p = PathItem.parse(s);
 			if (p != null) {
 				pathItems.add(p);

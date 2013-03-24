@@ -3,20 +3,28 @@ package tests;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 /** This class of JUnit tests checks various uses of generic types.
  * @author David R. Cok
  *
  */
+@RunWith(Parameterized.class)
 public class escgeneric extends EscBase {
+
+    public escgeneric(String option, String solver) {
+        super(option,solver);
+    }
+
 
     @Override
     public void setUp() throws Exception {
         //print = true;
         //noCollectDiagnostics = true;
         super.setUp();
-        options.put("-noPurityCheck","");
-        options.put("-nullableByDefault",""); // Because the tests were written this way
+        main.addOptions("-noPurityCheck");
+        main.addOptions("-nullableByDefault"); // Because the tests were written this way
 //        options.put("-showbb",   "");
 //        options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");

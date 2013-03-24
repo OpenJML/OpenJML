@@ -1,6 +1,8 @@
 package tests;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 
 /** This class of JUnit tests checks that assertion violations for assertions
@@ -8,14 +10,19 @@ import org.junit.Test;
  * @author David R. Cok
  *
  */
+@RunWith(Parameterized.class)
 public class esclocation extends EscBase {
 
+    public esclocation(String option, String solver) {
+        super(option,solver);
+    }
+    
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        options.put("-noPurityCheck","");
-        options.put("-nullableByDefault",""); // Because the tests were written this wasy
+        main.addOptions("-noPurityCheck");
+        main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
@@ -39,7 +46,8 @@ public class esclocation extends EscBase {
                 +"}"  // FIXME - are the following the best error messages we can make?
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m",7
                 ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",9
-                ,"/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method mm()",15
+                // FIXME - test for infeasible preconditions
+                ,!option.equals("-custom") ? null : "/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method mm()",15
                 );
     }
     
@@ -115,10 +123,13 @@ public class esclocation extends EscBase {
                 +"    i = -1; return; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Invariant) in method m",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
+                // FIXME - check constructor
+                ,!option.equals("-custom") ? null : "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
+                ,!option.equals("-custom") ? null : "/$A/tt/TestJava.jml:2: warning: Associated declaration",17
+                ,!option.equals("-custom") ? "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method m"
+                                           : "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Invariant) in method m"
+                                               ,13
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",!option.equals("-custom") ? 7:17
                 );
     }
     
@@ -136,7 +147,8 @@ public class esclocation extends EscBase {
                 +"    i = -1; return; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Initially) in method <init>",13
+                // FIXME - check constructor
+                ,!option.equals("-custom") ? null : "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Initially) in method <init>",13
                 ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
                 );
     }
@@ -156,8 +168,9 @@ public class esclocation extends EscBase {
                 +"    i = -1; return; \n"
                 +"  }\n"
                 +"}"
+                // FIXME - normalize column
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method m",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",18
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",!option.equals("-custom") ? 7: 18
                 );
     }
     

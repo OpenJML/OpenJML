@@ -80,6 +80,10 @@ public class Options {
 	final static public String autoAddRuntimeToProjectKey = prefix + "autoAddRuntimeToProject"; //$NON-NLS-1$
 
 	final static public String enableRacKey = prefix + "enableRac"; //$NON-NLS-1$
+	final static public String compileToJavaAssert = prefix + "compileToJavaAssert"; //$NON-NLS-1$
+	final static public String racNoCheckJavaFeatures = prefix + "racNoCheckJavaFeatures"; //$NON-NLS-1$
+	final static public String racNoCheckAssumptions = prefix + "racNoCheckAssumptions"; //$NON-NLS-1$
+	final static public String racNoShowSource = prefix + "racNoShowSource"; //$NON-NLS-1$
 	
 	/** The preference store key for the racbin option */
 	final static public String racbinKey = prefix + "racbin";

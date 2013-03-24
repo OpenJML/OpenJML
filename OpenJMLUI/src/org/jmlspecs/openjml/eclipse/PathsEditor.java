@@ -213,12 +213,15 @@ class ListEditor {
 
 		String[] paths = prop.split(PathItem.split);
 		for (String s : paths) {
+			s = s.trim();
+			if (s.isEmpty()) continue;
 			PathItem p = PathItem.parse(s);
 			if (p != null) {
 				pathItems.add(p);
 				list.add(p.display());
 			} else {
-				Activator.getDefault().utils.showMessageInUI(fileDialog.getParent(),Messages.OpenJMLUI_PathsEditor_ErrorDialogTitle,
+				Activator.getDefault().utils.showMessageInUI(fileDialog.getParent(),
+			        Messages.OpenJMLUI_PathsEditor_ErrorDialogTitle,
 					Messages.OpenJMLUI_PathsEditor_UnparsableError + s);
 			}
 		}

@@ -1039,6 +1039,14 @@ public class OpenJMLInterface {
             if (Options.isOption(Options.checkPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
         }
         
+        if (cmd == Main.Cmd.RAC) {
+            if (Options.isOption(Options.checkPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
+            opts.add(JmlOption.NO_RAC_SOURCE.optionName() +"="+ Options.isOption(Options.racNoShowSource));
+            opts.add(JmlOption.NO_RAC_CHECK_ASSUMPTIONS.optionName() +"="+ Options.isOption(Options.racNoCheckAssumptions));
+            opts.add(JmlOption.NO_RAC_JAVA_CHECKS.optionName() +"="+ Options.isOption(Options.racNoCheckJavaFeatures));
+            opts.add(JmlOption.RAC_COMPILE_TO_JAVA_ASSERT.optionName() +"="+ Options.isOption(Options.compileToJavaAssert));
+        }
+        
 //        for (String key: optionsToCopy) {
 //        	String value = Options.value(key);
 //        	if (key.startsWith(Strings.optionPropertyPrefix)) {

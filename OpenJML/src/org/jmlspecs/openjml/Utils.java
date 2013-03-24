@@ -46,14 +46,14 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
  */
 public class Utils {
     ///////////////////////////////////////////////////////////////////////////////////////
-    
+
     /** The context applicable for this instance of the Utils class. */
     protected Context context;
-    
+
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
     public static final Context.Key<Utils> utilsKey =
-        new Context.Key<Utils>();
+            new Context.Key<Utils>();
 
     /** A method that returns the unique instance of this class for the given Context
      * 
@@ -68,7 +68,7 @@ public class Utils {
         }
         return instance;
     }
-    
+
     /** Creates an instance in association with the given Context; 
      * @param context The compilation context
      */
@@ -77,10 +77,10 @@ public class Utils {
         context.put(utilsKey, this);
         log = Log.instance(context);
     }
-    
+
     /** The error and warning log */
     public final Log log;
-    
+
     /** Global utility value that enables printing of debugging or trace information. */
     public int jmlverbose = 0; 
     static public final int QUIET = 0;
@@ -91,22 +91,22 @@ public class Utils {
 
     /** Do ESC - set by Main.setupOptions */
     public boolean esc = false;
-    
+
     /** Do RAC - set by Main.setupOptions */
     public boolean rac = false;
-    
+
     /** Do JML check only - set by Main.setupOptions */
     public boolean check = false;
-    
+
     /** Do Java compilation - set by Main.setupOptions */
     public boolean compile = false;
-    
+
     /** Do Jmldoc  */
     public boolean doc = false;
-    
+
     /** The set of keys that control the use of optional comments, set from options */
     public Set<String> commentKeys = new HashSet<String>();
-    
+
     /** A bit that indicates that a declaration was declared within a JML annotation */
     final public static long JMLBIT = 1L << 50; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
@@ -124,7 +124,7 @@ public class Utils {
     public boolean isJML(/*@ nullable */ JCModifiers mods) {
         return mods != null && (mods.flags & JMLBIT) != 0;
     }
-    
+
     /** Tests whether the JML flag is set in the given bit-vector
      * @param flags the bit-array to test
      * @return true if JML is set
@@ -132,7 +132,7 @@ public class Utils {
     public boolean isJML(long flags) {
         return (flags & JMLBIT) != 0;
     }
-    
+
     /** Sets the JML flag in the given modifiers.
      * 
      * @param mods The modifiers in which to set the JML flag
@@ -140,7 +140,7 @@ public class Utils {
     public void setJML(/*@ non_null */ JCModifiers mods) {
         mods.flags |= JMLBIT;
     }
-    
+
     /** Unsets the JML flag in the given modifiers.
      * 
      * @param mods The modifiers in which to set the JML flag
@@ -158,23 +158,23 @@ public class Utils {
     public void setInstrumented(/*@ non_null */JCModifiers mods) {
         mods.flags |= JMLINSTRUMENTED;
     }
-    
+
     // IS this flag used for anything?  FIXME
     /** Returns true if the modifiers is marked as local to a JML expression */
     public boolean isExprLocal(/*@ non_null */ JCModifiers mods) {
         return (mods.flags & JMLEXPRLOCAL) != 0;
     }
-    
+
     /** Returns true if the modifiers is marked as local to a JML expression */
     public boolean isExprLocal(long flags) {
         return (flags & JMLEXPRLOCAL) != 0;
     }
-    
+
     /** Sets the modifiers as local to a JML expression */
     public void setExprLocal(/*@ non_null */ JCModifiers mods) {
         mods.flags |= JMLEXPRLOCAL;
     }
-    
+
     /** Creates an annotation symbol from the fully qualified name for the
      * annotation; generally the result is cached.
      * @param fullyQualifiedName the fully qualified name
@@ -187,7 +187,7 @@ public class Utils {
 
     /** A cache for the symbol */
     private ClassSymbol helperAnnotationSymbol = null;
-    
+
     /** Returns true if the given symbol has a helper annotation
      * 
      * @param symbol the symbol to check
@@ -228,14 +228,14 @@ public class Utils {
         }
         return true;
     }
-    
-     // FIXME - document
+
+    // FIXME - document
     public Object envString(/*@ non_null */Env<AttrContext> env) {
         return (env.tree instanceof JCCompilationUnit ? 
                 ((JCCompilationUnit)env.tree).sourcefile : 
-               env.tree instanceof JCClassDecl ? 
-                       ((JCClassDecl)env.tree).sym.flatName() : 
-                           env.tree.getClass());
+                    env.tree instanceof JCClassDecl ? 
+                            ((JCClassDecl)env.tree).sym.flatName() : 
+                                env.tree.getClass());
     }
 
     /** Returns true if no standard modifiers or annotations have been set
@@ -245,7 +245,7 @@ public class Utils {
     public boolean hasNone(/*@ nullable */JCModifiers mods) {
         return mods == null || ((mods.flags&Flags.StandardFlags) == 0 && (mods.annotations == null || mods.annotations.isEmpty()));
     }
-    
+
     /** Returns true if any of the specified Java modifiers is set
      * @param mods the modifiers structure to check
      * @return true if any of the given flags are set
@@ -253,7 +253,7 @@ public class Utils {
     public boolean hasAny(/*@ nullable */JCModifiers mods, long flags) {
         return mods != null && ((mods.flags&flags) != 0);
     }
-    
+
     /** Returns non-zero if any Java modifiers other than those specified are set
      * @param mods the modifiers structure to check
      * @return bit-vector of the offending flags
@@ -262,9 +262,9 @@ public class Utils {
         if (mods == null) return 0;
         return mods.flags & ~flags & Flags.StandardFlags;
     }
-    
 
-    
+
+
     /** Finds whether a specified annotation is present in the given modifiers,
      * returning it if it is; this method requires that the annotations have
      * already been attributed.
@@ -289,7 +289,7 @@ public class Utils {
         }
         return null;
     }
-    
+
     /** Finds whether a specified annotation is present in the given modifiers,
      * returning it if it is; this method requires that the annotations have
      * already been attributed.
@@ -311,7 +311,7 @@ public class Utils {
         }
         return null;
     }
-    
+
     /** Returns true if the given String ends with a valid JML suffix, including the
      * period; there are no further checks that the argument is a sensible filename.
      * @param filename the String to check
@@ -323,27 +323,27 @@ public class Utils {
         }
         return false;
     }
-    
+
     public boolean hasJavaSuffix(String filename) {
         return (filename.endsWith(".java"));
     }
-    
-    
+
+
     /** A little class to encapsulate elapsed wall-clock time */
     public static class Timer {
         /** Time the object was constructed or reset */
         protected long startTime;
-        
+
         /** Constructs a new object, marking the time */
         public Timer() {
             reset();
         }
-        
+
         /** Resets the timestamp */
         public void reset() {
             startTime = System.currentTimeMillis();
         }
-        
+
         /** Returns the wall-clock time elapsed since object construction or the
          * most recent call to reset
          * 
@@ -353,7 +353,7 @@ public class Utils {
             return System.currentTimeMillis() - startTime;
         }
     }
-    
+
     // FIXME - this is in the wrong class
     /** This method is never actually executed.  It is here to provide a
      * convenient signature for a method used by ESC - that maps each class
@@ -365,170 +365,170 @@ public class Utils {
     public int distinct(Class<?> c) {
         return c.hashCode();
     }
-    
+
     // FIXME - document
     public void notImplemented(DiagnosticPosition pos, String feature) {
         // FIXME - control with an option
         if (rac) log.warning(pos,"jml.not.implemented.rac",feature);
         else if (esc) log.warning(pos,"jml.not.implemented.esc",feature);
     }
-    
+
     /** Finds OpenJML properties files in pre-defined places, reading their
      * contents and loading them into the System property set.
      */
     public static Properties findProperties(Context context) {
 
-//      boolean verbose = Utils.instance(context).jmldebug ||
-//          JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
-//          Options.instance(context).get("-verbose") != null;
-      
-    	boolean verbose = context != null && Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
-      Properties properties = System.getProperties();
-      // Load properties files found in these locations:
-      // These are read in inverse order of priority, so that later reads
-      // overwrite the earlier ones.
-      
-      // On the system classpath
-      {
-          URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
-          if (url2 != null) {
-              String s = url2.getFile();
-              try {
-                  boolean found = readProps(properties,s);
-                  if (found && verbose) 
-                      Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
-              } catch (java.io.IOException e) {
-                  Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
-              }
-          }
-      }
-      
-      // In the user's home directory
-      {
-          String s = System.getProperty("user.home") + "/" + Strings.propertiesFileName;
-          try {
-              boolean found = readProps(properties,s);
-              if (found && verbose) 
-                  Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
-          } catch (java.io.IOException e) {
-              Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
-          }
-      }
+        //      boolean verbose = Utils.instance(context).jmldebug ||
+        //          JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
+        //          Options.instance(context).get("-verbose") != null;
 
-      // In the working directory
-      {
-          String s = System.getProperty("user.dir") + "/" + Strings.propertiesFileName;
-          try {
-              boolean found = readProps(properties,s);
-              if (found && verbose) 
-                  Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
-          } catch (java.io.IOException e) {
-              Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
-          }
-      }
-      
-      // FIXME - add on the application classpath
-      
-      // FIXME - add on the command-line
+        boolean verbose = context != null && Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
+        Properties properties = System.getProperties();
+        // Load properties files found in these locations:
+        // These are read in inverse order of priority, so that later reads
+        // overwrite the earlier ones.
 
-      if (verbose) {
-          // Print out the properties
-          for (String key: new String[]{"user.home","user.dir"}) {
-              Log.instance(context).noticeWriter.println("Environment:    " + key + " = " + System.getProperty(key));
-          }
-          for (java.util.Map.Entry<Object,Object> entry: properties.entrySet()) {
-              Log.instance(context).noticeWriter.println("Local property: " + entry.getKey() + " = " + entry.getValue());
-          }
-      }
-      return properties;
-  }
-  
+        // On the system classpath
+        {
+            URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
+            if (url2 != null) {
+                String s = url2.getFile();
+                try {
+                    boolean found = readProps(properties,s);
+                    if (found && verbose) 
+                        Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
+                } catch (java.io.IOException e) {
+                    Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                }
+            }
+        }
+
+        // In the user's home directory
+        {
+            String s = System.getProperty("user.home") + "/" + Strings.propertiesFileName;
+            try {
+                boolean found = readProps(properties,s);
+                if (found && verbose) 
+                    Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
+            } catch (java.io.IOException e) {
+                Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+            }
+        }
+
+        // In the working directory
+        {
+            String s = System.getProperty("user.dir") + "/" + Strings.propertiesFileName;
+            try {
+                boolean found = readProps(properties,s);
+                if (found && verbose) 
+                    Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
+            } catch (java.io.IOException e) {
+                Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+            }
+        }
+
+        // FIXME - add on the application classpath
+
+        // FIXME - add on the command-line
+
+        if (verbose) {
+            // Print out the properties
+            for (String key: new String[]{"user.home","user.dir"}) {
+                Log.instance(context).noticeWriter.println("Environment:    " + key + " = " + System.getProperty(key));
+            }
+            for (java.util.Map.Entry<Object,Object> entry: properties.entrySet()) {
+                Log.instance(context).noticeWriter.println("Local property: " + entry.getKey() + " = " + entry.getValue());
+            }
+        }
+        return properties;
+    }
+
     /** Reads properties from the given file into the given Properties object.
      * @param properties the object to add properties to
      * @param filename the file to read properties from
      * @return true if the file was found and read successfully
      */
-  public static boolean readProps(Properties properties, String filename) throws java.io.IOException {
-      File f = new File(filename);
-      // Options may not be set yet
-      if (f.exists()) {
-          properties.load(new FileInputStream(f));
-          return true;
-      }
-      return false;
-  }
-  
-  // Includes self
-  public java.util.List<ClassSymbol> parents(ClassSymbol c) {
-      List<ClassSymbol> classes = new LinkedList<ClassSymbol>();
-      ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
-      Set<ClassSymbol> interfaceSet = new HashSet<ClassSymbol>();
-      ClassSymbol cc = c;
-      while (cc != null) {
-          classes.add(0,cc);
-          cc = (ClassSymbol)cc.getSuperclass().tsym;
-      }
-      for (ClassSymbol ccc: classes) {
-          List<Type> ifs = ccc.getInterfaces();
-          for (Type ifc : ifs) {
-              ClassSymbol sym = (ClassSymbol)ifc.tsym;
-              if (interfaceSet.add(sym)) interfaces.add(sym);
-          }
-      }
-      // FIXME - the interfaces are not in a good order
-      int i = 0;
-      while (i < interfaces.size()) {
-          ClassSymbol ccc = interfaces.get(i++);
-          List<Type> ifs = ccc.getInterfaces();
-          for (Type ifc : ifs) {
-              ClassSymbol sym = (ClassSymbol)ifc.tsym;
-              if (interfaceSet.add(sym)) interfaces.add(sym);
-          }
-      }
-      interfaces.addAll(classes);
-      return interfaces;
-  }
-  
-  // Includes self // FIXME - review for order
-  public java.util.List<MethodSymbol> parents(MethodSymbol m) {
-      List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
-      for (ClassSymbol c: parents((ClassSymbol)m.owner)) {
-          for (Symbol mem: c.getEnclosedElements()) {
-              if (mem instanceof MethodSymbol &&
-                      mem.name.equals(m.name) &&
-                      (mem ==m || m.overrides(mem, c, Types.instance(context), true))) {
-                  methods.add((MethodSymbol)mem);
-              }
-          }
-      }
-      return methods;
-  }
-  
-  /** Returns true if a declaration with the given flags is visible in the
-   * 'base' class when declared in the 'parent' class. 
-   */
-  public boolean visible(Symbol base, Symbol parent, long flags) {
-      if (base == parent) return true; // Everything is visible in its own class
-      if ((flags & Flags.PUBLIC) != 0) return true; // public things are always visible
-      if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
-      if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
-      return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
-  }
-  
+    public static boolean readProps(Properties properties, String filename) throws java.io.IOException {
+        File f = new File(filename);
+        // Options may not be set yet
+        if (f.exists()) {
+            properties.load(new FileInputStream(f));
+            return true;
+        }
+        return false;
+    }
 
-  
-  /** Instances of this class are used to abort operations that are not
-   * implemented.
-   * @author David R. Cok
-   */
-  public static class JmlNotImplementedException extends RuntimeException {
-      private static final long serialVersionUID = 1L;
-      public DiagnosticPosition pos;
-      public JmlNotImplementedException(DiagnosticPosition pos, String location) {
-          super(location);
-          this.pos = pos;
-      }
-  }
-  
+    // Includes self
+    public java.util.List<ClassSymbol> parents(ClassSymbol c) {
+        List<ClassSymbol> classes = new LinkedList<ClassSymbol>();
+        ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
+        Set<ClassSymbol> interfaceSet = new HashSet<ClassSymbol>();
+        ClassSymbol cc = c;
+        while (cc != null) {
+            classes.add(0,cc);
+            cc = (ClassSymbol)cc.getSuperclass().tsym;
+        }
+        for (ClassSymbol ccc: classes) {
+            List<Type> ifs = ccc.getInterfaces();
+            for (Type ifc : ifs) {
+                ClassSymbol sym = (ClassSymbol)ifc.tsym;
+                if (interfaceSet.add(sym)) interfaces.add(sym);
+            }
+        }
+        // FIXME - the interfaces are not in a good order
+        int i = 0;
+        while (i < interfaces.size()) {
+            ClassSymbol ccc = interfaces.get(i++);
+            List<Type> ifs = ccc.getInterfaces();
+            for (Type ifc : ifs) {
+                ClassSymbol sym = (ClassSymbol)ifc.tsym;
+                if (interfaceSet.add(sym)) interfaces.add(sym);
+            }
+        }
+        interfaces.addAll(classes);
+        return interfaces;
+    }
+
+    // Includes self // FIXME - review for order
+    public java.util.List<MethodSymbol> parents(MethodSymbol m) {
+        List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
+        for (ClassSymbol c: parents((ClassSymbol)m.owner)) {
+            for (Symbol mem: c.getEnclosedElements()) {
+                if (mem instanceof MethodSymbol &&
+                        mem.name.equals(m.name) &&
+                        (mem ==m || m.overrides(mem, c, Types.instance(context), true))) {
+                    methods.add((MethodSymbol)mem);
+                }
+            }
+        }
+        return methods;
+    }
+
+    /** Returns true if a declaration with the given flags is visible in the
+     * 'base' class when declared in the 'parent' class. 
+     */
+    public boolean visible(Symbol base, Symbol parent, long flags) {
+        if (base == parent) return true; // Everything is visible in its own class
+        if ((flags & Flags.PUBLIC) != 0) return true; // public things are always visible
+        if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
+        if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
+        return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
+    }
+
+
+
+    /** Instances of this class are used to abort operations that are not
+     * implemented.
+     * @author David R. Cok
+     */
+    public static class JmlNotImplementedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        public DiagnosticPosition pos;
+        public JmlNotImplementedException(DiagnosticPosition pos, String location) {
+            super(location);
+            this.pos = pos;
+        }
+    }
+
 
 }

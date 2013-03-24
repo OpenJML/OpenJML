@@ -859,7 +859,12 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     /** Adds a custom option (not checked as a legitimate command-line option) */
     public void addUndocOption(String arg) {
-        Options.instance(context).put(arg,"");
+        int k = arg.indexOf('=');
+        if (k == -1) {
+            Options.instance(context).put(arg,"");
+        } else {
+            Options.instance(context).put(arg.substring(0,k),arg.substring(k+1));
+        }
     }
     
     /** Appends the internal runtime directory to the -classpath option.

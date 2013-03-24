@@ -343,7 +343,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      * @param kind a suffix to indicate the reason for block
      * @return a composite name for a block
      */
-    public String blockName(int pos, String kind) {
+    // The format of the block name is relied upon in JmlEsc.reportInvalidAssertion
+    protected String blockName(int pos, String kind) {
         // The block count is appended to be sure that the id is unique. Blocks
         // can originate from the same DiagnosticPosition and so the pos and key
         // are not always enough to distinguish them. So the pos and the key
@@ -352,7 +353,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         return blockNamePrefix(pos,kind) + "_" + (++blockCount);
     }
     
-    public String blockNamePrefix(int pos, String kind) {
+    protected String blockNamePrefix(int pos, String kind) {
         return blockPrefix + pos + kind;
     }
     
@@ -1129,6 +1130,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         // There are no remaining statements, so this new block is empty.
         // But we create it so there is a block that marks the return statement
         // and can be used to note the termination point in a trace
+        
+        // The format of the block name is relied upon in JmlEsc.reportInvalidAssertion
         T afterReturn = newBlockWithRest(RETURN,that.pos);
         follows(currentBlock,afterReturn);
         

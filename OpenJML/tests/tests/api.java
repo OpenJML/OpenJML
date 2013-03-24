@@ -1269,21 +1269,45 @@ public class api {
         }
     }
     
+    // FIXME _ also test various solvers
+    
+    @Test
+    public void testESCOld() {
+        testESC("-custom");
+    }
+    
+    @Test
+    public void testESC() {
+        testESC("-newesc");
+    }
+    
+    @Test @Ignore
+    public void testESCBoogie() {
+        testESC("-boogie");
+    }
+    
     
 
     /** Tests ESC */
     // doESC [all variations, with and without errors]
     // getClassSymbol, getMethodSymbol, getProofResult
-    @Test
-    public void testESC() {
-        start(true);
+    public void testESC(String option) {
+        start(false);
         try {
             DiagnosticCollector<JavaFileObject> diags = new DiagnosticCollector<JavaFileObject>();
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),
                     diags,
                     null,
+                    option,
                     "-noPurityCheck");
+            if (option.equals("-custom")) {
+                
+            } else if (option.equals("-boogie")) {
+                m.setOption("openjml.defaultProver","z3_4_3");
+            } else {
+                m.setOption("openjml.defaultProver","z3_4_3");
+            }
             JmlCompilationUnit jcu = m.parseString("A.java",program);
             int n = m.typecheck(jcu);
             assertTrue(n==0);
@@ -1291,10 +1315,11 @@ public class api {
             MethodSymbol mmsym = m.getMethodSymbol(csym,"mm");
             MethodSymbol msym = m.getMethodSymbol(csym,"m");
             IProverResult res = m.getProofResult(mmsym);
+            assertTrue(res == null);
 
             m.doESC(msym);
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = diags.getDiagnostics();
-            if (dlist.size() != 0) {
+            if (dlist.size() != 0) { // Should be none
                 // Print out observed errors for debugging
                 endCapture();
                 for (Diagnostic<? extends JavaFileObject> d: dlist) {
@@ -1308,11 +1333,12 @@ public class api {
             assertEquals(IProverResult.UNSAT,res.result());
 
             IProverResult pres = m.doESC(mmsym);
+            endCapture();
             res = m.getProofResult(mmsym);
             assertTrue(res != null);
             assertTrue(pres == res);
             assertEquals(2,dlist.size());
-            assertEquals(IProverResult.POSSIBLY_SAT,res.result());
+            assertTrue(res.result() == IProverResult.POSSIBLY_SAT || res.result() == IProverResult.SAT);
             
             m.doESC(csym);
             check("","");

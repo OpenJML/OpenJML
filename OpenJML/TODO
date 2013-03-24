@@ -1,3 +1,42 @@
+To do soon
+- constraint
+- thisID for invariants in applyHelper
+- tracing and counterexamples
+- plugin: rac options, tracing, counterexamples
+
+Things to do./check to be up to old implementation
+- static checking of represents
+- model fields in RAC and ESC
+- check model classes in ESC
+- constraint
+- RAC checking of represents
+- introduce axioms for all mentioned types
+- handling constructors
+- finish signals_only
+- in clause in RAC
+- \TYPE in ESC and RAC
+- <: operator in ESC and RAC
+- recursive calls in specs (ESC)
+- implement: \fresh, \nonnullelements, \elemtype, \typeof, \type
+- [quantified expressions]
+- [new informal expression]
+- checks on visibility of identifiers in specification cases, invariants
+- Java features in RAC, at least as a pass through
+
+New Java things to document
+- switch on enum and String
+- enum
+- autoboxing
+- coveriant return types
+- binary literals, underscores in literals
+- diamond type inference
+- try with resources
+- catching multiple exceptions and rethrowing
+- (Java 8) lambda expressions
+- (Java 8) JSR 308
+- (Java 6) classpath wildcards
+- (Java 6) compiler API, dependency information
+
 Yet to implement
 - enum definition
 - switch with enum or String
@@ -11,6 +50,26 @@ Yet to test
 - continue with label
 - dowhile statements with side effects
 
+Things to standardize or discuss
+- search algorithm on .jml files
+- rules about Java comments embedded in JML
+- default for signals_only
+- use of ESC RAC DEBUG as standard keys
+- cross state comparisons with \old, \pre
+- set comprehension issues, type
+- \same
+- semantics (Visibility) of helper methods
+- nullable_by_default vs. non_null_by_default
+- optional also, flexible order of clauses
+
+Changes to propose
+- example vs. behavior
+- choose, choose_if
+- \lbl
+- otherwise/else
+- \index, \values
+- query, secret
+
 Recent stuff
 - new options: RAC source, Rac check assumptions, Rac display mode, esc Asserts, style of ESC
 - old options: --noJML --roots --showbb, --stopIfParseErrors
@@ -20,6 +79,7 @@ Recent stuff
 - review api tests and interface
 - handling .jml files
 - review verbosity, progress monitors
+- in nowarn - check that idents are known
 
 Recent stuff - UI
 - typechecking a WorkingSet causes tasks to be run in parallel (in different contexts) - and it is not clear from the UI what is happening

@@ -1,16 +1,21 @@
 package tests;
 
+import org.junit.Ignore;
+import org.junit.Test;
+
 
 public class escTiming extends EscBase {
 
+    public escTiming() { super("-custom",null); } // FIXME - do on all combinations
+    
     public void test() {}  // Dummy to preclude JUnit error messages 
     
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        options.put("-noPurityCheck","");
-        options.put("-nullableByDefault",""); // Because the tests were written this wasy
+        main.addOptions("-noPurityCheck");
+        main.addOptions("-nullableByDefault"); // Because the tests were written this wasy
         //options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
@@ -20,7 +25,8 @@ public class escTiming extends EscBase {
     }
 
     // FIXME - Disabled - takes about 5 minutes
-    public void _testTimingIf() {
+    @Test @Ignore
+    public void testTimingIf() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public abstract class TestJava { \n"
                 
@@ -164,7 +170,8 @@ public class escTiming extends EscBase {
     }
 
     // Disabled - takes about 7 minutes
-    public void _testTimingSwitch() {
+    @Test @Ignore
+    public void testTimingSwitch() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public abstract class TestJava { \n"
                 
