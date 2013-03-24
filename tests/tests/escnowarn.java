@@ -1,16 +1,9 @@
 package tests;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import org.jmlspecs.openjml.esc.JmlEsc;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
-import com.sun.tools.javac.util.Options;
 
 /** This class of JUnit tests checks that nowarn works for esc tests.
  * @author David R. Cok
@@ -19,26 +12,13 @@ import com.sun.tools.javac.util.Options;
 @RunWith(Parameterized.class)
 public class escnowarn extends EscBase {
 
-    String option;
-    
-    public escnowarn(String option) {
-        this.option = option;
-    }
-    
-    @Parameters
-    static public  Collection<String[]> datax() {
-        Collection<String[]> data = new ArrayList<String[]>(10);
-        data.add(new String[]{"-boogie"}); 
-        data.add(new String[]{"-newesc"}); 
-        data.add(new String[]{null}); 
-        //data.add(new String[]{"-rac"}); 
-        return data;
+    public escnowarn(String option, String solver) {
+        super(option,solver);
     }
     
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        setOption(option);
         main.addOptions("-noPurityCheck");
         main.addOptions("-nullableByDefault"); // Because the tests were written this wasy
         //options.put("-jmlverbose",   "");

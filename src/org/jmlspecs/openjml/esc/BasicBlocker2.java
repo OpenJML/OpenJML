@@ -371,7 +371,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** Contains names for which a declaration has been issued. */
     final protected Set<Name> isDefined = new HashSet<Name>();
 
-    
     /** The constructor, but use the instance() method to get a new instance,
      * in order to support extension.  This constructor should only be
      * invoked by a derived class constructor.
@@ -950,6 +949,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
         for (VarSymbol v: vsyms) {
             currentMap.putSAVersion(v, v.name, 0);
+            JCIdent id = treeutils.makeIdent(Position.NOPOS,v);
+            addDeclaration(id);
         }
         
         premap = currentMap.copy();
@@ -1702,6 +1703,59 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             //} else if (e instanceof JCFieldAccess) {
             //} else if (e instanceof JCArrayAccess) {
 
+        } else if (storeref instanceof JCFieldAccess) {
+            JCFieldAccess fa = (JCFieldAccess)storeref;
+            if (fa.name == null) {
+                JCExpression e = fa.selected;
+                if (e == null) {
+                    log.noticeWriter.println("UNIMPLEMENTED HAVOC  " + storeref.getClass());
+                    
+                } else {
+                    Symbol own = e.type.tsym;
+                    Symbol s = e instanceof JCIdent ? ((JCIdent)e).sym : e instanceof JCFieldAccess ? ((JCFieldAccess)e).sym : null;
+                    if (s instanceof ClassSymbol) {
+                        for (VarSymbol vsym: currentMap.keySet()) {
+                            if (vsym.owner == own && vsym.isStatic()) {
+                                newIdentIncarnation(vsym, storeref.pos);
+                            }
+                        }
+                    } else {
+                        for (VarSymbol vsym: currentMap.keySet()) {
+                            // FIXME - should we omit vsym.isStatic
+                            if (vsym.owner == own && !vsym.name.toString().equals("this")) { // FIXME _ need a better way to avoid 'this'
+//                                JCIdent oldid = treeutils.makeIdent(storeref.pos,vsym);
+//                                JCIdent id = newIdentIncarnation(vsym, storeref.pos);
+////                                JCIdent newfield = newIdentIncarnation(oldfield,pos);
+////                                if (isDefined.add(newfield.name)) {
+////                                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + newfield.sym + " " + newfield.name);
+////                                    addDeclaration(newfield);
+////                                }
+//                                JCFieldAccess rhs = treeutils.makeSelect(fa.pos,fa.selected,vsym);
+//                                rhs.name = id.name;
+//                                JCExpression expr = new JmlBBFieldAssignment(id,oldid,fa.selected,rhs);
+//                                expr.pos = storeref.pos;
+//                                expr.type = id.type;
+//
+//                                // FIXME - set line and source and position
+//                                addAssume(storeref.pos,Label.ASSIGNMENT,expr,currentBlock.statements);
+                                newIdentIncarnation(vsym, storeref.pos);
+
+                            }
+                        }
+                    }
+                }
+            } else {
+                newIdentIncarnation((VarSymbol)fa.sym, storeref.pos);
+            }
+        } else if (storeref instanceof JmlStoreRefKeyword) {
+            JmlToken t = ((JmlStoreRefKeyword)storeref).token;
+            if (t == JmlToken.BSEVERYTHING) {
+                for (VarSymbol vsym: currentMap.keySet()) {
+                    // Local variables are not affected by havoc \everything
+                    // The owner of a local symbol is a MethodSymbol
+                    if (vsym.owner instanceof ClassSymbol) newIdentIncarnation(vsym, storeref.pos);
+                }
+            }
         } else {
             // FIXME - havoc in loops
             log.noticeWriter.println("UNIMPLEMENTED HAVOC  " + storeref.getClass());

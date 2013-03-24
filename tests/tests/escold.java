@@ -1,15 +1,25 @@
 package tests;
 
+import java.util.Collection;
+
 import org.junit.Test;
+import org.junit.runners.Parameterized.Parameters;
 
 public class escold extends escnew {
 
+    @Parameters
+    static public  Collection<String[]> datax() {
+        return onlyOldData();
+    }
+    
+
+    public escold(String option, String solver) { super(option,solver); }
+    
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        options.put("-newesc",null);
-        options.put("-nullableByDefault",null);
-        options.put("-nonnullByDefault","");
+        options.put("-nullableByDefault",null); // FIXME - can we get rid of this line?
+        main.addOptions("-nonnullByDefault");
     }
     
     // messages are in a different order

@@ -1,6 +1,8 @@
 package tests;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 // FIXME - there is nothing checking that these give correct results
 
@@ -9,20 +11,22 @@ import org.junit.Test;
  * @author David Cok
  *
  */
+@RunWith(Parameterized.class)
 public class counterexamples extends EscBase {
 
+    public counterexamples(String option, String solver) {
+        super(option,solver);
+    }
+    
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        options.put("-noPurityCheck","");
+        main.addOptions("-noPurityCheck");
         //options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
-        options.put("-newesc","");
-        options.put("-trace",""); // show traces
-        options.put("-ce",""); // show proverResults
-        options.put("-showbb",""); // show proverResults
+        main.addOptions("-trace","-ce","-showbb");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 2;
     }
@@ -30,6 +34,7 @@ public class counterexamples extends EscBase {
     /** Tests an explicit assertion */
     @Test
     public void testCE1() {
+        print = true;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

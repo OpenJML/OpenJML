@@ -37,10 +37,12 @@ public enum JmlOption implements IOption {
     USEJAVACOMPILER("-java",false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null),
     NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored",null),
     NEWESC("-newesc",false,"When on, uses the new SMT-based implementation",null),
+    CUSTOM("-custom",false,"When on, uses the old custom prover implementation",null),
 
     STOPIFERRORS("-stopIfParseErrors",false,"When enabled, stops after parsing if any files have parsing errors",null),
 
-    METHOD("-method",true,"The method name on which to run ESC",null),
+    METHOD("-method",true,"Comma-separated list of method name patterns on which to run ESC",null),
+    EXCLUDE("-exclude",true,"Comma-separated list of method name patterns to exclude from ESC",null),
     PROVER("-prover",true,"The prover to use to check verification conditions",null),
     PROVEREXEC("-exec",true,"The prover executable to use",null),
 
@@ -64,6 +66,7 @@ public enum JmlOption implements IOption {
     JMLTESTING("-jmltesting",false,"Only used to generate tracing information during testing",null),
     TRACE("-trace",false,"ESC: Enables tracing of counterexamples",null),
     SHOWBB("-showbb",false,"ESC: Debug output of Basic Block program",null),
+    CE("-ce",false,"ESC: Enables output of complete, raw counterexample","-counterexample"),
     COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample",null),
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions",null),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
@@ -72,7 +75,8 @@ public enum JmlOption implements IOption {
     SHOW_RAC_SOURCE("-showRacSource",false,"RAC: Error messages will include source information","-noRacSource=false"),
     NO_RAC_SOURCE("-noRacSource",false,"RAC: Error messages will not include source information",null),
     NO_RAC_CHECK_ASSUMPTIONS("-noRacCheckAssumptions",false,"RAC: Disables checking that assumptions hold",null),
-    NO_RAC_JAVA_CHECKS("-noRacJavaChecks",false,"RAC: Disables explicit checking of Java language checks",null)
+    NO_RAC_JAVA_CHECKS("-noRacJavaChecks",false,"RAC: Disables explicit checking of Java language checks",null),
+    RAC_COMPILE_TO_JAVA_ASSERT("-racCompileToJavaAssert",false,"RAC: Compiles JML checks as Java asserts",null)
     //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove
     ;
     
@@ -140,7 +144,7 @@ public enum JmlOption implements IOption {
      * @return true if the option is enabled, false otherwise
      */
     public static boolean isOption(Context context, String option) {
-        return Options.instance(context).get(option) != null;
+        return value(context,option) != null;
     }
     
     /** Return the value of an option with an argument
@@ -150,7 +154,17 @@ public enum JmlOption implements IOption {
      */
     //@ nullable
     public static String value(Context context, JmlOption option) {
-        return Options.instance(context).get(option.name);
+        return value(context,option.optionName());
+    }
+    
+    /** Return the value of an option with an argument
+     * @param context the compilation unit context
+     * @param option the option name
+     * @return the value of the argument, or null if not specified
+     */
+    //@ nullable
+    public static String value(Context context, String option) {
+        return Options.instance(context).get(option);
     }
     
     /** The name of the option, including any leading - sign

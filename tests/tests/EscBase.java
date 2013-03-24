@@ -4,17 +4,58 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Utils;
+import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
 
 public abstract class EscBase extends JmlTestCase {
+
+    static public String[] solvers = {}; // { "z3_4_3" , "yices", "simplify" };
+    static public String[] oldsolvers = {}; // { "yices", "simplify" };
+    
+    @Parameters
+    static public  Collection<String[]> datax() {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        data.add(new String[]{"-newesc",null}); 
+        for (String s: solvers) data.add(new String[]{"-newesc",s});
+        // FIXME: data.add(new String[]{"-boogie",null}); 
+        data.add(new String[]{"-custom",null}); 
+        for (String s: oldsolvers) data.add(new String[]{"-custom",s});
+        return data;
+    }
+    
+    static public  Collection<String[]> noOldData() {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        data.add(new String[]{"-newesc",null}); 
+        for (String s: solvers) data.add(new String[]{"-newesc",s});
+        // FIXME: data.add(new String[]{"-boogie",null}); 
+        return data;
+    }
+
+    static public  Collection<String[]> onlyOldData() {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        data.add(new String[]{"-custom",null}); 
+        //for (String s: oldsolvers) data.add(new String[]{"-custom",s});
+        return data;
+    }
+
+    String option;
+    String solver;
+    
+    public EscBase(String option, String solver) {
+        this.option = option;
+        this.solver = solver;
+    }
 
     static String z = java.io.File.pathSeparator;
     static String testspecpath1 = "$A"+z+"$B";
@@ -41,6 +82,7 @@ public abstract class EscBase extends JmlTestCase {
         noAssociatedDeclaration = false;
         print = false;
         args = new String[]{};
+        setOption(option,solver);
     }
     
 
@@ -48,11 +90,34 @@ public abstract class EscBase extends JmlTestCase {
         if (option == null) {
             // nothing set
         } else if (option.equals("-boogie")) {
-            main.addUndocOption("-newesc");
-            main.addUndocOption("-boogie");
+            main.addUndocOption(JmlOption.NEWESC.optionName());
+            main.addUndocOption(JmlOption.BOOGIE.optionName());
+        } else if (option.equals("-custom")) {
+            main.addUndocOption(JmlOption.CUSTOM.optionName());
+            options.put(JmlOption.NEWESC.optionName(),null);
+            main.addUndocOption("openjml.defaultProver=yices");
         } else {
-            main.addUndocOption(option);
+            main.addUndocOption(JmlOption.NEWESC.optionName());
+            main.addUndocOption("openjml.defaultProver=z3_4_3");
         }
+    }
+
+    protected void setOption(String option, String solver) {
+        if (option == null) {
+            // nothing set
+        } else if (option.equals("-boogie")) {
+            main.addUndocOption(JmlOption.NEWESC.optionName());
+            main.addUndocOption(JmlOption.BOOGIE.optionName());
+        } else if (option.equals("-custom")) {
+            main.addUndocOption(JmlOption.CUSTOM.optionName());
+            options.put(JmlOption.NEWESC.optionName(),null);
+            main.addUndocOption("openjml.defaultProver=yices");
+        } else {
+            main.addUndocOption(JmlOption.NEWESC.optionName());
+            main.addUndocOption("openjml.defaultProver=z3_4_3");
+        }
+        // solver == null means use the default
+        if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
     }
 
     @Override
@@ -92,37 +157,39 @@ public abstract class EscBase extends JmlTestCase {
         try {
             for (JavaFileObject f: mockFiles) files = files.append(f);
             
-            expectedErrors = list.length/2;
-            
             int ex = main.compile(args, context, files, null);
             
             if (print) printDiagnostics();
-            int j = 0;
-            for (int i=0; i<expectedErrors; i++) {
-                int col = ((Integer)list[2*i+1]).intValue();
+            int j = 0; // counts the errors in list, accounting for optional or null entries
+            int i = 0;
+            while (i < list.length) {
+                if (list[i] == null) { i+=2; continue; }
+                int col = ((Integer)list[i+1]).intValue();
                 if (col < 0) {
                     // allowed to be optional
                     if (j >= collector.getDiagnostics().size()) {
                         // OK - just skip
-                    } else if (list[2*i].toString().equals(noSource(collector.getDiagnostics().get(j))) &&
+                    } else if (list[i].toString().equals(noSource(collector.getDiagnostics().get(j))) &&
                             -col == Math.abs(collector.getDiagnostics().get(j).getColumnNumber())) {
                         j++;
                     } else {
                         // Not equal and the expected error is optional so just skip
                     }
                 } else {
-                    if (noAssociatedDeclaration && list[2*i].toString().contains("Associated declaration")) {
+                    if (noAssociatedDeclaration && list[i].toString().contains("Associated declaration")) {
                         // OK - skip
                     } else if (j >= collector.getDiagnostics().size()) {
-                        assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
+                        assertEquals("Errors seen",j,collector.getDiagnostics().size());
                     } else {
-                        assertEquals("Error " + i, list[2*i].toString(), noSource(collector.getDiagnostics().get(j)));
-                        assertEquals("Error " + i, col, collector.getDiagnostics().get(j).getColumnNumber());
+                        assertEquals("Error " + j, list[i].toString(), noSource(collector.getDiagnostics().get(j)));
+                        assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
                         j++;
                     }
                 }
+                i += 2;
             }
-            if (j < collector.getDiagnostics().size()) {
+            expectedErrors = j;
+            if (expectedErrors < collector.getDiagnostics().size()) {
                 assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);

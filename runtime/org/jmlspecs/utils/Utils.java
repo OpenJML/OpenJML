@@ -22,9 +22,10 @@ public class Utils {
     public static final String ASSERTION_FAILURE = "assertionFailure"; // Must match the method name
     public static void assertionFailure(String message) {
         if (useExceptions) throw new JmlAssertionError(message);
-        //if (useJavaAssert) assert false: message;
-        System.out.println(message); System.out.flush();
-        if (showStack) (new JmlAssertionError(message)).printStackTrace(System.out);
+        else if (useJavaAssert) assert false: message;
+        else { System.out.println(message); System.out.flush();
+            if (showStack) (new JmlAssertionError(message)).printStackTrace(System.out); // Keep this on line 27 or some test results change
+        }
     }
     
     //@ public normal_behavior
@@ -37,6 +38,11 @@ public class Utils {
      * or error messages (false).
      */
     public static boolean useExceptions = System.getProperty("org.jmlspecs.openjml.racexceptions") != null;
+    
+    /** Determines whether to report assertion failures as exceptions (true)
+     * or error messages (false).
+     */
+    public static boolean useJavaAssert = System.getProperty("org.jmlspecs.openjml.racjavaassert") != null;
     
 //    public static boolean showRacSource;
 //    static {

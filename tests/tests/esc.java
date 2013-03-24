@@ -1,12 +1,30 @@
 package tests;
 
+import java.util.Collection;
+
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.util.Options;
 
+@RunWith(Parameterized.class)
 public class esc extends EscBase {
 
+    @Parameters
+    static public  Collection<String[]> datax() {
+        return onlyOldData();
+    }
+    
+    public esc(String option, String solver) {
+        super(option,solver);
+    }
+    
+    // FIXME - the -custom option fails significantly when escdebug and -trace are on
+    // FIXME = significant failures in boogie and newesc
+    
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
@@ -753,6 +771,8 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables4() {
+        //main.addOptions("-method","m1");
+        //main.addOptions("-trace");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -762,7 +782,7 @@ public class esc extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m1() {\n"
                 +"    //@ assume k == 0;\n"
-                +"    c1(p);\n"
+                +"    c1(p);\n" // havoc p.*, including p.k, but p != this
                 +"    //@ assert k == 0;\n"
                 +"  }\n"
                 
@@ -770,7 +790,7 @@ public class esc extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m1a() {\n"
                 +"    //@ assume sk == 0;\n"
-                +"    c1(p);\n"
+                +"    c1(p);\n" // FIXME: havoc p.* includes static sk - really? 
                 +"    //@ assert sk == 0;\n"  // FAILS
                 +"  }\n"
                 
@@ -778,7 +798,7 @@ public class esc extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m2a() {\n"
                 +"    //@ assume k == 0;\n"
-                +"    c1(this);\n"
+                +"    c1(this);\n" // havoc this.k
                 +"    //@ assert k == 0;\n" // FAILS
                 +"  }\n"
                 
@@ -786,7 +806,7 @@ public class esc extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m2b() {\n"
                 +"    //@ assume sk == 0;\n"
-                +"    c1(this);\n"
+                +"    c1(this);\n" // havoc this.sk - includes static
                 +"    //@ assert sk == 0;\n"  // FAILS
                 +"  }\n"
                 
@@ -794,7 +814,7 @@ public class esc extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m3() {\n"
                 +"    //@ assume k == 0;\n"
-                +"    c2(this);\n"
+                +"    c2(this);\n" // havoc TestJava.* does not include non-static k
                 +"    //@ assert k == 0;\n"
                 +"  }\n"
                 
@@ -802,7 +822,7 @@ public class esc extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m3a() {\n"
                 +"    //@ assume sk == 0;\n"
-                +"    c2(this);\n"
+                +"    c2(this);\n" // havoc TestJava.* does include static sk
                 +"    //@ assert sk == 0;\n"  // FAILS
                 +"  }\n"
                 
@@ -2905,7 +2925,7 @@ public class esc extends EscBase {
                 +"  public int m1a(int a) { return m(-1); }\n" // Precondition ERROR
                 +"}",
                 "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Precondition) in method m1a",35,
-                "/tt/TestJava.java:15: warning: Associated declaration",16
+                "/tt/TestJava.java:15: warning: Associated declaration",(option.equals("-custom") ? 16 : 7)
         );
     }
 

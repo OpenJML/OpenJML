@@ -1,6 +1,5 @@
 package tests;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.junit.Test;
@@ -11,27 +10,19 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class escnew2 extends EscBase {
 
-    String option;
-    
-    public escnew2(String option) {
-        this.option = option;
+    public escnew2(String option, String solver) {
+        super(option,solver);
     }
     
     @Parameters
     static public  Collection<String[]> datax() {
-        Collection<String[]> data = new ArrayList<String[]>(10);
-        data.add(new String[]{"-boogie"}); 
-        data.add(new String[]{"-newesc"}); 
-        //data.add(new String[]{null}); 
-        //data.add(new String[]{"-rac"}); 
-        return data;
+        return noOldData();
     }
     
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        setOption(option);
         main.addOptions("-noPurityCheck");
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
@@ -46,6 +37,36 @@ public class escnew2 extends EscBase {
     }
 
 
+    @Test
+    public void testNullReceiver() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m() {}; \n"
+                
+                +"  public static void sm() {}; \n"
+                
+                +"  //@ signals_only Exception; \n"
+                +"  public void mm1(/*@ nullable*/TestJava t) throws Exception {\n"
+                +"      t.m();\n"
+                +"  }\n"
+                
+                +"  //@ signals_only Exception; \n"
+                +"  public void mm2(/*@ nullable*/TestJava t) throws Exception {\n"
+                +"      t.sm();\n"
+                +"  }\n"
+                
+                +"  //@ signals_only Exception; \n"
+                +"  public void mm3(/*@ nullable*/TestJava t) throws Exception {\n"
+                +"      TestJava.sm();\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullReference) in method mm1",7
+                );
+    }
+    
     
     @Test
     public void testBreak() {
@@ -299,6 +320,8 @@ public class escnew2 extends EscBase {
                 ,"/tt/TestJava.java:87: warning: Associated declaration",7
                 );
     }
+    
+    
     
 
 }

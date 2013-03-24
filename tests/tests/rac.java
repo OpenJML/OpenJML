@@ -24,6 +24,7 @@ public class rac extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
+        main.addUndocOption("-custom"); // FIXME - are these already in racnew somewhere?
         main.addOptions("-showNotImplemented");
         main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
         main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way

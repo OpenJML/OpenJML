@@ -1,17 +1,30 @@
 package tests;
 
+import java.util.Collection;
+
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 
+@RunWith(Parameterized.class)
 public class escinclause extends EscBase {
 
+    public escinclause(String option, String solver) {
+        super(option,solver);
+    }
+    
+    @Parameters
+    static public  Collection<String[]> datax() {
+        return noOldData();
+    }
     
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        options.put("-newesc","");
-        options.put("-noPurityCheck","");
+        main.addOptions("-noPurityCheck");
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
         //options.put("-showbb",   "");
