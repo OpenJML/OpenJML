@@ -1011,7 +1011,7 @@ public class OpenJMLInterface {
 
     String[] optionsToCopy = new String[] {
     		Options.showNotImplementedKey,
-    		Options.checkPurityKey,
+    		Options.noCheckPurityKey,
     		Options.nonnullByDefaultKey
     };
 
@@ -1036,11 +1036,12 @@ public class OpenJMLInterface {
             String prover = Options.value(Options.defaultProverKey);
             opts.add(JmlOption.PROVER.optionName() +"="+ prover);
             opts.add(JmlOption.PROVEREXEC.optionName() +"="+ Options.value(Options.proverPrefix + prover));
-            if (Options.isOption(Options.checkPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
+            if (Options.isOption(Options.noCheckPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
+            opts.add(JmlOption.MAXWARNINGS.optionName() +"="+ Options.value(Options.maxWarningsKey));
         }
         
         if (cmd == Main.Cmd.RAC) {
-            if (Options.isOption(Options.checkPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
+            if (Options.isOption(Options.noCheckPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
             opts.add(JmlOption.NO_RAC_SOURCE.optionName() +"="+ Options.isOption(Options.racNoShowSource));
             opts.add(JmlOption.NO_RAC_CHECK_ASSUMPTIONS.optionName() +"="+ Options.isOption(Options.racNoCheckAssumptions));
             opts.add(JmlOption.NO_RAC_JAVA_CHECKS.optionName() +"="+ Options.isOption(Options.racNoCheckJavaFeatures));

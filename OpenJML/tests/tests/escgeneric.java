@@ -25,7 +25,7 @@ public class escgeneric extends EscBase {
         super.setUp();
         main.addOptions("-noPurityCheck");
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
-//        options.put("-showbb",   "");
+//        options.put("-show",   "");
 //        options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
@@ -78,7 +78,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testGenericType() {
-//        options.put("-showbb","");
+//        options.put("-show","");
 //        options.put("-trace","");
 //        options.put("-method","m");
 //        JmlEsc.escdebug= true;
@@ -160,7 +160,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testTypeParameter2() {
-//        options.put("-showbb","");
+//        options.put("-show","");
 //        options.put("-trace","");
 //              options.put("-method","mb");
         helpTCX("tt.TestJava","package tt; \n"
@@ -187,7 +187,7 @@ public class escgeneric extends EscBase {
     // FIXME - autoboxing not working for ESC
     @Ignore @Test
     public void testForEach3() {
-      options.put("-showbb","");
+      options.put("-show","");
       options.put("-trace","");
             options.put("-method","m");
         helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "

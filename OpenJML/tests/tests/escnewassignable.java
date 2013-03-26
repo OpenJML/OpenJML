@@ -34,7 +34,7 @@ public class escnewassignable extends EscBase {
         main.addOptions("-noPurityCheck");
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
-        //options.put("-showbb",   "");
+        //options.put("-show",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //options.put("-showce",   "");
@@ -280,12 +280,12 @@ public class escnewassignable extends EscBase {
                 );
     }
 
-    @Test
+    @Test // FIXME - can't seem to make this work using @NonNull on A a
     public void testAssignableM1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { int x,y; static int xx,yy; }\n"
-                +"  int x,y; static int xx,yy; A a;\n"
+                +"  int x,y; static int xx,yy; A a; //@ requires a != null; \n"
 
                 +"  //@ assignable y, A.xx, a.x, this.y, TestJava.yy, tt.TestJava.yy; \n"
                 +"  public void m1bad(int i) {\n"
@@ -302,7 +302,7 @@ public class escnewassignable extends EscBase {
                 +"    m();\n"
                 +"  }\n"
 
-                +"  //@ assignable y, A.xx, a.xx, a.x, this.y, TestJava.yy, tt.TestJava.yy; \n"
+                +"  //@ assignable y, A.xx, a.xx, a.x, this.y, TestJava.yy, tt.TestJava.yy; //@ requires a != null; \n"
                 +"  public void m3bad(int i) {\n"
                 +"    ms();\n"
                 +"  }\n"  // Line 20
@@ -353,7 +353,7 @@ public class escnewassignable extends EscBase {
 
                 +"}"
                 ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assignable) in method m1bad",18
-                ,"/tt/TestJava.java:5: warning: Associated declaration",7
+                ,"/tt/TestJava.java:5: warning: Associated declaration",7 // FIXME - position is confused
                 ,"/tt/TestJava.java:40: warning: The prover cannot establish an assertion (Assignable) in method m3bad",18
                 ,"/tt/TestJava.java:17: warning: Associated declaration",7
                 

@@ -693,6 +693,20 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlSpecs.instance(context).initializeSpecsPath();
 
         if (options.get(JmlOption.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);
+        
+        String limit = options.get(JmlOption.MAXWARNINGS.optionName());
+        if (limit == null || limit.equals("all")) {
+            utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
+        } else {
+            try {
+                int k = Integer.parseInt(limit);
+                utils.maxWarnings = k <= 0 ? Integer.MAX_VALUE : k;
+            } catch (NumberFormatException e) {
+                // FIXME _ change to an error
+                Log.instance(context).noticeWriter.println("Expected a number or 'all' as argument for -escMaxWarnings: " + limit);
+                utils.maxWarnings = Integer.MAX_VALUE;
+            }
+        }
         return true;
 }
     

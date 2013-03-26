@@ -26,6 +26,7 @@ import org.smtlib.command.C_check_sat;
 import org.smtlib.command.C_declare_fun;
 import org.smtlib.command.C_declare_sort;
 import org.smtlib.command.C_define_fun;
+import org.smtlib.command.C_push;
 import org.smtlib.command.C_set_logic;
 import org.smtlib.command.C_set_option;
 import org.smtlib.impl.Factory;
@@ -111,6 +112,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String JAVATYPESORT = "JavaTypeSort";
     public static final String length = "length";
     
+    public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
     
     public SMTTranslator(Context context) {
         log = Log.instance(context);
@@ -123,6 +125,14 @@ public class SMTTranslator extends JmlTreeScanner {
         refSort = F.createSortExpression(F.symbol(REF));
         javaTypeSort = F.createSortExpression(F.symbol(JAVATYPESORT));
         lengthRef = F.symbol(length);
+    }
+    
+    public void scan(JCTree t) {
+        result = null;
+        if (t != null) {
+            super.scan(t);
+            if (result != null && t instanceof JCExpression && !(t instanceof JCLiteral)) bimap.put((JCExpression)t, result);
+        }
     }
     
     // FIXME - want to be able to produce AUFBV programs as well
@@ -191,7 +201,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         for (JCExpression e: program.background()) {
             try {
-                e.accept(this);
+                scan(e);
                 IExpr ex = result;
                 c = new C_assert(ex);
                 commands.add(c);
@@ -230,7 +240,7 @@ public class SMTTranslator extends JmlTreeScanner {
         // add definitions
         for (BasicProgram.Definition e: program.definitions()) {
             try {
-                e.value.accept(this);
+                scan(e.value);
                 c = new C_define_fun(F.symbol(e.id.toString()),
                         new LinkedList<IDeclaration>(),
                         convertSort(e.id.type),
@@ -260,6 +270,8 @@ public class SMTTranslator extends JmlTreeScanner {
         ICommand cc = new C_assert(negStartID);
         commands.add(cc);
         
+        cc = new C_push(F.numeral(1));
+        commands.add(cc);
         cc = new C_check_sat();
         commands.add(cc);
         
@@ -404,7 +416,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** Converts an AST expression into SMT form. */
     public IExpr convertExpr(JCExpression expr) {
-        expr.accept(this);
+        scan(expr);
         return result;
     }
     
@@ -508,7 +520,7 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitUnary(JCUnary tree) {
         int op = tree.getTag();
-        tree.arg.accept(this);
+        scan(tree.arg);
         IExpr arg = result;
         LinkedList<IExpr> args = new LinkedList<IExpr>();
         args.add(arg);
@@ -535,9 +547,9 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitBinary(JCBinary tree) {
         int op = tree.getTag();
-        tree.lhs.accept(this);
+        scan(tree.lhs);
         IExpr lhs = result;
-        tree.rhs.accept(this);
+        scan(tree.rhs);
         IExpr rhs = result;
         LinkedList<IExpr> args = new LinkedList<IExpr>();
         args.add(lhs);

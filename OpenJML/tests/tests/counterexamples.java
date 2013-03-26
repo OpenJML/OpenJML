@@ -26,7 +26,7 @@ public class counterexamples extends EscBase {
         //options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
-        main.addOptions("-trace","-ce","-showbb");
+        main.addOptions("-trace","-counterexample","-show");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 2;
     }
@@ -175,7 +175,7 @@ public class counterexamples extends EscBase {
     /** Tests pure methods */
     @Test
     public void testCE7() {
-        //options.put("-showbb",""); options.put("-method","m2"); options.put("-showds","");
+        //options.put("-show",""); options.put("-method","m2"); options.put("-showds","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -435,7 +435,7 @@ public class counterexamples extends EscBase {
     /** Tests try/catch/finally */
     @Test
     public void testCE15() {
-        //options.put("-showbb",""); options.put("-method","m3"); options.put("-showds","");
+        //options.put("-show",""); options.put("-method","m3"); 
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

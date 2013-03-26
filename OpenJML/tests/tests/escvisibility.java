@@ -31,7 +31,7 @@ public class escvisibility extends EscBase {
         main.addOptions("-specspath",   testspecpath);
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
-        //options.put("-showbb",   "");
+        //options.put("-show",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //options.put("-showce",   "");

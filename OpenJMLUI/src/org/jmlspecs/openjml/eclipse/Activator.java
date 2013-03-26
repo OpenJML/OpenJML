@@ -5,8 +5,16 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URL;
+
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.smtlib.IPos;
+import org.smtlib.SMT;
 
 /**
  * The activator class controls the plug-in life cycle. The plug-in is a
@@ -51,6 +59,41 @@ public class Activator extends AbstractUIPlugin {
 		// Various initialization: instances of options and utils, cached fields
 		utils = new Utils();
 		utils.initializeProperties();
+		
+	    /** The logic file finder for the plug-in looks for a logic file with the given name:
+	     * (a) if no logic directory path is set, then it looks within the plugin itself for any built-in files
+	     * (b) if a logic directory path is set, it looks there.
+	     * <P>
+	     * I would have thought that the non-plugin functionality of (a) exporting
+	     * logics directory and (b) finding the logic files on the classpath
+	     * would work - but I have not been able to make that function. Thus
+	     * we need one mechanism for finding resources inside a plug-in (this 
+	     * one - with reference to the plug-in bundle) and another mechanism
+	     * (looking on the classpath) when one is not inside a plug-in.
+	     */
+	    SMT.logicFinder = new SMT.ILogicFinder() {
+	    	@Override
+	    	public InputStream find(SMT.Configuration smtConfig, String name, IPos pos) throws java.io.IOException {
+	    		if (smtConfig == null || smtConfig.logicPath == null || smtConfig.logicPath.trim().length() ==0) {
+	    			// This logic depends on the fact that the SMT logic files
+	    			// reside at the root of the jSMTLIB.jar file, and that the
+	    			// .jar file is part of the plugin.
+	    			URL url = Platform.getBundle(PLUGIN_ID).getResource(name + org.smtlib.Utils.SUFFIX);
+	    			if (url != null) {
+	    				InputStream stream =  url.openStream();
+	    				if (stream != null) return stream;
+	    			}
+	    		} else {
+	    			String fname = smtConfig.logicPath + File.separator + name + org.smtlib.Utils.SUFFIX;
+	    			File f = new File(fname);
+	    			if (f.isFile()) return new FileInputStream(f);
+	    		}
+    			utils.showMessageInUI(null,"OpenJML - SMT",
+						"No logic file found for " + name);
+				return null;
+	    	}
+	    };
+
 	}
 
 	/*

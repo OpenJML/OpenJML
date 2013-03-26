@@ -2247,12 +2247,16 @@ public class Utils {
 	}
 
 	protected void mark(boolean enable, IResource r, Set<IResource> set) {
-//		try {
+		try {
 			if (r instanceof IFolder) {
 				if (enable)
 					set.add(r);
-				else
+				else {
 					set.remove(r);
+					IPath p = new Path("racbin").append(r.getProjectRelativePath());
+					p = p.removeFileExtension().addFileExtension(".class");
+					r.getProject().findMember(p).delete(true,null);
+				}
 //				for (IResource rr : ((IFolder) r).members()) {
 //					mark(enable, rr, set);
 //				}
@@ -2260,19 +2264,25 @@ public class Utils {
 				if (r.getName().endsWith(Strings.javaSuffix)) {
 					if (enable)
 						set.add(r);
-					else
+					else {
 						set.remove(r);
+						IPath p = r.getProject().getProjectRelativePath().append("racbin").append(r.getProjectRelativePath().removeFirstSegments(1));
+						p = p.removeFileExtension().addFileExtension("class");
+						IProject pr = r.getProject();
+						IResource rr = pr.findMember(p);
+						if (rr != null) rr.delete(true,null);
+					}
 				}
 			} else {
 				// FIXME - needs an error message
 				Log.log("Not handling " + r.getClass());
 			}
-//		} catch (CoreException e) {
-//			Log.errorlog(
-//					"Core Exception while traversing Resource tree (mark for RAC)",
-//					e);
-//			// just continue
-//		}
+		} catch (CoreException e) {
+			Log.errorlog(
+					"Core Exception while traversing Resource tree (mark for RAC)",
+					e);
+			// just continue
+		}
 	}
 
 	public void highlight(final IResource r, final int finalOffset,
@@ -2331,7 +2341,9 @@ public class Utils {
 			final @Nullable Shell shell, IProgressMonitor monitor) {
 		boolean c = false;
 		String racFolder = Options.value(Options.racbinKey);
-		if (racFolder == null || racFolder.isEmpty()) return Status.OK_STATUS;
+		if (racFolder == null || racFolder.isEmpty()) {
+			racFolder = "racbin"; // FIXME _ reference this string somewhere
+		}
 		IFolder dir = jp.getProject().getFolder(racFolder);
 		StringBuilder sb = new StringBuilder();
 		try {

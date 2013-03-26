@@ -726,7 +726,7 @@ public class escall2 extends EscBase {
 //    // THIS ONE BLOWS THE PROVER ??? FIXME (literal divide by zero)
     @Test @Ignore
     public void testDZero2() {
-//        options.put("-showbb","");
+//        options.put("-show","");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -879,7 +879,7 @@ public class escall2 extends EscBase {
     
     @Test @Ignore
     public void testInvariant1() {
-        //options.put("-showbb","");
+        //options.put("-show","");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -933,7 +933,7 @@ public class escall2 extends EscBase {
     
     @Test @Ignore
     public void testConstraint1() {
-        //options.put("-showbb","");
+        //options.put("-show","");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -987,7 +987,7 @@ public class escall2 extends EscBase {
     
     @Test @Ignore
     public void testAxiom1() {
-        //options.put("-showbb","");
+        //options.put("-show","");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -1038,7 +1038,7 @@ public class escall2 extends EscBase {
    
     @Test
     public void testAssignable() {
-        options.put("-showbb", "");
+        options.put("-show", "");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -1162,14 +1162,15 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 
-                +"}"
+                +"}" // Warning is duplicated because it can occur through either specification case
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
                 );
     }
    
     @Test
     public void testPureMethod2() {
-//        options.put("-showbb","");
+//        options.put("-show","");
 //        options.put("-method","m2");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

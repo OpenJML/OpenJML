@@ -65,8 +65,9 @@ public enum JmlOption implements IOption {
 
     JMLTESTING("-jmltesting",false,"Only used to generate tracing information during testing",null),
     TRACE("-trace",false,"ESC: Enables tracing of counterexamples",null),
-    SHOWBB("-showbb",false,"ESC: Debug output of Basic Block program",null),
+    SHOW("-show",false,"Show intermediate programs",null),
     CE("-ce",false,"ESC: Enables output of complete, raw counterexample","-counterexample"),
+    MAXWARNINGS("-escMaxWarnings",true,"ESC: Maximum number of warnings to find per method",null),
     COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample",null),
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions",null),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),

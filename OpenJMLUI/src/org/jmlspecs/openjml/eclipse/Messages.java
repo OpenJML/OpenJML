@@ -66,6 +66,7 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_VerbosityLevel;
 	public static String OpenJMLUI_PreferencesPage_WarnAboutNonExecutableConstructs;
 	public static String OpenJMLUI_PreferencesPage_WarnAboutNonImplementedConstructs;
+	public static String OpenJMLUI_PreferencesPage_MaxWarnings;
 	public static String OpenJMLUI_OpenSpecsEditor_DialogTitle;
 	public static String OpenJMLUI_RACDialog_AddFile;
 	public static String OpenJMLUI_RACDialog_AddFolder;

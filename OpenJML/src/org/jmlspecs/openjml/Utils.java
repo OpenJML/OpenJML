@@ -103,6 +103,9 @@ public class Utils {
 
     /** Do Jmldoc  */
     public boolean doc = false;
+    
+    /** Max number of ESC warnings per method (set from an option) */
+    public int maxWarnings = 0; // <= 0 means no limit
 
     /** The set of keys that control the use of optional comments, set from options */
     public Set<String> commentKeys = new HashSet<String>();

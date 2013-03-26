@@ -150,7 +150,7 @@ IWorkbenchPreferencePage {
 
         addField(new BooleanFieldEditor(Options.nonnullByDefaultKey, Messages.OpenJMLUI_PreferencesPage_NonNullByDefault,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.checkPurityKey, Messages.OpenJMLUI_PreferencesPage_SkipPurityCheck,
+        addField(new BooleanFieldEditor(Options.noCheckPurityKey, Messages.OpenJMLUI_PreferencesPage_SkipPurityCheck,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.showNotImplementedKey, Messages.OpenJMLUI_PreferencesPage_WarnAboutNonImplementedConstructs,
                 getFieldEditorParent()));
@@ -169,6 +169,20 @@ IWorkbenchPreferencePage {
 		addField(new LabelFieldEditor("zzzzz.ESC",Messages.OpenJMLUI_PreferencesPage_OptionsRelatingToESC,SWT.SEPARATOR|SWT.HORIZONTAL, //$NON-NLS-1$
 				getFieldEditorParent()));
 
+        addField(new ComboFieldEditor(Options.maxWarningsKey, Messages.OpenJMLUI_PreferencesPage_MaxWarnings,
+        		new String[][]{ 
+        			{"All", Integer.toString(Integer.MAX_VALUE) }, 
+        			{"1","1"}, 
+        			{"2","2"}, 
+        			{"3","3"}, 
+        			{"4","4"}, 
+        			{"5","5"}, 
+        			{"6","6"}, 
+        			{"7","7"}, 
+        			{"8","8"}, 
+        			{"9","9"}, 
+        		    },
+                getFieldEditorParent()));
         
         // RAC
         
