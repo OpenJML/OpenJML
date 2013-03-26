@@ -18,9 +18,7 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.jmlspecs.annotation.NonNull;
@@ -199,7 +197,6 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			Activator.getDefault().utils.doBuildRac(jproject,resourcesToBuild,monitor);
 		} else {
 			//doChecking(jproject,v.resourcesToBuild,monitor);
-			if (Options.isOption(Options.autoAddRuntimeToProjectKey)) Activator.getDefault().utils.addRuntimeToProjectClasspath(jproject);
 			Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,resourcesToBuild, monitor);
 		}
 	}
@@ -252,7 +249,6 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		}
 		monitor.beginTask(Messages.OpenJMLUI_JMLBuilder_Title, 
 				5*v.resourcesToBuild.size());
-		if (Options.isOption(Options.autoAddRuntimeToProjectKey)) Activator.getDefault().utils.addRuntimeToProjectClasspath(jproject);
 		Main.Cmd cmd = Options.isOption(Options.enableRacKey) ? Main.Cmd.RAC : Main.Cmd.CHECK; 
 		Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(cmd,v.resourcesToBuild, monitor);
 		boolean cancelled = monitor.isCanceled();

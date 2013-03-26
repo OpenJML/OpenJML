@@ -10,6 +10,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
 import org.jmlspecs.annotation.*;
 
@@ -32,6 +33,10 @@ public class JMLNature implements IProjectNature {
 
 	/** The project to which this nature applies. */
 	private IProject project;
+	
+	private IClasspathEntry internalRuntimeEntry = null;
+	
+	private boolean runtimeEverConfigured = false;
 
 	/** Creates a JML Builder in the project.  This is automatically called by
 	 * Eclipse when a project becomes a JML project.
@@ -39,8 +44,9 @@ public class JMLNature implements IProjectNature {
 	 */
 	@Override
 	public void configure() throws CoreException {
-		if (Options.isOption(Options.autoAddRuntimeToProjectKey)) {
-			Activator.getDefault().utils.addRuntimeToProjectClasspath(JavaCore.create(project));
+		if (!Options.isOption(Options.noInternalRuntimeKey)) {
+			internalRuntimeEntry = Activator.getDefault().utils.addRuntimeToProjectClasspath(JavaCore.create(project));
+			if (internalRuntimeEntry != null) runtimeEverConfigured = true;
 		}
 
 		IProjectDescription desc = project.getDescription();
@@ -67,6 +73,13 @@ public class JMLNature implements IProjectNature {
 	 */
 	@Override
 	public void deconfigure() throws CoreException {
+		if (!runtimeEverConfigured) {
+			Activator.getDefault().utils.removeFromClasspath(JavaCore.create(project),null);
+		}
+		if (internalRuntimeEntry != null) {
+			Activator.getDefault().utils.removeFromClasspath(JavaCore.create(project),internalRuntimeEntry);
+			internalRuntimeEntry = null;
+		}
 		IProjectDescription description = getProject().getDescription();
 		ICommand[] commands = description.getBuildSpec();
 		// Note: Only removes one instance - there should never be more than one.

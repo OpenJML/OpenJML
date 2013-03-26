@@ -362,8 +362,6 @@ public class Utils {
 		}
 		final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
 		for (final IJavaProject jp : sorted.keySet()) {
-			if (Options.isOption(Options.autoAddRuntimeToProjectKey))
-				addRuntimeToProjectClasspath(jp);
 			deleteMarkers(res, shell);
 		}
 		Job j = new Job("Static Checks - Manual") {
@@ -1779,15 +1777,15 @@ public class Utils {
 	 * @param jproject
 	 *            the project whose classpath is to be adjusted
 	 */
-	public void addRuntimeToProjectClasspath(final IJavaProject jproject) {
+	public IClasspathEntry addRuntimeToProjectClasspath(final IJavaProject jproject) {
 		if (changingClasspath)
-			return;
+			return null;
 		try {
 			String runtime = findInternalRuntime();
 			if (runtime == null) {
 				if (Utils.verboseness >= Utils.DEBUG)
 					Log.log("No internal runtime found");
-				return;
+				return null;
 			}
 			IPath path = new Path(runtime);
 			IClasspathEntry libentry = JavaCore.newLibraryEntry(path, null,
@@ -1800,7 +1798,7 @@ public class Utils {
 					if (Utils.verboseness >= Utils.DEBUG)
 						Log.log("Internal runtime already on classpath: "
 								+ runtime);
-					return;
+					return i;
 				}
 			}
 			final IClasspathEntry[] newentries = new IClasspathEntry[entries.length + 1];
@@ -1827,15 +1825,78 @@ public class Utils {
 								}
 							}, null);
 				} catch (CoreException e) {
-					Log.errorlog("Core Exception while highlighting", e);
+					Log.errorlog("Core Exception while changing classpath", e);
 					// just continue
 				}
 			} finally {
 				changingClasspath = false;
 			}
+			return libentry;
 		} catch (JavaModelException e) {
 			throw new Utils.OpenJMLException(
 					"Failed in adding internal runtime library to classpath: "
+							+ e.getMessage(), e);
+		}
+	}
+	
+	protected void removeFromClasspath(final IJavaProject jproject, IClasspathEntry entry) {
+		if (changingClasspath)
+			return;
+		try {
+			if (entry == null) {
+				String runtime = findInternalRuntime();
+				if (runtime == null) {
+					if (Utils.verboseness >= Utils.DEBUG)
+						Log.log("No internal runtime found");
+					return;
+				}
+				IPath path = new Path(runtime);
+				entry = JavaCore.newLibraryEntry(path, null,
+						null);
+			}
+			IClasspathEntry[] entries = jproject.getResolvedClasspath(true);
+			final IClasspathEntry[] newentries = new IClasspathEntry[entries.length];
+			int j = 0;
+			for (IClasspathEntry i : entries) {
+				if (!i.equals(entry)) {
+					newentries[j++] = i;
+				}
+			}
+			if (j < entries.length) {
+				final IClasspathEntry[] newerentries = new IClasspathEntry[j];
+				System.arraycopy(newentries, 0, newerentries, 0, j);
+				try {
+					changingClasspath = true;
+					if (Utils.verboseness >= Utils.DEBUG)
+						Log.log("Internal runtime being removed from classpath: "
+								+ entry);
+
+					try {
+						jproject.getProject().getWorkspace()
+						.run(new IWorkspaceRunnable() {
+							public void run(IProgressMonitor monitor) {
+								try {
+									jproject.setRawClasspath(newerentries,
+											monitor);
+								} catch (Exception e) {
+									showMessageInUI(null, "Error Dialog",
+											"Exception while changing classpath: "
+													+ e);
+								}
+							}
+						}, null);
+					} catch (CoreException e) {
+						Log.errorlog("Core Exception while changing classpath", e);
+						// just continue
+					}
+				} finally {
+					changingClasspath = false;
+				}
+			}
+			return ;
+		} catch (JavaModelException e) {
+			throw new Utils.OpenJMLException(
+					"Failed in removing internal runtime library from classpath: "
 							+ e.getMessage(), e);
 		}
 	}
@@ -2649,26 +2710,36 @@ public class Utils {
 				if (Utils.verboseness >= Utils.NORMAL)
 					Log.log("No self plugin"); // FIXME - an error?
 			} else {
-				URL url;
-				url = FileLocator.toFileURL(selfBundle.getResource(""));
-				if (url != null) {
-					File root = new File(url.toURI());
-					if (root.isDirectory()) {
-						File f = new File(root, "jmlruntime.jar");
-						if (f.exists()) {
-							file = f.toString();
-							if (Utils.verboseness >= Utils.VERBOSE)
-								Log.log("Internal runtime location: " + file);
-						} else {
-							f = new File(root, "../jmlruntime.jar");
+				// We want to include the runtime library in the classpath for
+				// the user. The runtime library is part of the UI plug-in, but
+				// not as a jar file.
+				URL url = null;
+				if (url == null) {
+					url = FileLocator.toFileURL(selfBundle.getResource(""));
+					if (url != null) {
+						// In development mode (launching the plug-in from
+						// Eclipse, the url of the selfBundle is the bin
+						// directory of the OpenJMLUI plug-in; we
+						// can find the jmlruntime.jar library one level up.
+						File root = new File(url.toURI());
+						if (root.isDirectory()) {
+							File f = new File(root, "jmlruntime.jar");
 							if (f.exists()) {
-								file = f.toString();
+								file = f.toString().replace('\\', '/');
 								if (Utils.verboseness >= Utils.VERBOSE)
-									Log.log("Internal runtime location: "
-											+ file);
+									Log.log("Internal runtime location: " + file);
+							} else {
+								f = new File(root, "../jmlruntime.jar");
+								if (f.exists()) {
+									file = f.toString().replace('\\', '/');
+									if (Utils.verboseness >= Utils.VERBOSE)
+										Log.log("Internal runtime location: "
+												+ file);
+								}
 							}
 						}
 					}
+
 				}
 			}
 		} catch (Exception e) {

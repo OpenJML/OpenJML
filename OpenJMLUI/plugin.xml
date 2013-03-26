@@ -100,14 +100,14 @@
          <command
                id="JMLUI.disableNatureAction"
                commandId="org.jmlspecs.openjml.eclipse.DisableNature"
-               label="Disable Auto JML Checking"
+               label="Disable JML"
                enablesFor="+"
                >
          </command>
          <command
                id="JMLUI.enableNatureAction"
                commandId="org.jmlspecs.openjml.eclipse.EnableNature"
-               label="Enable Auto JML Checking"
+               label="Enable JML"
                enablesFor="+"
                >
          </command>
@@ -217,14 +217,14 @@
             nameFilter="*"
             id="JMLUI.contribution1">
        <action
-               label="Disable Auto JML Checking"
+               label="Disable JML"
                class="org.jmlspecs.openjml.eclipse.PopupActions$DisableNature"
                menubarPath="JML"
                enablesFor="+"
                id="JMLUI.removeNatureAction">
        </action>
        <action
-               label="Enable Auto JML Checking"
+               label="Enable JML"
                class="org.jmlspecs.openjml.eclipse.PopupActions$EnableNature"
                menubarPath="JML"
                enablesFor="+"
@@ -239,14 +239,14 @@
             nameFilter="*"
             id="JMLUI.contribution1WS">
        <action
-               label="Disable Auto JML Checking"
+               label="Disable JML"
                class="org.jmlspecs.openjml.eclipse.PopupActions$DisableNature"
                menubarPath="JML"
                enablesFor="+"
                id="JMLUI.removeNatureActionWS">
        </action>
        <action
-               label="Enable Auto JML Checking"
+               label="Enable JML"
                class="org.jmlspecs.openjml.eclipse.PopupActions$EnableNature"
                menubarPath="JML"
                enablesFor="+"

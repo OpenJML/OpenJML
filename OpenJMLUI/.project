@@ -27,9 +27,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>src-annotations</name>
+			<name>src-annotation</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/JMLAnnotations/src</locationURI>
+			<location>C:/cygwin/home/dcok/eprojects/JMLAnnotations/src</location>
 		</link>
 		<link>
 			<name>src-openjdk</name>

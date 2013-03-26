@@ -78,9 +78,8 @@ public class Options {
 	final static public String noInternalSpecsKey = prefix + "noInternalSpecs"; //$NON-NLS-1$
 	/** The preference store key for the noInternalRuntime option. */
 	final static public String noInternalRuntimeKey = prefix + "noInternalRuntime"; //$NON-NLS-1$
-	/** The preference store key for the autoAddRuntimeToProject option */
-	final static public String autoAddRuntimeToProjectKey = prefix + "autoAddRuntimeToProject"; //$NON-NLS-1$
 
+	// TODO - document
 	final static public String enableRacKey = prefix + "enableRac"; //$NON-NLS-1$
 	final static public String compileToJavaAssert = prefix + "compileToJavaAssert"; //$NON-NLS-1$
 	final static public String racNoCheckJavaFeatures = prefix + "racNoCheckJavaFeatures"; //$NON-NLS-1$

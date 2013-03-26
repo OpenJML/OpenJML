@@ -158,6 +158,8 @@ IWorkbenchPreferencePage {
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.noInternalSpecsKey, Messages.OpenJMLUI_PreferencesPage_UseExternalSystemSpecs,
                 getFieldEditorParent()));
+        addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, Messages.OpenJMLUI_PreferencesPage_UseExternalRuntimeLibrary,
+                getFieldEditorParent()));
         addField(new StringFieldEditor(Options.optionalKeysKey, Messages.OpenJMLUI_PreferencesPage_OptionalAnnotationKeys,
                 getFieldEditorParent()));
         
@@ -171,16 +173,16 @@ IWorkbenchPreferencePage {
 
         addField(new ComboFieldEditor(Options.maxWarningsKey, Messages.OpenJMLUI_PreferencesPage_MaxWarnings,
         		new String[][]{ 
-        			{"All", Integer.toString(Integer.MAX_VALUE) }, 
-        			{"1","1"}, 
-        			{"2","2"}, 
-        			{"3","3"}, 
-        			{"4","4"}, 
-        			{"5","5"}, 
-        			{"6","6"}, 
-        			{"7","7"}, 
-        			{"8","8"}, 
-        			{"9","9"}, 
+        			{"All", Integer.toString(Integer.MAX_VALUE) },  //$NON-NLS-1$
+        			{"1","1"},   //$NON-NLS-1$ //$NON-NLS-2$
+        			{"2","2"},   //$NON-NLS-1$ //$NON-NLS-2$
+        			{"3","3"},   //$NON-NLS-1$ //$NON-NLS-2$
+        			{"4","4"},   //$NON-NLS-1$ //$NON-NLS-2$
+        			{"5","5"},   //$NON-NLS-1$ //$NON-NLS-2$
+        			{"6","6"},   //$NON-NLS-1$ //$NON-NLS-2$
+        			{"7","7"},   //$NON-NLS-1$ //$NON-NLS-2$
+        			{"8","8"},   //$NON-NLS-1$ //$NON-NLS-2$
+        			{"9","9"},   //$NON-NLS-1$ //$NON-NLS-2$
         		    },
                 getFieldEditorParent()));
         
@@ -204,8 +206,6 @@ IWorkbenchPreferencePage {
         addField(new BooleanFieldEditor(Options.showNotExecutableKey, Messages.OpenJMLUI_PreferencesPage_WarnAboutNonExecutableConstructs,
                 getFieldEditorParent()));
         addField(new StringFieldEditor(Options.racbinKey, Messages.OpenJMLUI_PreferencesPage_DirectoryForRACOutput,
-                getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, Messages.OpenJMLUI_PreferencesPage_UseExternalRuntimeLibrary,
                 getFieldEditorParent()));
 
         // Debug and verbosity
