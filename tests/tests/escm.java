@@ -19,7 +19,7 @@ public class escm extends EscBase {
         main.addOptions("-noPurityCheck");
         
 //        options.put("-jmlverbose",   "");
-//        options.put("-showbb","");
+//        options.put("-show","");
 //        options.put("-method","me");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");

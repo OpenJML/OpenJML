@@ -35,6 +35,7 @@ import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
+import org.smtlib.IExpr;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -717,16 +718,31 @@ public class API implements IAPI {
         }
         JCTree node = findNode(tree,pos,end);
         JmlMethodDecl parentMethod = finder.parentMethod;
-        if (parentMethod.sym != mostRecentProofMethod) return "Selected text is not within the method of the most recent proof (which is " + mostRecentProofMethod + ")";
+        if (parentMethod.sym != mostRecentProofMethod) {
+            return "Selected text is not within the method of the most recent proof (which is " + mostRecentProofMethod + ")";
+        }
         String out;
         if (node instanceof JmlVariableDecl) {
             // This happens when we have selected a method parameter or the variable within a declaration
             // continue
             out = "Found declaration: " + ((JmlVariableDecl)node).name.toString() + "\n";
+        } else if (!(node instanceof JCTree.JCExpression)) {
+            return "Selected text is not an expression (" + node.getClass() + "): " + text;
         } else {
-            if (!(node instanceof JCTree.JCExpression)) return "Selected text is not an expression (" + node.getClass() + "): " + text;
             out = "Found expression node: " + node.toString() + "\n";
         }
+        
+        if (!JmlOption.isOption(context(), JmlOption.CUSTOM)) {
+            if (JmlEsc.mostRecentCEMap != null) {
+                String value = JmlEsc.mostRecentCEMap.get(node);
+                out = out + value;
+                return out;
+            }
+            return "No counterexample information available";
+        }
+        
+        // OLD style
+        
         ICounterexample ce = getProofResult(mostRecentProofMethod).counterexample();
         if (ce == null) {
         	out = "There is no counterexample information";

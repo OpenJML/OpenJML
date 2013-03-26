@@ -21,15 +21,15 @@ public class escnew2 extends EscBase {
     
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
+        noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-noPurityCheck");
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
-        //options.put("-showbb",   "");
+        //options.put("-show",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
-        //options.put("-showce",   "");
+        //options.put("-counterexample",   "");
         //options.put("-trace",   "");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -37,6 +37,26 @@ public class escnew2 extends EscBase {
     }
 
 
+    @Test
+    public void testMultiple() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m(int i) throws Exception {\n"
+                +"      if (i == 1) {\n"
+                +"          //@ assert i != 1;\n"
+                +"      } else if (i == 2) {\n"
+                +"          //@ assert false;\n"
+                +"      } else if (i == 3) {\n"
+                +"          //@ assert i != 3;\n"
+                +"      }\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullReference) in method mm1",7
+                );
+    }
+    
     @Test
     public void testNullReceiver() {
         helpTCX("tt.TestJava","package tt; \n"

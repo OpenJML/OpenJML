@@ -477,6 +477,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * when 'result' is a JCExpression. */
     protected JCExpression eresult;
     
+    /** A bi-map used to record the mapping between original and written nodes */
+    protected BiMap<JCExpression, JCExpression> bimap = new BiMap<JCExpression, JCExpression>();
+    
     /** (Public API) Creates an object to do the rewriting and assertion insertion. This object
      * can be reused to translate different method bodies, so long as the arguments
      * to this constructor remain appropriate. May not have both esc and rac true;
@@ -718,8 +721,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * in pureCopy mode and for specific argument types. */
     @SuppressWarnings("unchecked")
     public @Nullable <T extends JCTree> T convert(@Nullable T tree) {
-        if (tree == null) return null;
+        if (tree == null) { result = null; return null; }
         scan(tree);
+        if (tree instanceof JCExpression) bimap.put((JCExpression)tree, eresult);
         return (T)result;
     }
     
@@ -753,7 +757,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     protected @Nullable JCExpression convertExpr(@Nullable JCExpression tree) {
         eresult = null; // Just so it is initialized in case assignment is forgotten
-        if (tree != null) super.scan(tree);
+        if (tree != null) {
+            super.scan(tree);
+            bimap.put(tree,eresult);
+        }
         return eresult;
     }
     
@@ -763,9 +770,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected @Nullable List<JCExpression> convertExprList(@Nullable List<? extends JCExpression> trees) {
         if (trees==null) return null;
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
-        for (JCTree t: trees) {
+        for (JCExpression t: trees) {
             scan(t);
             newlist.add(eresult);
+            bimap.put(t,eresult);
         }
         return newlist.toList();
     }

@@ -23,7 +23,7 @@ public class escall3 extends EscBase {
 
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
-        //options.put("-showbb",   "");
+        //options.put("-show",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //options.put("-showce",   "");

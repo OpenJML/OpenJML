@@ -16,6 +16,9 @@ public class Strings {
     // behavior of the tool if these are changed during processing.  They are
     // final for now - which could be changed if necessary.
  
+	static public final String empty = ""; //$NON-NLS-1$
+	static public final String underscore = "_"; //$NON-NLS-1$
+	
     // Names of Java options
     static public final String classpathOptionName = "-classpath"; //$NON-NLS-1$
     static public final String sourcepathOptionName = "-sourcepath"; //$NON-NLS-1$

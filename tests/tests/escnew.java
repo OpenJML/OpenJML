@@ -29,7 +29,7 @@ public class escnew extends EscBase {
         main.addOptions("-noPurityCheck");
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
-        //options.put("-showbb",   "");
+        //options.put("-show",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //options.put("-showce",   "");
@@ -104,8 +104,12 @@ public class escnew extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  //@ requires a[i]>0;\n"
+                +"  //@ requires i >= 0 && a[i]>0;\n"
                 +"  public void m1bad(int[] a, int i) {\n"
+                +"  }\n"
+                
+                +"  //@ requires i < a.length && a[i]>0;\n"
+                +"  public void m2bad(int[] a, int i) {\n"
                 +"  }\n"
                 
                 +"  //@ requires i >= 0 && i < a.length;\n"
@@ -114,7 +118,8 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",17
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1bad",27
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m2bad",33
                 );
     }
 
@@ -938,6 +943,8 @@ public class escnew extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
 
@@ -1211,8 +1218,13 @@ public class escnew extends EscBase {
                 +"    return a[-1] ;\n"
                 +"  }\n"
                 
-                +"  //@ requires a.length == 10;\n"
+                +"  //@ requires i > 1 && a.length == 10;\n"
                 +"  public int m1badb(int[] a, int i) {\n"
+                +"    return a[i] ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i < 5 && a.length == 10;\n"
+                +"  public int m1badc(int[] a, int i) {\n"
                 +"    return a[i] ;\n"
                 +"  }\n"
                 
@@ -1237,8 +1249,8 @@ public class escnew extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",13
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bada",13
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1badb",-13
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1badb",-13
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1badb",13
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1badc",13
                 );
     }
 

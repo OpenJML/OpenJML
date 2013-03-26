@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -9342,3 +9343,108 @@ public class BasicBlocker extends JmlTreeScanner {
     }
 
 }
+
+class ClassCollector extends JmlTreeScanner {
+    
+    public static ClassCollector collect(JmlClassDecl cd, JmlMethodDecl md) {
+        ClassCollector collector = new ClassCollector();
+        collector.doMethods = false;
+        //System.out.println("COLLECTING FOR CLASS " + cd.sym);
+        collector.scan(cd);
+        //System.out.println("COLLECTING FOR METHOD " + md.sym);
+        collector.doMethods = true;
+        collector.scan(md);
+        return collector;
+    }
+    
+    boolean doMethods;
+    Set<ClassSymbol> classes = new HashSet<ClassSymbol>();
+    Collection<JCTree> literals = new ArrayList<JCTree>();
+    
+    public ClassCollector() {
+        scanMode = AST_SPEC_MODE;
+    }
+    
+    @Override
+    public void visitClassDef(JCClassDecl tree) {
+        //System.out.println("ADDING-CD " + tree.sym);
+        classes.add(tree.sym);
+        super.visitClassDef(tree);
+    }
+    
+    @Override
+    public void visitMethodDef(JCMethodDecl tree) {
+        if (!doMethods) return;
+        super.visitMethodDef(tree);
+    }
+    
+    @Override
+    public void visitIdent(JCIdent tree) {
+        if (tree.sym instanceof ClassSymbol) {
+            ClassSymbol c = (ClassSymbol)tree.sym;
+            //System.out.println("ADDING-I " + c);
+            classes.add(c);
+        } else if (tree.sym instanceof VarSymbol) {
+            ClassSymbol c = (ClassSymbol)tree.type.tsym;
+            //System.out.println("ADDING-II " + c);
+            classes.add(c);
+        }
+        super.visitIdent(tree);
+    }
+    
+    @Override
+    public void visitSelect(JCFieldAccess tree) {
+        if (tree.sym instanceof ClassSymbol) {
+            ClassSymbol c = (ClassSymbol)tree.sym;
+            //System.out.println("ADDING-SC " + c);
+            classes.add(c);
+        } else if (tree.sym instanceof VarSymbol) {
+            ClassSymbol c = (ClassSymbol)tree.type.tsym;
+            //System.out.println("ADDING-SI " + c);
+            classes.add(c);
+        }
+        super.visitSelect(tree);
+    }
+    
+    @Override
+    public void visitIndexed(JCArrayAccess tree) {
+            ClassSymbol c = (ClassSymbol)tree.indexed.type.tsym;
+            //System.out.println("ADDING-A " + c);
+            classes.add(c);
+        super.visitIndexed(tree);
+    }
+    
+    @Override
+    public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
+        // FIXME - return types ?
+        super.visitJmlMethodInvocation(tree);
+    }
+    
+    @Override
+    public void visitApply(JCMethodInvocation tree) {
+        if (tree.type != null) {
+            ClassSymbol c = (ClassSymbol)tree.type.tsym;
+            //System.out.println("ADDING-M " + c);
+            classes.add(c);
+       }
+        super.visitApply(tree);
+    }
+    
+//    static public class JmlDiagnostic extends JCDiagnostic {
+//        public JmlDiagnostic(DiagnosticFormatter<JCDiagnostic> formatter,
+//                       DiagnosticType dt,
+//                       boolean mandatory,
+//                       DiagnosticSource source,
+//                       DiagnosticPosition pos,
+//                       String key,
+//                       Object ... args) {
+//            super(formatter,dt,mandatory,source,pos,key,args);
+//        }
+//        
+//        static JmlDiagnostic warning(int pos, String key, Object ... args) {
+//            return new JmlDiagnostic(formatter, WARNING, false, source, pos, qualify(WARNING, key), args);
+//            
+//        }
+//    }
+}
+
