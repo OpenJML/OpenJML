@@ -44,6 +44,7 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_debug;
 	public static String OpenJMLUI_PreferencesPage_DirectoryForRACOutput;
 	public static String OpenJMLUI_PreferencesPage_EnableAutoRuntimeAssertionChecking;
+	public static String OpenJMLUI_PreferencesPage_Show;
 	public static String OpenJMLUI_PreferencesPage_JavaVerbose;
 	public static String OpenJMLUI_PreferencesPage_JmlOptions;
 	public static String OpenJMLUI_PreferencesPage_NonNullByDefault;

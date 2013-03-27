@@ -482,14 +482,16 @@ public class JmlCompiler extends JavaCompiler {
         
         if (env.tree instanceof JCClassDecl) {
             JCTree newtree;
-            if (Options.instance(context).get("-custom") != null){
+            if (JmlOption.isOption(context,JmlOption.CUSTOM)){
                 
                 newtree = new JmlRac(context,env).translate(env.tree);
                 
             } else  {
 
                 newtree = new JmlAssertionAdder(context,false,true).convert(env.tree);
-            
+                if (JmlOption.isOption(context,JmlOption.SHOW)) {
+                    log.noticeWriter.println(JmlPretty.write(newtree));
+                }
             }
                 
             // When we do the RAC translation, we create a new instance

@@ -57,6 +57,8 @@ public class Options {
 	final static public String verbosityKey = prefix + "verboseness"; //$NON-NLS-1$
 	/** The preference store key for the uiverbosity option. */
 	final static public String uiverbosityKey = prefix + "uiverbosity"; //$NON-NLS-1$
+	/** The preference store key for the -show option. */
+	final static public String showKey = prefix + "show"; //$NON-NLS-1$
 	
 //	/** The preference store key for the source option. */
 //	final static public String sourceKey = prefix + "javaSourceVersion";

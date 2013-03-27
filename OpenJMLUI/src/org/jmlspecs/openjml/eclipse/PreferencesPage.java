@@ -218,6 +218,9 @@ IWorkbenchPreferencePage {
         addField(new BooleanFieldEditor(Options.javaverboseKey, Messages.OpenJMLUI_PreferencesPage_JavaVerbose,
                 getFieldEditorParent()));
         
+        addField(new BooleanFieldEditor(Options.showKey, Messages.OpenJMLUI_PreferencesPage_Show,
+                getFieldEditorParent()));
+        
         addField(verbosity=new ComboFieldEditor(Options.verbosityKey, Messages.OpenJMLUI_PreferencesPage_VerbosityLevel,
         		new String[][]{ 
         			{Messages.OpenJMLUI_PreferencesPage_quiet, Integer.toString(Utils.QUIET) }, 

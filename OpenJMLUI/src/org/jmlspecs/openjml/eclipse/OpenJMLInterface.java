@@ -163,8 +163,7 @@ public class OpenJMLInterface {
         	   args = getOptions(jp,command); // FIXME - somehow the options are not propagating through
            } else {
         	   args = getOptions(jp,command);
-        	   String racdir = Options.value(Options.racbinKey);
-        	   if (racdir == null || racdir.isEmpty()) racdir = "racbin";
+        	   String racdir = utils.getRacDir();
         	   if (jp.getProject().findMember(racdir) == null) {
         		   try {
         			   // FIXME - is it a problem that this is done in the UI thread; is local=true correct?
@@ -1030,18 +1029,18 @@ public class OpenJMLInterface {
         List<String> opts = new LinkedList<String>();
         if (cmd != null) {
             opts.add(JmlOption.COMMAND.optionName() +"="+ cmd);
+            if (Options.isOption(Options.noCheckPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
+            if (Options.isOption(Options.showKey)) opts.add(JmlOption.SHOW.optionName());
         }
         if (cmd == Main.Cmd.ESC) {
             opts.add(JmlOption.ASSOCINFO.optionName());
             String prover = Options.value(Options.defaultProverKey);
             opts.add(JmlOption.PROVER.optionName() +"="+ prover);
             opts.add(JmlOption.PROVEREXEC.optionName() +"="+ Options.value(Options.proverPrefix + prover));
-            if (Options.isOption(Options.noCheckPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
             opts.add(JmlOption.MAXWARNINGS.optionName() +"="+ Options.value(Options.maxWarningsKey));
         }
         
         if (cmd == Main.Cmd.RAC) {
-            if (Options.isOption(Options.noCheckPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
             opts.add(JmlOption.NO_RAC_SOURCE.optionName() +"="+ Options.isOption(Options.racNoShowSource));
             opts.add(JmlOption.NO_RAC_CHECK_ASSUMPTIONS.optionName() +"="+ Options.isOption(Options.racNoCheckAssumptions));
             opts.add(JmlOption.NO_RAC_JAVA_CHECKS.optionName() +"="+ Options.isOption(Options.racNoCheckJavaFeatures));
@@ -1083,7 +1082,7 @@ public class OpenJMLInterface {
         }
         
         if (Options.isOption(Options.showNotImplementedKey)) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
-        //if (Options.isOption(Options.showNotExecutableKey)) opts.add(JmlOption.SHOW_NOT_EXECUTABLE.optionName());
+        if (Options.isOption(Options.showNotExecutableKey)) opts.add(JmlOption.SHOW_NOT_EXECUTABLE.optionName());
         if (!Options.isOption(Options.checkSpecsPathKey)) opts.add(JmlOption.NOCHECKSPECSPATH.optionName());
         opts.add(JmlOption.NONNULLBYDEFAULT.optionName()+"="+Options.isOption(Options.nonnullByDefaultKey));
             

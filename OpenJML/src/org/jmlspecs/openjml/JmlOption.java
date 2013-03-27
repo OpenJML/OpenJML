@@ -55,6 +55,7 @@ public enum JmlOption implements IOption {
     NOINTERNALRUNTIME("-noInternalRuntime",false,"Disables automatically appending the internal JML runtime library to the classpath",null),
 
     SHOW_NOT_IMPLEMENTED("-showNotImplemented",false,"When on, warnings about unimplemented constructs are issued",null),
+    SHOW_NOT_EXECUTABLE("-showNotExecutable",false,"When on, warnings about non-executable constructs are issued",null),
 
     VERBOSENESS("-verboseness",true,"Level of verboseness (0=quiet...4=debug)",null),
     QUIET("-quiet",false,"Only output warnings and errors","-verboseness="+Utils.QUIET),

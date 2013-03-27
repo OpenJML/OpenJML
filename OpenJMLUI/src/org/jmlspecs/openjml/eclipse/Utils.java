@@ -2314,7 +2314,7 @@ public class Utils {
 					set.add(r);
 				else {
 					set.remove(r);
-					IPath p = new Path("racbin").append(r.getProjectRelativePath());
+					IPath p = new Path(getRacDir()).append(r.getProjectRelativePath());
 					p = p.removeFileExtension().addFileExtension(".class");
 					r.getProject().findMember(p).delete(true,null);
 				}
@@ -2327,7 +2327,7 @@ public class Utils {
 						set.add(r);
 					else {
 						set.remove(r);
-						IPath p = r.getProject().getProjectRelativePath().append("racbin").append(r.getProjectRelativePath().removeFirstSegments(1));
+						IPath p = r.getProject().getProjectRelativePath().append(getRacDir()).append(r.getProjectRelativePath().removeFirstSegments(1));
 						p = p.removeFileExtension().addFileExtension("class");
 						IProject pr = r.getProject();
 						IResource rr = pr.findMember(p);
@@ -2401,10 +2401,7 @@ public class Utils {
 	public IStatus racClear(IJavaProject jp,
 			final @Nullable Shell shell, IProgressMonitor monitor) {
 		boolean c = false;
-		String racFolder = Options.value(Options.racbinKey);
-		if (racFolder == null || racFolder.isEmpty()) {
-			racFolder = "racbin"; // FIXME _ reference this string somewhere
-		}
+		String racFolder = getRacDir();
 		IFolder dir = jp.getProject().getFolder(racFolder);
 		StringBuilder sb = new StringBuilder();
 		try {
@@ -2692,6 +2689,12 @@ public class Utils {
 			i++;
 		}
 		return -1;
+	}
+	
+	public String getRacDir() {
+ 	   String racdir = Options.value(Options.racbinKey);
+ 	   if (racdir == null || racdir.isEmpty()) racdir = "racbin";
+ 	   return racdir;
 	}
 
 	/**

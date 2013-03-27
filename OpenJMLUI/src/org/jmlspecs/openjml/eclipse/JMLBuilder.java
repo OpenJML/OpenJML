@@ -144,8 +144,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */  // FIXME - should this be done in a computational thread, with a progress monitor?
 	public void cleanRacbin(IProject p) {
 		try {
-			String racbin = Options.value(Options.racbinKey);
-			if (racbin == null || racbin.isEmpty()) racbin = "racbin";
+			String racbin = Activator.getDefault().utils.getRacDir();
 			IResource rf = p.findMember(Options.value(Options.racbinKey));
 			if (rf instanceof IFolder) {
 				IFolder f = (IFolder)rf;

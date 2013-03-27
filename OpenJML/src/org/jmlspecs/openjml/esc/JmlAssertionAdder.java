@@ -526,7 +526,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.pureCopy = !(esc||rac);
         this.treeMap.clear();
         this.nodeTranslation = new HashMap<JCExpression, JCExpression>();
-
+        racMessages.clear();
+        escMessages.clear();
     }
     
     // FIXME - this comment needs review and correction
@@ -2812,7 +2813,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - need assertions - any others?
                 JCFieldAccess fa = (JCFieldAccess)meth;
                 JCExpression sel = convertExpr(fa.selected);
-                if (!isATypeTree(sel) && !fa.sym.isStatic() && !JmlOption.isOption(context, JmlOption.NO_RAC_JAVA_CHECKS)) {
+                if (!isATypeTree(sel) && !fa.sym.isStatic() && javaChecks) {
                     // Check that sel is not null
                     JCExpression e = treeutils.makeNeqObject(sel.pos,sel,treeutils.nulllit);
                     addAssert(sel.pos(),Label.POSSIBLY_NULL,e);

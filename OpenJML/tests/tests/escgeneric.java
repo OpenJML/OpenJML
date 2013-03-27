@@ -55,7 +55,7 @@ public class escgeneric extends EscBase {
     }
     
     /** Tests that we can reason about the result of \\typeof */
-    @Test
+    @Test @Ignore
     public void testTypeOf() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -76,7 +76,7 @@ public class escgeneric extends EscBase {
                 );
     }
     
-    @Test
+    @Test @Ignore
     public void testGenericType() {
 //        options.put("-show","");
 //        options.put("-trace","");
@@ -116,7 +116,7 @@ public class escgeneric extends EscBase {
         );
     }
 
-    @Test
+    @Test @Ignore
     public void testStatic() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -137,7 +137,7 @@ public class escgeneric extends EscBase {
         );
     }
 
-    @Test
+    @Test @Ignore
     public void testTypeParameter() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -158,7 +158,7 @@ public class escgeneric extends EscBase {
                 );
     }
     
-    @Test
+    @Test  @Ignore
     public void testTypeParameter2() {
 //        options.put("-show","");
 //        options.put("-trace","");
